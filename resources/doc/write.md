@@ -15,10 +15,8 @@ nil
 
 ## examples
 
--- send to current port  
+-- write to current port  
 write("010203")
 
--- send to specific port index  
+-- write to specific port index  
 write("AT+RST\r\n", 1)
-
-[back](catalogue.md)

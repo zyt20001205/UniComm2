@@ -38,6 +38,10 @@ public:
 
     ~Port() override = default;
 
+    void portOpen(int index);
+
+    void portClose(int index);
+
     void portWrite(const QString &command, int index);
 
     QString portRead(int index);
@@ -57,6 +61,7 @@ private:
     QJsonArray m_portConfig = g_config["portConfig"].toArray();
     int m_currentIndex = 0;
     QList<BasePort *> m_portList;
+    QList<QPushButton *> m_buttonList;
     QTabWidget *m_tabWidget = nullptr;
     QPushButton *m_addButton = nullptr;
 

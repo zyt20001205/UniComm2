@@ -10,9 +10,12 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSplitter>
+#include <QStandardItem>
+#include <QStandardItemModel>
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QThread>
+#include <QTreeView>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <lua.hpp>
@@ -21,11 +24,11 @@
 
 class Port;
 
-class Script final : public QDockWidget {
+class Script final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Script(QObject *parent = nullptr);
+    explicit Script(QWidget *parent = nullptr);
 
     ~Script() override = default;
 
@@ -34,11 +37,15 @@ public:
 private:
     void uiInit();
 
-    void manualDisplay();
+    void manualUiInit();
 
     void scriptRun();
 
     static int luaPrint(lua_State *L);
+
+    static int luaOpen(lua_State *L);
+
+    static int luaClose(lua_State *L);
 
     static int luaWrite(lua_State *L);
 
@@ -52,13 +59,14 @@ private:
     QVBoxLayout *m_layout = nullptr;
     QWidget *m_scriptWidget = nullptr;
     QVBoxLayout *m_scriptLayout = nullptr;
-    QSplitter *m_splitter = nullptr;
     QTextEdit *m_textEdit = nullptr;
     QListWidget *m_listWidget = nullptr;
     QWidget *m_ctrlWidget = nullptr;
     QHBoxLayout *m_ctrlLayout = nullptr;
     QPushButton *m_runButton = nullptr;
     QPushButton *m_helpButton = nullptr;
+    QDialog *m_manualDialog = nullptr;
+    QTextBrowser *m_manualTextBrowser = nullptr;
 
     Port *m_port = nullptr;
 
@@ -69,6 +77,10 @@ private slots:
 
 signals:
     void start(QThread *worker);
+
+    void openPort(int index);
+
+    void closePort(int index);
 
     void writePort(const QString &command, int index);
 

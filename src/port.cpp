@@ -36,8 +36,9 @@ void Port::uiInit() {
             // ui init
             auto *button = new QPushButton("open", pageWidget);
             button->setCheckable(true);
-            connect(button, &QPushButton::toggled, this, &Port::portToggle);
             pageLayout->addWidget(button);
+            connect(button, &QPushButton::clicked, this, &Port::portToggle);
+            m_buttonList.append(button);
             //  port init
             auto *serialPort = new SerialPort(portInfo, this);
             connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
@@ -66,6 +67,32 @@ void Port::uiInit() {
     }
 }
 
+void Port::portOpen(const int index) {
+    if (index == -1) {
+        if (m_portList[m_currentIndex]->open()) {
+            m_buttonList[m_currentIndex]->setChecked(true);
+        } else {
+            m_buttonList[m_currentIndex]->setChecked(false);
+        }
+    } else {
+        if (m_portList[index]->open()) {
+            m_buttonList[index]->setChecked(true);
+        } else {
+            m_buttonList[index]->setChecked(false);
+        }
+    }
+}
+
+void Port::portClose(const int index) {
+    if (index == -1) {
+        m_portList[m_currentIndex]->close();
+        m_buttonList[m_currentIndex]->setChecked(false);
+    } else {
+        m_portList[index]->close();
+        m_buttonList[index]->setChecked(false);
+    }
+}
+
 void Port::portWrite(const QString &command, const int index) {
     if (index == -1)
         m_portList[m_currentIndex]->write(command);
@@ -79,11 +106,14 @@ QString Port::portRead(const int index) {
     return m_portList[index]->read();
 }
 
+
 void Port::portToggle(const bool status) {
-    if (status)
-        if (!m_portList[m_currentIndex]->open());
-        else
-            m_portList[m_currentIndex]->close();
+    if (status) {
+        if (!m_portList[m_currentIndex]->open()) {
+            m_buttonList[m_currentIndex]->setChecked(false);
+        }
+    } else
+        m_portList[m_currentIndex]->close();
 }
 
 void Port::portMenu(const int index, const QPoint &pos) {
@@ -426,11 +456,13 @@ void SerialPort::reload(const QJsonObject &portConfig) {
 
 bool SerialPort::open() {
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
+        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "opened"), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "opened");
         return true;
     }
+    emit appendLog(QString("%1 %2 %3: %4").arg("serial port", m_portName, "open failed", m_serialPort->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3 %4: %5").arg(timestamp, "serial port", m_portName, "open failed", m_serialPort->errorString());
@@ -439,9 +471,10 @@ bool SerialPort::open() {
 
 void SerialPort::close() {
     m_serialPort->close();
+    emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "closed"), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_portName, "closed");
+    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "closed");
 }
 
 void SerialPort::write(const QString &command) {
@@ -496,8 +529,7 @@ void SerialPort::handleWrite() {
     } else if (m_txFormat == "ascii") {
         message = QString::fromLatin1(data);
         m_txBuffer = message;
-    } else // m_txFormat == "utf-8"
-    {
+    } else /* m_txFormat == "utf-8" */ {
         message = QString::fromUtf8(data);
         m_txBuffer = message;
     }
@@ -514,8 +546,7 @@ void SerialPort::handleRead() {
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;
-        } else // m_rxFormat == "utf-8"
-        {
+        } else /* m_rxFormat == "utf-8" */ {
             message = QString::fromUtf8(data);
             m_rxBuffer = message;
         }

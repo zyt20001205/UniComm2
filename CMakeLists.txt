@@ -51,7 +51,9 @@ qt_add_resources(UniComm "doc_resources"
         PREFIX "/doc"
         BASE "resources/doc"
         FILES
-        "resources/doc/catalogue.md"
+        "resources/doc/close.md"
+        "resources/doc/open.md"
+        "resources/doc/read.md"
         "resources/doc/write.md"
 )
 
@@ -74,7 +76,7 @@ target_link_libraries(UniComm PRIVATE
         leptonica
 )
 
-target_include_directories(UniComm PRIVATE 
+target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE_DIR}
         ${TESSERACT_INCLUDE_DIR}
         ${LEPTONICA_INCLUDE_DIR}
@@ -112,31 +114,31 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${LUA_DIR}/lua54.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif()
-    
+    endif ()
+
     file(GLOB TESSERACT_DLLS "${TESSERACT_DIR}/bin/*.dll")
-    foreach(DLL ${TESSERACT_DLLS})
+    foreach (DLL ${TESSERACT_DLLS})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach()
+    endforeach ()
 
     file(GLOB TESSDATA_FILES "${TESSERACT_DIR}/lang/*.traineddata")
-    foreach(TESSDATA ${TESSDATA_FILES})
+    foreach (TESSDATA ${TESSDATA_FILES})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${TESSDATA}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach()
-    
+    endforeach ()
+
     if (EXISTS "${LEPTONICA_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${LEPTONICA_DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif()
-    
+    endif ()
+
     if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory

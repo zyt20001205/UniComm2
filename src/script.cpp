@@ -2,9 +2,10 @@
 
 static Script *g_script = nullptr;
 
-Script::Script(QObject *parent)
-    : QDockWidget("script", qobject_cast<QWidget *>(parent)) {
+Script::Script(QWidget *parent)
+    : QWidget(parent) {
     uiInit();
+    manualUiInit();
 
     connect(this, &Script::start, this, &Script::scriptRunning);
 
@@ -12,21 +13,22 @@ Script::Script(QObject *parent)
 }
 
 void Script::uiInit() {
-    m_widget = new QWidget();
-    m_layout = new QVBoxLayout(m_widget);
-    setWidget(m_widget);
+    m_layout = new QVBoxLayout(this);
 
     m_scriptWidget = new QWidget();
     m_layout->addWidget(m_scriptWidget);
     m_scriptWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_scriptLayout = new QVBoxLayout(m_scriptWidget);
-    m_splitter = new QSplitter(Qt::Horizontal, m_scriptWidget);
-    m_scriptLayout->addWidget(m_splitter);
+    const auto scriptSplitter = new QSplitter(Qt::Horizontal, m_scriptWidget);
+    m_scriptLayout->addWidget(scriptSplitter);
     m_textEdit = new QTextEdit();
-    m_splitter->addWidget(m_textEdit);
+    scriptSplitter->addWidget(m_textEdit);
     m_listWidget = new QListWidget();
-    m_splitter->addWidget(m_listWidget);
+    scriptSplitter->addWidget(m_listWidget);
     m_listWidget->setSpacing(5);
+
+    scriptSplitter->setStretchFactor(0, 5);
+    scriptSplitter->setStretchFactor(1, 1);
 
     m_ctrlWidget = new QWidget();
     m_layout->addWidget(m_ctrlWidget);
@@ -36,21 +38,59 @@ void Script::uiInit() {
     connect(m_runButton, &QPushButton::clicked, this, &Script::scriptRun);
     m_helpButton = new QPushButton("help");
     m_ctrlLayout->addWidget(m_helpButton);
-    connect(m_helpButton, &QPushButton::clicked, this, &Script::manualDisplay);
+    connect(m_helpButton, &QPushButton::clicked, this, [this] {
+        m_manualDialog->show();
+    });
 }
 
-void Script::manualDisplay() {
-    const auto dlg = new QDialog(this);
-    dlg->setWindowTitle("Manual");
-    dlg->resize(900, 600);
-    dlg->show();
-    const auto layout = new QVBoxLayout(dlg);
-    const auto view = new QTextBrowser(dlg);
-    layout->addWidget(view);
-    view->setOpenExternalLinks(true);
-    view->setSearchPaths(QStringList() << ":/doc");
-    view->setSource(QUrl("catalogue.md"));
-    view->document()->setDefaultFont(QFont("Consolas", 11));
+void Script::manualUiInit() {
+    m_manualDialog = new QDialog(this);
+    m_manualDialog->setWindowTitle("Manual");
+    m_manualDialog->resize(900, 600);
+    const auto manualLayout = new QVBoxLayout(m_manualDialog);
+    const auto manualSplitter = new QSplitter(Qt::Horizontal);
+    manualLayout->addWidget(manualSplitter);
+
+    const auto manualTreeView = new QTreeView();
+    manualSplitter->addWidget(manualTreeView);
+    manualTreeView->setHeaderHidden(true);
+
+    const auto manualStandardItemModel = new QStandardItemModel();
+    manualTreeView->setModel(manualStandardItemModel);
+
+    const auto manualPortStandardItem = new QStandardItem("port");
+    manualStandardItemModel->appendRow(manualPortStandardItem);
+    const auto manualOpenStandardItem = new QStandardItem("open");
+    manualPortStandardItem->appendRow(manualOpenStandardItem);
+    const auto manualCloseStandardItem = new QStandardItem("close");
+    manualPortStandardItem->appendRow(manualCloseStandardItem);
+    const auto manualWriteStandardItem = new QStandardItem("write");
+    manualPortStandardItem->appendRow(manualWriteStandardItem);
+    const auto manualReadStandardItem = new QStandardItem("read");
+    manualPortStandardItem->appendRow(manualReadStandardItem);
+
+    manualTreeView->expandAll();
+    connect(manualTreeView, &QTreeView::clicked, [this](const QModelIndex &index) {
+        if (const QString itemText = index.data(Qt::DisplayRole).toString(); itemText == "open") {
+            m_manualTextBrowser->setSource(QUrl("open.md"));
+        } else if (itemText == "close") {
+            m_manualTextBrowser->setSource(QUrl("close.md"));
+        } else if (itemText == "write") {
+            m_manualTextBrowser->setSource(QUrl("write.md"));
+        } else if (itemText == "read") {
+            m_manualTextBrowser->setSource(QUrl("read.md"));
+        }
+    });
+
+    m_manualTextBrowser = new QTextBrowser();
+    manualSplitter->addWidget(m_manualTextBrowser);
+    m_manualTextBrowser->setOpenExternalLinks(true);
+    m_manualTextBrowser->setSearchPaths(QStringList() << ":/doc");
+
+    m_manualTextBrowser->document()->setDefaultFont(QFont("Consolas", 11));
+
+    manualSplitter->setStretchFactor(0, 1);
+    manualSplitter->setStretchFactor(1, 3);
 }
 
 void Script::scriptRun() {
@@ -66,6 +106,8 @@ void Script::scriptRun() {
         luaL_openlibs(L);
         // register C++ functions
         lua_register(L, "print", Script::luaPrint);
+        lua_register(L, "open", Script::luaOpen);
+        lua_register(L, "close", Script::luaClose);
         lua_register(L, "write", Script::luaWrite);
         lua_register(L, "read", Script::luaRead);
         lua_register(L, "delay", Script::luaDelay);
@@ -124,6 +166,28 @@ int Script::luaPrint(lua_State *L) {
     if (g_script && !message.isEmpty()) {
         emit g_script->appendLog(message, "info");
     }
+    return 0;
+}
+
+int Script::luaOpen(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 1)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const int param = luaL_optinteger(L, 1, -1);
+    // start operation
+    emit g_script->openPort(param);
+    return 0;
+}
+
+int Script::luaClose(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 1)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const int param = luaL_optinteger(L, 1, -1);
+    // start operation
+    emit g_script->closePort(param);
     return 0;
 }
 
