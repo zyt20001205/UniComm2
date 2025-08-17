@@ -11,17 +11,19 @@ extern QJsonObject g_config;
 
 class Config {
 public:
-    Config(): configFile(QDir::current().filePath("config.json")) {
+    Config() : m_configFile(QDir::current().filePath("config.json")) {
     }
 
     void configInit();
+
+    void configSave();
 
 private:
     void configGenerate();
 
     void configLoad();
 
-    QFile configFile;
+    QFile m_configFile;
 };
 
 #endif //CONFIG_H

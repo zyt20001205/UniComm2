@@ -38,19 +38,20 @@ public:
 
     ~Port() override = default;
 
-    void portOpen(int index);
+    void portOpen(int index) const;
 
-    void portClose(int index);
+    void portClose(int index) const;
 
-    void portWrite(const QString &command, int index);
+    void portWrite(const QString &command, int index) const;
 
-    QString portRead(int index);
+    QString portRead(int index) const;
+
+public slots:
+    void portConfigSave() const;
 
     // port widget
 private:
     void uiInit();
-
-    void portToggle(bool status);
 
     void portMenu(int index, const QPoint &pos);
 
@@ -60,8 +61,6 @@ private:
 
     QJsonArray m_portConfig = g_config["portConfig"].toArray();
     int m_currentIndex = 0;
-    QList<BasePort *> m_portList;
-    QList<QPushButton *> m_buttonList;
     QTabWidget *m_tabWidget = nullptr;
     QPushButton *m_addButton = nullptr;
 
@@ -111,11 +110,50 @@ private:
     QGraphicsView *m_cameraAreaChooseGraphicsView = nullptr;
 
     // tx/rx
+    QWidget *m_txFormatWidget = nullptr;
+    QComboBox *m_txFormatCombobox = nullptr;
+    QWidget *m_txSuffixWidget = nullptr;
+    QComboBox *m_txSuffixCombobox = nullptr;
+    QWidget *m_txIntervalWidget = nullptr;
+    QSpinBox *m_txIntervalSpinBox = nullptr;
+    QWidget *m_rxFormatWidget = nullptr;
+    QComboBox *m_rxFormatCombobox = nullptr;
     QWidget *m_rxTimeoutWidget = nullptr;
     QSpinBox *m_rxTimeoutSpinBox = nullptr;
 
     // save button
     QPushButton *m_portSettingSavePushButton = nullptr;
+
+signals:
+    void appendLog(const QString &message, const QString &level);
+};
+
+class PageWidget final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit PageWidget(QObject *parent = nullptr);
+
+    ~PageWidget() override = default;
+
+    void uiInit(const QJsonObject &portConfig);
+
+    void portOpen() const;
+
+    void portClose() const;
+
+    void portWrite(const QString &command) const;
+
+    QString portRead() const;
+
+    void portReload(const QJsonObject &portConfig) const;
+
+private:
+    QPushButton *m_pushButton = nullptr;
+    BasePort *m_port = nullptr;
+
+private slots:
+    void portToggle(bool status);
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -137,6 +175,9 @@ public:
     virtual void write(const QString &content) = 0;
 
     virtual QString read() = 0;
+
+signals:
+    void appendLog(const QString &message, const QString &level);
 };
 
 class SerialPort final : public BasePort {
@@ -154,22 +195,6 @@ public:
     void write(const QString &command) override;
 
     QString read() override;
-
-signals:
-    void connected();
-
-    void disconnected();
-
-    void readyRead();
-
-    void errorOccurred(const QString &error);
-
-    void appendLog(const QString &message, const QString &level);
-
-private slots:
-    void handleRead();
-
-    void handleError();
 
 private:
     void handleWrite();
@@ -195,6 +220,20 @@ private:
 
     QString m_txBuffer;
     QString m_rxBuffer;
+
+private slots:
+    void handleRead();
+
+    void handleError();
+
+signals:
+    void connected();
+
+    void disconnected();
+
+    void readyRead();
+
+    void errorOccurred(const QString &error);
 };
 
 class Camera final : public BasePort {

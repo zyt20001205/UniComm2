@@ -6,32 +6,29 @@ Script::Script(QWidget *parent)
     : QWidget(parent) {
     uiInit();
     manualUiInit();
-
-    connect(this, &Script::start, this, &Script::scriptRunning);
-
     g_script = this;
 }
 
 void Script::uiInit() {
-    m_layout = new QVBoxLayout(this);
+    const auto layout = new QVBoxLayout(this); // NOLINT
 
     m_scriptWidget = new QWidget();
-    m_layout->addWidget(m_scriptWidget);
+    layout->addWidget(m_scriptWidget);
     m_scriptWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    m_scriptLayout = new QVBoxLayout(m_scriptWidget);
-    const auto scriptSplitter = new QSplitter(Qt::Horizontal, m_scriptWidget);
-    m_scriptLayout->addWidget(scriptSplitter);
+    const auto scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
+    const auto scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
+    scriptLayout->addWidget(scriptSplitter);
     m_textEdit = new QTextEdit();
     scriptSplitter->addWidget(m_textEdit);
     m_listWidget = new QListWidget();
     scriptSplitter->addWidget(m_listWidget);
     m_listWidget->setSpacing(5);
 
-    scriptSplitter->setStretchFactor(0, 5);
+    scriptSplitter->setStretchFactor(0, 4);
     scriptSplitter->setStretchFactor(1, 1);
 
     m_ctrlWidget = new QWidget();
-    m_layout->addWidget(m_ctrlWidget);
+    layout->addWidget(m_ctrlWidget);
     m_ctrlLayout = new QHBoxLayout(m_ctrlWidget);
     m_runButton = new QPushButton("run");
     m_ctrlLayout->addWidget(m_runButton);
@@ -47,26 +44,26 @@ void Script::manualUiInit() {
     m_manualDialog = new QDialog(this);
     m_manualDialog->setWindowTitle("Manual");
     m_manualDialog->resize(900, 600);
-    const auto manualLayout = new QVBoxLayout(m_manualDialog);
-    const auto manualSplitter = new QSplitter(Qt::Horizontal);
+    const auto manualLayout = new QVBoxLayout(m_manualDialog); // NOLINT
+    const auto manualSplitter = new QSplitter(Qt::Horizontal); // NOLINT
     manualLayout->addWidget(manualSplitter);
 
-    const auto manualTreeView = new QTreeView();
+    const auto manualTreeView = new QTreeView(); // NOLINT
     manualSplitter->addWidget(manualTreeView);
     manualTreeView->setHeaderHidden(true);
 
-    const auto manualStandardItemModel = new QStandardItemModel();
+    const auto manualStandardItemModel = new QStandardItemModel(); // NOLINT
     manualTreeView->setModel(manualStandardItemModel);
 
-    const auto manualPortStandardItem = new QStandardItem("port");
+    const auto manualPortStandardItem = new QStandardItem("port"); // NOLINT
     manualStandardItemModel->appendRow(manualPortStandardItem);
-    const auto manualOpenStandardItem = new QStandardItem("open");
+    const auto manualOpenStandardItem = new QStandardItem("open"); // NOLINT
     manualPortStandardItem->appendRow(manualOpenStandardItem);
-    const auto manualCloseStandardItem = new QStandardItem("close");
+    const auto manualCloseStandardItem = new QStandardItem("close"); // NOLINT
     manualPortStandardItem->appendRow(manualCloseStandardItem);
-    const auto manualWriteStandardItem = new QStandardItem("write");
+    const auto manualWriteStandardItem = new QStandardItem("write"); // NOLINT
     manualPortStandardItem->appendRow(manualWriteStandardItem);
-    const auto manualReadStandardItem = new QStandardItem("read");
+    const auto manualReadStandardItem = new QStandardItem("read"); // NOLINT
     manualPortStandardItem->appendRow(manualReadStandardItem);
 
     manualTreeView->expandAll();
@@ -124,7 +121,7 @@ void Script::scriptRun() {
     connect(worker, &QThread::finished, this, &Script::scriptFinished);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     worker->start();
-    emit start(worker);
+    scriptRunning(worker);
 }
 
 void Script::scriptRunning(QThread *worker) {

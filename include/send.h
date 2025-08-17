@@ -20,15 +20,7 @@ public:
     void commandSend();
 
 private:
-    void uiInit();
-
-    QWidget *m_widget = nullptr;
-    QHBoxLayout *m_layout = nullptr;
     QTextEdit *m_textEdit = nullptr;
-
-    QVBoxLayout *m_ctrlLayout = nullptr;
-    QWidget *m_controlWidget = nullptr;
-    QPushButton *m_sendButton = nullptr;
 
 signals:
     void writePort(const QString &command, int index);

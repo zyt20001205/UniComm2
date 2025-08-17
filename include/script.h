@@ -55,10 +55,7 @@ private:
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
 
-    QWidget *m_widget = nullptr;
-    QVBoxLayout *m_layout = nullptr;
     QWidget *m_scriptWidget = nullptr;
-    QVBoxLayout *m_scriptLayout = nullptr;
     QTextEdit *m_textEdit = nullptr;
     QListWidget *m_listWidget = nullptr;
     QWidget *m_ctrlWidget = nullptr;
@@ -71,13 +68,12 @@ private:
     Port *m_port = nullptr;
 
 private slots:
-    void scriptRunning(QThread *worker);
-
     void scriptFinished();
 
-signals:
-    void start(QThread *worker);
+private:
+    void scriptRunning(QThread *worker);
 
+signals:
     void openPort(int index);
 
     void closePort(int index);

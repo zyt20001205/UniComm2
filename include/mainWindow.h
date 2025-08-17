@@ -3,8 +3,16 @@
 
 #include <QDateTime>
 #include <QDockWidget>
+#include <QKeySequence>
 #include <QMainWindow>
+#include <QShortcut>
 #include <QWidget>
+#include "config.h"
+#include "log.h"
+#include "mainWindow.h"
+#include "port.h"
+#include "script.h"
+#include "send.h"
 
 class MainWindow final : public QMainWindow {
     Q_OBJECT
@@ -15,7 +23,22 @@ public:
     ~MainWindow() override = default;
 
 private:
-    void uiInit();
+    void init();
+
+    void configInit();
+
+    void moduleInit();
+
+    void shortcutInit();
+
+    Config *m_configModule = nullptr;
+    Script *m_scriptModule = nullptr;
+    Port *m_portModule = nullptr;
+    Send *m_sendModule = nullptr;
+    Log *m_logModule = nullptr;
+
+signals:
+    void appendLog(const QString &message, const QString &level);
 };
 
 #endif //MAINWINDOW_H

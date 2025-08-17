@@ -3,7 +3,7 @@
 QJsonObject g_config;
 
 void Config::configInit() {
-    if (configFile.exists()) {
+    if (m_configFile.exists()) {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "config found");
@@ -17,9 +17,14 @@ void Config::configInit() {
 }
 
 void Config::configGenerate() {
-    if (configFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    if (m_configFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
             {"version", "1.0.0"},
+            {
+                "shortcutConfig", QJsonObject{
+                    {"save", "Ctrl+S"}
+                },
+            },
             {
                 "logConfig", QJsonObject{
                     {"timestamp", true},
@@ -29,14 +34,15 @@ void Config::configGenerate() {
                 },
             },
             {
-                "portConfig", QJsonArray{},
+                "portConfig", QJsonArray{
+                },
             },
         };
         // load to g_config
         g_config = json;
         const QJsonDocument doc(json);
-        configFile.write(doc.toJson(QJsonDocument::Indented));
-        configFile.close();
+        m_configFile.write(doc.toJson(QJsonDocument::Indented));
+        m_configFile.close();
     } else {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -48,13 +54,23 @@ void Config::configGenerate() {
 }
 
 void Config::configLoad() {
-    configFile.open(QIODevice::ReadOnly | QIODevice::Text);
-    const QByteArray jsonData = configFile.readAll();
+    m_configFile.open(QIODevice::ReadOnly | QIODevice::Text);
+    const QByteArray jsonData = m_configFile.readAll();
     if (const QJsonDocument doc = QJsonDocument::fromJson(jsonData); doc.isObject()) {
         g_config = doc.object();
     }
-    configFile.close();
+    m_configFile.close();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "config loaded");
+}
+
+void Config::configSave() {
+    m_configFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    const QJsonDocument doc(g_config);
+    m_configFile.write(doc.toJson());
+    m_configFile.close();
+    // logging
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "config saved");
 }

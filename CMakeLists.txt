@@ -30,7 +30,6 @@ find_package(Qt6 COMPONENTS Core Gui Widgets SerialPort Svg REQUIRED)
 
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
-        include/init.h
         include/config.h
         include/log.h
         include/port.h
@@ -38,7 +37,6 @@ qt_add_executable(UniComm src/main.cpp
         include/script.h
         include/suffix.h
         src/mainWindow.cpp
-        src/init.cpp
         src/config.cpp
         src/log.cpp
         src/port.cpp

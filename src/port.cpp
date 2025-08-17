@@ -22,101 +22,76 @@ void Port::uiInit() {
         portSettingLoad(-1);
     });
     // init port tab
-    const auto portCount = m_portConfig.size();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
-    for (int i = 0; i < portCount; ++i) {
-        QJsonObject portInfo = m_portConfig[i].toObject();
-        QString portType = portInfo["portType"].toString();
-        QString portName = portInfo["portName"].toString();
-        auto *pageWidget = new QWidget(m_tabWidget);
-        auto *pageLayout = new QVBoxLayout(pageWidget);
-        if (portType == "serial port") {
-            // ui init
-            auto *button = new QPushButton("open", pageWidget);
-            button->setCheckable(true);
-            pageLayout->addWidget(button);
-            connect(button, &QPushButton::clicked, this, &Port::portToggle);
-            m_buttonList.append(button);
-            //  port init
-            auto *serialPort = new SerialPort(portInfo, this);
-            connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
-            m_portList.append(serialPort);
-            // logging
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", portName, "loaded");
-        } else if (portType == "tcp client") {
-        } else if (portType == "tcp server") {
-        } else if (portType == "udp socket") {
-        } else /* portType == "camera" */ {
-            // ui init
-            // auto *button = new QPushButton("open", pageWidget);
-            // button->setCheckable(true);
-            // connect(button, &QPushButton::toggled, this, &Port::portToggle);
-            // pageLayout->addWidget(button);
-            //  port init
-            auto *camera = new Camera(portInfo, this);
-            // connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
-            m_portList.append(camera);
-            // logging
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
-        }
-        m_tabWidget->addTab(pageWidget, portName);
-    }
-}
-
-void Port::portOpen(const int index) {
-    if (index == -1) {
-        if (m_portList[m_currentIndex]->open()) {
-            m_buttonList[m_currentIndex]->setChecked(true);
-        } else {
-            m_buttonList[m_currentIndex]->setChecked(false);
-        }
+    if (const auto portCount = m_portConfig.size(); portCount == 0) {
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "no port config found, create a welcome page");
+        auto welcomePage = new QWidget(); // NOLINT
+        auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
+        auto welcomeLabel = new QLabel("welcome"); // NOLINT
+        welcomeLayout->addWidget(welcomeLabel);
+        m_tabWidget->addTab(welcomePage, "welcome");
     } else {
-        if (m_portList[index]->open()) {
-            m_buttonList[index]->setChecked(true);
-        } else {
-            m_buttonList[index]->setChecked(false);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
+        for (int i = 0; i < portCount; ++i) {
+            QJsonObject portConfig = m_portConfig[i].toObject();
+            auto *pageWidget = new PageWidget(m_tabWidget); // NOLINT
+            pageWidget->uiInit(portConfig);
+            QString portName = portConfig["portName"].toString();
+            m_tabWidget->addTab(pageWidget, portName);
+            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
         }
     }
 }
 
-void Port::portClose(const int index) {
+void Port::portConfigSave() const {
+    g_config["portConfig"] = m_portConfig;
+}
+
+void Port::portOpen(const int index) const {
     if (index == -1) {
-        m_portList[m_currentIndex]->close();
-        m_buttonList[m_currentIndex]->setChecked(false);
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+        pageWidget->portOpen();
     } else {
-        m_portList[index]->close();
-        m_buttonList[index]->setChecked(false);
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
+        pageWidget->portOpen();
     }
 }
 
-void Port::portWrite(const QString &command, const int index) {
-    if (index == -1)
-        m_portList[m_currentIndex]->write(command);
-    else
-        m_portList[index]->write(command);
+void Port::portClose(const int index) const {
+    if (index == -1) {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+        pageWidget->portClose();
+    } else {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
+        pageWidget->portClose();
+    }
 }
 
-QString Port::portRead(const int index) {
-    if (index == -1)
-        return m_portList[m_currentIndex]->read();
-    return m_portList[index]->read();
+void Port::portWrite(const QString &command, const int index) const {
+    if (index == -1) {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+        pageWidget->portWrite(command);
+    } else {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
+        pageWidget->portWrite(command);
+    }
 }
 
-
-void Port::portToggle(const bool status) {
-    if (status) {
-        if (!m_portList[m_currentIndex]->open()) {
-            m_buttonList[m_currentIndex]->setChecked(false);
-        }
-    } else
-        m_portList[m_currentIndex]->close();
+QString Port::portRead(const int index) const {
+    if (index == -1) {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+        return pageWidget->portRead();
+    }
+    const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+    return pageWidget->portRead();
 }
 
 void Port::portMenu(const int index, const QPoint &pos) {
+    if (m_portConfig.size() == 0)
+        return;
     m_tabWidget->setCurrentIndex(index);
     QMenu menu;
     menu.addAction("edit", [this, index]() {
@@ -130,6 +105,8 @@ void Port::portMenu(const int index, const QPoint &pos) {
 }
 
 void Port::portSelected(const int index) {
+    if (m_portConfig.size() == 0)
+        return;
     m_currentIndex = index;
     QJsonObject portInfo = m_portConfig[index].toObject();
     QString portType = portInfo["portType"].toString();
@@ -158,9 +135,9 @@ void Port::portSettingUiInit() {
 
         m_portTypeWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_portTypeWidget);
-        const auto portTypeLayout = new QHBoxLayout(m_portTypeWidget);
+        const auto portTypeLayout = new QHBoxLayout(m_portTypeWidget); // NOLINT
         portTypeLayout->setContentsMargins(0, 0, 0, 0);
-        const auto portTypeLabel = new QLabel("port type");
+        const auto portTypeLabel = new QLabel("port type"); // NOLINT
         portTypeLayout->addWidget(portTypeLabel);
         m_portTypeCombobox = new QComboBox();
         portTypeLayout->addWidget(m_portTypeCombobox);
@@ -171,32 +148,28 @@ void Port::portSettingUiInit() {
     {
         m_serialPortNameWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_serialPortNameWidget);
-        const auto serialPortNameLayout = new QHBoxLayout(m_serialPortNameWidget);
+        const auto serialPortNameLayout = new QHBoxLayout(m_serialPortNameWidget); // NOLINT
         serialPortNameLayout->setContentsMargins(0, 0, 0, 0);
-        const auto serialPortNameLabel = new QLabel("port name");
+        const auto serialPortNameLabel = new QLabel("port name"); // NOLINT
         serialPortNameLayout->addWidget(serialPortNameLabel);
         m_serialPortNameCombobox = new QComboBox();
         serialPortNameLayout->addWidget(m_serialPortNameCombobox);
-        for (QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts(); const QSerialPortInfo &port: ports) {
-            m_serialPortNameCombobox->addItem(port.portName() + " " + port.description(), port.portName());
-        }
 
         m_serialPortBaudRateWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_serialPortBaudRateWidget);
-        const auto serialPortBaudRateLayout = new QHBoxLayout(m_serialPortBaudRateWidget);
+        const auto serialPortBaudRateLayout = new QHBoxLayout(m_serialPortBaudRateWidget); // NOLINT
         serialPortBaudRateLayout->setContentsMargins(0, 0, 0, 0);
-        const auto serialPortBaudRateLabel = new QLabel("baud rate");
+        const auto serialPortBaudRateLabel = new QLabel("baud rate"); // NOLINT
         serialPortBaudRateLayout->addWidget(serialPortBaudRateLabel);
         m_serialPortBaudRateSpinBox = new QSpinBox();
         serialPortBaudRateLayout->addWidget(m_serialPortBaudRateSpinBox);
         m_serialPortBaudRateSpinBox->setRange(1, 5000000);
-        m_serialPortBaudRateSpinBox->setValue(115200);
 
         m_serialPortDataBitsWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_serialPortDataBitsWidget);
-        const auto serialPortDataBitsLayout = new QHBoxLayout(m_serialPortDataBitsWidget);
+        const auto serialPortDataBitsLayout = new QHBoxLayout(m_serialPortDataBitsWidget); // NOLINT
         serialPortDataBitsLayout->setContentsMargins(0, 0, 0, 0);
-        const auto serialPortDataBitsLabel = new QLabel("databits");
+        const auto serialPortDataBitsLabel = new QLabel("databits"); // NOLINT
         serialPortDataBitsLayout->addWidget(serialPortDataBitsLabel);
         m_serialPortDataBitsCombobox = new QComboBox();
         serialPortDataBitsLayout->addWidget(m_serialPortDataBitsCombobox);
@@ -204,13 +177,12 @@ void Port::portSettingUiInit() {
         m_serialPortDataBitsCombobox->addItem("6", 6);
         m_serialPortDataBitsCombobox->addItem("7", 7);
         m_serialPortDataBitsCombobox->addItem("8", 8);
-        m_serialPortDataBitsCombobox->setCurrentText("8");
 
         m_serialPortParityWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_serialPortParityWidget);
-        const auto serialPortParityLayout = new QHBoxLayout(m_serialPortParityWidget);
+        const auto serialPortParityLayout = new QHBoxLayout(m_serialPortParityWidget); // NOLINT
         serialPortParityLayout->setContentsMargins(0, 0, 0, 0);
-        const auto serialPortParityLabel = new QLabel("parity");
+        const auto serialPortParityLabel = new QLabel("parity"); // NOLINT
         serialPortParityLayout->addWidget(serialPortParityLabel);
         m_serialPortParityCombobox = new QComboBox();
         serialPortParityLayout->addWidget(m_serialPortParityCombobox);
@@ -219,20 +191,18 @@ void Port::portSettingUiInit() {
         m_serialPortParityCombobox->addItem("odd", 3);
         m_serialPortParityCombobox->addItem("space", 4);
         m_serialPortParityCombobox->addItem("mark", 5);
-        m_serialPortParityCombobox->setCurrentText("no");
 
         m_serialPortStopBitsWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_serialPortStopBitsWidget);
-        const auto serialPortStopBitsLayout = new QHBoxLayout(m_serialPortStopBitsWidget);
+        const auto serialPortStopBitsLayout = new QHBoxLayout(m_serialPortStopBitsWidget); // NOLINT
         serialPortStopBitsLayout->setContentsMargins(0, 0, 0, 0);
-        const auto serialPortStopBitsLabel = new QLabel("stop bits");
+        const auto serialPortStopBitsLabel = new QLabel("stop bits"); // NOLINT
         serialPortStopBitsLayout->addWidget(serialPortStopBitsLabel);
         m_serialPortStopBitsCombobox = new QComboBox();
         serialPortStopBitsLayout->addWidget(m_serialPortStopBitsCombobox);
         m_serialPortStopBitsCombobox->addItem("1", 1);
         m_serialPortStopBitsCombobox->addItem("1.5", 3);
         m_serialPortStopBitsCombobox->addItem("2", 2);
-        m_serialPortStopBitsCombobox->setCurrentText("1");
     }
     // init camera settings
     {
@@ -244,9 +214,6 @@ void Port::portSettingUiInit() {
         cameraLayout->addWidget(cameraNameLabel);
         m_cameraNameCombobox = new QComboBox();
         cameraLayout->addWidget(m_cameraNameCombobox);
-        for (const QList<QScreen *> screens = QGuiApplication::screens(); const QScreen *screen: screens) {
-            m_cameraNameCombobox->addItem(screen->name() + " " + QString::number(screen->size().width()) + "x" + QString::number(screen->size().height()), screen->name());
-        }
 
         m_cameraAreaWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_cameraAreaWidget);
@@ -271,17 +238,57 @@ void Port::portSettingUiInit() {
     }
     // init tx/rx settings
     {
+        m_txFormatWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_txFormatWidget);
+        const auto txFormatLayout = new QHBoxLayout(m_txFormatWidget); // NOLINT
+        txFormatLayout->setContentsMargins(0, 0, 0, 0);
+        const auto txFormatLabel = new QLabel("tx format"); // NOLINT
+        txFormatLayout->addWidget(txFormatLabel);
+        m_txFormatCombobox = new QComboBox();
+        txFormatLayout->addWidget(m_txFormatCombobox);
+        m_txFormatCombobox->addItems(QStringList{"hex", "ascii", "utf-8"});
+
+        m_txSuffixWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_txSuffixWidget);
+        const auto txSuffixLayout = new QHBoxLayout(m_txSuffixWidget); // NOLINT
+        txSuffixLayout->setContentsMargins(0, 0, 0, 0);
+        const auto txSuffixLabel = new QLabel("tx suffix"); // NOLINT
+        txSuffixLayout->addWidget(txSuffixLabel);
+        m_txSuffixCombobox = new QComboBox();
+        txSuffixLayout->addWidget(m_txSuffixCombobox);
+        m_txSuffixCombobox->addItems(QStringList{"null", "crlf", "crc8 maxim", "crc16 modbus"});
+
+        m_txIntervalWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_txIntervalWidget);
+        const auto txIntervalLayout = new QHBoxLayout(m_txIntervalWidget); // NOLINT
+        txIntervalLayout->setContentsMargins(0, 0, 0, 0);
+        const auto txIntervalLabel = new QLabel("tx interval"); // NOLINT
+        txIntervalLayout->addWidget(txIntervalLabel);
+        m_txIntervalSpinBox = new QSpinBox();
+        txIntervalLayout->addWidget(m_txIntervalSpinBox);
+        m_txIntervalSpinBox->setRange(0, 1000);
+        m_txIntervalSpinBox->setSuffix("ms");
+
+        m_rxFormatWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_rxFormatWidget);
+        const auto rxFormatLayout = new QHBoxLayout(m_rxFormatWidget); // NOLINT
+        rxFormatLayout->setContentsMargins(0, 0, 0, 0);
+        const auto rxFormatLabel = new QLabel("rx format"); // NOLINT
+        rxFormatLayout->addWidget(rxFormatLabel);
+        m_rxFormatCombobox = new QComboBox();
+        rxFormatLayout->addWidget(m_rxFormatCombobox);
+        m_rxFormatCombobox->addItems(QStringList{"hex", "ascii", "utf-8"});
+
         m_rxTimeoutWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_rxTimeoutWidget);
-        const auto timeoutLayout = new QHBoxLayout(m_rxTimeoutWidget);
-        timeoutLayout->setContentsMargins(0, 0, 0, 0);
-        const auto rxTimeoutLabel = new QLabel("rx timeout");
-        timeoutLayout->addWidget(rxTimeoutLabel);
+        const auto rxTimeoutLayout = new QHBoxLayout(m_rxTimeoutWidget); // NOLINT
+        rxTimeoutLayout->setContentsMargins(0, 0, 0, 0);
+        const auto rxTimeoutLabel = new QLabel("rx timeout"); // NOLINT
+        rxTimeoutLayout->addWidget(rxTimeoutLabel);
         m_rxTimeoutSpinBox = new QSpinBox();
-        timeoutLayout->addWidget(m_rxTimeoutSpinBox);
+        rxTimeoutLayout->addWidget(m_rxTimeoutSpinBox);
         m_rxTimeoutSpinBox->setRange(0, 1000);
         m_rxTimeoutSpinBox->setSuffix("ms");
-        m_rxTimeoutSpinBox->setValue(0);
     }
     // init setting save button
     m_portSettingSavePushButton = new QPushButton("save setting");
@@ -297,6 +304,17 @@ void Port::portSettingLoad(const int index) {
         m_currentIndex = -1;
         m_portTypeCombobox->setCurrentIndex(0);
         portSettingWidgetReset();
+        // serial port
+        m_serialPortBaudRateSpinBox->setValue(115200);
+        m_serialPortDataBitsCombobox->setCurrentText("8");
+        m_serialPortParityCombobox->setCurrentText("no");
+        m_serialPortStopBitsCombobox->setCurrentText("1");
+        // tx/rx
+        m_txFormatCombobox->setCurrentText("hex");
+        m_txSuffixCombobox->setCurrentText("null");
+        m_txIntervalSpinBox->setValue(0);
+        m_rxFormatCombobox->setCurrentText("hex");
+        m_rxTimeoutSpinBox->setValue(0);
     } else {
         m_currentIndex = m_tabWidget->currentIndex();
         QJsonObject portInfo = m_portConfig[index].toObject();
@@ -312,6 +330,10 @@ void Port::portSettingLoad(const int index) {
             m_serialPortParityCombobox->setCurrentIndex(i);
             i = m_serialPortStopBitsCombobox->findData(portInfo["stopBits"].toInt());
             m_serialPortStopBitsCombobox->setCurrentIndex(i);
+            m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
+            m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
+            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
+            m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
             m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp client") {
         } else if (portType == "tcp server") {
@@ -328,14 +350,26 @@ void Port::portSettingWidgetReset() const {
     m_portTypeCombobox->setEnabled(true);
     // serial port setting widget
     m_serialPortNameWidget->hide();
+    m_serialPortNameCombobox->clear();
+    for (QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts(); const QSerialPortInfo &port: ports) {
+        m_serialPortNameCombobox->addItem(port.portName() + " " + port.description(), port.portName());
+    }
     m_serialPortBaudRateWidget->hide();
     m_serialPortDataBitsWidget->hide();
     m_serialPortParityWidget->hide();
     m_serialPortStopBitsWidget->hide();
     // camera setting widget
     m_cameraNameWidget->hide();
+    m_cameraNameCombobox->clear();
+    for (const QList<QScreen *> screens = QGuiApplication::screens(); const QScreen *screen: screens) {
+        m_cameraNameCombobox->addItem(screen->name() + " " + QString::number(screen->size().width()) + "x" + QString::number(screen->size().height()), screen->name());
+    }
     m_cameraAreaWidget->hide();
     // rx/tx setting widget
+    m_txFormatWidget->hide();
+    m_txSuffixWidget->hide();
+    m_txIntervalWidget->hide();
+    m_rxFormatWidget->hide();
     m_rxTimeoutWidget->hide();
     // save button
     m_portSettingSavePushButton->hide();
@@ -352,19 +386,38 @@ void Port::portSettingTypeSwitch(const int type) {
         m_serialPortDataBitsWidget->show();
         m_serialPortParityWidget->show();
         m_serialPortStopBitsWidget->show();
+        m_txFormatWidget->show();
+        m_txSuffixWidget->show();
+        m_txIntervalWidget->show();
+        m_rxFormatWidget->show();
         m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 2) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
+        m_txFormatWidget->show();
+        m_txSuffixWidget->show();
+        m_txIntervalWidget->show();
+        m_rxFormatWidget->show();
+        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 3) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
+        m_txFormatWidget->show();
+        m_txSuffixWidget->show();
+        m_txIntervalWidget->show();
+        m_rxFormatWidget->show();
+        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 4) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
+        m_txFormatWidget->show();
+        m_txSuffixWidget->show();
+        m_txIntervalWidget->show();
+        m_rxFormatWidget->show();
+        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else {
         portSettingWidgetReset();
@@ -383,12 +436,25 @@ void Port::portSettingSave(const int type) {
         portConfig["dataBits"] = m_serialPortDataBitsCombobox->currentData().toInt();
         portConfig["parity"] = m_serialPortParityCombobox->currentData().toInt();
         portConfig["stopBits"] = m_serialPortStopBitsCombobox->currentData().toInt();
+        portConfig["txFormat"] = m_txFormatCombobox->currentText();
+        portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+        portConfig["txInterval"] = m_txIntervalSpinBox->value();
+        portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
         portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
+            if (m_portConfig.size() == 0) {
+                m_tabWidget->removeTab(0);
+            }
             m_portConfig.append(portConfig);
+            auto *pageWidget = new PageWidget(m_tabWidget); // NOLINT
+            pageWidget->uiInit(portConfig);
+            const QString portName = portConfig["portName"].toString();
+            m_tabWidget->addTab(pageWidget, portName);
+            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
-            m_portList[m_currentIndex]->reload(portConfig);
+            const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+            pageWidget->portReload(portConfig);
         }
     } else if (type == 2) {
     } else if (type == 3) {
@@ -396,6 +462,77 @@ void Port::portSettingSave(const int type) {
     } else {
     }
     m_portSettingDialog->hide();
+}
+
+PageWidget::PageWidget(QObject *parent) {
+}
+
+void PageWidget::uiInit(const QJsonObject &portConfig) {
+    QString timestamp;
+    auto *pageLayout = new QVBoxLayout(this); // NOLINT
+    const QString portType = portConfig["portType"].toString();
+    QString portName = portConfig["portName"].toString();
+    if (portType == "serial port") {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        //  port init
+        m_port = new SerialPort(portConfig, this);
+        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", portName, "loaded");
+    } else if (portType == "tcp client") {
+    } else if (portType == "tcp server") {
+    } else if (portType == "udp socket") {
+    } else /* portType == "camera" */ {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        //  port init
+        m_port = new Camera(portConfig, this);
+        // connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
+    }
+}
+
+void PageWidget::portOpen() const {
+    if (m_port->open()) {
+        m_pushButton->setChecked(true);
+    } else {
+        m_pushButton->setChecked(false);
+    }
+}
+
+void PageWidget::portClose() const {
+    m_port->close();
+}
+
+void PageWidget::portWrite(const QString &command) const {
+    m_port->write(command);
+}
+
+QString PageWidget::portRead() const {
+    return m_port->read();
+}
+
+void PageWidget::portReload(const QJsonObject &portConfig) const {
+    m_port->reload(portConfig);
+}
+
+void PageWidget::portToggle(const bool status) {
+    if (status) {
+        if (!m_port->open()) {
+            m_pushButton->setChecked(false);
+        }
+    } else
+        m_port->close();
 }
 
 SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_serialPort(new QSerialPort(this)) {
@@ -411,14 +548,12 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePor
     m_serialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_dataBits));
     m_serialPort->setParity(static_cast<QSerialPort::Parity>(m_parity));
     m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_stopBits));
-    // tx config
+    // tx/rx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
     m_txInterval = portConfig["txInterval"].toInt();
-    // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
     m_rxTimeout = portConfig["rxTimeout"].toInt();
-    m_rxForward = portConfig["rxForward"].toString();
     // connect slot
     connect(m_serialPort, &QSerialPort::readyRead, this, [this]() {
         QTimer::singleShot(m_rxTimeout, this, &SerialPort::handleRead);
@@ -478,6 +613,14 @@ void SerialPort::close() {
 }
 
 void SerialPort::write(const QString &command) {
+    // check serial port status
+    if (!m_serialPort->isOpen()) {
+        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "is not opened"), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "is not opened");
+        return;
+    }
     // remove space
     QString f_command = command;
     if (m_txFormat == "hex")
@@ -490,7 +633,7 @@ void SerialPort::write(const QString &command) {
         suffix = crc8Maxim(command);
     else if (m_txSuffix == "crc16 modbus")
         suffix = crc16Modbus(command);
-    else // m_txSuffix == none
+    else /* m_txSuffix == "null" */
         suffix = "";
     const QString j_command = command + suffix;
     // command reformat
