@@ -8,8 +8,9 @@
 #include <QShortcut>
 #include <QWidget>
 #include "config.h"
-#include "log.h"
 #include "mainWindow.h"
+#include "explorer.h"
+#include "log.h"
 #include "port.h"
 #include "script.h"
 #include "send.h"
@@ -35,6 +36,7 @@ private:
     Script *m_scriptModule = nullptr;
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;
+    Explorer *m_explorerModule = nullptr;
     Log *m_logModule = nullptr;
 
 signals:

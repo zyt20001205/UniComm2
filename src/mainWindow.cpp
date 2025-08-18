@@ -55,6 +55,12 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
 
+    m_explorerModule = new Explorer(this);
+    this->addDockWidget(Qt::LeftDockWidgetArea, m_explorerModule);
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "explorer module initialized");
+
     m_logModule = new Log(this);
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
     // logging
@@ -64,6 +70,8 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_sendModule, &Send::writePort, m_portModule, &Port::portWrite);
+    connect(m_explorerModule, &Explorer::loadScript, m_scriptModule, &Script::scriptLoad);
+    connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openPort, m_portModule, &Port::portOpen);
     connect(m_scriptModule, &Script::closePort, m_portModule, &Port::portClose);
     connect(m_scriptModule, &Script::writePort, m_portModule, &Port::portWrite);
@@ -77,6 +85,7 @@ void MainWindow::shortcutInit() {
     auto shortcutSave = new QShortcut(QKeySequence(shortcutConfig["save"].toString()), this); // NOLINT
     connect(shortcutSave, &QShortcut::activated, m_portModule, [this] {
         m_portModule->portConfigSave();
+        m_scriptModule->scriptConfigSave();
         m_configModule->configSave();
         emit appendLog("workspace saved", "info");
     });

@@ -31,6 +31,7 @@ find_package(Qt6 COMPONENTS Core Gui Widgets SerialPort Svg REQUIRED)
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
         include/config.h
+        include/explorer.h
         include/log.h
         include/port.h
         include/send.h
@@ -38,11 +39,13 @@ qt_add_executable(UniComm src/main.cpp
         include/suffix.h
         src/mainWindow.cpp
         src/config.cpp
+        src/explorer.cpp
         src/log.cpp
         src/port.cpp
         src/send.cpp
         src/script.cpp
         src/suffix.cpp
+
 )
 
 qt_add_resources(UniComm "doc_resources"
@@ -60,6 +63,7 @@ qt_add_resources(UniComm "icon_resources"
         BASE "resources/icon"
         FILES
         "resources/icon/add.svg"
+        "resources/icon/send.svg"
         "resources/icon/stop.svg"
 )
 

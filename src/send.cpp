@@ -2,21 +2,19 @@
 
 Send::Send(QObject *parent)
     : QDockWidget("send", qobject_cast<QWidget *>(parent)) {
-    const auto widget = new QWidget(); // NOLINT
-    const auto layout = new QHBoxLayout(widget); // NOLINT
+    auto *widget = new QWidget(); // NOLINT
+    auto *layout = new QHBoxLayout(widget); // NOLINT
     setWidget(widget);
 
-    m_textEdit = new QTextEdit();
+    m_textEdit = new QLineEdit();
     layout->addWidget(m_textEdit);
-
-    const auto controlWidget = new QWidget(); // NOLINT
-    layout->addWidget(controlWidget);
-    const auto ctrlLayout = new QVBoxLayout(controlWidget); // NOLINT
-    const auto sendButton = new QPushButton("Send"); // NOLINT
+    auto *sendButton = new QPushButton(); // NOLINT
+    layout->addWidget(sendButton);
+    sendButton->setFixedSize(24, 24);
+    sendButton->setIcon(QIcon(":/icon/send.svg"));
     connect(sendButton, &QPushButton::clicked, this, &Send::commandSend);
-    ctrlLayout->addWidget(sendButton);
 }
 
 void Send::commandSend() {
-    emit writePort(m_textEdit->toPlainText(), -1);
+    emit writePort(m_textEdit->text(), -1);
 }

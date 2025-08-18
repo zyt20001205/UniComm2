@@ -4,16 +4,19 @@
 #include <QDockWidget>
 #include <QDialog>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QJsonObject>
 #include <QLabel>
 #include <QListWidget>
+#include <QMessageBox>
+#include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSplitter>
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include <QSyntaxHighlighter>
 #include <QTextBrowser>
-#include <QTextEdit>
 #include <QThread>
 #include <QTreeView>
 #include <QVBoxLayout>
@@ -23,6 +26,8 @@
 #include "port.h"
 
 class Port;
+
+class ScriptEditor;
 
 class Script final : public QWidget {
     Q_OBJECT
@@ -34,12 +39,17 @@ public:
 
     void setPort(Port *port) { m_port = port; }
 
-private:
-    void uiInit();
+public slots:
+    void scriptLoad(const QString &scriptPath);
 
+    void scriptConfigSave() const;
+
+private:
     void manualUiInit();
 
     void scriptRun();
+
+    void scriptRunning(QThread *worker);
 
     static int luaPrint(lua_State *L);
 
@@ -53,25 +63,20 @@ private:
 
     static int luaDelay(lua_State *L);
 
-    QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
+    QString m_scriptConfig = g_config["scriptConfig"].toString();
 
     QWidget *m_scriptWidget = nullptr;
-    QTextEdit *m_textEdit = nullptr;
-    QListWidget *m_listWidget = nullptr;
+    ScriptEditor *m_scriptPlainTextEdit = nullptr;
+    QListWidget *m_scriptListWidget = nullptr;
     QWidget *m_ctrlWidget = nullptr;
     QHBoxLayout *m_ctrlLayout = nullptr;
-    QPushButton *m_runButton = nullptr;
-    QPushButton *m_helpButton = nullptr;
     QDialog *m_manualDialog = nullptr;
     QTextBrowser *m_manualTextBrowser = nullptr;
 
     Port *m_port = nullptr;
 
 private slots:
-    void scriptFinished();
-
-private:
-    void scriptRunning(QThread *worker);
+    void scriptSave();
 
 signals:
     void openPort(int index);
@@ -81,6 +86,27 @@ signals:
     void writePort(const QString &command, int index);
 
     void appendLog(const QString &message, const QString &level);
+};
+
+class ScriptEditor final : public QPlainTextEdit {
+    Q_OBJECT
+
+public:
+    explicit ScriptEditor(QWidget *parent = nullptr);
+
+    ~ScriptEditor() override = default;
+};
+
+class ScriptHighlighter final : public QSyntaxHighlighter {
+    Q_OBJECT
+
+public:
+    explicit ScriptHighlighter(QTextDocument *parent = nullptr);
+
+    ~ScriptHighlighter() override = default;
+
+protected:
+    void highlightBlock(const QString &text) override;
 };
 
 #endif //SCRIPT_H

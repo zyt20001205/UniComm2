@@ -37,6 +37,9 @@ void Config::configGenerate() {
                 "portConfig", QJsonArray{
                 },
             },
+            {
+                "scriptConfig", ""
+            },
         };
         // load to g_config
         g_config = json;

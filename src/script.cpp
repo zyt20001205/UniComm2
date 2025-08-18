@@ -4,40 +4,95 @@ static Script *g_script = nullptr;
 
 Script::Script(QWidget *parent)
     : QWidget(parent) {
-    uiInit();
+    // script module init
+    {
+        const auto layout = new QVBoxLayout(this); // NOLINT
+        m_scriptWidget = new QWidget();
+        layout->addWidget(m_scriptWidget);
+        m_scriptWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        const auto scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
+        const auto scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
+        scriptLayout->addWidget(scriptSplitter);
+        m_scriptPlainTextEdit = new ScriptEditor();
+        scriptSplitter->addWidget(m_scriptPlainTextEdit);
+        m_scriptPlainTextEdit->setPlainText(m_scriptConfig);
+        m_scriptPlainTextEdit->document()->setDefaultFont(QFont("Consolas", 11));
+        new ScriptHighlighter(m_scriptPlainTextEdit->document());
+        m_scriptListWidget = new QListWidget();
+        scriptSplitter->addWidget(m_scriptListWidget);
+        m_scriptListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
+
+        scriptSplitter->setStretchFactor(0, 3);
+        scriptSplitter->setStretchFactor(1, 1);
+
+        m_ctrlWidget = new QWidget();
+        layout->addWidget(m_ctrlWidget);
+        m_ctrlLayout = new QHBoxLayout(m_ctrlWidget);
+        auto *runButton = new QPushButton("run"); // NOLINT
+        m_ctrlLayout->addWidget(runButton);
+        connect(runButton, &QPushButton::clicked, this, &Script::scriptRun);
+        auto *saveButton = new QPushButton("save"); // NOLINT
+        m_ctrlLayout->addWidget(saveButton);
+        connect(saveButton, &QPushButton::clicked, this, &Script::scriptSave);
+        auto *helpButton = new QPushButton("help"); // NOLINT
+        m_ctrlLayout->addWidget(helpButton);
+        connect(helpButton, &QPushButton::clicked, this, [this] {
+            m_manualDialog->show();
+        });
+    }
     manualUiInit();
     g_script = this;
 }
 
-void Script::uiInit() {
-    const auto layout = new QVBoxLayout(this); // NOLINT
+void Script::scriptLoad(const QString &scriptPath) {
+    QFile file(scriptPath);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    const QString content = in.readAll();
+    file.close();
+    m_scriptPlainTextEdit->setPlainText(content);
 
-    m_scriptWidget = new QWidget();
-    layout->addWidget(m_scriptWidget);
-    m_scriptWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    const auto scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
-    const auto scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
-    scriptLayout->addWidget(scriptSplitter);
-    m_textEdit = new QTextEdit();
-    scriptSplitter->addWidget(m_textEdit);
-    m_listWidget = new QListWidget();
-    scriptSplitter->addWidget(m_listWidget);
-    m_listWidget->setSpacing(5);
+    const QFileInfo fileInfo(scriptPath);
+    QString fileName = fileInfo.fileName();
+    emit appendLog(QString("%1 %2").arg(fileName, "loaded"), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "loaded");
+}
 
-    scriptSplitter->setStretchFactor(0, 4);
-    scriptSplitter->setStretchFactor(1, 1);
+void Script::scriptSave() {
+    bool ok;
+    QString fileName = QInputDialog::getText(nullptr, "Save Script", "script name:", QLineEdit::Normal, QString(), &ok);
+    if (!ok || fileName.isEmpty()) {
+        return;
+    }
+    fileName += ".lua";
+    const QString filePath = QDir::current().filePath("script/" + fileName);
 
-    m_ctrlWidget = new QWidget();
-    layout->addWidget(m_ctrlWidget);
-    m_ctrlLayout = new QHBoxLayout(m_ctrlWidget);
-    m_runButton = new QPushButton("run");
-    m_ctrlLayout->addWidget(m_runButton);
-    connect(m_runButton, &QPushButton::clicked, this, &Script::scriptRun);
-    m_helpButton = new QPushButton("help");
-    m_ctrlLayout->addWidget(m_helpButton);
-    connect(m_helpButton, &QPushButton::clicked, this, [this] {
-        m_manualDialog->show();
-    });
+    if (QFile::exists(filePath)) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
+        if (reply != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    QFile file(filePath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << m_scriptPlainTextEdit->toPlainText();
+    file.close();
+
+    emit appendLog(QString("%1 %2").arg(fileName, "loaded"), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "loaded");
+}
+
+void Script::scriptConfigSave() const {
+    // m_scriptConfig = m_scriptPlainTextEdit->toPlainText();
+    // g_config["scriptConfig"] = m_scriptConfig;
+    g_config["scriptConfig"] = m_scriptPlainTextEdit->toPlainText();
 }
 
 void Script::manualUiInit() {
@@ -91,7 +146,7 @@ void Script::manualUiInit() {
 }
 
 void Script::scriptRun() {
-    const QString script = m_textEdit->toPlainText();
+    const QString script = m_scriptPlainTextEdit->toPlainText();
     if (script.isEmpty()) {
         emit appendLog("script is empty", "warning");
         return;
@@ -118,37 +173,34 @@ void Script::scriptRun() {
         // close interpreter
         lua_close(L);
     });
-    connect(worker, &QThread::finished, this, &Script::scriptFinished);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    worker->start();
     scriptRunning(worker);
+    worker->start();
 }
 
 void Script::scriptRunning(QThread *worker) {
-    auto *scriptItem = new QListWidgetItem();
-    m_listWidget->addItem(scriptItem);
-    auto *scriptBar = new QWidget(m_listWidget);
-    m_listWidget->setItemWidget(scriptItem, scriptBar);
-    scriptBar->setMinimumHeight(40);
-    auto *scriptLayout = new QHBoxLayout(scriptBar);
-    scriptLayout->setContentsMargins(5, 0, 5, 0);
-    auto *scriptLabel = new QLabel(QDateTime::currentDateTime().toString("HH:mm:ss.zzz") + " editor");
-    scriptLayout->addWidget(scriptLabel);
-    auto *scriptProgressBar = new QProgressBar();
-    scriptLayout->addWidget(scriptProgressBar);
-    scriptProgressBar->setFixedHeight(10);
-    scriptProgressBar->setRange(0, 0);
-    auto *abortButton = new QPushButton();
-    scriptLayout->addWidget(abortButton);
+    auto *scriptListWidgetItem = new QListWidgetItem(); // NOLINT
+    m_scriptListWidget->addItem(scriptListWidgetItem);
+
+    connect(worker, &QThread::finished, this, [this,scriptListWidgetItem] {
+        const int row = m_scriptListWidget->row(scriptListWidgetItem);
+        m_scriptListWidget->takeItem(row);
+        delete scriptListWidgetItem;
+    });
+
+    auto *scriptInfoWidget = new QWidget(); // NOLINT
+    m_scriptListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
+    auto *scriptInfoLayout = new QHBoxLayout(scriptInfoWidget); // NOLINT
+    scriptInfoLayout->setContentsMargins(5, 0, 5, 0);
+    auto *scriptLabel = new QLabel(QDateTime::currentDateTime().toString("HH:mm:ss") + " editor"); // NOLINT
+    scriptInfoLayout->addWidget(scriptLabel);
+    auto *abortButton = new QPushButton(); // NOLINT
+    scriptInfoLayout->addWidget(abortButton);
     abortButton->setFixedSize(24, 24);
     abortButton->setIcon(QIcon(":/icon/stop.svg"));
     connect(abortButton, &QPushButton::clicked, this, [worker]() {
         worker->terminate();
     });
-}
-
-void Script::scriptFinished() {
-    qDebug() << "script finished";
 }
 
 int Script::luaPrint(lua_State *L) {
@@ -224,4 +276,57 @@ int Script::luaDelay(lua_State *L) {
     // start operation
     QThread::msleep(param);
     return 0;
+}
+
+
+ScriptEditor::ScriptEditor(QWidget *parent) {
+}
+
+ScriptHighlighter::ScriptHighlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
+}
+
+void ScriptHighlighter::highlightBlock(const QString &text) {
+    QTextCharFormat format;
+    QStringList words;
+    // functions
+    format.setForeground(QColor("#008683"));
+    words = {"close", "delay", "open", "print", "read", "write"};
+    foreach(const QString &word, words) {
+        QRegularExpression expression("\\b" + word + "\\b");
+        QRegularExpressionMatchIterator it = expression.globalMatch(text);
+        while (it.hasNext()) {
+            QRegularExpressionMatch match = it.next();
+            setFormat(match.capturedStart(), match.capturedLength(), format);
+        }
+    }
+    // keywords
+    format.setForeground(QColor("#A71D5D"));
+    words = {
+        "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
+        "while"
+    };
+    foreach(const QString &word, words) {
+        QRegularExpression expression("\\b" + word + "\\b");
+        QRegularExpressionMatchIterator it = expression.globalMatch(text);
+        while (it.hasNext()) {
+            QRegularExpressionMatch match = it.next();
+            setFormat(match.capturedStart(), match.capturedLength(), format);
+        }
+    }
+    // string
+    format.setForeground(QColor("#183691"));
+    QRegularExpression expression(R"xx("([^"\\]|\\.)*")xx");
+    QRegularExpressionMatchIterator it = expression.globalMatch(text);
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+        setFormat(match.capturedStart(), match.capturedLength(), format);
+    }
+    // comment
+    format.setForeground(QColor("#969896"));
+    expression = QRegularExpression(R"(--[^\n]*)");
+    it = expression.globalMatch(text);
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+        setFormat(match.capturedStart(), match.capturedLength(), format);
+    }
 }

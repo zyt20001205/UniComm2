@@ -3,8 +3,8 @@
 
 #include <QDockWidget>
 #include <QHBoxLayout>
+#include <QLineEdit>
 #include <QPushButton>
-#include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
 #include "config.h"
@@ -20,7 +20,7 @@ public:
     void commandSend();
 
 private:
-    QTextEdit *m_textEdit = nullptr;
+    QLineEdit *m_textEdit = nullptr;
 
 signals:
     void writePort(const QString &command, int index);

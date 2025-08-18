@@ -8,13 +8,13 @@ Port::Port(QObject *parent)
 
 void Port::uiInit() {
     m_tabWidget = new QTabWidget();
+    setWidget(m_tabWidget);
     connect(m_tabWidget, &QTabWidget::currentChanged, this, &Port::portSelected);
     m_tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_tabWidget->tabBar(), &QTabBar::customContextMenuRequested, this, [this](const QPoint &pos) {
         const int index = m_tabWidget->tabBar()->tabAt(pos);
         portMenu(index, pos);
     });
-    setWidget(m_tabWidget);
     m_addButton = new QPushButton(m_tabWidget);
     m_addButton->setIcon(QIcon(":/icon/add.svg"));
     m_tabWidget->setCornerWidget(m_addButton, Qt::TopRightCorner);
