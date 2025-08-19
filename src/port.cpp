@@ -204,6 +204,50 @@ void Port::portSettingUiInit() {
         m_serialPortStopBitsCombobox->addItem("1.5", 3);
         m_serialPortStopBitsCombobox->addItem("2", 2);
     }
+    // init tcp client settings
+    {
+        m_tcpServerAddressWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpServerAddressWidget);
+        const auto tcpServerAddressLayout = new QHBoxLayout(m_tcpServerAddressWidget); // NOLINT
+        tcpServerAddressLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpServerAddressLabel = new QLabel("server adress"); // NOLINT
+        tcpServerAddressLayout->addWidget(tcpServerAddressLabel);
+        m_tcpServerAddressLineEdit = new QLineEdit();
+        tcpServerAddressLayout->addWidget(m_tcpServerAddressLineEdit);
+
+        m_tcpServerPortWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpServerPortWidget);
+        const auto tcpServerPortLayout = new QHBoxLayout(m_tcpServerPortWidget); // NOLINT
+        tcpServerPortLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpServerPortLabel = new QLabel("server port"); // NOLINT
+        tcpServerPortLayout->addWidget(tcpServerPortLabel);
+        m_tcpServerPortSpinBox = new QSpinBox();
+        tcpServerPortLayout->addWidget(m_tcpServerPortSpinBox);
+        m_tcpServerPortSpinBox->setRange(0, 65536);
+    }
+    // init tcp server settings
+    {
+        m_tcpClientAddressWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpClientAddressWidget);
+        const auto tcpClientAddressLayout = new QHBoxLayout(m_tcpClientAddressWidget); // NOLINT
+        tcpClientAddressLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpClientAddressLabel = new QLabel("client adress"); // NOLINT
+        tcpClientAddressLayout->addWidget(tcpClientAddressLabel);
+        m_tcpClientAddressLineEdit = new QLineEdit();
+        tcpClientAddressLayout->addWidget(m_tcpClientAddressLineEdit);
+
+        m_tcpClientPortWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpClientPortWidget);
+        const auto tcpClientPortLayout = new QHBoxLayout(m_tcpClientPortWidget); // NOLINT
+        tcpClientPortLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpClientPortLabel = new QLabel("client port"); // NOLINT
+        tcpClientPortLayout->addWidget(tcpClientPortLabel);
+        m_tcpClientPortSpinBox = new QSpinBox();
+        tcpClientPortLayout->addWidget(m_tcpClientPortSpinBox);
+        m_tcpClientPortSpinBox->setRange(0, 65536);
+    }
+    // init udp socket settings
+
     // init camera settings
     {
         m_cameraNameWidget = new QWidget(m_portSettingDialog);
@@ -336,7 +380,21 @@ void Port::portSettingLoad(const int index) {
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
             m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp client") {
+            m_tcpServerAddressLineEdit->setText(portInfo["tcpServerAddress"].toString());
+            m_tcpServerPortSpinBox->setValue(portInfo["tcpServerPort"].toInt());
+            m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
+            m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
+            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
+            m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
+            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp server") {
+            m_tcpClientAddressLineEdit->setText(portInfo["tcpClientAddress"].toString());
+            m_tcpClientPortSpinBox->setValue(portInfo["tcpClientPort"].toInt());
+            m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
+            m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
+            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
+            m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
+            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "udp socket") {
         } else /* portType == "camera" */ {
             int i = m_cameraNameCombobox->findData(portInfo["portName"].toString());
@@ -358,6 +416,14 @@ void Port::portSettingWidgetReset() const {
     m_serialPortDataBitsWidget->hide();
     m_serialPortParityWidget->hide();
     m_serialPortStopBitsWidget->hide();
+    // tcp client setting widget
+    m_tcpServerAddressWidget->hide();
+    m_tcpServerPortWidget->hide();
+    // tcp server setting widget
+    m_tcpClientAddressWidget->hide();
+    m_tcpClientPortWidget->hide();
+    // udp socket setting widget
+
     // camera setting widget
     m_cameraNameWidget->hide();
     m_cameraNameCombobox->clear();
@@ -395,6 +461,8 @@ void Port::portSettingTypeSwitch(const int type) {
     } else if (type == 2) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
+        m_tcpServerAddressWidget->show();
+        m_tcpServerPortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
         m_txIntervalWidget->show();
@@ -404,6 +472,8 @@ void Port::portSettingTypeSwitch(const int type) {
     } else if (type == 3) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
+        m_tcpClientAddressWidget->show();
+        m_tcpClientPortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
         m_txIntervalWidget->show();
@@ -457,7 +527,57 @@ void Port::portSettingSave(const int type) {
             pageWidget->portReload(portConfig);
         }
     } else if (type == 2) {
+        QJsonObject portConfig;
+        portConfig["portType"] = "tcp client";
+        portConfig["portName"] = "tcp client";
+        portConfig["tcpServerAddress"] = m_tcpServerAddressLineEdit->text();
+        portConfig["tcpServerPort"] = m_tcpServerPortSpinBox->value();
+        portConfig["txFormat"] = m_txFormatCombobox->currentText();
+        portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+        portConfig["txInterval"] = m_txIntervalSpinBox->value();
+        portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
+        if (m_currentIndex == -1) {
+            if (m_portConfig.size() == 0) {
+                m_tabWidget->removeTab(0);
+            }
+            m_portConfig.append(portConfig);
+            auto *pageWidget = new PageWidget(m_tabWidget); // NOLINT
+            pageWidget->uiInit(portConfig);
+            const QString portName = portConfig["portName"].toString();
+            m_tabWidget->addTab(pageWidget, portName);
+            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+        } else {
+            m_portConfig[m_currentIndex] = portConfig;
+            const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+            pageWidget->portReload(portConfig);
+        }
     } else if (type == 3) {
+        QJsonObject portConfig;
+        portConfig["portType"] = "tcp server";
+        portConfig["portName"] = "tcp server";
+        portConfig["clientAddress"] = m_tcpClientAddressLineEdit->text();
+        portConfig["clientPort"] = m_tcpClientPortSpinBox->value();
+        portConfig["txFormat"] = m_txFormatCombobox->currentText();
+        portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+        portConfig["txInterval"] = m_txIntervalSpinBox->value();
+        portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
+        if (m_currentIndex == -1) {
+            if (m_portConfig.size() == 0) {
+                m_tabWidget->removeTab(0);
+            }
+            m_portConfig.append(portConfig);
+            // auto *pageWidget = new PageWidget(m_tabWidget); // NOLINT
+            // pageWidget->uiInit(portConfig);
+            // const QString portName = portConfig["portName"].toString();
+            // m_tabWidget->addTab(pageWidget, portName);
+            // connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+        } else {
+            // m_portConfig[m_currentIndex] = portConfig;
+            // const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+            // pageWidget->portReload(portConfig);
+        }
     } else if (type == 4) {
     } else {
     }
@@ -485,6 +605,17 @@ void PageWidget::uiInit(const QJsonObject &portConfig) {
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", portName, "loaded");
     } else if (portType == "tcp client") {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        //  port init
+        m_port = new TcpClient(portConfig, this);
+        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp client", portName, "loaded");
     } else if (portType == "tcp server") {
     } else if (portType == "udp socket") {
     } else /* portType == "camera" */ {
@@ -512,6 +643,7 @@ void PageWidget::portOpen() const {
 
 void PageWidget::portClose() const {
     m_port->close();
+    m_pushButton->setChecked(false);
 }
 
 void PageWidget::portWrite(const QString &command) const {
@@ -523,6 +655,8 @@ QString PageWidget::portRead() const {
 }
 
 void PageWidget::portReload(const QJsonObject &portConfig) const {
+    m_port->close();
+    m_pushButton->setChecked(false);
     m_port->reload(portConfig);
 }
 
@@ -651,10 +785,6 @@ void SerialPort::write(const QString &command) {
     }
 }
 
-QString SerialPort::read() {
-    return m_rxBuffer;
-}
-
 void SerialPort::handleWrite() {
     QByteArray data;
     if (!m_txQueue.isEmpty()) {
@@ -668,16 +798,17 @@ void SerialPort::handleWrite() {
     QString message;
     if (m_txFormat == "hex") {
         message = data.toHex(' ').toUpper();
-        m_txBuffer = data.toHex().toUpper();
     } else if (m_txFormat == "ascii") {
         message = QString::fromLatin1(data);
-        m_txBuffer = message;
     } else /* m_txFormat == "utf-8" */ {
         message = QString::fromUtf8(data);
-        m_txBuffer = message;
     }
     message = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), message);
     emit appendLog(message, "tx");
+}
+
+QString SerialPort::read() {
+    return m_rxBuffer;
 }
 
 void SerialPort::handleRead() {
@@ -699,6 +830,159 @@ void SerialPort::handleRead() {
 }
 
 void SerialPort::handleError() {
+}
+
+TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_tcpClient(new QTcpSocket(this)) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_tcpServerAddress = portConfig["tcpServerAddress"].toString();
+    m_tcpServerPort = portConfig["tcpServerPort"].toInt();
+    // port init
+    m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+    // tx/rx config
+    m_txFormat = portConfig["txFormat"].toString();
+    m_txSuffix = portConfig["txSuffix"].toString();
+    m_txInterval = portConfig["txInterval"].toInt();
+    m_rxFormat = portConfig["rxFormat"].toString();
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
+    // connect slot
+    connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
+    connect(m_tcpClient, &QTcpSocket::disconnected, this, &TcpClient::handleDisconnected);
+    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this]() {
+        QTimer::singleShot(m_rxTimeout, this, &TcpClient::handleRead);
+    });
+    connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
+}
+
+void TcpClient::reload(const QJsonObject &portConfig) {
+    // port config
+    m_tcpServerAddress = portConfig["tcpServerAddress"].toString();
+    m_tcpServerPort = portConfig["tcpServerPort"].toInt();
+    // tx config
+    m_txFormat = portConfig["txFormat"].toString();
+    m_txSuffix = portConfig["txSuffix"].toString();
+    m_txInterval = portConfig["txInterval"].toInt();
+    // rx config
+    m_rxFormat = portConfig["rxFormat"].toString();
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
+    m_rxForward = portConfig["rxForward"].toString();
+    // connect slot
+    disconnect(m_tcpClient, &QTcpSocket::readyRead, this, nullptr);
+    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this]() {
+        QTimer::singleShot(m_rxTimeout, this, &TcpClient::handleRead);
+    });
+}
+
+void TcpClient::handleConnected() {
+    m_tcpClientAddress = m_tcpClient->localAddress().toString();
+    m_tcpClientPort = m_tcpClient->localPort();
+    emit appendLog(QString("%1 %2:%3").arg("tcp client connected to", m_tcpServerAddress, QString::number(m_tcpServerPort)), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client connected to", m_tcpServerAddress, QString::number(m_tcpServerPort));
+}
+
+void TcpClient::handleDisconnected() {
+    emit appendLog(QString("%1 %2:%3").arg("tcp client disconnected from", m_tcpServerAddress, QString::number(m_tcpServerPort)), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_tcpServerAddress, QString::number(m_tcpServerPort));
+}
+
+bool TcpClient::open() {
+    m_tcpClient->connectToHost(m_tcpServerAddress, m_tcpServerPort);
+    return true;
+}
+
+void TcpClient::close() {
+    m_tcpClient->disconnectFromHost();
+}
+
+void TcpClient::write(const QString &command) {
+    // check serial port status
+    if (!m_tcpClient->isOpen()) {
+        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "is not opened"), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "is not opened");
+        return;
+    }
+    // remove space
+    QString f_command = command;
+    if (m_txFormat == "hex")
+        f_command.remove(" ");
+    // suffix attach
+    QString suffix;
+    if (m_txSuffix == "crlf")
+        suffix = "\r\n";
+    else if (m_txSuffix == "crc8 maxim")
+        suffix = crc8Maxim(command);
+    else if (m_txSuffix == "crc16 modbus")
+        suffix = crc16Modbus(command);
+    else /* m_txSuffix == "null" */
+        suffix = "";
+    const QString j_command = command + suffix;
+    // command reformat
+    QByteArray data;
+    if (m_txFormat == "hex") {
+        data = QByteArray::fromHex(j_command.toUtf8());
+    } else if (m_txFormat == "ascii")
+        data = j_command.toLatin1();
+    else // txFormat == "utf-8"
+        data = j_command.toUtf8();
+    m_txQueue.append(data);
+    if (!m_txBlock) {
+        m_txBlock = true;
+        handleWrite();
+    }
+}
+
+void TcpClient::handleWrite() {
+    QByteArray data;
+    if (!m_txQueue.isEmpty()) {
+        data = m_txQueue.takeFirst();
+        m_tcpClient->write(data);
+        QTimer::singleShot(m_txInterval, this, &TcpClient::handleWrite);
+    } else {
+        m_txBlock = false;
+        return;
+    }
+    QString message;
+    if (m_txFormat == "hex") {
+        message = data.toHex(' ').toUpper();
+    } else if (m_txFormat == "ascii") {
+        message = QString::fromLatin1(data);
+    } else /* m_txFormat == "utf-8" */ {
+        message = QString::fromUtf8(data);
+    }
+    message = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientAddress, QString::number(m_tcpClientPort), m_tcpServerAddress, QString::number(m_tcpServerPort), message);
+    emit appendLog(message, "tx");
+}
+
+QString TcpClient::read() {
+    return m_rxBuffer;
+}
+
+void TcpClient::handleRead() {
+    if (const QByteArray data = m_tcpClient->readAll(); !data.isEmpty()) {
+        QString message;
+        if (m_rxFormat == "hex") {
+            message = data.toHex(' ').toUpper();
+            m_rxBuffer = data.toHex().toUpper();
+        } else if (m_rxFormat == "ascii") {
+            message = QString::fromLatin1(data);
+            m_rxBuffer = message;
+        } else /* m_rxFormat == "utf-8" */ {
+            message = QString::fromUtf8(data);
+            m_rxBuffer = message;
+        }
+        message = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientAddress, QString::number(m_tcpClientPort), m_tcpServerAddress, QString::number(m_tcpServerPort), message);
+        emit appendLog(message, "rx");
+    }
+}
+
+void TcpClient::handleError() {
 }
 
 Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_camera(new QObject(this)) {

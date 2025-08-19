@@ -10,6 +10,7 @@
 #include <QGraphicsView>
 #include <QImage>
 #include <QLabel>
+#include <QLineEdit>
 #include <QList>
 #include <QMenu>
 #include <QPixmap>
@@ -19,6 +20,8 @@
 #include <QSerialPortInfo>
 #include <QSpinbox>
 #include <QTabWidget>
+#include <QTcpSocket>
+#include <QThread>
 #include <QTimer>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -96,8 +99,16 @@ private:
     QComboBox *m_serialPortStopBitsCombobox = nullptr;
 
     // tcp client
+    QWidget *m_tcpServerAddressWidget = nullptr;
+    QLineEdit *m_tcpServerAddressLineEdit = nullptr;
+    QWidget *m_tcpServerPortWidget = nullptr;
+    QSpinBox *m_tcpServerPortSpinBox = nullptr;
 
     // tcp server
+    QWidget *m_tcpClientAddressWidget = nullptr;
+    QLineEdit *m_tcpClientAddressLineEdit = nullptr;
+    QWidget *m_tcpClientPortWidget = nullptr;
+    QSpinBox *m_tcpClientPortSpinBox = nullptr;
 
     // udp socket
 
@@ -218,10 +229,68 @@ private:
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
 
-    QString m_txBuffer;
     QString m_rxBuffer;
 
 private slots:
+    void handleRead();
+
+    void handleError();
+
+signals:
+    void connected();
+
+    void disconnected();
+
+    void readyRead();
+
+    void errorOccurred(const QString &error);
+};
+
+class TcpClient final : public BasePort {
+    Q_OBJECT
+
+public:
+    explicit TcpClient(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    bool open() override;
+
+    void close() override;
+
+    void write(const QString &command) override;
+
+    QString read() override;
+
+private:
+    void handleWrite();
+
+    QTcpSocket *m_tcpClient;
+    // port config
+    QString m_portName;
+    QString m_tcpClientAddress;
+    int m_tcpClientPort;
+    QString m_tcpServerAddress;
+    int m_tcpServerPort;
+    // tx config
+    QString m_txFormat;
+    QString m_txSuffix;
+    int m_txInterval;
+    // rx config
+    QString m_rxFormat;
+    int m_rxTimeout;
+    QString m_rxForward;
+    //
+    QList<QByteArray> m_txQueue;
+    bool m_txBlock = false;
+
+    QString m_rxBuffer;
+
+private slots:
+    void handleConnected();
+
+    void handleDisconnected();
+
     void handleRead();
 
     void handleError();

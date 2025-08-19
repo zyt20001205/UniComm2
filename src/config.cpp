@@ -26,19 +26,22 @@ void Config::configGenerate() {
                 },
             },
             {
+                "portConfig", QJsonArray{
+                },
+            },
+            {
+                "sendConfig", ""
+            },
+            {
+                "scriptConfig", ""
+            },
+            {
                 "logConfig", QJsonObject{
                     {"timestamp", true},
                     {"scrollLock", false},
                     {"wrap", "no"},
                     {"length", 1000}
                 },
-            },
-            {
-                "portConfig", QJsonArray{
-                },
-            },
-            {
-                "scriptConfig", ""
             },
         };
         // load to g_config

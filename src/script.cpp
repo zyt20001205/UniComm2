@@ -15,7 +15,7 @@ Script::Script(QWidget *parent)
         scriptLayout->addWidget(scriptSplitter);
         m_scriptPlainTextEdit = new ScriptEditor();
         scriptSplitter->addWidget(m_scriptPlainTextEdit);
-        m_scriptPlainTextEdit->setPlainText(m_scriptConfig);
+        m_scriptPlainTextEdit->setPlainText(g_config["scriptConfig"].toString());
         m_scriptPlainTextEdit->document()->setDefaultFont(QFont("Consolas", 11));
         new ScriptHighlighter(m_scriptPlainTextEdit->document());
         m_scriptListWidget = new QListWidget();
@@ -83,15 +83,13 @@ void Script::scriptSave() {
     out << m_scriptPlainTextEdit->toPlainText();
     file.close();
 
-    emit appendLog(QString("%1 %2").arg(fileName, "loaded"), "info");
+    emit appendLog(QString("%1 %2").arg(fileName, "saved"), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "loaded");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "saved");
 }
 
 void Script::scriptConfigSave() const {
-    // m_scriptConfig = m_scriptPlainTextEdit->toPlainText();
-    // g_config["scriptConfig"] = m_scriptConfig;
     g_config["scriptConfig"] = m_scriptPlainTextEdit->toPlainText();
 }
 
@@ -163,11 +161,12 @@ void Script::scriptRun() {
         lua_register(L, "write", Script::luaWrite);
         lua_register(L, "read", Script::luaRead);
         lua_register(L, "delay", Script::luaDelay);
+        lua_register(L, "input", Script::luaInput);
         // exec lua script
         const int result = luaL_dostring(L, script.toUtf8().constData());
         if (result != LUA_OK) {
             const QString error = lua_tostring(L, -1);
-            emit appendLog(QString("%1 %2").arg("script error:", error), "error");
+            emit appendLog(QString("%1").arg(error), "error");
             lua_pop(L, 1);
         }
         // close interpreter
@@ -278,6 +277,22 @@ int Script::luaDelay(lua_State *L) {
     return 0;
 }
 
+int Script::luaInput(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 0)
+        luaL_error(L, "unexpected number of arguments");
+    // start operation
+    bool ok = false;
+    QString input;
+    QMetaObject::invokeMethod(qApp, [&] {
+        QWidget *parent = QApplication::activeWindow();
+        input = QInputDialog::getText(parent, "Input Dialog", "input:", QLineEdit::Normal, QString(), &ok);
+    }, Qt::BlockingQueuedConnection);
+    if (!ok)
+        return 0;
+    lua_pushstring(L, input.toUtf8().constData());
+    return 1;
+}
 
 ScriptEditor::ScriptEditor(QWidget *parent) {
 }
@@ -288,29 +303,77 @@ ScriptHighlighter::ScriptHighlighter(QTextDocument *parent) : QSyntaxHighlighter
 void ScriptHighlighter::highlightBlock(const QString &text) {
     QTextCharFormat format;
     QStringList words;
-    // functions
-    format.setForeground(QColor("#008683"));
-    words = {"close", "delay", "open", "print", "read", "write"};
-    foreach(const QString &word, words) {
-        QRegularExpression expression("\\b" + word + "\\b");
-        QRegularExpressionMatchIterator it = expression.globalMatch(text);
-        while (it.hasNext()) {
-            QRegularExpressionMatch match = it.next();
-            setFormat(match.capturedStart(), match.capturedLength(), format);
+    // functions #008683
+    {
+        // basic
+        format.setForeground(QColor("#008683"));
+        words = {
+            "_G", "_VERSION", "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", "next", "pairs", "pcall", "rawequal", "rawget",
+            "rawlen", "rawset", "require", "select", "setmetatable", "tonumber", "tostring", "type", "warn", "xpcall"
+        };
+        foreach(const QString &word, words) {
+            QRegularExpression expression("\\b" + word + "\\b");
+            QRegularExpressionMatchIterator it = expression.globalMatch(text);
+            while (it.hasNext()) {
+                QRegularExpressionMatch match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(), format);
+            }
         }
+        // custom
+        format.setForeground(QColor("#008683"));
+        words = {"close", "delay", "input", "open", "print", "read", "write"};
+        foreach(const QString &word, words) {
+            QRegularExpression expression("\\b" + word + "\\b");
+            QRegularExpressionMatchIterator it = expression.globalMatch(text);
+            while (it.hasNext()) {
+                QRegularExpressionMatch match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(), format);
+            }
+        }
+        // coroutine
+        format.setForeground(QColor("#008683"));
+        words = {"close", "create", "isyieldable", "resume", "running", "status", "wrap", "yield"};
+        foreach(const QString &word, words) {
+            QRegularExpression expression("\\bcoroutine\\." + word + "\\b");
+            QRegularExpressionMatchIterator it = expression.globalMatch(text);
+            while (it.hasNext()) {
+                QRegularExpressionMatch match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(), format);
+            }
+        }
+        // debug
+        // io
+        // math
+        // os
+        // package
+        // string
+        format.setForeground(QColor("#008683"));
+        words = {"byte", "char", "dump", "find", "format", "gmatch", "gsub", "len", "lower", "match", "pack", "packsize", "rep", "reverse", "sub", "unpack", "upper"};
+        foreach(const QString &word, words) {
+            QRegularExpression expression("\\bstring\\." + word + "\\b");
+            QRegularExpressionMatchIterator it = expression.globalMatch(text);
+            while (it.hasNext()) {
+                QRegularExpressionMatch match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(), format);
+            }
+        }
+        // table
+        // utf8
     }
-    // keywords
-    format.setForeground(QColor("#A71D5D"));
-    words = {
-        "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
-        "while"
-    };
-    foreach(const QString &word, words) {
-        QRegularExpression expression("\\b" + word + "\\b");
-        QRegularExpressionMatchIterator it = expression.globalMatch(text);
-        while (it.hasNext()) {
-            QRegularExpressionMatch match = it.next();
-            setFormat(match.capturedStart(), match.capturedLength(), format);
+    // keywords #A71D5D
+    {
+        format.setForeground(QColor("#A71D5D"));
+        words = {
+            "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
+            "while"
+        };
+        foreach(const QString &word, words) {
+            QRegularExpression expression("\\b" + word + "\\b");
+            QRegularExpressionMatchIterator it = expression.globalMatch(text);
+            while (it.hasNext()) {
+                QRegularExpressionMatch match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(), format);
+            }
         }
     }
     // string

@@ -63,7 +63,7 @@ private:
 
     static int luaDelay(lua_State *L);
 
-    QString m_scriptConfig = g_config["scriptConfig"].toString();
+    static int luaInput(lua_State *L);
 
     QWidget *m_scriptWidget = nullptr;
     ScriptEditor *m_scriptPlainTextEdit = nullptr;

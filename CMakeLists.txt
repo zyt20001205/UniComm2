@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/lib/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
-set(LUA_LIBRARY "${LUA_DIR}/lua54.dll")
+set(LUA_LIBRARY "${LUA_DIR}/bin/lua54.dll")
 
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
@@ -26,7 +26,7 @@ add_library(leptonica SHARED IMPORTED)
 set_target_properties(leptonica PROPERTIES IMPORTED_LOCATION "${LEPTONICA_DLL}")
 set_target_properties(leptonica PROPERTIES IMPORTED_IMPLIB "${LEPTONICA_DLL}")
 
-find_package(Qt6 COMPONENTS Core Gui Widgets SerialPort Svg REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets SerialPort Network Svg REQUIRED)
 
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
@@ -72,6 +72,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::Gui
         Qt::Widgets
         Qt::SerialPort
+        Qt::Network
         Qt::Svg
         ${LUA_LIBRARY}
         tesseract
@@ -105,7 +106,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
     endif ()
-    foreach (QT_LIB Core Gui Widgets SerialPort Svg)
+    foreach (QT_LIB Core Gui Widgets SerialPort Network Svg)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"

@@ -32,12 +32,17 @@ private:
 
     void shortcutInit();
 
+    void saveConfig() const;
+
     Config *m_configModule = nullptr;
     Script *m_scriptModule = nullptr;
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;
     Explorer *m_explorerModule = nullptr;
     Log *m_logModule = nullptr;
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 signals:
     void appendLog(const QString &message, const QString &level);

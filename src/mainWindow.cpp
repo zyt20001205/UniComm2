@@ -11,7 +11,7 @@ void MainWindow::init() {
     setWindowTitle("UniComm");
     resize(1280, 720);
     setDockNestingEnabled(true);
-    setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks | QMainWindow::AnimatedDocks);
+    setDockOptions(AllowNestedDocks | AllowTabbedDocks | AnimatedDocks);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
@@ -83,10 +83,26 @@ void MainWindow::moduleInit() {
 void MainWindow::shortcutInit() {
     auto shortcutConfig = g_config["shortcutConfig"].toObject();
     auto shortcutSave = new QShortcut(QKeySequence(shortcutConfig["save"].toString()), this); // NOLINT
-    connect(shortcutSave, &QShortcut::activated, m_portModule, [this] {
-        m_portModule->portConfigSave();
-        m_scriptModule->scriptConfigSave();
-        m_configModule->configSave();
+    connect(shortcutSave, &QShortcut::activated, this, [this] {
+        saveConfig();
         emit appendLog("workspace saved", "info");
     });
+}
+
+void MainWindow::saveConfig() const {
+    m_portModule->portConfigSave();
+    m_sendModule->sendConfigSave();
+    m_scriptModule->scriptConfigSave();
+    m_configModule->configSave();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Exit", "Save and exit?",QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    if (reply == QMessageBox::Yes) {
+        saveConfig();
+        event->accept();
+    } else {
+        event->ignore();
+    }
 }

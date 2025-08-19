@@ -17,6 +17,8 @@ public:
 
     ~Send() override = default;
 
+    void sendConfigSave() const;
+
     void commandSend();
 
 private:

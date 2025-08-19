@@ -8,6 +8,7 @@ Send::Send(QObject *parent)
 
     m_textEdit = new QLineEdit();
     layout->addWidget(m_textEdit);
+    m_textEdit->setText(g_config["sendConfig"].toString());
     auto *sendButton = new QPushButton(); // NOLINT
     layout->addWidget(sendButton);
     sendButton->setFixedSize(24, 24);
@@ -17,4 +18,8 @@ Send::Send(QObject *parent)
 
 void Send::commandSend() {
     emit writePort(m_textEdit->text(), -1);
+}
+
+void Send::sendConfigSave() const {
+    g_config["sendConfig"] = m_textEdit->text();
 }
