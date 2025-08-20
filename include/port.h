@@ -20,6 +20,7 @@
 #include <QSerialPortInfo>
 #include <QSpinbox>
 #include <QTabWidget>
+#include <QTcpServer>
 #include <QTcpSocket>
 #include <QThread>
 #include <QTimer>
@@ -47,7 +48,7 @@ public:
 
     QString portInfo(int index) const;
 
-    void portWrite(const QString &command, int index) const;
+    void portWrite(int index, const QString &command, const QString &peerIp) const;
 
     QString portRead(int index) const;
 
@@ -61,6 +62,8 @@ private:
     void portMenu(int index, const QPoint &pos);
 
     void portSelected(int index);
+
+    void portDuplicate(int index);
 
     void portRemove(int index);
 
@@ -149,19 +152,19 @@ public:
 
     ~PageWidget() override = default;
 
-    void uiInit(const QJsonObject &portConfig);
+    void init(const QJsonObject &portConfig);
+
+    void portReload(const QJsonObject &portConfig) const;
+
+    QString portInfo() const;
 
     void portOpen() const;
 
     void portClose() const;
 
-    QString portInfo() const;
-
-    void portWrite(const QString &command) const;
+    void portWrite(const QString &command, const QString &peerIp) const;
 
     QString portRead() const;
-
-    void portReload(const QJsonObject &portConfig) const;
 
 private:
     QPushButton *m_pushButton = nullptr;
@@ -183,13 +186,13 @@ public:
 
     virtual void reload(const QJsonObject &portConfig) =0;
 
+    virtual QString info() = 0;
+
     virtual bool open() = 0;
 
     virtual void close() = 0;
 
-    virtual QString info() = 0;
-
-    virtual void write(const QString &content) = 0;
+    virtual void write(const QString &content, const QString &peerIp) = 0;
 
     virtual QString read() = 0;
 
@@ -205,13 +208,13 @@ public:
 
     void reload(const QJsonObject &portConfig) override;
 
+    QString info() override;
+
     bool open() override;
 
     void close() override;
 
-    QString info() override;
-
-    void write(const QString &command) override;
+    void write(const QString &command, const QString &peerIp) override;
 
     QString read() override;
 
@@ -262,13 +265,13 @@ public:
 
     void reload(const QJsonObject &portConfig) override;
 
+    QString info() override;
+
     bool open() override;
 
     void close() override;
 
-    QString info() override;
-
-    void write(const QString &command) override;
+    void write(const QString &command, const QString &peerIp) override;
 
     QString read() override;
 
@@ -278,10 +281,10 @@ private:
     QTcpSocket *m_tcpClient;
     // port config
     QString m_portName;
-    QString m_tcpClientLocalAddress;
-    int m_tcpClientLocalPort;
     QString m_tcpClientRemoteAddress;
     int m_tcpClientRemotePort;
+    QString m_tcpClientLocalAddress;
+    int m_tcpClientLocalPort;
     // tx config
     QString m_txFormat;
     QString m_txSuffix;
@@ -315,6 +318,72 @@ signals:
     void errorOccurred(const QString &error);
 };
 
+class TcpServer final : public BasePort {
+    Q_OBJECT
+
+public:
+    explicit TcpServer(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    bool open() override;
+
+    void close() override;
+
+    QString info() override;
+
+    void write(const QString &command, const QString &peerIp) override;
+
+    QString read() override;
+
+private:
+    void handleWrite(const QString &peerIp);
+
+    QTcpServer *m_tcpServer;
+    // port config
+    QString m_portName;
+    QString m_tcpServerLocalAddress;
+    int m_tcpServerLocalPort;
+    QList<QTcpSocket *> m_tcpServerPeerList;
+    // tx config
+    QString m_txFormat;
+    QString m_txSuffix;
+    int m_txInterval;
+    // rx config
+    QString m_rxFormat;
+    int m_rxTimeout;
+    QString m_rxForward;
+    //
+    QList<QByteArray> m_txQueue;
+    bool m_txBlock = false;
+
+    QString m_rxBuffer;
+
+private slots:
+    void handleNewConnection();
+
+    void handleServerError();
+
+    void handleConnected(QTcpSocket *tcpServerPeer);
+
+    void handleDisconnected(QTcpSocket *tcpServerPeer);
+
+    void handleRead(QTcpSocket *tcpServerPeer);
+
+    void handleError(QTcpSocket *tcpServerPeer);
+
+signals:
+    void newConnection();
+
+    void acceptError(const QString &error);
+
+    void disconnected(qintptr socketDescriptor);
+
+    void readyRead();
+
+    void errorOccurred(const QString &error);
+};
+
 class Camera final : public BasePort {
     Q_OBJECT
 
@@ -329,7 +398,7 @@ public:
 
     QString info() override;
 
-    void write(const QString &command) override;
+    void write(const QString &command, const QString &peerIp) override;
 
     QString read() override;
 

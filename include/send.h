@@ -25,7 +25,7 @@ private:
     QLineEdit *m_textEdit = nullptr;
 
 signals:
-    void writePort(const QString &command, int index);
+    void writePort(int index, const QString &command, const QString &peerIp);
 };
 
 #endif //SEND_H

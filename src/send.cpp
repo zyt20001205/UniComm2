@@ -17,7 +17,7 @@ Send::Send(QObject *parent)
 }
 
 void Send::commandSend() {
-    emit writePort(m_textEdit->text(), -1);
+    emit writePort(-1, m_textEdit->text(), "");
 }
 
 void Send::sendConfigSave() const {

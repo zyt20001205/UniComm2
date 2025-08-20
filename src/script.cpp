@@ -258,19 +258,39 @@ int Script::luaInfo(lua_State *L) {
     QMetaObject::invokeMethod(g_script->m_port, [&, param]() {
         info = g_script->m_port->portInfo(param);
     }, Qt::BlockingQueuedConnection);
-    lua_pushstring(L, info.toUtf8().constData());
-    return 1;
+    emit g_script->appendLog(info, "info");
+    return 0;
 }
 
 int Script::luaWrite(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 2)
+    if (lua_gettop(L) > 3)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const char *param1 = luaL_checkstring(L, 1);
-    const int param2 = luaL_optinteger(L, 2, -1);
+    int param1;
+    const char *param2;
+    const char *param3;
+    if (lua_isinteger(L, 1)) {
+        param1 = luaL_checkinteger(L, 1);
+        param2 = luaL_checkstring(L, 2);
+        if (lua_isnoneornil(L, 3)) {
+            param3 = "";
+        }
+        else {
+            param3 = luaL_checkstring(L, 3);
+        }
+    } else {
+        param1 = -1;
+        param2 = luaL_checkstring(L, 1);
+        if (lua_isnoneornil(L, 2)) {
+            param3 = "";
+        }
+        else {
+            param3 = luaL_checkstring(L, 2);
+        }
+    }
     // start operation
-    emit g_script->writePort(QString::fromUtf8(param1), param2);
+    emit g_script->writePort(param1, QString::fromUtf8(param2), QString::fromUtf8(param3));
     return 0;
 }
 

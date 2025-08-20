@@ -85,7 +85,7 @@ signals:
 
     void closePort(int index);
 
-    void writePort(const QString &command, int index);
+    void writePort(int index, const QString &command, const QString &peerIp);
 
     void appendLog(const QString &message, const QString &level);
 };
