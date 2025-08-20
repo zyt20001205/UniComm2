@@ -156,15 +156,23 @@ void Script::scriptRun() {
         luaL_openlibs(L);
         // register C++ functions
         lua_register(L, "print", Script::luaPrint);
-        lua_register(L, "open", Script::luaOpen);
-        lua_register(L, "close", Script::luaClose);
-        lua_register(L, "write", Script::luaWrite);
-        lua_register(L, "read", Script::luaRead);
         lua_register(L, "delay", Script::luaDelay);
         lua_register(L, "input", Script::luaInput);
+        // register C++ class
+        lua_newtable(L);
+        lua_pushcfunction(L, Script::luaOpen);
+        lua_setfield(L, -2, "open");
+        lua_pushcfunction(L, Script::luaClose);
+        lua_setfield(L, -2, "close");
+        lua_pushcfunction(L, Script::luaInfo);
+        lua_setfield(L, -2, "info");
+        lua_pushcfunction(L, Script::luaWrite);
+        lua_setfield(L, -2, "write");
+        lua_pushcfunction(L, Script::luaRead);
+        lua_setfield(L, -2, "read");
+        lua_setglobal(L, "port");
         // exec lua script
-        const int result = luaL_dostring(L, script.toUtf8().constData());
-        if (result != LUA_OK) {
+        if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
             const QString error = lua_tostring(L, -1);
             emit appendLog(QString("%1").arg(error), "error");
             lua_pop(L, 1);
@@ -237,6 +245,21 @@ int Script::luaClose(lua_State *L) {
     // start operation
     emit g_script->closePort(param);
     return 0;
+}
+
+int Script::luaInfo(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 1)
+        luaL_error(L, "unexpected number of arguments");
+    // extract arguments
+    const int param = luaL_optinteger(L, 1, -1);
+    // start operation
+    QString info;
+    QMetaObject::invokeMethod(g_script->m_port, [&, param]() {
+        info = g_script->m_port->portInfo(param);
+    }, Qt::BlockingQueuedConnection);
+    lua_pushstring(L, info.toUtf8().constData());
+    return 1;
 }
 
 int Script::luaWrite(lua_State *L) {
@@ -321,9 +344,19 @@ void ScriptHighlighter::highlightBlock(const QString &text) {
         }
         // custom
         format.setForeground(QColor("#008683"));
-        words = {"close", "delay", "input", "open", "print", "read", "write"};
+        words = {"delay", "input", "print"};
         foreach(const QString &word, words) {
             QRegularExpression expression("\\b" + word + "\\b");
+            QRegularExpressionMatchIterator it = expression.globalMatch(text);
+            while (it.hasNext()) {
+                QRegularExpressionMatch match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(), format);
+            }
+        }
+        format.setForeground(QColor("#008683"));
+        words = {"close", "info", "open", "read", "write"};
+        foreach(const QString &word, words) {
+            QRegularExpression expression("\\bport\\." + word + "\\b");
             QRegularExpressionMatchIterator it = expression.globalMatch(text);
             while (it.hasNext()) {
                 QRegularExpressionMatch match = it.next();

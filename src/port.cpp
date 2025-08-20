@@ -70,6 +70,15 @@ void Port::portClose(const int index) const {
     }
 }
 
+QString Port::portInfo(const int index) const {
+    if (index == -1) {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+        return pageWidget->portInfo();
+    }
+    const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+    return pageWidget->portInfo();
+}
+
 void Port::portWrite(const QString &command, const int index) const {
     if (index == -1) {
         const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -206,45 +215,45 @@ void Port::portSettingUiInit() {
     }
     // init tcp client settings
     {
-        m_tcpServerAddressWidget = new QWidget(m_portSettingDialog);
-        m_portSettingLayout->addWidget(m_tcpServerAddressWidget);
-        const auto tcpServerAddressLayout = new QHBoxLayout(m_tcpServerAddressWidget); // NOLINT
-        tcpServerAddressLayout->setContentsMargins(0, 0, 0, 0);
-        const auto tcpServerAddressLabel = new QLabel("server adress"); // NOLINT
-        tcpServerAddressLayout->addWidget(tcpServerAddressLabel);
-        m_tcpServerAddressLineEdit = new QLineEdit();
-        tcpServerAddressLayout->addWidget(m_tcpServerAddressLineEdit);
+        m_tcpClientRemoteAddressWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpClientRemoteAddressWidget);
+        const auto tcpClientRemoteAddressLayout = new QHBoxLayout(m_tcpClientRemoteAddressWidget); // NOLINT
+        tcpClientRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpClientRemoteAddressLabel = new QLabel("remote adress"); // NOLINT
+        tcpClientRemoteAddressLayout->addWidget(tcpClientRemoteAddressLabel);
+        m_tcpClientRemoteAddressLineEdit = new QLineEdit();
+        tcpClientRemoteAddressLayout->addWidget(m_tcpClientRemoteAddressLineEdit);
 
-        m_tcpServerPortWidget = new QWidget(m_portSettingDialog);
-        m_portSettingLayout->addWidget(m_tcpServerPortWidget);
-        const auto tcpServerPortLayout = new QHBoxLayout(m_tcpServerPortWidget); // NOLINT
-        tcpServerPortLayout->setContentsMargins(0, 0, 0, 0);
-        const auto tcpServerPortLabel = new QLabel("server port"); // NOLINT
-        tcpServerPortLayout->addWidget(tcpServerPortLabel);
-        m_tcpServerPortSpinBox = new QSpinBox();
-        tcpServerPortLayout->addWidget(m_tcpServerPortSpinBox);
-        m_tcpServerPortSpinBox->setRange(0, 65536);
+        m_tcpClientRemotePortWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpClientRemotePortWidget);
+        const auto tcpClientRemotePortLayout = new QHBoxLayout(m_tcpClientRemotePortWidget); // NOLINT
+        tcpClientRemotePortLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpClientRemotePortLabel = new QLabel("remote port"); // NOLINT
+        tcpClientRemotePortLayout->addWidget(tcpClientRemotePortLabel);
+        m_tcpClientRemotePortSpinBox = new QSpinBox();
+        tcpClientRemotePortLayout->addWidget(m_tcpClientRemotePortSpinBox);
+        m_tcpClientRemotePortSpinBox->setRange(0, 65536);
     }
     // init tcp server settings
     {
-        m_tcpClientAddressWidget = new QWidget(m_portSettingDialog);
-        m_portSettingLayout->addWidget(m_tcpClientAddressWidget);
-        const auto tcpClientAddressLayout = new QHBoxLayout(m_tcpClientAddressWidget); // NOLINT
-        tcpClientAddressLayout->setContentsMargins(0, 0, 0, 0);
-        const auto tcpClientAddressLabel = new QLabel("client adress"); // NOLINT
-        tcpClientAddressLayout->addWidget(tcpClientAddressLabel);
-        m_tcpClientAddressLineEdit = new QLineEdit();
-        tcpClientAddressLayout->addWidget(m_tcpClientAddressLineEdit);
+        m_tcpServerLocalAddressWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpServerLocalAddressWidget);
+        const auto tcpServerLocalAddressLayout = new QHBoxLayout(m_tcpServerLocalAddressWidget); // NOLINT
+        tcpServerLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpServerLocalAddressLabel = new QLabel("local adress"); // NOLINT
+        tcpServerLocalAddressLayout->addWidget(tcpServerLocalAddressLabel);
+        m_tcpServerLocalAddressLineEdit = new QLineEdit();
+        tcpServerLocalAddressLayout->addWidget(m_tcpServerLocalAddressLineEdit);
 
-        m_tcpClientPortWidget = new QWidget(m_portSettingDialog);
-        m_portSettingLayout->addWidget(m_tcpClientPortWidget);
-        const auto tcpClientPortLayout = new QHBoxLayout(m_tcpClientPortWidget); // NOLINT
-        tcpClientPortLayout->setContentsMargins(0, 0, 0, 0);
-        const auto tcpClientPortLabel = new QLabel("client port"); // NOLINT
-        tcpClientPortLayout->addWidget(tcpClientPortLabel);
-        m_tcpClientPortSpinBox = new QSpinBox();
-        tcpClientPortLayout->addWidget(m_tcpClientPortSpinBox);
-        m_tcpClientPortSpinBox->setRange(0, 65536);
+        m_tcpServerLocalPortWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_tcpServerLocalPortWidget);
+        const auto tcpServerLocalPortLayout = new QHBoxLayout(m_tcpServerLocalPortWidget); // NOLINT
+        tcpServerLocalPortLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpServerLocalPortLabel = new QLabel("local port"); // NOLINT
+        tcpServerLocalPortLayout->addWidget(tcpServerLocalPortLabel);
+        m_tcpServerLocalPortSpinBox = new QSpinBox();
+        tcpServerLocalPortLayout->addWidget(m_tcpServerLocalPortSpinBox);
+        m_tcpServerLocalPortSpinBox->setRange(0, 65536);
     }
     // init udp socket settings
 
@@ -380,16 +389,16 @@ void Port::portSettingLoad(const int index) {
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
             m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp client") {
-            m_tcpServerAddressLineEdit->setText(portInfo["tcpServerAddress"].toString());
-            m_tcpServerPortSpinBox->setValue(portInfo["tcpServerPort"].toInt());
+            m_tcpClientRemoteAddressLineEdit->setText(portInfo["tcpClientRemoteAddress"].toString());
+            m_tcpClientRemotePortSpinBox->setValue(portInfo["tcpClientRemotePort"].toInt());
             m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
             m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
             m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
             m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp server") {
-            m_tcpClientAddressLineEdit->setText(portInfo["tcpClientAddress"].toString());
-            m_tcpClientPortSpinBox->setValue(portInfo["tcpClientPort"].toInt());
+            m_tcpServerLocalAddressLineEdit->setText(portInfo["tcpServerLocalAddress"].toString());
+            m_tcpServerLocalPortSpinBox->setValue(portInfo["tcpServerLocalPort"].toInt());
             m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
             m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
             m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
@@ -417,11 +426,11 @@ void Port::portSettingWidgetReset() const {
     m_serialPortParityWidget->hide();
     m_serialPortStopBitsWidget->hide();
     // tcp client setting widget
-    m_tcpServerAddressWidget->hide();
-    m_tcpServerPortWidget->hide();
+    m_tcpClientRemoteAddressWidget->hide();
+    m_tcpClientRemotePortWidget->hide();
     // tcp server setting widget
-    m_tcpClientAddressWidget->hide();
-    m_tcpClientPortWidget->hide();
+    m_tcpServerLocalAddressWidget->hide();
+    m_tcpServerLocalPortWidget->hide();
     // udp socket setting widget
 
     // camera setting widget
@@ -461,8 +470,8 @@ void Port::portSettingTypeSwitch(const int type) {
     } else if (type == 2) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
-        m_tcpServerAddressWidget->show();
-        m_tcpServerPortWidget->show();
+        m_tcpClientRemoteAddressWidget->show();
+        m_tcpClientRemotePortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
         m_txIntervalWidget->show();
@@ -472,8 +481,8 @@ void Port::portSettingTypeSwitch(const int type) {
     } else if (type == 3) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
-        m_tcpClientAddressWidget->show();
-        m_tcpClientPortWidget->show();
+        m_tcpServerLocalAddressWidget->show();
+        m_tcpServerLocalPortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
         m_txIntervalWidget->show();
@@ -495,6 +504,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_cameraNameWidget->show();
         m_cameraAreaWidget->show();
     }
+    m_portSettingDialog->adjustSize();
 }
 
 void Port::portSettingSave(const int type) {
@@ -526,12 +536,13 @@ void Port::portSettingSave(const int type) {
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
             pageWidget->portReload(portConfig);
         }
+        m_tabWidget->setTabText(m_currentIndex, m_serialPortNameCombobox->currentData().toString());
     } else if (type == 2) {
         QJsonObject portConfig;
         portConfig["portType"] = "tcp client";
         portConfig["portName"] = "tcp client";
-        portConfig["tcpServerAddress"] = m_tcpServerAddressLineEdit->text();
-        portConfig["tcpServerPort"] = m_tcpServerPortSpinBox->value();
+        portConfig["tcpClientRemoteAddress"] = m_tcpClientRemoteAddressLineEdit->text();
+        portConfig["tcpClientRemotePort"] = m_tcpClientRemotePortSpinBox->value();
         portConfig["txFormat"] = m_txFormatCombobox->currentText();
         portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
         portConfig["txInterval"] = m_txIntervalSpinBox->value();
@@ -556,8 +567,8 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "tcp server";
         portConfig["portName"] = "tcp server";
-        portConfig["clientAddress"] = m_tcpClientAddressLineEdit->text();
-        portConfig["clientPort"] = m_tcpClientPortSpinBox->value();
+        portConfig["tcpServerLocalAddress"] = m_tcpServerLocalAddressLineEdit->text();
+        portConfig["tcpServerLocalPort"] = m_tcpServerLocalPortSpinBox->value();
         portConfig["txFormat"] = m_txFormatCombobox->currentText();
         portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
         portConfig["txInterval"] = m_txIntervalSpinBox->value();
@@ -644,6 +655,10 @@ void PageWidget::portOpen() const {
 void PageWidget::portClose() const {
     m_port->close();
     m_pushButton->setChecked(false);
+}
+
+QString PageWidget::portInfo() const {
+    return m_port->info();
 }
 
 void PageWidget::portWrite(const QString &command) const {
@@ -746,6 +761,42 @@ void SerialPort::close() {
     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "closed");
 }
 
+QString SerialPort::info() {
+    QString status;
+    if (m_serialPort->isOpen())
+        status = "opened";
+    else
+        status = "closed";
+    QString portName = m_portName;
+    QString baudRate = QString::number(m_baudRate);
+    QString dataBits = QString::number(m_dataBits);
+    QString parity;
+    switch (m_parity) {
+        case 0: parity = "no";
+            break;
+        case 2: parity = "even";
+            break;
+        case 3: parity = "odd";
+            break;
+        case 4: parity = "space";
+            break;
+        case 5: parity = "mark";
+            break;
+        default: parity = "unknown";
+    }
+    QString stopBits;
+    switch (m_stopBits) {
+        case 1: stopBits = "1";
+            break;
+        case 3: stopBits = "1.5";
+            break;
+        case 2: stopBits = "2";
+            break;
+        default: stopBits = "unknown";
+    }
+    return QString("(%1) %2 baudrate: %3, databits: %4, parity: %5, stopbits: %6").arg(status, portName, baudRate, dataBits, parity, stopBits);
+}
+
 void SerialPort::write(const QString &command) {
     // check serial port status
     if (!m_serialPort->isOpen()) {
@@ -835,8 +886,8 @@ void SerialPort::handleError() {
 TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_tcpClient(new QTcpSocket(this)) {
     // port config
     m_portName = portConfig["portName"].toString();
-    m_tcpServerAddress = portConfig["tcpServerAddress"].toString();
-    m_tcpServerPort = portConfig["tcpServerPort"].toInt();
+    m_tcpClientRemoteAddress = portConfig["tcpClientRemoteAddress"].toString();
+    m_tcpClientRemotePort = portConfig["tcpClientRemotePort"].toInt();
     // port init
     m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
@@ -857,8 +908,8 @@ TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(
 
 void TcpClient::reload(const QJsonObject &portConfig) {
     // port config
-    m_tcpServerAddress = portConfig["tcpServerAddress"].toString();
-    m_tcpServerPort = portConfig["tcpServerPort"].toInt();
+    m_tcpClientRemoteAddress = portConfig["tcpClientRemoteAddress"].toString();
+    m_tcpClientRemotePort = portConfig["tcpClientRemotePort"].toInt();
     // tx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
@@ -875,28 +926,53 @@ void TcpClient::reload(const QJsonObject &portConfig) {
 }
 
 void TcpClient::handleConnected() {
-    m_tcpClientAddress = m_tcpClient->localAddress().toString();
-    m_tcpClientPort = m_tcpClient->localPort();
-    emit appendLog(QString("%1 %2:%3").arg("tcp client connected to", m_tcpServerAddress, QString::number(m_tcpServerPort)), "info");
+    m_tcpClientLocalAddress = m_tcpClient->localAddress().toString();
+    m_tcpClientLocalPort = m_tcpClient->localPort();
+    emit appendLog(QString("%1 %2:%3").arg("tcp client connected to", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort)), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client connected to", m_tcpServerAddress, QString::number(m_tcpServerPort));
+    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client connected to", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort));
 }
 
 void TcpClient::handleDisconnected() {
-    emit appendLog(QString("%1 %2:%3").arg("tcp client disconnected from", m_tcpServerAddress, QString::number(m_tcpServerPort)), "info");
+    emit appendLog(QString("%1 %2:%3").arg("tcp client disconnected from", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort)), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_tcpServerAddress, QString::number(m_tcpServerPort));
+    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort));
 }
 
 bool TcpClient::open() {
-    m_tcpClient->connectToHost(m_tcpServerAddress, m_tcpServerPort);
+    m_tcpClient->connectToHost(m_tcpClientRemoteAddress, m_tcpClientRemotePort);
     return true;
 }
 
 void TcpClient::close() {
     m_tcpClient->disconnectFromHost();
+}
+
+QString TcpClient::info() {
+    QString status;
+    switch (m_tcpClient->state()) {
+        case QAbstractSocket::UnconnectedState: status = "unconnected";
+            break;
+        case QAbstractSocket::HostLookupState: status = "looking up host";
+            break;
+        case QAbstractSocket::ConnectingState: status = "connecting";
+            break;
+        case QAbstractSocket::ConnectedState: status = "connected";
+            break;
+        case QAbstractSocket::ClosingState: status = "closing";
+            break;
+        case QAbstractSocket::BoundState: status = "bound to local address";
+            break;
+        default: status = "unknown";
+    }
+    QString localAddress = m_tcpClient->localAddress().toString();
+    QString localPort = QString::number(m_tcpClient->localPort());
+    QString remoteAddress = m_tcpClientRemoteAddress;
+    QString remotePort = QString::number(m_tcpClientRemotePort);
+
+    return QString("(%1) local ipv4: %2:%3, remote ipv4: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
 }
 
 void TcpClient::write(const QString &command) {
@@ -956,7 +1032,8 @@ void TcpClient::handleWrite() {
     } else /* m_txFormat == "utf-8" */ {
         message = QString::fromUtf8(data);
     }
-    message = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientAddress, QString::number(m_tcpClientPort), m_tcpServerAddress, QString::number(m_tcpServerPort), message);
+    message = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
+                                                    QString::number(m_tcpClientRemotePort), message);
     emit appendLog(message, "tx");
 }
 
@@ -977,7 +1054,8 @@ void TcpClient::handleRead() {
             message = QString::fromUtf8(data);
             m_rxBuffer = message;
         }
-        message = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientAddress, QString::number(m_tcpClientPort), m_tcpServerAddress, QString::number(m_tcpServerPort), message);
+        message = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
+                                                        QString::number(m_tcpClientRemotePort), message);
         emit appendLog(message, "rx");
     }
 }
@@ -997,6 +1075,10 @@ bool Camera::open() {
 }
 
 void Camera::close() {
+}
+
+QString Camera::info() {
+    return "";
 }
 
 void Camera::write(const QString &command) {

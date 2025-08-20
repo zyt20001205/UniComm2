@@ -57,6 +57,8 @@ private:
 
     static int luaClose(lua_State *L);
 
+    static int luaInfo(lua_State *L);
+
     static int luaWrite(lua_State *L);
 
     static int luaRead(lua_State *L);

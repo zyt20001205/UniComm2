@@ -45,6 +45,8 @@ public:
 
     void portClose(int index) const;
 
+    QString portInfo(int index) const;
+
     void portWrite(const QString &command, int index) const;
 
     QString portRead(int index) const;
@@ -99,16 +101,16 @@ private:
     QComboBox *m_serialPortStopBitsCombobox = nullptr;
 
     // tcp client
-    QWidget *m_tcpServerAddressWidget = nullptr;
-    QLineEdit *m_tcpServerAddressLineEdit = nullptr;
-    QWidget *m_tcpServerPortWidget = nullptr;
-    QSpinBox *m_tcpServerPortSpinBox = nullptr;
+    QWidget *m_tcpClientRemoteAddressWidget = nullptr;
+    QLineEdit *m_tcpClientRemoteAddressLineEdit = nullptr;
+    QWidget *m_tcpClientRemotePortWidget = nullptr;
+    QSpinBox *m_tcpClientRemotePortSpinBox = nullptr;
 
     // tcp server
-    QWidget *m_tcpClientAddressWidget = nullptr;
-    QLineEdit *m_tcpClientAddressLineEdit = nullptr;
-    QWidget *m_tcpClientPortWidget = nullptr;
-    QSpinBox *m_tcpClientPortSpinBox = nullptr;
+    QWidget *m_tcpServerLocalAddressWidget = nullptr;
+    QLineEdit *m_tcpServerLocalAddressLineEdit = nullptr;
+    QWidget *m_tcpServerLocalPortWidget = nullptr;
+    QSpinBox *m_tcpServerLocalPortSpinBox = nullptr;
 
     // udp socket
 
@@ -153,6 +155,8 @@ public:
 
     void portClose() const;
 
+    QString portInfo() const;
+
     void portWrite(const QString &command) const;
 
     QString portRead() const;
@@ -183,6 +187,8 @@ public:
 
     virtual void close() = 0;
 
+    virtual QString info() = 0;
+
     virtual void write(const QString &content) = 0;
 
     virtual QString read() = 0;
@@ -202,6 +208,8 @@ public:
     bool open() override;
 
     void close() override;
+
+    QString info() override;
 
     void write(const QString &command) override;
 
@@ -258,6 +266,8 @@ public:
 
     void close() override;
 
+    QString info() override;
+
     void write(const QString &command) override;
 
     QString read() override;
@@ -268,10 +278,10 @@ private:
     QTcpSocket *m_tcpClient;
     // port config
     QString m_portName;
-    QString m_tcpClientAddress;
-    int m_tcpClientPort;
-    QString m_tcpServerAddress;
-    int m_tcpServerPort;
+    QString m_tcpClientLocalAddress;
+    int m_tcpClientLocalPort;
+    QString m_tcpClientRemoteAddress;
+    int m_tcpClientRemotePort;
     // tx config
     QString m_txFormat;
     QString m_txSuffix;
@@ -316,6 +326,8 @@ public:
     bool open() override;
 
     void close() override;
+
+    QString info() override;
 
     void write(const QString &command) override;
 
