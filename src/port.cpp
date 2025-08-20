@@ -291,10 +291,11 @@ void Port::portSettingUiInit() {
         cameraAreaLayout->addWidget(m_cameraAreaPushButton);
         connect(m_cameraAreaPushButton, &QPushButton::clicked, this, [this]() {
             m_cameraAreaChooseDialog->show();
+            portSettingCameraCapture();
         });
 
         m_cameraAreaChooseDialog = new QDialog(m_portSettingDialog);
-        m_cameraAreaChooseDialog->setFixedSize(1280, 720);
+        // m_cameraAreaChooseDialog->setFixedSize(1280, 720);
         const auto cameraAreaChooseLayout = new QVBoxLayout(m_cameraAreaChooseDialog);
         cameraAreaChooseLayout->setContentsMargins(0, 0, 0, 0);
         m_cameraAreaChooseGraphicsView = new QGraphicsView(m_cameraAreaChooseDialog);
@@ -362,6 +363,32 @@ void Port::portSettingUiInit() {
     connect(m_portSettingSavePushButton, &QPushButton::clicked, this, [this]() {
         portSettingSave(m_portTypeCombobox->currentIndex());
     });
+}
+
+void Port::portSettingCameraCapture() {
+    // capture selected screen
+    const QString screenName = m_cameraNameCombobox->currentData().toString();
+    QScreen *screen = nullptr;
+    for (QScreen *s : QGuiApplication::screens()) {
+        if (s->name() == screenName || s->name() == m_cameraNameCombobox->currentText()) {
+            screen = s; break;
+        }
+    }
+    if (!screen) screen = QGuiApplication::primaryScreen();
+    if (!screen) return;
+
+    const QPixmap shot = screen->grabWindow(0);
+
+    // show in graphics view (native pixel size, no smoothing)
+    auto *scene = new QGraphicsScene(m_cameraAreaChooseGraphicsView);
+    auto *item = scene->addPixmap(shot);
+    item->setTransformationMode(Qt::FastTransformation);
+    m_cameraAreaChooseGraphicsView->setRenderHint(QPainter::SmoothPixmapTransform, false);
+    m_cameraAreaChooseGraphicsView->setScene(scene);
+    m_cameraAreaChooseGraphicsView->resetTransform();
+    m_cameraAreaChooseGraphicsView->setSceneRect(shot.rect());
+    m_cameraAreaChooseGraphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    m_cameraAreaChooseGraphicsView->setAlignment(Qt::AlignCenter);
 }
 
 void Port::portSettingLoad(const int index) {

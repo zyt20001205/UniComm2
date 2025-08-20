@@ -7,12 +7,15 @@
 #include <QDialog>
 #include <QDockWidget>
 #include <QFile>
+#include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
 #include <QList>
 #include <QMenu>
+#include <QPainter>
 #include <QPixmap>
 #include <QPushButton>
 #include <QScreen>
@@ -75,6 +78,8 @@ private:
     // port setting dialog
 private:
     void portSettingUiInit();
+
+    void portSettingCameraCapture();
 
     void portSettingLoad(int index);
 
