@@ -1532,6 +1532,8 @@ Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent
     // port config
     m_portName = portConfig["portName"].toString();
     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+    auto *layout = new QVBoxLayout(m_previewDialog);
+    layout->addWidget(m_previewLabel);
 }
 
 void Screen::reload(const QJsonObject &portConfig) {
@@ -1541,11 +1543,12 @@ void Screen::reload(const QJsonObject &portConfig) {
 }
 
 bool Screen::open() {
-    qDebug() << m_area;
+    m_previewDialog->show();
     return true;
 }
 
 void Screen::close() {
+    m_previewDialog->hide();
 }
 
 QString Screen::info() {
@@ -1568,12 +1571,8 @@ QString Screen::read() {
     // screenshot and crop
     const QPixmap shot = m_screen->grabWindow(0).copy(m_area);
 
-    // auto *tmp = new QDialog();
-    // auto *layout = new QVBoxLayout(tmp);
-    // auto *label = new QLabel();
-    // layout->addWidget(label);
-    // label->setPixmap(shot);
-    // tmp->show();
+    if (m_previewDialog->isVisible())
+        m_previewLabel->setPixmap(shot);
 
     QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
 

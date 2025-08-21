@@ -443,7 +443,8 @@ public:
 
 private:
     QScreen *m_screen = nullptr;
-
+    QDialog *m_previewDialog = new QDialog();;
+    QLabel *m_previewLabel = new QLabel();
     // port config
     QString m_portName;
     QRect m_area;
