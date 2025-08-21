@@ -53,6 +53,8 @@ public:
 
     ~Port() override = default;
 
+    void portConfigSave() const;
+
     void portOpen(int index) const;
 
     void portClose(int index) const;
@@ -62,9 +64,6 @@ public:
     void portWrite(int index, const QString &command, const QString &peerIp) const;
 
     QString portRead(int index) const;
-
-public slots:
-    void portConfigSave() const;
 
     // port widget
 private:

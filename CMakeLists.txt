@@ -26,7 +26,7 @@ add_library(leptonica SHARED IMPORTED)
 set_target_properties(leptonica PROPERTIES IMPORTED_LOCATION "${LEPTONICA_DLL}")
 set_target_properties(leptonica PROPERTIES IMPORTED_IMPLIB "${LEPTONICA_DLL}")
 
-find_package(Qt6 COMPONENTS Core Gui Widgets Svg SerialPort Network Multimedia REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia REQUIRED)
 
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
@@ -65,8 +65,10 @@ qt_add_resources(UniComm "icon_resources"
         FILES
         "resources/icon/add.svg"
         "resources/icon/arrowClockwise.svg"
+        "resources/icon/clock.svg"
         "resources/icon/crop.svg"
         "resources/icon/delete.svg"
+        "resources/icon/save.svg"
         "resources/icon/send.svg"
         "resources/icon/stop.svg"
 )
@@ -76,6 +78,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::Gui
         Qt::Widgets
         Qt::Svg
+        Qt::PrintSupport
         Qt::SerialPort
         Qt::Network
         Qt::Multimedia
@@ -111,7 +114,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
     endif ()
-    foreach (QT_LIB Core Gui Widgets Svg SerialPort Network Multimedia)
+    foreach (QT_LIB Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"

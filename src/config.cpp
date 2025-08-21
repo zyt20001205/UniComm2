@@ -37,10 +37,7 @@ void Config::configGenerate() {
             },
             {
                 "logConfig", QJsonObject{
-                    {"timestamp", true},
-                    {"scrollLock", false},
-                    {"wrap", "no"},
-                    {"length", 1000}
+                    {"timestamp", true}
                 },
             },
         };

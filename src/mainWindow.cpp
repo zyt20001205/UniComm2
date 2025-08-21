@@ -93,6 +93,7 @@ void MainWindow::saveConfig() const {
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
     m_scriptModule->scriptConfigSave();
+    m_logModule->logConfigSave();
     m_configModule->configSave();
 }
 
