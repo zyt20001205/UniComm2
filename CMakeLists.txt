@@ -53,6 +53,7 @@ qt_add_resources(UniComm "doc_resources"
         BASE "resources/doc"
         FILES
         "resources/doc/close.md"
+        "resources/doc/info.md"
         "resources/doc/open.md"
         "resources/doc/read.md"
         "resources/doc/write.md"
@@ -65,6 +66,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/add.svg"
         "resources/icon/arrowClockwise.svg"
         "resources/icon/crop.svg"
+        "resources/icon/delete.svg"
         "resources/icon/send.svg"
         "resources/icon/stop.svg"
 )
@@ -115,6 +117,18 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
+    if (EXISTS "${QT_INSTALL_PATH}/plugins/multimedia")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
+        file(GLOB QT_MM_BACKENDS "${QT_INSTALL_PATH}/plugins/multimedia/*.dll")
+        foreach (DLL ${QT_MM_BACKENDS})
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${DLL}"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
+        endforeach ()
+    endif ()
     if (EXISTS "${LUA_DIR}/lua54.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different

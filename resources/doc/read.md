@@ -2,7 +2,7 @@
 
 ## signature
 
-read([index]) -> str
+port.read([index]) -> str
 
 ## parameters
 
@@ -15,7 +15,7 @@ string: the receive buffer content of the current or specified port. The actual 
 ## examples
 
 -- read from current port  
-read()
+port.read()
 
 -- read from specific port index  
-read(1)
+port.read(1)

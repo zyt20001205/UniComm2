@@ -1,8 +1,8 @@
-# close()
+# info()
 
 ## signature
 
-port.close([index]) -> nil
+port.info([index]) -> nil
 
 ## parameters
 
@@ -14,8 +14,8 @@ nil
 
 ## examples
 
--- close current port  
-port.close()
+-- get info from current port  
+port.info()
 
--- close specific port index  
-port.close(1)
+-- get info from specific port index  
+port.info(1)

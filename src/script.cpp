@@ -104,6 +104,7 @@ void Script::manualUiInit() {
     const auto manualTreeView = new QTreeView(); // NOLINT
     manualSplitter->addWidget(manualTreeView);
     manualTreeView->setHeaderHidden(true);
+    manualTreeView->setFont(QFont("Consolas", 12));
 
     const auto manualStandardItemModel = new QStandardItemModel(); // NOLINT
     manualTreeView->setModel(manualStandardItemModel);
@@ -114,6 +115,8 @@ void Script::manualUiInit() {
     manualPortStandardItem->appendRow(manualOpenStandardItem);
     const auto manualCloseStandardItem = new QStandardItem("close"); // NOLINT
     manualPortStandardItem->appendRow(manualCloseStandardItem);
+    const auto manualInfoStandardItem = new QStandardItem("info"); // NOLINT
+    manualPortStandardItem->appendRow(manualInfoStandardItem);
     const auto manualWriteStandardItem = new QStandardItem("write"); // NOLINT
     manualPortStandardItem->appendRow(manualWriteStandardItem);
     const auto manualReadStandardItem = new QStandardItem("read"); // NOLINT
@@ -125,6 +128,8 @@ void Script::manualUiInit() {
             m_manualTextBrowser->setSource(QUrl("open.md"));
         } else if (itemText == "close") {
             m_manualTextBrowser->setSource(QUrl("close.md"));
+        } else if (itemText == "info") {
+            m_manualTextBrowser->setSource(QUrl("info.md"));
         } else if (itemText == "write") {
             m_manualTextBrowser->setSource(QUrl("write.md"));
         } else if (itemText == "read") {
@@ -275,8 +280,7 @@ int Script::luaWrite(lua_State *L) {
         param2 = luaL_checkstring(L, 2);
         if (lua_isnoneornil(L, 3)) {
             param3 = "";
-        }
-        else {
+        } else {
             param3 = luaL_checkstring(L, 3);
         }
     } else {
@@ -284,8 +288,7 @@ int Script::luaWrite(lua_State *L) {
         param2 = luaL_checkstring(L, 1);
         if (lua_isnoneornil(L, 2)) {
             param3 = "";
-        }
-        else {
+        } else {
             param3 = luaL_checkstring(L, 2);
         }
     }

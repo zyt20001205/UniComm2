@@ -2,6 +2,7 @@
 #define PORT_H
 
 #include <QApplication>
+#include <QCamera>
 #include <QCameraDevice>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -12,9 +13,11 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QImage>
+#include <QImageCapture>
 #include <QLabel>
 #include <QLineEdit>
 #include <QList>
+#include <QMediaCaptureSession>
 #include <QMediaDevices>
 #include <QMenu>
 #include <QPainter>
@@ -162,15 +165,17 @@ public:
 
     ~AreaSelectDialog() override = default;
 
-    void capture(const QString &target);
+    void capture(const QString &type, const QString &target);
 
     QJsonArray save();
 
 private:
     void crop();
 
+    QString m_type;
     QString m_target;
     QScreen *m_screen;
+    QCameraDevice m_camera;
     QGraphicsView *m_graphicsView = nullptr;
     QRect m_rect;
     QJsonArray m_area;
@@ -438,7 +443,33 @@ public:
     QString read() override;
 
 private:
-    QObject *m_screen;
+    QScreen *m_screen = nullptr;
+
+    // port config
+    QString m_portName;
+    QRect m_area;
+};
+
+class Camera final : public BasePort {
+    Q_OBJECT
+
+public:
+    explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    bool open() override;
+
+    void close() override;
+
+    QString info() override;
+
+    void write(const QString &command, const QString &peerIp) override;
+
+    QString read() override;
+
+private:
+    QCameraDevice m_camera;
 
     // port config
     QString m_portName;

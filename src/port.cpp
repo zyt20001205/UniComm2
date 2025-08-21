@@ -300,10 +300,6 @@ void Port::portSettingUiInit() {
         screenAreaLayout->addWidget(screenAreaLabel);
         m_areaSelectPushButton = new QPushButton("choose capture area");
         screenAreaLayout->addWidget(m_areaSelectPushButton);
-        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this]() {
-            m_areaChooseDialog->show();
-            m_areaChooseDialog->capture(m_screenNameCombobox->currentText());
-        });
     }
     // init tx/rx settings
     {
@@ -525,12 +521,22 @@ void Port::portSettingTypeSwitch(const int type) {
         m_portTypeCombobox->setEnabled(false);
         m_screenNameWidget->show();
         m_areaSelectWidget->show();
+        disconnect(m_areaSelectPushButton, &QPushButton::clicked, this, nullptr);
+        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this]() {
+            m_areaChooseDialog->show();
+            m_areaChooseDialog->capture("screen", m_screenNameCombobox->currentText());
+        });
         m_portSettingSavePushButton->show();
     } else {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
         m_cameraNameWidget->show();
         m_areaSelectWidget->show();
+        disconnect(m_areaSelectPushButton, &QPushButton::clicked, this, nullptr);
+        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this]() {
+            m_areaChooseDialog->show();
+            m_areaChooseDialog->capture("camera", m_cameraNameCombobox->currentText());
+        });
         m_portSettingSavePushButton->show();
     }
     m_portSettingDialog->adjustSize();
@@ -619,10 +625,30 @@ void Port::portSettingSave(const int type) {
             pageWidget->portReload(portConfig);
         }
     } else if (type == 4) {
-    } else {
+    } else if (type == 5) {
         QJsonObject portConfig;
         portConfig["portType"] = "screen";
         portConfig["portName"] = m_screenNameCombobox->currentText();
+        portConfig["area"] = m_areaChooseDialog->save();
+        if (m_currentIndex == -1) {
+            if (m_portConfig.size() == 0) {
+                m_tabWidget->removeTab(0);
+            }
+            m_portConfig.append(portConfig);
+            auto *pageWidget = new PageWidget(m_tabWidget); // NOLINT
+            pageWidget->init(portConfig);
+            const QString portName = portConfig["portName"].toString();
+            m_tabWidget->addTab(pageWidget, portName);
+            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+        } else {
+            m_portConfig[m_currentIndex] = portConfig;
+            const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+            pageWidget->portReload(portConfig);
+        }
+    } else {
+        QJsonObject portConfig;
+        portConfig["portType"] = "camera";
+        portConfig["portName"] = m_cameraNameCombobox->currentText();
         portConfig["area"] = m_areaChooseDialog->save();
         if (m_currentIndex == -1) {
             if (m_portConfig.size() == 0) {
@@ -655,7 +681,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     const auto *refreshAction = toolbar->addAction(QIcon(":/icon/arrowClockwise.svg"), "refresh");
     connect(refreshAction, &QAction::triggered, this, [this]() {
-        capture(m_target);
+        capture(m_type, m_target);
     });
     const auto *addAction = toolbar->addAction(QIcon(":/icon/crop.svg"), "crop");
     connect(addAction, &QAction::triggered, this, [this]() {
@@ -663,19 +689,50 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     });
 }
 
-void AreaSelectDialog::capture(const QString &target) {
+void AreaSelectDialog::capture(const QString &type, const QString &target) {
+    m_type = type;
     m_target = target;
-    // capture selected screen
-    m_screen = nullptr;
-    for (QScreen *s: QGuiApplication::screens()) {
-        if (s->name() == target) {
-            m_screen = s;
-            break;
+    QPixmap shot;
+    if (m_type == "screen") {
+        // find screen
+        m_screen = nullptr;
+        for (QScreen *screen: QGuiApplication::screens()) {
+            if (screen->name() == target) {
+                m_screen = screen;
+                break;
+            }
         }
+        if (!m_screen) return;
+        // screenshot
+        shot = m_screen->grabWindow(0);
+    } else {
+        // find camera
+        m_camera = QCameraDevice();
+        for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
+            if (camera.description() == target) {
+                m_camera = camera;
+                break;
+            }
+        }
+        if (m_camera.isNull()) return;
+        // take picture
+        const auto camera = new QCamera(m_camera, this);
+        QMediaCaptureSession captureSession;
+        captureSession.setCamera(camera);
+        QImageCapture imageCapture;
+        captureSession.setImageCapture(&imageCapture);
+        QEventLoop loop;
+        connect(&imageCapture, &QImageCapture::imageCaptured, this, [&](int id, const QImage &img) {
+            Q_UNUSED(id);
+            shot = QPixmap::fromImage(img);
+            loop.quit();
+        });
+        camera->start();
+        imageCapture.capture();
+        loop.exec();
+        camera->stop();
+        delete camera;
     }
-    if (!m_screen) m_screen = QGuiApplication::primaryScreen();
-    if (!m_screen) return;
-    QPixmap shot = m_screen->grabWindow(0);
     // show in graphics view (native pixel size, no smoothing)
     auto *scene = new QGraphicsScene(m_graphicsView);
     auto *item = scene->addPixmap(shot);
@@ -704,13 +761,22 @@ void AreaSelectDialog::getCropArea(const QRect &viewportRect, const QPointF &fro
         m_rect = sceneRect;
     }
     if (rubberBandEnded) {
-        const qreal dpr = m_screen->devicePixelRatio();
-        m_area = {
-            static_cast<int>(m_rect.x() * dpr),
-            static_cast<int>(m_rect.y() * dpr),
-            static_cast<int>(m_rect.width() * dpr),
-            static_cast<int>(m_rect.height() * dpr)
-        };
+        if (m_type == "screen") {
+            const qreal dpr = m_screen->devicePixelRatio();
+            m_area = {
+                static_cast<int>(m_rect.x() * dpr),
+                static_cast<int>(m_rect.y() * dpr),
+                static_cast<int>(m_rect.width() * dpr),
+                static_cast<int>(m_rect.height() * dpr)
+            };
+        } else {
+            m_area = {
+                m_rect.x(),
+                m_rect.y(),
+                m_rect.width(),
+                m_rect.height()
+            };
+        }
     }
 }
 
@@ -759,7 +825,7 @@ void PageWidget::init(const QJsonObject &portConfig) {
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp server", portName, "loaded");
     } else if (portType == "udp socket") {
-    } else /* portType == "screen" */ {
+    } else if (portType == "screen") {
         // ui init
         m_pushButton = new QPushButton("open"); // NOLINT
         m_pushButton->setCheckable(true);
@@ -771,6 +837,19 @@ void PageWidget::init(const QJsonObject &portConfig) {
         // logging
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "screen", portName, "loaded");
+    } else /* portType == "camera" */
+    {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        //  port init
+        m_port = new Camera(portConfig, this);
+        // connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
     }
 }
 
@@ -1449,7 +1528,7 @@ void TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
     }
 }
 
-Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_screen(new QObject(this)) {
+Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
     // port config
     m_portName = portConfig["portName"].toString();
     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
@@ -1477,17 +1556,108 @@ void Screen::write(const QString &command, const QString &peerIp) {
 }
 
 QString Screen::read() {
-    // capture selected screen
-    QScreen *screen = nullptr;
-    for (QScreen *s: QGuiApplication::screens()) {
-        if (s->name() == m_portName) {
-            screen = s;
+    // find screen
+    for (QScreen *screen: QGuiApplication::screens()) {
+        if (screen->name() == m_portName) {
+            m_screen = screen;
             break;
         }
     }
-    if (!screen)
+    if (!m_screen)
         return "screen not found";
-    QPixmap shot = screen->grabWindow(0).copy(m_area);
+    // screenshot and crop
+    const QPixmap shot = m_screen->grabWindow(0).copy(m_area);
+
+    // auto *tmp = new QDialog();
+    // auto *layout = new QVBoxLayout(tmp);
+    // auto *label = new QLabel();
+    // layout->addWidget(label);
+    // label->setPixmap(shot);
+    // tmp->show();
+
+    QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
+
+    // init ocr engine
+    auto *ocr = new tesseract::TessBaseAPI();
+    ocr->Init(nullptr, "eng");
+    // load pic
+    ocr->SetImage(
+        image.bits(),
+        image.width(),
+        image.height(),
+        3,
+        image.bytesPerLine()
+    );
+
+    // exec ocr
+    char *outText = ocr->GetUTF8Text();
+    QString recognizedText = QString::fromUtf8(outText);
+
+    // free resources
+    delete[] outText;
+    ocr->End();
+    delete ocr;
+    //
+    recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
+    return recognizedText.isEmpty() ? "null" : recognizedText;
+}
+
+Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+}
+
+void Camera::reload(const QJsonObject &portConfig) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+}
+
+bool Camera::open() {
+    qDebug() << m_area;
+    return true;
+}
+
+void Camera::close() {
+}
+
+QString Camera::info() {
+    return "";
+}
+
+void Camera::write(const QString &command, const QString &peerIp) {
+}
+
+QString Camera::read() {
+    QPixmap shot;
+    // find camera
+    m_camera = QCameraDevice();
+    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
+        if (camera.description() == m_portName) {
+            m_camera = camera;
+            break;
+        }
+    }
+    if (m_camera.isNull())
+        return "camera not found";;
+    // take picture
+    const auto camera = new QCamera(m_camera, this);
+    QMediaCaptureSession captureSession;
+    captureSession.setCamera(camera);
+    QImageCapture imageCapture;
+    captureSession.setImageCapture(&imageCapture);
+    QEventLoop loop;
+    connect(&imageCapture, &QImageCapture::imageCaptured, this, [&](int id, const QImage &img) {
+        Q_UNUSED(id);
+        shot = QPixmap::fromImage(img).copy(m_area);
+        loop.quit();
+    });
+    camera->start();
+    imageCapture.capture();
+    loop.exec();
+    camera->stop();
+    delete camera;
 
     // auto *tmp = new QDialog();
     // auto *layout = new QVBoxLayout(tmp);

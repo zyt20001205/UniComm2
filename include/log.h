@@ -2,6 +2,7 @@
 #define LOG_H
 
 #include <QDockWidget>
+#include <QHBoxLayout>
 #include <QJsonObject>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -16,16 +17,15 @@ public:
 
     ~Log() override = default;
 
-    void logAppend(const QString &message,const QString &level);
+    void logAppend(const QString &message, const QString &level);
 
 private:
-    void uiInit();
-
     QJsonObject m_logConfig = g_config["logConfig"].toObject();
 
-    QWidget *m_widget = nullptr;
-    QVBoxLayout *m_layout = nullptr;
     QTextEdit *m_textEdit = nullptr;
+
+private slots:
+    void logClear() const;
 };
 
 #endif //LOG_H

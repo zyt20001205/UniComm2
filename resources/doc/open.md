@@ -2,7 +2,7 @@
 
 ## signature
 
-open([index]) -> nil
+port.open([index]) -> nil
 
 ## parameters
 
@@ -15,7 +15,7 @@ nil
 ## examples
 
 -- open current port  
-open()
+port.open()
 
 -- open specific port index  
-open(1)
+port.open(1)
