@@ -163,7 +163,7 @@ void Port::portSettingUiInit() {
         portTypeLayout->addWidget(portTypeLabel);
         m_portTypeCombobox = new QComboBox();
         portTypeLayout->addWidget(m_portTypeCombobox);
-        m_portTypeCombobox->addItems(QStringList{"choose port type", "serial port", "tcp client", "tcp server", "udp socket", "camera"});
+        m_portTypeCombobox->addItems(QStringList{"choose port type", "serial port", "tcp client", "tcp server", "udp socket", "screen", "camera"});
         connect(m_portTypeCombobox, &QComboBox::currentIndexChanged, this, &Port::portSettingTypeSwitch);
     }
     // init serial port settings
@@ -270,8 +270,17 @@ void Port::portSettingUiInit() {
     }
     // init udp socket settings
 
-    // init camera settings
+    // init screen/camera settings
     {
+        m_screenNameWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_screenNameWidget);
+        const auto screenLayout = new QHBoxLayout(m_screenNameWidget);
+        screenLayout->setContentsMargins(0, 0, 0, 0);
+        const auto screenNameLabel = new QLabel("screen name");
+        screenLayout->addWidget(screenNameLabel);
+        m_screenNameCombobox = new QComboBox();
+        screenLayout->addWidget(m_screenNameCombobox);
+
         m_cameraNameWidget = new QWidget(m_portSettingDialog);
         m_portSettingLayout->addWidget(m_cameraNameWidget);
         const auto cameraLayout = new QHBoxLayout(m_cameraNameWidget);
@@ -281,27 +290,20 @@ void Port::portSettingUiInit() {
         m_cameraNameCombobox = new QComboBox();
         cameraLayout->addWidget(m_cameraNameCombobox);
 
-        m_cameraAreaWidget = new QWidget(m_portSettingDialog);
-        m_portSettingLayout->addWidget(m_cameraAreaWidget);
-        const auto cameraAreaLayout = new QHBoxLayout(m_cameraAreaWidget);
-        cameraAreaLayout->setContentsMargins(0, 0, 0, 0);
-        const auto cameraAreaLabel = new QLabel("capture area");
-        cameraAreaLayout->addWidget(cameraAreaLabel);
-        m_cameraAreaPushButton = new QPushButton("choose capture area");
-        cameraAreaLayout->addWidget(m_cameraAreaPushButton);
-        connect(m_cameraAreaPushButton, &QPushButton::clicked, this, [this]() {
-            m_cameraAreaChooseDialog->show();
-            portSettingCameraCapture();
-        });
+        m_areaChooseDialog = new AreaSelectDialog(m_portSettingDialog);
 
-        m_cameraAreaChooseDialog = new QDialog(m_portSettingDialog);
-        // m_cameraAreaChooseDialog->setFixedSize(1280, 720);
-        const auto cameraAreaChooseLayout = new QVBoxLayout(m_cameraAreaChooseDialog);
-        cameraAreaChooseLayout->setContentsMargins(0, 0, 0, 0);
-        m_cameraAreaChooseGraphicsView = new QGraphicsView(m_cameraAreaChooseDialog);
-        cameraAreaChooseLayout->addWidget(m_cameraAreaChooseGraphicsView);
-        const auto cameraAreaChooseToolBar = new QToolBar(m_portSettingDialog);
-        cameraAreaChooseLayout->addWidget(cameraAreaChooseToolBar);
+        m_areaSelectWidget = new QWidget(m_portSettingDialog);
+        m_portSettingLayout->addWidget(m_areaSelectWidget);
+        const auto screenAreaLayout = new QHBoxLayout(m_areaSelectWidget);
+        screenAreaLayout->setContentsMargins(0, 0, 0, 0);
+        const auto screenAreaLabel = new QLabel("capture area");
+        screenAreaLayout->addWidget(screenAreaLabel);
+        m_areaSelectPushButton = new QPushButton("choose capture area");
+        screenAreaLayout->addWidget(m_areaSelectPushButton);
+        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this]() {
+            m_areaChooseDialog->show();
+            m_areaChooseDialog->capture(m_screenNameCombobox->currentText());
+        });
     }
     // init tx/rx settings
     {
@@ -365,32 +367,6 @@ void Port::portSettingUiInit() {
     });
 }
 
-void Port::portSettingCameraCapture() {
-    // capture selected screen
-    const QString screenName = m_cameraNameCombobox->currentData().toString();
-    QScreen *screen = nullptr;
-    for (QScreen *s : QGuiApplication::screens()) {
-        if (s->name() == screenName || s->name() == m_cameraNameCombobox->currentText()) {
-            screen = s; break;
-        }
-    }
-    if (!screen) screen = QGuiApplication::primaryScreen();
-    if (!screen) return;
-
-    const QPixmap shot = screen->grabWindow(0);
-
-    // show in graphics view (native pixel size, no smoothing)
-    auto *scene = new QGraphicsScene(m_cameraAreaChooseGraphicsView);
-    auto *item = scene->addPixmap(shot);
-    item->setTransformationMode(Qt::FastTransformation);
-    m_cameraAreaChooseGraphicsView->setRenderHint(QPainter::SmoothPixmapTransform, false);
-    m_cameraAreaChooseGraphicsView->setScene(scene);
-    m_cameraAreaChooseGraphicsView->resetTransform();
-    m_cameraAreaChooseGraphicsView->setSceneRect(shot.rect());
-    m_cameraAreaChooseGraphicsView->setDragMode(QGraphicsView::RubberBandDrag);
-    m_cameraAreaChooseGraphicsView->setAlignment(Qt::AlignCenter);
-}
-
 void Port::portSettingLoad(const int index) {
     m_portSettingDialog->show();
     if (index == -1) {
@@ -445,9 +421,10 @@ void Port::portSettingLoad(const int index) {
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
             m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "udp socket") {
+        } else if (portType == "screen") {
+            m_screenNameCombobox->setCurrentText(portInfo["portName"].toString());
         } else /* portType == "camera" */ {
-            int i = m_cameraNameCombobox->findData(portInfo["portName"].toString());
-            m_cameraNameCombobox->setCurrentIndex(i);
+            m_cameraNameCombobox->setCurrentText(portInfo["portName"].toString());
         }
     }
 }
@@ -473,13 +450,18 @@ void Port::portSettingWidgetReset() const {
     m_tcpServerLocalPortWidget->hide();
     // udp socket setting widget
 
-    // camera setting widget
+    // screen/camera setting widget
+    m_screenNameWidget->hide();
+    m_screenNameCombobox->clear();
+    for (const QList<QScreen *> screens = QGuiApplication::screens(); const QScreen *screen: screens) {
+        m_screenNameCombobox->addItem(screen->name());
+    }
     m_cameraNameWidget->hide();
     m_cameraNameCombobox->clear();
-    for (const QList<QScreen *> screens = QGuiApplication::screens(); const QScreen *screen: screens) {
-        m_cameraNameCombobox->addItem(screen->name() + " " + QString::number(screen->size().width()) + "x" + QString::number(screen->size().height()), screen->name());
+    for (const QList<QCameraDevice> cameras = QMediaDevices::videoInputs(); const QCameraDevice &camera: cameras) {
+        m_cameraNameCombobox->addItem(camera.description());
     }
-    m_cameraAreaWidget->hide();
+    m_areaSelectWidget->hide();
     // rx/tx setting widget
     m_txFormatWidget->hide();
     m_txSuffixWidget->hide();
@@ -538,11 +520,18 @@ void Port::portSettingTypeSwitch(const int type) {
         m_rxFormatWidget->show();
         m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
+    } else if (type == 5) {
+        portSettingWidgetReset();
+        m_portTypeCombobox->setEnabled(false);
+        m_screenNameWidget->show();
+        m_areaSelectWidget->show();
+        m_portSettingSavePushButton->show();
     } else {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
         m_cameraNameWidget->show();
-        m_cameraAreaWidget->show();
+        m_areaSelectWidget->show();
+        m_portSettingSavePushButton->show();
     }
     m_portSettingDialog->adjustSize();
 }
@@ -631,8 +620,98 @@ void Port::portSettingSave(const int type) {
         }
     } else if (type == 4) {
     } else {
+        QJsonObject portConfig;
+        portConfig["portType"] = "screen";
+        portConfig["portName"] = m_screenNameCombobox->currentText();
+        portConfig["area"] = m_areaChooseDialog->save();
+        if (m_currentIndex == -1) {
+            if (m_portConfig.size() == 0) {
+                m_tabWidget->removeTab(0);
+            }
+            m_portConfig.append(portConfig);
+            auto *pageWidget = new PageWidget(m_tabWidget); // NOLINT
+            pageWidget->init(portConfig);
+            const QString portName = portConfig["portName"].toString();
+            m_tabWidget->addTab(pageWidget, portName);
+            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+        } else {
+            m_portConfig[m_currentIndex] = portConfig;
+            const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+            pageWidget->portReload(portConfig);
+        }
     }
     m_portSettingDialog->hide();
+}
+
+AreaSelectDialog::AreaSelectDialog(QWidget *parent)
+    : QDialog(parent) {
+    this->setFixedSize(1280, 720);
+    auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    m_graphicsView = new QGraphicsView();
+    layout->addWidget(m_graphicsView);
+    auto *toolbar = new QToolBar();
+    layout->addWidget(toolbar);
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    const auto *refreshAction = toolbar->addAction(QIcon(":/icon/arrowClockwise.svg"), "refresh");
+    connect(refreshAction, &QAction::triggered, this, [this]() {
+        capture(m_target);
+    });
+    const auto *addAction = toolbar->addAction(QIcon(":/icon/crop.svg"), "crop");
+    connect(addAction, &QAction::triggered, this, [this]() {
+        crop();
+    });
+}
+
+void AreaSelectDialog::capture(const QString &target) {
+    m_target = target;
+    // capture selected screen
+    m_screen = nullptr;
+    for (QScreen *s: QGuiApplication::screens()) {
+        if (s->name() == target) {
+            m_screen = s;
+            break;
+        }
+    }
+    if (!m_screen) m_screen = QGuiApplication::primaryScreen();
+    if (!m_screen) return;
+    QPixmap shot = m_screen->grabWindow(0);
+    // show in graphics view (native pixel size, no smoothing)
+    auto *scene = new QGraphicsScene(m_graphicsView);
+    auto *item = scene->addPixmap(shot);
+    item->setTransformationMode(Qt::FastTransformation);
+    m_graphicsView->setRenderHint(QPainter::SmoothPixmapTransform, false);
+    m_graphicsView->setScene(scene);
+    m_graphicsView->resetTransform();
+    m_graphicsView->setSceneRect(shot.rect());
+    m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+    m_graphicsView->setAlignment(Qt::AlignCenter);
+}
+
+QJsonArray AreaSelectDialog::save() {
+    return m_area;
+}
+
+void AreaSelectDialog::crop() {
+    m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::getCropArea, Qt::UniqueConnection);
+}
+
+void AreaSelectDialog::getCropArea(const QRect &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
+    const bool rubberBandEnded = viewportRect.isNull();
+    QRect sceneRect = QRectF(fromScenePoint, toScenePoint).normalized().toRect();
+    if (!sceneRect.isNull() && sceneRect.isValid()) {
+        m_rect = sceneRect;
+    }
+    if (rubberBandEnded) {
+        const qreal dpr = m_screen->devicePixelRatio();
+        m_area = {
+            static_cast<int>(m_rect.x() * dpr),
+            static_cast<int>(m_rect.y() * dpr),
+            static_cast<int>(m_rect.width() * dpr),
+            static_cast<int>(m_rect.height() * dpr)
+        };
+    }
 }
 
 PageWidget::PageWidget(QObject *parent) {
@@ -680,18 +759,18 @@ void PageWidget::init(const QJsonObject &portConfig) {
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp server", portName, "loaded");
     } else if (portType == "udp socket") {
-    } else /* portType == "camera" */ {
+    } else /* portType == "screen" */ {
         // ui init
         m_pushButton = new QPushButton("open"); // NOLINT
         m_pushButton->setCheckable(true);
         pageLayout->addWidget(m_pushButton);
         connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
         //  port init
-        m_port = new Camera(portConfig, this);
+        m_port = new Screen(portConfig, this);
         // connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
         // logging
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "screen", portName, "loaded");
     }
 }
 
@@ -1370,64 +1449,76 @@ void TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
     }
 }
 
-Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_camera(new QObject(this)) {
+Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_screen(new QObject(this)) {
     // port config
     m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
 }
 
-void Camera::reload(const QJsonObject &portConfig) {
+void Screen::reload(const QJsonObject &portConfig) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
 }
 
-bool Camera::open() {
+bool Screen::open() {
+    qDebug() << m_area;
+    return true;
 }
 
-void Camera::close() {
+void Screen::close() {
 }
 
-QString Camera::info() {
+QString Screen::info() {
     return "";
 }
 
-void Camera::write(const QString &command, const QString &peerIp) {
+void Screen::write(const QString &command, const QString &peerIp) {
 }
 
-QString Camera::read() {
-    if (m_portName == "screen") {
-        // QScreen *screen = QApplication::primaryScreen();
-        // const QPixmap screenshot = screen->grabWindow(0);
-        // QImage qimg = screenshot.toImage().convertToFormat(QImage::Format_RGB888);
-        //
-        // const int width = qimg.width();
-        // const int height = qimg.height();
-        // PIX *image = pixCreate(width, height, 32);
-        //
-        // for (int y = 0; y < height; ++y) {
-        //     for (int x = 0; x < width; ++x) {
-        //         const QRgb pixel = qimg.pixel(x, y);
-        //         const l_uint32 pixelData = (0xFF << 24) | (qRed(pixel) << 16) | (qGreen(pixel) << 8) | qBlue(pixel);
-        //         pixSetPixel(image, x, y, pixelData);
-        //     }
-        // }
-
-        // init ocr engine
-        auto *ocr = new tesseract::TessBaseAPI();
-        ocr->Init(nullptr, "eng");
-        // load pic
-        const QString imagePath = "test.png";
-        PIX *image = pixRead(imagePath.toStdString().c_str());
-        ocr->SetImage(image);
-
-        // exec ocr
-        char *outText = ocr->GetUTF8Text();
-        QString recognizedText = QString::fromUtf8(outText);
-
-        // free resources
-        delete[] outText;
-        pixDestroy(&image);
-        ocr->End();
-        delete ocr;
-        //
-        recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
-        return recognizedText.isEmpty() ? "null" : recognizedText;
+QString Screen::read() {
+    // capture selected screen
+    QScreen *screen = nullptr;
+    for (QScreen *s: QGuiApplication::screens()) {
+        if (s->name() == m_portName) {
+            screen = s;
+            break;
+        }
     }
+    if (!screen)
+        return "screen not found";
+    QPixmap shot = screen->grabWindow(0).copy(m_area);
+
+    // auto *tmp = new QDialog();
+    // auto *layout = new QVBoxLayout(tmp);
+    // auto *label = new QLabel();
+    // layout->addWidget(label);
+    // label->setPixmap(shot);
+    // tmp->show();
+
+    QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
+
+    // init ocr engine
+    auto *ocr = new tesseract::TessBaseAPI();
+    ocr->Init(nullptr, "eng");
+    // load pic
+    ocr->SetImage(
+        image.bits(),
+        image.width(),
+        image.height(),
+        3,
+        image.bytesPerLine()
+    );
+
+    // exec ocr
+    char *outText = ocr->GetUTF8Text();
+    QString recognizedText = QString::fromUtf8(outText);
+
+    // free resources
+    delete[] outText;
+    ocr->End();
+    delete ocr;
+    //
+    recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
+    return recognizedText.isEmpty() ? "null" : recognizedText;
 }

@@ -2,6 +2,7 @@
 #define PORT_H
 
 #include <QApplication>
+#include <QCameraDevice>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialog>
@@ -14,6 +15,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QList>
+#include <QMediaDevices>
 #include <QMenu>
 #include <QPainter>
 #include <QPixmap>
@@ -22,6 +24,7 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QSpinbox>
+#include <QStackedLayout>
 #include <QTabWidget>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -34,6 +37,8 @@
 #include <allheaders.h>
 #include "config.h"
 #include "suffix.h"
+
+class AreaSelectDialog;
 
 class BasePort;
 
@@ -79,8 +84,6 @@ private:
 private:
     void portSettingUiInit();
 
-    void portSettingCameraCapture();
-
     void portSettingLoad(int index);
 
     void portSettingWidgetReset() const;
@@ -122,13 +125,15 @@ private:
 
     // udp socket
 
-    // camera
+    // screen/camera
+    QWidget *m_screenNameWidget = nullptr;
+    QComboBox *m_screenNameCombobox = nullptr;
     QWidget *m_cameraNameWidget = nullptr;
     QComboBox *m_cameraNameCombobox = nullptr;
-    QWidget *m_cameraAreaWidget = nullptr;
-    QPushButton *m_cameraAreaPushButton = nullptr;
-    QDialog *m_cameraAreaChooseDialog = nullptr;
-    QGraphicsView *m_cameraAreaChooseGraphicsView = nullptr;
+
+    QWidget *m_areaSelectWidget = nullptr;
+    QPushButton *m_areaSelectPushButton = nullptr;
+    AreaSelectDialog *m_areaChooseDialog = nullptr;
 
     // tx/rx
     QWidget *m_txFormatWidget = nullptr;
@@ -147,6 +152,31 @@ private:
 
 signals:
     void appendLog(const QString &message, const QString &level);
+};
+
+class AreaSelectDialog final : public QDialog {
+    Q_OBJECT
+
+public:
+    explicit AreaSelectDialog(QWidget *parent = nullptr);
+
+    ~AreaSelectDialog() override = default;
+
+    void capture(const QString &target);
+
+    QJsonArray save();
+
+private:
+    void crop();
+
+    QString m_target;
+    QScreen *m_screen;
+    QGraphicsView *m_graphicsView = nullptr;
+    QRect m_rect;
+    QJsonArray m_area;
+
+private slots:
+    void getCropArea(const QRect &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
 };
 
 class PageWidget final : public QWidget {
@@ -389,11 +419,11 @@ signals:
     void errorOccurred(const QString &error);
 };
 
-class Camera final : public BasePort {
+class Screen final : public BasePort {
     Q_OBJECT
 
 public:
-    explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
+    explicit Screen(const QJsonObject &portConfig, QObject *parent = nullptr);
 
     void reload(const QJsonObject &portConfig) override;
 
@@ -408,10 +438,11 @@ public:
     QString read() override;
 
 private:
-    QObject *m_camera;
+    QObject *m_screen;
 
     // port config
     QString m_portName;
+    QRect m_area;
 };
 
 #endif //PORT_H
