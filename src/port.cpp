@@ -1076,7 +1076,8 @@ void SerialPort::handleRead() {
         QString message;
         if (m_rxFormat == "hex") {
             message = data.toHex(' ').toUpper();
-            m_rxBuffer = data.toHex().toUpper();
+            m_rxBuffer = "\\x" + data.toHex(' ').toUpper().replace(" ", "\\x");
+            // m_rxBuffer = data.toHex().toUpper();
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;
@@ -1258,7 +1259,8 @@ void TcpClient::handleRead() {
         QString message;
         if (m_rxFormat == "hex") {
             message = data.toHex(' ').toUpper();
-            m_rxBuffer = data.toHex().toUpper();
+            m_rxBuffer = "\\x" + data.toHex(' ').toUpper().replace(" ", "\\x");
+            // m_rxBuffer = data.toHex().toUpper();
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;
@@ -1514,7 +1516,8 @@ void TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
         QString message;
         if (m_rxFormat == "hex") {
             message = data.toHex(' ').toUpper();
-            m_rxBuffer = data.toHex().toUpper();
+            m_rxBuffer = "\\x" + data.toHex(' ').toUpper().replace(" ", "\\x");
+            // m_rxBuffer = data.toHex().toUpper();
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;

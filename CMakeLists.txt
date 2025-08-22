@@ -31,6 +31,7 @@ find_package(Qt6 COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
         include/config.h
+        include/database.h
         include/explorer.h
         include/log.h
         include/port.h
@@ -39,6 +40,7 @@ qt_add_executable(UniComm src/main.cpp
         include/suffix.h
         src/mainWindow.cpp
         src/config.cpp
+        src/database.cpp
         src/explorer.cpp
         src/log.cpp
         src/port.cpp

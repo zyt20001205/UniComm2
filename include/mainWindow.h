@@ -8,7 +8,7 @@
 #include <QShortcut>
 #include <QWidget>
 #include "config.h"
-#include "mainWindow.h"
+#include "database.h"
 #include "explorer.h"
 #include "log.h"
 #include "port.h"
@@ -39,6 +39,7 @@ private:
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;
     Explorer *m_explorerModule = nullptr;
+    Database *m_databaseModule = nullptr;
     Log *m_logModule = nullptr;
 
 protected:

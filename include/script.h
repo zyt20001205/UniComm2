@@ -53,19 +53,21 @@ private:
 
     static int luaPrint(lua_State *L);
 
-    static int luaOpen(lua_State *L);
-
-    static int luaClose(lua_State *L);
-
-    static int luaInfo(lua_State *L);
-
-    static int luaWrite(lua_State *L);
-
-    static int luaRead(lua_State *L);
-
     static int luaDelay(lua_State *L);
 
     static int luaInput(lua_State *L);
+
+    static int luaPortOpen(lua_State *L);
+
+    static int luaPortClose(lua_State *L);
+
+    static int luaPortInfo(lua_State *L);
+
+    static int luaPortWrite(lua_State *L);
+
+    static int luaPortRead(lua_State *L);
+
+    static int luaDatabaseWrite(lua_State *L);
 
     QWidget *m_scriptWidget = nullptr;
     ScriptEditor *m_scriptPlainTextEdit = nullptr;
@@ -81,13 +83,15 @@ private slots:
     void scriptSave();
 
 signals:
+    void appendLog(const QString &message, const QString &level);
+
     void openPort(int index);
 
     void closePort(int index);
 
     void writePort(int index, const QString &command, const QString &peerIp);
 
-    void appendLog(const QString &message, const QString &level);
+    void writeDatabase(const QString &key, const QString &value);
 };
 
 class ScriptEditor final : public QPlainTextEdit {
