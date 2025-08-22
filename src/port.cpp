@@ -1578,7 +1578,7 @@ QString Screen::read() {
 
     // init ocr engine
     auto *ocr = new tesseract::TessBaseAPI();
-    ocr->Init(nullptr, "eng");
+    ocr->Init(nullptr, "eng+7seg");
     // load pic
     ocr->SetImage(
         image.bits(),
@@ -1605,6 +1605,8 @@ Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent
     // port config
     m_portName = portConfig["portName"].toString();
     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+    auto *layout = new QVBoxLayout(m_previewDialog);
+    layout->addWidget(m_previewLabel);
 }
 
 void Camera::reload(const QJsonObject &portConfig) {
@@ -1614,11 +1616,12 @@ void Camera::reload(const QJsonObject &portConfig) {
 }
 
 bool Camera::open() {
-    qDebug() << m_area;
+    m_previewDialog->show();
     return true;
 }
 
 void Camera::close() {
+    m_previewDialog->hide();
 }
 
 QString Camera::info() {
@@ -1658,18 +1661,15 @@ QString Camera::read() {
     camera->stop();
     delete camera;
 
-    // auto *tmp = new QDialog();
-    // auto *layout = new QVBoxLayout(tmp);
-    // auto *label = new QLabel();
-    // layout->addWidget(label);
-    // label->setPixmap(shot);
-    // tmp->show();
+    if (m_previewDialog->isVisible())
+        m_previewLabel->setPixmap(shot);
 
     QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
 
     // init ocr engine
     auto *ocr = new tesseract::TessBaseAPI();
-    ocr->Init(nullptr, "eng");
+    // ocr->Init(nullptr, "eng");
+    ocr->Init(nullptr, "7seg+eng");
     // load pic
     ocr->SetImage(
         image.bits(),

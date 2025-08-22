@@ -470,7 +470,8 @@ public:
 
 private:
     QCameraDevice m_camera;
-
+    QDialog *m_previewDialog = new QDialog();;
+    QLabel *m_previewLabel = new QLabel();
     // port config
     QString m_portName;
     QRect m_area;
