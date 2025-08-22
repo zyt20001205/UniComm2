@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::init() {
     // mainWindow ui init
     setWindowTitle("UniComm");
-    resize(1280, 720);
+    resize(1600, 900);
     setDockNestingEnabled(true);
     setDockOptions(AllowNestedDocks | AllowTabbedDocks | AnimatedDocks);
     // logging

@@ -2,8 +2,10 @@
 #define DATABASE_H
 
 #include <QDockWidget>
+#include <QEvent>
 #include <QHeaderView>
 #include <QJsonArray>
+#include <QKeyEvent>
 #include <QTableWidget>
 #include "config.h"
 
@@ -19,12 +21,25 @@ public:
 
     void databaseWrite(const QString &key, const QString &value);
 
-private:
-    QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
-    QTableWidget *m_tableWidget = nullptr;
-
 signals:
     void appendLog(const QString &message, const QString &level);
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+    void databaseRename(int index);
+
+    void databaseInsert(int index);
+
+    void databaseRemove(int index);
+
+    QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
+    QTableWidget *m_tableWidget = nullptr;
+    int m_previousIndex = -1;
+    int m_currentIndex;
+    QString m_sourceKey;
+    int m_sourceIndex;
 };
 
 #endif //DATABASE_H
