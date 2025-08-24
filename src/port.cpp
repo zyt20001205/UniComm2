@@ -99,7 +99,7 @@ QString Port::portRead(const int index) const {
 }
 
 void Port::portMenu(const int index, const QPoint &pos) {
-    if (m_portConfig.size() == 0)
+    if (m_portConfig.empty())
         return;
     m_tabWidget->setCurrentIndex(index);
     QMenu menu;
@@ -117,7 +117,7 @@ void Port::portMenu(const int index, const QPoint &pos) {
 }
 
 void Port::portSelected(const int index) {
-    if (m_portConfig.size() == 0)
+    if (m_portConfig.empty())
         return;
     m_currentIndex = index;
     QJsonObject portInfo = m_portConfig[index].toObject();
@@ -557,7 +557,7 @@ void Port::portSettingSave(const int type) {
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
         portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
-            if (m_portConfig.size() == 0) {
+            if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
             }
             m_portConfig.append(portConfig);
@@ -584,7 +584,7 @@ void Port::portSettingSave(const int type) {
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
         portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
-            if (m_portConfig.size() == 0) {
+            if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
             }
             m_portConfig.append(portConfig);
@@ -610,7 +610,7 @@ void Port::portSettingSave(const int type) {
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
         portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
-            if (m_portConfig.size() == 0) {
+            if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
             }
             m_portConfig.append(portConfig);
@@ -631,7 +631,7 @@ void Port::portSettingSave(const int type) {
         portConfig["portName"] = m_screenNameCombobox->currentText();
         portConfig["area"] = m_areaChooseDialog->save();
         if (m_currentIndex == -1) {
-            if (m_portConfig.size() == 0) {
+            if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
             }
             m_portConfig.append(portConfig);
@@ -651,7 +651,7 @@ void Port::portSettingSave(const int type) {
         portConfig["portName"] = m_cameraNameCombobox->currentText();
         portConfig["area"] = m_areaChooseDialog->save();
         if (m_currentIndex == -1) {
-            if (m_portConfig.size() == 0) {
+            if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
             }
             m_portConfig.append(portConfig);
@@ -1076,8 +1076,7 @@ void SerialPort::handleRead() {
         QString message;
         if (m_rxFormat == "hex") {
             message = data.toHex(' ').toUpper();
-            m_rxBuffer = "\\x" + data.toHex(' ').toUpper().replace(" ", "\\x");
-            // m_rxBuffer = data.toHex().toUpper();
+            m_rxBuffer = data.toHex().toUpper();
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;
@@ -1259,8 +1258,7 @@ void TcpClient::handleRead() {
         QString message;
         if (m_rxFormat == "hex") {
             message = data.toHex(' ').toUpper();
-            m_rxBuffer = "\\x" + data.toHex(' ').toUpper().replace(" ", "\\x");
-            // m_rxBuffer = data.toHex().toUpper();
+            m_rxBuffer = data.toHex().toUpper();
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;
@@ -1516,8 +1514,7 @@ void TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
         QString message;
         if (m_rxFormat == "hex") {
             message = data.toHex(' ').toUpper();
-            m_rxBuffer = "\\x" + data.toHex(' ').toUpper().replace(" ", "\\x");
-            // m_rxBuffer = data.toHex().toUpper();
+            m_rxBuffer = data.toHex().toUpper();
         } else if (m_rxFormat == "ascii") {
             message = QString::fromLatin1(data);
             m_rxBuffer = message;
