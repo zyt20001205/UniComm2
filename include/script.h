@@ -98,6 +98,8 @@ private:
 };
 
 class LuaLexer final : public QsciLexerLua {
+    Q_OBJECT
+
 public:
     using QsciLexerLua::QsciLexerLua;
 
