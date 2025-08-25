@@ -52,6 +52,7 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
             case QEvent::DragMove: {
                 m_tableWidget->clearSelection();
                 m_currentIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
+                if (m_currentIndex == -1) break;
                 if (m_previousIndex == -1) {
                     m_sourceKey = m_tableWidget->item(m_currentIndex, 0)->text();
                     m_sourceIndex = m_currentIndex;

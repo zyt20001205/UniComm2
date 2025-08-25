@@ -30,7 +30,8 @@ void Config::configGenerate() {
                 },
             },
             {
-                "sendConfig", ""
+                "sendConfig", QJsonArray{
+                },
             },
             {
                 "scriptConfig", QJsonObject{
