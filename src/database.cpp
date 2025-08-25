@@ -1,5 +1,6 @@
 #include "../include/database.h"
 
+// Database public
 Database::Database(QObject *parent)
     : QDockWidget("database", qobject_cast<QWidget *>(parent)) {
     m_tableWidget = new QTableWidget(); // NOLINT
@@ -22,6 +23,7 @@ Database::Database(QObject *parent)
         const int index = m_tableWidget->rowCount();
         m_tableWidget->insertRow(index);
         m_tableWidget->setItem(index, 0, new QTableWidgetItem(key.toString()));
+        m_tableWidget->setItem(index, 1, new QTableWidgetItem(""));
     }
 
     m_tableWidget->installEventFilter(this);
@@ -39,11 +41,37 @@ void Database::databaseConfigSave() const {
 void Database::databaseWrite(const QString &key, const QString &value) {
     for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
         if (m_tableWidget->item(index, 0)->text() == key) {
-            m_tableWidget->setItem(index, 1, new QTableWidgetItem(value));
+            m_tableWidget->item(index, 1)->text() = value;
             return;
         }
     }
     emit appendLog("key not found", "error");
+}
+
+// Database protected
+void Database::contextMenuEvent(QContextMenuEvent *event) {
+    const QPoint vpPos = m_tableWidget->viewport()->mapFromGlobal(event->globalPos());
+    const QModelIndex index = m_tableWidget->indexAt(vpPos);
+    QMenu menu(this);
+    if (m_databaseConfig.isEmpty()) {
+        menu.addAction(tr("new"), [this] {
+            databaseInsert(0);
+        });
+        menu.exec(event->globalPos());
+    } else if (!index.isValid()) {
+        return;
+    } else {
+        menu.addAction(tr("insert above (Ins)"), [this, index] {
+            databaseInsert(index.row());
+        });
+        menu.addAction(tr("insert below (Ctrl+Ins)"), [this, index] {
+            databaseInsert(index.row() + 1);
+        });
+        menu.addAction(tr("delete (Del)"), [this, index] {
+            databaseRemove(index.row());
+        });
+        menu.exec(event->globalPos());
+    }
 }
 
 bool Database::eventFilter(QObject *obj, QEvent *event) {
@@ -62,6 +90,7 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
                     m_tableWidget->removeRow(m_previousIndex);
                     m_tableWidget->insertRow(m_currentIndex);
                     m_tableWidget->setItem(m_currentIndex, 0, new QTableWidgetItem(m_sourceKey));
+                    m_tableWidget->setItem(m_currentIndex, 1, new QTableWidgetItem(""));
                     m_previousIndex = m_currentIndex;
                 }
                 break;
@@ -80,7 +109,11 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
     } else if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
-                databaseInsert(m_tableWidget->currentRow());
+                if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
+                    databaseInsert(m_tableWidget->currentRow() + 1);
+                } else {
+                    databaseInsert(m_tableWidget->currentRow());
+                }
                 return true;
             }
             case Qt::Key_Delete: {
@@ -100,13 +133,16 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
     return QDockWidget::eventFilter(obj, event);
 }
 
+// Database private
 void Database::databaseRename(const int index) {
     m_databaseConfig[index] = m_tableWidget->item(index, 0)->text();
 }
 
 void Database::databaseInsert(const int index) {
-    m_tableWidget->insertRow(index);
     m_databaseConfig.insert(index, "");
+    m_tableWidget->insertRow(index);
+    m_tableWidget->setItem(index, 0, new QTableWidgetItem(""));
+    m_tableWidget->setItem(index, 1, new QTableWidgetItem(""));
 }
 
 void Database::databaseRemove(const int index) {

@@ -6,7 +6,9 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QKeySequence>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -29,6 +31,8 @@ signals:
     void writePort(int index, const QString &command, const QString &peerIp);
 
 protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:

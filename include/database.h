@@ -6,6 +6,7 @@
 #include <QHeaderView>
 #include <QJsonArray>
 #include <QKeyEvent>
+#include <QMenu>
 #include <QTableWidget>
 #include "config.h"
 
@@ -25,6 +26,8 @@ signals:
     void appendLog(const QString &message, const QString &level);
 
 protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:

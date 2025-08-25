@@ -68,6 +68,31 @@ void Send::commandSend(const QString &command) {
 }
 
 // Send protected
+void Send::contextMenuEvent(QContextMenuEvent *event) {
+    const QPoint vpPos = m_tableWidget->viewport()->mapFromGlobal(event->globalPos());
+    const QModelIndex index = m_tableWidget->indexAt(vpPos);
+    QMenu menu(this);
+    if (m_sendConfig.isEmpty()) {
+        menu.addAction(tr("new"), [this] {
+            shortcutInsert(0);
+        });
+        menu.exec(event->globalPos());
+    } else if (!index.isValid()) {
+        return;
+    } else {
+        menu.addAction(tr("insert above (Ins)"), [this, index] {
+            shortcutInsert(index.row());
+        });
+        menu.addAction(tr("insert below (Ctrl+Ins)"), [this, index] {
+            shortcutInsert(index.row() + 1);
+        });
+        menu.addAction(tr("delete (Del)"), [this, index] {
+            shortcutRemove(index.row());
+        });
+        menu.exec(event->globalPos());
+    }
+}
+
 bool Send::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget->viewport()) {
         switch (event->type()) {
@@ -112,7 +137,11 @@ bool Send::eventFilter(QObject *obj, QEvent *event) {
     } else if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
-                shortcutInsert(m_tableWidget->currentRow());
+                if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
+                    shortcutInsert(m_tableWidget->currentRow() + 1);
+                } else {
+                    shortcutInsert(m_tableWidget->currentRow());
+                }
                 return true;
             }
             case Qt::Key_Delete: {
@@ -147,11 +176,22 @@ void Send::shortcutRename(const int row, const int column) {
 }
 
 void Send::shortcutInsert(const int index) {
-    m_tableWidget->insertRow(index);
     QJsonArray newShortcut;
     newShortcut.append("");
     newShortcut.append("");
     m_sendConfig.insert(index, newShortcut);
+
+    m_tableWidget->insertRow(index);
+    m_tableWidget->setItem(index, 0, new QTableWidgetItem(""));
+    m_tableWidget->setItem(index, 1, new QTableWidgetItem(""));
+    auto *shortcutSendButton = new QPushButton(); // NOLINT
+    m_tableWidget->setCellWidget(index, 2, shortcutSendButton);
+    shortcutSendButton->setFixedSize(30, 30);
+    shortcutSendButton->setIcon(QIcon(":/icon/send.svg"));
+    connect(shortcutSendButton, &QPushButton::clicked, this, [this, shortcutSendButton] {
+        const int buttonIndex = m_tableWidget->indexAt(shortcutSendButton->pos()).row();
+        commandSend(m_tableWidget->item(buttonIndex, 1)->text());
+    });
 }
 
 void Send::shortcutRemove(const int index) {
