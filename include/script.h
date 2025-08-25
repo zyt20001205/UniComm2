@@ -12,8 +12,9 @@
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QPushButton>
-#include <Qsci/qsciscintilla.h>
+#include <Qsci/qsciapis.h>
 #include <Qsci/qscilexerlua.h>
+#include <Qsci/qsciscintilla.h>
 #include <QSplitter>
 #include <QStandardItem>
 #include <QStandardItemModel>
@@ -27,6 +28,8 @@
 #include "port.h"
 
 class Port;
+
+class LuaLexer;
 
 class ScriptExplorer;
 
@@ -88,6 +91,15 @@ private:
     QHBoxLayout *m_ctrlLayout = nullptr;
 
     Port *m_port = nullptr;
+};
+
+class LuaLexer final : public QsciLexerLua {
+public:
+    using QsciLexerLua::QsciLexerLua;
+
+    const char* wordCharacters() const override {
+        return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.";
+    }
 };
 
 class ScriptExplorer final : public QTreeView {
