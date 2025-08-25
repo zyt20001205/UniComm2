@@ -10,14 +10,14 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
-#include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
+#include <Qsci/qsciscintilla.h>
+#include <Qsci/qscilexerlua.h>
 #include <QSplitter>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QSyntaxHighlighter>
-#include <QTextBrowser>
 #include <QThread>
 #include <QTreeView>
 #include <QVBoxLayout>
@@ -27,8 +27,6 @@
 #include "port.h"
 
 class Port;
-
-class ScriptEditor;
 
 class ScriptExplorer;
 
@@ -58,8 +56,6 @@ signals:
     void writeDatabase(const QString &key, const QString &value);
 
 private:
-    void manualUiInit();
-
     void scriptRun(const QString &name, const QString &script);
 
     void scriptRunning(const QString &name, QThread *worker);
@@ -85,36 +81,13 @@ private:
     static int luaDatabaseWrite(lua_State *L);
 
     QWidget *m_scriptWidget = nullptr;
-    ScriptEditor *m_scriptPlainTextEdit = nullptr;
+    QsciScintilla *m_scriptScintilla = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
     QWidget *m_ctrlWidget = nullptr;
     QHBoxLayout *m_ctrlLayout = nullptr;
-    QDialog *m_manualDialog = nullptr;
-    QTextBrowser *m_manualTextBrowser = nullptr;
 
     Port *m_port = nullptr;
-};
-
-class ScriptEditor final : public QPlainTextEdit {
-    Q_OBJECT
-
-public:
-    explicit ScriptEditor(QWidget *parent = nullptr);
-
-    ~ScriptEditor() override = default;
-};
-
-class ScriptHighlighter final : public QSyntaxHighlighter {
-    Q_OBJECT
-
-public:
-    explicit ScriptHighlighter(QTextDocument *parent = nullptr);
-
-    ~ScriptHighlighter() override = default;
-
-protected:
-    void highlightBlock(const QString &text) override;
 };
 
 class ScriptExplorer final : public QTreeView {

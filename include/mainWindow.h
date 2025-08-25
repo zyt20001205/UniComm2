@@ -5,11 +5,13 @@
 #include <QDockWidget>
 #include <QKeySequence>
 #include <QMainWindow>
+#include <QMenuBar>
 #include <QShortcut>
 #include <QWidget>
 #include "config.h"
 #include "database.h"
 #include "log.h"
+#include "manual.h"
 #include "port.h"
 #include "script.h"
 #include "send.h"
@@ -31,6 +33,8 @@ protected:
 private:
     void configInit();
 
+    void menuInit();
+
     void moduleInit();
 
     void shortcutInit();
@@ -38,6 +42,7 @@ private:
     void saveConfig() const;
 
     Config *m_configModule = nullptr;
+    Manual *m_manualModule = nullptr;
     Script *m_scriptModule = nullptr;
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;

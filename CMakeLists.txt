@@ -8,7 +8,11 @@ set(CMAKE_AUTOUIC ON)
 
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/lib/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
-set(LUA_LIBRARY "${LUA_DIR}/bin/lua54.dll")
+set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
+
+set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/lib/qscintilla-2.14.1")
+set(QSCINTILLA_INCLUDE_DIR "${QSCINTILLA_DIR}/include")
+set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
 
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
@@ -18,14 +22,6 @@ set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/lib/leptonica-1.85.0")
 set(LEPTONICA_INCLUDE_DIR "${LEPTONICA_DIR}/include")
 set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica.dll")
 
-add_library(tesseract SHARED IMPORTED)
-set_target_properties(tesseract PROPERTIES IMPORTED_LOCATION "${TESSERACT_DLL}")
-set_target_properties(tesseract PROPERTIES IMPORTED_IMPLIB "${TESSERACT_DLL}")
-
-add_library(leptonica SHARED IMPORTED)
-set_target_properties(leptonica PROPERTIES IMPORTED_LOCATION "${LEPTONICA_DLL}")
-set_target_properties(leptonica PROPERTIES IMPORTED_IMPLIB "${LEPTONICA_DLL}")
-
 find_package(Qt6 COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia REQUIRED)
 
 qt_add_executable(UniComm src/main.cpp
@@ -33,6 +29,7 @@ qt_add_executable(UniComm src/main.cpp
         include/config.h
         include/database.h
         include/log.h
+        include/manual.h
         include/port.h
         include/send.h
         include/script.h
@@ -41,11 +38,11 @@ qt_add_executable(UniComm src/main.cpp
         src/config.cpp
         src/database.cpp
         src/log.cpp
+        src/manual.cpp
         src/port.cpp
         src/send.cpp
         src/script.cpp
         src/suffix.cpp
-
 )
 
 qt_add_resources(UniComm "doc_resources"
@@ -82,13 +79,15 @@ target_link_libraries(UniComm PRIVATE
         Qt::SerialPort
         Qt::Network
         Qt::Multimedia
-        ${LUA_LIBRARY}
-        tesseract
-        leptonica
+        ${LUA_DLL}
+        ${QSCINTILLA_DLL}
+        ${TESSERACT_DLL}
+        ${LEPTONICA_DLL}
 )
 
 target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE_DIR}
+        ${QSCINTILLA_INCLUDE_DIR}
         ${TESSERACT_INCLUDE_DIR}
         ${LEPTONICA_INCLUDE_DIR}
 )
@@ -132,10 +131,18 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
         endforeach ()
     endif ()
-    if (EXISTS "${LUA_DIR}/lua54.dll")
+
+    if (EXISTS "${LUA_DIR}/bin/lua54.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${LUA_DIR}/lua54.dll"
+                "${LUA_DIR}/bin/lua54.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endif ()
+
+    if (EXISTS "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 

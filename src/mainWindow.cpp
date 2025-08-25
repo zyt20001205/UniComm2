@@ -1,4 +1,5 @@
 #include "../include/mainWindow.h"
+#include "../include/mainWindow.h"
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent)
@@ -16,14 +17,16 @@ MainWindow::MainWindow(QWidget *parent)
     configInit();
     // module init
     moduleInit();
+    // menu init
+    menuInit();
     // shortcut init
     shortcutInit();
 }
 
 // MainWindow protected
 void MainWindow::closeEvent(QCloseEvent *event) {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Exit", "Save and exit?",QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    QMessageBox::StandardButton reply =
+            QMessageBox::question(this, "Exit", "Save and exit?", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if (reply == QMessageBox::Yes) {
         saveConfig();
         event->accept();
@@ -46,31 +49,33 @@ void MainWindow::moduleInit() {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
-    m_scriptModule = new Script(this);
+    m_manualModule = new Manual(this);
+
+    m_scriptModule = new Script();
     this->setCentralWidget(m_scriptModule);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
-    m_portModule = new Port(this);
+    m_portModule = new Port();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
 
-    m_sendModule = new Send(this);
+    m_sendModule = new Send();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_sendModule);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
 
-    m_databaseModule = new Database(this);
+    m_databaseModule = new Database();
     this->addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
 
-    m_logModule = new Log(this);
+    m_logModule = new Log();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -87,6 +92,15 @@ void MainWindow::moduleInit() {
     connect(m_databaseModule, &Database::appendLog, m_logModule, &Log::logAppend);
 
     m_scriptModule->setPort(m_portModule);
+}
+
+void MainWindow::menuInit() {
+    auto *menuBar = new QMenuBar(); // NOLINT
+    setMenuBar(menuBar);
+
+    menuBar->addAction(tr("Manual"), this, [this] {
+        m_manualModule->show();
+    });
 }
 
 void MainWindow::shortcutInit() {
@@ -106,5 +120,3 @@ void MainWindow::saveConfig() const {
     m_logModule->logConfigSave();
     m_configModule->configSave();
 }
-
-

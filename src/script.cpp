@@ -3,8 +3,7 @@
 static Script *g_script = nullptr;
 
 // Script public
-Script::Script(QWidget *parent)
-    : QWidget(parent) {
+Script::Script(QWidget *parent) : QWidget(parent) {
     // script module init
     auto *layout = new QVBoxLayout(this); // NOLINT
     m_scriptWidget = new QWidget();
@@ -13,11 +12,26 @@ Script::Script(QWidget *parent)
     auto *scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
     scriptLayout->addWidget(scriptSplitter);
-    m_scriptPlainTextEdit = new ScriptEditor();
-    scriptSplitter->addWidget(m_scriptPlainTextEdit);
-    m_scriptPlainTextEdit->setPlainText(g_config["scriptConfig"].toString());
-    m_scriptPlainTextEdit->document()->setDefaultFont(QFont("Consolas", 11));
-    new ScriptHighlighter(m_scriptPlainTextEdit->document());
+    m_scriptScintilla = new QsciScintilla();
+    scriptSplitter->addWidget(m_scriptScintilla);
+    // load lua lexer
+    auto *lexer = new QsciLexerLua(); // NOLINT
+    m_scriptScintilla->setLexer(lexer);
+    // set margins
+    m_scriptScintilla->setMarginType(0, QsciScintilla::NumberMargin);
+    m_scriptScintilla->setMarginWidth(0, "000");
+    m_scriptScintilla->setMarginWidth(1, 0);
+    m_scriptScintilla->setFolding(QsciScintilla::BoxedTreeFoldStyle);
+    m_scriptScintilla->setMarginType(2, QsciScintilla::SymbolMargin);
+    m_scriptScintilla->setMarginSensitivity(2, true);
+    m_scriptScintilla->setMarginWidth(2, "16");
+    // script scintilla settings
+    m_scriptScintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
+    m_scriptScintilla->setAutoIndent(true);
+    m_scriptScintilla->setIndentationGuides(true);
+    m_scriptScintilla->setTabWidth(4);
+    m_scriptScintilla->setFont(QFont("Consolas", 10));
+    m_scriptScintilla->setText(g_config["scriptConfig"].toString());
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
     auto *scriptMonitorLayout = new QVBoxLayout(scriptMonitorWidget); // NOLINT
@@ -33,7 +47,6 @@ Script::Script(QWidget *parent)
     connect(m_scriptExplorerTreeView, &ScriptExplorer::loadScript, this, &Script::scriptLoad);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
 
-
     scriptSplitter->addWidget(scriptMonitorWidget);
 
     scriptSplitter->setStretchFactor(0, 3);
@@ -45,23 +58,17 @@ Script::Script(QWidget *parent)
     auto *runButton = new QPushButton("run"); // NOLINT
     m_ctrlLayout->addWidget(runButton);
     connect(runButton, &QPushButton::clicked, this, [this] {
-        scriptRun("editor", m_scriptPlainTextEdit->toPlainText());
+        scriptRun("editor", m_scriptScintilla->text());
     });
     auto *saveButton = new QPushButton("save"); // NOLINT
     m_ctrlLayout->addWidget(saveButton);
     connect(saveButton, &QPushButton::clicked, this, &Script::scriptSave);
-    auto *helpButton = new QPushButton("help"); // NOLINT
-    m_ctrlLayout->addWidget(helpButton);
-    connect(helpButton, &QPushButton::clicked, this, [this] {
-        m_manualDialog->show();
-    });
 
-    manualUiInit();
     g_script = this;
 }
 
 void Script::scriptConfigSave() const {
-    g_config["scriptConfig"] = m_scriptPlainTextEdit->toPlainText();
+    g_config["scriptConfig"] = m_scriptScintilla->text();
 }
 
 void Script::scriptLoad(const QString &scriptPath) {
@@ -70,7 +77,7 @@ void Script::scriptLoad(const QString &scriptPath) {
     QTextStream in(&file);
     const QString content = in.readAll();
     file.close();
-    m_scriptPlainTextEdit->setPlainText(content);
+    m_scriptScintilla->setText(content);
 
     const QFileInfo fileInfo(scriptPath);
     QString fileName = fileInfo.fileName();
@@ -81,61 +88,6 @@ void Script::scriptLoad(const QString &scriptPath) {
 }
 
 // Script private
-void Script::manualUiInit() {
-    m_manualDialog = new QDialog(this);
-    m_manualDialog->setWindowTitle("Manual");
-    m_manualDialog->resize(900, 600);
-    const auto manualLayout = new QVBoxLayout(m_manualDialog); // NOLINT
-    const auto manualSplitter = new QSplitter(Qt::Horizontal); // NOLINT
-    manualLayout->addWidget(manualSplitter);
-
-    const auto manualTreeView = new QTreeView(); // NOLINT
-    manualSplitter->addWidget(manualTreeView);
-    manualTreeView->setHeaderHidden(true);
-    manualTreeView->setFont(QFont("Consolas", 12));
-
-    const auto manualStandardItemModel = new QStandardItemModel(); // NOLINT
-    manualTreeView->setModel(manualStandardItemModel);
-
-    const auto manualPortStandardItem = new QStandardItem("port"); // NOLINT
-    manualStandardItemModel->appendRow(manualPortStandardItem);
-    const auto manualOpenStandardItem = new QStandardItem("open"); // NOLINT
-    manualPortStandardItem->appendRow(manualOpenStandardItem);
-    const auto manualCloseStandardItem = new QStandardItem("close"); // NOLINT
-    manualPortStandardItem->appendRow(manualCloseStandardItem);
-    const auto manualInfoStandardItem = new QStandardItem("info"); // NOLINT
-    manualPortStandardItem->appendRow(manualInfoStandardItem);
-    const auto manualWriteStandardItem = new QStandardItem("write"); // NOLINT
-    manualPortStandardItem->appendRow(manualWriteStandardItem);
-    const auto manualReadStandardItem = new QStandardItem("read"); // NOLINT
-    manualPortStandardItem->appendRow(manualReadStandardItem);
-
-    manualTreeView->expandAll();
-    connect(manualTreeView, &QTreeView::clicked, [this](const QModelIndex &index) {
-        if (const QString itemText = index.data(Qt::DisplayRole).toString(); itemText == "open") {
-            m_manualTextBrowser->setSource(QUrl("open.md"));
-        } else if (itemText == "close") {
-            m_manualTextBrowser->setSource(QUrl("close.md"));
-        } else if (itemText == "info") {
-            m_manualTextBrowser->setSource(QUrl("info.md"));
-        } else if (itemText == "write") {
-            m_manualTextBrowser->setSource(QUrl("write.md"));
-        } else if (itemText == "read") {
-            m_manualTextBrowser->setSource(QUrl("read.md"));
-        }
-    });
-
-    m_manualTextBrowser = new QTextBrowser();
-    manualSplitter->addWidget(m_manualTextBrowser);
-    m_manualTextBrowser->setOpenExternalLinks(true);
-    m_manualTextBrowser->setSearchPaths(QStringList() << ":/doc");
-
-    m_manualTextBrowser->document()->setDefaultFont(QFont("Consolas", 11));
-
-    manualSplitter->setStretchFactor(0, 1);
-    manualSplitter->setStretchFactor(1, 3);
-}
-
 void Script::scriptRun(const QString &name, const QString &script) {
     if (script.isEmpty()) {
         emit appendLog("script is empty", "warning");
@@ -229,7 +181,7 @@ void Script::scriptSave() {
     QFile file(filePath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
-    out << m_scriptPlainTextEdit->toPlainText();
+    out << m_scriptScintilla->text();
     file.close();
 
     emit appendLog(QString("%1 %2").arg(fileName, "saved"), "info");
@@ -373,124 +325,6 @@ int Script::luaDatabaseWrite(lua_State *L) {
     // start operation
     emit g_script->writeDatabase(param1, param2);
     return 0;
-}
-
-// ScriptEditor public
-ScriptEditor::ScriptEditor(QWidget *parent) {
-}
-
-// ScriptEditor public
-ScriptHighlighter::ScriptHighlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
-}
-
-// ScriptEditor protected
-void ScriptHighlighter::highlightBlock(const QString &text) {
-    QTextCharFormat format;
-    QStringList words;
-    // functions #008683
-    {
-        // basic
-        format.setForeground(QColor("#008683"));
-        words = {
-            "_G", "_VERSION", "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", "next", "pairs", "pcall", "rawequal", "rawget",
-            "rawlen", "rawset", "require", "select", "setmetatable", "tonumber", "tostring", "type", "warn", "xpcall"
-        };
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\b" + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-        // custom
-        words = {"delay", "input", "print"};
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\b" + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-        words = {"close", "info", "open", "read", "write"};
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\bport\\." + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-        words = {"write"};
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\bdatabase\\." + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-        // coroutine
-        words = {"close", "create", "isyieldable", "resume", "running", "status", "wrap", "yield"};
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\bcoroutine\\." + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-        // debug
-        // io
-        // math
-        // os
-        // package
-        // string
-        words = {"byte", "char", "dump", "find", "format", "gmatch", "gsub", "len", "lower", "match", "pack", "packsize", "rep", "reverse", "sub", "unpack", "upper"};
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\bstring\\." + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-        // table
-        // utf8
-    }
-    // keywords #A71D5D
-    {
-        format.setForeground(QColor("#A71D5D"));
-        words = {
-            "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
-            "while"
-        };
-        foreach(const QString &word, words) {
-            QRegularExpression expression("\\b" + word + "\\b");
-            QRegularExpressionMatchIterator it = expression.globalMatch(text);
-            while (it.hasNext()) {
-                QRegularExpressionMatch match = it.next();
-                setFormat(match.capturedStart(), match.capturedLength(), format);
-            }
-        }
-    }
-    // string
-    format.setForeground(QColor("#183691"));
-    QRegularExpression expression(R"xx("([^"\\]|\\.)*")xx");
-    QRegularExpressionMatchIterator it = expression.globalMatch(text);
-    while (it.hasNext()) {
-        QRegularExpressionMatch match = it.next();
-        setFormat(match.capturedStart(), match.capturedLength(), format);
-    }
-    // comment
-    format.setForeground(QColor("#969896"));
-    expression = QRegularExpression(R"(--[^\n]*)");
-    it = expression.globalMatch(text);
-    while (it.hasNext()) {
-        QRegularExpressionMatch match = it.next();
-        setFormat(match.capturedStart(), match.capturedLength(), format);
-    }
 }
 
 // ScriptExplorer public
