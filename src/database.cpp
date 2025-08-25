@@ -41,7 +41,7 @@ void Database::databaseConfigSave() const {
 void Database::databaseWrite(const QString &key, const QString &value) {
     for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
         if (m_tableWidget->item(index, 0)->text() == key) {
-            m_tableWidget->item(index, 1)->text() = value;
+            m_tableWidget->item(index, 1)->setText(value);
             return;
         }
     }

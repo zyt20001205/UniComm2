@@ -45,7 +45,7 @@ public:
 
     void setPort(Port *port) { m_port = port; }
 
-    void scriptConfigSave() const;
+    void scriptConfigSave();
 
     void scriptLoad(const QString &scriptPath);
 
@@ -88,7 +88,7 @@ private:
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
 
     QWidget *m_scriptWidget = nullptr;
-    ScriptEditor *m_scriptScintilla = nullptr;
+    ScriptEditor *m_scriptEditor = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
     QWidget *m_ctrlWidget = nullptr;

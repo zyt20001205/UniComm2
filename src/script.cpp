@@ -12,10 +12,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     auto *scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
     scriptLayout->addWidget(scriptSplitter);
-    m_scriptScintilla = new ScriptEditor();
-    scriptSplitter->addWidget(m_scriptScintilla);
-    m_scriptScintilla->m_scriptLexer->setFont(QFont(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt()), -1);
-    m_scriptScintilla->setText(m_scriptConfig["script"].toString());
+    m_scriptEditor = new ScriptEditor();
+    scriptSplitter->addWidget(m_scriptEditor);
+    m_scriptEditor->m_scriptLexer->setFont(QFont(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt()), -1);
+    m_scriptEditor->setText(m_scriptConfig["script"].toString());
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
     auto *scriptMonitorLayout = new QVBoxLayout(scriptMonitorWidget); // NOLINT
@@ -42,7 +42,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     auto *runButton = new QPushButton("run"); // NOLINT
     m_ctrlLayout->addWidget(runButton);
     connect(runButton, &QPushButton::clicked, this, [this] {
-        scriptRun("editor", m_scriptScintilla->text());
+        scriptRun("editor", m_scriptEditor->text());
     });
     auto *saveButton = new QPushButton("save"); // NOLINT
     m_ctrlLayout->addWidget(saveButton);
@@ -51,7 +51,8 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     g_script = this;
 }
 
-void Script::scriptConfigSave() const {
+void Script::scriptConfigSave() {
+    m_scriptConfig["script"] = m_scriptEditor->text();
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
@@ -61,7 +62,7 @@ void Script::scriptLoad(const QString &scriptPath) {
     QTextStream in(&file);
     const QString content = in.readAll();
     file.close();
-    m_scriptScintilla->setText(content);
+    m_scriptEditor->setText(content);
 
     const QFileInfo fileInfo(scriptPath);
     QString fileName = fileInfo.fileName();
@@ -165,7 +166,7 @@ void Script::scriptSave() {
     QFile file(filePath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
-    out << m_scriptScintilla->text();
+    out << m_scriptEditor->text();
     file.close();
 
     emit appendLog(QString("%1 %2").arg(fileName, "saved"), "info");
