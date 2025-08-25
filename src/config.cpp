@@ -33,7 +33,11 @@ void Config::configGenerate() {
                 "sendConfig", ""
             },
             {
-                "scriptConfig", ""
+                "scriptConfig", QJsonObject{
+                    {"script", ""},
+                    {"fontFamily", "consolas"},
+                    {"fontSize", "12"}
+                },
             },
             {
                 "logConfig", QJsonObject{

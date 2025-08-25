@@ -31,6 +31,8 @@ class Port;
 
 class LuaLexer;
 
+class ScriptEditor;
+
 class ScriptExplorer;
 
 class Script final : public QWidget {
@@ -83,8 +85,10 @@ private:
 
     static int luaDatabaseWrite(lua_State *L);
 
+    QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
+
     QWidget *m_scriptWidget = nullptr;
-    QsciScintilla *m_scriptScintilla = nullptr;
+    ScriptEditor *m_scriptScintilla = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
     QWidget *m_ctrlWidget = nullptr;
@@ -97,9 +101,20 @@ class LuaLexer final : public QsciLexerLua {
 public:
     using QsciLexerLua::QsciLexerLua;
 
-    const char* wordCharacters() const override {
+    const char *wordCharacters() const override {
         return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.";
     }
+};
+
+class ScriptEditor final : public QsciScintilla {
+    Q_OBJECT
+
+public:
+    explicit ScriptEditor(QWidget *parent = nullptr);
+
+    ~ScriptEditor() override = default;
+
+    LuaLexer *m_scriptLexer = nullptr;
 };
 
 class ScriptExplorer final : public QTreeView {
@@ -107,10 +122,6 @@ class ScriptExplorer final : public QTreeView {
 
 public:
     explicit ScriptExplorer(QWidget *parent = nullptr);
-
-    using QTreeView::setModel;
-
-    using QTreeView::setRootIndex;
 
     ~ScriptExplorer() override = default;
 

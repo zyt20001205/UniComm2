@@ -12,67 +12,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     auto *scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
     scriptLayout->addWidget(scriptSplitter);
-    m_scriptScintilla = new QsciScintilla();
+    m_scriptScintilla = new ScriptEditor();
     scriptSplitter->addWidget(m_scriptScintilla);
-    // load lua lexer
-    auto *lexer = new LuaLexer(); // NOLINT
-    m_scriptScintilla->setLexer(lexer);
-    // configure auto complete
-    auto *apis = new QsciAPIs(lexer); // NOLINT
-    const QStringList completeList = {
-        // custom
-        "delay", "input", "print",
-        "port.close", "port.info", "port.open", "port.read", "port.write",
-        // keywords
-        "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
-        "while",
-        // basic
-        "_G", "_VERSION", "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", "next", "pairs", "pcall", "rawequal", "rawget", "rawlen",
-        "rawset", "require", "select", "setmetatable", "tonumber", "tostring", "type", "warn", "xpcall",
-        // coroutine
-        "coroutine.close", "coroutine.create", "coroutine.isyieldable", "coroutine.resume", "coroutine.running", "coroutine.status", "coroutine.wrap", "coroutine.yield",
-        // debug
-        "debug.debug", "debug.gethook", "debug.getinfo", "debug.getlocal", "debug.getmetatable", "debug.getregistry", "debug.getupvalue", "debug.getuservalue", "debug.sethook",
-        "debug.setlocal", "debug.setmetatable", "debug.setupvalue", "debug.setuservalue", "debug.traceback", "debug.upvalueid", "debug.upvaluejoin",
-        // io
-        "io.close", "io.flush", "io.input", "io.lines", "io.open", "io.output", "io.popen", "io.read", "io.stderr", "io.stdin", "io.stdout", "io.tmpfile", "io.type", "io.write",
-        "file:close", "file:flush", "file:lines", "file:read", "file:seek", "file:setvbuf", "file:write",
-        // math
-        "math.abs", "math.acos", "math.asin", "math.atan", "math.ceil", "math.cos", "math.deg", "math.exp", "math.floor", "math.fmod", "math.huge", "math.log", "math.max",
-        "math.maxinteger", "math.min", "math.mininteger", "math.modf", "math.pi", "math.rad", "math.random", "math.randomseed", "math.sin", "math.sqrt", "math.tan",
-        "math.tointeger", "math.type", "math.ult",
-        // os
-        "os.clock", "os.date", "os.difftime", "os.execute", "os.exit", "os.getenv", "os.remove", "os.rename", "os.setlocale", "os.time", "os.tmpname",
-        // package
-        "package.config", "package.cpath", "package.loaded", "package.loadlib", "package.path", "package.preload", "package.searchers", "package.searchpath",
-        // string
-        "string.byte", "string.char", "string.dump", "string.find", "string.format", "string.gmatch", "string.gsub", "string.len", "string.lower", "string.match", "string.pack",
-        "string.packsize", "string.rep", "string.reverse", "string.sub", "string.unpack", "string.upper",
-        // table
-        "table.concat", "table.insert", "table.move", "table.pack", "table.remove", "table.sort", "table.unpack",
-        // utf-8
-        "utf8.char", "utf8.charpattern", "utf8.codepoint", "utf8.codes", "utf8.len", "utf8.offset",
-    };
-    for (const QString &kw: completeList) apis->add(kw);
-    apis->prepare();
-    m_scriptScintilla->setAutoCompletionSource(QsciScintilla::AcsAPIs);
-    m_scriptScintilla->setAutoCompletionCaseSensitivity(false);
-    m_scriptScintilla->setAutoCompletionThreshold(1);
-    // set margins
-    m_scriptScintilla->setMarginType(0, QsciScintilla::NumberMargin);
-    m_scriptScintilla->setMarginWidth(0, "000");
-    m_scriptScintilla->setMarginWidth(1, 0);
-    m_scriptScintilla->setFolding(QsciScintilla::BoxedTreeFoldStyle);
-    m_scriptScintilla->setMarginType(2, QsciScintilla::SymbolMargin);
-    m_scriptScintilla->setMarginSensitivity(2, true);
-    m_scriptScintilla->setMarginWidth(2, "16");
-    // script scintilla settings
-    m_scriptScintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
-    m_scriptScintilla->setAutoIndent(true);
-    m_scriptScintilla->setIndentationGuides(true);
-    m_scriptScintilla->setTabWidth(4);
-    m_scriptScintilla->setFont(QFont("Consolas", 10));
-    m_scriptScintilla->setText(g_config["scriptConfig"].toString());
+    m_scriptScintilla->m_scriptLexer->setFont(QFont(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt()), -1);
+    m_scriptScintilla->setText(m_scriptConfig["script"].toString());
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
     auto *scriptMonitorLayout = new QVBoxLayout(scriptMonitorWidget); // NOLINT
@@ -109,7 +52,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
 }
 
 void Script::scriptConfigSave() const {
-    g_config["scriptConfig"] = m_scriptScintilla->text();
+    g_config["scriptConfig"] = m_scriptConfig;
 }
 
 void Script::scriptLoad(const QString &scriptPath) {
@@ -368,13 +311,110 @@ int Script::luaDatabaseWrite(lua_State *L) {
     return 0;
 }
 
+// ScriptEditor public
+ScriptEditor::ScriptEditor(QWidget *parent) {
+    // load lua lexer
+    m_scriptLexer = new LuaLexer(); // NOLINT
+    this->QsciScintilla::setLexer(m_scriptLexer);
+    // configure auto complete
+    auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
+    const QStringList completeList = {
+        // custom
+        "delay", "input", "print",
+        "port.close", "port.info", "port.open", "port.read", "port.write",
+        "database.write",
+        // keywords
+        "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
+        "while",
+        // basic
+        "_G", "_VERSION", "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", "next", "pairs", "pcall", "rawequal", "rawget", "rawlen",
+        "rawset", "require", "select", "setmetatable", "tonumber", "tostring", "type", "warn", "xpcall",
+        // coroutine
+        "coroutine.close", "coroutine.create", "coroutine.isyieldable", "coroutine.resume", "coroutine.running", "coroutine.status", "coroutine.wrap", "coroutine.yield",
+        // debug
+        "debug.debug", "debug.gethook", "debug.getinfo", "debug.getlocal", "debug.getmetatable", "debug.getregistry", "debug.getupvalue", "debug.getuservalue", "debug.sethook",
+        "debug.setlocal", "debug.setmetatable", "debug.setupvalue", "debug.setuservalue", "debug.traceback", "debug.upvalueid", "debug.upvaluejoin",
+        // io
+        "io.close", "io.flush", "io.input", "io.lines", "io.open", "io.output", "io.popen", "io.read", "io.stderr", "io.stdin", "io.stdout", "io.tmpfile", "io.type", "io.write",
+        "file:close", "file:flush", "file:lines", "file:read", "file:seek", "file:setvbuf", "file:write",
+        // math
+        "math.abs", "math.acos", "math.asin", "math.atan", "math.ceil", "math.cos", "math.deg", "math.exp", "math.floor", "math.fmod", "math.huge", "math.log", "math.max",
+        "math.maxinteger", "math.min", "math.mininteger", "math.modf", "math.pi", "math.rad", "math.random", "math.randomseed", "math.sin", "math.sqrt", "math.tan",
+        "math.tointeger", "math.type", "math.ult",
+        // os
+        "os.clock", "os.date", "os.difftime", "os.execute", "os.exit", "os.getenv", "os.remove", "os.rename", "os.setlocale", "os.time", "os.tmpname",
+        // package
+        "package.config", "package.cpath", "package.loaded", "package.loadlib", "package.path", "package.preload", "package.searchers", "package.searchpath",
+        // string
+        "string.byte", "string.char", "string.dump", "string.find", "string.format", "string.gmatch", "string.gsub", "string.len", "string.lower", "string.match", "string.pack",
+        "string.packsize", "string.rep", "string.reverse", "string.sub", "string.unpack", "string.upper",
+        // table
+        "table.concat", "table.insert", "table.move", "table.pack", "table.remove", "table.sort", "table.unpack",
+        // utf-8
+        "utf8.char", "utf8.charpattern", "utf8.codepoint", "utf8.codes", "utf8.len", "utf8.offset",
+    };
+    for (const QString &kw: completeList) apis->add(kw);
+    apis->prepare();
+    this->QsciScintilla::setAutoCompletionSource(QsciScintilla::AcsAPIs);
+    this->QsciScintilla::setAutoCompletionCaseSensitivity(false);
+    this->QsciScintilla::setAutoCompletionThreshold(1);
+    // set margins
+    this->setMarginType(0, QsciScintilla::NumberMargin);
+    this->QsciScintilla::setMarginWidth(0, "000");
+    // this->setMarginType(1, QsciScintilla::SymbolMargin);
+    // this->setMarginSensitivity(1, true);
+    // this->setMarginWidth(1, "16");
+    this->QsciScintilla::setMarginWidth(1, "0"); // WIP
+    this->QsciScintilla::setFolding(QsciScintilla::BoxedTreeFoldStyle);
+    this->setMarginType(2, QsciScintilla::SymbolMargin);
+    this->QsciScintilla::setMarginSensitivity(2, true);
+    this->QsciScintilla::setMarginWidth(2, "16");
+    // script scintilla settings
+    this->setScrollWidth(1);
+    this->QsciScintilla::setBraceMatching(QsciScintilla::SloppyBraceMatch);
+    this->QsciScintilla::setAutoIndent(true);
+    this->QsciScintilla::setIndentationGuides(true);
+    this->QsciScintilla::setTabWidth(4);
+    // load settings from config
+    m_scriptLexer->setPaper(Qt::white, -1);
+    // style 0: default
+    // style 1: comment
+    m_scriptLexer->setColor(QColor("#969896"), 1);
+    // style 2: line comment
+    m_scriptLexer->setColor(QColor("#969896"), 2);
+    // style 4: number
+    m_scriptLexer->setColor(QColor("#0086B3"), 4);
+    // style 5: keyword
+    m_scriptLexer->setColor(QColor("#A71D5D"), 5);
+    // style 6: string
+    m_scriptLexer->setColor(QColor("#183691"), 6);
+    // style 7: character
+    // style 8: literal string
+    // style 9: preprocessor
+    // style 10: operator
+    m_scriptLexer->setColor(QColor("#A71D5D"), 10);
+    // style 11: identifier
+    m_scriptLexer->setColor(QColor("#0086B3"), 11);
+    // style 12: unclosed string
+    // style 13: basic functions
+    m_scriptLexer->setColor(QColor("#0086B3"), 13);
+    // style 14: string, table and maths functions
+    m_scriptLexer->setColor(QColor("#0086B3"), 14);
+    // style 15: coroutines, i/o and system facilities
+    m_scriptLexer->setColor(QColor("#0086B3"), 15);
+    // style 16: user defined 1
+
+    // style 20: label
+}
+
 // ScriptExplorer public
 ScriptExplorer::ScriptExplorer(QWidget *parent) {
     this->installEventFilter(this);
     connect(this, &QTreeView::doubleClicked, this, &ScriptExplorer::scriptLoad);
 
     m_model = new QFileSystemModel();
-    this->setModel(m_model);
+    this->QTreeView::setModel(m_model);
+    this->setHeaderHidden(true);
     this->setColumnHidden(1, true);
     this->setColumnHidden(2, true);
     this->setColumnHidden(3, true);
@@ -401,7 +441,7 @@ ScriptExplorer::ScriptExplorer(QWidget *parent) {
     }
 
     m_model->setRootPath(scriptPath);
-    this->setRootIndex(m_model->index(scriptPath));
+    this->QTreeView::setRootIndex(m_model->index(scriptPath));
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script directory loaded");
