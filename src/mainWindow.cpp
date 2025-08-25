@@ -1,12 +1,8 @@
 #include "../include/mainWindow.h"
 
-
+// MainWindow public
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
-    init();
-}
-
-void MainWindow::init() {
     // mainWindow ui init
     setWindowTitle("UniComm");
     resize(1600, 900);
@@ -24,6 +20,19 @@ void MainWindow::init() {
     shortcutInit();
 }
 
+// MainWindow protected
+void MainWindow::closeEvent(QCloseEvent *event) {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Exit", "Save and exit?",QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    if (reply == QMessageBox::Yes) {
+        saveConfig();
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
+// MainWindow private
 void MainWindow::configInit() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -55,12 +64,6 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
 
-    m_explorerModule = new Explorer(this);
-    this->addDockWidget(Qt::LeftDockWidgetArea, m_explorerModule);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "explorer module initialized");
-
     m_databaseModule = new Database(this);
     this->addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
     // logging
@@ -76,8 +79,6 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_sendModule, &Send::writePort, m_portModule, &Port::portWrite);
-    connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
-    connect(m_explorerModule, &Explorer::loadScript, m_scriptModule, &Script::scriptLoad);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openPort, m_portModule, &Port::portOpen);
     connect(m_scriptModule, &Script::closePort, m_portModule, &Port::portClose);
@@ -106,13 +107,4 @@ void MainWindow::saveConfig() const {
     m_configModule->configSave();
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Exit", "Save and exit?",QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-    if (reply == QMessageBox::Yes) {
-        saveConfig();
-        event->accept();
-    } else {
-        event->ignore();
-    }
-}
+

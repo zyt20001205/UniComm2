@@ -3,6 +3,7 @@
 
 #include <QDockWidget>
 #include <QDialog>
+#include <QFileSystemModel>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QJsonObject>
@@ -29,6 +30,8 @@ class Port;
 
 class ScriptEditor;
 
+class ScriptExplorer;
+
 class Script final : public QWidget {
     Q_OBJECT
 
@@ -39,17 +42,29 @@ public:
 
     void setPort(Port *port) { m_port = port; }
 
-public slots:
+    void scriptConfigSave() const;
+
     void scriptLoad(const QString &scriptPath);
 
-    void scriptConfigSave() const;
+signals:
+    void appendLog(const QString &message, const QString &level);
+
+    void openPort(int index);
+
+    void closePort(int index);
+
+    void writePort(int index, const QString &command, const QString &peerIp);
+
+    void writeDatabase(const QString &key, const QString &value);
 
 private:
     void manualUiInit();
 
-    void scriptRun();
+    void scriptRun(const QString &name, const QString &script);
 
-    void scriptRunning(QThread *worker);
+    void scriptRunning(const QString &name, QThread *worker);
+
+    void scriptSave();
 
     static int luaPrint(lua_State *L);
 
@@ -72,26 +87,13 @@ private:
     QWidget *m_scriptWidget = nullptr;
     ScriptEditor *m_scriptPlainTextEdit = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
+    ScriptExplorer *m_scriptExplorerTreeView = nullptr;
     QWidget *m_ctrlWidget = nullptr;
     QHBoxLayout *m_ctrlLayout = nullptr;
     QDialog *m_manualDialog = nullptr;
     QTextBrowser *m_manualTextBrowser = nullptr;
 
     Port *m_port = nullptr;
-
-private slots:
-    void scriptSave();
-
-signals:
-    void appendLog(const QString &message, const QString &level);
-
-    void openPort(int index);
-
-    void closePort(int index);
-
-    void writePort(int index, const QString &command, const QString &peerIp);
-
-    void writeDatabase(const QString &key, const QString &value);
 };
 
 class ScriptEditor final : public QPlainTextEdit {
@@ -113,6 +115,40 @@ public:
 
 protected:
     void highlightBlock(const QString &text) override;
+};
+
+class ScriptExplorer final : public QTreeView {
+    Q_OBJECT
+
+public:
+    explicit ScriptExplorer(QWidget *parent = nullptr);
+
+    using QTreeView::setModel;
+
+    using QTreeView::setRootIndex;
+
+    ~ScriptExplorer() override = default;
+
+signals:
+    void appendLog(const QString &message, const QString &level);
+
+    void loadScript(const QString &scriptPath);
+
+    void runScript(const QString &name, const QString &script);
+
+protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+    void scriptRun(const QModelIndex &index);
+
+    void scriptLoad(const QModelIndex &index);
+
+    void scriptDelete(const QModelIndex &index);
+
+    QFileSystemModel *m_model = nullptr;
 };
 
 #endif //SCRIPT_H

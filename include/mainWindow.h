@@ -9,7 +9,6 @@
 #include <QWidget>
 #include "config.h"
 #include "database.h"
-#include "explorer.h"
 #include "log.h"
 #include "port.h"
 #include "script.h"
@@ -23,9 +22,13 @@ public:
 
     ~MainWindow() override = default;
 
-private:
-    void init();
+signals:
+    void appendLog(const QString &message, const QString &level);
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+private:
     void configInit();
 
     void moduleInit();
@@ -38,15 +41,8 @@ private:
     Script *m_scriptModule = nullptr;
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;
-    Explorer *m_explorerModule = nullptr;
     Database *m_databaseModule = nullptr;
     Log *m_logModule = nullptr;
-
-protected:
-    void closeEvent(QCloseEvent *event) override;
-
-signals:
-    void appendLog(const QString &message, const QString &level);
 };
 
 #endif //MAINWINDOW_H
