@@ -42,7 +42,8 @@ void Config::configGenerate() {
             },
             {
                 "logConfig", QJsonObject{
-                    {"timestamp", true}
+                    {"timestamp", true},
+                    {"height",1000}
                 },
             },
         };

@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QJsonObject>
 #include <QMessageBox>
 #include <QPrinter>
@@ -27,13 +28,12 @@ public:
     void logAppend(const QString &message, const QString &level);
 
 private:
-    QJsonObject m_logConfig = g_config["logConfig"].toObject();
-    QTextEdit *m_textEdit = nullptr;
-
-private slots:
     void logSave();
 
     void logClear() const;
+
+    QJsonObject m_logConfig = g_config["logConfig"].toObject();
+    QTextEdit *m_textEdit = nullptr;
 };
 
 #endif //LOG_H

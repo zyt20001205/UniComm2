@@ -23,6 +23,19 @@ Log::Log(QObject *parent)
     connect(timestampButton, &QPushButton::clicked, this, [this,timestampButton] {
         m_logConfig["timestamp"] = timestampButton->isChecked();
     });
+    auto *heightButton = new QPushButton(); // NOLINT
+    ctrlLayout->addWidget(heightButton);
+    heightButton->setFixedSize(24, 24);
+    heightButton->setIcon(QIcon(":/icon/autoFitHeight.svg"));
+    heightButton->setToolTip(tr("maximum line count"));
+    connect(heightButton, &QPushButton::clicked, this, [this] {
+        bool ok = false;
+        const int height = QInputDialog::getInt(nullptr, "Log Setting", "maximum line count:", m_logConfig["height"].toInt(), 1, 10000, 1, &ok);
+        if (ok) {
+            m_textEdit->document()->setMaximumBlockCount(height);
+            m_logConfig["height"] = height;
+        }
+    });
     auto *saveButton = new QPushButton(); // NOLINT
     ctrlLayout->addWidget(saveButton);
     saveButton->setFixedSize(24, 24);
@@ -38,6 +51,7 @@ Log::Log(QObject *parent)
 
     m_textEdit = new QTextEdit();
     layout->addWidget(m_textEdit);
+    m_textEdit->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
 }
 
 void Log::logAppend(const QString &message, const QString &level) {

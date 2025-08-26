@@ -62,6 +62,7 @@ qt_add_resources(UniComm "icon_resources"
         FILES
         "resources/icon/add.svg"
         "resources/icon/arrowClockwise.svg"
+        "resources/icon/autoFitHeight.svg"
         "resources/icon/clock.svg"
         "resources/icon/crop.svg"
         "resources/icon/delete.svg"

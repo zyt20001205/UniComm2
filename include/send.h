@@ -43,7 +43,6 @@ private:
     void shortcutRemove(int index);
 
     QJsonArray m_sendConfig = g_config["sendConfig"].toArray();
-
     QLineEdit *m_lineEdit = nullptr;
     QTableWidget *m_tableWidget = nullptr;
     bool m_dragging = false;
