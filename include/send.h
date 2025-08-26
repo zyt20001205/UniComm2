@@ -46,11 +46,9 @@ private:
 
     QLineEdit *m_lineEdit = nullptr;
     QTableWidget *m_tableWidget = nullptr;
-    int m_previousIndex = -1;
-    int m_currentIndex;
-    QString m_sourceKey;
-    QString m_sourceValue;
-    int m_sourceIndex;
+    bool m_dragging = false;
+    int m_srcIndex;
+    int m_dstIndex;
 };
 
 #endif //SEND_H

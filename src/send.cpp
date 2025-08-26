@@ -1,5 +1,7 @@
 #include "../include/send.h"
 
+#include "allheaders.h"
+
 // Send public
 Send::Send(QObject *parent)
     : QDockWidget("send", qobject_cast<QWidget *>(parent)) {
@@ -34,6 +36,7 @@ Send::Send(QObject *parent)
     m_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     m_tableWidget->setDragEnabled(true);
     m_tableWidget->setAcceptDrops(true);
+    m_tableWidget->setDropIndicatorShown(true);
     m_tableWidget->setDragDropMode(QAbstractItemView::InternalMove);
     m_tableWidget->setDefaultDropAction(Qt::MoveAction);
 
@@ -72,13 +75,18 @@ void Send::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint vpPos = m_tableWidget->viewport()->mapFromGlobal(event->globalPos());
     const QModelIndex index = m_tableWidget->indexAt(vpPos);
     QMenu menu(this);
-    if (m_sendConfig.isEmpty()) {
-        menu.addAction(tr("new"), [this] {
-            shortcutInsert(0);
-        });
-        menu.exec(event->globalPos());
-    } else if (!index.isValid()) {
-        return;
+    if (!index.isValid()) {
+        if (m_sendConfig.isEmpty()) {
+            menu.addAction(tr("new"), [this] {
+                shortcutInsert(0);
+            });
+            menu.exec(event->globalPos());
+        } else {
+            menu.addAction(tr("new"), [this] {
+                shortcutInsert(m_sendConfig.size());
+            });
+            menu.exec(event->globalPos());
+        }
     } else {
         menu.addAction(tr("insert above (Ins)"), [this, index] {
             shortcutInsert(index.row());
@@ -97,38 +105,42 @@ bool Send::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget->viewport()) {
         switch (event->type()) {
             case QEvent::DragMove: {
-                m_tableWidget->clearSelection();
-                m_currentIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
-                if (m_currentIndex == -1) break;
-                if (m_previousIndex == -1) {
-                    m_sourceKey = m_tableWidget->item(m_currentIndex, 0)->text();
-                    m_sourceValue = m_tableWidget->item(m_currentIndex, 1)->text();
-                    m_sourceIndex = m_currentIndex;
-                    m_previousIndex = m_currentIndex;
+                if (!m_dragging) {
+                    m_tableWidget->blockSignals(true);
+                    m_srcIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
                 }
-                if (m_previousIndex != m_currentIndex) {
-                    m_tableWidget->removeRow(m_previousIndex);
-                    m_tableWidget->insertRow(m_currentIndex);
-                    m_tableWidget->setItem(m_currentIndex, 0, new QTableWidgetItem(m_sourceKey));
-                    m_tableWidget->setItem(m_currentIndex, 1, new QTableWidgetItem(m_sourceValue));
-                    auto *shortcutSendButton = new QPushButton(); // NOLINT
-                    m_tableWidget->setCellWidget(m_currentIndex, 2, shortcutSendButton);
-                    shortcutSendButton->setFixedSize(30, 30);
-                    shortcutSendButton->setIcon(QIcon(":/icon/send.svg"));
-                    connect(shortcutSendButton, &QPushButton::clicked, this, [this, shortcutSendButton] {
-                        const int buttonIndex = m_tableWidget->indexAt(shortcutSendButton->pos()).row();
-                        commandSend(m_tableWidget->item(buttonIndex, 1)->text());
-                    });
-                    m_previousIndex = m_currentIndex;
-                }
+                m_dragging = true;
                 break;
             }
             case QEvent::Drop: {
+                m_dragging = false;
+                m_dstIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
+                if (m_srcIndex == -1 || m_dstIndex == -1) {
+                    return true;
+                }
+                // table operation
+                const QString srcKey = m_tableWidget->item(m_srcIndex, 0)->text();
+                const QString srcValue = m_tableWidget->item(m_srcIndex, 1)->text();
+                m_tableWidget->removeRow(m_srcIndex);
+                m_tableWidget->insertRow(m_dstIndex);
+                m_tableWidget->setItem(m_dstIndex, 0, new QTableWidgetItem(srcKey));
+                m_tableWidget->setItem(m_dstIndex, 1, new QTableWidgetItem(srcValue));
+                auto *shortcutSendButton = new QPushButton(); // NOLINT
+                m_tableWidget->setCellWidget(m_dstIndex, 2, shortcutSendButton);
+                shortcutSendButton->setFixedSize(30, 30);
+                shortcutSendButton->setIcon(QIcon(":/icon/send.svg"));
+                connect(shortcutSendButton, &QPushButton::clicked, this, [this, shortcutSendButton] {
+                    const int buttonIndex = m_tableWidget->indexAt(shortcutSendButton->pos()).row();
+                    commandSend(m_tableWidget->item(buttonIndex, 1)->text());
+                });
+                // config operation
+                const QJsonValue tmp = m_sendConfig.takeAt(m_srcIndex);
+                m_sendConfig.insert(m_dstIndex, tmp);
+                // clear selection
+                m_tableWidget->blockSignals(false);
                 m_tableWidget->clearSelection();
                 m_tableWidget->setCurrentItem(nullptr);
                 m_tableWidget->clearFocus();
-                m_previousIndex = -1;
-                shortcutRename(m_sourceIndex, -1);
                 return true;
             }
             default:

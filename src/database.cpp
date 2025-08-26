@@ -53,13 +53,18 @@ void Database::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint vpPos = m_tableWidget->viewport()->mapFromGlobal(event->globalPos());
     const QModelIndex index = m_tableWidget->indexAt(vpPos);
     QMenu menu(this);
-    if (m_databaseConfig.isEmpty()) {
-        menu.addAction(tr("new"), [this] {
-            databaseInsert(0);
-        });
-        menu.exec(event->globalPos());
-    } else if (!index.isValid()) {
-        return;
+    if (!index.isValid()) {
+        if (m_databaseConfig.isEmpty()) {
+            menu.addAction(tr("new"), [this] {
+                databaseInsert(0);
+            });
+            menu.exec(event->globalPos());
+        } else {
+            menu.addAction(tr("new"), [this] {
+                databaseInsert(m_databaseConfig.size());
+            });
+            menu.exec(event->globalPos());
+        }
     } else {
         menu.addAction(tr("insert above (Ins)"), [this, index] {
             databaseInsert(index.row());
@@ -78,29 +83,34 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget->viewport()) {
         switch (event->type()) {
             case QEvent::DragMove: {
-                m_tableWidget->clearSelection();
-                m_currentIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
-                if (m_currentIndex == -1) break;
-                if (m_previousIndex == -1) {
-                    m_sourceKey = m_tableWidget->item(m_currentIndex, 0)->text();
-                    m_sourceIndex = m_currentIndex;
-                    m_previousIndex = m_currentIndex;
+                if (!m_dragging) {
+                    m_tableWidget->blockSignals(true);
+                    m_srcIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
                 }
-                if (m_previousIndex != m_currentIndex) {
-                    m_tableWidget->removeRow(m_previousIndex);
-                    m_tableWidget->insertRow(m_currentIndex);
-                    m_tableWidget->setItem(m_currentIndex, 0, new QTableWidgetItem(m_sourceKey));
-                    m_tableWidget->setItem(m_currentIndex, 1, new QTableWidgetItem(""));
-                    m_previousIndex = m_currentIndex;
-                }
+                m_dragging = true;
                 break;
             }
             case QEvent::Drop: {
+                m_dragging = false;
+                m_dstIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
+                if (m_srcIndex == -1 || m_dstIndex == -1) {
+                    return true;
+                }
+                // table operation
+                const QString srcKey = m_tableWidget->item(m_srcIndex, 0)->text();
+                const QString srcValue = m_tableWidget->item(m_srcIndex, 1)->text();
+                m_tableWidget->removeRow(m_srcIndex);
+                m_tableWidget->insertRow(m_dstIndex);
+                m_tableWidget->setItem(m_dstIndex, 0, new QTableWidgetItem(srcKey));
+                m_tableWidget->setItem(m_dstIndex, 1, new QTableWidgetItem(srcValue));
+                // config operation
+                const QJsonValue tmp = m_databaseConfig.takeAt(m_srcIndex);
+                m_databaseConfig.insert(m_dstIndex, tmp);
+                // clear selection
+                m_tableWidget->blockSignals(false);
                 m_tableWidget->clearSelection();
                 m_tableWidget->setCurrentItem(nullptr);
                 m_tableWidget->clearFocus();
-                m_previousIndex = -1;
-                databaseRename(m_sourceIndex);
                 return true;
             }
             default:
