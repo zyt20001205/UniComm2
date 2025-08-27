@@ -82,9 +82,7 @@ void Script::scriptOpen(const QString &scriptPath) {
     connect(newTab, &ScriptPageWidget::editScript, this, [this,newTab] {
         scriptEdited(m_scriptTabWidget->indexOf(newTab));
     });
-    connect(newTab, &ScriptPageWidget::appendLog, this, &Script::appendLog);
 
-    emit appendLog(QString("%1 %2").arg(scriptPath, "opened"), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
@@ -352,7 +350,6 @@ void ScriptPageWidget::scriptSave() {
     out << m_scriptEditor->text();
     file.close();
 
-    emit appendLog(QString("%1 %2").arg(m_scriptPath, "saved"), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");

@@ -113,8 +113,6 @@ public:
     bool m_scriptEdited = false;
 
 signals:
-    void appendLog(const QString &message, const QString &level);
-
     void editScript();
 
 private slots:
