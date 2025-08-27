@@ -69,7 +69,7 @@ private:
 
     static int luaPrint(lua_State *L);
 
-    static int luaDelay(lua_State *L);
+    static int luaSleep(lua_State *L);
 
     static int luaInput(lua_State *L);
 

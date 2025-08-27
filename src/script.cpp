@@ -85,7 +85,7 @@ void Script::scriptRun(const QString &name, const QString &script) {
         luaL_openlibs(L);
         // register C++ functions
         lua_register(L, "print", Script::luaPrint);
-        lua_register(L, "delay", Script::luaDelay);
+        lua_register(L, "sleep", Script::luaSleep);
         lua_register(L, "input", Script::luaInput);
         // register port class
         lua_newtable(L);
@@ -190,7 +190,7 @@ int Script::luaPrint(lua_State *L) {
     return 0;
 }
 
-int Script::luaDelay(lua_State *L) {
+int Script::luaSleep(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 1)
         luaL_error(L, "unexpected number of arguments");
@@ -321,7 +321,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
     const QStringList completeList = {
         // custom
-        "delay", "input", "print",
+        "sleep", "input", "print",
         "port.close", "port.info", "port.open", "port.read", "port.write",
         "database.write",
         // keywords
