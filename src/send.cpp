@@ -25,9 +25,9 @@ Send::Send(QObject *parent)
 
     m_tableWidget = new QTableWidget(); // NOLINT
     layout->addWidget(m_tableWidget);
+    m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->setColumnCount(3);
     m_tableWidget->horizontalHeader()->setVisible(false);
-    m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
@@ -80,12 +80,10 @@ void Send::contextMenuEvent(QContextMenuEvent *event) {
             menu.addAction(tr("new"), [this] {
                 shortcutInsert(0);
             });
-            menu.exec(event->globalPos());
         } else {
             menu.addAction(tr("new"), [this] {
                 shortcutInsert(m_sendConfig.size());
             });
-            menu.exec(event->globalPos());
         }
     } else {
         menu.addAction(tr("insert above (Ins)"), [this, index] {
@@ -97,8 +95,8 @@ void Send::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(tr("delete (Del)"), [this, index] {
             shortcutRemove(index.row());
         });
-        menu.exec(event->globalPos());
     }
+    menu.exec(event->globalPos());
 }
 
 bool Send::eventFilter(QObject *obj, QEvent *event) {

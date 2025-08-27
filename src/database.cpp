@@ -58,12 +58,10 @@ void Database::contextMenuEvent(QContextMenuEvent *event) {
             menu.addAction(tr("new"), [this] {
                 databaseInsert(0);
             });
-            menu.exec(event->globalPos());
         } else {
             menu.addAction(tr("new"), [this] {
                 databaseInsert(m_databaseConfig.size());
             });
-            menu.exec(event->globalPos());
         }
     } else {
         menu.addAction(tr("insert above (Ins)"), [this, index] {
@@ -75,8 +73,8 @@ void Database::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(tr("delete (Del)"), [this, index] {
             databaseRemove(index.row());
         });
-        menu.exec(event->globalPos());
     }
+    menu.exec(event->globalPos());
 }
 
 bool Database::eventFilter(QObject *obj, QEvent *event) {
