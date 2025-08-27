@@ -29,6 +29,8 @@
 
 class Port;
 
+class ScriptPageWidget;
+
 class LuaLexer;
 
 class ScriptEditor;
@@ -47,7 +49,7 @@ public:
 
     void scriptConfigSave();
 
-    void scriptLoad(const QString &scriptPath);
+    void scriptOpen(const QString &scriptPath);
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -61,11 +63,13 @@ signals:
     void writeDatabase(const QString &key, const QString &value);
 
 private:
-    void scriptRun(const QString &name, const QString &script);
+    void scriptRun();
 
     void scriptRunning(const QString &name, QThread *worker);
 
-    void scriptSave();
+    void scriptEdited(int index) const;
+
+    void scriptClose(int index) const;
 
     static int luaPrint(lua_State *L);
 
@@ -87,14 +91,34 @@ private:
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
 
-    QWidget *m_scriptWidget = nullptr;
-    ScriptEditor *m_scriptEditor = nullptr;
+    QTabWidget *m_scriptTabWidget = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
-    QWidget *m_ctrlWidget = nullptr;
-    QHBoxLayout *m_ctrlLayout = nullptr;
 
     Port *m_port = nullptr;
+};
+
+class ScriptPageWidget final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QString &scriptPath = QString(), QObject *parent = nullptr);
+
+    ~ScriptPageWidget() override = default;
+
+    void scriptSave();
+
+    ScriptEditor *m_scriptEditor = nullptr;
+    QString m_scriptPath;
+    bool m_scriptEdited = false;
+
+signals:
+    void appendLog(const QString &message, const QString &level);
+
+    void editScript();
+
+private slots:
+    void scriptEdited();
 };
 
 class LuaLexer final : public QsciLexerLua {
@@ -130,7 +154,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void loadScript(const QString &scriptPath);
+    void openScript(const QString &scriptPath);
 
     void runScript(const QString &name, const QString &script);
 
@@ -142,9 +166,11 @@ protected:
 private:
     void scriptRun(const QModelIndex &index);
 
-    void scriptLoad(const QModelIndex &index);
+    void scriptOpen(const QModelIndex &index);
 
     void scriptDelete(const QModelIndex &index);
+
+    void scriptNew();
 
     QFileSystemModel *m_model = nullptr;
 };

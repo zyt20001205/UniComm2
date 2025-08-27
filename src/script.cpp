@@ -4,76 +4,100 @@ static Script *g_script = nullptr;
 
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
+    g_script = this;
     // script module init
-    auto *layout = new QVBoxLayout(this); // NOLINT
-    m_scriptWidget = new QWidget();
-    layout->addWidget(m_scriptWidget);
-    m_scriptWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    auto *scriptLayout = new QVBoxLayout(m_scriptWidget); // NOLINT
+    auto *layout = new QHBoxLayout(this); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
-    scriptLayout->addWidget(scriptSplitter);
-    m_scriptEditor = new ScriptEditor();
-    scriptSplitter->addWidget(m_scriptEditor);
-    m_scriptEditor->m_scriptLexer->setFont(QFont(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt()), -1);
-    m_scriptEditor->setText(m_scriptConfig["script"].toString());
+    layout->addWidget(scriptSplitter);
+    // script widget
+    auto *scriptWidget = new QWidget(); // NOLINT
+    scriptSplitter->addWidget(scriptWidget);
+    auto *scriptLayout = new QVBoxLayout(scriptWidget); // NOLINT
+    scriptLayout->setContentsMargins(0, 0, 0, 0);
+    // script widget -> ctrl widget
+    auto *ctrlWidget = new QWidget(); // NOLINT
+    scriptLayout->addWidget(ctrlWidget);
+    auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
+    ctrlLayout->setContentsMargins(0, 0, 0, 0);
+    ctrlLayout->setAlignment(Qt::AlignRight);
+    auto *runButton = new QPushButton(); // NOLINT
+    ctrlLayout->addWidget(runButton);
+    runButton->setFixedSize(24, 24);
+    runButton->setIcon(QIcon(":/icon/play.svg"));
+    connect(runButton, &QPushButton::clicked, this, &Script::scriptRun);
+    // script widget -> script editor
+    m_scriptTabWidget = new QTabWidget();
+    scriptLayout->addWidget(m_scriptTabWidget);
+    m_scriptTabWidget->setTabsClosable(true);
+    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
+    // auto welcomePage = new QWidget(); // NOLINT
+    // auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
+    // auto welcomeLabel = new QLabel("welcome"); // NOLINT
+    // welcomeLayout->addWidget(welcomeLabel);
+    // m_scriptTabWidget->addTab(welcomePage, "welcome");
+
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
     auto *scriptMonitorLayout = new QVBoxLayout(scriptMonitorWidget); // NOLINT
     scriptMonitorLayout->setContentsMargins(0, 0, 0, 0);
     auto *scriptMonitorSplitter = new QSplitter(Qt::Vertical); // NOLINT
     scriptMonitorLayout->addWidget(scriptMonitorSplitter);
+    // script monitor widget -> script list widget
     m_scriptListWidget = new QListWidget();
     scriptMonitorSplitter->addWidget(m_scriptListWidget);
     m_scriptListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
+    // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
     scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::appendLog, this, &Script::appendLog);
-    connect(m_scriptExplorerTreeView, &ScriptExplorer::loadScript, this, &Script::scriptLoad);
+    connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
-
     scriptSplitter->addWidget(scriptMonitorWidget);
 
     scriptSplitter->setStretchFactor(0, 3);
     scriptSplitter->setStretchFactor(1, 1);
-
-    m_ctrlWidget = new QWidget();
-    layout->addWidget(m_ctrlWidget);
-    m_ctrlLayout = new QHBoxLayout(m_ctrlWidget);
-    auto *runButton = new QPushButton("run"); // NOLINT
-    m_ctrlLayout->addWidget(runButton);
-    connect(runButton, &QPushButton::clicked, this, [this] {
-        scriptRun("editor", m_scriptEditor->text());
-    });
-    auto *saveButton = new QPushButton("save"); // NOLINT
-    m_ctrlLayout->addWidget(saveButton);
-    connect(saveButton, &QPushButton::clicked, this, &Script::scriptSave);
-
-    g_script = this;
 }
 
 void Script::scriptConfigSave() {
-    m_scriptConfig["script"] = m_scriptEditor->text();
+    for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
+        auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
+        if (scriptPageWidget->m_scriptEdited) {
+            scriptPageWidget->m_scriptEdited = false;
+            scriptPageWidget->scriptSave();
+            QString tabName = m_scriptTabWidget->tabText(i);
+            tabName.chop(1);
+            m_scriptTabWidget->setTabText(i, tabName);
+        }
+    }
+
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
-void Script::scriptLoad(const QString &scriptPath) {
-    QFile file(scriptPath);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    QTextStream in(&file);
-    const QString content = in.readAll();
-    file.close();
-    m_scriptEditor->setText(content);
-
+void Script::scriptOpen(const QString &scriptPath) {
     const QFileInfo fileInfo(scriptPath);
     QString fileName = fileInfo.fileName();
-    emit appendLog(QString("%1 %2").arg(fileName, "loaded"), "info");
+
+    auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
+    m_scriptTabWidget->addTab(newTab, fileName);
+    connect(newTab, &ScriptPageWidget::editScript, this, [this,newTab] {
+        scriptEdited(m_scriptTabWidget->indexOf(newTab));
+    });
+    connect(newTab, &ScriptPageWidget::appendLog, this, &Script::appendLog);
+
+    emit appendLog(QString("%1 %2").arg(scriptPath, "opened"), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "loaded");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
 }
 
 // Script private
-void Script::scriptRun(const QString &name, const QString &script) {
+void Script::scriptRun() {
+    const int currentIndex = m_scriptTabWidget->currentIndex();
+    if (currentIndex < 0) {
+        return;
+    }
+    const QString name = m_scriptTabWidget->tabText(currentIndex);
+    QString script = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex))->m_scriptEditor->text();
     if (script.isEmpty()) {
         emit appendLog("script is empty", "warning");
         return;
@@ -146,33 +170,24 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
     });
 }
 
-void Script::scriptSave() {
-    bool ok;
-    QString fileName = QInputDialog::getText(nullptr, "Save Script", "script name:", QLineEdit::Normal, QString(), &ok);
-    if (!ok || fileName.isEmpty()) {
-        return;
-    }
-    fileName += ".lua";
-    const QString filePath = QDir::current().filePath("script/" + fileName);
+void Script::scriptEdited(const int index) const {
+    const QString tabName = m_scriptTabWidget->tabText(index) + "*";
+    m_scriptTabWidget->setTabText(index, tabName);
+}
 
-    if (QFile::exists(filePath)) {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
-        if (reply != QMessageBox::Yes) {
-            return;
+void Script::scriptClose(const int index) const {
+    auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
+    if (scriptPageWidget->m_scriptEdited) {
+        const QMessageBox::StandardButton reply =
+                QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
+                                      QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            scriptPageWidget->scriptSave();
         }
     }
-
-    QFile file(filePath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << m_scriptEditor->text();
-    file.close();
-
-    emit appendLog(QString("%1 %2").arg(fileName, "saved"), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "saved");
+    const QWidget *tabToClose = m_scriptTabWidget->widget(index);
+    m_scriptTabWidget->removeTab(index);
+    delete tabToClose;
 }
 
 int Script::luaPrint(lua_State *L) {
@@ -312,6 +327,49 @@ int Script::luaDatabaseWrite(lua_State *L) {
     return 0;
 }
 
+// ScriptPageWidget public
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QObject *parent) {
+    auto *layout = new QVBoxLayout(this); // NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    m_scriptEditor = new ScriptEditor();
+    layout->addWidget(m_scriptEditor);
+    m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
+    m_scriptPath = scriptPath;
+    QFile file(scriptPath);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    const QString content = in.readAll();
+    file.close();
+    m_scriptEditor->setText(content);
+    // import!!! must use old connect method!!! do not modify!!!
+    connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdited()));
+}
+
+void ScriptPageWidget::scriptSave() {
+    QFile file(m_scriptPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << m_scriptEditor->text();
+    file.close();
+
+    emit appendLog(QString("%1 %2").arg(m_scriptPath, "saved"), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
+}
+
+// ScriptPageWidget private
+void ScriptPageWidget::scriptEdited() {
+    if (!m_scriptEdited) {
+        emit editScript();
+    }
+    m_scriptEdited = true;
+
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
+}
+
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent) {
     // load lua lexer
@@ -411,7 +469,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
 // ScriptExplorer public
 ScriptExplorer::ScriptExplorer(QWidget *parent) {
     this->installEventFilter(this);
-    connect(this, &QTreeView::doubleClicked, this, &ScriptExplorer::scriptLoad);
+    connect(this, &QTreeView::doubleClicked, this, &ScriptExplorer::scriptOpen);
 
     m_model = new QFileSystemModel();
     this->QTreeView::setModel(m_model);
@@ -451,17 +509,20 @@ ScriptExplorer::ScriptExplorer(QWidget *parent) {
 // ScriptExplorer protected
 void ScriptExplorer::contextMenuEvent(QContextMenuEvent *event) {
     QModelIndex index = indexAt(event->pos());
-    if (!index.isValid()) return;
     QMenu menu(this);
-    menu.addAction(tr("run"), [this, index] {
-        scriptRun(index);
-    });
-    menu.addAction(tr("load"), [this, index] {
-        scriptLoad(index);
-    });
-    menu.addAction(tr("delete"), [this, index] {
-        scriptDelete(index);
-    });
+    if (!index.isValid()) {
+        menu.addAction(tr("new script"), this, &ScriptExplorer::scriptNew);
+    } else {
+        menu.addAction(tr("run"), [this, index] {
+            scriptRun(index);
+        });
+        menu.addAction(tr("load"), [this, index] {
+            scriptOpen(index);
+        });
+        menu.addAction(tr("delete"), [this, index] {
+            scriptDelete(index);
+        });
+    }
     menu.exec(event->globalPos());
 }
 
@@ -491,9 +552,9 @@ void ScriptExplorer::scriptRun(const QModelIndex &index) {
     emit runScript(fileName, script);
 }
 
-void ScriptExplorer::scriptLoad(const QModelIndex &index) {
+void ScriptExplorer::scriptOpen(const QModelIndex &index) {
     const QString filePath = m_model->filePath(index);
-    emit loadScript(filePath);
+    emit openScript(filePath);
 }
 
 void ScriptExplorer::scriptDelete(const QModelIndex &index) {
@@ -515,4 +576,32 @@ void ScriptExplorer::scriptDelete(const QModelIndex &index) {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "deleted");
+}
+
+void ScriptExplorer::scriptNew() {
+    bool ok;
+    QString fileName = QInputDialog::getText(nullptr, "New Script", "script name:", QLineEdit::Normal, "new", &ok);
+    if (!ok || fileName.isEmpty()) {
+        return;
+    }
+    fileName += ".lua";
+    const QString filePath = QDir::current().filePath("script/" + fileName);
+
+    if (QFile::exists(filePath)) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
+        if (reply != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    QFile file(filePath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    file.close();
+
+    emit appendLog(QString("%1 %2").arg(fileName, "created"), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "created");
 }
