@@ -58,7 +58,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     scriptSplitter->setStretchFactor(1, 1);
 }
 
-void Script::scriptConfigSave() {
+void Script::scriptConfigSave() const {
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
         auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
         if (scriptPageWidget->m_scriptEdited) {

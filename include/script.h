@@ -47,7 +47,7 @@ public:
 
     void setPort(Port *port) { m_port = port; }
 
-    void scriptConfigSave();
+    void scriptConfigSave() const;
 
     void scriptOpen(const QString &scriptPath);
 
