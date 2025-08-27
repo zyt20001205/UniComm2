@@ -9,25 +9,9 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     auto *layout = new QHBoxLayout(this); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
     layout->addWidget(scriptSplitter);
-    // script widget
-    auto *scriptWidget = new QWidget(); // NOLINT
-    scriptSplitter->addWidget(scriptWidget);
-    auto *scriptLayout = new QVBoxLayout(scriptWidget); // NOLINT
-    scriptLayout->setContentsMargins(0, 0, 0, 0);
-    // script widget -> ctrl widget
-    auto *ctrlWidget = new QWidget(); // NOLINT
-    scriptLayout->addWidget(ctrlWidget);
-    auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
-    ctrlLayout->setContentsMargins(0, 0, 0, 0);
-    ctrlLayout->setAlignment(Qt::AlignRight);
-    auto *runButton = new QPushButton(); // NOLINT
-    ctrlLayout->addWidget(runButton);
-    runButton->setFixedSize(24, 24);
-    runButton->setIcon(QIcon(":/icon/play.svg"));
-    connect(runButton, &QPushButton::clicked, this, &Script::scriptRun);
     // script widget -> script editor
     m_scriptTabWidget = new QTabWidget();
-    scriptLayout->addWidget(m_scriptTabWidget);
+    scriptSplitter->addWidget(m_scriptTabWidget);
     m_scriptTabWidget->setTabsClosable(true);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
     // auto welcomePage = new QWidget(); // NOLINT
@@ -36,8 +20,21 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     // welcomeLayout->addWidget(welcomeLabel);
     // m_scriptTabWidget->addTab(welcomePage, "welcome");
 
+    // script widget -> ctrl widget
+    auto *ctrlWidget = new QWidget(); // NOLINT
+    m_scriptTabWidget->setCornerWidget(ctrlWidget);
+    auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
+    ctrlLayout->setContentsMargins(0, 0, 0, 0);
+    ctrlLayout->setAlignment(Qt::AlignRight);
+    auto *runButton = new QPushButton(); // NOLINT
+    ctrlLayout->addWidget(runButton);
+    runButton->setFixedSize(24, 24);
+    runButton->setIcon(QIcon(":/icon/play.svg"));
+    connect(runButton, &QPushButton::clicked, this, &Script::scriptRun);
+
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
+    scriptSplitter->addWidget(scriptMonitorWidget);
     auto *scriptMonitorLayout = new QVBoxLayout(scriptMonitorWidget); // NOLINT
     scriptMonitorLayout->setContentsMargins(0, 0, 0, 0);
     auto *scriptMonitorSplitter = new QSplitter(Qt::Vertical); // NOLINT
@@ -52,7 +49,6 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     connect(m_scriptExplorerTreeView, &ScriptExplorer::appendLog, this, &Script::appendLog);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
-    scriptSplitter->addWidget(scriptMonitorWidget);
 
     scriptSplitter->setStretchFactor(0, 3);
     scriptSplitter->setStretchFactor(1, 1);
@@ -359,12 +355,11 @@ void ScriptPageWidget::scriptSave() {
 void ScriptPageWidget::scriptEdited() {
     if (!m_scriptEdited) {
         emit editScript();
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
     }
     m_scriptEdited = true;
-
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
 }
 
 // ScriptEditor public
