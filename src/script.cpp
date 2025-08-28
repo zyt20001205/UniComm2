@@ -430,29 +430,29 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     m_scriptLexer->setPaper(Qt::white, -1);
     // style 0: default
     // style 1: comment
-    m_scriptLexer->setColor(QColor("#969896"), 1);
+    m_scriptLexer->setColor(QColor(0x969896), 1);
     // style 2: line comment
-    m_scriptLexer->setColor(QColor("#969896"), 2);
+    m_scriptLexer->setColor(QColor(0x969896), 2);
     // style 4: number
-    m_scriptLexer->setColor(QColor("#0086B3"), 4);
+    m_scriptLexer->setColor(QColor(0x0086B3), 4);
     // style 5: keyword
-    m_scriptLexer->setColor(QColor("#A71D5D"), 5);
+    m_scriptLexer->setColor(QColor(0xA71D5D), 5);
     // style 6: string
-    m_scriptLexer->setColor(QColor("#183691"), 6);
+    m_scriptLexer->setColor(QColor(0x183691), 6);
     // style 7: character
     // style 8: literal string
     // style 9: preprocessor
     // style 10: operator
-    m_scriptLexer->setColor(QColor("#A71D5D"), 10);
+    m_scriptLexer->setColor(QColor(0xA71D5D), 10);
     // style 11: identifier
-    m_scriptLexer->setColor(QColor("#0086B3"), 11);
+    m_scriptLexer->setColor(QColor(0x0086B3), 11);
     // style 12: unclosed string
     // style 13: basic functions
-    m_scriptLexer->setColor(QColor("#0086B3"), 13);
+    m_scriptLexer->setColor(QColor(0x0086B3), 13);
     // style 14: string, table and maths functions
-    m_scriptLexer->setColor(QColor("#0086B3"), 14);
+    m_scriptLexer->setColor(QColor(0x0086B3), 14);
     // style 15: coroutines, i/o and system facilities
-    m_scriptLexer->setColor(QColor("#0086B3"), 15);
+    m_scriptLexer->setColor(QColor(0x0086B3), 15);
     // style 16: user defined 1
 
     // style 20: label
