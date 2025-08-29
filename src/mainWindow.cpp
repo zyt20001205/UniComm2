@@ -75,6 +75,12 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
 
+    m_datatableModule = new Datatable();
+    this->addDockWidget(Qt::RightDockWidgetArea, m_datatableModule);
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
+
     m_logModule = new Log();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
     // logging
@@ -90,6 +96,8 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::writePort, m_portModule, &Port::portWrite);
     connect(m_scriptModule, &Script::writeDatabase, m_databaseModule, &Database::databaseWrite);
     connect(m_databaseModule, &Database::appendLog, m_logModule, &Log::logAppend);
+    connect(m_scriptModule, &Script::writeDatatable, m_datatableModule, &Datatable::datatableWrite);
+    connect(m_datatableModule, &Datatable::appendLog, m_logModule, &Log::logAppend);
 
     m_scriptModule->setPort(m_portModule);
 }
@@ -117,6 +125,7 @@ void MainWindow::saveConfig() const {
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
     m_databaseModule->databaseConfigSave();
+    m_datatableModule->datatableConfigSave();
     m_logModule->logConfigSave();
     m_configModule->configSave();
 }

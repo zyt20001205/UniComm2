@@ -10,6 +10,7 @@
 #include <QWidget>
 #include "config.h"
 #include "database.h"
+#include "datatable.h"
 #include "log.h"
 #include "manual.h"
 #include "port.h"
@@ -47,6 +48,7 @@ private:
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;
     Database *m_databaseModule = nullptr;
+    Datatable *m_datatableModule = nullptr;
     Log *m_logModule = nullptr;
 };
 

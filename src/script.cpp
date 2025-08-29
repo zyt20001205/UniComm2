@@ -127,6 +127,11 @@ void Script::scriptRun() {
         // lua_pushcfunction(L, Script::luaDatabaseRead);
         // lua_setfield(L, -2, "read");
         lua_setglobal(L, "database");
+        // register datatable class
+        lua_newtable(L);
+        lua_pushcfunction(L, Script::luaDatatableWrite);
+        lua_setfield(L, -2, "write");
+        lua_setglobal(L, "datatable");
         // exec lua script
         if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
             const QString error = lua_tostring(L, -1);
@@ -323,6 +328,18 @@ int Script::luaDatabaseWrite(lua_State *L) {
     return 0;
 }
 
+int Script::luaDatatableWrite(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 2)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const char *param1 = luaL_checkstring(L, 1);
+    const char *param2 = luaL_checkstring(L, 2);
+    // start operation
+    emit g_script->writeDatatable(param1, param2);
+    return 0;
+}
+
 // ScriptPageWidget public
 ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QObject *parent) {
     auto *layout = new QVBoxLayout(this); // NOLINT
@@ -375,7 +392,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
         // custom
         "sleep", "input", "print",
         "port.close", "port.info", "port.open", "port.read", "port.write",
-        "database.write",
+        "database.write", "datatable.write",
         // keywords
         "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
         "while",

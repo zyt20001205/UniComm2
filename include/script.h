@@ -63,6 +63,8 @@ signals:
 
     void writeDatabase(const QString &key, const QString &value);
 
+    void writeDatatable(const QString &key, const QString &value);
+
 private:
     void scriptRun();
 
@@ -89,6 +91,8 @@ private:
     static int luaPortRead(lua_State *L);
 
     static int luaDatabaseWrite(lua_State *L);
+
+    static int luaDatatableWrite(lua_State *L);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
 
