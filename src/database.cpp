@@ -9,6 +9,7 @@ Database::Database(QObject *parent)
     m_tableWidget->setColumnCount(1);
     m_tableWidget->horizontalHeader()->setVisible(false);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_tableWidget->verticalHeader()->setMinimumWidth(30);
     m_tableWidget->verticalHeader()->setSectionsMovable(true);
     connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionMoved, this, [this](int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
         const QJsonValue tmp = m_databaseConfig.takeAt(oldVisualIndex);
