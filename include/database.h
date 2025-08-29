@@ -32,11 +32,11 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void databaseRename(int logicalRow);
+    void databaseRename(int visualRow);
 
-    void databaseInsert(int index);
+    void databaseInsert(int visualRow);
 
-    void databaseRemove(int logicalIndex);
+    void databaseRemove(int visualRow);
 
     QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
     QTableWidget *m_tableWidget = nullptr;

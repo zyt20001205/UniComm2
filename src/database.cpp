@@ -21,16 +21,10 @@ Database::Database(QObject *parent)
         const QString input = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->verticalHeaderItem(logicalIndex)->text(), &ok);
         if (ok) {
             m_tableWidget->verticalHeaderItem(logicalIndex)->setText(input);
-            databaseRename(logicalIndex);
+            const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
+            databaseRename(visualRow);
         }
     });
-
-    m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_tableWidget->setDragEnabled(true);
-    m_tableWidget->setAcceptDrops(true);
-    m_tableWidget->setDragDropMode(QAbstractItemView::InternalMove);
-    m_tableWidget->setDefaultDropAction(Qt::MoveAction);
 
     for (const QJsonValue &key: m_databaseConfig) {
         const int logicalIndex = m_tableWidget->rowCount();
@@ -79,8 +73,8 @@ void Database::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(tr("insert below (Ctrl+Ins)"), [this, visualRow] {
             databaseInsert(visualRow + 1);
         });
-        menu.addAction(tr("remove (Del)"), [this, logicalRow] {
-            databaseRemove(logicalRow);
+        menu.addAction(tr("remove (Del)"), [this, visualRow] {
+            databaseRemove(visualRow);
         });
     }
     menu.exec(event->globalPos());
@@ -90,15 +84,19 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
+                const int logicalRow = m_tableWidget->currentRow();
+                const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
                 if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
-                    databaseInsert(m_tableWidget->currentRow() + 1);
+                    databaseInsert(visualRow + 1);
                 } else {
-                    databaseInsert(m_tableWidget->currentRow());
+                    databaseInsert(visualRow);
                 }
                 return true;
             }
             case Qt::Key_Delete: {
-                databaseRemove(m_tableWidget->currentRow());
+                const int logicalRow = m_tableWidget->currentRow();
+                const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
+                databaseRemove(visualRow);
                 return true;
             }
             case Qt::Key_Escape: {
@@ -115,23 +113,23 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // Database private
-void Database::databaseRename(const int logicalRow) {
-    const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
+void Database::databaseRename(const int visualRow) {
+    const int logicalRow = m_tableWidget->verticalHeader()->logicalIndex(visualRow);
     m_databaseConfig[visualRow] = m_tableWidget->verticalHeaderItem(logicalRow)->text();
     qDebug() << m_databaseConfig;
 }
 
-void Database::databaseInsert(const int index) {
-    m_databaseConfig.insert(index, "");
-    m_tableWidget->insertRow(index);
-    m_tableWidget->setVerticalHeaderItem(index, new QTableWidgetItem(""));
-    m_tableWidget->setItem(index, 0, new QTableWidgetItem(""));
+void Database::databaseInsert(const int visualRow) {
+    m_databaseConfig.insert(visualRow, "");
+    m_tableWidget->insertRow(visualRow);
+    m_tableWidget->setVerticalHeaderItem(visualRow, new QTableWidgetItem(""));
+    m_tableWidget->setItem(visualRow, 0, new QTableWidgetItem(""));
     qDebug() << m_databaseConfig;
 }
 
-void Database::databaseRemove(const int logicalIndex) {
-    const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
-    m_tableWidget->removeRow(logicalIndex);
-    m_databaseConfig.removeAt(visualIndex);
+void Database::databaseRemove(const int visualRow) {
+    const int logicalRow = m_tableWidget->verticalHeader()->logicalIndex(visualRow);
+    m_tableWidget->removeRow(logicalRow);
+    m_databaseConfig.removeAt(visualRow);
     qDebug() << m_databaseConfig;
 }

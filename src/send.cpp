@@ -40,17 +40,10 @@ Send::Send(QObject *parent)
         const QString input = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->verticalHeaderItem(logicalIndex)->text(), &ok);
         if (ok) {
             m_tableWidget->verticalHeaderItem(logicalIndex)->setText(input);
-            shortcutRename(logicalIndex, 0);
+            const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
+            shortcutRename(visualRow, 0);
         }
     });
-
-    m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_tableWidget->setDragEnabled(true);
-    m_tableWidget->setAcceptDrops(true);
-    m_tableWidget->setDropIndicatorShown(true);
-    m_tableWidget->setDragDropMode(QAbstractItemView::InternalMove);
-    m_tableWidget->setDefaultDropAction(Qt::MoveAction);
 
     for (const QJsonValue &shortcut: m_sendConfig) {
         const int logicalIndex = m_tableWidget->rowCount();
@@ -68,7 +61,8 @@ Send::Send(QObject *parent)
 
     m_tableWidget->installEventFilter(this);
     connect(m_tableWidget, &QTableWidget::cellChanged, this, [this](const int row, const int column) {
-        shortcutRename(row, 1);
+        const int visualRow = m_tableWidget->verticalHeader()->visualIndex(row);
+        shortcutRename(visualRow, 1);
     });
 }
 
@@ -103,8 +97,8 @@ void Send::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(tr("insert below (Ctrl+Ins)"), [this, visualRow] {
             shortcutInsert(visualRow + 1);
         });
-        menu.addAction(tr("remove (Del)"), [this, logicalRow] {
-            shortcutRemove(logicalRow);
+        menu.addAction(tr("remove (Del)"), [this, visualRow] {
+            shortcutRemove(visualRow);
         });
     }
     menu.exec(event->globalPos());
@@ -114,15 +108,19 @@ bool Send::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
+                const int logicalRow = m_tableWidget->currentRow();
+                const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
                 if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
-                    shortcutInsert(m_tableWidget->currentRow() + 1);
+                    shortcutInsert(visualRow + 1);
                 } else {
-                    shortcutInsert(m_tableWidget->currentRow());
+                    shortcutInsert(visualRow);
                 }
                 return true;
             }
             case Qt::Key_Delete: {
-                shortcutRemove(m_tableWidget->currentRow());
+                const int logicalRow = m_tableWidget->currentRow();
+                const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
+                shortcutRemove(visualRow);
                 return true;
             }
             case Qt::Key_Escape: {
@@ -139,8 +137,8 @@ bool Send::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // Send private
-void Send::shortcutRename(const int logicalRow, const int column) {
-    const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
+void Send::shortcutRename(const int visualRow, const int column) {
+    const int logicalRow = m_tableWidget->verticalHeader()->logicalIndex(visualRow);
     QJsonArray newShortcut = m_sendConfig[visualRow].toArray();
     if (column == 0) {
         newShortcut[0] = m_tableWidget->verticalHeaderItem(logicalRow)->text();
@@ -151,27 +149,27 @@ void Send::shortcutRename(const int logicalRow, const int column) {
     qDebug() << m_sendConfig;
 }
 
-void Send::shortcutInsert(const int index) {
+void Send::shortcutInsert(const int visualRow) {
     QJsonArray newShortcut;
     newShortcut.append("");
     newShortcut.append("");
-    m_sendConfig.insert(index, newShortcut);
-    m_tableWidget->insertRow(index);
-    m_tableWidget->setVerticalHeaderItem(index, new QTableWidgetItem(""));
-    m_tableWidget->setItem(index, 0, new QTableWidgetItem(""));
+    m_sendConfig.insert(visualRow, newShortcut);
+    m_tableWidget->insertRow(visualRow);
+    m_tableWidget->setVerticalHeaderItem(visualRow, new QTableWidgetItem(""));
+    m_tableWidget->setItem(visualRow, 0, new QTableWidgetItem(""));
     auto *shortcutSendButton = new QPushButton(); // NOLINT
-    m_tableWidget->setCellWidget(index, 1, shortcutSendButton);
+    m_tableWidget->setCellWidget(visualRow, 1, shortcutSendButton);
     shortcutSendButton->setFixedSize(30, 30);
     shortcutSendButton->setIcon(QIcon(":/icon/send.svg"));
-    connect(shortcutSendButton, &QPushButton::clicked, this, [this, index] {
-        commandSend(m_tableWidget->item(index, 0)->text());
+    connect(shortcutSendButton, &QPushButton::clicked, this, [this, visualRow] {
+        commandSend(m_tableWidget->item(visualRow, 0)->text());
     });
     qDebug() << m_sendConfig;
 }
 
-void Send::shortcutRemove(const int logicalIndex) {
-    const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
-    m_tableWidget->removeRow(logicalIndex);
-    m_sendConfig.removeAt(visualIndex);
+void Send::shortcutRemove(const int visualRow) {
+    const int logicalRow = m_tableWidget->verticalHeader()->logicalIndex(visualRow);
+    m_tableWidget->removeRow(logicalRow);
+    m_sendConfig.removeAt(visualRow);
     qDebug() << m_sendConfig;
 }

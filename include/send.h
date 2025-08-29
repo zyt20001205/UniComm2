@@ -37,11 +37,11 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void shortcutRename(int logicalRow, int column);
+    void shortcutRename(int visualRow, int column);
 
-    void shortcutInsert(int index);
+    void shortcutInsert(int visualRow);
 
-    void shortcutRemove(int logicalIndex);
+    void shortcutRemove(int visualRow);
 
     QJsonArray m_sendConfig = g_config["sendConfig"].toArray();
     QLineEdit *m_lineEdit = nullptr;

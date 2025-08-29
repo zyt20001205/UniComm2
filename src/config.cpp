@@ -34,6 +34,14 @@ void Config::configGenerate() {
                 },
             },
             {
+                "databaseConfig", QJsonArray{
+                },
+            },
+            {
+                "datatableConfig", QJsonArray{
+                },
+            },
+            {
                 "scriptConfig", QJsonObject{
                     {"script", ""},
                     {"fontFamily", "consolas"},
@@ -43,7 +51,7 @@ void Config::configGenerate() {
             {
                 "logConfig", QJsonObject{
                     {"timestamp", true},
-                    {"height",1000}
+                    {"height", 1000}
                 },
             },
         };
