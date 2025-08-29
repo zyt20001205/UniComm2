@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include <QEvent>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QJsonArray>
 #include <QKeyEvent>
 #include <QMenu>
@@ -31,11 +32,11 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void databaseRename(int index);
+    void databaseRename(int logicalRow);
 
     void databaseInsert(int index);
 
-    void databaseRemove(int index);
+    void databaseRemove(int logicalIndex);
 
     QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
     QTableWidget *m_tableWidget = nullptr;

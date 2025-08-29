@@ -14,11 +14,11 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     scriptSplitter->addWidget(m_scriptTabWidget);
     m_scriptTabWidget->setTabsClosable(true);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
-    // auto welcomePage = new QWidget(); // NOLINT
-    // auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-    // auto welcomeLabel = new QLabel("welcome"); // NOLINT
-    // welcomeLayout->addWidget(welcomeLabel);
-    // m_scriptTabWidget->addTab(welcomePage, "welcome");
+    auto welcomePage = new QWidget(); // NOLINT
+    auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
+    auto welcomeLabel = new QLabel("welcome"); // NOLINT
+    welcomeLayout->addWidget(welcomeLabel);
+    m_scriptTabWidget->addTab(welcomePage, "welcome");
 
     // script widget -> ctrl widget
     auto *ctrlWidget = new QWidget(); // NOLINT
@@ -50,14 +50,14 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
 
-    scriptSplitter->setStretchFactor(0, 3);
+    scriptSplitter->setStretchFactor(0, 10);
     scriptSplitter->setStretchFactor(1, 1);
 }
 
 void Script::scriptConfigSave() const {
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
         auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
-        if (scriptPageWidget->m_scriptEdited) {
+        if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
             scriptPageWidget->m_scriptEdited = false;
             scriptPageWidget->scriptSave();
             QString tabName = m_scriptTabWidget->tabText(i);
@@ -91,7 +91,9 @@ void Script::scriptRun() {
         return;
     }
     const QString name = m_scriptTabWidget->tabText(currentIndex);
-    QString script = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex))->m_scriptEditor->text();
+    auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    if (!scriptPageWidget) return;
+    QString script = scriptPageWidget->m_scriptEditor->text();
     if (script.isEmpty()) {
         emit appendLog("script is empty", "warning");
         return;
@@ -171,7 +173,7 @@ void Script::scriptEdited(const int index) const {
 
 void Script::scriptClose(const int index) const {
     auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
-    if (scriptPageWidget->m_scriptEdited) {
+    if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
         const QMessageBox::StandardButton reply =
                 QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::No);
@@ -504,6 +506,7 @@ void ScriptExplorer::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
     if (!index.isValid()) {
         menu.addAction(tr("new script"), this, &ScriptExplorer::scriptNew);
+        menu.addAction(tr("open in explorer"), this, &ScriptExplorer::scriptOpenInExplorer);
     } else {
         menu.addAction(tr("run"), [this, index] {
             scriptRun(index);
@@ -580,8 +583,8 @@ void ScriptExplorer::scriptNew() {
     const QString filePath = QDir::current().filePath("script/" + fileName);
 
     if (QFile::exists(filePath)) {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
+        const QMessageBox::StandardButton reply =
+            QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
         if (reply != QMessageBox::Yes) {
             return;
         }
@@ -596,4 +599,19 @@ void ScriptExplorer::scriptNew() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "created");
+}
+
+void ScriptExplorer::scriptOpenInExplorer() {
+    const QDir folderPath = QDir::current().filePath("script");
+    const QString folderAbsolutePath = folderPath.absolutePath();
+#ifdef Q_OS_WIN
+    const QString command = "explorer.exe";
+    QStringList args;
+    args << QDir::toNativeSeparators(folderAbsolutePath);
+    QProcess::startDetached(command, args);
+#endif
+
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "opened in explorer");
 }

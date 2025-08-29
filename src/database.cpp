@@ -5,12 +5,24 @@ Database::Database(QObject *parent)
     : QDockWidget("database", qobject_cast<QWidget *>(parent)) {
     m_tableWidget = new QTableWidget(); // NOLINT
     setWidget(m_tableWidget);
-    m_tableWidget->setColumnCount(2);
-    m_tableWidget->setHorizontalHeaderLabels({"key", "value"});
-    m_tableWidget->verticalHeader()->setVisible(false);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_tableWidget->setColumnCount(1);
+    m_tableWidget->horizontalHeader()->setVisible(false);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_tableWidget->verticalHeader()->setSectionsMovable(true);
+    connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionMoved, this, [this](int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
+        const QJsonValue tmp = m_databaseConfig.takeAt(oldVisualIndex);
+        m_databaseConfig.insert(newVisualIndex, tmp);
+        qDebug() << m_databaseConfig;
+    });
+    connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionDoubleClicked, this, [this](const int logicalIndex) {
+        bool ok = false;
+        const QString input = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->verticalHeaderItem(logicalIndex)->text(), &ok);
+        if (ok) {
+            m_tableWidget->verticalHeaderItem(logicalIndex)->setText(input);
+            databaseRename(logicalIndex);
+        }
+    });
 
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -20,18 +32,13 @@ Database::Database(QObject *parent)
     m_tableWidget->setDefaultDropAction(Qt::MoveAction);
 
     for (const QJsonValue &key: m_databaseConfig) {
-        const int index = m_tableWidget->rowCount();
-        m_tableWidget->insertRow(index);
-        m_tableWidget->setItem(index, 0, new QTableWidgetItem(key.toString()));
-        m_tableWidget->setItem(index, 1, new QTableWidgetItem(""));
+        const int logicalIndex = m_tableWidget->rowCount();
+        m_tableWidget->insertRow(logicalIndex);
+        m_tableWidget->setVerticalHeaderItem(logicalIndex, new QTableWidgetItem(key.toString()));
+        m_tableWidget->setItem(logicalIndex, 0, new QTableWidgetItem(""));
     }
 
     m_tableWidget->installEventFilter(this);
-    m_tableWidget->viewport()->installEventFilter(this);
-    connect(m_tableWidget, &QTableWidget::cellChanged, this, [this](const int row, const int column) {
-        if (column != 0) return;
-        databaseRename(row);
-    });
 }
 
 void Database::databaseConfigSave() const {
@@ -39,9 +46,9 @@ void Database::databaseConfigSave() const {
 }
 
 void Database::databaseWrite(const QString &key, const QString &value) {
-    for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
-        if (m_tableWidget->item(index, 0)->text() == key) {
-            m_tableWidget->item(index, 1)->setText(value);
+    for (int index = 0; index < m_tableWidget->rowCount(); index++) {
+        if (m_tableWidget->verticalHeaderItem(index)->text() == key) {
+            m_tableWidget->item(index, 0)->setText(value);
             return;
         }
     }
@@ -50,71 +57,36 @@ void Database::databaseWrite(const QString &key, const QString &value) {
 
 // Database protected
 void Database::contextMenuEvent(QContextMenuEvent *event) {
-    const QPoint vpPos = m_tableWidget->viewport()->mapFromGlobal(event->globalPos());
-    const QModelIndex index = m_tableWidget->indexAt(vpPos);
+    const auto *vp = m_tableWidget->viewport();
+    const QPoint vpPos = vp->mapFromGlobal(event->globalPos());
+    if (!vp->rect().contains(vpPos)) return; // only show menu inside table(not header)
+    const int logicalRow = m_tableWidget->indexAt(vpPos).row();
+    const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
     QMenu menu(this);
-    if (!index.isValid()) {
-        if (m_databaseConfig.isEmpty()) {
-            menu.addAction(tr("new"), [this] {
+    if (logicalRow == -1) {
+        menu.addAction(tr("new"), [this] {
+            if (m_databaseConfig.isEmpty()) {
                 databaseInsert(0);
-            });
-        } else {
-            menu.addAction(tr("new"), [this] {
+            } else {
                 databaseInsert(m_databaseConfig.size());
-            });
-        }
+            }
+        });
     } else {
-        menu.addAction(tr("insert above (Ins)"), [this, index] {
-            databaseInsert(index.row());
+        menu.addAction(tr("insert above (Ins)"), [this, visualRow] {
+            databaseInsert(visualRow);
         });
-        menu.addAction(tr("insert below (Ctrl+Ins)"), [this, index] {
-            databaseInsert(index.row() + 1);
+        menu.addAction(tr("insert below (Ctrl+Ins)"), [this, visualRow] {
+            databaseInsert(visualRow + 1);
         });
-        menu.addAction(tr("delete (Del)"), [this, index] {
-            databaseRemove(index.row());
+        menu.addAction(tr("remove (Del)"), [this, logicalRow] {
+            databaseRemove(logicalRow);
         });
     }
     menu.exec(event->globalPos());
 }
 
 bool Database::eventFilter(QObject *obj, QEvent *event) {
-    if (obj == m_tableWidget->viewport()) {
-        switch (event->type()) {
-            case QEvent::DragMove: {
-                if (!m_dragging) {
-                    m_tableWidget->blockSignals(true);
-                    m_srcIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
-                }
-                m_dragging = true;
-                break;
-            }
-            case QEvent::Drop: {
-                m_dragging = false;
-                m_dstIndex = m_tableWidget->indexAt(static_cast<QDragMoveEvent *>(event)->position().toPoint()).row();
-                if (m_srcIndex == -1 || m_dstIndex == -1) {
-                    return true;
-                }
-                // table operation
-                const QString srcKey = m_tableWidget->item(m_srcIndex, 0)->text();
-                const QString srcValue = m_tableWidget->item(m_srcIndex, 1)->text();
-                m_tableWidget->removeRow(m_srcIndex);
-                m_tableWidget->insertRow(m_dstIndex);
-                m_tableWidget->setItem(m_dstIndex, 0, new QTableWidgetItem(srcKey));
-                m_tableWidget->setItem(m_dstIndex, 1, new QTableWidgetItem(srcValue));
-                // config operation
-                const QJsonValue tmp = m_databaseConfig.takeAt(m_srcIndex);
-                m_databaseConfig.insert(m_dstIndex, tmp);
-                // clear selection
-                m_tableWidget->blockSignals(false);
-                m_tableWidget->clearSelection();
-                m_tableWidget->setCurrentItem(nullptr);
-                m_tableWidget->clearFocus();
-                return true;
-            }
-            default:
-                break;
-        }
-    } else if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
+    if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
                 if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
@@ -142,18 +114,23 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // Database private
-void Database::databaseRename(const int index) {
-    m_databaseConfig[index] = m_tableWidget->item(index, 0)->text();
+void Database::databaseRename(const int logicalRow) {
+    const int visualRow = m_tableWidget->verticalHeader()->visualIndex(logicalRow);
+    m_databaseConfig[visualRow] = m_tableWidget->verticalHeaderItem(logicalRow)->text();
+    qDebug() << m_databaseConfig;
 }
 
 void Database::databaseInsert(const int index) {
     m_databaseConfig.insert(index, "");
     m_tableWidget->insertRow(index);
+    m_tableWidget->setVerticalHeaderItem(index, new QTableWidgetItem(""));
     m_tableWidget->setItem(index, 0, new QTableWidgetItem(""));
-    m_tableWidget->setItem(index, 1, new QTableWidgetItem(""));
+    qDebug() << m_databaseConfig;
 }
 
-void Database::databaseRemove(const int index) {
-    m_tableWidget->removeRow(index);
-    m_databaseConfig.removeAt(index);
+void Database::databaseRemove(const int logicalIndex) {
+    const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
+    m_tableWidget->removeRow(logicalIndex);
+    m_databaseConfig.removeAt(visualIndex);
+    qDebug() << m_databaseConfig;
 }

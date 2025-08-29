@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QProcess>
 #include <QProgressBar>
 #include <QPushButton>
 #include <Qsci/qsciapis.h>
@@ -169,6 +170,8 @@ private:
     void scriptDelete(const QModelIndex &index);
 
     void scriptNew();
+
+    static void scriptOpenInExplorer();
 
     QFileSystemModel *m_model = nullptr;
 };

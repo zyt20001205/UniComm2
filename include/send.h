@@ -5,6 +5,7 @@
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <QLineEdit>
@@ -36,18 +37,15 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void shortcutRename(int row, int column);
+    void shortcutRename(int logicalRow, int column);
 
     void shortcutInsert(int index);
 
-    void shortcutRemove(int index);
+    void shortcutRemove(int logicalIndex);
 
     QJsonArray m_sendConfig = g_config["sendConfig"].toArray();
     QLineEdit *m_lineEdit = nullptr;
     QTableWidget *m_tableWidget = nullptr;
-    bool m_dragging = false;
-    int m_srcIndex;
-    int m_dstIndex;
 };
 
 #endif //SEND_H

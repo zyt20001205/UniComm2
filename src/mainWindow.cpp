@@ -1,11 +1,11 @@
 #include "../include/mainWindow.h"
-#include "../include/mainWindow.h"
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
     // mainWindow ui init
     setWindowTitle("UniComm");
+    setWindowIcon(QIcon(":/icon/icon.ico"));
     resize(1600, 900);
     setDockNestingEnabled(true);
     setDockOptions(AllowNestedDocks | AllowTabbedDocks | AnimatedDocks);
@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 // MainWindow protected
 void MainWindow::closeEvent(QCloseEvent *event) {
-    QMessageBox::StandardButton reply =
+    const QMessageBox::StandardButton reply =
             QMessageBox::question(this, "Exit", "Save and exit?", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if (reply == QMessageBox::Yes) {
         saveConfig();
