@@ -1,10 +1,10 @@
 #ifndef SUFFIX_H
 #define SUFFIX_H
 
-#include <QString>
+#include <QByteArray>
 
-QString crc8Maxim(const QString& command);
+QByteArray crc8Maxim(const QByteArray& data);
 
-QString crc16Modbus(const QString& command);
+QByteArray crc16Modbus(const QByteArray& data);
 
 #endif //SUFFIX_H

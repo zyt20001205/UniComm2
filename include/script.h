@@ -59,7 +59,13 @@ signals:
 
     void closePort(int index);
 
-    void writePort(int index, const QString &command, const QString &peerIp);
+    void writeTextPort(int index, const QString &txText);
+
+    void writeTextPort(int index, const QString &txText, const QString &peerIp);
+
+    void writeDataPort(int index, const QByteArray &txData);
+
+    void writeDataPort(int index, const QByteArray &txData, const QString &peerIp);
 
     void writeDatabase(const QString &key, const QString &value);
 
@@ -86,9 +92,13 @@ private:
 
     static int luaPortInfo(lua_State *L);
 
-    static int luaPortWrite(lua_State *L);
+    static int luaPortWriteText(lua_State *L);
 
-    static int luaPortRead(lua_State *L);
+    static int luaPortWriteData(lua_State *L);
+
+    static int luaPortReadText(lua_State *L);
+
+    static int luaPortReadData(lua_State *L);
 
     static int luaPortWriteAndRead(lua_State *L);
 

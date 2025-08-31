@@ -1,8 +1,12 @@
-# write()
+# writeText()
+
+## purpose
+
+Writes **decoded text data** to the port's transmit buffer.
 
 ## signature
 
-port.write([index], command[, peerIp]) -> nil
+port.writeText([index], command[, peerIp]) -> nil
 
 ## parameters
 
@@ -17,10 +21,10 @@ nil
 ## examples
 
 -- write to current port  
-port.rite("010203")  
+port.writeText("010203")  
 
 -- write to specific port index  
-port.write(1,"AT+RST\r\n")  
+port.writeText(1,"AT+RST\r\n")  
 
 -- write to specific client  
-port.write("010203", "192.169.1.56800")  
+port.writeText("010203", "192.169.1.56800")  

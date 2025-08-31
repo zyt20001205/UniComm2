@@ -1,8 +1,12 @@
-# read()
+# readData()
+
+## purpose
+
+Reads **raw binary data** from the port's receive buffer.
 
 ## signature
 
-port.read([index]) -> str
+port.readData([index]) -> str
 
 ## parameters
 
@@ -15,7 +19,7 @@ string: the receive buffer content of the current or specified port. The actual 
 ## examples
 
 -- read from current port  
-port.read()
+port.readData()
 
 -- read from specific port index  
-port.read(1)
+port.readData(1)

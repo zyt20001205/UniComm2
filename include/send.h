@@ -26,10 +26,10 @@ public:
 
     void sendConfigSave() const;
 
-    void commandSend(const QString &command);
+    void commandSend(const QString &txText);
 
 signals:
-    void writePort(int index, const QString &command, const QString &peerIp);
+    void writePort(int index, const QString &txText);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

@@ -70,8 +70,8 @@ void Send::sendConfigSave() const {
     g_config["sendConfig"] = m_sendConfig;
 }
 
-void Send::commandSend(const QString &command) {
-    emit writePort(-1, command, "");
+void Send::commandSend(const QString &txText) {
+    emit writePort(-1, txText);
 }
 
 // Send protected

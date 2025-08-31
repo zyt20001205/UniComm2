@@ -61,9 +61,17 @@ public:
 
     QString portInfo(int index) const;
 
-    void portWrite(int index, const QString &command, const QString &peerIp) const;
+    void portWriteText(int index, const QString &txText) const;
 
-    QString portRead(int index) const;
+    void portWriteText(int index, const QString &txText, const QString &peerIp) const;
+
+    void portWriteData(int index, const QByteArray &txData) const;
+
+    void portWriteData(int index, const QByteArray &txData, const QString &peerIp) const;
+
+    QString portReadText(int index) const;
+
+    QByteArray portReadData(int index) const;
 
     QString portWriteAndRead(int index, const QString &command, const QString &peerIp) const;
 
@@ -174,11 +182,9 @@ class PageWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit PageWidget(QObject *parent = nullptr);
+    explicit PageWidget(const QJsonObject &portConfig, QObject *parent = nullptr);
 
     ~PageWidget() override = default;
-
-    void init(const QJsonObject &portConfig);
 
     void portReload(const QJsonObject &portConfig) const;
 
@@ -188,9 +194,17 @@ public:
 
     void portClose() const;
 
-    void portWrite(const QString &command, const QString &peerIp) const;
+    void portWriteText(const QString &txText) const;
 
-    QString portRead() const;
+    void portWriteText(const QString &txText, const QString &peerIp) const;
+
+    void portWriteData(const QByteArray &txData) const;
+
+    void portWriteData(const QByteArray &txData, const QString &peerIp) const;
+
+    QString portReadText() const;
+
+    QByteArray portReadData() const;
 
     QString portWriteAndRead(const QString &command, const QString &peerIp) const;
 
@@ -219,11 +233,29 @@ public:
 
     virtual void close() = 0;
 
-    virtual void write(const QString &content, const QString &peerIp) = 0;
+    virtual void writeText(const QString &txText) {
+    }
 
-    virtual QString read() = 0;
+    virtual void writeText(const QString &txText, const QString &peerIp) {
+    }
 
-    virtual QString writeAndRead(const QString &content, const QString &peerIp) = 0;
+    virtual void writeData(const QByteArray &txData) {
+    }
+
+    virtual void writeData(const QByteArray &txData, const QString &peerIp) {
+    }
+
+    virtual QString readText() = 0;
+
+    virtual QByteArray readData() = 0;
+
+    virtual QByteArray writeAndRead(const QByteArray &txData) {
+        return "";
+    }
+
+    virtual QString writeAndRead(const QString &content, const QString &peerIp) {
+        return "";
+    }
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -243,11 +275,15 @@ public:
 
     void close() override;
 
-    void write(const QString &command, const QString &peerIp) override;
+    void writeText(const QString &txText) override;
 
-    QString read() override;
+    void writeData(const QByteArray &txData) override;
 
-    QString writeAndRead(const QString &command, const QString &peerIp) override;
+    QString readText() override;
+
+    QByteArray readData() override;
+
+    QByteArray writeAndRead(const QByteArray &txData) override;
 
 signals:
     void connected();
@@ -283,192 +319,192 @@ private:
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
-    QString m_rxBuffer;
+    QByteArray m_rxBuffer;
 };
 
-class TcpClient final : public BasePort {
-    Q_OBJECT
-
-public:
-    explicit TcpClient(const QJsonObject &portConfig, QObject *parent = nullptr);
-
-    void reload(const QJsonObject &portConfig) override;
-
-    QString info() override;
-
-    bool open() override;
-
-    void close() override;
-
-    void write(const QString &command, const QString &peerIp) override;
-
-    QString read() override;
-
-    QString writeAndRead(const QString &command, const QString &peerIp) override;
-
-signals:
-    void connected();
-
-    void disconnected();
-
-    void readyRead();
-
-    void errorOccurred(const QString &error);
-
-private:
-    void handleConnected();
-
-    void handleDisconnected();
-
-    void handleError();
-
-    void handleWrite();
-
-    void handleRead();
-
-    QTcpSocket *m_tcpClient;
-    // port config
-    QString m_portName;
-    QString m_tcpClientRemoteAddress;
-    int m_tcpClientRemotePort;
-    QString m_tcpClientLocalAddress;
-    int m_tcpClientLocalPort;
-    // tx config
-    QString m_txFormat;
-    QString m_txSuffix;
-    int m_txInterval;
-    // rx config
-    QString m_rxFormat;
-    int m_rxTimeout;
-    QString m_rxForward;
-    //
-    QList<QByteArray> m_txQueue;
-    bool m_txBlock = false;
-    QString m_rxBuffer;
-};
-
-class TcpServer final : public BasePort {
-    Q_OBJECT
-
-public:
-    explicit TcpServer(const QJsonObject &portConfig, QObject *parent = nullptr);
-
-    void reload(const QJsonObject &portConfig) override;
-
-    bool open() override;
-
-    void close() override;
-
-    QString info() override;
-
-    void write(const QString &command, const QString &peerIp) override;
-
-    QString read() override;
-
-    QString writeAndRead(const QString &command, const QString &peerIp) override;
-
-signals:
-    void newConnection();
-
-    void acceptError(const QString &error);
-
-    void disconnected(qintptr socketDescriptor);
-
-    void readyRead();
-
-    void errorOccurred(const QString &error);
-
-private:
-    void handleNewConnection();
-
-    void handleServerError();
-
-    void handleConnected(QTcpSocket *tcpServerPeer);
-
-    void handleDisconnected(QTcpSocket *tcpServerPeer);
-
-    void handleError(QTcpSocket *tcpServerPeer);
-
-    void handleWrite(const QString &peerIp);
-
-    void handleRead(QTcpSocket *tcpServerPeer);
-
-    QTcpServer *m_tcpServer;
-    // port config
-    QString m_portName;
-    QString m_tcpServerLocalAddress;
-    int m_tcpServerLocalPort;
-    QList<QTcpSocket *> m_tcpServerPeerList;
-    // tx config
-    QString m_txFormat;
-    QString m_txSuffix;
-    int m_txInterval;
-    // rx config
-    QString m_rxFormat;
-    int m_rxTimeout;
-    QString m_rxForward;
-    //
-    QList<QByteArray> m_txQueue;
-    bool m_txBlock = false;
-    QString m_rxBuffer;
-};
-
-class Screen final : public BasePort {
-    Q_OBJECT
-
-public:
-    explicit Screen(const QJsonObject &portConfig, QObject *parent = nullptr);
-
-    void reload(const QJsonObject &portConfig) override;
-
-    bool open() override;
-
-    void close() override;
-
-    QString info() override;
-
-    void write(const QString &command, const QString &peerIp) override;
-
-    QString read() override;
-
-    QString writeAndRead(const QString &content, const QString &peerIp) override;
-
-private:
-    QScreen *m_screen = nullptr;
-    QDialog *m_previewDialog = new QDialog();;
-    QLabel *m_previewLabel = new QLabel();
-    // port config
-    QString m_portName;
-    QRect m_area;
-};
-
-class Camera final : public BasePort {
-    Q_OBJECT
-
-public:
-    explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
-
-    void reload(const QJsonObject &portConfig) override;
-
-    bool open() override;
-
-    void close() override;
-
-    QString info() override;
-
-    void write(const QString &command, const QString &peerIp) override;
-
-    QString read() override;
-
-    QString writeAndRead(const QString &content, const QString &peerIp) override;
-
-private:
-    QCameraDevice m_camera;
-    QDialog *m_previewDialog = new QDialog();;
-    QLabel *m_previewLabel = new QLabel();
-    // port config
-    QString m_portName;
-    QRect m_area;
-};
+// class TcpClient final : public BasePort {
+//     Q_OBJECT
+//
+// public:
+//     explicit TcpClient(const QJsonObject &portConfig, QObject *parent = nullptr);
+//
+//     void reload(const QJsonObject &portConfig) override;
+//
+//     QString info() override;
+//
+//     bool open() override;
+//
+//     void close() override;
+//
+//     void write(const QString &command, const QString &peerIp) override;
+//
+//     QString read() override;
+//
+//     QString writeAndRead(const QString &command, const QString &peerIp) override;
+//
+// signals:
+//     void connected();
+//
+//     void disconnected();
+//
+//     void readyRead();
+//
+//     void errorOccurred(const QString &error);
+//
+// private:
+//     void handleConnected();
+//
+//     void handleDisconnected();
+//
+//     void handleError();
+//
+//     void handleWrite();
+//
+//     void handleRead();
+//
+//     QTcpSocket *m_tcpClient;
+//     // port config
+//     QString m_portName;
+//     QString m_tcpClientRemoteAddress;
+//     int m_tcpClientRemotePort;
+//     QString m_tcpClientLocalAddress;
+//     int m_tcpClientLocalPort;
+//     // tx config
+//     QString m_txFormat;
+//     QString m_txSuffix;
+//     int m_txInterval;
+//     // rx config
+//     QString m_rxFormat;
+//     int m_rxTimeout;
+//     QString m_rxForward;
+//     //
+//     QList<QByteArray> m_txQueue;
+//     bool m_txBlock = false;
+//     QString m_rxBuffer;
+// };
+//
+// class TcpServer final : public BasePort {
+//     Q_OBJECT
+//
+// public:
+//     explicit TcpServer(const QJsonObject &portConfig, QObject *parent = nullptr);
+//
+//     void reload(const QJsonObject &portConfig) override;
+//
+//     bool open() override;
+//
+//     void close() override;
+//
+//     QString info() override;
+//
+//     void write(const QString &command, const QString &peerIp) override;
+//
+//     QString read() override;
+//
+//     QString writeAndRead(const QString &command, const QString &peerIp) override;
+//
+// signals:
+//     void newConnection();
+//
+//     void acceptError(const QString &error);
+//
+//     void disconnected(qintptr socketDescriptor);
+//
+//     void readyRead();
+//
+//     void errorOccurred(const QString &error);
+//
+// private:
+//     void handleNewConnection();
+//
+//     void handleServerError();
+//
+//     void handleConnected(QTcpSocket *tcpServerPeer);
+//
+//     void handleDisconnected(QTcpSocket *tcpServerPeer);
+//
+//     void handleError(QTcpSocket *tcpServerPeer);
+//
+//     void handleWrite(const QString &peerIp);
+//
+//     void handleRead(QTcpSocket *tcpServerPeer);
+//
+//     QTcpServer *m_tcpServer;
+//     // port config
+//     QString m_portName;
+//     QString m_tcpServerLocalAddress;
+//     int m_tcpServerLocalPort;
+//     QList<QTcpSocket *> m_tcpServerPeerList;
+//     // tx config
+//     QString m_txFormat;
+//     QString m_txSuffix;
+//     int m_txInterval;
+//     // rx config
+//     QString m_rxFormat;
+//     int m_rxTimeout;
+//     QString m_rxForward;
+//     //
+//     QList<QByteArray> m_txQueue;
+//     bool m_txBlock = false;
+//     QString m_rxBuffer;
+// };
+//
+// class Screen final : public BasePort {
+//     Q_OBJECT
+//
+// public:
+//     explicit Screen(const QJsonObject &portConfig, QObject *parent = nullptr);
+//
+//     void reload(const QJsonObject &portConfig) override;
+//
+//     bool open() override;
+//
+//     void close() override;
+//
+//     QString info() override;
+//
+//     void write(const QString &command, const QString &peerIp) override;
+//
+//     QString read() override;
+//
+//     QString writeAndRead(const QString &content, const QString &peerIp) override;
+//
+// private:
+//     QScreen *m_screen = nullptr;
+//     QDialog *m_previewDialog = new QDialog();;
+//     QLabel *m_previewLabel = new QLabel();
+//     // port config
+//     QString m_portName;
+//     QRect m_area;
+// };
+//
+// class Camera final : public BasePort {
+//     Q_OBJECT
+//
+// public:
+//     explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
+//
+//     void reload(const QJsonObject &portConfig) override;
+//
+//     bool open() override;
+//
+//     void close() override;
+//
+//     QString info() override;
+//
+//     void write(const QString &command, const QString &peerIp) override;
+//
+//     QString read() override;
+//
+//     QString writeAndRead(const QString &content, const QString &peerIp) override;
+//
+// private:
+//     QCameraDevice m_camera;
+//     QDialog *m_previewDialog = new QDialog();;
+//     QLabel *m_previewLabel = new QLabel();
+//     // port config
+//     QString m_portName;
+//     QRect m_area;
+// };
 
 #endif //PORT_H

@@ -24,9 +24,9 @@ Manual::Manual(QWidget *parent)
     manualPortStandardItem->appendRow(manualCloseStandardItem);
     const auto manualInfoStandardItem = new QStandardItem("info"); // NOLINT
     manualPortStandardItem->appendRow(manualInfoStandardItem);
-    const auto manualWriteStandardItem = new QStandardItem("write"); // NOLINT
+    const auto manualWriteStandardItem = new QStandardItem("writeText"); // NOLINT
     manualPortStandardItem->appendRow(manualWriteStandardItem);
-    const auto manualReadStandardItem = new QStandardItem("read"); // NOLINT
+    const auto manualReadStandardItem = new QStandardItem("readText"); // NOLINT
     manualPortStandardItem->appendRow(manualReadStandardItem);
 
     manualTreeView->expandAll();
@@ -37,10 +37,14 @@ Manual::Manual(QWidget *parent)
             m_manualTextBrowser->setSource(QUrl("close.md"));
         } else if (itemText == "info") {
             m_manualTextBrowser->setSource(QUrl("info.md"));
-        } else if (itemText == "write") {
-            m_manualTextBrowser->setSource(QUrl("write.md"));
-        } else if (itemText == "read") {
-            m_manualTextBrowser->setSource(QUrl("read.md"));
+        } else if (itemText == "writeText") {
+            m_manualTextBrowser->setSource(QUrl("writeText.md"));
+        } else if (itemText == "writeData") {
+            m_manualTextBrowser->setSource(QUrl("writeData.md"));
+        } else if (itemText == "readText") {
+            m_manualTextBrowser->setSource(QUrl("readText.md"));
+        } else if (itemText == "readData") {
+            m_manualTextBrowser->setSource(QUrl("readData.md"));
         }
     });
 

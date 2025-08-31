@@ -4,6 +4,10 @@
 
 port.info([index]) -> nil
 
+## purpose
+
+Retrieves information about a port.
+
 ## parameters
 
 index(optional, int): Target port index; when omitted or set to -1, the current port is used.

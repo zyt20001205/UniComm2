@@ -54,8 +54,10 @@ qt_add_resources(UniComm "doc_resources"
         "resources/doc/close.md"
         "resources/doc/info.md"
         "resources/doc/open.md"
-        "resources/doc/read.md"
-        "resources/doc/write.md"
+        "resources/doc/readData.md"
+        "resources/doc/readText.md"
+        "resources/doc/writeData.md"
+        "resources/doc/writeText.md"
 )
 
 qt_add_resources(UniComm "icon_resources"
