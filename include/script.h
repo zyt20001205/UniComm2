@@ -96,10 +96,7 @@ private:
 
     static int luaDatatableWrite(lua_State *L);
 
-    static void luaInterruptHook(lua_State *L, lua_Debug *ar);
-
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
-
     QTabWidget *m_scriptTabWidget = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
