@@ -90,9 +90,13 @@ private:
 
     static int luaPortRead(lua_State *L);
 
+    static int luaPortWriteAndRead(lua_State *L);
+
     static int luaDatabaseWrite(lua_State *L);
 
     static int luaDatatableWrite(lua_State *L);
+
+    static void luaInterruptHook(lua_State *L, lua_Debug *ar);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
 

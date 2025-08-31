@@ -119,6 +119,8 @@ void Script::scriptRun() {
         lua_setfield(L, -2, "write");
         lua_pushcfunction(L, Script::luaPortRead);
         lua_setfield(L, -2, "read");
+        lua_pushcfunction(L, Script::luaPortWriteAndRead);
+        lua_setfield(L, -2, "writeAndRead");
         lua_setglobal(L, "port");
         // register database class
         lua_newtable(L);
@@ -309,8 +311,42 @@ int Script::luaPortRead(lua_State *L) {
     const int param = luaL_optinteger(L, 1, -1);
     // start operation
     QString data;
-    QMetaObject::invokeMethod(g_script->m_port, [&, param]() {
+    QMetaObject::invokeMethod(g_script->m_port, [&, param] {
         data = g_script->m_port->portRead(param);
+    }, Qt::BlockingQueuedConnection);
+    lua_pushstring(L, data.toUtf8().constData());
+    return 1;
+}
+
+int Script::luaPortWriteAndRead(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 3)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    int param1;
+    const char *param2;
+    const char *param3;
+    if (lua_isinteger(L, 1)) {
+        param1 = luaL_checkinteger(L, 1);
+        param2 = luaL_checkstring(L, 2);
+        if (lua_isnoneornil(L, 3)) {
+            param3 = "";
+        } else {
+            param3 = luaL_checkstring(L, 3);
+        }
+    } else {
+        param1 = -1;
+        param2 = luaL_checkstring(L, 1);
+        if (lua_isnoneornil(L, 2)) {
+            param3 = "";
+        } else {
+            param3 = luaL_checkstring(L, 2);
+        }
+    }
+    // start operation
+    QString data;
+    QMetaObject::invokeMethod(g_script->m_port, [&, param1, param2, param3] {
+        data = g_script->m_port->portWriteAndRead(param1, QString::fromUtf8(param2), QString::fromUtf8(param3));
     }, Qt::BlockingQueuedConnection);
     lua_pushstring(L, data.toUtf8().constData());
     return 1;
@@ -601,7 +637,7 @@ void ScriptExplorer::scriptNew() {
 
     if (QFile::exists(filePath)) {
         const QMessageBox::StandardButton reply =
-            QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
+                QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
         if (reply != QMessageBox::Yes) {
             return;
         }
