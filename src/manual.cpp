@@ -24,10 +24,14 @@ Manual::Manual(QWidget *parent)
     manualPortStandardItem->appendRow(manualCloseStandardItem);
     const auto manualInfoStandardItem = new QStandardItem("info"); // NOLINT
     manualPortStandardItem->appendRow(manualInfoStandardItem);
-    const auto manualWriteStandardItem = new QStandardItem("writeText"); // NOLINT
-    manualPortStandardItem->appendRow(manualWriteStandardItem);
-    const auto manualReadStandardItem = new QStandardItem("readText"); // NOLINT
-    manualPortStandardItem->appendRow(manualReadStandardItem);
+    const auto manualWriteTextStandardItem = new QStandardItem("writeText"); // NOLINT
+    manualPortStandardItem->appendRow(manualWriteTextStandardItem);
+    const auto manualWriteDataStandardItem = new QStandardItem("writeData"); // NOLINT
+    manualPortStandardItem->appendRow(manualWriteDataStandardItem);
+    const auto manualReadTextStandardItem = new QStandardItem("readText"); // NOLINT
+    manualPortStandardItem->appendRow(manualReadTextStandardItem);
+    const auto manualReadDataStandardItem = new QStandardItem("readData"); // NOLINT
+    manualPortStandardItem->appendRow(manualReadDataStandardItem);
 
     manualTreeView->expandAll();
     connect(manualTreeView, &QTreeView::clicked, [this](const QModelIndex &index) {
