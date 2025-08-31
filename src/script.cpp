@@ -427,8 +427,9 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     const QStringList completeList = {
         // custom
         "sleep", "input", "print",
-        "port.close", "port.info", "port.open", "port.read", "port.write",
-        "database.write", "datatable.write",
+        "port.close", "port.info", "port.open", "port.read", "port.write", "port.writeAndRead",
+        "database.write",
+        "datatable.write",
         // keywords
         "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
         "while",
