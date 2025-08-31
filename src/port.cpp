@@ -350,13 +350,23 @@ QByteArray Port::portReadData(const int index) const {
     return pageWidget->portReadData();
 }
 
-QString Port::portWriteAndRead(const int index, const QString &command, const QString &peerIp) const {
+QString Port::portWriteTextAndReadText(const int index, const QString &txText) const {
     if (index == -1) {
         const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portWriteAndRead(command, peerIp);
+        return pageWidget->portWriteTextAndReadText(txText);
     } else {
         const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        return pageWidget->portWriteAndRead(command, peerIp);
+        return pageWidget->portWriteTextAndReadText(txText);
+    }
+}
+
+QString Port::portWriteTextAndReadText(const int index, const QString &txText, const QString &peerIp) const {
+    if (index == -1) {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+        return pageWidget->portWriteTextAndReadText(txText, peerIp);
+    } else {
+        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
+        return pageWidget->portWriteTextAndReadText(txText, peerIp);
     }
 }
 
@@ -943,8 +953,12 @@ QByteArray PageWidget::portReadData() const {
     return m_port->readData();
 }
 
-QString PageWidget::portWriteAndRead(const QString &command, const QString &peerIp) const {
-    return m_port->writeAndRead(command, peerIp);
+QString PageWidget::portWriteTextAndReadText(const QString &txText) const {
+    return m_port->writeTextAndReadText(txText);
+}
+
+QString PageWidget::portWriteTextAndReadText(const QString &txText, const QString &peerIp) const {
+    return m_port->writeTextAndReadText(txText, peerIp);
 }
 
 // PageWidget private
@@ -1121,7 +1135,7 @@ QByteArray SerialPort::readData() {
     return m_rxBuffer;
 }
 
-QByteArray SerialPort::writeAndRead(const QByteArray &txData) {
+QString SerialPort::writeTextAndReadText(const QString &txText) {
     // check serial port status
     if (!m_serialPort->isOpen()) {
         emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "is not opened"), "error");
@@ -1130,6 +1144,15 @@ QByteArray SerialPort::writeAndRead(const QByteArray &txData) {
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "is not opened");
         return "port is not opened";
     }
+    // tx text reformat
+    QString f_txText = txText;
+    // 1: remove space if tx format is hex
+    if (m_txFormat == "hex") f_txText.remove(" ");
+    // 2: convert to byte array
+    QByteArray txData;
+    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
+    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
+    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
     // tx data reformat
     QByteArray f_txData = txData;
     // 1: remove space if tx format is hex
@@ -1168,7 +1191,12 @@ QByteArray SerialPort::writeAndRead(const QByteArray &txData) {
                 QTimer::singleShot(m_rxTimeout, this, &SerialPort::handleRead);
             });
             // receive from port
-            return rxData;
+            if (m_rxFormat == "hex")
+                return rxData.toHex().toUpper();
+            if (m_rxFormat == "ascii")
+                return QString::fromLatin1(rxData);
+            /* m_rxFormat == "utf-8" */
+            return QString::fromUtf8(rxData);
         }
     }
     return "timeout";

@@ -73,7 +73,9 @@ public:
 
     QByteArray portReadData(int index) const;
 
-    QString portWriteAndRead(int index, const QString &command, const QString &peerIp) const;
+    QString portWriteTextAndReadText(int index, const QString &txText) const;
+
+    QString portWriteTextAndReadText(int index, const QString &txText, const QString &peerIp) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -206,7 +208,9 @@ public:
 
     QByteArray portReadData() const;
 
-    QString portWriteAndRead(const QString &command, const QString &peerIp) const;
+    QString portWriteTextAndReadText(const QString &txText) const;
+
+    QString portWriteTextAndReadText(const QString &txText, const QString &peerIp) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -249,11 +253,11 @@ public:
 
     virtual QByteArray readData() = 0;
 
-    virtual QByteArray writeAndRead(const QByteArray &txData) {
+    virtual QString writeTextAndReadText(const QString &txText) {
         return "";
     }
 
-    virtual QString writeAndRead(const QString &content, const QString &peerIp) {
+    virtual QString writeTextAndReadText(const QString &txText, const QString &peerIp) {
         return "";
     }
 
@@ -283,7 +287,7 @@ public:
 
     QByteArray readData() override;
 
-    QByteArray writeAndRead(const QByteArray &txData) override;
+    QString writeTextAndReadText(const QString &txText) override;
 
 signals:
     void connected();

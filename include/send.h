@@ -29,7 +29,7 @@ public:
     void commandSend(const QString &txText);
 
 signals:
-    void writePort(int index, const QString &txText);
+    void writeTextPort(int index, const QString &txText);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

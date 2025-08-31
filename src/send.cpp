@@ -71,7 +71,7 @@ void Send::sendConfigSave() const {
 }
 
 void Send::commandSend(const QString &txText) {
-    emit writePort(-1, txText);
+    emit writeTextPort(-1, txText);
 }
 
 // Send protected

@@ -100,7 +100,7 @@ private:
 
     static int luaPortReadData(lua_State *L);
 
-    static int luaPortWriteAndRead(lua_State *L);
+    static int luaPortWriteTextAndReadText(lua_State *L);
 
     static int luaDatabaseWrite(lua_State *L);
 

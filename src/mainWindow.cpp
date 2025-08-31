@@ -89,7 +89,7 @@ void MainWindow::moduleInit() {
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
-    connect(m_sendModule, &Send::writePort, m_portModule, QOverload<int, const QString &>::of(&Port::portWriteText));
+    connect(m_sendModule, &Send::writeTextPort, m_portModule, QOverload<int, const QString &>::of(&Port::portWriteText));
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openPort, m_portModule, &Port::portOpen);
     connect(m_scriptModule, &Script::closePort, m_portModule, &Port::portClose);
