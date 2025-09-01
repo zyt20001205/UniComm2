@@ -69,13 +69,9 @@ public:
 
     void portWriteData(int index, const QByteArray &txData, const QString &peerIp) const;
 
-    QString portReadText(int index) const;
+    QString portReadText(int index, int timeout) const;
 
-    QByteArray portReadData(int index) const;
-
-    QString portWriteTextAndReadText(int index, const QString &txText) const;
-
-    QString portWriteTextAndReadText(int index, const QString &txText, const QString &peerIp) const;
+    QByteArray portReadData(int index, int timeout) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -204,13 +200,9 @@ public:
 
     void portWriteData(const QByteArray &txData, const QString &peerIp) const;
 
-    QString portReadText() const;
+    QString portReadText(int timeout) const;
 
-    QByteArray portReadData() const;
-
-    QString portWriteTextAndReadText(const QString &txText) const;
-
-    QString portWriteTextAndReadText(const QString &txText, const QString &peerIp) const;
+    QByteArray portReadData(int timeout) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -249,17 +241,9 @@ public:
     virtual void writeData(const QByteArray &txData, const QString &peerIp) {
     }
 
-    virtual QString readText() = 0;
+    virtual QString readText(int timeout) = 0;
 
-    virtual QByteArray readData() = 0;
-
-    virtual QString writeTextAndReadText(const QString &txText) {
-        return "";
-    }
-
-    virtual QString writeTextAndReadText(const QString &txText, const QString &peerIp) {
-        return "";
-    }
+    virtual QByteArray readData(int timeout) = 0;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -283,11 +267,9 @@ public:
 
     void writeData(const QByteArray &txData) override;
 
-    QString readText() override;
+    QString readText(int timeout) override;
 
-    QByteArray readData() override;
-
-    QString writeTextAndReadText(const QString &txText) override;
+    QByteArray readData(int timeout) override;
 
 signals:
     void connected();

@@ -332,42 +332,22 @@ void Port::portWriteData(const int index, const QByteArray &txData, const QStrin
     }
 }
 
-QString Port::portReadText(const int index) const {
+QString Port::portReadText(const int index, const int timeout) const {
     if (index == -1) {
         const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portReadText();
+        return pageWidget->portReadText(timeout);
     }
     const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-    return pageWidget->portReadText();
+    return pageWidget->portReadText(timeout);
 }
 
-QByteArray Port::portReadData(const int index) const {
+QByteArray Port::portReadData(const int index, const int timeout) const {
     if (index == -1) {
         const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portReadData();
+        return pageWidget->portReadData(timeout);
     }
     const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-    return pageWidget->portReadData();
-}
-
-QString Port::portWriteTextAndReadText(const int index, const QString &txText) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portWriteTextAndReadText(txText);
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        return pageWidget->portWriteTextAndReadText(txText);
-    }
-}
-
-QString Port::portWriteTextAndReadText(const int index, const QString &txText, const QString &peerIp) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portWriteTextAndReadText(txText, peerIp);
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        return pageWidget->portWriteTextAndReadText(txText, peerIp);
-    }
+    return pageWidget->portReadData(timeout);
 }
 
 // Port private
@@ -945,20 +925,12 @@ void PageWidget::portWriteData(const QByteArray &txData, const QString &peerIp) 
     m_port->writeData(txData, peerIp);
 }
 
-QString PageWidget::portReadText() const {
-    return m_port->readText();
+QString PageWidget::portReadText(const int timeout) const {
+    return m_port->readText(timeout);
 }
 
-QByteArray PageWidget::portReadData() const {
-    return m_port->readData();
-}
-
-QString PageWidget::portWriteTextAndReadText(const QString &txText) const {
-    return m_port->writeTextAndReadText(txText);
-}
-
-QString PageWidget::portWriteTextAndReadText(const QString &txText, const QString &peerIp) const {
-    return m_port->writeTextAndReadText(txText, peerIp);
+QByteArray PageWidget::portReadData(const int timeout) const {
+    return m_port->readData(timeout);
 }
 
 // PageWidget private
@@ -1122,75 +1094,28 @@ void SerialPort::writeData(const QByteArray &txData) {
     }
 }
 
-QString SerialPort::readText() {
-    if (m_rxFormat == "hex")
-        return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii")
-        return QString::fromLatin1(m_rxBuffer);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
-}
-
-QByteArray SerialPort::readData() {
-    return m_rxBuffer;
-}
-
-QString SerialPort::writeTextAndReadText(const QString &txText) {
-    // check serial port status
-    if (!m_serialPort->isOpen()) {
-        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "is not opened"), "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "is not opened");
-        return "port is not opened";
-    }
-    // tx text reformat
-    QString f_txText = txText;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    // tx data reformat
-    QByteArray f_txData = txData;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txData.replace(" ", "");
-    // 2: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
-    else; /* m_txSuffix == "null" */
-    // disconnect ready read signal
+QString SerialPort::readText(const int timeout) {
+    // async mode
+    if (timeout == 0) return m_rxBuffer;
+    // sync mode
+    // 1: disconnect ready read signal
     disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
-    // write to port
-    m_serialPort->write(f_txData);
-    // tx message reformat
-    QString txMessage;
-    // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
-    // 2: add port info
-    txMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), txMessage);
-    emit appendLog(txMessage, "tx");
-    if (m_serialPort->waitForReadyRead(1000)) {
+    if (m_serialPort->waitForReadyRead(timeout)) {
         if (const QByteArray rxData = m_serialPort->readAll(); !rxData.isEmpty()) {
-            // rx message reformat
+            // 2: rx message reformat
             QString rxMessage;
-            // 1: encode rx message according to rx suffix
+            // 3: encode rx message according to rx suffix
             if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
             else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
             else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-            // 2: add port info
+            // 4: add port info
             rxMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), rxMessage);
             emit appendLog(rxMessage, "rx");
-            // reconnect ready read signal
+            // 5: reconnect ready read signal
             connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
                 QTimer::singleShot(m_rxTimeout, this, &SerialPort::handleRead);
             });
-            // receive from port
+            // 6: receive from port
             if (m_rxFormat == "hex")
                 return rxData.toHex().toUpper();
             if (m_rxFormat == "ascii")
@@ -1199,6 +1124,44 @@ QString SerialPort::writeTextAndReadText(const QString &txText) {
             return QString::fromUtf8(rxData);
         }
     }
+    // 5: reconnect ready read signal
+    connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
+        QTimer::singleShot(m_rxTimeout, this, &SerialPort::handleRead);
+    });
+    // 6: timeout message
+    return "timeout";
+}
+
+QByteArray SerialPort::readData(const int timeout) {
+    // async mode
+    if (timeout == 0) return m_rxBuffer;
+    // sync mode
+    // 1: disconnect ready read signal
+    disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
+    if (m_serialPort->waitForReadyRead(timeout)) {
+        if (const QByteArray rxData = m_serialPort->readAll(); !rxData.isEmpty()) {
+            // 2: rx message reformat
+            QString rxMessage;
+            // 3: encode rx message according to rx suffix
+            if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
+            else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
+            else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
+            // 4: add port info
+            rxMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), rxMessage);
+            emit appendLog(rxMessage, "rx");
+            // 5: reconnect ready read signal
+            connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
+                QTimer::singleShot(m_rxTimeout, this, &SerialPort::handleRead);
+            });
+            // 6: receive from port
+            return rxData;
+        }
+    }
+    // 5: reconnect ready read signal
+    connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
+        QTimer::singleShot(m_rxTimeout, this, &SerialPort::handleRead);
+    });
+    // 6: timeout message
     return "timeout";
 }
 

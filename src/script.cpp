@@ -123,8 +123,6 @@ void Script::scriptRun() {
         lua_setfield(L, -2, "readText");
         lua_pushcfunction(L, Script::luaPortReadData);
         lua_setfield(L, -2, "readData");
-        lua_pushcfunction(L, Script::luaPortWriteTextAndReadText);
-        lua_setfield(L, -2, "writeTextAndReadText");
         lua_setglobal(L, "port");
         // register database class
         lua_newtable(L);
@@ -334,14 +332,17 @@ int Script::luaPortWriteData(lua_State *L) {
 
 int Script::luaPortReadText(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 1)
+    if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param = luaL_optinteger(L, 1, -1);
+    const int param1 = luaL_optinteger(L, 1, -1);
+    const int param2 = luaL_optinteger(L, 2, 0);
     // start operation
+    const int index = param1;
+    const int timeout = param2;
     QString txText;
-    QMetaObject::invokeMethod(g_script->m_port, [&, param] {
-        txText = g_script->m_port->portReadText(param);
+    QMetaObject::invokeMethod(g_script->m_port, [&, index, timeout] {
+        txText = g_script->m_port->portReadText(index, timeout);
     }, Qt::BlockingQueuedConnection);
     lua_pushstring(L, txText.toUtf8().constData());
     return 1;
@@ -349,52 +350,19 @@ int Script::luaPortReadText(lua_State *L) {
 
 int Script::luaPortReadData(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 1)
+    if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param = luaL_optinteger(L, 1, -1);
-    // start operation
-    QByteArray txData;
-    QMetaObject::invokeMethod(g_script->m_port, [&, param] {
-        txData = g_script->m_port->portReadData(param);
-    }, Qt::BlockingQueuedConnection);
-    lua_pushlstring(L, txData.constData(), txData.size());
-    return 1;
-}
-
-int Script::luaPortWriteTextAndReadText(lua_State *L) {
-    // check arguments
-    if (lua_gettop(L) > 3)
-        luaL_error(L, "unexpected number of arguments");
-    // check arguments
-    int param1;
-    const char *param2;
-    const char *param3 = nullptr;
-    if (lua_isinteger(L, 1)) {
-        param1 = luaL_checkinteger(L, 1);
-        param2 = luaL_checkstring(L, 2);
-        if (!lua_isnoneornil(L, 3)) param3 = luaL_checkstring(L, 3);
-    } else {
-        param1 = -1;
-        param2 = luaL_checkstring(L, 1);
-        if (!lua_isnoneornil(L, 2)) param3 = luaL_checkstring(L, 2);
-    }
+    const int param1 = luaL_optinteger(L, 1, -1);
+    const int param2 = luaL_optinteger(L, 2, 0);
     // start operation
     const int index = param1;
-    const QString txText = QString::fromUtf8(param2);
-    QString rxText;
-    if (param3) {
-        const QString peerIp = QString::fromUtf8(param3);
-        QMetaObject::invokeMethod(g_script->m_port, [&, index, txText, peerIp] {
-            rxText = g_script->m_port->portWriteTextAndReadText(index, txText, peerIp);
-        }, Qt::BlockingQueuedConnection);
-    }
-    else {
-        QMetaObject::invokeMethod(g_script->m_port, [&, index, txText] {
-            rxText = g_script->m_port->portWriteTextAndReadText(index, txText);
-        }, Qt::BlockingQueuedConnection);
-    }
-    lua_pushstring(L, rxText.toUtf8().constData());
+    const int timeout = param2;
+    QByteArray txData;
+    QMetaObject::invokeMethod(g_script->m_port, [&, index, timeout] {
+        txData = g_script->m_port->portReadData(index, timeout);
+    }, Qt::BlockingQueuedConnection);
+    lua_pushlstring(L, txData.constData(), txData.size());
     return 1;
 }
 
@@ -473,7 +441,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     const QStringList completeList = {
         // custom
         "sleep", "input", "print",
-        "port.close", "port.info", "port.open", "port.readData", "port.readText", "port.writeData", "port.writeText", "port.writeTextAndReadText",
+        "port.close", "port.info", "port.open", "port.readData", "port.readText", "port.writeData", "port.writeText",
         "database.write",
         "datatable.write",
         // keywords
