@@ -284,7 +284,6 @@ void Port::portMenu(const int index, const QPoint &pos) {
     });
     menu.addAction("remove", [this, index]() {
         portRemove(index);
-        m_tabWidget->removeTab(index);
     });
     menu.exec(m_tabWidget->tabBar()->mapToGlobal(pos));
 }
@@ -318,6 +317,9 @@ void Port::portRemove(const int index) {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "removed");
     m_portConfig.removeAt(index);
+    QWidget* w = m_tabWidget->widget(index);
+    m_tabWidget->removeTab(index);
+    if (w) w->deleteLater();
 }
 
 void Port::portSettingLoad(const int index) {
@@ -625,11 +627,11 @@ void Port::portSettingSave(const int type) {
 AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     : QDialog(parent) {
     this->setFixedSize(1280, 720);
-    auto *layout = new QVBoxLayout(this);
+    auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_graphicsView = new QGraphicsView();
     layout->addWidget(m_graphicsView);
-    auto *toolbar = new QToolBar();
+    auto *toolbar = new QToolBar(); // NOLINT
     layout->addWidget(toolbar);
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     const auto *refreshAction = toolbar->addAction(QIcon(":/icon/arrowClockwise.svg"), "refresh");
@@ -687,7 +689,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         delete camera;
     }
     // show in graphics view (native pixel size, no smoothing)
-    auto *scene = new QGraphicsScene(m_graphicsView);
+    auto *scene = new QGraphicsScene(m_graphicsView); // NOLINT
     auto *item = scene->addPixmap(shot);
     item->setTransformationMode(Qt::FastTransformation);
     m_graphicsView->setRenderHint(QPainter::SmoothPixmapTransform, false);
@@ -811,10 +813,22 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
     // }
 }
 
+PageWidget::~PageWidget() {
+    QMetaObject::invokeMethod(m_port, [&] {
+        m_port->close();
+    }, Qt::BlockingQueuedConnection);
+    m_thread->quit();
+    m_thread->wait();
+}
+
 void PageWidget::portReload(const QJsonObject &portConfig) const {
-    m_port->close();
+    QMetaObject::invokeMethod(m_port, [&] {
+          m_port->close();
+      }, Qt::BlockingQueuedConnection);
     m_pushButton->setChecked(false);
-    m_port->reload(portConfig);
+    QMetaObject::invokeMethod(m_port, [&, portConfig] {
+          m_port->reload(portConfig);
+      }, Qt::BlockingQueuedConnection);
 }
 
 // PageWidget private

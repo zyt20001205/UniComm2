@@ -166,7 +166,7 @@ class PageWidget final : public QWidget {
 public:
     explicit PageWidget(const QJsonObject &portConfig, QObject *parent = nullptr);
 
-    ~PageWidget() override = default;
+    ~PageWidget() override;
 
     void portReload(const QJsonObject &portConfig) const;
 
