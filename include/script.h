@@ -55,18 +55,6 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void openPort(int index);
-
-    void closePort(int index);
-
-    void writeTextPort(int index, const QString &txText);
-
-    void writeTextPort(int index, const QString &txText, const QString &peerIp);
-
-    void writeDataPort(int index, const QByteArray &txData);
-
-    void writeDataPort(int index, const QByteArray &txData, const QString &peerIp);
-
     void writeDatabase(const QString &key, const QString &value);
 
     void writeDatatable(const QString &key, const QString &value);
@@ -107,11 +95,10 @@ private:
     // static int luaModbusRtuReadHoldingRegisters(lua_State *L);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
+    Port *m_port = nullptr;
     QTabWidget *m_scriptTabWidget = nullptr;
     QListWidget *m_scriptListWidget = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
-
-    Port *m_port = nullptr;
 };
 
 class ScriptPageWidget final : public QWidget {

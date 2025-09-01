@@ -15,6 +15,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include "config.h"
+#include "port.h"
 
 class Send final : public QDockWidget {
     Q_OBJECT
@@ -24,12 +25,11 @@ public:
 
     ~Send() override = default;
 
+    void setPort(Port *port) { m_port = port; }
+
     void sendConfigSave() const;
 
-    void commandSend(const QString &txText);
-
-signals:
-    void writeTextPort(int index, const QString &txText);
+    void commandSend(const QString &txText) const;
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -44,6 +44,7 @@ private:
     void shortcutRemove(int visualRow);
 
     QJsonArray m_sendConfig = g_config["sendConfig"].toArray();
+    Port *m_port = nullptr;
     QLineEdit *m_lineEdit = nullptr;
     QTableWidget *m_tableWidget = nullptr;
 };

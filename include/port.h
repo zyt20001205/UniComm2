@@ -55,23 +55,7 @@ public:
 
     void portConfigSave() const;
 
-    void portOpen(int index) const;
-
-    void portClose(int index) const;
-
-    QString portInfo(int index) const;
-
-    void portWriteText(int index, const QString &txText) const;
-
-    void portWriteText(int index, const QString &txText, const QString &peerIp) const;
-
-    void portWriteData(int index, const QByteArray &txData) const;
-
-    void portWriteData(int index, const QByteArray &txData, const QString &peerIp) const;
-
-    QString portReadText(int index, int timeout) const;
-
-    QByteArray portReadData(int index, int timeout) const;
+    BasePort *portObject(int index) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -87,8 +71,8 @@ private:
     void portRemove(int index);
 
     QJsonArray m_portConfig = g_config["portConfig"].toArray();
-    int m_currentIndex = 0;
     QTabWidget *m_tabWidget = nullptr;
+    int m_currentIndex = 0;
     QPushButton *m_addButton = nullptr;
 
     // port setting dialog
@@ -186,32 +170,15 @@ public:
 
     void portReload(const QJsonObject &portConfig) const;
 
-    QString portInfo() const;
-
-    void portOpen() const;
-
-    void portClose() const;
-
-    void portWriteText(const QString &txText) const;
-
-    void portWriteText(const QString &txText, const QString &peerIp) const;
-
-    void portWriteData(const QByteArray &txData) const;
-
-    void portWriteData(const QByteArray &txData, const QString &peerIp) const;
-
-    QString portReadText(int timeout) const;
-
-    QByteArray portReadData(int timeout) const;
-
+    BasePort *m_port = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
 
 private:
-    void portToggle(bool status);
+    void portToggle(bool status) const;
 
     QPushButton *m_pushButton = nullptr;
-    BasePort *m_port = nullptr;
+    QThread *m_thread = nullptr;
 };
 
 class BasePort : public QObject {

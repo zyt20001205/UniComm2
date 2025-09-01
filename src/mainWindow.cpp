@@ -89,20 +89,14 @@ void MainWindow::moduleInit() {
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
-    connect(m_sendModule, &Send::writeTextPort, m_portModule, QOverload<int, const QString &>::of(&Port::portWriteText));
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &Script::openPort, m_portModule, &Port::portOpen);
-    connect(m_scriptModule, &Script::closePort, m_portModule, &Port::portClose);
-    connect(m_scriptModule, QOverload<int, const QString &>::of(&Script::writeTextPort), m_portModule, QOverload<int, const QString &>::of(&Port::portWriteText));
-    connect(m_scriptModule, QOverload<int, const QString &, const QString &>::of(&Script::writeTextPort), m_portModule, QOverload<int, const QString &, const QString &>::of(&Port::portWriteText));
-    connect(m_scriptModule, QOverload<int, const QByteArray &>::of(&Script::writeDataPort), m_portModule, QOverload<int, const QByteArray &>::of(&Port::portWriteData));
-    connect(m_scriptModule, QOverload<int, const QByteArray &, const QString &>::of(&Script::writeDataPort), m_portModule, QOverload<int, const QByteArray &, const QString &>::of(&Port::portWriteData));
     connect(m_scriptModule, &Script::writeDatabase, m_databaseModule, &Database::databaseWrite);
     connect(m_databaseModule, &Database::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::writeDatatable, m_datatableModule, &Datatable::datatableWrite);
     connect(m_datatableModule, &Datatable::appendLog, m_logModule, &Log::logAppend);
 
     m_scriptModule->setPort(m_portModule);
+    m_sendModule->setPort(m_portModule);
 }
 
 void MainWindow::menuInit() {

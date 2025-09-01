@@ -18,7 +18,11 @@ Send::Send(QObject *parent)
     sendButton->setFixedSize(24, 24);
     sendButton->setIcon(QIcon(":/icon/send.svg"));
     connect(sendButton, &QPushButton::clicked, this, [this] {
-        commandSend(m_lineEdit->text());
+        QString txText = m_lineEdit->text();
+        auto *portObject = m_port->portObject(-1);
+        QMetaObject::invokeMethod(portObject, [&, txText] {
+            portObject->writeText(txText);
+        }, Qt::BlockingQueuedConnection);
     });
 
     m_tableWidget = new QTableWidget(); // NOLINT
@@ -70,13 +74,16 @@ void Send::sendConfigSave() const {
     g_config["sendConfig"] = m_sendConfig;
 }
 
-void Send::commandSend(const QString &txText) {
-    emit writeTextPort(-1, txText);
+void Send::commandSend(const QString &txText) const {
+    auto *portObject = m_port->portObject(-1);
+    QMetaObject::invokeMethod(portObject, [&, txText] {
+        portObject->writeText(txText);
+    }, Qt::BlockingQueuedConnection);
 }
 
 // Send protected
 void Send::contextMenuEvent(QContextMenuEvent *event) {
-    const auto* vp = m_tableWidget->viewport();
+    const auto *vp = m_tableWidget->viewport();
     const QPoint vpPos = vp->mapFromGlobal(event->globalPos());
     if (!vp->rect().contains(vpPos)) return; // only show menu inside table(not header)
     const int logicalRow = m_tableWidget->indexAt(vpPos).row();

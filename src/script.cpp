@@ -91,7 +91,7 @@ void Script::scriptRun() {
         return;
     }
     const QString name = m_scriptTabWidget->tabText(currentIndex);
-    auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
     QString script = scriptPageWidget->m_scriptEditor->text();
     if (script.isEmpty()) {
@@ -199,14 +199,13 @@ int Script::luaPrint(lua_State *L) {
     const int n = lua_gettop(L);
     QString message;
     for (int i = 1; i <= n; i++) {
-        if (const char *str = lua_tostring(L, i)) {
-            if (i > 1) message += " ";
-            message += QString::fromUtf8(str);
-        }
+        size_t len = 0;
+        const char *s = luaL_tolstring(L, i, &len);
+        if (i > 1) message += " ";
+        if (s) message += QString::fromUtf8(s, static_cast<int>(len));
+        lua_pop(L, 1);
     }
-    if (g_script && !message.isEmpty()) {
-        emit g_script->appendLog(message, "info");
-    }
+    if (g_script && !message.isEmpty()) emit g_script->appendLog(message, "info");
     return 0;
 }
 
@@ -243,10 +242,16 @@ int Script::luaPortOpen(lua_State *L) {
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const int param = luaL_optinteger(L, 1, -1);
+    const int param1 = luaL_optinteger(L, 1, -1);
     // start operation
-    emit g_script->openPort(param);
-    return 0;
+    const int index = param1;
+    auto *portObject = g_script->m_port->portObject(index);
+    bool status;
+    QMetaObject::invokeMethod(portObject, [&] {
+        status = portObject->open();
+    }, Qt::BlockingQueuedConnection);
+    lua_pushboolean(L, status);
+    return 1;
 }
 
 int Script::luaPortClose(lua_State *L) {
@@ -254,9 +259,13 @@ int Script::luaPortClose(lua_State *L) {
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const int param = luaL_optinteger(L, 1, -1);
+    const int param1 = luaL_optinteger(L, 1, -1);
     // start operation
-    emit g_script->closePort(param);
+    const int index = param1;
+    auto *portObject = g_script->m_port->portObject(index);
+    QMetaObject::invokeMethod(portObject, [&] {
+        portObject->close();
+    }, Qt::BlockingQueuedConnection);
     return 0;
 }
 
@@ -265,11 +274,13 @@ int Script::luaPortInfo(lua_State *L) {
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param = luaL_optinteger(L, 1, -1);
+    const int param1 = luaL_optinteger(L, 1, -1);
     // start operation
+    const int index = param1;
+    auto *portObject = g_script->m_port->portObject(index);
     QString info;
-    QMetaObject::invokeMethod(g_script->m_port, [&, param]() {
-        info = g_script->m_port->portInfo(param);
+    QMetaObject::invokeMethod(portObject, [&] {
+        info = portObject->info();
     }, Qt::BlockingQueuedConnection);
     emit g_script->appendLog(info, "info");
     return 0;
@@ -295,10 +306,17 @@ int Script::luaPortWriteText(lua_State *L) {
     // start operation
     const int index = param1;
     const QString txText = QString::fromUtf8(param2);
+    auto *portObject = g_script->m_port->portObject(index);
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
-        emit g_script->writeTextPort(index, txText, peerIp);
-    } else g_script->writeTextPort(index, txText);
+        QMetaObject::invokeMethod(portObject, [&, txText, peerIp] {
+            portObject->writeText(txText, peerIp);
+        }, Qt::BlockingQueuedConnection);
+    } else {
+        QMetaObject::invokeMethod(portObject, [&, txText] {
+            portObject->writeText(txText);
+        }, Qt::BlockingQueuedConnection);
+    }
     return 0;
 }
 
@@ -323,10 +341,17 @@ int Script::luaPortWriteData(lua_State *L) {
     // start operation
     const int index = param1;
     const QByteArray txData(param2, len2);
+    auto *portObject = g_script->m_port->portObject(index);
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
-        emit g_script->writeDataPort(index, txData, peerIp);
-    } else g_script->writeDataPort(index, txData);
+        QMetaObject::invokeMethod(portObject, [&, txData, peerIp] {
+            portObject->writeData(txData, peerIp);
+        }, Qt::BlockingQueuedConnection);
+    } else {
+        QMetaObject::invokeMethod(portObject, [&, txData] {
+            portObject->writeData(txData);
+        }, Qt::BlockingQueuedConnection);
+    }
     return 0;
 }
 
@@ -341,8 +366,9 @@ int Script::luaPortReadText(lua_State *L) {
     const int index = param1;
     const int timeout = param2;
     QString txText;
-    QMetaObject::invokeMethod(g_script->m_port, [&, index, timeout] {
-        txText = g_script->m_port->portReadText(index, timeout);
+    auto *portObject = g_script->m_port->portObject(index);
+    QMetaObject::invokeMethod(portObject, [&, timeout] {
+        txText = portObject->readText(timeout);
     }, Qt::BlockingQueuedConnection);
     lua_pushstring(L, txText.toUtf8().constData());
     return 1;
@@ -359,8 +385,9 @@ int Script::luaPortReadData(lua_State *L) {
     const int index = param1;
     const int timeout = param2;
     QByteArray txData;
-    QMetaObject::invokeMethod(g_script->m_port, [&, index, timeout] {
-        txData = g_script->m_port->portReadData(index, timeout);
+    auto *portObject = g_script->m_port->portObject(index);
+    QMetaObject::invokeMethod(portObject, [&, timeout] {
+        txData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
     lua_pushlstring(L, txData.constData(), txData.size());
     return 1;

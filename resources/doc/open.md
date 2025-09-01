@@ -2,7 +2,7 @@
 
 ## signature
 
-port.open([index]) -> nil
+port.open([index]) -> boolean
 
 ## purpose
 
@@ -14,7 +14,7 @@ index(optional, int): Target port index; when omitted or set to -1, the current 
 
 ## returns
 
-nil
+The status of the open operation.
 
 ## examples
 

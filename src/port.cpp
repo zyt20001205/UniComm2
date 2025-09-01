@@ -263,91 +263,11 @@ void Port::portConfigSave() const {
     g_config["portConfig"] = m_portConfig;
 }
 
-void Port::portOpen(const int index) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        pageWidget->portOpen();
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        pageWidget->portOpen();
-    }
-}
-
-void Port::portClose(const int index) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        pageWidget->portClose();
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        pageWidget->portClose();
-    }
-}
-
-QString Port::portInfo(const int index) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portInfo();
-    }
-    const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-    return pageWidget->portInfo();
-}
-
-void Port::portWriteText(const int index, const QString &txText) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        pageWidget->portWriteText(txText);
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        pageWidget->portWriteText(txText);
-    }
-}
-
-void Port::portWriteText(const int index, const QString &txText, const QString &peerIp) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        pageWidget->portWriteText(txText, peerIp);
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        pageWidget->portWriteText(txText, peerIp);
-    }
-}
-
-void Port::portWriteData(const int index, const QByteArray &txData) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        pageWidget->portWriteData(txData);
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        pageWidget->portWriteData(txData);
-    }
-}
-
-void Port::portWriteData(const int index, const QByteArray &txData, const QString &peerIp) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        pageWidget->portWriteData(txData, peerIp);
-    } else {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-        pageWidget->portWriteData(txData, peerIp);
-    }
-}
-
-QString Port::portReadText(const int index, const int timeout) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portReadText(timeout);
-    }
-    const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-    return pageWidget->portReadText(timeout);
-}
-
-QByteArray Port::portReadData(const int index, const int timeout) const {
-    if (index == -1) {
-        const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
-        return pageWidget->portReadData(timeout);
-    }
-    const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(index));
-    return pageWidget->portReadData(timeout);
+BasePort *Port::portObject(const int index) const {
+    BasePort *portObject = nullptr;
+    if (index == -1) portObject = qobject_cast<PageWidget *>(m_tabWidget->currentWidget())->m_port;
+    else portObject = qobject_cast<PageWidget *>(m_tabWidget->widget(index))->m_port;
+    return portObject;
 }
 
 // Port private
@@ -825,10 +745,15 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
         m_pushButton = new QPushButton("open"); // NOLINT
         m_pushButton->setCheckable(true);
         pageLayout->addWidget(m_pushButton);
+        // port init
+        m_thread = new QThread(this);
+        m_port = new SerialPort(portConfig);
+        m_port->moveToThread(m_thread);
+        // start thread
         connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        //  port init
-        m_port = new SerialPort(portConfig, this);
         connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
+        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
+        m_thread->start();
         // logging
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", portName, "loaded");
@@ -892,55 +817,20 @@ void PageWidget::portReload(const QJsonObject &portConfig) const {
     m_port->reload(portConfig);
 }
 
-QString PageWidget::portInfo() const {
-    return m_port->info();
-}
-
-void PageWidget::portOpen() const {
-    if (m_port->open()) {
-        m_pushButton->setChecked(true);
+// PageWidget private
+void PageWidget::portToggle(const bool status) const {
+    if (status) {
+        bool ok = false;
+        QMetaObject::invokeMethod(m_port, [&] {
+            ok = m_port->open();
+        }, Qt::BlockingQueuedConnection);
+        m_pushButton->setChecked(ok);
     } else {
+        QMetaObject::invokeMethod(m_port, [&] {
+            m_port->close();
+        }, Qt::BlockingQueuedConnection);
         m_pushButton->setChecked(false);
     }
-}
-
-void PageWidget::portClose() const {
-    m_port->close();
-    m_pushButton->setChecked(false);
-}
-
-void PageWidget::portWriteText(const QString &txText) const {
-    m_port->writeText(txText);
-}
-
-void PageWidget::portWriteText(const QString &txText, const QString &peerIp) const {
-    m_port->writeText(txText, peerIp);
-}
-
-void PageWidget::portWriteData(const QByteArray &txData) const {
-    m_port->writeData(txData);
-}
-
-void PageWidget::portWriteData(const QByteArray &txData, const QString &peerIp) const {
-    m_port->writeData(txData, peerIp);
-}
-
-QString PageWidget::portReadText(const int timeout) const {
-    return m_port->readText(timeout);
-}
-
-QByteArray PageWidget::portReadData(const int timeout) const {
-    return m_port->readData(timeout);
-}
-
-// PageWidget private
-void PageWidget::portToggle(const bool status) {
-    if (status) {
-        if (!m_port->open()) {
-            m_pushButton->setChecked(false);
-        }
-    } else
-        m_port->close();
 }
 
 // SerialPort public
@@ -1096,7 +986,15 @@ void SerialPort::writeData(const QByteArray &txData) {
 
 QString SerialPort::readText(const int timeout) {
     // async mode
-    if (timeout == 0) return m_rxBuffer;
+    if (timeout == 0) {
+        // reformat rx text
+        if (m_rxFormat == "hex")
+            return m_rxBuffer.toHex().toUpper();
+        if (m_rxFormat == "ascii")
+            return QString::fromLatin1(m_rxBuffer);
+        /* m_rxFormat == "utf-8" */
+        return QString::fromUtf8(m_rxBuffer);
+    }
     // sync mode
     // 1: disconnect ready read signal
     disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
@@ -1109,7 +1007,7 @@ QString SerialPort::readText(const int timeout) {
             else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
             else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
             // 4: add port info
-            rxMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), rxMessage);
+            rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
             emit appendLog(rxMessage, "rx");
             // 5: reconnect ready read signal
             connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
@@ -1147,7 +1045,7 @@ QByteArray SerialPort::readData(const int timeout) {
             else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
             else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
             // 4: add port info
-            rxMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), rxMessage);
+            rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
             emit appendLog(rxMessage, "rx");
             // 5: reconnect ready read signal
             connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
