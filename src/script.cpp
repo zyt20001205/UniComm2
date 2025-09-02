@@ -214,7 +214,7 @@ int Script::luaSleep(lua_State *L) {
     if (lua_gettop(L) != 1)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param = luaL_checkinteger(L, 1);
+    const int param = static_cast<int>(luaL_checkinteger(L, 1));
     // start operation
     QThread::msleep(param);
     return 0;
@@ -242,7 +242,7 @@ int Script::luaPortOpen(lua_State *L) {
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const int param1 = luaL_optinteger(L, 1, -1);
+    const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
     // start operation
     const int index = param1;
     auto *portObject = g_script->m_port->portObject(index);
@@ -259,7 +259,7 @@ int Script::luaPortClose(lua_State *L) {
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const int param1 = luaL_optinteger(L, 1, -1);
+    const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
     // start operation
     const int index = param1;
     auto *portObject = g_script->m_port->portObject(index);
@@ -274,7 +274,7 @@ int Script::luaPortInfo(lua_State *L) {
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param1 = luaL_optinteger(L, 1, -1);
+    const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
     // start operation
     const int index = param1;
     auto *portObject = g_script->m_port->portObject(index);
@@ -295,7 +295,7 @@ int Script::luaPortWriteText(lua_State *L) {
     const char *param2;
     const char *param3 = nullptr;
     if (lua_isinteger(L, 1)) {
-        param1 = luaL_checkinteger(L, 1);
+        param1 = static_cast<int>(luaL_checkinteger(L, 1));
         param2 = luaL_checkstring(L, 2);
         if (!lua_isnoneornil(L, 3)) param3 = luaL_checkstring(L, 3);
     } else {
@@ -330,7 +330,7 @@ int Script::luaPortWriteData(lua_State *L) {
     size_t len2;
     const char *param3 = nullptr;
     if (lua_isinteger(L, 1)) {
-        param1 = luaL_checkinteger(L, 1);
+        param1 = static_cast<int>(luaL_checkinteger(L, 1));
         param2 = luaL_checklstring(L, 2, &len2);
         if (!lua_isnoneornil(L, 3)) param3 = luaL_checkstring(L, 3);
     } else {
@@ -340,7 +340,7 @@ int Script::luaPortWriteData(lua_State *L) {
     }
     // start operation
     const int index = param1;
-    const QByteArray txData(param2, len2);
+    const QByteArray txData(param2, static_cast<qsizetype>(len2));
     auto *portObject = g_script->m_port->portObject(index);
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
@@ -360,8 +360,8 @@ int Script::luaPortReadText(lua_State *L) {
     if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param1 = luaL_optinteger(L, 1, -1);
-    const int param2 = luaL_optinteger(L, 2, 0);
+    const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
+    const int param2 = static_cast<int>(luaL_optinteger(L, 2, 0));
     // start operation
     const int index = param1;
     const int timeout = param2;
@@ -379,8 +379,8 @@ int Script::luaPortReadData(lua_State *L) {
     if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
-    const int param1 = luaL_optinteger(L, 1, -1);
-    const int param2 = luaL_optinteger(L, 2, 0);
+    const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
+    const int param2 = static_cast<int>(luaL_optinteger(L, 2, 0));
     // start operation
     const int index = param1;
     const int timeout = param2;
