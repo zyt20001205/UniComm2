@@ -91,6 +91,8 @@ private:
 
     static int luaModbusRtuReadHoldingRegisters(lua_State *L);
 
+    static int luaModbusRtuWriteMultipleRegisters(lua_State *L);
+
     static int luaDatabaseWrite(lua_State *L);
 
     static int luaDatatableWrite(lua_State *L);

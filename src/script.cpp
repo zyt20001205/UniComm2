@@ -128,6 +128,8 @@ void Script::scriptRun() {
         lua_newtable(L);
         lua_pushcfunction(L, Script::luaModbusRtuReadHoldingRegisters);
         lua_setfield(L, -2, "readHoldingRegisters");
+        lua_pushcfunction(L, Script::luaModbusRtuWriteMultipleRegisters);
+        lua_setfield(L, -2, "writeMultipleRegisters");
         lua_setglobal(L, "modbusRtu");
         // register database class
         lua_newtable(L);
@@ -410,32 +412,113 @@ int Script::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     const int param5 = static_cast<int>(luaL_optinteger(L, 5, -1));
     // start operation
     auto *portObject = g_script->m_port->portObject(param5);
-    const int slaveAddr = param1;
-    const int startAddr = param2;
-    const int quantity = param3;
-    const int timeout = param4;
+    const int txSlaveAddr = param1;
+    constexpr int txFuncCode = 0x03;
+    const int txStartAddr = param2;
+    const int txQuantity = param3;
     QByteArray txData;
-    txData.append(static_cast<char>(slaveAddr & 0xFF));
-    txData.append(static_cast<char>(0x03));
-    txData.append(static_cast<char>(startAddr >> 8 & 0xFF));
-    txData.append(static_cast<char>(startAddr & 0xFF));
-    txData.append(static_cast<char>(quantity >> 8 & 0xFF));
-    txData.append(static_cast<char>(quantity & 0xFF));
+    txData.append(txSlaveAddr);
+    txData.append(txFuncCode);
+    txData.append(static_cast<char>(txStartAddr >> 8 & 0xFF));
+    txData.append(static_cast<char>(txStartAddr & 0xFF));
+    txData.append(static_cast<char>(txQuantity >> 8 & 0xFF));
+    txData.append(static_cast<char>(txQuantity & 0xFF));
     txData += crc16Modbus(txData);
     QMetaObject::invokeMethod(portObject, [&, txData] {
         portObject->writeData(txData);
     }, Qt::BlockingQueuedConnection);
     QByteArray rxData;
+    const int timeout = param4;
     QMetaObject::invokeMethod(portObject, [&, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
     if (rxData == "timeout") {
-        lua_pushlstring(L, rxData.constData(), rxData.size());
-        return 1;
+        luaL_error(L, "modbus rtu read holding registers timeout");
+        return 0;
     }
-    const QByteArray registerData = rxData.mid(3, rxData.size() - 5);
+    if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
+        luaL_error(L, "modbus rtu read holding registers slave address inconsistent");
+        return 0;
+    }
+    if (const int rxFuncCode = rxData.at(1); rxFuncCode != txFuncCode) {
+        luaL_error(L, "modbus rtu read holding registers function code inconsistent");
+        return 0;
+    }
+    const QByteArray rxChecksum = rxData.right(2);
+    rxData.chop(2);
+    if (rxChecksum != crc16Modbus(rxData)) {
+        luaL_error(L, "modbus rtu read holding registers checksum error");
+        return 0;
+    }
+    const QByteArray registerData = rxData.mid(3);
     lua_pushlstring(L, registerData.constData(), registerData.size());
     return 1;
+}
+
+int Script::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 5)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const int param1 = luaL_checkinteger(L, 1);
+    const int param2 = luaL_checkinteger(L, 2);
+    size_t len3;
+    const char *param3 = luaL_checklstring(L, 3, &len3);
+    const int param4 = static_cast<int>(luaL_optinteger(L, 4, 1000));
+    const int param5 = static_cast<int>(luaL_optinteger(L, 5, -1));
+    // start operation
+    auto *portObject = g_script->m_port->portObject(param5);
+    const int txSlaveAddr = param1;
+    constexpr int txFuncCode = 0x10;
+    const int txStartAddr = param2;
+    const QByteArray txRegData(param3, static_cast<qsizetype>(len3));
+    const int txRegCount = static_cast<qsizetype>(len3) / 2;
+    const int txByteCount = static_cast<qsizetype>(len3);
+    QByteArray txData;
+    txData.append(txSlaveAddr);
+    txData.append(txFuncCode);
+    txData.append(static_cast<char>(txStartAddr >> 8 & 0xFF));
+    txData.append(static_cast<char>(txStartAddr & 0xFF));
+    txData.append(static_cast<char>(txRegCount >> 8 & 0xFF));
+    txData.append(static_cast<char>(txRegCount & 0xFF));
+    txData.append(txByteCount);
+    txData += txRegData;
+    txData += crc16Modbus(txData);
+    QMetaObject::invokeMethod(portObject, [&, txData] {
+        portObject->writeData(txData);
+    }, Qt::BlockingQueuedConnection);
+    QByteArray rxData;
+    const int timeout = param4;
+    QMetaObject::invokeMethod(portObject, [&, timeout] {
+        rxData = portObject->readData(timeout);
+    }, Qt::BlockingQueuedConnection);
+    if (rxData == "timeout") {
+        luaL_error(L, "modbus rtu write multiple registers timeout");
+        return 0;
+    }
+    if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
+        luaL_error(L, "modbus rtu write multiple registers slave address inconsistent");
+        return 0;
+    }
+    if (const int rxFuncCode = rxData.at(1); rxFuncCode != txFuncCode) {
+        luaL_error(L, "modbus rtu write multiple registers function code inconsistent");
+        return 0;
+    }
+    if (const int rxStartAddr = rxData.at(2) << 8 | rxData.at(3); rxStartAddr != txStartAddr) {
+        luaL_error(L, "modbus rtu write multiple registers start address inconsistent");
+        return 0;
+    }
+    if (const int rxRegCount = rxData.at(4) << 8 | rxData.at(5); rxRegCount != txRegCount) {
+        luaL_error(L, "modbus rtu write multiple registers register count inconsistent");
+        return 0;
+    }
+    const QByteArray rxChecksum = rxData.right(2);
+    rxData.chop(2);
+    if (rxChecksum != crc16Modbus(rxData)) {
+        luaL_error(L, "modbus rtu write multiple registers checksum error");
+        return 0;
+    }
+    return 0;
 }
 
 int Script::luaDatabaseWrite(lua_State *L) {
@@ -514,7 +597,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
         // custom
         "sleep", "input", "print",
         "port.close", "port.info", "port.open", "port.readData", "port.readText", "port.writeData", "port.writeText",
-        "modbusRtu.readHoldingRegisters",
+        "modbusRtu.readHoldingRegisters", "modbusRtu.writeMultipleRegisters",
         "database.write",
         "datatable.write",
         // keywords
