@@ -210,7 +210,9 @@ public:
 
     virtual QString readText(int timeout) = 0;
 
-    virtual QByteArray readData(int timeout) = 0;
+    virtual QByteArray readData(int timeout) {
+        return QByteArray();
+    };
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -410,63 +412,54 @@ private:
     QByteArray m_rxBuffer;
 };
 
+class Screen final : public BasePort {
+    Q_OBJECT
 
-// class Screen final : public BasePort {
-//     Q_OBJECT
-//
-// public:
-//     explicit Screen(const QJsonObject &portConfig, QObject *parent = nullptr);
-//
-//     void reload(const QJsonObject &portConfig) override;
-//
-//     bool open() override;
-//
-//     void close() override;
-//
-//     QString info() override;
-//
-//     void write(const QString &command, const QString &peerIp) override;
-//
-//     QString read() override;
-//
-//     QString writeAndRead(const QString &content, const QString &peerIp) override;
-//
-// private:
-//     QScreen *m_screen = nullptr;
-//     QDialog *m_previewDialog = new QDialog();;
-//     QLabel *m_previewLabel = new QLabel();
-//     // port config
-//     QString m_portName;
-//     QRect m_area;
-// };
-//
-// class Camera final : public BasePort {
-//     Q_OBJECT
-//
-// public:
-//     explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
-//
-//     void reload(const QJsonObject &portConfig) override;
-//
-//     bool open() override;
-//
-//     void close() override;
-//
-//     QString info() override;
-//
-//     void write(const QString &command, const QString &peerIp) override;
-//
-//     QString read() override;
-//
-//     QString writeAndRead(const QString &content, const QString &peerIp) override;
-//
-// private:
-//     QCameraDevice m_camera;
-//     QDialog *m_previewDialog = new QDialog();;
-//     QLabel *m_previewLabel = new QLabel();
-//     // port config
-//     QString m_portName;
-//     QRect m_area;
-// };
+public:
+    explicit Screen(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    bool open() override;
+
+    void close() override;
+
+    QString info() override;
+
+    QString readText(int timeout) override;
+
+private:
+    QScreen *m_screen = nullptr;
+    QDialog *m_previewDialog = new QDialog();;
+    QLabel *m_previewLabel = new QLabel();
+    // port config
+    QString m_portName;
+    QRect m_area;
+};
+
+class Camera final : public BasePort {
+    Q_OBJECT
+
+public:
+    explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    bool open() override;
+
+    void close() override;
+
+    QString info() override;
+
+    QString readText(int timeout) override;
+
+private:
+    QCameraDevice m_camera;
+    QDialog *m_previewDialog = new QDialog();;
+    QLabel *m_previewLabel = new QLabel();
+    // port config
+    QString m_portName;
+    QRect m_area;
+};
 
 #endif //PORT_H

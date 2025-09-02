@@ -781,7 +781,7 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
         m_pushButton = new QPushButton("open"); // NOLINT
         m_pushButton->setCheckable(true);
         pageLayout->addWidget(m_pushButton);
-        //  port init
+        // port init
         m_thread = new QThread(this);
         m_port = new TcpServer(portConfig);
         m_port->moveToThread(m_thread);
@@ -795,32 +795,42 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp server", portName, "loaded");
     } else if (portType == "udp socket") {
     }
-    // else if (portType == "screen") {
-    //     // ui init
-    //     m_pushButton = new QPushButton("open"); // NOLINT
-    //     m_pushButton->setCheckable(true);
-    //     pageLayout->addWidget(m_pushButton);
-    //     connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-    //     //  port init
-    //     m_port = new Screen(portConfig, this);
-    //     // connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
-    //     // logging
-    //     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    //     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "screen", portName, "loaded");
-    // } else /* portType == "camera" */
-    // {
-    //     // ui init
-    //     m_pushButton = new QPushButton("open"); // NOLINT
-    //     m_pushButton->setCheckable(true);
-    //     pageLayout->addWidget(m_pushButton);
-    //     connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-    //     //  port init
-    //     m_port = new Camera(portConfig, this);
-    //     // connect(serialPort, &SerialPort::appendLog, this, &Port::appendLog);
-    //     // logging
-    //     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    //     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
-    // }
+    else if (portType == "screen") {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        // port init
+        m_thread = new QThread(this);
+        m_port = new Screen(portConfig, this);
+        m_port->moveToThread(m_thread);
+        // start thread
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        // connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
+        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
+        m_thread->start();
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "screen", portName, "loaded");
+    } else /* portType == "camera" */
+    {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        // port init
+        m_thread = new QThread(this);
+        m_port = new Camera(portConfig, this);
+        m_port->moveToThread(m_thread);
+        // start thread
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        // connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
+        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
+        m_thread->start();
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
+    }
 }
 
 PageWidget::~PageWidget() {
@@ -1753,176 +1763,162 @@ void TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
     }
 }
 
-// // Screen public
-// Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
-//     // port config
-//     m_portName = portConfig["portName"].toString();
-//     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
-//     auto *layout = new QVBoxLayout(m_previewDialog);
-//     layout->addWidget(m_previewLabel);
-// }
-//
-// void Screen::reload(const QJsonObject &portConfig) {
-//     // port config
-//     m_portName = portConfig["portName"].toString();
-//     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
-// }
-//
-// bool Screen::open() {
-//     m_previewDialog->show();
-//     return true;
-// }
-//
-// void Screen::close() {
-//     m_previewDialog->hide();
-// }
-//
-// QString Screen::info() {
-//     return "";
-// }
-//
-// void Screen::write(const QString &command, const QString &peerIp) {
-// }
-//
-// QString Screen::read() {
-//     // find screen
-//     for (QScreen *screen: QGuiApplication::screens()) {
-//         if (screen->name() == m_portName) {
-//             m_screen = screen;
-//             break;
-//         }
-//     }
-//     if (!m_screen)
-//         return "screen not found";
-//     // screenshot and crop
-//     const QPixmap shot = m_screen->grabWindow(0).copy(m_area);
-//
-//     if (m_previewDialog->isVisible())
-//         m_previewLabel->setPixmap(shot);
-//
-//     QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
-//
-//     // init ocr engine
-//     auto *ocr = new tesseract::TessBaseAPI();
-//     ocr->Init(nullptr, "eng+7seg");
-//     // load pic
-//     ocr->SetImage(
-//         image.bits(),
-//         image.width(),
-//         image.height(),
-//         3,
-//         image.bytesPerLine()
-//     );
-//
-//     // exec ocr
-//     char *outText = ocr->GetUTF8Text();
-//     QString recognizedText = QString::fromUtf8(outText);
-//
-//     // free resources
-//     delete[] outText;
-//     ocr->End();
-//     delete ocr;
-//     //
-//     recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
-//     return recognizedText.isEmpty() ? "null" : recognizedText;
-// }
-//
-// QString Screen::writeAndRead(const QString &command, const QString &peerIp) {
-//     return "";
-// }
-//
-// // Camera public
-// Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
-//     // port config
-//     m_portName = portConfig["portName"].toString();
-//     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
-//     auto *layout = new QVBoxLayout(m_previewDialog);
-//     layout->addWidget(m_previewLabel);
-// }
-//
-// void Camera::reload(const QJsonObject &portConfig) {
-//     // port config
-//     m_portName = portConfig["portName"].toString();
-//     m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
-// }
-//
-// bool Camera::open() {
-//     m_previewDialog->show();
-//     return true;
-// }
-//
-// void Camera::close() {
-//     m_previewDialog->hide();
-// }
-//
-// QString Camera::info() {
-//     return "";
-// }
-//
-// void Camera::write(const QString &command, const QString &peerIp) {
-// }
-//
-// QString Camera::read() {
-//     QPixmap shot;
-//     // find camera
-//     m_camera = QCameraDevice();
-//     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
-//         if (camera.description() == m_portName) {
-//             m_camera = camera;
-//             break;
-//         }
-//     }
-//     if (m_camera.isNull())
-//         return "camera not found";;
-//     // take picture
-//     const auto camera = new QCamera(m_camera, this);
-//     QMediaCaptureSession captureSession;
-//     captureSession.setCamera(camera);
-//     QImageCapture imageCapture;
-//     captureSession.setImageCapture(&imageCapture);
-//     QEventLoop loop;
-//     connect(&imageCapture, &QImageCapture::imageCaptured, this, [&](int id, const QImage &img) {
-//         Q_UNUSED(id);
-//         shot = QPixmap::fromImage(img).copy(m_area);
-//         loop.quit();
-//     });
-//     camera->start();
-//     imageCapture.capture();
-//     loop.exec();
-//     camera->stop();
-//     delete camera;
-//
-//     if (m_previewDialog->isVisible())
-//         m_previewLabel->setPixmap(shot);
-//
-//     QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
-//
-//     // init ocr engine
-//     auto *ocr = new tesseract::TessBaseAPI();
-//     // ocr->Init(nullptr, "eng");
-//     ocr->Init(nullptr, "7seg+eng");
-//     // load pic
-//     ocr->SetImage(
-//         image.bits(),
-//         image.width(),
-//         image.height(),
-//         3,
-//         image.bytesPerLine()
-//     );
-//
-//     // exec ocr
-//     char *outText = ocr->GetUTF8Text();
-//     QString recognizedText = QString::fromUtf8(outText);
-//
-//     // free resources
-//     delete[] outText;
-//     ocr->End();
-//     delete ocr;
-//     //
-//     recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
-//     return recognizedText.isEmpty() ? "null" : recognizedText;
-// }
-//
-// QString Camera::writeAndRead(const QString &command, const QString &peerIp) {
-//     return "";
-// }
+// Screen public
+Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+    auto *layout = new QVBoxLayout(m_previewDialog);
+    layout->addWidget(m_previewLabel);
+}
+
+void Screen::reload(const QJsonObject &portConfig) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+}
+
+bool Screen::open() {
+    m_previewDialog->show();
+    return true;
+}
+
+void Screen::close() {
+    m_previewDialog->hide();
+}
+
+QString Screen::info() {
+    return "";
+}
+
+QString Screen::readText(int timeout) {
+    // find screen
+    for (QScreen *screen: QGuiApplication::screens()) {
+        if (screen->name() == m_portName) {
+            m_screen = screen;
+            break;
+        }
+    }
+    if (!m_screen)
+        return "screen not found";
+    // screenshot and crop
+    const QPixmap shot = m_screen->grabWindow(0).copy(m_area);
+
+    if (m_previewDialog->isVisible())
+        m_previewLabel->setPixmap(shot);
+
+    QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
+
+    // init ocr engine
+    auto *ocr = new tesseract::TessBaseAPI();
+    ocr->Init(nullptr, "eng+7seg");
+    // load pic
+    ocr->SetImage(
+        image.bits(),
+        image.width(),
+        image.height(),
+        3,
+        image.bytesPerLine()
+    );
+
+    // exec ocr
+    char *outText = ocr->GetUTF8Text();
+    QString recognizedText = QString::fromUtf8(outText);
+
+    // free resources
+    delete[] outText;
+    ocr->End();
+    delete ocr;
+    //
+    recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
+    return recognizedText.isEmpty() ? "null" : recognizedText;
+}
+
+// Camera public
+Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+    auto *layout = new QVBoxLayout(m_previewDialog);
+    layout->addWidget(m_previewLabel);
+}
+
+void Camera::reload(const QJsonObject &portConfig) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+}
+
+bool Camera::open() {
+    m_previewDialog->show();
+    return true;
+}
+
+void Camera::close() {
+    m_previewDialog->hide();
+}
+
+QString Camera::info() {
+    return "";
+}
+
+QString Camera::readText(int timeout) {
+    QPixmap shot;
+    // find camera
+    m_camera = QCameraDevice();
+    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
+        if (camera.description() == m_portName) {
+            m_camera = camera;
+            break;
+        }
+    }
+    if (m_camera.isNull())
+        return "camera not found";;
+    // take picture
+    const auto camera = new QCamera(m_camera, this);
+    QMediaCaptureSession captureSession;
+    captureSession.setCamera(camera);
+    QImageCapture imageCapture;
+    captureSession.setImageCapture(&imageCapture);
+    QEventLoop loop;
+    connect(&imageCapture, &QImageCapture::imageCaptured, this, [&](int id, const QImage &img) {
+        Q_UNUSED(id);
+        shot = QPixmap::fromImage(img).copy(m_area);
+        loop.quit();
+    });
+    camera->start();
+    imageCapture.capture();
+    loop.exec();
+    camera->stop();
+    delete camera;
+
+    if (m_previewDialog->isVisible())
+        m_previewLabel->setPixmap(shot);
+
+    QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
+
+    // init ocr engine
+    auto *ocr = new tesseract::TessBaseAPI();
+    // ocr->Init(nullptr, "eng");
+    ocr->Init(nullptr, "7seg+eng");
+    // load pic
+    ocr->SetImage(
+        image.bits(),
+        image.width(),
+        image.height(),
+        3,
+        image.bytesPerLine()
+    );
+
+    // exec ocr
+    char *outText = ocr->GetUTF8Text();
+    QString recognizedText = QString::fromUtf8(outText);
+
+    // free resources
+    delete[] outText;
+    ocr->End();
+    delete ocr;
+    //
+    recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
+    return recognizedText.isEmpty() ? "null" : recognizedText;
+}
