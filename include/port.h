@@ -406,6 +406,8 @@ private:
     QByteArray m_rxBuffer;
 };
 
+//
+
 // class Screen final : public BasePort {
 //     Q_OBJECT
 //
