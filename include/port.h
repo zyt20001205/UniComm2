@@ -352,9 +352,13 @@ public:
 
     QString info() override;
 
-    void writeText(const QString &txText, const QString &peerIp = QString()) override;
+    void writeText(const QString &txText) override;
 
-    void writeData(const QByteArray &txData, const QString &peerIp = QString()) override;
+    void writeText(const QString &txText, const QString &peerIp) override;
+
+    void writeData(const QByteArray &txData) override;
+
+    void writeData(const QByteArray &txData, const QString &peerIp) override;
 
     QString readText(int timeout) override;
 
@@ -382,7 +386,7 @@ private:
 
     void handleError(QTcpSocket *tcpServerPeer);
 
-    void handleWrite(const QString &peerIp);
+    void handleWrite(const QString &peerIp = QString());
 
     void handleRead(QTcpSocket *tcpServerPeer);
 

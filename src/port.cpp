@@ -1464,6 +1464,19 @@ void TcpServer::close() {
     qDebug() << QString("[%1] %2").arg(timestamp, "tcp server closed");
 }
 
+void TcpServer::writeText(const QString &txText) {
+    // tx text reformat
+    QString f_txText = txText;
+    // 1: remove space if tx format is hex
+    if (m_txFormat == "hex") f_txText.remove(" ");
+    // 2: convert to byte array
+    QByteArray txData;
+    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
+    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
+    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
+    writeData(txData);
+}
+
 void TcpServer::writeText(const QString &txText, const QString &peerIp) {
     // tx text reformat
     QString f_txText = txText;
@@ -1475,6 +1488,30 @@ void TcpServer::writeText(const QString &txText, const QString &peerIp) {
     else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
     else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
     writeData(txData, peerIp);
+}
+
+void TcpServer::writeData(const QByteArray &txData) {
+    // check port status
+    if (!m_tcpServer->isListening()) {
+        emit appendLog("tcp server is not opened", "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "tcp server is not opened");
+        return;
+    }
+    // tx data reformat
+    QByteArray f_txData = txData;
+    // 1: append suffix according to tx suffix
+    if (m_txSuffix == "crlf") f_txData += "\r\n";
+    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else; /* m_txSuffix == "null" */
+    // append to tx queue
+    m_txQueue.append(f_txData);
+    if (!m_txBlock) {
+        m_txBlock = true;
+        handleWrite();
+    }
 }
 
 void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
@@ -1658,13 +1695,16 @@ void TcpServer::handleWrite(const QString &peerIp) {
         txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), "broadcast", txMessage);
         emit appendLog(txMessage, "tx");
     } else {
+        QByteArray txData;
         QTcpSocket *tcpServerPeer = nullptr;
-        foreach(QTcpSocket* peer, m_tcpServerPeerList) {
-            if (peerIp == QString("%1:%2").arg(peer->peerAddress().toString(), QString::number(peer->peerPort())))
-                tcpServerPeer = peer;
-        }
-        const QByteArray txData;
         if (!m_txQueue.isEmpty()) {
+            txData = m_txQueue.takeFirst();
+            foreach(QTcpSocket* peer, m_tcpServerPeerList) {
+                if (peerIp == QString("%1:%2").arg(peer->peerAddress().toString(), QString::number(peer->peerPort()))) {
+                    tcpServerPeer = peer;
+                    break;
+                }
+            }
             if (tcpServerPeer == nullptr) {
                 emit appendLog("peer not found", "error");
                 // logging
@@ -1688,7 +1728,9 @@ void TcpServer::handleWrite(const QString &peerIp) {
         else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
         else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
         // 2: add port info
-        txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), "broadcast", txMessage);
+        QString peerAddress = tcpServerPeer->peerAddress().toString();
+        QString peerPort = QString::number(tcpServerPeer->peerPort());
+        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress, peerPort, txMessage);
         emit appendLog(txMessage, "tx");
     }
 }
