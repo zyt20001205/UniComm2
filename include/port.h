@@ -352,9 +352,9 @@ public:
 
     QString info() override;
 
-    void writeText(const QString &txText, const QString &peerIp) override;
+    void writeText(const QString &txText, const QString &peerIp = QString()) override;
 
-    void writeData(const QByteArray &txData, const QString &peerIp) override;
+    void writeData(const QByteArray &txData, const QString &peerIp = QString()) override;
 
     QString readText(int timeout) override;
 
