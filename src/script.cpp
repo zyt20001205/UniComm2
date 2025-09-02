@@ -124,6 +124,11 @@ void Script::scriptRun() {
         lua_pushcfunction(L, Script::luaPortReadData);
         lua_setfield(L, -2, "readData");
         lua_setglobal(L, "port");
+        // register modbus rtu class
+        lua_newtable(L);
+        lua_pushcfunction(L, Script::luaModbusRtuReadHoldingRegisters);
+        lua_setfield(L, -2, "readHoldingRegisters");
+        lua_setglobal(L, "modbusRtu");
         // register database class
         lua_newtable(L);
         lua_pushcfunction(L, Script::luaDatabaseWrite);
@@ -365,12 +370,12 @@ int Script::luaPortReadText(lua_State *L) {
     // start operation
     const int index = param1;
     const int timeout = param2;
-    QString txText;
+    QString rxText;
     auto *portObject = g_script->m_port->portObject(index);
     QMetaObject::invokeMethod(portObject, [&, timeout] {
-        txText = portObject->readText(timeout);
+        rxText = portObject->readText(timeout);
     }, Qt::BlockingQueuedConnection);
-    lua_pushstring(L, txText.toUtf8().constData());
+    lua_pushstring(L, rxText.toUtf8().constData());
     return 1;
 }
 
@@ -384,12 +389,52 @@ int Script::luaPortReadData(lua_State *L) {
     // start operation
     const int index = param1;
     const int timeout = param2;
-    QByteArray txData;
+    QByteArray rxData;
     auto *portObject = g_script->m_port->portObject(index);
     QMetaObject::invokeMethod(portObject, [&, timeout] {
-        txData = portObject->readData(timeout);
+        rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
-    lua_pushlstring(L, txData.constData(), txData.size());
+    lua_pushlstring(L, rxData.constData(), rxData.size());
+    return 1;
+}
+
+int Script::luaModbusRtuReadHoldingRegisters(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 5)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const int param1 = luaL_checkinteger(L, 1);
+    const int param2 = luaL_checkinteger(L, 2);
+    const int param3 = luaL_checkinteger(L, 3);
+    const int param4 = static_cast<int>(luaL_optinteger(L, 4, 1000));
+    const int param5 = static_cast<int>(luaL_optinteger(L, 5, -1));
+    // start operation
+    auto *portObject = g_script->m_port->portObject(param5);
+    const int slaveAddr = param1;
+    const int startAddr = param2;
+    const int quantity = param3;
+    const int timeout = param4;
+    QByteArray txData;
+    txData.append(static_cast<char>(slaveAddr & 0xFF));
+    txData.append(static_cast<char>(0x03));
+    txData.append(static_cast<char>(startAddr >> 8 & 0xFF));
+    txData.append(static_cast<char>(startAddr & 0xFF));
+    txData.append(static_cast<char>(quantity >> 8 & 0xFF));
+    txData.append(static_cast<char>(quantity & 0xFF));
+    txData += crc16Modbus(txData);
+    QMetaObject::invokeMethod(portObject, [&, txData] {
+        portObject->writeData(txData);
+    }, Qt::BlockingQueuedConnection);
+    QByteArray rxData;
+    QMetaObject::invokeMethod(portObject, [&, timeout] {
+        rxData = portObject->readData(timeout);
+    }, Qt::BlockingQueuedConnection);
+    if (rxData == "timeout") {
+        lua_pushlstring(L, rxData.constData(), rxData.size());
+        return 1;
+    }
+    const QByteArray registerData = rxData.mid(3, rxData.size() - 5);
+    lua_pushlstring(L, registerData.constData(), registerData.size());
     return 1;
 }
 
@@ -469,6 +514,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
         // custom
         "sleep", "input", "print",
         "port.close", "port.info", "port.open", "port.readData", "port.readText", "port.writeData", "port.writeText",
+        "modbusRtu.readHoldingRegisters",
         "database.write",
         "datatable.write",
         // keywords

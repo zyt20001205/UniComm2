@@ -27,6 +27,7 @@
 #include <lua.hpp>
 #include "config.h"
 #include "port.h"
+#include "suffix.h"
 
 class Port;
 
@@ -88,11 +89,11 @@ private:
 
     static int luaPortReadData(lua_State *L);
 
+    static int luaModbusRtuReadHoldingRegisters(lua_State *L);
+
     static int luaDatabaseWrite(lua_State *L);
 
     static int luaDatatableWrite(lua_State *L);
-
-    // static int luaModbusRtuReadHoldingRegisters(lua_State *L);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     Port *m_port = nullptr;
