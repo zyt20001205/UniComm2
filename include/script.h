@@ -137,7 +137,7 @@ public:
 
     QStringList autoCompletionWordSeparators() const override {
         return QStringList();
-    };
+    }
 };
 
 class ScriptEditor final : public QsciScintilla {

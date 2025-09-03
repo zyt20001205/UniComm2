@@ -652,6 +652,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     this->setScrollWidth(1);
     this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
     this->QsciScintilla::setAutoIndent(true);
+    this->QsciScintilla::setBackspaceUnindents(true);
     this->QsciScintilla::setIndentationGuides(true);
     this->QsciScintilla::setTabWidth(4);
     // load settings from config
