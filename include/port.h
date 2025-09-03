@@ -34,6 +34,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QToolBar>
+#include <QUdpSocket>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <baseapi.h>
@@ -110,7 +111,14 @@ private:
     QWidget *m_tcpServerLocalPortWidget = nullptr;
     QSpinBox *m_tcpServerLocalPortSpinBox = nullptr;
     // udp socket
-
+    QWidget *m_udpSocketLocalAddressWidget = nullptr;
+    QLineEdit *m_udpSocketLocalAddressLineEdit = nullptr;
+    QWidget *m_udpSocketLocalPortWidget = nullptr;
+    QSpinBox *m_udpSocketLocalPortSpinBox = nullptr;
+    QWidget *m_udpSocketRemoteAddressWidget = nullptr;
+    QLineEdit *m_udpSocketRemoteAddressLineEdit = nullptr;
+    QWidget *m_udpSocketRemotePortWidget = nullptr;
+    QSpinBox *m_udpSocketRemotePortSpinBox = nullptr;
     // screen/camera
     QWidget *m_screenNameWidget = nullptr;
     QComboBox *m_screenNameCombobox = nullptr;
@@ -396,6 +404,64 @@ private:
     QString m_tcpServerLocalAddress;
     int m_tcpServerLocalPort;
     QList<QTcpSocket *> m_tcpServerPeerList;
+    // tx config
+    QString m_txFormat;
+    QString m_txSuffix;
+    int m_txInterval;
+    // rx config
+    QString m_rxFormat;
+    int m_rxTimeout;
+    //
+    QList<QByteArray> m_txQueue;
+    bool m_txBlock = false;
+    QByteArray m_rxBuffer;
+};
+
+class UdpSocket final : public BasePort {
+    Q_OBJECT
+
+public:
+    explicit UdpSocket(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    QString info() override;
+
+    bool open() override;
+
+    void close() override;
+
+    void writeText(const QString &txText) override;
+
+    void writeData(const QByteArray &txData) override;
+
+    QString readText(int timeout) override;
+
+    QByteArray readData(int timeout) override;
+
+signals:
+    void connected();
+
+    void disconnected();
+
+    void readyRead();
+
+    void errorOccurred(const QString &error);
+
+private:
+    void handleError();
+
+    void handleWrite();
+
+    QByteArray handleRead();
+
+    QUdpSocket *m_udpSocket;
+    // port config
+    QString m_portName;
+    QString m_udpSocketLocalAddress;
+    int m_udpSocketLocalPort;
+    QString m_udpSocketRemoteAddress;
+    int m_udpSocketRemotePort;
     // tx config
     QString m_txFormat;
     QString m_txSuffix;

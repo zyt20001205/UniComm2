@@ -164,7 +164,45 @@ Port::Port(QObject *parent)
             m_tcpServerLocalPortSpinBox->setRange(0, 65536);
         }
         // init udp socket settings
+        {
+            m_udpSocketLocalAddressWidget = new QWidget(m_portSettingDialog);
+            m_portSettingLayout->addWidget(m_udpSocketLocalAddressWidget);
+            const auto udpSocketLocalAddressLayout = new QHBoxLayout(m_udpSocketLocalAddressWidget); // NOLINT
+            udpSocketLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
+            const auto udpSocketLocalAddressLabel = new QLabel("local adress"); // NOLINT
+            udpSocketLocalAddressLayout->addWidget(udpSocketLocalAddressLabel);
+            m_udpSocketLocalAddressLineEdit = new QLineEdit();
+            udpSocketLocalAddressLayout->addWidget(m_udpSocketLocalAddressLineEdit);
 
+            m_udpSocketLocalPortWidget = new QWidget(m_portSettingDialog);
+            m_portSettingLayout->addWidget(m_udpSocketLocalPortWidget);
+            const auto udpSocketLocalPortLayout = new QHBoxLayout(m_udpSocketLocalPortWidget); // NOLINT
+            udpSocketLocalPortLayout->setContentsMargins(0, 0, 0, 0);
+            const auto udpSocketLocalPortLabel = new QLabel("local port"); // NOLINT
+            udpSocketLocalPortLayout->addWidget(udpSocketLocalPortLabel);
+            m_udpSocketLocalPortSpinBox = new QSpinBox();
+            udpSocketLocalPortLayout->addWidget(m_udpSocketLocalPortSpinBox);
+            m_udpSocketLocalPortSpinBox->setRange(0, 65536);
+
+            m_udpSocketRemoteAddressWidget = new QWidget(m_portSettingDialog);
+            m_portSettingLayout->addWidget(m_udpSocketRemoteAddressWidget);
+            const auto udpSocketRemoteAddressLayout = new QHBoxLayout(m_udpSocketRemoteAddressWidget); // NOLINT
+            udpSocketRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
+            const auto udpSocketRemoteAddressLabel = new QLabel("remote adress"); // NOLINT
+            udpSocketRemoteAddressLayout->addWidget(udpSocketRemoteAddressLabel);
+            m_udpSocketRemoteAddressLineEdit = new QLineEdit();
+            udpSocketRemoteAddressLayout->addWidget(m_udpSocketRemoteAddressLineEdit);
+
+            m_udpSocketRemotePortWidget = new QWidget(m_portSettingDialog);
+            m_portSettingLayout->addWidget(m_udpSocketRemotePortWidget);
+            const auto udpSocketRemotePortLayout = new QHBoxLayout(m_udpSocketRemotePortWidget); // NOLINT
+            udpSocketRemotePortLayout->setContentsMargins(0, 0, 0, 0);
+            const auto udpSocketRemotePortLabel = new QLabel("remote port"); // NOLINT
+            udpSocketRemotePortLayout->addWidget(udpSocketRemotePortLabel);
+            m_udpSocketRemotePortSpinBox = new QSpinBox();
+            udpSocketRemotePortLayout->addWidget(m_udpSocketRemotePortSpinBox);
+            m_udpSocketRemotePortSpinBox->setRange(0, 65536);
+        }
         // init screen/camera settings
         {
             m_screenNameWidget = new QWidget(m_portSettingDialog);
@@ -376,6 +414,15 @@ void Port::portSettingLoad(const int index) {
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
             m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "udp socket") {
+            m_udpSocketLocalAddressLineEdit->setText(portInfo["udpSocketLocalAddress"].toString());
+            m_udpSocketLocalPortSpinBox->setValue(portInfo["udpSocketLocalPort"].toInt());
+            m_udpSocketRemoteAddressLineEdit->setText(portInfo["udpSocketRemoteAddress"].toString());
+            m_udpSocketRemotePortSpinBox->setValue(portInfo["udpSocketRemotePort"].toInt());
+            m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
+            m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
+            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
+            m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
+            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "screen") {
             m_screenNameCombobox->setCurrentText(portInfo["portName"].toString());
         } else /* portType == "camera" */ {
@@ -404,7 +451,10 @@ void Port::portSettingWidgetReset() const {
     m_tcpServerLocalAddressWidget->hide();
     m_tcpServerLocalPortWidget->hide();
     // udp socket setting widget
-
+    m_udpSocketLocalAddressWidget->hide();
+    m_udpSocketLocalPortWidget->hide();
+    m_udpSocketRemoteAddressWidget->hide();
+    m_udpSocketRemotePortWidget->hide();
     // screen/camera setting widget
     m_screenNameWidget->hide();
     m_screenNameCombobox->clear();
@@ -469,6 +519,10 @@ void Port::portSettingTypeSwitch(const int type) {
     } else if (type == 4) {
         portSettingWidgetReset();
         m_portTypeCombobox->setEnabled(false);
+        m_udpSocketLocalAddressWidget->show();
+        m_udpSocketLocalPortWidget->show();
+        m_udpSocketRemoteAddressWidget->show();
+        m_udpSocketRemotePortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
         m_txIntervalWidget->show();
@@ -581,6 +635,32 @@ void Port::portSettingSave(const int type) {
             pageWidget->portReload(portConfig);
         }
     } else if (type == 4) {
+        QJsonObject portConfig;
+        portConfig["portType"] = "udp socket";
+        portConfig["portName"] = "udp socket";
+        portConfig["udpSocketLocalAddress"] = m_udpSocketLocalAddressLineEdit->text();
+        portConfig["udpSocketLocalPort"] = m_udpSocketLocalPortSpinBox->value();
+        portConfig["udpSocketRemoteAddress"] = m_udpSocketRemoteAddressLineEdit->text();
+        portConfig["udpSocketRemotePort"] = m_udpSocketRemotePortSpinBox->value();
+        portConfig["txFormat"] = m_txFormatCombobox->currentText();
+        portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+        portConfig["txInterval"] = m_txIntervalSpinBox->value();
+        portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
+        if (m_currentIndex == -1) {
+            if (m_portConfig.empty()) {
+                m_tabWidget->removeTab(0);
+            }
+            m_portConfig.append(portConfig);
+            auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
+            const QString portName = portConfig["portName"].toString();
+            m_tabWidget->addTab(pageWidget, portName);
+            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+        } else {
+            m_portConfig[m_currentIndex] = portConfig;
+            const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
+            pageWidget->portReload(portConfig);
+        }
     } else if (type == 5) {
         QJsonObject portConfig;
         portConfig["portType"] = "screen";
@@ -794,6 +874,22 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
         timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp server", portName, "loaded");
     } else if (portType == "udp socket") {
+        // ui init
+        m_pushButton = new QPushButton("open"); // NOLINT
+        m_pushButton->setCheckable(true);
+        pageLayout->addWidget(m_pushButton);
+        // port init
+        m_thread = new QThread(this);
+        m_port = new UdpSocket(portConfig);
+        m_port->moveToThread(m_thread);
+        // start thread
+        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
+        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
+        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
+        m_thread->start();
+        // logging
+        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "udp socket", portName, "loaded");
     } else if (portType == "screen") {
         // ui init
         m_pushButton = new QPushButton("open"); // NOLINT
@@ -988,10 +1084,10 @@ void SerialPort::writeText(const QString &txText) {
 void SerialPort::writeData(const QByteArray &txData) {
     // check port status
     if (!m_serialPort->isOpen()) {
-        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "is not opened"), "error");
+        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "is not opened");
+        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp,m_portName);
         return;
     }
     // tx data reformat
@@ -1164,7 +1260,7 @@ void TcpClient::writeData(const QByteArray &txData) {
         emit appendLog("tcp client is not opened", "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "tcp client is not opened");
+        qDebug() << QString("[%1] tcp client is not opened").arg(timestamp);
         return;
     }
     // tx data reformat
@@ -1565,6 +1661,181 @@ QByteArray TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
     // 2: add port info
     rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress,
                                                       peerPort, rxMessage);
+    emit appendLog(rxMessage, "rx");
+    return rxData;
+}
+
+// UdpSocket public
+UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_udpSocket(new QUdpSocket(this)) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_udpSocketLocalAddress = portConfig["udpSocketLocalAddress"].toString();
+    m_udpSocketLocalPort = portConfig["udpSocketLocalPort"].toInt();
+    m_udpSocketRemoteAddress = portConfig["udpSocketRemoteAddress"].toString();
+    m_udpSocketRemotePort = portConfig["udpSocketRemotePort"].toInt();
+    // tx/rx config
+    m_txFormat = portConfig["txFormat"].toString();
+    m_txSuffix = portConfig["txSuffix"].toString();
+    m_txInterval = portConfig["txInterval"].toInt();
+    m_rxFormat = portConfig["rxFormat"].toString();
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
+    // connect slot
+    connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpSocket::handleRead);
+    connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
+}
+
+void UdpSocket::reload(const QJsonObject &portConfig) {
+    // port config
+    m_portName = portConfig["portName"].toString();
+    m_udpSocketLocalAddress = portConfig["udpSocketLocalAddress"].toString();
+    m_udpSocketLocalPort = portConfig["udpSocketLocalPort"].toInt();
+    m_udpSocketRemoteAddress = portConfig["udpSocketRemoteAddress"].toString();
+    m_udpSocketRemotePort = portConfig["udpSocketRemotePort"].toInt();
+    // tx/rx config
+    m_txFormat = portConfig["txFormat"].toString();
+    m_txSuffix = portConfig["txSuffix"].toString();
+    m_txInterval = portConfig["txInterval"].toInt();
+    m_rxFormat = portConfig["rxFormat"].toString();
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
+}
+
+QString UdpSocket::info() {
+    QString status;
+    if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
+        status = "opened";
+    else
+        status = "closed";
+    QString localAddress = m_udpSocketLocalAddress;
+    QString localPort = QString::number(m_udpSocketLocalPort);
+    QString remoteAddress = m_udpSocketRemoteAddress;
+    QString remotePort = QString::number(m_udpSocketRemotePort);
+    return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
+}
+
+bool UdpSocket::open() {
+    if (!m_udpSocket->bind(QHostAddress(m_udpSocketLocalAddress), m_udpSocketLocalPort)) {
+        emit appendLog(QString("udp socket open failed: %1").arg(m_udpSocket->errorString()), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] udp socket open failed: %2").arg(timestamp, m_udpSocket->errorString());
+        return false;
+    }
+    m_udpSocket->connectToHost(m_udpSocketRemoteAddress, m_udpSocketRemotePort);
+    emit appendLog(QString("udp socket opened: %1:%2->%3:%4").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                                  QString::number(m_udpSocketRemotePort)), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] udp socket opened: %2:%3->%4:%5").arg(timestamp, m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                                    QString::number(m_udpSocketRemotePort));
+    return true;
+}
+
+void UdpSocket::close() {
+    m_udpSocket->close();
+}
+
+void UdpSocket::writeText(const QString &txText) {
+    // tx text reformat
+    QString f_txText = txText;
+    // 1: remove space if tx format is hex
+    if (m_txFormat == "hex") f_txText.remove(" ");
+    // 2: convert to byte array
+    QByteArray txData;
+    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
+    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
+    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
+    writeData(txData);
+}
+
+void UdpSocket::writeData(const QByteArray &txData) {
+    // check port status
+    if (!m_udpSocket->isOpen()) {
+        emit appendLog("udp socket is not opened", "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
+        return;
+    }
+    // tx data reformat
+    QByteArray f_txData = txData;
+    // 1: append suffix according to tx suffix
+    if (m_txSuffix == "crlf") f_txData += "\r\n";
+    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else; /* m_txSuffix == "null" */
+    // append to tx queue
+    m_txQueue.append(f_txData);
+    if (!m_txBlock) {
+        m_txBlock = true;
+        handleWrite();
+    }
+}
+
+QString UdpSocket::readText(const int timeout) {
+    const QByteArray rxData = readData(timeout);
+    if (rxData == "timeout") return "timeout";
+    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
+    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
+    /* m_rxFormat == "utf-8" */
+    return QString::fromUtf8(m_rxBuffer);
+}
+
+QByteArray UdpSocket::readData(const int timeout) {
+    // async mode
+    if (timeout == 0) return m_rxBuffer;
+    // sync mode
+    disconnect(m_udpSocket, &QUdpSocket::readyRead, this, nullptr);
+    if (m_udpSocket->waitForReadyRead(timeout)) {
+        connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpSocket::handleRead);
+        return handleRead();
+    }
+    connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpSocket::handleRead);
+    return "timeout";
+}
+
+// UdpSocket private
+void UdpSocket::handleError() {
+}
+
+void UdpSocket::handleWrite() {
+    QByteArray txData;
+    if (!m_txQueue.isEmpty()) {
+        txData = m_txQueue.takeFirst();
+        m_udpSocket->write(txData);
+        QTimer::singleShot(m_txInterval, this, &UdpSocket::handleWrite);
+    } else {
+        m_txBlock = false;
+        return;
+    }
+    // tx message reformat
+    QString txMessage;
+    // 1: encode tx message according to tx format
+    if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
+    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
+    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
+    // 2: add port info
+    txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                      QString::number(m_udpSocketRemotePort), txMessage);
+    emit appendLog(txMessage, "tx");
+}
+
+QByteArray UdpSocket::handleRead() {
+    QByteArray rxData = m_udpSocket->readAll();
+    while (true) {
+        if (m_udpSocket->waitForReadyRead(m_rxTimeout)) {
+            rxData += m_udpSocket->readAll();
+        } else break;
+    }
+    m_rxBuffer = rxData;
+    // rx message reformat
+    QString rxMessage;
+    // 1: encode rx message according to rx format
+    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
+    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
+    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
+    // 2: add port info
+    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                      QString::number(m_udpSocketRemotePort), rxMessage);
     emit appendLog(rxMessage, "rx");
     return rxData;
 }
