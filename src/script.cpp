@@ -515,29 +515,23 @@ int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     }, Qt::BlockingQueuedConnection);
     if (rxData == "timeout") {
         luaL_error(L, "modbus rtu write multiple registers timeout");
-        return 0;
     }
     if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu write multiple registers slave address inconsistent");
-        return 0;
     }
     if (const int rxFuncCode = rxData.at(1); rxFuncCode != txFuncCode) {
         luaL_error(L, "modbus rtu write multiple registers function code inconsistent");
-        return 0;
     }
     if (const int rxStartAddr = rxData.at(2) << 8 | rxData.at(3); rxStartAddr != txStartAddr) {
         luaL_error(L, "modbus rtu write multiple registers start address inconsistent");
-        return 0;
     }
     if (const int rxRegCount = rxData.at(4) << 8 | rxData.at(5); rxRegCount != txRegCount) {
         luaL_error(L, "modbus rtu write multiple registers register count inconsistent");
-        return 0;
     }
     const QByteArray rxChecksum = rxData.right(2);
     rxData.chop(2);
     if (rxChecksum != crc16Modbus(rxData)) {
         luaL_error(L, "modbus rtu write multiple registers checksum error");
-        return 0;
     }
     return 0;
 }
