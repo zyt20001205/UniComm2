@@ -134,6 +134,10 @@ public:
     const char *wordCharacters() const override {
         return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.";
     }
+
+    QStringList autoCompletionWordSeparators() const override {
+        return QStringList();
+    };
 };
 
 class ScriptEditor final : public QsciScintilla {

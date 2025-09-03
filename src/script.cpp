@@ -632,23 +632,25 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     };
     for (const QString &kw: completeList) apis->add(kw);
     apis->prepare();
-    this->QsciScintilla::setAutoCompletionSource(QsciScintilla::AcsAPIs);
+    this->QsciScintilla::setAutoCompletionSource(AcsAPIs);
     this->QsciScintilla::setAutoCompletionCaseSensitivity(false);
     this->QsciScintilla::setAutoCompletionThreshold(1);
+    this->setAutoCompletionFillupsEnabled(true);
+    this->setAutoCompletionFillups(":.");
     // set margins
-    this->setMarginType(0, QsciScintilla::NumberMargin);
+    this->setMarginType(0, NumberMargin);
     this->QsciScintilla::setMarginWidth(0, "000");
     // this->setMarginType(1, QsciScintilla::SymbolMargin);
     // this->setMarginSensitivity(1, true);
     // this->setMarginWidth(1, "16");
     this->QsciScintilla::setMarginWidth(1, "0"); // WIP
-    this->QsciScintilla::setFolding(QsciScintilla::BoxedTreeFoldStyle);
-    this->setMarginType(2, QsciScintilla::SymbolMargin);
+    this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
+    this->setMarginType(2, SymbolMargin);
     this->QsciScintilla::setMarginSensitivity(2, true);
     this->QsciScintilla::setMarginWidth(2, "16");
     // script scintilla settings
     this->setScrollWidth(1);
-    this->QsciScintilla::setBraceMatching(QsciScintilla::SloppyBraceMatch);
+    this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
     this->QsciScintilla::setAutoIndent(true);
     this->QsciScintilla::setIndentationGuides(true);
     this->QsciScintilla::setTabWidth(4);
@@ -656,31 +658,31 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     m_scriptLexer->setPaper(Qt::white, -1);
     // style 0: default
     // style 1: comment
-    m_scriptLexer->setColor(QColor(0x969896), 1);
+    m_scriptLexer->setColor(QColor(0x8C8C8C), 1);
     // style 2: line comment
-    m_scriptLexer->setColor(QColor(0x969896), 2);
+    m_scriptLexer->setColor(QColor(0x8C8C8C), 2);
     // style 4: number
-    m_scriptLexer->setColor(QColor(0x0086B3), 4);
+    m_scriptLexer->setColor(QColor(0x1750EB), 4);
     // style 5: keyword
-    m_scriptLexer->setColor(QColor(0xA71D5D), 5);
+    m_scriptLexer->setColor(QColor(0x0033B3), 5);
     // style 6: string
-    m_scriptLexer->setColor(QColor(0x183691), 6);
+    m_scriptLexer->setColor(QColor(0x067D17), 6);
     // style 7: character
     // style 8: literal string
     // style 9: preprocessor
     // style 10: operator
-    m_scriptLexer->setColor(QColor(0xA71D5D), 10);
+    m_scriptLexer->setColor(QColor(0x2B2D30), 10);
     // style 11: identifier
-    m_scriptLexer->setColor(QColor(0x0086B3), 11);
+    // m_scriptLexer->setColor(QColor(0x00627A), 11);
     // style 12: unclosed string
     // style 13: basic functions
-    m_scriptLexer->setColor(QColor(0x0086B3), 13);
+    // m_scriptLexer->setColor(QColor(0x00627A), 13);
     // style 14: string, table and maths functions
-    m_scriptLexer->setColor(QColor(0x0086B3), 14);
+    // m_scriptLexer->setColor(QColor(0x00627A), 14);
     // style 15: coroutines, i/o and system facilities
-    m_scriptLexer->setColor(QColor(0x0086B3), 15);
+    // m_scriptLexer->setColor(QColor(0x00627A), 15);
     // style 16: user defined 1
-
+    // m_scriptLexer->setColor(QColor(0x00627A), 16);
     // style 20: label
 }
 
