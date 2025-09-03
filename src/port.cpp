@@ -867,7 +867,7 @@ void PageWidget::portToggle(const bool status) const {
 }
 
 // SerialPort public
-SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_serialPort(new QSerialPort(this)), m_rxTimer(new QTimer(this)) {
+SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_serialPort(new QSerialPort(this)) {
     // port config
     m_portName = portConfig["portName"].toString();
     m_baudRate = portConfig["baudRate"].toInt();
@@ -885,14 +885,9 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePor
     m_txSuffix = portConfig["txSuffix"].toString();
     m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimer->setSingleShot(true);
-    m_rxTimer->setInterval(portConfig["rxTimeout"].toInt());
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
-    connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-        m_rxTimer->stop();
-        m_rxTimer->start();
-    });
-    connect(m_rxTimer, &QTimer::timeout, this, &SerialPort::handleRead);
+    connect(m_serialPort, &QSerialPort::readyRead, this, &SerialPort::handleRead);
     connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
 }
 
@@ -915,7 +910,7 @@ void SerialPort::reload(const QJsonObject &portConfig) {
     m_txInterval = portConfig["txInterval"].toInt();
     // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimer->setInterval(portConfig["rxTimeout"].toInt());
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QString SerialPort::info() {
@@ -1027,23 +1022,12 @@ QByteArray SerialPort::readData(const int timeout) {
     // async mode
     if (timeout == 0) return m_rxBuffer;
     // sync mode
-    // 1: disconnect ready read signal
     disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
     if (m_serialPort->waitForReadyRead(timeout)) {
-        // 2: reconnect ready read signal
-        connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-            m_rxTimer->stop();
-            m_rxTimer->start();
-        });
-        // 3: return rx data
+        connect(m_serialPort, &QSerialPort::readyRead, this, &SerialPort::handleRead);
         return handleRead();
     }
-    // 2: reconnect ready read signal
-    connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-        m_rxTimer->stop();
-        m_rxTimer->start();
-    });
-    // 3: return timeout
+    connect(m_serialPort, &QSerialPort::readyRead, this, &SerialPort::handleRead);
     return "timeout";
 }
 
@@ -1070,28 +1054,30 @@ void SerialPort::handleWrite() {
 }
 
 QByteArray SerialPort::handleRead() {
-    if (const QByteArray rxData = m_serialPort->readAll(); !rxData.isEmpty()) {
-        // rx message reformat
-        QString rxMessage;
-        // 1: encode rx message according to rx format
-        if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-        // 2: add port info
-        rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
-        emit appendLog(rxMessage, "rx");
-        // 3:
-        m_rxBuffer = rxData;
-        return m_rxBuffer;
+    QByteArray rxData = m_serialPort->readAll();
+    while (true) {
+        if (m_serialPort->waitForReadyRead(m_rxTimeout)) {
+            rxData += m_serialPort->readAll();
+        } else break;
     }
-    return "";
+    m_rxBuffer = rxData;
+    // rx message reformat
+    QString rxMessage;
+    // 1: encode rx message according to rx format
+    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
+    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
+    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
+    // 2: add port info
+    rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
+    emit appendLog(rxMessage, "rx");
+    return rxData;
 }
 
 void SerialPort::handleError() {
 }
 
 // TcpClient public
-TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_tcpClient(new QTcpSocket(this)), m_rxTimer(new QTimer(this)) {
+TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_tcpClient(new QTcpSocket(this)) {
     // port config
     m_portName = portConfig["portName"].toString();
     m_tcpClientRemoteAddress = portConfig["tcpClientRemoteAddress"].toString();
@@ -1104,16 +1090,11 @@ TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(
     m_txSuffix = portConfig["txSuffix"].toString();
     m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimer->setSingleShot(true);
-    m_rxTimer->setInterval(portConfig["rxTimeout"].toInt());
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
     connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
     connect(m_tcpClient, &QTcpSocket::disconnected, this, &TcpClient::handleDisconnected);
-    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this]() {
-        m_rxTimer->stop();
-        m_rxTimer->start();
-    });
-    connect(m_rxTimer, &QTimer::timeout, this, &TcpClient::handleRead);
+    connect(m_tcpClient, &QTcpSocket::readyRead, this, &TcpClient::handleRead);
     connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
 }
 
@@ -1127,7 +1108,7 @@ void TcpClient::reload(const QJsonObject &portConfig) {
     m_txInterval = portConfig["txInterval"].toInt();
     // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimer->setInterval(portConfig["rxTimeout"].toInt());
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QString TcpClient::info() {
@@ -1214,23 +1195,12 @@ QByteArray TcpClient::readData(const int timeout) {
     // async mode
     if (timeout == 0) return m_rxBuffer;
     // sync mode
-    // 1: disconnect ready read signal
     disconnect(m_tcpClient, &QTcpSocket::readyRead, this, nullptr);
     if (m_tcpClient->waitForReadyRead(timeout)) {
-        // 2: reconnect ready read signal
-        connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-            m_rxTimer->stop();
-            m_rxTimer->start();
-        });
-        // 3: return rx data
+        connect(m_tcpClient, &QTcpSocket::readyRead, this, &TcpClient::handleRead);
         return handleRead();
     }
-    // 2: reconnect ready read signal
-    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-        m_rxTimer->stop();
-        m_rxTimer->start();
-    });
-    // 3: timeout message
+    connect(m_tcpClient, &QTcpSocket::readyRead, this, &TcpClient::handleRead);
     return "timeout";
 }
 
@@ -1277,22 +1247,24 @@ void TcpClient::handleWrite() {
 }
 
 QByteArray TcpClient::handleRead() {
-    if (const QByteArray rxData = m_tcpClient->readAll(); !rxData.isEmpty()) {
-        // rx message reformat
-        QString rxMessage;
-        // 1: encode rx message according to rx format
-        if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-        // 2: add port info
-        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
-                                                          QString::number(m_tcpClientRemotePort), rxMessage);
-        emit appendLog(rxMessage, "rx");
-        // 3:
-        m_rxBuffer = rxData;
-        return m_rxBuffer;
+    QByteArray rxData = m_tcpClient->readAll();
+    while (true) {
+        if (m_tcpClient->waitForReadyRead(m_rxTimeout)) {
+            rxData += m_tcpClient->readAll();
+        } else break;
     }
-    return "";
+    m_rxBuffer = rxData;
+    // rx message reformat
+    QString rxMessage;
+    // 1: encode rx message according to rx format
+    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
+    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
+    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
+    // 2: add port info
+    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
+                                                      QString::number(m_tcpClientRemotePort), rxMessage);
+    emit appendLog(rxMessage, "rx");
+    return rxData;
 }
 
 // TcpServer public
@@ -1450,91 +1422,20 @@ void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
     }
 }
 
-// QString TcpServer::readText(const int timeout) {
-//     // async mode
-//     if (timeout == 0) {
-//         // reformat rx text
-//         if (m_rxFormat == "hex")
-//             return m_rxBuffer.toHex().toUpper();
-//         if (m_rxFormat == "ascii")
-//             return QString::fromLatin1(m_rxBuffer);
-//         /* m_rxFormat == "utf-8" */
-//         return QString::fromUtf8(m_rxBuffer);
-//     }
-//     // sync mode
-//     // 1: disconnect ready read signal
-//     disconnect(m_tcpClient, &QTcpSocket::readyRead, this, nullptr);
-//     if (m_tcpClient->waitForReadyRead(timeout)) {
-//         if (const QByteArray rxData = m_tcpClient->readAll(); !rxData.isEmpty()) {
-//             // 2: rx message reformat
-//             QString rxMessage;
-//             // 3: encode rx message according to rx suffix
-//             if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-//             else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-//             else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-//             // 4: add port info
-//             rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
-//                                                               QString::number(m_tcpClientRemotePort), rxMessage);
-//             emit appendLog(rxMessage, "rx");
-//             // 5: reconnect ready read signal
-//             connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-//                 QTimer::singleShot(m_rxTimeout, this, &TcpClient::handleRead);
-//             });
-//             // 6: receive from port
-//             if (m_rxFormat == "hex")
-//                 return rxData.toHex().toUpper();
-//             if (m_rxFormat == "ascii")
-//                 return QString::fromLatin1(rxData);
-//             /* m_rxFormat == "utf-8" */
-//             return QString::fromUtf8(rxData);
-//         }
-//     }
-//     // 5: reconnect ready read signal
-//     connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-//         QTimer::singleShot(m_rxTimeout, this, &TcpClient::handleRead);
-//     });
-//     // 6: timeout message
-//     return "timeout";
-// }
-//
-// QByteArray TcpServer::readData(const int timeout) {
-//     // async mode
-//     if (timeout == 0) return m_rxBuffer;
-//     // sync mode
-//     // 1: disconnect ready read signal
-//     disconnect(m_tcpClient, &QSerialPort::readyRead, this, nullptr);
-//     if (m_tcpClient->waitForReadyRead(timeout)) {
-//         if (const QByteArray rxData = m_tcpClient->readAll(); !rxData.isEmpty()) {
-//             // 2: rx message reformat
-//             QString rxMessage;
-//             // 3: encode rx message according to rx suffix
-//             if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-//             else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-//             else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-//             // 4: add port info
-//             rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
-//                                                               QString::number(m_tcpClientRemotePort), rxMessage);
-//             emit appendLog(rxMessage, "rx");
-//             // 5: reconnect ready read signal
-//             connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-//                 QTimer::singleShot(m_rxTimeout, this, &TcpClient::handleRead);
-//             });
-//             // 6: receive from port
-//             return rxData;
-//         }
-//     }
-//     // 5: reconnect ready read signal
-//     connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-//         QTimer::singleShot(m_rxTimeout, this, &TcpClient::handleRead);
-//     });
-//     // 6: timeout message
-//     return "timeout";
-// }
-
 QString TcpServer::readText(const int timeout) {
+    const QByteArray rxData = readData(timeout);
+    if (rxData == "timeout") return "timeout";
+    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
+    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
+    /* m_rxFormat == "utf-8" */
+    return QString::fromUtf8(m_rxBuffer);
 }
 
 QByteArray TcpServer::readData(const int timeout) {
+    // async mode
+    if (timeout == 0) return m_rxBuffer;
+    // sync mode (WIP)
+    return QByteArray();
 }
 
 // TcpServer private
@@ -1646,24 +1547,26 @@ void TcpServer::handleWrite(const QString &peerIp) {
 }
 
 QByteArray TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
+    QByteArray rxData = tcpServerPeer->readAll();
+    while (true) {
+        if (tcpServerPeer->waitForReadyRead(m_rxTimeout)) {
+            rxData += tcpServerPeer->readAll();
+        } else break;
+    }
+    m_rxBuffer = rxData;
+    // rx message reformat
     QString peerAddress = tcpServerPeer->peerAddress().toString();
     QString peerPort = QString::number(tcpServerPeer->peerPort());
-    if (const QByteArray rxData = tcpServerPeer->readAll(); !rxData.isEmpty()) {
-        // rx message reformat
-        QString rxMessage;
-        // 1: encode rx message according to rx format
-        if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-        // 2: add port info
-        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress,
-                                                          peerPort, rxMessage);
-        emit appendLog(rxMessage, "rx");
-        // 3:
-        m_rxBuffer = rxData;
-        return m_rxBuffer;
-    }
-    return "";
+    QString rxMessage;
+    // 1: encode rx message according to rx format
+    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
+    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
+    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
+    // 2: add port info
+    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress,
+                                                      peerPort, rxMessage);
+    emit appendLog(rxMessage, "rx");
+    return rxData;
 }
 
 // Screen public

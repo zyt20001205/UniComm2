@@ -269,7 +269,7 @@ private:
     int m_txInterval;
     // rx config
     QString m_rxFormat;
-    QTimer *m_rxTimer;
+    int m_rxTimeout;
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
@@ -331,7 +331,7 @@ private:
     int m_txInterval;
     // rx config
     QString m_rxFormat;
-    QTimer *m_rxTimer;
+    int m_rxTimeout;
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
@@ -402,6 +402,7 @@ private:
     int m_txInterval;
     // rx config
     QString m_rxFormat;
+    int m_rxTimeout;
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
