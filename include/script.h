@@ -53,6 +53,7 @@ public:
 
     void scriptOpen(const QString &scriptPath);
 
+    Port *m_port = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -68,6 +69,28 @@ private:
     void scriptEdited(int index) const;
 
     void scriptClose(int index) const;
+
+    QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
+    QTabWidget *m_scriptTabWidget = nullptr;
+    QListWidget *m_scriptListWidget = nullptr;
+    ScriptExplorer *m_scriptExplorerTreeView = nullptr;
+};
+
+class LuaInterpreter final : public QObject {
+    Q_OBJECT
+
+public:
+    explicit LuaInterpreter(QObject *parent = nullptr);
+
+    ~LuaInterpreter() override = default;
+
+    void exec(const QString &script);
+
+signals:
+    void appendLog(const QString &message, const QString &level);
+
+private:
+    static void luaHook(lua_State *L, lua_Debug *ar);
 
     static int luaPrint(lua_State *L);
 
@@ -97,11 +120,7 @@ private:
 
     static int luaDatatableWrite(lua_State *L);
 
-    QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
-    Port *m_port = nullptr;
-    QTabWidget *m_scriptTabWidget = nullptr;
-    QListWidget *m_scriptListWidget = nullptr;
-    ScriptExplorer *m_scriptExplorerTreeView = nullptr;
+    lua_State *L = nullptr;
 };
 
 class ScriptPageWidget final : public QWidget {

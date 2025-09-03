@@ -1376,6 +1376,7 @@ TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent) : BasePort(
     m_txSuffix = portConfig["txSuffix"].toString();
     m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
     connect(m_tcpServer, &QTcpServer::newConnection, this, &TcpServer::handleNewConnection);
     connect(m_tcpServer, &QTcpServer::acceptError, this, &TcpServer::handleServerError);
@@ -1391,6 +1392,7 @@ void TcpServer::reload(const QJsonObject &portConfig) {
     m_txInterval = portConfig["txInterval"].toInt();
     // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
+    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QString TcpServer::info() {

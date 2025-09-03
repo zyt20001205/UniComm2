@@ -71,11 +71,12 @@ void Script::scriptConfigSave() const {
 
 void Script::scriptOpen(const QString &scriptPath) {
     const QFileInfo fileInfo(scriptPath);
-    QString fileName = fileInfo.fileName();
+    const QString fileName = fileInfo.fileName();
 
     auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
     m_scriptTabWidget->addTab(newTab, fileName);
-    connect(newTab, &ScriptPageWidget::editScript, this, [this,newTab] {
+    m_scriptTabWidget->setCurrentWidget(newTab);
+    connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
         scriptEdited(m_scriptTabWidget->indexOf(newTab));
     });
 
@@ -99,60 +100,16 @@ void Script::scriptRun() {
         return;
     }
     // launch lua interpreter thread
-    QThread *worker = QThread::create([this, script]() {
-        // init lua interpreter
-        lua_State *L = luaL_newstate();
-        luaL_openlibs(L);
-        // register C++ functions
-        lua_register(L, "print", Script::luaPrint);
-        lua_register(L, "sleep", Script::luaSleep);
-        lua_register(L, "input", Script::luaInput);
-        // register port class
-        lua_newtable(L);
-        lua_pushcfunction(L, Script::luaPortOpen);
-        lua_setfield(L, -2, "open");
-        lua_pushcfunction(L, Script::luaPortClose);
-        lua_setfield(L, -2, "close");
-        lua_pushcfunction(L, Script::luaPortInfo);
-        lua_setfield(L, -2, "info");
-        lua_pushcfunction(L, Script::luaPortWriteText);
-        lua_setfield(L, -2, "writeText");
-        lua_pushcfunction(L, Script::luaPortWriteData);
-        lua_setfield(L, -2, "writeData");
-        lua_pushcfunction(L, Script::luaPortReadText);
-        lua_setfield(L, -2, "readText");
-        lua_pushcfunction(L, Script::luaPortReadData);
-        lua_setfield(L, -2, "readData");
-        lua_setglobal(L, "port");
-        // register modbus rtu class
-        lua_newtable(L);
-        lua_pushcfunction(L, Script::luaModbusRtuReadHoldingRegisters);
-        lua_setfield(L, -2, "readHoldingRegisters");
-        lua_pushcfunction(L, Script::luaModbusRtuWriteMultipleRegisters);
-        lua_setfield(L, -2, "writeMultipleRegisters");
-        lua_setglobal(L, "modbusRtu");
-        // register database class
-        lua_newtable(L);
-        lua_pushcfunction(L, Script::luaDatabaseWrite);
-        lua_setfield(L, -2, "write");
-        // lua_pushcfunction(L, Script::luaDatabaseRead);
-        // lua_setfield(L, -2, "read");
-        lua_setglobal(L, "database");
-        // register datatable class
-        lua_newtable(L);
-        lua_pushcfunction(L, Script::luaDatatableWrite);
-        lua_setfield(L, -2, "write");
-        lua_setglobal(L, "datatable");
-        // exec lua script
-        if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
-            const QString error = lua_tostring(L, -1);
-            emit appendLog(QString("%1").arg(error), "error");
-            lua_pop(L, 1);
-        }
-        // close interpreter
-        lua_close(L);
-    });
+    const auto worker = new QThread(); // NOLINT
+    const auto interpreter = new LuaInterpreter(); // NOLINT
+    interpreter->moveToThread(worker);
+    connect(interpreter, &LuaInterpreter::appendLog, this, &Script::appendLog);
+    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker, &QThread::started, [interpreter, script] {
+        interpreter->exec(script);
+        QThread::currentThread()->quit();
+    });
     scriptRunning(name, worker);
     worker->start();
 }
@@ -160,13 +117,11 @@ void Script::scriptRun() {
 void Script::scriptRunning(const QString &name, QThread *worker) {
     auto *scriptListWidgetItem = new QListWidgetItem(); // NOLINT
     m_scriptListWidget->addItem(scriptListWidgetItem);
-
-    connect(worker, &QThread::finished, this, [this,scriptListWidgetItem] {
+    connect(worker, &QThread::finished, this, [this, scriptListWidgetItem] {
         const int row = m_scriptListWidget->row(scriptListWidgetItem);
         m_scriptListWidget->takeItem(row);
         delete scriptListWidgetItem;
     });
-
     auto *scriptInfoWidget = new QWidget(); // NOLINT
     m_scriptListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
     auto *scriptInfoLayout = new QHBoxLayout(scriptInfoWidget); // NOLINT
@@ -177,8 +132,8 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
     scriptInfoLayout->addWidget(abortButton);
     abortButton->setFixedSize(24, 24);
     abortButton->setIcon(QIcon(":/icon/stop.svg"));
-    connect(abortButton, &QPushButton::clicked, this, [worker]() {
-        worker->terminate();
+    connect(abortButton, &QPushButton::clicked, this, [worker] {
+        worker->requestInterruption();
     });
 }
 
@@ -202,7 +157,73 @@ void Script::scriptClose(const int index) const {
     delete tabToClose;
 }
 
-int Script::luaPrint(lua_State *L) {
+// LuaInterpreter public
+LuaInterpreter::LuaInterpreter(QObject *parent) {
+    // init lua interpreter
+    L = luaL_newstate();
+    luaL_openlibs(L);
+    // register C++ functions
+    lua_register(L, "print", LuaInterpreter::luaPrint);
+    lua_register(L, "sleep", LuaInterpreter::luaSleep);
+    lua_register(L, "input", LuaInterpreter::luaInput);
+    // register port class
+    lua_newtable(L);
+    lua_pushcfunction(L, LuaInterpreter::luaPortOpen);
+    lua_setfield(L, -2, "open");
+    lua_pushcfunction(L, LuaInterpreter::luaPortClose);
+    lua_setfield(L, -2, "close");
+    lua_pushcfunction(L, LuaInterpreter::luaPortInfo);
+    lua_setfield(L, -2, "info");
+    lua_pushcfunction(L, LuaInterpreter::luaPortWriteText);
+    lua_setfield(L, -2, "writeText");
+    lua_pushcfunction(L, LuaInterpreter::luaPortWriteData);
+    lua_setfield(L, -2, "writeData");
+    lua_pushcfunction(L, LuaInterpreter::luaPortReadText);
+    lua_setfield(L, -2, "readText");
+    lua_pushcfunction(L, LuaInterpreter::luaPortReadData);
+    lua_setfield(L, -2, "readData");
+    lua_setglobal(L, "port");
+    // register modbus rtu class
+    lua_newtable(L);
+    lua_pushcfunction(L, LuaInterpreter::luaModbusRtuReadHoldingRegisters);
+    lua_setfield(L, -2, "readHoldingRegisters");
+    lua_pushcfunction(L, LuaInterpreter::luaModbusRtuWriteMultipleRegisters);
+    lua_setfield(L, -2, "writeMultipleRegisters");
+    lua_setglobal(L, "modbusRtu");
+    // register database class
+    lua_newtable(L);
+    lua_pushcfunction(L, LuaInterpreter::luaDatabaseWrite);
+    lua_setfield(L, -2, "write");
+    lua_setglobal(L, "database");
+    // register datatable class
+    lua_newtable(L);
+    lua_pushcfunction(L, LuaInterpreter::luaDatatableWrite);
+    lua_setfield(L, -2, "write");
+    lua_setglobal(L, "datatable");
+    // set terminate hook
+    lua_sethook(L, luaHook, LUA_MASKCOUNT, 100);
+}
+
+void LuaInterpreter::exec(const QString &script) {
+    if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
+        const QString error = lua_tostring(L, -1);
+        emit appendLog(QString("%1").arg(error), "error");
+        lua_pop(L, 1);
+    }
+    // close interpreter
+    lua_close(L);
+}
+
+// LuaInterpreter private
+void LuaInterpreter::luaHook(lua_State *L, lua_Debug *ar) {
+    (void) ar;
+    // Check if thread interruption is requested
+    if (QThread::currentThread()->isInterruptionRequested()) {
+        luaL_error(L, "terminated");
+    }
+}
+
+int LuaInterpreter::luaPrint(lua_State *L) {
     const int n = lua_gettop(L);
     QString message;
     for (int i = 1; i <= n; i++) {
@@ -216,7 +237,7 @@ int Script::luaPrint(lua_State *L) {
     return 0;
 }
 
-int Script::luaSleep(lua_State *L) {
+int LuaInterpreter::luaSleep(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 1)
         luaL_error(L, "unexpected number of arguments");
@@ -227,7 +248,7 @@ int Script::luaSleep(lua_State *L) {
     return 0;
 }
 
-int Script::luaInput(lua_State *L) {
+int LuaInterpreter::luaInput(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 0)
         luaL_error(L, "unexpected number of arguments");
@@ -244,7 +265,7 @@ int Script::luaInput(lua_State *L) {
     return 1;
 }
 
-int Script::luaPortOpen(lua_State *L) {
+int LuaInterpreter::luaPortOpen(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
@@ -261,7 +282,7 @@ int Script::luaPortOpen(lua_State *L) {
     return 1;
 }
 
-int Script::luaPortClose(lua_State *L) {
+int LuaInterpreter::luaPortClose(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
@@ -276,7 +297,7 @@ int Script::luaPortClose(lua_State *L) {
     return 0;
 }
 
-int Script::luaPortInfo(lua_State *L) {
+int LuaInterpreter::luaPortInfo(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 1)
         luaL_error(L, "unexpected number of arguments");
@@ -293,7 +314,7 @@ int Script::luaPortInfo(lua_State *L) {
     return 0;
 }
 
-int Script::luaPortWriteText(lua_State *L) {
+int LuaInterpreter::luaPortWriteText(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 3)
         luaL_error(L, "unexpected number of arguments");
@@ -327,7 +348,7 @@ int Script::luaPortWriteText(lua_State *L) {
     return 0;
 }
 
-int Script::luaPortWriteData(lua_State *L) {
+int LuaInterpreter::luaPortWriteData(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 3)
         luaL_error(L, "unexpected number of arguments");
@@ -362,7 +383,7 @@ int Script::luaPortWriteData(lua_State *L) {
     return 0;
 }
 
-int Script::luaPortReadText(lua_State *L) {
+int LuaInterpreter::luaPortReadText(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
@@ -381,7 +402,7 @@ int Script::luaPortReadText(lua_State *L) {
     return 1;
 }
 
-int Script::luaPortReadData(lua_State *L) {
+int LuaInterpreter::luaPortReadData(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
@@ -400,7 +421,7 @@ int Script::luaPortReadData(lua_State *L) {
     return 1;
 }
 
-int Script::luaModbusRtuReadHoldingRegisters(lua_State *L) {
+int LuaInterpreter::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 5)
         luaL_error(L, "unexpected number of arguments");
@@ -455,7 +476,7 @@ int Script::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     return 1;
 }
 
-int Script::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
+int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 5)
         luaL_error(L, "unexpected number of arguments");
@@ -521,7 +542,7 @@ int Script::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     return 0;
 }
 
-int Script::luaDatabaseWrite(lua_State *L) {
+int LuaInterpreter::luaDatabaseWrite(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 2)
         luaL_error(L, "unexpected number of arguments");
@@ -533,7 +554,7 @@ int Script::luaDatabaseWrite(lua_State *L) {
     return 0;
 }
 
-int Script::luaDatatableWrite(lua_State *L) {
+int LuaInterpreter::luaDatatableWrite(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 2)
         luaL_error(L, "unexpected number of arguments");
