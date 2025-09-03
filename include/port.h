@@ -252,7 +252,7 @@ signals:
 private:
     void handleWrite();
 
-    void handleRead();
+    QByteArray handleRead();
 
     void handleError();
 
@@ -269,8 +269,7 @@ private:
     int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
-    QString m_rxForward;
+    QTimer *m_rxTimer;
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
@@ -317,7 +316,7 @@ private:
 
     void handleWrite();
 
-    void handleRead();
+    QByteArray handleRead();
 
     QTcpSocket *m_tcpClient;
     // port config
@@ -332,8 +331,7 @@ private:
     int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
-    QString m_rxForward;
+    QTimer *m_rxTimer;
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
@@ -390,7 +388,7 @@ private:
 
     void handleWrite(const QString &peerIp = QString());
 
-    void handleRead(QTcpSocket *tcpServerPeer);
+    QByteArray handleRead(QTcpSocket *tcpServerPeer);
 
     QTcpServer *m_tcpServer;
     // port config
@@ -404,8 +402,6 @@ private:
     int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
-    QString m_rxForward;
     //
     QList<QByteArray> m_txQueue;
     bool m_txBlock = false;
