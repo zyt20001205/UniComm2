@@ -14,11 +14,13 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     scriptSplitter->addWidget(m_scriptTabWidget);
     m_scriptTabWidget->setTabsClosable(true);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
-    auto welcomePage = new QWidget(); // NOLINT
-    auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-    auto welcomeLabel = new QLabel("welcome"); // NOLINT
-    welcomeLayout->addWidget(welcomeLabel);
+    auto *welcomePage = new QWidget(); // NOLINT
     m_scriptTabWidget->addTab(welcomePage, "welcome");
+    auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
+    auto *welcomeBrowser = new QTextBrowser(); // NOLINT
+    welcomeLayout->addWidget(welcomeBrowser);
+
+    // welcomeBrowser->document()->setDefaultFont(QFont("Consolas", 11));
 
     // script widget -> ctrl widget
     auto *ctrlWidget = new QWidget(); // NOLINT
@@ -50,7 +52,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
     connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
 
-    scriptSplitter->setStretchFactor(0, 10);
+    scriptSplitter->setStretchFactor(0, 4);
     scriptSplitter->setStretchFactor(1, 1);
 }
 
@@ -191,6 +193,11 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_pushcfunction(L, LuaInterpreter::luaModbusRtuWriteMultipleRegisters);
     lua_setfield(L, -2, "writeMultipleRegisters");
     lua_setglobal(L, "modbusRtu");
+    // register modbus ascii class
+    lua_newtable(L);
+    lua_pushcfunction(L, LuaInterpreter::luaModbusAsciiReadHoldingRegisters);
+    lua_setfield(L, -2, "readHoldingRegisters");
+    lua_setglobal(L, "modbusAscii");
     // register database class
     lua_newtable(L);
     lua_pushcfunction(L, LuaInterpreter::luaDatabaseWrite);
@@ -445,7 +452,7 @@ int LuaInterpreter::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     txData.append(static_cast<char>(txStartAddr & 0xFF));
     txData.append(static_cast<char>(txQuantity >> 8 & 0xFF));
     txData.append(static_cast<char>(txQuantity & 0xFF));
-    txData += crc16Modbus(txData);
+    txData += modbusCRC(txData);
     QMetaObject::invokeMethod(portObject, [&, txData] {
         portObject->writeData(txData);
     }, Qt::BlockingQueuedConnection);
@@ -468,7 +475,7 @@ int LuaInterpreter::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     }
     const QByteArray rxChecksum = rxData.right(2);
     rxData.chop(2);
-    if (rxChecksum != crc16Modbus(rxData)) {
+    if (rxChecksum != modbusCRC(rxData)) {
         luaL_error(L, "modbus rtu read holding registers checksum error");
         return 0;
     }
@@ -505,7 +512,7 @@ int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     txData.append(static_cast<char>(txRegCount & 0xFF));
     txData.append(txByteCount);
     txData += txRegData;
-    txData += crc16Modbus(txData);
+    txData += modbusCRC(txData);
     QMetaObject::invokeMethod(portObject, [&, txData] {
         portObject->writeData(txData);
     }, Qt::BlockingQueuedConnection);
@@ -531,10 +538,69 @@ int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     }
     const QByteArray rxChecksum = rxData.right(2);
     rxData.chop(2);
-    if (rxChecksum != crc16Modbus(rxData)) {
+    if (rxChecksum != modbusCRC(rxData)) {
         luaL_error(L, "modbus rtu write multiple registers checksum error");
     }
     return 0;
+}
+
+int LuaInterpreter::luaModbusAsciiReadHoldingRegisters(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 5)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const int param1 = static_cast<int>(luaL_checkinteger(L, 1));
+    const int param2 = static_cast<int>(luaL_checkinteger(L, 2));
+    const int param3 = static_cast<int>(luaL_checkinteger(L, 3));
+    const int param4 = static_cast<int>(luaL_optinteger(L, 4, 1000));
+    const int param5 = static_cast<int>(luaL_optinteger(L, 5, -1));
+    // start operation
+    auto *portObject = g_script->m_port->portObject(param5);
+    const QString txSlaveAddr = QString("%1").arg(param1, 2, 10, QLatin1Char('0'));
+    const QString txFuncCode = "03";
+    const QString txStartAddr = QString("%1").arg(param2, 4, 10, QLatin1Char('0'));
+    const QString txQuantity = QString("%1").arg(param3, 4, 10, QLatin1Char('0'));
+    QString txText = ":";
+    txText.append(txSlaveAddr);
+    txText.append(txFuncCode);
+    txText.append(txStartAddr);
+    txText.append(txQuantity);
+    txText += modbusLRC(txText);
+    txText += "\r\n";
+    QMetaObject::invokeMethod(portObject, [&, txText] {
+        portObject->writeText(txText);
+    }, Qt::BlockingQueuedConnection);
+    QString rxText;
+    const int timeout = param4;
+    QMetaObject::invokeMethod(portObject, [&, timeout] {
+        rxText = portObject->readText(timeout);
+    }, Qt::BlockingQueuedConnection);
+    if (rxText == "timeout") {
+        luaL_error(L, "modbus ascii read holding registers timeout");
+        return 0;
+    }
+    if (rxText.at(0) != ":") {
+        luaL_error(L, "modbus ascii read holding registers header missing");
+        return 0;
+    }
+    if (const QString rxSlaveAddr = rxText.mid(1,2); rxSlaveAddr != txSlaveAddr) {
+        luaL_error(L, "modbus ascii read holding registers slave address inconsistent");
+        return 0;
+    }
+    if (const QString rxFuncCode = rxText.mid(3, 2); rxFuncCode != txFuncCode) {
+        luaL_error(L, "modbus ascii read holding registers function code inconsistent");
+        return 0;
+    }
+    rxText.chop(2);
+    const QString rxChecksum = rxText.right(2);
+    rxText.chop(2);
+    if (rxChecksum != modbusLRC(rxText)) {
+        luaL_error(L, "modbus ascii read holding registers checksum error");
+        return 0;
+    }
+    const QString registerData = rxText.mid(7);
+    lua_pushstring(L, registerData.toUtf8().constData());
+    return 1;
 }
 
 int LuaInterpreter::luaDatabaseWrite(lua_State *L) {

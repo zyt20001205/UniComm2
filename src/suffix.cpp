@@ -4,7 +4,7 @@ QByteArray crc8Maxim(const QByteArray &data) {
     return "";
 }
 
-QByteArray crc16Modbus(const QByteArray &data) {
+QByteArray modbusCRC(const QByteArray &data) {
     static constexpr quint16 table[256] = {
         0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
         0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -41,14 +41,28 @@ QByteArray crc16Modbus(const QByteArray &data) {
     };
 
     quint16 crc = 0xFFFF;
-    for (const unsigned char uc : data) {
-        const quint8 nTemp = static_cast<quint8>(uc) ^ static_cast<quint8>(crc & 0xFF);
-        crc = (crc >> 8) ^ table[nTemp];
+    for (const unsigned char byte : data) {
+        const quint8 nTemp = static_cast<quint8>(byte) ^ static_cast<quint8>(crc & 0xFF);
+        crc = crc >> 8 ^ table[nTemp];
     }
 
-    QByteArray suffix;
-    suffix.reserve(2);
-    suffix.append(static_cast<char>(crc & 0xFF));
-    suffix.append(static_cast<char>((crc >> 8) & 0xFF));
-    return suffix;
+    QByteArray checksum;
+    checksum.reserve(2);
+    checksum.append(static_cast<char>(crc & 0xFF));
+    checksum.append(static_cast<char>(crc >> 8 & 0xFF));
+    return checksum;
+}
+
+QString modbusLRC(const QString &text)
+{
+    if (text.isEmpty()) {
+        return "00";
+    }
+
+    quint8 lrc = 0x00;
+    for (QByteArray data = QByteArray::fromHex(text.toLatin1()); const char byte : data) {
+        lrc += static_cast<quint8>(byte);
+    }
+
+    return QString("%1").arg(static_cast<quint8>(-lrc), 2, 16, QLatin1Char('0')).toUpper();
 }

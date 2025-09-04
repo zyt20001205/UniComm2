@@ -47,6 +47,11 @@ qt_add_executable(UniComm src/main.cpp
         src/suffix.cpp
 )
 
+qt_add_resources(UniComm "readme_resources"
+        FILES
+        "readme.md"
+)
+
 qt_add_resources(UniComm "doc_resources"
         PREFIX "/doc"
         BASE "resources/doc"

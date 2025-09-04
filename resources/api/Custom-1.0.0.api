@@ -8,7 +8,8 @@ port.readData([int index[, int timeout]] -> bytes
 port.readText([int index[, int timeout]] -> str
 port.writeData([int index], bytes data[, str peerIp]) -> nil
 port.writeText([int index], str text[, str peerIp]) -> nil
-modbusRtu.readHoldingRegisters(int slaveAddr, int startAddr, int quantity[, int timeout[, int index])
-modbusRtu.writeMultipleRegisters(int slaveAddr, int startAddr, bytes data[, int timeout[, int index])
+modbusRtu.readHoldingRegisters(int slaveAddr, int startAddr, int quantity[, int timeout[, int index]) -> bytes
+modbusRtu.writeMultipleRegisters(int slaveAddr, int startAddr, bytes data[, int timeout[, int index]) -> nil
+modbusAscii.readHoldingRegisters(int slaveAddr, int startAddr, int quantity[, int timeout[, int index]) -> str
 database.write(str key, str value) -> nil
 datatable.write(str key, str value) -> nil

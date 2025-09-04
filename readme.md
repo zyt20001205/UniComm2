@@ -36,20 +36,20 @@
 # Supported Protocols
 
 <style>
-    td {
+    .osi-table td {
         text-align: center;
         vertical-align: middle;
     }
 </style>
 
-<table>
+<table class="osi-table">
     <tr>
         <th colspan="4">OSI Model</th>
     </tr>
     <tr>
         <td>Application</td>
         <td colspan="2"></td>
-        <td><a href="#Modbus RTU">Modbus RTU</a></td>
+        <td><a href="#Modbus RTU/ASCII">Modbus RTU/ASCII</a></td>
     </tr>
     <tr>
         <td>Presentation</td>
@@ -80,7 +80,7 @@
     <tr>
         <td>Physical</td>
         <td colspan="2">RJ45</td>
-        <td><a id="Serial Port">Serial Port</a></td>
+        <td><a href="Serial Port">Serial Port</a></td>
     </tr>
 </table>
 
@@ -93,5 +93,139 @@
 <a id="Serial Port"></a>
 ## Serial Port
 
-<a id="Modbus RTU"></a>
-### Modbus RTU
+<a id="Modbus RTU/ASCII"></a>
+### Modbus RTU/ASCII
+
+<table>
+    <tr>
+        <th></th>
+        <th>RTU</th>
+        <th>ASCII</th>
+    </tr>
+    <tr>
+        <td>01 (0x01) Read Coils</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>02 (0x02) Read Discrete Inputs</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>03 (0x03) Read Holding Registers</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-Passing-brightgreen" alt="Test Passing">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-Passing-brightgreen" alt="Test Passing">
+        </td>
+    </tr>
+    <tr>
+        <td>04 (0x04) Read Input Registers</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>05 (0x05) Write Single Coil</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>06 (0x06) Write Single Register</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>08 (0x08) Diagnostics</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>11 (0x0B) Get Comm Event Counter</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>15 (0x0F) Write Multiple Coils</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>    
+    <tr>
+        <td>16 (0x10) Write Multiple Registers</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-Passing-brightgreen" alt="Test Passing">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>17 (0x11) Report Server ID</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>22 (0x16) Mask Write Register</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>23 (0x17) Read/Write Multiple Registers</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+    <tr>
+        <td>43 / 14 (0x2B / 0x0E) Read Device Identification</td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+        <td>
+            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
+        </td>
+    </tr>
+</table>

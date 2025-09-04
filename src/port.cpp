@@ -1095,7 +1095,7 @@ void SerialPort::writeData(const QByteArray &txData) {
     // 1: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // append to tx queue
     m_txQueue.append(f_txData);
@@ -1268,7 +1268,7 @@ void TcpClient::writeData(const QByteArray &txData) {
     // 1: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // append to tx queue
     m_txQueue.append(f_txData);
@@ -1486,7 +1486,7 @@ void TcpServer::writeData(const QByteArray &txData) {
     // 1: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // append to tx queue
     m_txQueue.append(f_txData);
@@ -1510,7 +1510,7 @@ void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
     // 1: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // append to tx queue
     m_txQueue.append(f_txData);
@@ -1763,7 +1763,7 @@ void UdpSocket::writeData(const QByteArray &txData) {
     // 1: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += crc16Modbus(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // append to tx queue
     m_txQueue.append(f_txData);

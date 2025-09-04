@@ -20,6 +20,7 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QSyntaxHighlighter>
+#include <QTextBrowser>
 #include <QThread>
 #include <QTreeView>
 #include <QVBoxLayout>
@@ -117,6 +118,8 @@ private:
     static int luaModbusRtuReadHoldingRegisters(lua_State *L);
 
     static int luaModbusRtuWriteMultipleRegisters(lua_State *L);
+
+    static int luaModbusAsciiReadHoldingRegisters(lua_State *L);
 
     static int luaDatabaseWrite(lua_State *L);
 
