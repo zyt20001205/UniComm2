@@ -181,6 +181,9 @@ signals:
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+
+private slots:
+    void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
 };
 
 class ScriptExplorer final : public QTreeView {

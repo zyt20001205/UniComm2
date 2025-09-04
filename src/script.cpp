@@ -225,7 +225,7 @@ void LuaInterpreter::exec(const QString &script) {
 // LuaInterpreter private
 void LuaInterpreter::luaHook(lua_State *L, lua_Debug *ar) {
     (void) ar;
-    // Check if thread interruption is requested
+    // check if thread interruption is requested
     if (QThread::currentThread()->isInterruptionRequested()) {
         luaL_error(L, "terminated");
     }
@@ -583,7 +583,7 @@ int LuaInterpreter::luaModbusAsciiReadHoldingRegisters(lua_State *L) {
         luaL_error(L, "modbus ascii read holding registers header missing");
         return 0;
     }
-    if (const QString rxSlaveAddr = rxText.mid(1,2); rxSlaveAddr != txSlaveAddr) {
+    if (const QString rxSlaveAddr = rxText.mid(1, 2); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus ascii read holding registers slave address inconsistent");
         return 0;
     }
@@ -686,16 +686,24 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->setAutoCompletionFillupsEnabled(true);
     this->setAutoCompletionFillups(":.");
     // set margins
+
     this->setMarginType(0, NumberMargin);
     this->QsciScintilla::setMarginWidth(0, "000");
-    // this->setMarginType(1, QsciScintilla::SymbolMargin);
-    // this->setMarginSensitivity(1, true);
-    // this->setMarginWidth(1, "16");
-    this->QsciScintilla::setMarginWidth(1, "0"); // WIP
+
+    this->setMarginType(1, SymbolMargin);
+    this->QsciScintilla::setMarginSensitivity(1, true);
+    this->QsciScintilla::setMarginWidth(1, "16");
+    this->markerDefine(Circle, 1);
+    this->setMarkerBackgroundColor(Qt::red, 1);
+    this->setMarkerForegroundColor(Qt::red, 1);
+    connect(this, SIGNAL(marginClicked(int, int, Qt::KeyboardModifiers)),
+            this, SLOT(onMarginClicked(int, int, Qt::KeyboardModifiers)));
+
     this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
     this->setMarginType(2, SymbolMargin);
     this->QsciScintilla::setMarginSensitivity(2, true);
     this->QsciScintilla::setMarginWidth(2, "16");
+
     // script scintilla settings
     this->setScrollWidth(1);
     this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
@@ -742,6 +750,18 @@ void ScriptEditor::mousePressEvent(QMouseEvent *event) {
         emit showManual(clickedWord);
     }
     QsciScintilla::mousePressEvent(event);
+}
+
+// ScriptEditor private
+void ScriptEditor::onMarginClicked(const int margin, const int line, Qt::KeyboardModifiers state) {
+    if (margin == 1 && line >= 0) {
+        const int mask = this->markersAtLine(line);
+        if (mask & 1 << 1) {
+            this->markerDelete(line, 1);
+        } else {
+            this->markerAdd(line, 1);
+        }
+    }
 }
 
 // ScriptExplorer public
