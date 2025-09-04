@@ -2,7 +2,7 @@
 
 ## signature
 
-port.info([index]) -> nil
+port.info([int index]) -> nil
 
 ## purpose
 

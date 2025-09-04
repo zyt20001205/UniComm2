@@ -1,0 +1,14 @@
+sleep(int milliseconds) -> nil
+input() -> str
+print(str message) -> nil
+port.close([int index]) -> nil
+port.info([int index]) -> nil
+port.open([int index]) -> bool
+port.readData([int index[, int timeout]] -> bytes
+port.readText([int index[, int timeout]] -> str
+port.writeData([int index], bytes data[, str peerIp]) -> nil
+port.writeText([int index], str text[, str peerIp]) -> nil
+modbusRtu.readHoldingRegisters(int slaveAddr, int startAddr, int quantity[, int timeout[, int index])
+modbusRtu.writeMultipleRegisters(int slaveAddr, int startAddr, bytes data[, int timeout[, int index])
+database.write(str key, str value) -> nil
+datatable.write(str key, str value) -> nil

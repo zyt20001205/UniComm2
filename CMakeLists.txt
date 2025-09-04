@@ -77,6 +77,14 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/stop.svg"
 )
 
+qt_add_resources(UniComm "api_resources"
+        PREFIX "/api"
+        BASE "resources/api"
+        FILES
+        "resources/api/Lua-5.4.8.api"
+        "resources/api/Custom-1.0.0.api"
+)
+
 target_link_libraries(UniComm PRIVATE
         Qt::Core
         Qt::Gui

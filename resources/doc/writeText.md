@@ -6,12 +6,12 @@ Writes **decoded text data** to the port's transmit buffer.
 
 ## signature
 
-port.writeText([index], command[, peerIp]) -> nil
+port.writeText([int index], str text[, str peerIp]) -> nil  
 
 ## parameters
 
 index(optional, int): Target port index; when omitted or set to -1, the current port is used.  
-command(required, str/int): Integers are converted to string before sending.  
+text(required, str): Integers are converted to string before sending.  
 peerIp(optional, str): (TCP Server port only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.  
 
 ## returns

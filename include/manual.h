@@ -18,6 +18,8 @@ public:
 
     ~Manual() override = default;
 
+    void manualShow(const QString &func);
+
 private:
     QTextBrowser *m_manualTextBrowser = nullptr;
 };

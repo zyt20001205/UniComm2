@@ -2,7 +2,7 @@
 
 ## signature
 
-port.close([index]) -> nil
+port.close([int index]) -> nil
 
 ## purpose
 

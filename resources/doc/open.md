@@ -2,7 +2,7 @@
 
 ## signature
 
-port.open([index]) -> boolean
+port.open([int index]) -> bool
 
 ## purpose
 

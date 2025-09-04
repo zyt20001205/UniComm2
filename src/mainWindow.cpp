@@ -93,6 +93,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::writeDatabase, m_databaseModule, &Database::databaseWrite);
     connect(m_databaseModule, &Database::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::writeDatatable, m_datatableModule, &Datatable::datatableWrite);
+    connect(m_scriptModule, &Script::showManual, m_manualModule, &Manual::manualShow);
     connect(m_datatableModule, &Datatable::appendLog, m_logModule, &Log::logAppend);
 
     m_scriptModule->setPort(m_portModule);

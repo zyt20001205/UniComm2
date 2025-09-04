@@ -57,6 +57,8 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void showManual(const QString &func);
+
     void writeDatabase(const QString &key, const QString &value);
 
     void writeDatatable(const QString &key, const QString &value);
@@ -138,6 +140,8 @@ public:
     bool m_scriptEdited = false;
 
 signals:
+    void showManual(const QString &func);
+
     void editScript();
 
 private slots:
@@ -168,6 +172,12 @@ public:
     ~ScriptEditor() override = default;
 
     LuaLexer *m_scriptLexer = nullptr;
+
+signals:
+    void showManual(const QString &func);
+
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
 };
 
 class ScriptExplorer final : public QTreeView {

@@ -6,7 +6,7 @@ Reads **decoded text data** from the port's receive buffer.
 
 ## signature
 
-port.readText([index[, timeout]]) -> str  
+port.readText([int index[, int timeout]] -> str
 
 ## parameters
 
@@ -19,7 +19,7 @@ timeout(optional, int): Maximum time in **milliseconds** to wait for data to arr
 
 ## returns
 
-string: the receive buffer content of the current or specified port. The actual content depends on the RX format setting (e.g., hex/ascii/utf-8).  
+str: The receive buffer content of the current or specified port. The actual content depends on the RX format setting (e.g., hex/ascii/utf-8).  
 
 ## examples
 

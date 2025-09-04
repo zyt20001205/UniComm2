@@ -76,6 +76,7 @@ void Script::scriptOpen(const QString &scriptPath) {
     auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
     m_scriptTabWidget->addTab(newTab, fileName);
     m_scriptTabWidget->setCurrentWidget(newTab);
+    connect(newTab, &ScriptPageWidget::showManual, this, &Script::showManual);
     connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
         scriptEdited(m_scriptTabWidget->indexOf(newTab));
     });
@@ -426,9 +427,9 @@ int LuaInterpreter::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     if (lua_gettop(L) > 5)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const int param1 = luaL_checkinteger(L, 1);
-    const int param2 = luaL_checkinteger(L, 2);
-    const int param3 = luaL_checkinteger(L, 3);
+    const int param1 = static_cast<int>(luaL_checkinteger(L, 1));
+    const int param2 = static_cast<int>(luaL_checkinteger(L, 2));
+    const int param3 = static_cast<int>(luaL_checkinteger(L, 3));
     const int param4 = static_cast<int>(luaL_optinteger(L, 4, 1000));
     const int param5 = static_cast<int>(luaL_optinteger(L, 5, -1));
     // start operation
@@ -481,8 +482,8 @@ int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     if (lua_gettop(L) > 5)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const int param1 = luaL_checkinteger(L, 1);
-    const int param2 = luaL_checkinteger(L, 2);
+    const int param1 = static_cast<int>(luaL_checkinteger(L, 1));
+    const int param2 = static_cast<int>(luaL_checkinteger(L, 2));
     size_t len3;
     const char *param3 = luaL_checklstring(L, 3, &len3);
     const int param4 = static_cast<int>(luaL_optinteger(L, 4, 1000));
@@ -567,6 +568,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
+    connect(m_scriptEditor, &ScriptEditor::showManual, this, &ScriptPageWidget::showManual);
     m_scriptPath = scriptPath;
     QFile file(scriptPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -602,50 +604,15 @@ void ScriptPageWidget::scriptEdited() {
 }
 
 // ScriptEditor public
-ScriptEditor::ScriptEditor(QWidget *parent) {
+ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
+    SendScintilla(SCI_SETWORDCHARS, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.");
     // load lua lexer
     m_scriptLexer = new LuaLexer(); // NOLINT
     this->QsciScintilla::setLexer(m_scriptLexer);
     // configure auto complete
     auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
-    const QStringList completeList = {
-        // custom
-        "sleep", "input", "print",
-        "port.close", "port.info", "port.open", "port.readData", "port.readText", "port.writeData", "port.writeText",
-        "modbusRtu.readHoldingRegisters", "modbusRtu.writeMultipleRegisters",
-        "database.write",
-        "datatable.write",
-        // keywords
-        "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until",
-        "while",
-        // basic
-        "_G", "_VERSION", "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", "next", "pairs", "pcall", "rawequal", "rawget", "rawlen",
-        "rawset", "require", "select", "setmetatable", "tonumber", "tostring", "type", "warn", "xpcall",
-        // coroutine
-        "coroutine.close", "coroutine.create", "coroutine.isyieldable", "coroutine.resume", "coroutine.running", "coroutine.status", "coroutine.wrap", "coroutine.yield",
-        // debug
-        "debug.debug", "debug.gethook", "debug.getinfo", "debug.getlocal", "debug.getmetatable", "debug.getregistry", "debug.getupvalue", "debug.getuservalue", "debug.sethook",
-        "debug.setlocal", "debug.setmetatable", "debug.setupvalue", "debug.setuservalue", "debug.traceback", "debug.upvalueid", "debug.upvaluejoin",
-        // io
-        "io.close", "io.flush", "io.input", "io.lines", "io.open", "io.output", "io.popen", "io.read", "io.stderr", "io.stdin", "io.stdout", "io.tmpfile", "io.type", "io.write",
-        "file:close", "file:flush", "file:lines", "file:read", "file:seek", "file:setvbuf", "file:write",
-        // math
-        "math.abs", "math.acos", "math.asin", "math.atan", "math.ceil", "math.cos", "math.deg", "math.exp", "math.floor", "math.fmod", "math.huge", "math.log", "math.max",
-        "math.maxinteger", "math.min", "math.mininteger", "math.modf", "math.pi", "math.rad", "math.random", "math.randomseed", "math.sin", "math.sqrt", "math.tan",
-        "math.tointeger", "math.type", "math.ult",
-        // os
-        "os.clock", "os.date", "os.difftime", "os.execute", "os.exit", "os.getenv", "os.remove", "os.rename", "os.setlocale", "os.time", "os.tmpname",
-        // package
-        "package.config", "package.cpath", "package.loaded", "package.loadlib", "package.path", "package.preload", "package.searchers", "package.searchpath",
-        // string
-        "string.byte", "string.char", "string.dump", "string.find", "string.format", "string.gmatch", "string.gsub", "string.len", "string.lower", "string.match", "string.pack",
-        "string.packsize", "string.rep", "string.reverse", "string.sub", "string.unpack", "string.upper",
-        // table
-        "table.concat", "table.insert", "table.move", "table.pack", "table.remove", "table.sort", "table.unpack",
-        // utf-8
-        "utf8.char", "utf8.charpattern", "utf8.codepoint", "utf8.codes", "utf8.len", "utf8.offset",
-    };
-    for (const QString &kw: completeList) apis->add(kw);
+    apis->load(":/api/Lua-5.4.8.api");
+    apis->load(":/api/Custom-1.0.0.api");
     apis->prepare();
     this->QsciScintilla::setAutoCompletionSource(AcsAPIs);
     this->QsciScintilla::setAutoCompletionCaseSensitivity(false);
@@ -700,6 +667,15 @@ ScriptEditor::ScriptEditor(QWidget *parent) {
     // style 16: user defined 1
     // m_scriptLexer->setColor(QColor(0x00627A), 16);
     // style 20: label
+}
+
+// ScriptEditor protected
+void ScriptEditor::mousePressEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
+        const QString clickedWord = this->wordAtPoint(event->pos());
+        emit showManual(clickedWord);
+    }
+    QsciScintilla::mousePressEvent(event);
 }
 
 // ScriptExplorer public
