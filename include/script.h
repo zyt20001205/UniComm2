@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QMutex>
 #include <QProcess>
 #include <QProgressBar>
 #include <QPushButton>
@@ -24,6 +25,7 @@
 #include <QThread>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QWaitCondition>
 #include <QWidget>
 #include <lua.hpp>
 #include "config.h"
@@ -37,6 +39,8 @@ class ScriptPageWidget;
 class LuaLexer;
 
 class ScriptEditor;
+
+class LuaInterpreter;
 
 class ScriptExplorer;
 
@@ -54,6 +58,10 @@ public:
 
     void scriptOpen(const QString &scriptPath);
 
+    void scriptHighlight(int row) const;
+
+    void scriptTreeViewLoad(const QVariantMap &varMap) const;
+
     Port *m_port = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -69,63 +77,20 @@ private:
 
     void scriptRunning(const QString &name, QThread *worker);
 
+    void scriptDebug();
+
     void scriptEdited(int index) const;
 
     void scriptClose(int index) const;
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QTabWidget *m_scriptTabWidget = nullptr;
-    QListWidget *m_scriptListWidget = nullptr;
+    QTabWidget *m_scriptMonitorTabWidget = nullptr;
+    QListWidget *m_scriptThreadpoolListWidget = nullptr;
+    QWidget *m_scriptDebugWidget = nullptr;
+    QTreeView *m_scriptDebugTreeView = nullptr;
+    QStandardItemModel *m_scriptDebugTreeViewModel = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
-};
-
-class LuaInterpreter final : public QObject {
-    Q_OBJECT
-
-public:
-    explicit LuaInterpreter(QObject *parent = nullptr);
-
-    ~LuaInterpreter() override = default;
-
-    void exec(const QString &script);
-
-signals:
-    void appendLog(const QString &message, const QString &level);
-
-private:
-    static void luaHook(lua_State *L, lua_Debug *ar);
-
-    static int luaPrint(lua_State *L);
-
-    static int luaSleep(lua_State *L);
-
-    static int luaInput(lua_State *L);
-
-    static int luaPortOpen(lua_State *L);
-
-    static int luaPortClose(lua_State *L);
-
-    static int luaPortInfo(lua_State *L);
-
-    static int luaPortWriteText(lua_State *L);
-
-    static int luaPortWriteData(lua_State *L);
-
-    static int luaPortReadText(lua_State *L);
-
-    static int luaPortReadData(lua_State *L);
-
-    static int luaModbusRtuReadHoldingRegisters(lua_State *L);
-
-    static int luaModbusRtuWriteMultipleRegisters(lua_State *L);
-
-    static int luaModbusAsciiReadHoldingRegisters(lua_State *L);
-
-    static int luaDatabaseWrite(lua_State *L);
-
-    static int luaDatatableWrite(lua_State *L);
-
-    lua_State *L = nullptr;
 };
 
 class ScriptPageWidget final : public QWidget {
@@ -182,8 +147,64 @@ signals:
 protected:
     void mousePressEvent(QMouseEvent *event) override;
 
+private:
+    void breakpointUpdate() const;
+
 private slots:
     void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
+};
+
+class LuaInterpreter final : public QObject {
+    Q_OBJECT
+
+public:
+    explicit LuaInterpreter(QObject *parent = nullptr);
+
+    ~LuaInterpreter() override = default;
+
+    void run(const QString &script);
+
+    void debug(const QString &script);
+
+signals:
+    void appendLog(const QString &message, const QString &level);
+
+private:
+    static void luaTerminateHook(lua_State *L, lua_Debug *ar);
+
+    static void luaDebugHook(lua_State *L, lua_Debug *ar);
+
+    static int luaPrint(lua_State *L);
+
+    static int luaSleep(lua_State *L);
+
+    static int luaInput(lua_State *L);
+
+    static int luaPortOpen(lua_State *L);
+
+    static int luaPortClose(lua_State *L);
+
+    static int luaPortInfo(lua_State *L);
+
+    static int luaPortWriteText(lua_State *L);
+
+    static int luaPortWriteData(lua_State *L);
+
+    static int luaPortReadText(lua_State *L);
+
+    static int luaPortReadData(lua_State *L);
+
+    static int luaModbusRtuReadHoldingRegisters(lua_State *L);
+
+    static int luaModbusRtuWriteMultipleRegisters(lua_State *L);
+
+    static int luaModbusAsciiReadHoldingRegisters(lua_State *L);
+
+    static int luaDatabaseWrite(lua_State *L);
+
+    static int luaDatatableWrite(lua_State *L);
+
+    lua_State *L = nullptr;
 };
 
 class ScriptExplorer final : public QTreeView {

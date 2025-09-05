@@ -1,6 +1,9 @@
 #include "../include/script.h"
 
 static Script *g_script = nullptr;
+QList<int> g_breakpoint;
+QMutex g_mutex;
+QWaitCondition g_condition;
 
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
@@ -33,6 +36,11 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     runButton->setFixedSize(24, 24);
     runButton->setIcon(QIcon(":/icon/play.svg"));
     connect(runButton, &QPushButton::clicked, this, &Script::scriptRun);
+    auto *debugButton = new QPushButton(); // NOLINT
+    ctrlLayout->addWidget(debugButton);
+    debugButton->setFixedSize(24, 24);
+    debugButton->setIcon(QIcon(":/icon/bug.svg"));
+    connect(debugButton, &QPushButton::clicked, this, &Script::scriptDebug);
 
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
@@ -41,10 +49,38 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     scriptMonitorLayout->setContentsMargins(0, 0, 0, 0);
     auto *scriptMonitorSplitter = new QSplitter(Qt::Vertical); // NOLINT
     scriptMonitorLayout->addWidget(scriptMonitorSplitter);
-    // script monitor widget -> script list widget
-    m_scriptListWidget = new QListWidget();
-    scriptMonitorSplitter->addWidget(m_scriptListWidget);
-    m_scriptListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
+    // script monitor widget -> script monitor tab widget
+    m_scriptMonitorTabWidget = new QTabWidget();
+    scriptMonitorSplitter->addWidget(m_scriptMonitorTabWidget);
+    // script monitor widget -> script monitor tab widget -> script thread pool widget
+    m_scriptThreadpoolListWidget = new QListWidget();
+    m_scriptMonitorTabWidget->addTab(m_scriptThreadpoolListWidget, "threadpool");
+    m_scriptThreadpoolListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
+    // script monitor widget -> script monitor tab widget -> script debug widget
+    m_scriptDebugWidget = new QWidget();
+    m_scriptMonitorTabWidget->addTab(m_scriptDebugWidget, "debug");
+    auto *m_scriptMonitorLayout = new QVBoxLayout(m_scriptDebugWidget); // NOLINT
+    m_scriptMonitorLayout->setContentsMargins(0, 0, 0, 0);
+    m_scriptMonitorLayout->setAlignment(Qt::AlignTop);
+    auto *debugCtrlWidget = new QWidget(); // NOLINT
+    m_scriptMonitorLayout->addWidget(debugCtrlWidget);
+    auto *debugCtrlLayout = new QHBoxLayout(debugCtrlWidget); // NOLINT
+    debugCtrlLayout->setContentsMargins(0, 0, 0, 0);
+    debugCtrlLayout->setAlignment(Qt::AlignLeft);
+    auto *debugContinueButton = new QPushButton(); // NOLINT
+    debugCtrlLayout->addWidget(debugContinueButton);
+    debugContinueButton->setFixedSize(24, 24);
+    debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
+    connect(debugContinueButton, &QPushButton::clicked, this, [] {
+        g_mutex.lock();
+        g_condition.wakeOne();
+        g_mutex.unlock();
+    });
+    m_scriptDebugTreeView = new QTreeView(); // NOLINT
+    m_scriptMonitorLayout->addWidget(m_scriptDebugTreeView);
+    m_scriptDebugTreeViewModel = new QStandardItemModel();
+    m_scriptDebugTreeView->setModel(m_scriptDebugTreeViewModel);
+    m_scriptDebugTreeViewModel->setHorizontalHeaderLabels({"Name", "Type", "Value"});
     // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
     scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
@@ -88,6 +124,41 @@ void Script::scriptOpen(const QString &scriptPath) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
 }
 
+void Script::scriptHighlight(const int row) const {
+    const int currentIndex = m_scriptTabWidget->currentIndex();
+    if (currentIndex < 0) {
+        return;
+    }
+    const QString name = m_scriptTabWidget->tabText(currentIndex);
+    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    if (!scriptPageWidget) return;
+
+    scriptPageWidget->m_scriptEditor->markerDeleteAll(2);
+    scriptPageWidget->m_scriptEditor->markerAdd(row - 1, 2);
+}
+
+void Script::scriptTreeViewLoad(const QVariantMap &varMap) const {
+    // qDebug() << varMap;
+    m_scriptDebugTreeViewModel->clear();
+    m_scriptDebugTreeViewModel->setHorizontalHeaderLabels({"Name", "Type", "Value"});
+    for (auto it = varMap.constBegin(); it != varMap.constEnd(); ++it) {
+        const QString &variableName = it.key();
+        const QVariantMap &variableInfo = it.value().toMap();
+
+        QStandardItem *parentItem = new QStandardItem(variableName); // NOLINT
+
+        QStandardItem *typeItem = new QStandardItem(variableInfo["type"].toString()); // NOLINT
+        QStandardItem *valueItem = new QStandardItem(variableInfo["value"].toString()); // NOLINT
+
+        QList<QStandardItem *> rowItems;
+        rowItems << parentItem << typeItem << valueItem;
+        m_scriptDebugTreeViewModel->appendRow(rowItems);
+    }
+    m_scriptDebugTreeView->resizeColumnToContents(0);
+    m_scriptDebugTreeView->resizeColumnToContents(1);
+    m_scriptDebugTreeView->expandAll();
+}
+
 // Script private
 void Script::scriptRun() {
     const int currentIndex = m_scriptTabWidget->currentIndex();
@@ -98,10 +169,6 @@ void Script::scriptRun() {
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
     QString script = scriptPageWidget->m_scriptEditor->text();
-    if (script.isEmpty()) {
-        emit appendLog("script is empty", "warning");
-        return;
-    }
     // launch lua interpreter thread
     const auto worker = new QThread(); // NOLINT
     const auto interpreter = new LuaInterpreter(); // NOLINT
@@ -110,7 +177,7 @@ void Script::scriptRun() {
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     connect(worker, &QThread::started, [interpreter, script] {
-        interpreter->exec(script);
+        interpreter->run(script);
         QThread::currentThread()->quit();
     });
     scriptRunning(name, worker);
@@ -119,14 +186,14 @@ void Script::scriptRun() {
 
 void Script::scriptRunning(const QString &name, QThread *worker) {
     auto *scriptListWidgetItem = new QListWidgetItem(); // NOLINT
-    m_scriptListWidget->addItem(scriptListWidgetItem);
+    m_scriptThreadpoolListWidget->addItem(scriptListWidgetItem);
     connect(worker, &QThread::finished, this, [this, scriptListWidgetItem] {
-        const int row = m_scriptListWidget->row(scriptListWidgetItem);
-        m_scriptListWidget->takeItem(row);
+        const int row = m_scriptThreadpoolListWidget->row(scriptListWidgetItem);
+        m_scriptThreadpoolListWidget->takeItem(row);
         delete scriptListWidgetItem;
     });
     auto *scriptInfoWidget = new QWidget(); // NOLINT
-    m_scriptListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
+    m_scriptThreadpoolListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
     auto *scriptInfoLayout = new QHBoxLayout(scriptInfoWidget); // NOLINT
     scriptInfoLayout->setContentsMargins(5, 0, 5, 0);
     auto *scriptLabel = new QLabel(QDateTime::currentDateTime().toString("HH:mm:ss") + " " + name); // NOLINT
@@ -138,6 +205,30 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
     connect(abortButton, &QPushButton::clicked, this, [worker] {
         worker->requestInterruption();
     });
+}
+
+void Script::scriptDebug() {
+    const int currentIndex = m_scriptTabWidget->currentIndex();
+    if (currentIndex < 0) {
+        return;
+    }
+    const QString name = m_scriptTabWidget->tabText(currentIndex);
+    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    if (!scriptPageWidget) return;
+    QString script = scriptPageWidget->m_scriptEditor->text();
+    // launch lua interpreter thread
+    auto *worker = new QThread(); // NOLINT
+    auto *interpreter = new LuaInterpreter(); // NOLINT
+    interpreter->moveToThread(worker);
+    connect(interpreter, &LuaInterpreter::appendLog, this, &Script::appendLog);
+    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
+    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker, &QThread::started, [interpreter, script] {
+        interpreter->debug(script);
+        QThread::currentThread()->quit();
+    });
+    m_scriptMonitorTabWidget->setCurrentIndex(1); // switch to debug tab
+    worker->start();
 }
 
 void Script::scriptEdited(const int index) const {
@@ -158,6 +249,156 @@ void Script::scriptClose(const int index) const {
     const QWidget *tabToClose = m_scriptTabWidget->widget(index);
     m_scriptTabWidget->removeTab(index);
     delete tabToClose;
+}
+
+// ScriptPageWidget public
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QObject *parent) {
+    auto *layout = new QVBoxLayout(this); // NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    m_scriptEditor = new ScriptEditor();
+    layout->addWidget(m_scriptEditor);
+    m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
+    connect(m_scriptEditor, &ScriptEditor::showManual, this, &ScriptPageWidget::showManual);
+    m_scriptPath = scriptPath;
+    QFile file(scriptPath);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    const QString content = in.readAll();
+    file.close();
+    m_scriptEditor->setText(content);
+    // import!!! must use old connect method!!! do not modify!!!
+    connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdited()));
+}
+
+void ScriptPageWidget::scriptSave() {
+    QFile file(m_scriptPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << m_scriptEditor->text();
+    file.close();
+
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
+}
+
+// ScriptPageWidget private
+void ScriptPageWidget::scriptEdited() {
+    if (!m_scriptEdited) {
+        emit editScript();
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
+    }
+    m_scriptEdited = true;
+}
+
+// ScriptEditor public
+ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
+    SendScintilla(SCI_SETWORDCHARS, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:."); // NOLINT
+    // load lua lexer
+    m_scriptLexer = new LuaLexer(); // NOLINT
+    this->QsciScintilla::setLexer(m_scriptLexer);
+    // configure auto complete
+    auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
+    apis->load(":/api/Lua-5.4.8.api");
+    apis->load(":/api/Custom-1.0.0.api");
+    apis->prepare();
+    this->QsciScintilla::setAutoCompletionSource(AcsAPIs);
+    this->QsciScintilla::setAutoCompletionCaseSensitivity(false);
+    this->QsciScintilla::setAutoCompletionThreshold(1);
+    this->setAutoCompletionFillupsEnabled(true);
+    this->setAutoCompletionFillups(":.");
+    // set margins
+
+    this->setMarginType(0, NumberMargin);
+    this->QsciScintilla::setMarginWidth(0, "000");
+
+    this->setMarginType(1, SymbolMargin);
+    this->QsciScintilla::setMarginSensitivity(1, true);
+    this->QsciScintilla::setMarginWidth(1, "16");
+    this->markerDefine(Circle, 1);
+    this->setMarkerBackgroundColor(Qt::red, 1);
+    this->setMarkerForegroundColor(Qt::red, 1);
+    connect(this, SIGNAL(marginClicked(int, int, Qt::KeyboardModifiers)),
+            this, SLOT(onMarginClicked(int, int, Qt::KeyboardModifiers)));
+
+    this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
+    this->setMarginType(2, SymbolMargin);
+    this->QsciScintilla::setMarginSensitivity(2, true);
+    this->QsciScintilla::setMarginWidth(2, "16");
+
+    this->markerDefine(Background, 2);
+    this->setMarkerBackgroundColor(QColor(255, 255, 0, 100), 2);
+    // script scintilla settings
+    this->setScrollWidth(1);
+    this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
+    this->QsciScintilla::setAutoIndent(true);
+    this->QsciScintilla::setBackspaceUnindents(true);
+    this->QsciScintilla::setIndentationGuides(true);
+    this->QsciScintilla::setTabWidth(4);
+    // load settings from config
+    m_scriptLexer->setPaper(Qt::white, -1);
+    // style 0: default
+    // style 1: comment
+    m_scriptLexer->setColor(QColor(0x8C8C8C), 1);
+    // style 2: line comment
+    m_scriptLexer->setColor(QColor(0x8C8C8C), 2);
+    // style 4: number
+    m_scriptLexer->setColor(QColor(0x1750EB), 4);
+    // style 5: keyword
+    m_scriptLexer->setColor(QColor(0x0033B3), 5);
+    // style 6: string
+    m_scriptLexer->setColor(QColor(0x067D17), 6);
+    // style 7: character
+    // style 8: literal string
+    // style 9: preprocessor
+    // style 10: operator
+    m_scriptLexer->setColor(QColor(0x2B2D30), 10);
+    // style 11: identifier
+    // m_scriptLexer->setColor(QColor(0x00627A), 11);
+    // style 12: unclosed string
+    // style 13: basic functions
+    // m_scriptLexer->setColor(QColor(0x00627A), 13);
+    // style 14: string, table and maths functions
+    // m_scriptLexer->setColor(QColor(0x00627A), 14);
+    // style 15: coroutines, i/o and system facilities
+    // m_scriptLexer->setColor(QColor(0x00627A), 15);
+    // style 16: user defined 1
+    // m_scriptLexer->setColor(QColor(0x00627A), 16);
+    // style 20: label
+}
+
+// ScriptEditor protected
+void ScriptEditor::mousePressEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
+        const QString clickedWord = this->wordAtPoint(event->pos());
+        emit showManual(clickedWord);
+    }
+    QsciScintilla::mousePressEvent(event);
+}
+
+// ScriptEditor private
+void ScriptEditor::breakpointUpdate() const {
+    g_breakpoint.clear();
+    for (int i = 0; i < this->lines(); ++i) {
+        if (this->markersAtLine(i) & 1 << 1) {
+            g_breakpoint.append(i + 1);
+        }
+    }
+    qDebug() << g_breakpoint;
+}
+
+void ScriptEditor::onMarginClicked(const int margin, const int line, Qt::KeyboardModifiers state) {
+    if (margin == 1 && line >= 0) {
+        if (this->markersAtLine(line) & 1 << 1) {
+            this->markerDelete(line, 1);
+        } else {
+            this->markerAdd(line, 1);
+        }
+    }
+    // update g_breakpoint
+    breakpointUpdate();
 }
 
 // LuaInterpreter public
@@ -208,26 +449,97 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_pushcfunction(L, LuaInterpreter::luaDatatableWrite);
     lua_setfield(L, -2, "write");
     lua_setglobal(L, "datatable");
-    // set terminate hook
-    lua_sethook(L, luaHook, LUA_MASKCOUNT, 100);
 }
 
-void LuaInterpreter::exec(const QString &script) {
+void LuaInterpreter::run(const QString &script) {
+    // set terminate hook
+    lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
+    // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         const QString error = lua_tostring(L, -1);
-        emit appendLog(QString("%1").arg(error), "error");
+        emit appendLog(error, "error");
         lua_pop(L, 1);
+    }
+    // remove terminate hook
+    lua_sethook(L, nullptr, 0, 0);
+    // close interpreter
+    lua_close(L);
+}
+
+void LuaInterpreter::debug(const QString &script) {
+    lua_State *co = lua_newthread(L);
+    // set debug hook
+    lua_sethook(co, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
+    // lua load
+    if (luaL_loadstring(co, script.toUtf8().constData()) != LUA_OK) {
+        const QString error = lua_tostring(co, -1);
+        emit appendLog(error, "error");
+        lua_pop(co, 1);
+        lua_close(L);
+        return;
+    }
+    // lua exec
+    while (true) {
+        int nresults = 0;
+        int status = lua_resume(co, L, 0, &nresults);
+        if (status == LUA_OK) {
+            break;
+        } else if (status == LUA_YIELD) {
+            g_mutex.lock();
+            g_condition.wait(&g_mutex);
+            g_mutex.unlock();
+        } else {
+            const QString error = lua_tostring(co, -1);
+            emit appendLog(error, "error");
+            lua_pop(co, 1);
+            break;
+        }
     }
     // close interpreter
     lua_close(L);
 }
 
 // LuaInterpreter private
-void LuaInterpreter::luaHook(lua_State *L, lua_Debug *ar) {
+void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
     (void) ar;
     // check if thread interruption is requested
     if (QThread::currentThread()->isInterruptionRequested()) {
         luaL_error(L, "terminated");
+    }
+}
+
+void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
+    if (ar->event == LUA_HOOKLINE) {
+        const int row = ar->currentline;
+        if (g_breakpoint.contains(row)) {
+            // highlight
+            QMetaObject::invokeMethod(g_script, [&, row] {
+                g_script->scriptHighlight(row);
+            }, Qt::BlockingQueuedConnection);
+            // treeview
+            int i = 1;
+            const char *varName;
+            auto *varMap = new QVariantMap();
+            while ((varName = lua_getlocal(L, ar, i)) != nullptr) {
+                if (varName[0] != '(') {
+                    QVariantMap varInfo;
+                    const int type = lua_type(L, -1);
+                    const char *varType = lua_typename(L, type);
+                    const char *varValue = lua_tostring(L, -1);
+                    varInfo["type"] = varType;
+                    varInfo["value"] = varValue;
+                    varMap->insert(varName, varInfo);
+                }
+                lua_pop(L, 1);
+                i++;
+            }
+            QMetaObject::invokeMethod(g_script, [&, varMap] {
+                g_script->scriptTreeViewLoad(*varMap);
+                delete varMap;
+            }, Qt::BlockingQueuedConnection);
+            // hold thread
+            lua_yield(L, 0);
+        }
     }
 }
 
@@ -625,143 +937,6 @@ int LuaInterpreter::luaDatatableWrite(lua_State *L) {
     // start operation
     emit g_script->writeDatatable(param1, param2);
     return 0;
-}
-
-// ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QObject *parent) {
-    auto *layout = new QVBoxLayout(this); // NOLINT
-    layout->setContentsMargins(0, 0, 0, 0);
-    m_scriptEditor = new ScriptEditor();
-    layout->addWidget(m_scriptEditor);
-    m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
-    connect(m_scriptEditor, &ScriptEditor::showManual, this, &ScriptPageWidget::showManual);
-    m_scriptPath = scriptPath;
-    QFile file(scriptPath);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    QTextStream in(&file);
-    const QString content = in.readAll();
-    file.close();
-    m_scriptEditor->setText(content);
-    // import!!! must use old connect method!!! do not modify!!!
-    connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdited()));
-}
-
-void ScriptPageWidget::scriptSave() {
-    QFile file(m_scriptPath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << m_scriptEditor->text();
-    file.close();
-
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
-}
-
-// ScriptPageWidget private
-void ScriptPageWidget::scriptEdited() {
-    if (!m_scriptEdited) {
-        emit editScript();
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
-    }
-    m_scriptEdited = true;
-}
-
-// ScriptEditor public
-ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
-    SendScintilla(SCI_SETWORDCHARS, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.");
-    // load lua lexer
-    m_scriptLexer = new LuaLexer(); // NOLINT
-    this->QsciScintilla::setLexer(m_scriptLexer);
-    // configure auto complete
-    auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
-    apis->load(":/api/Lua-5.4.8.api");
-    apis->load(":/api/Custom-1.0.0.api");
-    apis->prepare();
-    this->QsciScintilla::setAutoCompletionSource(AcsAPIs);
-    this->QsciScintilla::setAutoCompletionCaseSensitivity(false);
-    this->QsciScintilla::setAutoCompletionThreshold(1);
-    this->setAutoCompletionFillupsEnabled(true);
-    this->setAutoCompletionFillups(":.");
-    // set margins
-
-    this->setMarginType(0, NumberMargin);
-    this->QsciScintilla::setMarginWidth(0, "000");
-
-    this->setMarginType(1, SymbolMargin);
-    this->QsciScintilla::setMarginSensitivity(1, true);
-    this->QsciScintilla::setMarginWidth(1, "16");
-    this->markerDefine(Circle, 1);
-    this->setMarkerBackgroundColor(Qt::red, 1);
-    this->setMarkerForegroundColor(Qt::red, 1);
-    connect(this, SIGNAL(marginClicked(int, int, Qt::KeyboardModifiers)),
-            this, SLOT(onMarginClicked(int, int, Qt::KeyboardModifiers)));
-
-    this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
-    this->setMarginType(2, SymbolMargin);
-    this->QsciScintilla::setMarginSensitivity(2, true);
-    this->QsciScintilla::setMarginWidth(2, "16");
-
-    // script scintilla settings
-    this->setScrollWidth(1);
-    this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
-    this->QsciScintilla::setAutoIndent(true);
-    this->QsciScintilla::setBackspaceUnindents(true);
-    this->QsciScintilla::setIndentationGuides(true);
-    this->QsciScintilla::setTabWidth(4);
-    // load settings from config
-    m_scriptLexer->setPaper(Qt::white, -1);
-    // style 0: default
-    // style 1: comment
-    m_scriptLexer->setColor(QColor(0x8C8C8C), 1);
-    // style 2: line comment
-    m_scriptLexer->setColor(QColor(0x8C8C8C), 2);
-    // style 4: number
-    m_scriptLexer->setColor(QColor(0x1750EB), 4);
-    // style 5: keyword
-    m_scriptLexer->setColor(QColor(0x0033B3), 5);
-    // style 6: string
-    m_scriptLexer->setColor(QColor(0x067D17), 6);
-    // style 7: character
-    // style 8: literal string
-    // style 9: preprocessor
-    // style 10: operator
-    m_scriptLexer->setColor(QColor(0x2B2D30), 10);
-    // style 11: identifier
-    // m_scriptLexer->setColor(QColor(0x00627A), 11);
-    // style 12: unclosed string
-    // style 13: basic functions
-    // m_scriptLexer->setColor(QColor(0x00627A), 13);
-    // style 14: string, table and maths functions
-    // m_scriptLexer->setColor(QColor(0x00627A), 14);
-    // style 15: coroutines, i/o and system facilities
-    // m_scriptLexer->setColor(QColor(0x00627A), 15);
-    // style 16: user defined 1
-    // m_scriptLexer->setColor(QColor(0x00627A), 16);
-    // style 20: label
-}
-
-// ScriptEditor protected
-void ScriptEditor::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
-        const QString clickedWord = this->wordAtPoint(event->pos());
-        emit showManual(clickedWord);
-    }
-    QsciScintilla::mousePressEvent(event);
-}
-
-// ScriptEditor private
-void ScriptEditor::onMarginClicked(const int margin, const int line, Qt::KeyboardModifiers state) {
-    if (margin == 1 && line >= 0) {
-        const int mask = this->markersAtLine(line);
-        if (mask & 1 << 1) {
-            this->markerDelete(line, 1);
-        } else {
-            this->markerAdd(line, 1);
-        }
-    }
 }
 
 // ScriptExplorer public
