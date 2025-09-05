@@ -167,7 +167,7 @@ public:
 
     void debug(const QString &script);
 
-    void changeValue(const QString &varName, const QString &varValue);
+    void changeValue(const QString &varName, const QString &varValue) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);

@@ -82,14 +82,14 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     m_scriptDebugTreeView->setModel(m_scriptDebugTreeViewModel);
     m_scriptDebugTreeViewModel->setHorizontalHeaderLabels({"Name", "Type", "Value"});
     connect(m_scriptDebugTreeViewModel, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
-    if (item->column() == 2) {
-        const QString varName = item->data(Qt::UserRole + 1).toString();
-        const QString varValue = item->text();
-        QMetaObject::invokeMethod(m_debugInterpreter, [&, varName, varValue] {
-            m_debugInterpreter->changeValue(varName, varValue);
-        }, Qt::QueuedConnection);
-    }
-});
+        if (item->column() == 2) {
+            const QString varName = item->data(Qt::UserRole + 1).toString();
+            const QString varValue = item->text();
+            QMetaObject::invokeMethod(m_debugInterpreter, [&, varName, varValue] {
+                m_debugInterpreter->changeValue(varName, varValue);
+            }, Qt::QueuedConnection);
+        }
+    });
     // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
     scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
@@ -143,6 +143,7 @@ void Script::scriptHighlight(const int row) const {
     if (!scriptPageWidget) return;
 
     scriptPageWidget->m_scriptEditor->markerDeleteAll(2);
+    if (row == -1) return;
     scriptPageWidget->m_scriptEditor->markerAdd(row - 1, 2);
 }
 
@@ -486,11 +487,13 @@ void LuaInterpreter::debug(const QString &script) {
         lua_close(L);
         return;
     }
+    g_script->scriptHighlight(-1);
     // lua exec
     while (true) {
         int nresults = 0;
         int status = lua_resume(co, L, 0, &nresults);
         if (status == LUA_OK) {
+            g_script->scriptHighlight(-1);
             break;
         } else if (status == LUA_YIELD) {
             g_mutex.lock();
@@ -509,30 +512,41 @@ void LuaInterpreter::debug(const QString &script) {
     lua_close(L);
 }
 
-void LuaInterpreter::changeValue(const QString &varName, const QString &varValue) {
+void LuaInterpreter::changeValue(const QString &varName, const QString &varValue) const {
     qDebug() << varName << varValue;
     lua_Debug ar;
     if (lua_getstack(co, 0, &ar)) {
         int i = 1;
         const char *name;
-
         while ((name = lua_getlocal(co, &ar, i)) != nullptr) {
             if (varName == QString(name)) {
-                bool ok;
-                int numericValue = varValue.toInt(&ok);
-
-                if (ok) {
-                    lua_pushnumber(co, numericValue);
-                    lua_setlocal(co, &ar, i);
-                    qDebug() << "Successfully changed" << varName << "to" << numericValue;
-                } else {
-                    qWarning() << "Failed to convert" << varValue << "to number";
+                switch (lua_type(co, -1)) {
+                    case LUA_TNUMBER: {
+                        if (varValue.contains(".") || varValue.contains("e")) {
+                            lua_pushnumber(co, varValue.toDouble());
+                        } else {
+                            lua_pushinteger(co, varValue.toInt());
+                        }
+                    }
+                    break;
+                    case LUA_TBOOLEAN: {
+                        if (varValue == "true" || varValue == "1") {
+                            lua_pushboolean(co, 1);
+                        } else {
+                            lua_pushboolean(co, 0);
+                        }
+                    }
+                    break;
+                    case LUA_TSTRING: {
+                        lua_pushstring(co, varValue.toUtf8().constData());
+                    }
+                    break;
+                    default: break;
                 }
-
+                lua_setlocal(co, &ar, i);
                 lua_pop(co, 1);
                 break;
             }
-
             lua_pop(co, 1);
             i++;
         }
