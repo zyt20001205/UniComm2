@@ -81,6 +81,15 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     m_scriptDebugTreeViewModel = new QStandardItemModel();
     m_scriptDebugTreeView->setModel(m_scriptDebugTreeViewModel);
     m_scriptDebugTreeViewModel->setHorizontalHeaderLabels({"Name", "Type", "Value"});
+    connect(m_scriptDebugTreeViewModel, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
+    if (item->column() == 2) {
+        const QString varName = item->data(Qt::UserRole + 1).toString();
+        const QString varValue = item->text();
+        QMetaObject::invokeMethod(m_debugInterpreter, [&, varName, varValue] {
+            m_debugInterpreter->changeValue(varName, varValue);
+        }, Qt::QueuedConnection);
+    }
+});
     // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
     scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
@@ -144,14 +153,13 @@ void Script::scriptTreeViewLoad(const QVariantMap &varMap) const {
     for (auto it = varMap.constBegin(); it != varMap.constEnd(); ++it) {
         const QString &variableName = it.key();
         const QVariantMap &variableInfo = it.value().toMap();
-
-        QStandardItem *parentItem = new QStandardItem(variableName); // NOLINT
-
+        QStandardItem *nameItem = new QStandardItem(variableName); // NOLINT
         QStandardItem *typeItem = new QStandardItem(variableInfo["type"].toString()); // NOLINT
         QStandardItem *valueItem = new QStandardItem(variableInfo["value"].toString()); // NOLINT
+        valueItem->setData(variableName, Qt::UserRole + 1);
 
         QList<QStandardItem *> rowItems;
-        rowItems << parentItem << typeItem << valueItem;
+        rowItems << nameItem << typeItem << valueItem;
         m_scriptDebugTreeViewModel->appendRow(rowItems);
     }
     m_scriptDebugTreeView->resizeColumnToContents(0);
@@ -218,13 +226,13 @@ void Script::scriptDebug() {
     QString script = scriptPageWidget->m_scriptEditor->text();
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(); // NOLINT
-    interpreter->moveToThread(worker);
-    connect(interpreter, &LuaInterpreter::appendLog, this, &Script::appendLog);
-    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
+    m_debugInterpreter = new LuaInterpreter(); // NOLINT
+    m_debugInterpreter->moveToThread(worker);
+    connect(m_debugInterpreter, &LuaInterpreter::appendLog, this, &Script::appendLog);
+    connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [interpreter, script] {
-        interpreter->debug(script);
+    connect(worker, &QThread::started, [this, script] {
+        m_debugInterpreter->debug(script);
         QThread::currentThread()->quit();
     });
     m_scriptMonitorTabWidget->setCurrentIndex(1); // switch to debug tab
@@ -467,7 +475,7 @@ void LuaInterpreter::run(const QString &script) {
 }
 
 void LuaInterpreter::debug(const QString &script) {
-    lua_State *co = lua_newthread(L);
+    co = lua_newthread(L);
     // set debug hook
     lua_sethook(co, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     // lua load
@@ -488,6 +496,8 @@ void LuaInterpreter::debug(const QString &script) {
             g_mutex.lock();
             g_condition.wait(&g_mutex);
             g_mutex.unlock();
+            // handle change value request
+            QCoreApplication::sendPostedEvents(nullptr, 0);
         } else {
             const QString error = lua_tostring(co, -1);
             emit appendLog(error, "error");
@@ -497,6 +507,36 @@ void LuaInterpreter::debug(const QString &script) {
     }
     // close interpreter
     lua_close(L);
+}
+
+void LuaInterpreter::changeValue(const QString &varName, const QString &varValue) {
+    qDebug() << varName << varValue;
+    lua_Debug ar;
+    if (lua_getstack(co, 0, &ar)) {
+        int i = 1;
+        const char *name;
+
+        while ((name = lua_getlocal(co, &ar, i)) != nullptr) {
+            if (varName == QString(name)) {
+                bool ok;
+                int numericValue = varValue.toInt(&ok);
+
+                if (ok) {
+                    lua_pushnumber(co, numericValue);
+                    lua_setlocal(co, &ar, i);
+                    qDebug() << "Successfully changed" << varName << "to" << numericValue;
+                } else {
+                    qWarning() << "Failed to convert" << varValue << "to number";
+                }
+
+                lua_pop(co, 1);
+                break;
+            }
+
+            lua_pop(co, 1);
+            i++;
+        }
+    }
 }
 
 // LuaInterpreter private

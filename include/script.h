@@ -87,6 +87,7 @@ private:
     QTabWidget *m_scriptTabWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QListWidget *m_scriptThreadpoolListWidget = nullptr;
+    LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
     QStandardItemModel *m_scriptDebugTreeViewModel = nullptr;
@@ -166,6 +167,8 @@ public:
 
     void debug(const QString &script);
 
+    void changeValue(const QString &varName, const QString &varValue);
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -205,6 +208,7 @@ private:
     static int luaDatatableWrite(lua_State *L);
 
     lua_State *L = nullptr;
+    lua_State *co = nullptr;
 };
 
 class ScriptExplorer final : public QTreeView {
