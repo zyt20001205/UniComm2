@@ -157,9 +157,9 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
             }, Qt::QueuedConnection);
         }
     });
+    m_scriptDebugTreeView->expandAll();
     m_scriptDebugTreeView->resizeColumnToContents(0);
     m_scriptDebugTreeView->resizeColumnToContents(1);
-    m_scriptDebugTreeView->expandAll();
 }
 
 // Script private
@@ -583,22 +583,48 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             // treeview
             int i = 1;
             auto *varMap = new QStandardItemModel();
-            varMap->setHorizontalHeaderLabels(QStringList() << "Name" << "Type" << "Value");
+            varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
             const char *varName;
             while ((varName = lua_getlocal(L, ar, i)) != nullptr) {
                 if (varName[0] != '(') {
-                    const int type = lua_type(L, -1);
-                    const char *varType = lua_typename(L, type);
+                    const char *varType = lua_typename(L, lua_type(L, -1));
                     const char *varValue = lua_tostring(L, -1);
-                    QStandardItem *nameItem = new QStandardItem(varName); // NOLINT
-                    nameItem->setEditable(false);
-                    QStandardItem *typeItem = new QStandardItem(varType); // NOLINT
-                    typeItem->setEditable(false);
-                    QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
-                    valueItem->setData(varName, Qt::UserRole + 1);
-                    QList<QStandardItem *> rowItems;
-                    rowItems << nameItem << typeItem << valueItem;
-                    varMap->appendRow(rowItems);
+                    if (lua_type(L, -1) == LUA_TTABLE) {
+                        QStandardItem *nameItem = new QStandardItem(varName); // NOLINT
+                        nameItem->setEditable(false);
+                        QStandardItem *typeItem = new QStandardItem(varType); // NOLINT
+                        typeItem->setEditable(false);
+                        QStandardItem *valueItem = new QStandardItem("{...}"); // NOLINT
+                        valueItem->setEditable(false);
+                        varMap->appendRow({nameItem, typeItem, valueItem});
+                        // get child
+                        const int tableIndex = lua_gettop(L);
+                        lua_pushnil(L);
+                        while (lua_next(L, tableIndex) != 0) {
+                            lua_pushvalue(L, -2);
+                            const char *_varName = lua_tostring(L, -1);
+                            lua_pop(L, 1);
+                            const char *_varType = lua_typename(L, lua_type(L, -1));
+                            lua_pushvalue(L, -1);
+                            const char *_varValue = lua_tostring(L, -1);
+                            lua_pop(L, 1);
+                            auto *_nameItem = new QStandardItem(_varName); // NOLINT
+                            _nameItem->setEditable(false);
+                            auto *_typeItem = new QStandardItem(_varType); // NOLINT
+                            _typeItem->setEditable(false);
+                            auto *_valueItem = new QStandardItem(_varValue); // NOLINT
+                            nameItem->appendRow({_nameItem, _typeItem, _valueItem});
+                            lua_pop(L, 1);
+                        }
+                    } else {
+                        QStandardItem *nameItem = new QStandardItem(varName); // NOLINT
+                        nameItem->setEditable(false);
+                        QStandardItem *typeItem = new QStandardItem(varType); // NOLINT
+                        typeItem->setEditable(false);
+                        QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
+                        valueItem->setData(varName, Qt::UserRole + 1);
+                        varMap->appendRow({nameItem, typeItem, valueItem});
+                    }
                 }
                 lua_pop(L, 1);
                 i++;
