@@ -60,7 +60,7 @@ public:
 
     void scriptHighlight(int row) const;
 
-    void scriptTreeViewLoad(const QVariantMap &varMap) const;
+    void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
     Port *m_port = nullptr;
 signals:
@@ -90,7 +90,6 @@ private:
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
-    QStandardItemModel *m_scriptDebugTreeViewModel = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 };
 
@@ -163,14 +162,11 @@ public:
 
     ~LuaInterpreter() override = default;
 
-    void run(const QString &script);
+    void run(const QString &script) const;
 
     void debug(const QString &script);
 
     void changeValue(const QString &varName, const QString &varValue) const;
-
-signals:
-    void appendLog(const QString &message, const QString &level);
 
 private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);

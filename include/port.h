@@ -161,7 +161,7 @@ private:
 
     QString m_type;
     QString m_target;
-    QScreen *m_screen;
+    QScreen *m_screen{};
     QCameraDevice m_camera;
     QGraphicsView *m_graphicsView = nullptr;
     QRect m_rect;
@@ -332,7 +332,7 @@ private:
     QString m_tcpClientRemoteAddress;
     int m_tcpClientRemotePort;
     QString m_tcpClientLocalAddress;
-    int m_tcpClientLocalPort;
+    int m_tcpClientLocalPort{};
     // tx config
     QString m_txFormat;
     QString m_txSuffix;

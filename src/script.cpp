@@ -2,6 +2,7 @@
 
 static Script *g_script = nullptr;
 QList<int> g_breakpoint;
+bool g_terminate = false;
 QMutex g_mutex;
 QWaitCondition g_condition;
 
@@ -76,20 +77,18 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         g_condition.wakeOne();
         g_mutex.unlock();
     });
+    auto *debugTerminateButton = new QPushButton(); // NOLINT
+    debugCtrlLayout->addWidget(debugTerminateButton);
+    debugTerminateButton->setFixedSize(24, 24);
+    debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
+    connect(debugTerminateButton, &QPushButton::clicked, this, [] {
+        g_terminate = true;
+        g_mutex.lock();
+        g_condition.wakeOne();
+        g_mutex.unlock();
+    });
     m_scriptDebugTreeView = new QTreeView(); // NOLINT
     m_scriptMonitorLayout->addWidget(m_scriptDebugTreeView);
-    m_scriptDebugTreeViewModel = new QStandardItemModel();
-    m_scriptDebugTreeView->setModel(m_scriptDebugTreeViewModel);
-    m_scriptDebugTreeViewModel->setHorizontalHeaderLabels({"Name", "Type", "Value"});
-    connect(m_scriptDebugTreeViewModel, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
-        if (item->column() == 2) {
-            const QString varName = item->data(Qt::UserRole + 1).toString();
-            const QString varValue = item->text();
-            QMetaObject::invokeMethod(m_debugInterpreter, [&, varName, varValue] {
-                m_debugInterpreter->changeValue(varName, varValue);
-            }, Qt::QueuedConnection);
-        }
-    });
     // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
     scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
@@ -103,7 +102,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
 
 void Script::scriptConfigSave() const {
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
-        auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
+        auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
         if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
             scriptPageWidget->m_scriptEdited = false;
             scriptPageWidget->scriptSave();
@@ -138,7 +137,6 @@ void Script::scriptHighlight(const int row) const {
     if (currentIndex < 0) {
         return;
     }
-    const QString name = m_scriptTabWidget->tabText(currentIndex);
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
 
@@ -147,22 +145,18 @@ void Script::scriptHighlight(const int row) const {
     scriptPageWidget->m_scriptEditor->markerAdd(row - 1, 2);
 }
 
-void Script::scriptTreeViewLoad(const QVariantMap &varMap) const {
-    // qDebug() << varMap;
-    m_scriptDebugTreeViewModel->clear();
-    m_scriptDebugTreeViewModel->setHorizontalHeaderLabels({"Name", "Type", "Value"});
-    for (auto it = varMap.constBegin(); it != varMap.constEnd(); ++it) {
-        const QString &variableName = it.key();
-        const QVariantMap &variableInfo = it.value().toMap();
-        QStandardItem *nameItem = new QStandardItem(variableName); // NOLINT
-        QStandardItem *typeItem = new QStandardItem(variableInfo["type"].toString()); // NOLINT
-        QStandardItem *valueItem = new QStandardItem(variableInfo["value"].toString()); // NOLINT
-        valueItem->setData(variableName, Qt::UserRole + 1);
-
-        QList<QStandardItem *> rowItems;
-        rowItems << nameItem << typeItem << valueItem;
-        m_scriptDebugTreeViewModel->appendRow(rowItems);
-    }
+void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
+    qDebug() << varMap->rowCount();
+    m_scriptDebugTreeView->setModel(varMap);
+    connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
+        if (item->column() == 2) {
+            const QString varName = item->data(Qt::UserRole + 1).toString();
+            const QString varValue = item->text();
+            QMetaObject::invokeMethod(m_debugInterpreter, [&, varName, varValue] {
+                m_debugInterpreter->changeValue(varName, varValue);
+            }, Qt::QueuedConnection);
+        }
+    });
     m_scriptDebugTreeView->resizeColumnToContents(0);
     m_scriptDebugTreeView->resizeColumnToContents(1);
     m_scriptDebugTreeView->expandAll();
@@ -182,7 +176,6 @@ void Script::scriptRun() {
     const auto worker = new QThread(); // NOLINT
     const auto interpreter = new LuaInterpreter(); // NOLINT
     interpreter->moveToThread(worker);
-    connect(interpreter, &LuaInterpreter::appendLog, this, &Script::appendLog);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     connect(worker, &QThread::started, [interpreter, script] {
@@ -221,7 +214,6 @@ void Script::scriptDebug() {
     if (currentIndex < 0) {
         return;
     }
-    const QString name = m_scriptTabWidget->tabText(currentIndex);
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
     QString script = scriptPageWidget->m_scriptEditor->text();
@@ -229,7 +221,6 @@ void Script::scriptDebug() {
     auto *worker = new QThread(); // NOLINT
     m_debugInterpreter = new LuaInterpreter(); // NOLINT
     m_debugInterpreter->moveToThread(worker);
-    connect(m_debugInterpreter, &LuaInterpreter::appendLog, this, &Script::appendLog);
     connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     connect(worker, &QThread::started, [this, script] {
@@ -329,8 +320,8 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->markerDefine(Circle, 1);
     this->setMarkerBackgroundColor(Qt::red, 1);
     this->setMarkerForegroundColor(Qt::red, 1);
-    connect(this, SIGNAL(marginClicked(int, int, Qt::KeyboardModifiers)),
-            this, SLOT(onMarginClicked(int, int, Qt::KeyboardModifiers)));
+    connect(this, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)),
+            this, SLOT(onMarginClicked(int,int,Qt::KeyboardModifiers)));
 
     this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
     this->setMarginType(2, SymbolMargin);
@@ -460,13 +451,15 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_setglobal(L, "datatable");
 }
 
-void LuaInterpreter::run(const QString &script) {
+void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         const QString error = lua_tostring(L, -1);
-        emit appendLog(error, "error");
+        QMetaObject::invokeMethod(g_script, [=] {
+            g_script->appendLog(error, "error");
+        }, Qt::QueuedConnection);
         lua_pop(L, 1);
     }
     // remove terminate hook
@@ -482,12 +475,15 @@ void LuaInterpreter::debug(const QString &script) {
     // lua load
     if (luaL_loadstring(co, script.toUtf8().constData()) != LUA_OK) {
         const QString error = lua_tostring(co, -1);
-        emit appendLog(error, "error");
+        QMetaObject::invokeMethod(g_script, [=] {
+            g_script->appendLog(error, "error");
+        }, Qt::QueuedConnection);
         lua_pop(co, 1);
         lua_close(L);
         return;
     }
     g_script->scriptHighlight(-1);
+    g_terminate = false;
     // lua exec
     while (true) {
         int nresults = 0;
@@ -499,11 +495,20 @@ void LuaInterpreter::debug(const QString &script) {
             g_mutex.lock();
             g_condition.wait(&g_mutex);
             g_mutex.unlock();
+            g_script->scriptHighlight(-1);
             // handle change value request
             QCoreApplication::sendPostedEvents(nullptr, 0);
         } else {
-            const QString error = lua_tostring(co, -1);
-            emit appendLog(error, "error");
+            lua_Debug ar;
+            if (lua_getstack(co, 0, &ar)) {
+                lua_getinfo(co, "Sl", &ar);
+                const int row = ar.currentline;
+                const QString error = lua_tostring(co, -1);
+                QMetaObject::invokeMethod(g_script, [=] {
+                    g_script->scriptHighlight(row);
+                    g_script->appendLog(error, "error");
+                }, Qt::QueuedConnection);
+            }
             lua_pop(co, 1);
             break;
         }
@@ -565,6 +570,11 @@ void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     if (ar->event == LUA_HOOKLINE) {
         const int row = ar->currentline;
+        if (g_terminate) {
+            lua_pushstring(L, "terminated");
+            lua_error(L);
+            return;
+        }
         if (g_breakpoint.contains(row)) {
             // highlight
             QMetaObject::invokeMethod(g_script, [&, row] {
@@ -572,24 +582,27 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }, Qt::BlockingQueuedConnection);
             // treeview
             int i = 1;
+            auto *varMap = new QStandardItemModel();
+            varMap->setHorizontalHeaderLabels(QStringList() << "Name" << "Type" << "Value");
             const char *varName;
-            auto *varMap = new QVariantMap();
             while ((varName = lua_getlocal(L, ar, i)) != nullptr) {
                 if (varName[0] != '(') {
-                    QVariantMap varInfo;
                     const int type = lua_type(L, -1);
                     const char *varType = lua_typename(L, type);
                     const char *varValue = lua_tostring(L, -1);
-                    varInfo["type"] = varType;
-                    varInfo["value"] = varValue;
-                    varMap->insert(varName, varInfo);
+                    QStandardItem *nameItem = new QStandardItem(varName); // NOLINT
+                    QStandardItem *typeItem = new QStandardItem(varType); // NOLINT
+                    QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
+                    valueItem->setData(varName, Qt::UserRole + 1);
+                    QList<QStandardItem *> rowItems;
+                    rowItems << nameItem << typeItem << valueItem;
+                    varMap->appendRow(rowItems);
                 }
                 lua_pop(L, 1);
                 i++;
             }
             QMetaObject::invokeMethod(g_script, [&, varMap] {
-                g_script->scriptTreeViewLoad(*varMap);
-                delete varMap;
+                g_script->scriptTreeViewLoad(varMap);
             }, Qt::BlockingQueuedConnection);
             // hold thread
             lua_yield(L, 0);

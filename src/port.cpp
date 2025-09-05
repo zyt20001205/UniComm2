@@ -1533,7 +1533,7 @@ QByteArray TcpServer::readData(const int timeout) {
     // async mode
     if (timeout == 0) return m_rxBuffer;
     // sync mode (WIP)
-    return QByteArray();
+    return {};
 }
 
 // TcpServer private
