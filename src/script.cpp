@@ -146,7 +146,6 @@ void Script::scriptHighlight(const int row) const {
 }
 
 void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
-    qDebug() << varMap->rowCount();
     m_scriptDebugTreeView->setModel(varMap);
     connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
         if (item->column() == 2) {
