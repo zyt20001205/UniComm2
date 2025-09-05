@@ -591,7 +591,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     const char *varType = lua_typename(L, type);
                     const char *varValue = lua_tostring(L, -1);
                     QStandardItem *nameItem = new QStandardItem(varName); // NOLINT
+                    nameItem->setEditable(false);
                     QStandardItem *typeItem = new QStandardItem(varType); // NOLINT
+                    typeItem->setEditable(false);
                     QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
                     valueItem->setData(varName, Qt::UserRole + 1);
                     QList<QStandardItem *> rowItems;
