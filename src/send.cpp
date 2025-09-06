@@ -20,7 +20,7 @@ Send::Send(QObject *parent)
     connect(sendButton, &QPushButton::clicked, this, [this] {
         QString txText = m_lineEdit->text();
         auto *portObject = m_port->portObject(-1);
-        QMetaObject::invokeMethod(portObject, [&, txText] {
+        QMetaObject::invokeMethod(portObject, [portObject, txText] {
             portObject->writeText(txText);
         }, Qt::BlockingQueuedConnection);
     });
@@ -76,7 +76,7 @@ void Send::sendConfigSave() const {
 
 void Send::commandSend(const QString &txText) const {
     auto *portObject = m_port->portObject(-1);
-    QMetaObject::invokeMethod(portObject, [&, txText] {
+    QMetaObject::invokeMethod(portObject, [portObject, txText] {
         portObject->writeText(txText);
     }, Qt::BlockingQueuedConnection);
 }

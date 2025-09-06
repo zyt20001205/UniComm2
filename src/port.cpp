@@ -766,7 +766,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         QImageCapture imageCapture;
         captureSession.setImageCapture(&imageCapture);
         QEventLoop loop;
-        connect(&imageCapture, &QImageCapture::imageCaptured, this, [&](int id, const QImage &img) {
+        connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](const int id, const QImage &img) {
             Q_UNUSED(id);
             shot = QPixmap::fromImage(img);
             loop.quit();
@@ -938,7 +938,7 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
 }
 
 PageWidget::~PageWidget() {
-    QMetaObject::invokeMethod(m_port, [&] {
+    QMetaObject::invokeMethod(m_port, [this] {
         m_port->close();
     }, Qt::BlockingQueuedConnection);
     m_thread->quit();
@@ -946,11 +946,11 @@ PageWidget::~PageWidget() {
 }
 
 void PageWidget::portReload(const QJsonObject &portConfig) const {
-    QMetaObject::invokeMethod(m_port, [&] {
+    QMetaObject::invokeMethod(m_port, [this] {
         m_port->close();
     }, Qt::BlockingQueuedConnection);
     m_pushButton->setChecked(false);
-    QMetaObject::invokeMethod(m_port, [&, portConfig] {
+    QMetaObject::invokeMethod(m_port, [this, portConfig] {
         m_port->reload(portConfig);
     }, Qt::BlockingQueuedConnection);
 }
@@ -959,12 +959,12 @@ void PageWidget::portReload(const QJsonObject &portConfig) const {
 void PageWidget::portToggle(const bool status) const {
     if (status) {
         bool ok = false;
-        QMetaObject::invokeMethod(m_port, [&] {
+        QMetaObject::invokeMethod(m_port, [&ok, this] {
             ok = m_port->open();
         }, Qt::BlockingQueuedConnection);
         m_pushButton->setChecked(ok);
     } else {
-        QMetaObject::invokeMethod(m_port, [&] {
+        QMetaObject::invokeMethod(m_port, [this] {
             m_port->close();
         }, Qt::BlockingQueuedConnection);
         m_pushButton->setChecked(false);
@@ -1969,7 +1969,7 @@ QString Camera::readText(int timeout) {
     QImageCapture imageCapture;
     captureSession.setImageCapture(&imageCapture);
     QEventLoop loop;
-    connect(&imageCapture, &QImageCapture::imageCaptured, this, [&](int id, const QImage &img) {
+    connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &shot, &loop](const int id, const QImage &img) {
         Q_UNUSED(id);
         shot = QPixmap::fromImage(img).copy(m_area);
         loop.quit();

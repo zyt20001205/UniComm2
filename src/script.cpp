@@ -178,7 +178,7 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
         if (item->column() == 2) {
             const QString varName = item->data(Qt::UserRole + 1).toString();
             const QString varValue = item->text();
-            QMetaObject::invokeMethod(m_debugInterpreter, [&, varName, varValue] {
+            QMetaObject::invokeMethod(m_debugInterpreter, [this, varName, varValue] {
                 m_debugInterpreter->changeValue(varName, varValue);
             }, Qt::QueuedConnection);
         }
@@ -503,7 +503,7 @@ void LuaInterpreter::run(const QString &script) const {
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         const QString error = lua_tostring(L, -1);
-        QMetaObject::invokeMethod(g_script, [=] {
+        QMetaObject::invokeMethod(g_script, [error] {
             g_script->appendLog(error, "error");
         }, Qt::QueuedConnection);
         lua_pop(L, 1);
@@ -521,7 +521,7 @@ void LuaInterpreter::debug(const QString &script) {
     // lua load
     if (luaL_loadstring(co, script.toUtf8().constData()) != LUA_OK) {
         const QString error = lua_tostring(co, -1);
-        QMetaObject::invokeMethod(g_script, [=] {
+        QMetaObject::invokeMethod(g_script, [error] {
             g_script->appendLog(error, "error");
         }, Qt::QueuedConnection);
         lua_pop(co, 1);
@@ -550,7 +550,7 @@ void LuaInterpreter::debug(const QString &script) {
                 lua_getinfo(co, "Sl", &ar);
                 const int row = ar.currentline;
                 const QString error = lua_tostring(co, -1);
-                QMetaObject::invokeMethod(g_script, [=] {
+                QMetaObject::invokeMethod(g_script, [row, error] {
                     g_script->scriptHighlight(row);
                     g_script->appendLog(error, "error");
                 }, Qt::QueuedConnection);
@@ -623,12 +623,12 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         }
         if (g_breakpoint.contains(row)) {
             // highlight
-            QMetaObject::invokeMethod(g_script, [&, row] {
+            QMetaObject::invokeMethod(g_script, [row] {
                 g_script->scriptHighlight(row);
             }, Qt::BlockingQueuedConnection);
             // treeview
             int i = 1;
-            auto *varMap = new QStandardItemModel();
+            auto *varMap = new QStandardItemModel(); // NOLINT
             varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
             const char *varName;
             while ((varName = lua_getlocal(L, ar, i)) != nullptr) {
@@ -659,6 +659,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                             auto *_typeItem = new QStandardItem(_varType); // NOLINT
                             _typeItem->setEditable(false);
                             auto *_valueItem = new QStandardItem(_varValue); // NOLINT
+                            _valueItem->setEditable(false);
                             nameItem->appendRow({_nameItem, _typeItem, _valueItem});
                             lua_pop(L, 1);
                         }
@@ -675,7 +676,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 lua_pop(L, 1);
                 i++;
             }
-            QMetaObject::invokeMethod(g_script, [&, varMap] {
+            QMetaObject::invokeMethod(g_script, [varMap] {
                 g_script->scriptTreeViewLoad(varMap);
             }, Qt::BlockingQueuedConnection);
             // hold thread
@@ -716,7 +717,7 @@ int LuaInterpreter::luaInput(lua_State *L) {
     // start operation
     bool ok = false;
     QString input;
-    QMetaObject::invokeMethod(qApp, [&] {
+    QMetaObject::invokeMethod(qApp, [&ok, &input] {
         QWidget *parent = QApplication::activeWindow();
         input = QInputDialog::getText(parent, "Input Dialog", "input:", QLineEdit::Normal, QString(), &ok);
     }, Qt::BlockingQueuedConnection);
@@ -736,7 +737,7 @@ int LuaInterpreter::luaPortOpen(lua_State *L) {
     const int index = param1;
     auto *portObject = g_script->m_port->portObject(index);
     bool status;
-    QMetaObject::invokeMethod(portObject, [&] {
+    QMetaObject::invokeMethod(portObject, [&status, portObject] {
         status = portObject->open();
     }, Qt::BlockingQueuedConnection);
     lua_pushboolean(L, status);
@@ -752,7 +753,7 @@ int LuaInterpreter::luaPortClose(lua_State *L) {
     // start operation
     const int index = param1;
     auto *portObject = g_script->m_port->portObject(index);
-    QMetaObject::invokeMethod(portObject, [&] {
+    QMetaObject::invokeMethod(portObject, [portObject] {
         portObject->close();
     }, Qt::BlockingQueuedConnection);
     return 0;
@@ -768,7 +769,7 @@ int LuaInterpreter::luaPortInfo(lua_State *L) {
     const int index = param1;
     auto *portObject = g_script->m_port->portObject(index);
     QString info;
-    QMetaObject::invokeMethod(portObject, [&] {
+    QMetaObject::invokeMethod(portObject, [&info, portObject] {
         info = portObject->info();
     }, Qt::BlockingQueuedConnection);
     emit g_script->appendLog(info, "info");
@@ -798,11 +799,11 @@ int LuaInterpreter::luaPortWriteText(lua_State *L) {
     auto *portObject = g_script->m_port->portObject(index);
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
-        QMetaObject::invokeMethod(portObject, [&, txText, peerIp] {
+        QMetaObject::invokeMethod(portObject, [portObject, txText, peerIp] {
             portObject->writeText(txText, peerIp);
         }, Qt::BlockingQueuedConnection);
     } else {
-        QMetaObject::invokeMethod(portObject, [&, txText] {
+        QMetaObject::invokeMethod(portObject, [portObject, txText] {
             portObject->writeText(txText);
         }, Qt::BlockingQueuedConnection);
     }
@@ -833,11 +834,11 @@ int LuaInterpreter::luaPortWriteData(lua_State *L) {
     auto *portObject = g_script->m_port->portObject(index);
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
-        QMetaObject::invokeMethod(portObject, [&, txData, peerIp] {
+        QMetaObject::invokeMethod(portObject, [portObject, txData, peerIp] {
             portObject->writeData(txData, peerIp);
         }, Qt::BlockingQueuedConnection);
     } else {
-        QMetaObject::invokeMethod(portObject, [&, txData] {
+        QMetaObject::invokeMethod(portObject, [portObject, txData] {
             portObject->writeData(txData);
         }, Qt::BlockingQueuedConnection);
     }
@@ -856,7 +857,7 @@ int LuaInterpreter::luaPortReadText(lua_State *L) {
     const int timeout = param2;
     QString rxText;
     auto *portObject = g_script->m_port->portObject(index);
-    QMetaObject::invokeMethod(portObject, [&, timeout] {
+    QMetaObject::invokeMethod(portObject, [&rxText, portObject, timeout] {
         rxText = portObject->readText(timeout);
     }, Qt::BlockingQueuedConnection);
     lua_pushstring(L, rxText.toUtf8().constData());
@@ -875,7 +876,7 @@ int LuaInterpreter::luaPortReadData(lua_State *L) {
     const int timeout = param2;
     QByteArray rxData;
     auto *portObject = g_script->m_port->portObject(index);
-    QMetaObject::invokeMethod(portObject, [&, timeout] {
+    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
     lua_pushlstring(L, rxData.constData(), rxData.size());
@@ -906,12 +907,12 @@ int LuaInterpreter::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     txData.append(static_cast<char>(txQuantity >> 8 & 0xFF));
     txData.append(static_cast<char>(txQuantity & 0xFF));
     txData += modbusCRC(txData);
-    QMetaObject::invokeMethod(portObject, [&, txData] {
+    QMetaObject::invokeMethod(portObject, [portObject, txData] {
         portObject->writeData(txData);
     }, Qt::BlockingQueuedConnection);
     QByteArray rxData;
     const int timeout = param4;
-    QMetaObject::invokeMethod(portObject, [&, timeout] {
+    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
     if (rxData == "timeout") {
@@ -966,12 +967,12 @@ int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     txData.append(txByteCount);
     txData += txRegData;
     txData += modbusCRC(txData);
-    QMetaObject::invokeMethod(portObject, [&, txData] {
+    QMetaObject::invokeMethod(portObject, [portObject, txData] {
         portObject->writeData(txData);
     }, Qt::BlockingQueuedConnection);
     QByteArray rxData;
     const int timeout = param4;
-    QMetaObject::invokeMethod(portObject, [&, timeout] {
+    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
     if (rxData == "timeout") {
@@ -1020,12 +1021,12 @@ int LuaInterpreter::luaModbusAsciiReadHoldingRegisters(lua_State *L) {
     txText.append(txQuantity);
     txText += modbusLRC(txText);
     txText += "\r\n";
-    QMetaObject::invokeMethod(portObject, [&, txText] {
+    QMetaObject::invokeMethod(portObject, [portObject, txText] {
         portObject->writeText(txText);
     }, Qt::BlockingQueuedConnection);
     QString rxText;
     const int timeout = param4;
-    QMetaObject::invokeMethod(portObject, [&, timeout] {
+    QMetaObject::invokeMethod(portObject, [&rxText, portObject, timeout] {
         rxText = portObject->readText(timeout);
     }, Qt::BlockingQueuedConnection);
     if (rxText == "timeout") {
