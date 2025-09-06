@@ -138,6 +138,14 @@ void Script::scriptConfigSave() const {
 
 void Script::scriptOpen(const QString &scriptPath) {
     // gui
+    // switch to existing page if already opened
+    for (int i = 0; i < m_scriptConfig.size(); i++) {
+        QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
+        if (scriptList[i].toString() == scriptPath) {
+            m_scriptTabWidget->setCurrentIndex(i);
+            return;
+        }
+    }
     // remove welcome page if exist
     if (m_scriptTabWidget->tabText(0) == "welcome") {
         m_scriptTabWidget->removeTab(0);
