@@ -1132,7 +1132,7 @@ void ScriptExplorer::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(tr("run"), [this, index] {
             scriptRun(index);
         });
-        menu.addAction(tr("load"), [this, index] {
+        menu.addAction(tr("open"), [this, index] {
             scriptOpen(index);
         });
         menu.addAction(tr("delete"), [this, index] {
