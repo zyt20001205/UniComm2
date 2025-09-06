@@ -108,7 +108,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         g_condition.wakeOne();
         g_mutex.unlock();
     });
-    m_scriptDebugTreeView = new QTreeView(); // NOLINT
+    m_scriptDebugTreeView = new QTreeView();
     m_scriptMonitorLayout->addWidget(m_scriptDebugTreeView);
     // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
@@ -1152,7 +1152,7 @@ bool ScriptExplorer::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     }
-    return true;
+    return QObject::eventFilter(obj, event);
 }
 
 // ScriptExplorer private
