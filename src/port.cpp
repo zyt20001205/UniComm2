@@ -3,7 +3,7 @@
 // Port public
 Port::Port(QObject *parent)
     : QDockWidget("port", qobject_cast<QWidget *>(parent)) {
-    // port widget ui init
+    // port widget gui init
     {
         m_tabWidget = new QTabWidget();
         setWidget(m_tabWidget);
@@ -13,6 +13,8 @@ Port::Port(QObject *parent)
             const int index = m_tabWidget->tabBar()->tabAt(pos);
             portMenu(index, pos);
         });
+        m_tabWidget->setMovable(true);
+        connect(m_tabWidget->tabBar(), &QTabBar::tabMoved, this, &Port::portSwap);
         m_addButton = new QPushButton(m_tabWidget);
         m_addButton->setIcon(QIcon(":/icon/add.svg"));
         m_tabWidget->setCornerWidget(m_addButton, Qt::TopRightCorner);
@@ -21,28 +23,28 @@ Port::Port(QObject *parent)
         });
         // init port tab
         if (const auto portCount = m_portConfig.size(); portCount == 0) {
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "no port config found, create a welcome page");
             auto welcomePage = new QWidget(); // NOLINT
             auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
             auto welcomeLabel = new QLabel("welcome"); // NOLINT
             welcomeLayout->addWidget(welcomeLabel);
             m_tabWidget->addTab(welcomePage, "welcome");
-        } else {
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
-            for (int i = 0; i < portCount; ++i) {
-                QJsonObject portConfig = m_portConfig[i].toObject();
+            qDebug() << QString("[%1] %2").arg(timestamp, "no port config found, create a welcome page");
+        } else {
+            for (const QJsonValue &value: m_portConfig) {
+                QJsonObject portConfig = value.toObject();
                 auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
                 QString portName = portConfig["portName"].toString();
                 m_tabWidget->addTab(pageWidget, portName);
                 connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
             }
         }
     }
-    // port setting ui init
+    // port setting gui init
     {
         // init setting dialog & port type combobox
         {
@@ -353,11 +355,18 @@ void Port::portRemove(const int index) {
     QString portName = portInfo["portName"].toString();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "removed");
+    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "re");
     m_portConfig.removeAt(index);
     QWidget *w = m_tabWidget->widget(index);
     m_tabWidget->removeTab(index);
     if (w) w->deleteLater();
+}
+
+void Port::portSwap(const int srcIndex, const int dstIndex) {
+    // config
+    const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
+    m_portConfig.insert(dstIndex, tmp);
+    // qDebug() << m_portConfig;
 }
 
 void Port::portSettingLoad(const int index) {
@@ -1087,7 +1096,7 @@ void SerialPort::writeData(const QByteArray &txData) {
         emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp,m_portName);
+        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
         return;
     }
     // tx data reformat

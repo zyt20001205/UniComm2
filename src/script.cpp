@@ -18,13 +18,34 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     scriptSplitter->addWidget(m_scriptTabWidget);
     m_scriptTabWidget->setTabsClosable(true);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
+    m_scriptTabWidget->setMovable(true);
+    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &Script::scriptSwap);
     auto *welcomePage = new QWidget(); // NOLINT
-    m_scriptTabWidget->addTab(welcomePage, "welcome");
-    auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-    auto *welcomeBrowser = new QTextBrowser(); // NOLINT
-    welcomeLayout->addWidget(welcomeBrowser);
-
-    // welcomeBrowser->document()->setDefaultFont(QFont("Consolas", 11));
+    if (const int scriptCount = m_scriptConfig["scriptList"].toArray().size(); scriptCount == 0) {
+        m_scriptTabWidget->addTab(welcomePage, "welcome");
+        auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
+        auto *welcomeBrowser = new QTextBrowser(); // NOLINT
+        welcomeLayout->addWidget(welcomeBrowser);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, create a welcome page");
+    } else {
+        for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
+            const QString scriptPath = value.toString();
+            const QFileInfo fileInfo(scriptPath);
+            const QString fileName = fileInfo.fileName();
+            auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
+            m_scriptTabWidget->addTab(newTab, fileName);
+            m_scriptTabWidget->setCurrentWidget(newTab);
+            connect(newTab, &ScriptPageWidget::showManual, this, &Script::showManual);
+            connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
+                scriptEdited(m_scriptTabWidget->indexOf(newTab));
+            });
+        }
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(scriptCount), "script config found");
+    }
 
     // script widget -> ctrl widget
     auto *ctrlWidget = new QWidget(); // NOLINT
@@ -106,19 +127,24 @@ void Script::scriptConfigSave() const {
         if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
             scriptPageWidget->m_scriptEdited = false;
             scriptPageWidget->scriptSave();
+            // update tab name
             QString tabName = m_scriptTabWidget->tabText(i);
             tabName.chop(1);
             m_scriptTabWidget->setTabText(i, tabName);
         }
     }
-
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
 void Script::scriptOpen(const QString &scriptPath) {
+    // gui
+    // remove welcome page if exist
+    if (m_scriptTabWidget->tabText(0) == "welcome") {
+        m_scriptTabWidget->removeTab(0);
+    }
+    // open new tab
     const QFileInfo fileInfo(scriptPath);
     const QString fileName = fileInfo.fileName();
-
     auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
     m_scriptTabWidget->addTab(newTab, fileName);
     m_scriptTabWidget->setCurrentWidget(newTab);
@@ -126,10 +152,11 @@ void Script::scriptOpen(const QString &scriptPath) {
     connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
         scriptEdited(m_scriptTabWidget->indexOf(newTab));
     });
-
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
+    // config
+    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
+    scriptList.append(scriptPath);
+    m_scriptConfig["scriptList"] = scriptList;
+    // qDebug() << m_scriptConfig;
 }
 
 void Script::scriptHighlight(const int row) const {
@@ -168,12 +195,12 @@ void Script::scriptRun() {
         return;
     }
     const QString name = m_scriptTabWidget->tabText(currentIndex);
-    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    const auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
-    QString script = scriptPageWidget->m_scriptEditor->text();
+    const QString script = scriptPageWidget->m_scriptEditor->text();
     // launch lua interpreter thread
-    const auto worker = new QThread(); // NOLINT
-    const auto interpreter = new LuaInterpreter(); // NOLINT
+    auto *worker = new QThread(); // NOLINT
+    auto *interpreter = new LuaInterpreter(); // NOLINT
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -213,7 +240,7 @@ void Script::scriptDebug() {
     if (currentIndex < 0) {
         return;
     }
-    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    const auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
     QString script = scriptPageWidget->m_scriptEditor->text();
     // launch lua interpreter thread
@@ -235,8 +262,9 @@ void Script::scriptEdited(const int index) const {
     m_scriptTabWidget->setTabText(index, tabName);
 }
 
-void Script::scriptClose(const int index) const {
-    auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
+void Script::scriptClose(const int index) {
+    // gui
+    auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
     if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
         const QMessageBox::StandardButton reply =
                 QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
@@ -248,6 +276,20 @@ void Script::scriptClose(const int index) const {
     const QWidget *tabToClose = m_scriptTabWidget->widget(index);
     m_scriptTabWidget->removeTab(index);
     delete tabToClose;
+    // config
+    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
+    scriptList.removeAt(index);
+    m_scriptConfig["scriptList"] = scriptList;
+    // qDebug() << m_scriptConfig;
+}
+
+void Script::scriptSwap(const int srcIndex, const int dstIndex) {
+    // config
+    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
+    const QJsonValue tmp = scriptList.takeAt(srcIndex);
+    scriptList.insert(dstIndex, tmp);
+    m_scriptConfig["scriptList"] = scriptList;
+    // qDebug() << m_scriptConfig;
 }
 
 // ScriptPageWidget public
@@ -259,7 +301,8 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
     connect(m_scriptEditor, &ScriptEditor::showManual, this, &ScriptPageWidget::showManual);
     m_scriptPath = scriptPath;
-    QFile file(scriptPath);
+    const QDir scriptDir(QDir::current().filePath("script"));
+    QFile file(scriptDir.filePath(scriptPath));
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);
     const QString content = in.readAll();
@@ -267,10 +310,14 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor->setText(content);
     // import!!! must use old connect method!!! do not modify!!!
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdited()));
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
 }
 
 void ScriptPageWidget::scriptSave() {
-    QFile file(m_scriptPath);
+    const QDir scriptDir(QDir::current().filePath("script"));
+    QFile file(scriptDir.filePath(m_scriptPath));
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
     out << m_scriptEditor->text();
@@ -1121,8 +1168,10 @@ void ScriptExplorer::scriptRun(const QModelIndex &index) {
 }
 
 void ScriptExplorer::scriptOpen(const QModelIndex &index) {
+    // using relative file path
     const QString filePath = m_model->filePath(index);
-    emit openScript(filePath);
+    const QDir scriptDir(QDir::current().filePath("script"));
+    emit openScript(scriptDir.relativeFilePath(filePath));
 }
 
 void ScriptExplorer::scriptDelete(const QModelIndex &index) {

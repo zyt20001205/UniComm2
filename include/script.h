@@ -81,7 +81,9 @@ private:
 
     void scriptEdited(int index) const;
 
-    void scriptClose(int index) const;
+    void scriptClose(int index);
+
+    void scriptSwap(int srcIndex, int dstIndex);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QTabWidget *m_scriptTabWidget = nullptr;
@@ -127,7 +129,7 @@ public:
     }
 
     QStringList autoCompletionWordSeparators() const override {
-        return QStringList();
+        return {};
     }
 };
 

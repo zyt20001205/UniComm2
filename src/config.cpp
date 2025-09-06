@@ -43,7 +43,10 @@ void Config::configGenerate() {
             },
             {
                 "scriptConfig", QJsonObject{
-                    {"script", ""},
+                    {
+                        "scriptList", QJsonArray{
+                        },
+                    },
                     {"fontFamily", "consolas"},
                     {"fontSize", "12"}
                 },

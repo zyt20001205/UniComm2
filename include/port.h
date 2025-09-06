@@ -71,6 +71,8 @@ private:
 
     void portRemove(int index);
 
+    void portSwap(const int srcIndex, const int dstIndex);
+
     QJsonArray m_portConfig = g_config["portConfig"].toArray();
     QTabWidget *m_tabWidget = nullptr;
     int m_currentIndex = 0;
