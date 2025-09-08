@@ -19,6 +19,7 @@
 #include <QSplitter>
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include <QSyntaxHighlighter>
 #include <QTextBrowser>
 #include <QThread>
