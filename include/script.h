@@ -64,6 +64,8 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void debugResume();
+
     void showManual(const QString &func);
 
     void writeDatabase(const QString &key, const QString &value);

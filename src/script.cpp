@@ -2,8 +2,19 @@
 
 static Script *g_script = nullptr;
 QList<int> g_breakpoint;
-bool g_terminate = false;
-bool g_pause = false;
+
+enum struct STATE {
+    RUN,
+    PAUSE,
+    TERMINATE,
+    STEPOVER,
+    STEPINTO,
+    STEPOUT,
+};
+
+auto g_stateMachine = STATE::RUN;
+int g_depth = 0;
+int g_baseDepth = 0;
 
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
@@ -80,11 +91,12 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     // script monitor widget -> script monitor tab widget -> script debug widget
     m_scriptDebugWidget = new QWidget();
     m_scriptMonitorTabWidget->addTab(m_scriptDebugWidget, "debug");
-    auto *m_scriptMonitorLayout = new QVBoxLayout(m_scriptDebugWidget); // NOLINT
-    m_scriptMonitorLayout->setContentsMargins(0, 0, 0, 0);
-    m_scriptMonitorLayout->setAlignment(Qt::AlignTop);
+    auto *scriptDebugLayout = new QVBoxLayout(m_scriptDebugWidget); // NOLINT
+    scriptDebugLayout->setContentsMargins(0, 0, 0, 0);
+    scriptDebugLayout->setSpacing(0);
+    // scriptDebugLayout->setAlignment(Qt::AlignTop);
     auto *debugCtrlWidget = new QWidget(); // NOLINT
-    m_scriptMonitorLayout->addWidget(debugCtrlWidget);
+    scriptDebugLayout->addWidget(debugCtrlWidget);
     auto *debugCtrlLayout = new QHBoxLayout(debugCtrlWidget); // NOLINT
     debugCtrlLayout->setContentsMargins(0, 0, 0, 0);
     debugCtrlLayout->setAlignment(Qt::AlignLeft);
@@ -92,26 +104,59 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugCtrlLayout->addWidget(debugContinueButton);
     debugContinueButton->setFixedSize(24, 24);
     debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
-    connect(debugContinueButton, &QPushButton::clicked, this, [] {
-        g_pause = false;
+    debugContinueButton->setToolTip(tr("resume"));
+    connect(debugContinueButton, &QPushButton::clicked, this, [this] {
+        g_stateMachine = STATE::RUN;
+        emit debugResume();
     });
     auto *debugPauseButton = new QPushButton(); // NOLINT
     debugCtrlLayout->addWidget(debugPauseButton);
     debugPauseButton->setFixedSize(24, 24);
     debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
+    debugPauseButton->setToolTip(tr("pause"));
     connect(debugPauseButton, &QPushButton::clicked, this, [] {
-        g_pause = true;
+        g_stateMachine = STATE::PAUSE;
+    });
+    auto *debugStepOverButton = new QPushButton(); // NOLINT
+    debugCtrlLayout->addWidget(debugStepOverButton);
+    debugStepOverButton->setFixedSize(24, 24);
+    debugStepOverButton->setIcon(QIcon(":/icon/debugStepOver.svg"));
+    debugStepOverButton->setToolTip(tr("step over"));
+    connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
+        g_baseDepth = g_depth;
+        g_stateMachine = STATE::STEPOVER;
+        emit debugResume();
+    });
+    auto *debugStepIntoButton = new QPushButton(); // NOLINT
+    debugCtrlLayout->addWidget(debugStepIntoButton);
+    debugStepIntoButton->setFixedSize(24, 24);
+    debugStepIntoButton->setIcon(QIcon(":/icon/debugStepInto.svg"));
+    debugStepIntoButton->setToolTip(tr("step into"));
+    connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
+        g_stateMachine = STATE::STEPINTO;
+        emit debugResume();
+    });
+    auto *debugStepOutButton = new QPushButton(); // NOLINT
+    debugCtrlLayout->addWidget(debugStepOutButton);
+    debugStepOutButton->setFixedSize(24, 24);
+    debugStepOutButton->setIcon(QIcon(":/icon/debugStepOut.svg"));
+    debugStepOutButton->setToolTip(tr("step out"));
+    connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
+        g_baseDepth = g_depth;
+        g_stateMachine = STATE::STEPOUT;
+        emit debugResume();
     });
     auto *debugTerminateButton = new QPushButton(); // NOLINT
     debugCtrlLayout->addWidget(debugTerminateButton);
     debugTerminateButton->setFixedSize(24, 24);
     debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
+    debugTerminateButton->setToolTip(tr("terminate"));
     connect(debugTerminateButton, &QPushButton::clicked, this, [] {
-        g_terminate = true;
-        g_pause = false;
+        g_stateMachine = STATE::TERMINATE;
     });
     m_scriptDebugTreeView = new QTreeView();
-    m_scriptMonitorLayout->addWidget(m_scriptDebugTreeView);
+    scriptDebugLayout->addWidget(m_scriptDebugTreeView);
+    scriptTreeViewLoad({});
     // script monitor widget -> script explorer treeview
     m_scriptExplorerTreeView = new ScriptExplorer();
     scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
@@ -182,6 +227,10 @@ void Script::scriptHighlight(const int row) const {
 }
 
 void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
+    if (!varMap) {
+        varMap = new QStandardItemModel(); // NOLINT
+        varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
+    }
     m_scriptDebugTreeView->setModel(varMap);
     connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
         if (item->column() == 2) {
@@ -546,10 +595,11 @@ void LuaInterpreter::debug(const QString &script) {
         return;
     }
     g_script->scriptHighlight(-1);
-    g_terminate = false;
-    g_pause = false;
+    g_stateMachine = STATE::RUN;
+    g_depth = 0;
     // lua exec
     while (true) {
+        int depth;
         int nresults = 0;
         int status = lua_resume(co, L, 0, &nresults);
         if (status == LUA_OK) {
@@ -559,13 +609,7 @@ void LuaInterpreter::debug(const QString &script) {
             break;
         } else if (status == LUA_YIELD) {
             QEventLoop loop;
-            QTimer timer;
-            connect(&timer, &QTimer::timeout, [&] {
-                if (!g_pause) {
-                    loop.quit();
-                }
-            });
-            timer.start(50);
+            connect(g_script, &Script::debugResume, &loop, &QEventLoop::quit);
             loop.exec();
             QMetaObject::invokeMethod(g_script, [] {
                 g_script->scriptHighlight(-1);
@@ -579,7 +623,7 @@ void LuaInterpreter::debug(const QString &script) {
                 g_script->scriptHighlight(row);
                 g_script->appendLog(error, "error");
                 // clear if manually terminated
-                if (g_terminate) {
+                if (g_stateMachine == STATE::TERMINATE) {
                     g_script->scriptHighlight(-1);
                     g_script->scriptTreeViewLoad({});
                 }
@@ -643,15 +687,22 @@ void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
 }
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
-    if (ar->event == LUA_HOOKLINE) {
+    if (ar->event == LUA_HOOKCALL) {
+        g_depth += 1;
+    } else if (ar->event == LUA_HOOKRET) {
+        g_depth -= 1;
+    } else if (ar->event == LUA_HOOKLINE) {
         const int row = ar->currentline;
-        if (g_terminate) {
+        if (g_stateMachine == STATE::TERMINATE) {
             lua_pushstring(L, "terminated");
             lua_error(L);
             return;
         }
-        if (g_breakpoint.contains(row)) g_pause = true;
-        if (g_pause) {
+        if (g_breakpoint.contains(row)) g_stateMachine = STATE::PAUSE;
+        if (g_stateMachine == STATE::STEPOVER && g_depth == g_baseDepth) g_stateMachine = STATE::PAUSE;
+        if (g_stateMachine == STATE::STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE::PAUSE;
+        if (g_stateMachine == STATE::STEPINTO) g_stateMachine = STATE::PAUSE;
+        if (g_stateMachine == STATE::PAUSE) {
             // highlight
             QMetaObject::invokeMethod(g_script, [row] {
                 g_script->scriptHighlight(row);
