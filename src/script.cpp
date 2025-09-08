@@ -3,6 +3,7 @@
 static Script *g_script = nullptr;
 QList<int> g_breakpoint;
 bool g_terminate = false;
+bool g_pause = false;
 QMutex g_mutex;
 QWaitCondition g_condition;
 
@@ -75,9 +76,9 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     m_scriptMonitorTabWidget = new QTabWidget();
     scriptMonitorSplitter->addWidget(m_scriptMonitorTabWidget);
     // script monitor widget -> script monitor tab widget -> script thread pool widget
-    m_scriptThreadpoolListWidget = new QListWidget();
-    m_scriptMonitorTabWidget->addTab(m_scriptThreadpoolListWidget, "threadpool");
-    m_scriptThreadpoolListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
+    m_scriptThreadPoolListWidget = new QListWidget();
+    m_scriptMonitorTabWidget->addTab(m_scriptThreadPoolListWidget, "thread pool");
+    m_scriptThreadPoolListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
     // script monitor widget -> script monitor tab widget -> script debug widget
     m_scriptDebugWidget = new QWidget();
     m_scriptMonitorTabWidget->addTab(m_scriptDebugWidget, "debug");
@@ -94,9 +95,19 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugContinueButton->setFixedSize(24, 24);
     debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
     connect(debugContinueButton, &QPushButton::clicked, this, [] {
-        g_mutex.lock();
-        g_condition.wakeOne();
-        g_mutex.unlock();
+        g_pause = false;
+        QTimer::singleShot(0, [] {
+            g_mutex.lock();
+            g_condition.wakeOne();
+            g_mutex.unlock();
+        });
+    });
+    auto *debugPauseButton = new QPushButton(); // NOLINT
+    debugCtrlLayout->addWidget(debugPauseButton);
+    debugPauseButton->setFixedSize(24, 24);
+    debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
+    connect(debugPauseButton, &QPushButton::clicked, this, [] {
+        g_pause = true;
     });
     auto *debugTerminateButton = new QPushButton(); // NOLINT
     debugCtrlLayout->addWidget(debugTerminateButton);
@@ -139,8 +150,8 @@ void Script::scriptConfigSave() const {
 void Script::scriptOpen(const QString &scriptPath) {
     // gui
     // switch to existing page if already opened
-    for (int i = 0; i < m_scriptConfig.size(); i++) {
-        QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
+    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
+    for (int i = 0; i < scriptList.size(); i++) {
         if (scriptList[i].toString() == scriptPath) {
             m_scriptTabWidget->setCurrentIndex(i);
             return;
@@ -161,7 +172,6 @@ void Script::scriptOpen(const QString &scriptPath) {
         scriptEdited(m_scriptTabWidget->indexOf(newTab));
     });
     // config
-    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
     scriptList.append(scriptPath);
     m_scriptConfig["scriptList"] = scriptList;
     // qDebug() << m_scriptConfig;
@@ -187,7 +197,7 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
             const QString varName = item->data(Qt::UserRole + 1).toString();
             const QString varValue = item->text();
             QMetaObject::invokeMethod(m_debugInterpreter, [this, varName, varValue] {
-                m_debugInterpreter->changeValue(varName, varValue);
+                m_debugInterpreter->hotUpdate(varName, varValue);
             }, Qt::QueuedConnection);
         }
     });
@@ -222,14 +232,14 @@ void Script::scriptRun() {
 
 void Script::scriptRunning(const QString &name, QThread *worker) {
     auto *scriptListWidgetItem = new QListWidgetItem(); // NOLINT
-    m_scriptThreadpoolListWidget->addItem(scriptListWidgetItem);
+    m_scriptThreadPoolListWidget->addItem(scriptListWidgetItem);
     connect(worker, &QThread::finished, this, [this, scriptListWidgetItem] {
-        const int row = m_scriptThreadpoolListWidget->row(scriptListWidgetItem);
-        m_scriptThreadpoolListWidget->takeItem(row);
+        const int row = m_scriptThreadPoolListWidget->row(scriptListWidgetItem);
+        m_scriptThreadPoolListWidget->takeItem(row);
         delete scriptListWidgetItem;
     });
     auto *scriptInfoWidget = new QWidget(); // NOLINT
-    m_scriptThreadpoolListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
+    m_scriptThreadPoolListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
     auto *scriptInfoLayout = new QHBoxLayout(scriptInfoWidget); // NOLINT
     scriptInfoLayout->setContentsMargins(5, 0, 5, 0);
     auto *scriptLabel = new QLabel(QDateTime::currentDateTime().toString("HH:mm:ss") + " " + name); // NOLINT
@@ -538,8 +548,11 @@ void LuaInterpreter::debug(const QString &script) {
     }
     g_script->scriptHighlight(-1);
     g_terminate = false;
+    g_pause = false;
     // lua exec
     while (true) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents);
+
         int nresults = 0;
         int status = lua_resume(co, L, 0, &nresults);
         if (status == LUA_OK) {
@@ -551,7 +564,8 @@ void LuaInterpreter::debug(const QString &script) {
             g_mutex.unlock();
             g_script->scriptHighlight(-1);
             // handle change value request
-            QCoreApplication::sendPostedEvents(nullptr, 0);
+            // QCoreApplication::sendPostedEvents(nullptr, 0);
+            // QCoreApplication::processEvents(QEventLoop::AllEvents);
         } else {
             lua_Debug ar;
             if (lua_getstack(co, 0, &ar)) {
@@ -571,7 +585,7 @@ void LuaInterpreter::debug(const QString &script) {
     lua_close(L);
 }
 
-void LuaInterpreter::changeValue(const QString &varName, const QString &varValue) const {
+void LuaInterpreter::hotUpdate(const QString &varName, const QString &varValue) const {
     qDebug() << varName << varValue;
     lua_Debug ar;
     if (lua_getstack(co, 0, &ar)) {
@@ -629,7 +643,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             lua_error(L);
             return;
         }
-        if (g_breakpoint.contains(row)) {
+        if (g_breakpoint.contains(row) || g_pause) {
             // highlight
             QMetaObject::invokeMethod(g_script, [row] {
                 g_script->scriptHighlight(row);

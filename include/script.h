@@ -88,7 +88,7 @@ private:
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QTabWidget *m_scriptTabWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
-    QListWidget *m_scriptThreadpoolListWidget = nullptr;
+    QListWidget *m_scriptThreadPoolListWidget = nullptr;
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
@@ -168,7 +168,7 @@ public:
 
     void debug(const QString &script);
 
-    void changeValue(const QString &varName, const QString &varValue) const;
+    void hotUpdate(const QString &varName, const QString &varValue) const;
 
 private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);
