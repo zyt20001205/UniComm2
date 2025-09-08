@@ -4,8 +4,6 @@ static Script *g_script = nullptr;
 QList<int> g_breakpoint;
 bool g_terminate = false;
 bool g_pause = false;
-QMutex g_mutex;
-QWaitCondition g_condition;
 
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
@@ -96,11 +94,6 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
     connect(debugContinueButton, &QPushButton::clicked, this, [] {
         g_pause = false;
-        QTimer::singleShot(0, [] {
-            g_mutex.lock();
-            g_condition.wakeOne();
-            g_mutex.unlock();
-        });
     });
     auto *debugPauseButton = new QPushButton(); // NOLINT
     debugCtrlLayout->addWidget(debugPauseButton);
@@ -115,9 +108,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
     connect(debugTerminateButton, &QPushButton::clicked, this, [] {
         g_terminate = true;
-        g_mutex.lock();
-        g_condition.wakeOne();
-        g_mutex.unlock();
+        g_pause = false;
     });
     m_scriptDebugTreeView = new QTreeView();
     m_scriptMonitorLayout->addWidget(m_scriptDebugTreeView);
@@ -521,7 +512,11 @@ void LuaInterpreter::run(const QString &script) const {
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         const QString error = lua_tostring(L, -1);
-        QMetaObject::invokeMethod(g_script, [error] {
+        int row = -1;
+        static const QRegularExpression re(R"(\]:(\d+):)");
+        if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
+        QMetaObject::invokeMethod(g_script, [row, error] {
+            g_script->scriptHighlight(row);
             g_script->appendLog(error, "error");
         }, Qt::QueuedConnection);
         lua_pop(L, 1);
@@ -539,7 +534,11 @@ void LuaInterpreter::debug(const QString &script) {
     // lua load
     if (luaL_loadstring(co, script.toUtf8().constData()) != LUA_OK) {
         const QString error = lua_tostring(co, -1);
-        QMetaObject::invokeMethod(g_script, [error] {
+        int row = -1;
+        static const QRegularExpression re(R"(\]:(\d+):)");
+        if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
+        QMetaObject::invokeMethod(g_script, [row, error] {
+            g_script->scriptHighlight(row);
             g_script->appendLog(error, "error");
         }, Qt::QueuedConnection);
         lua_pop(co, 1);
@@ -551,32 +550,40 @@ void LuaInterpreter::debug(const QString &script) {
     g_pause = false;
     // lua exec
     while (true) {
-        QCoreApplication::processEvents(QEventLoop::AllEvents);
-
         int nresults = 0;
         int status = lua_resume(co, L, 0, &nresults);
         if (status == LUA_OK) {
-            g_script->scriptHighlight(-1);
+            QMetaObject::invokeMethod(g_script, [] {
+                g_script->scriptTreeViewLoad({});
+            }, Qt::QueuedConnection);
             break;
         } else if (status == LUA_YIELD) {
-            g_mutex.lock();
-            g_condition.wait(&g_mutex);
-            g_mutex.unlock();
-            g_script->scriptHighlight(-1);
-            // handle change value request
-            // QCoreApplication::sendPostedEvents(nullptr, 0);
-            // QCoreApplication::processEvents(QEventLoop::AllEvents);
+            QEventLoop loop;
+            QTimer timer;
+            connect(&timer, &QTimer::timeout, [&] {
+                if (!g_pause) {
+                    loop.quit();
+                }
+            });
+            timer.start(50);
+            loop.exec();
+            QMetaObject::invokeMethod(g_script, [] {
+                g_script->scriptHighlight(-1);
+            }, Qt::QueuedConnection);
         } else {
-            lua_Debug ar;
-            if (lua_getstack(co, 0, &ar)) {
-                lua_getinfo(co, "Sl", &ar);
-                const int row = ar.currentline;
-                const QString error = lua_tostring(co, -1);
-                QMetaObject::invokeMethod(g_script, [row, error] {
-                    g_script->scriptHighlight(row);
-                    g_script->appendLog(error, "error");
-                }, Qt::QueuedConnection);
-            }
+            const QString error = lua_tostring(co, -1);
+            int row = -1;
+            static const QRegularExpression re(R"(\]:(\d+):)");
+            if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
+            QMetaObject::invokeMethod(g_script, [row, error] {
+                g_script->scriptHighlight(row);
+                g_script->appendLog(error, "error");
+                // clear if manually terminated
+                if (g_terminate) {
+                    g_script->scriptHighlight(-1);
+                    g_script->scriptTreeViewLoad({});
+                }
+            }, Qt::QueuedConnection);
             lua_pop(co, 1);
             break;
         }
@@ -643,7 +650,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             lua_error(L);
             return;
         }
-        if (g_breakpoint.contains(row) || g_pause) {
+        if (g_breakpoint.contains(row)) g_pause = true;
+        if (g_pause) {
             // highlight
             QMetaObject::invokeMethod(g_script, [row] {
                 g_script->scriptHighlight(row);
@@ -882,6 +890,10 @@ int LuaInterpreter::luaPortReadText(lua_State *L) {
     QMetaObject::invokeMethod(portObject, [&rxText, portObject, timeout] {
         rxText = portObject->readText(timeout);
     }, Qt::BlockingQueuedConnection);
+    if (rxText == "timeout") {
+        luaL_error(L, "port read data timeout");
+        return 0;
+    }
     lua_pushstring(L, rxText.toUtf8().constData());
     return 1;
 }
@@ -901,6 +913,10 @@ int LuaInterpreter::luaPortReadData(lua_State *L) {
     QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
+    if (rxData == "timeout") {
+        luaL_error(L, "port read data timeout");
+        return 0;
+    }
     lua_pushlstring(L, rxData.constData(), rxData.size());
     return 1;
 }
@@ -937,10 +953,6 @@ int LuaInterpreter::luaModbusRtuReadHoldingRegisters(lua_State *L) {
     QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
-    if (rxData == "timeout") {
-        luaL_error(L, "modbus rtu read holding registers timeout");
-        return 0;
-    }
     if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu read holding registers slave address inconsistent");
         return 0;
@@ -997,9 +1009,6 @@ int LuaInterpreter::luaModbusRtuWriteMultipleRegisters(lua_State *L) {
     QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
         rxData = portObject->readData(timeout);
     }, Qt::BlockingQueuedConnection);
-    if (rxData == "timeout") {
-        luaL_error(L, "modbus rtu write multiple registers timeout");
-    }
     if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu write multiple registers slave address inconsistent");
     }
@@ -1051,10 +1060,6 @@ int LuaInterpreter::luaModbusAsciiReadHoldingRegisters(lua_State *L) {
     QMetaObject::invokeMethod(portObject, [&rxText, portObject, timeout] {
         rxText = portObject->readText(timeout);
     }, Qt::BlockingQueuedConnection);
-    if (rxText == "timeout") {
-        luaL_error(L, "modbus ascii read holding registers timeout");
-        return 0;
-    }
     if (rxText.at(0) != ":") {
         luaL_error(L, "modbus ascii read holding registers header missing");
         return 0;

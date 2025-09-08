@@ -10,7 +10,6 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
-#include <QMutex>
 #include <QProcess>
 #include <QProgressBar>
 #include <QPushButton>
@@ -25,7 +24,6 @@
 #include <QThread>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <QWaitCondition>
 #include <QWidget>
 #include <lua.hpp>
 #include "config.h"
