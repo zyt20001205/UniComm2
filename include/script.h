@@ -28,6 +28,7 @@
 #include <QWidget>
 #include <lua.hpp>
 #include "config.h"
+#include "luaMiscellaneous.h"
 #include "port.h"
 #include "suffix.h"
 
@@ -169,7 +170,7 @@ public:
 
     void debug(const QString &script);
 
-    void hotUpdate(const QString &varName, const QString &varValue) const;
+    void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 
 private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);
