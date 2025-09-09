@@ -50,6 +50,12 @@ bool Database::databaseWrite(const QString &key, const QString &value) const {
     return false;
 }
 
+void Database::databaseClear() const {
+    for (int index = 0; index < m_tableWidget->rowCount(); index++) {
+        m_tableWidget->item(index, 0)->setText("");
+    }
+}
+
 // Database protected
 void Database::contextMenuEvent(QContextMenuEvent *event) {
     const auto *vp = m_tableWidget->viewport();

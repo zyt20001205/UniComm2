@@ -20,6 +20,17 @@ int lua_databaseWrite(lua_State *L) {
     return 0;
 }
 
+int lua_databaseClear(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 0)
+        luaL_error(L, "unexpected number of arguments");
+    // start operation
+    QMetaObject::invokeMethod(g_database, [] {
+        g_database->databaseClear();
+    }, Qt::BlockingQueuedConnection);
+    return 0;
+}
+
 int lua_datatableWrite(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 2)

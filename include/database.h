@@ -23,6 +23,8 @@ public:
 
     bool databaseWrite(const QString &key, const QString &value) const;
 
+    void databaseClear() const;
+
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 

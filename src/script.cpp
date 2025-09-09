@@ -548,6 +548,8 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_newtable(L);
     lua_pushcfunction(L, lua_databaseWrite);
     lua_setfield(L, -2, "write");
+    lua_pushcfunction(L, lua_databaseClear);
+    lua_setfield(L, -2, "clear");
     lua_setglobal(L, "database");
     // register datatable class
     lua_newtable(L);
