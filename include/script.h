@@ -177,12 +177,6 @@ private:
 
     static void luaDebugHook(lua_State *L, lua_Debug *ar);
 
-    static int luaPrint(lua_State *L);
-
-    static int luaSleep(lua_State *L);
-
-    static int luaInput(lua_State *L);
-
     static int luaPortOpen(lua_State *L);
 
     static int luaPortClose(lua_State *L);

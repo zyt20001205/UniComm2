@@ -12,6 +12,7 @@
 #include "database.h"
 #include "datatable.h"
 #include "log.h"
+#include "luaMiscellaneous.h"
 #include "manual.h"
 #include "port.h"
 #include "script.h"

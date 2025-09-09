@@ -512,9 +512,9 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     L = luaL_newstate();
     luaL_openlibs(L);
     // register C++ functions
-    lua_register(L, "print", LuaInterpreter::luaPrint);
-    lua_register(L, "sleep", LuaInterpreter::luaSleep);
-    lua_register(L, "input", LuaInterpreter::luaInput);
+    lua_register(L, "input", lua_input);
+    lua_register(L, "print", lua_print);
+    lua_register(L, "sleep", lua_sleep);
     // register port class
     lua_newtable(L);
     lua_pushcfunction(L, LuaInterpreter::luaPortOpen);
@@ -875,48 +875,6 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             lua_yield(L, 0);
         }
     }
-}
-
-int LuaInterpreter::luaPrint(lua_State *L) {
-    const int n = lua_gettop(L);
-    QString message;
-    for (int i = 1; i <= n; i++) {
-        size_t len = 0;
-        const char *s = luaL_tolstring(L, i, &len);
-        if (i > 1) message += " ";
-        if (s) message += QString::fromUtf8(s, static_cast<int>(len));
-        lua_pop(L, 1);
-    }
-    if (g_script && !message.isEmpty()) emit g_script->appendLog(message, "info");
-    return 0;
-}
-
-int LuaInterpreter::luaSleep(lua_State *L) {
-    // check arguments
-    if (lua_gettop(L) != 1)
-        luaL_error(L, "unexpected number of arguments");
-    // extract arguments
-    const int param = static_cast<int>(luaL_checkinteger(L, 1));
-    // start operation
-    QThread::msleep(param);
-    return 0;
-}
-
-int LuaInterpreter::luaInput(lua_State *L) {
-    // check arguments
-    if (lua_gettop(L) > 0)
-        luaL_error(L, "unexpected number of arguments");
-    // start operation
-    bool ok = false;
-    QString input;
-    QMetaObject::invokeMethod(qApp, [&ok, &input] {
-        QWidget *parent = QApplication::activeWindow();
-        input = QInputDialog::getText(parent, "Input Dialog", "input:", QLineEdit::Normal, QString(), &ok);
-    }, Qt::BlockingQueuedConnection);
-    if (!ok)
-        return 0;
-    lua_pushstring(L, input.toUtf8().constData());
-    return 1;
 }
 
 int LuaInterpreter::luaPortOpen(lua_State *L) {

@@ -1,5 +1,9 @@
 #include "../include/luaMiscellaneous.h"
 
+void luaMiscellaneous_init(Log *log) {
+    g_log = log;
+}
+
 QString lua_toqstring(lua_State *L, const int idx) {
     switch (lua_type(L, idx)) {
         case LUA_TNIL:
@@ -49,4 +53,47 @@ void lua_pushqstring(lua_State *L, const int idx, const QString &value) {
         break;
         default: break;
     }
+}
+
+int lua_print(lua_State *L) {
+    const int n = lua_gettop(L);
+    QString message;
+    for (int i = 1; i <= n; i++) {
+        size_t len = 0;
+        const char *s = luaL_tolstring(L, i, &len);
+        if (i > 1) message += " ";
+        if (s) message += QString::fromUtf8(s, static_cast<int>(len));
+        lua_pop(L, 1);
+    }
+    if (!message.isEmpty()) g_log->logAppend(message, "info");
+    return 0;
+}
+
+int lua_sleep(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 1)
+        luaL_error(L, "unexpected number of arguments");
+    // extract arguments
+    const int param = static_cast<int>(luaL_checkinteger(L, 1));
+    // start operation
+    const int millisecond = param;
+    QThread::msleep(millisecond);
+    return 0;
+}
+
+int lua_input(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 0)
+        luaL_error(L, "unexpected number of arguments");
+    // start operation
+    bool ok = false;
+    QString input;
+    QMetaObject::invokeMethod(qApp, [&ok, &input] {
+        QWidget *parent = QApplication::activeWindow();
+        input = QInputDialog::getText(parent, "Input Dialog", "input:", QLineEdit::Normal, QString(), &ok);
+    }, Qt::BlockingQueuedConnection);
+    if (!ok)
+        return 0;
+    lua_pushstring(L, input.toUtf8().constData());
+    return 1;
 }

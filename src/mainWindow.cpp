@@ -98,6 +98,7 @@ void MainWindow::moduleInit() {
 
     m_scriptModule->setPort(m_portModule);
     m_sendModule->setPort(m_portModule);
+    luaMiscellaneous_init(m_logModule);
 }
 
 void MainWindow::menuInit() {
