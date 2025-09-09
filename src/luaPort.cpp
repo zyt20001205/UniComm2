@@ -10,7 +10,7 @@ int lua_portOpen(lua_State *L) {
     const int index = param1;
     auto *portObject = g_port->portObject(index);
     bool status;
-    QMetaObject::invokeMethod(portObject, [&status, portObject] {
+    QMetaObject::invokeMethod(portObject, [portObject, &status] {
         status = portObject->open();
     }, Qt::BlockingQueuedConnection);
     lua_pushboolean(L, status);

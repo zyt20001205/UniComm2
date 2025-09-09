@@ -17,6 +17,8 @@
 #include "script.h"
 #include "send.h"
 
+inline Database *g_database = nullptr;
+inline Datatable *g_datatable = nullptr;
 inline Log *g_log = nullptr;
 inline Port *g_port = nullptr;
 

@@ -28,6 +28,7 @@
 #include <QWidget>
 #include <lua.hpp>
 #include "config.h"
+#include "luaDataProcess.h"
 #include "luaPort.h"
 #include "luaMiscellaneous.h"
 #include "luaModbus.h"
@@ -54,8 +55,6 @@ public:
 
     ~Script() override = default;
 
-    void setPort(Port *port) { m_port = port; }
-
     void scriptConfigSave() const;
 
     void scriptOpen(const QString &scriptPath);
@@ -64,17 +63,12 @@ public:
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
-    Port *m_port = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
 
     void debugResume();
 
     void showManual(const QString &func);
-
-    void writeDatabase(const QString &key, const QString &value);
-
-    void writeDatatable(const QString &key, const QString &value);
 
 private:
     void scriptRun();
@@ -178,10 +172,6 @@ private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);
 
     static void luaDebugHook(lua_State *L, lua_Debug *ar);
-
-    static int luaDatabaseWrite(lua_State *L);
-
-    static int luaDatatableWrite(lua_State *L);
 
     lua_State *L = nullptr;
     lua_State *co = nullptr;

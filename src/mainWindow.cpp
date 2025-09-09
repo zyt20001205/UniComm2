@@ -90,14 +90,11 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &Script::writeDatabase, m_databaseModule, &Database::databaseWrite);
-    connect(m_databaseModule, &Database::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &Script::writeDatatable, m_datatableModule, &Datatable::datatableWrite);
     connect(m_scriptModule, &Script::showManual, m_manualModule, &Manual::manualShow);
-    connect(m_datatableModule, &Datatable::appendLog, m_logModule, &Log::logAppend);
 
-    m_scriptModule->setPort(m_portModule);
     m_sendModule->setPort(m_portModule);
+    g_database = m_databaseModule;
+    g_datatable = m_datatableModule;
     g_log = m_logModule;
     g_port = m_portModule;
 }

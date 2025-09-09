@@ -38,7 +38,7 @@ void Datatable::datatableConfigSave() const {
     g_config["datatableConfig"] = m_datatableConfig;
 }
 
-void Datatable::datatableWrite(const QString &key, const QString &value) {
+bool Datatable::datatableWrite(const QString &key, const QString &value) const {
     int column = -1;
     for (int index = 0; index < m_tableWidget->columnCount(); index++) {
         if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
@@ -47,8 +47,7 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
         }
     }
     if (column == -1) {
-        emit appendLog("key not found", "error");
-        return;
+        return false;
     }
     int row = -1;
     for (int index = 0; index < m_tableWidget->rowCount(); index++) {
@@ -62,6 +61,7 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
         m_tableWidget->setRowCount(row + 1);
     }
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
+    return true;
 }
 
 // Datatable protected

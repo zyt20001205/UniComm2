@@ -546,12 +546,12 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_setglobal(L, "modbusAscii");
     // register database class
     lua_newtable(L);
-    lua_pushcfunction(L, LuaInterpreter::luaDatabaseWrite);
+    lua_pushcfunction(L, lua_databaseWrite);
     lua_setfield(L, -2, "write");
     lua_setglobal(L, "database");
     // register datatable class
     lua_newtable(L);
-    lua_pushcfunction(L, LuaInterpreter::luaDatatableWrite);
+    lua_pushcfunction(L, lua_datatableWrite);
     lua_setfield(L, -2, "write");
     lua_setglobal(L, "datatable");
 }
@@ -875,30 +875,6 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             lua_yield(L, 0);
         }
     }
-}
-
-int LuaInterpreter::luaDatabaseWrite(lua_State *L) {
-    // check arguments
-    if (lua_gettop(L) != 2)
-        luaL_error(L, "unexpected number of arguments");
-    // check arguments
-    const char *param1 = luaL_checkstring(L, 1);
-    const char *param2 = luaL_checkstring(L, 2);
-    // start operation
-    emit g_script->writeDatabase(param1, param2);
-    return 0;
-}
-
-int LuaInterpreter::luaDatatableWrite(lua_State *L) {
-    // check arguments
-    if (lua_gettop(L) != 2)
-        luaL_error(L, "unexpected number of arguments");
-    // check arguments
-    const char *param1 = luaL_checkstring(L, 1);
-    const char *param2 = luaL_checkstring(L, 2);
-    // start operation
-    emit g_script->writeDatatable(param1, param2);
-    return 0;
 }
 
 // ScriptExplorer public

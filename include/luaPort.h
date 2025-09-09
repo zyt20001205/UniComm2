@@ -1,7 +1,6 @@
 #ifndef LUAPORT_H
 #define LUAPORT_H
 
-#include <QString>
 #include <lua.hpp>
 #include "log.h"
 #include "port.h"
