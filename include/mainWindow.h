@@ -12,11 +12,13 @@
 #include "database.h"
 #include "datatable.h"
 #include "log.h"
-#include "luaMiscellaneous.h"
 #include "manual.h"
 #include "port.h"
 #include "script.h"
 #include "send.h"
+
+inline Log *g_log = nullptr;
+inline Port *g_port = nullptr;
 
 class MainWindow final : public QMainWindow {
     Q_OBJECT

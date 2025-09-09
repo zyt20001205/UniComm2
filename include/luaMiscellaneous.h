@@ -7,13 +7,11 @@
 #include <lua.hpp>
 #include "log.h"
 
-static Log *g_log;
+extern Log *g_log;
 
-void luaMiscellaneous_init(Log *log);
+QString lua_toqstring(lua_State *L, int idx);
 
-QString lua_toqstring(lua_State* L, int idx);
-
-void lua_pushqstring(lua_State* L, int idx, const QString& value);
+void lua_pushqstring(lua_State *L, int idx, const QString &value);
 
 int lua_input(lua_State *L);
 

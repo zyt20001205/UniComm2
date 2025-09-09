@@ -28,7 +28,9 @@
 #include <QWidget>
 #include <lua.hpp>
 #include "config.h"
+#include "luaPort.h"
 #include "luaMiscellaneous.h"
+#include "luaModbus.h"
 #include "port.h"
 #include "suffix.h"
 
@@ -176,26 +178,6 @@ private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);
 
     static void luaDebugHook(lua_State *L, lua_Debug *ar);
-
-    static int luaPortOpen(lua_State *L);
-
-    static int luaPortClose(lua_State *L);
-
-    static int luaPortInfo(lua_State *L);
-
-    static int luaPortWriteText(lua_State *L);
-
-    static int luaPortWriteData(lua_State *L);
-
-    static int luaPortReadText(lua_State *L);
-
-    static int luaPortReadData(lua_State *L);
-
-    static int luaModbusRtuReadHoldingRegisters(lua_State *L);
-
-    static int luaModbusRtuWriteMultipleRegisters(lua_State *L);
-
-    static int luaModbusAsciiReadHoldingRegisters(lua_State *L);
 
     static int luaDatabaseWrite(lua_State *L);
 

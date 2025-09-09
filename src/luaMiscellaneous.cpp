@@ -1,9 +1,5 @@
 #include "../include/luaMiscellaneous.h"
 
-void luaMiscellaneous_init(Log *log) {
-    g_log = log;
-}
-
 QString lua_toqstring(lua_State *L, const int idx) {
     switch (lua_type(L, idx)) {
         case LUA_TNIL:

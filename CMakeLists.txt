@@ -30,7 +30,9 @@ qt_add_executable(UniComm src/main.cpp
         include/database.h
         include/datatable.h
         include/log.h
+        include/luaPort.h
         include/luaMiscellaneous.h
+        include/luaModbus.h
         include/manual.h
         include/port.h
         include/send.h
@@ -41,7 +43,9 @@ qt_add_executable(UniComm src/main.cpp
         src/database.cpp
         src/datatable.cpp
         src/log.cpp
+        src/luaPort.cpp
         src/luaMiscellaneous.cpp
+        src/luaModbus.cpp
         src/manual.cpp
         src/port.cpp
         src/send.cpp
