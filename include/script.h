@@ -35,6 +35,27 @@
 #include "port.h"
 #include "suffix.h"
 
+// debug state
+enum {
+    STATE_RUN,
+    STATE_PAUSE,
+    STATE_TERMINATE,
+    STATE_STEPOVER,
+    STATE_STEPINTO,
+    STATE_STEPOUT,
+};
+
+// editor marker/annotate
+enum {
+    MARKER_BREAKPOINT,
+    MARKER_HIGHLIGHT,
+};
+
+enum {
+    INDICATOR_ERROR,
+    INDICATOR_WARNING,
+};
+
 class Port;
 
 class ScriptPageWidget;
@@ -63,12 +84,18 @@ public:
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
+    void diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const;
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
     void debugResume();
 
     void showManual(const QString &func);
+
+    void requestJson(const QString &method, const QJsonObject &params);
+
+    void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
     void scriptRun();
@@ -97,7 +124,7 @@ class ScriptPageWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QString &scriptPath = QString(), QObject *parent = nullptr);
+    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QString &scriptPath = QString(), QWidget *parent = nullptr);
 
     ~ScriptPageWidget() override = default;
 
@@ -111,6 +138,10 @@ signals:
     void showManual(const QString &func);
 
     void editScript();
+
+    void requestJson(const QString &method, const QJsonObject &params);
+
+    void notificationJson(const QString &method, const QJsonObject &params);
 
 private slots:
     void scriptEdited();
@@ -139,6 +170,8 @@ public:
 
     ~ScriptEditor() override = default;
 
+    void diagnosticsPublish(const QJsonArray &diagnosticsArray);
+
     LuaLexer *m_scriptLexer = nullptr;
 
 signals:
@@ -147,11 +180,15 @@ signals:
 protected:
     void mousePressEvent(QMouseEvent *event) override;
 
+private slots:
+    void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
+
+    void diagnosticsExpand(int pos, int x, int y);
+
 private:
     void breakpointUpdate() const;
 
-private slots:
-    void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
+    QJsonArray m_diagnosticsArray = {};
 };
 
 class LuaInterpreter final : public QObject {

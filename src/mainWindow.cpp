@@ -50,12 +50,10 @@ void MainWindow::moduleInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
     m_manualModule = new Manual(this);
+    m_llsModule = new LuaLanguageServer(this);
 
     m_scriptModule = new Script();
     this->setCentralWidget(m_scriptModule);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
     m_portModule = new Port();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
@@ -83,14 +81,14 @@ void MainWindow::moduleInit() {
 
     m_logModule = new Log();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "log module initialized");
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
+    connect(m_llsModule, &LuaLanguageServer::publishDiagnostics, m_scriptModule, &Script::diagnosticsPublish);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::showManual, m_manualModule, &Manual::manualShow);
+    connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
+    connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
 
     m_sendModule->setPort(m_portModule);
     g_database = m_databaseModule;

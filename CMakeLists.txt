@@ -10,6 +10,8 @@ set(LUA_DIR "${CMAKE_SOURCE_DIR}/lib/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
 set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
+set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/lib/lua-language-server-3.15.0")
+
 set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/lib/qscintilla-2.14.1")
 set(QSCINTILLA_INCLUDE_DIR "${QSCINTILLA_DIR}/include")
 set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
@@ -31,6 +33,7 @@ qt_add_executable(UniComm src/main.cpp
         include/datatable.h
         include/log.h
         include/luaDataProcess.h
+        include/luaLanguageServer.h
         include/luaPort.h
         include/luaMiscellaneous.h
         include/luaModbus.h
@@ -45,6 +48,7 @@ qt_add_executable(UniComm src/main.cpp
         src/datatable.cpp
         src/log.cpp
         src/luaDataProcess.cpp
+        src/luaLanguageServer.cpp
         src/luaPort.cpp
         src/luaMiscellaneous.cpp
         src/luaModbus.cpp
@@ -221,5 +225,12 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+    endif ()
+
+    if (EXISTS "${LUA_LANGUAGE_SERVER_DIR}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${LUA_LANGUAGE_SERVER_DIR}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
     endif ()
 endif ()

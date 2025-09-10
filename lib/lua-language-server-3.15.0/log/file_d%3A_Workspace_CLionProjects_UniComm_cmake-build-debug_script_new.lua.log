@@ -1,0 +1,127 @@
+[17:48:58.538][info] [#0:D:/lua-language-server-3.15.0-win32-x64\main.lua:68]: Lua Lsp startup, root: 	D:/lua-language-server-3.15.0-win32-x64
+[17:48:58.539][info] [#0:D:/lua-language-server-3.15.0-win32-x64\main.lua:69]: ROOT:	D:/lua-language-server-3.15.0-win32-x64
+[17:48:58.539][info] [#0:D:/lua-language-server-3.15.0-win32-x64\main.lua:70]: LOGPATH:	D:/lua-language-server-3.15.0-win32-x64/log
+[17:48:58.539][info] [#0:D:/lua-language-server-3.15.0-win32-x64\main.lua:71]: METAPATH:	D:/lua-language-server-3.15.0-win32-x64/meta
+[17:48:58.539][info] [#0:D:/lua-language-server-3.15.0-win32-x64\main.lua:72]: VERSION:	3.15.0
+[17:48:58.569][info] [#0:script\language.lua:137]: VSC language: nil
+[17:48:58.569][info] [#0:script\language.lua:138]: LS  language: en-us
+[17:48:58.569][info] [#0:script\client.lua:657]: Client init	{
+  capabilities = {
+    textDocument = {
+      completion = {
+        completionItem = {
+          tagSupport = {
+            valueSet = { 1, 2 }
+          }
+        }
+      }
+    },
+    workspace = {
+      configuration = true
+    }
+  },
+  initializationOptions = {
+    changeConfiguration = true,
+    trustByClient = true,
+    useSemanticByRange = true,
+    viewDocument = true
+  },
+  rootUri = "file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua"
+}
+[17:48:58.569][info] [#0:script\language.lua:137]: VSC language: nil
+[17:48:58.569][info] [#0:script\language.lua:138]: LS  language: en-us
+[17:48:58.569][info] [#0:script\workspace\workspace.lua:38]: Workspace init root: 	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.569][info] [#0:script\workspace\workspace.lua:42]: Log path: 	D:/lua-language-server-3.15.0-win32-x64/log/file_d%3A_Workspace_CLionProjects_UniComm_cmake-build-debug_script_new.lua.log
+[17:48:58.588][info] [#0:script\workspace\workspace.lua:48]: Workspace create: 	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.589][warn] [#0:script\config\loader.lua:116]: No config?	nil
+[17:48:58.589][warn] [#0:script\config\loader.lua:116]: No config?	nil
+[17:48:58.589][info] [#0:script\provider\provider.lua:65]: Load config from client	fallback
+[17:48:58.589][info] [#0:script\provider\provider.lua:66]: nil
+[17:48:58.589][info] [#0:script\library.lua:212]: Init builtin library at:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.606][info] [#0:script\library.lua:212]: Init builtin library at:	nil
+[17:48:58.615][warn] [#0:script\config\loader.lua:116]: No config?	nil
+[17:48:58.616][warn] [#0:script\config\loader.lua:116]: No config?	nil
+[17:48:58.616][info] [#0:script\provider\provider.lua:65]: Load config from client	fallback
+[17:48:58.616][info] [#0:script\provider\provider.lua:66]: nil
+[17:48:58.616][info] [#0:script\workspace\workspace.lua:330]: Preload start:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.617][info] [#0:script\workspace\workspace.lua:336]: Scan files at:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.617][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/os.lua
+[17:48:58.617][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/coroutine.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/math.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/io.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/string.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/table.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/basic.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/utf8.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/builtin.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/debug.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/package.lua
+[17:48:58.618][info] [#0:script\workspace\workspace.lua:330]: Preload start:	<fallback>
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/os.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/coroutine.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/math.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/io.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/string.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/table.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/basic.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/utf8.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/builtin.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/debug.lua
+[17:48:58.620][info] [#0:script\workspace\workspace.lua:359]: Scan library at:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/package.lua
+[17:48:58.621][info] [#0:script\workspace\workspace.lua:385]: Found 12 files at:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.621][info] [#0:script\workspace\loading.lua:160]: Load files from disk:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.621][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/package.lua , size = 3.050 KB
+[17:48:58.622][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/package.lua
+[17:48:58.622][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/debug.lua , size = 7.812 KB
+[17:48:58.627][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/debug.lua
+[17:48:58.627][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/builtin.lua , size = 0.302 KB
+[17:48:58.627][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/builtin.lua
+[17:48:58.627][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/utf8.lua , size = 2.447 KB
+[17:48:58.628][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/utf8.lua
+[17:48:58.629][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/basic.lua , size = 16.192 KB
+[17:48:58.635][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/basic.lua
+[17:48:58.635][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/table.lua , size = 4.551 KB
+[17:48:58.637][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/table.lua
+[17:48:58.637][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/string.lua , size = 5.401 KB
+[17:48:58.639][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/string.lua
+[17:48:58.640][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/io.lua , size = 6.566 KB
+[17:48:58.642][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/io.lua
+[17:48:58.642][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/math.lua , size = 8.858 KB
+[17:48:58.647][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/math.lua
+[17:48:58.647][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/coroutine.lua , size = 2.669 KB
+[17:48:58.648][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/coroutine.lua
+[17:48:58.648][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/os.lua , size = 5.875 KB
+[17:48:58.650][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/os.lua
+[17:48:58.650][info] [#0:script\workspace\loading.lua:100]: Preload file at: file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua , size = 0.538 KB
+[17:48:58.650][info] [#0:script\workspace\loading.lua:172]: Loaded files takes [0.030] sec: file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.650][info] [#0:script\workspace\loading.lua:181]: Compile files takes [0.000] sec: file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.650][info] [#0:script\workspace\loading.lua:182]: Loaded finish:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.650][info] [#0:script\workspace\workspace.lua:387]: Preload finish at:	file:///d%3A/Workspace/CLionProjects/UniComm/cmake-build-debug/script/new.lua
+[17:48:58.653][info] [#0:script\workspace\workspace.lua:385]: Found 11 files at:	<fallback>
+[17:48:58.653][info] [#0:script\workspace\loading.lua:160]: Load files from disk:	<fallback>
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/package.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/package.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/debug.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/debug.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/builtin.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/builtin.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/utf8.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/utf8.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/basic.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/basic.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/table.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/table.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/string.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/string.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/io.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/io.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/math.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/math.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/coroutine.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/coroutine.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:88]: Skip loaded file: file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/os.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:112]: ++++As library of:	file:///d%3A/lua-language-server-3.15.0-win32-x64/meta/Lua%205.4%20en-us%20utf8/os.lua
+[17:48:58.653][info] [#0:script\workspace\loading.lua:172]: Loaded files takes [0.000] sec: <fallback>
+[17:48:58.653][info] [#0:script\workspace\loading.lua:181]: Compile files takes [0.000] sec: <fallback>
+[17:48:58.653][info] [#0:script\workspace\loading.lua:182]: Loaded finish:	<fallback>
+[17:48:58.653][info] [#0:script\workspace\workspace.lua:387]: Preload finish at:	<fallback>

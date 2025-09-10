@@ -3,16 +3,7 @@
 static Script *g_script = nullptr;
 QList<int> g_breakpoint;
 
-enum struct STATE {
-    RUN,
-    PAUSE,
-    TERMINATE,
-    STEPOVER,
-    STEPINTO,
-    STEPOUT,
-};
-
-auto g_stateMachine = STATE::RUN;
+auto g_stateMachine = STATE_RUN;
 int g_depth = 0;
 int g_baseDepth = 0;
 
@@ -51,6 +42,8 @@ Script::Script(QWidget *parent) : QWidget(parent) {
             connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
                 scriptEdited(m_scriptTabWidget->indexOf(newTab));
             });
+            connect(newTab, &ScriptPageWidget::requestJson, this, &Script::requestJson);
+            connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
         }
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -105,7 +98,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
     debugContinueButton->setToolTip(tr("resume"));
     connect(debugContinueButton, &QPushButton::clicked, this, [this] {
-        g_stateMachine = STATE::RUN;
+        g_stateMachine = STATE_RUN;
         emit debugResume();
     });
     auto *debugPauseButton = new QPushButton(); // NOLINT
@@ -114,7 +107,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
     debugPauseButton->setToolTip(tr("pause"));
     connect(debugPauseButton, &QPushButton::clicked, this, [] {
-        g_stateMachine = STATE::PAUSE;
+        g_stateMachine = STATE_PAUSE;
     });
     auto *debugStepOverButton = new QPushButton(); // NOLINT
     debugCtrlLayout->addWidget(debugStepOverButton);
@@ -123,7 +116,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugStepOverButton->setToolTip(tr("step over"));
     connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
         g_baseDepth = g_depth;
-        g_stateMachine = STATE::STEPOVER;
+        g_stateMachine = STATE_STEPOVER;
         emit debugResume();
     });
     auto *debugStepIntoButton = new QPushButton(); // NOLINT
@@ -132,7 +125,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugStepIntoButton->setIcon(QIcon(":/icon/debugStepInto.svg"));
     debugStepIntoButton->setToolTip(tr("step into"));
     connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
-        g_stateMachine = STATE::STEPINTO;
+        g_stateMachine = STATE_STEPINTO;
         emit debugResume();
     });
     auto *debugStepOutButton = new QPushButton(); // NOLINT
@@ -142,7 +135,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugStepOutButton->setToolTip(tr("step out"));
     connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
         g_baseDepth = g_depth;
-        g_stateMachine = STATE::STEPOUT;
+        g_stateMachine = STATE_STEPOUT;
         emit debugResume();
     });
     auto *debugTerminateButton = new QPushButton(); // NOLINT
@@ -151,7 +144,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
     debugTerminateButton->setToolTip(tr("terminate"));
     connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
-        g_stateMachine = STATE::TERMINATE;
+        g_stateMachine = STATE_TERMINATE;
         emit debugResume();
     });
     m_scriptDebugTreeView = new QTreeView();
@@ -166,6 +159,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
 
     scriptSplitter->setStretchFactor(0, 4);
     scriptSplitter->setStretchFactor(1, 1);
+
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 }
 
 void Script::scriptConfigSave() const {
@@ -221,9 +218,9 @@ void Script::scriptHighlight(const int row) const {
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
     if (!scriptPageWidget) return;
 
-    scriptPageWidget->m_scriptEditor->markerDeleteAll(2);
+    scriptPageWidget->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
     if (row == -1) return;
-    scriptPageWidget->m_scriptEditor->markerAdd(row - 1, 2);
+    scriptPageWidget->m_scriptEditor->markerAdd(row - 1, MARKER_HIGHLIGHT);
 }
 
 void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
@@ -245,6 +242,23 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
     m_scriptDebugTreeView->expandAll();
     m_scriptDebugTreeView->resizeColumnToContents(0);
     m_scriptDebugTreeView->resizeColumnToContents(1);
+}
+
+void Script::diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const {
+    int index = -1;
+    ScriptPageWidget *scriptPageWidget = nullptr;
+    for (int i = 0; i < m_scriptTabWidget->count(); i++) {
+        scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
+        if (scriptPageWidget->m_scriptPath == scriptPath) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) {
+        qDebug() << "Script not found";
+    } else {
+        scriptPageWidget->m_scriptEditor->diagnosticsPublish(diagnosticsArray);
+    }
 }
 
 // Script private
@@ -352,7 +366,7 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
 }
 
 // ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QObject *parent) {
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QWidget *parent) : QWidget(parent) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_scriptEditor = new ScriptEditor();
@@ -372,6 +386,22 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
+    // didOpen notification to lua language server
+    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + scriptPath;
+    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
+    QTimer::singleShot(0, this, [this, scriptUri, content] {
+        const QJsonObject didOpenParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUri},
+                    {"languageId", "lua"},
+                    {"version", 1},
+                    {"text", content}
+                }
+            }
+        };
+        emit notificationJson("textDocument/didOpen", didOpenParams);
+    });
 }
 
 void ScriptPageWidget::scriptSave() {
@@ -414,17 +444,33 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->QsciScintilla::setAutoCompletionThreshold(1);
     this->setAutoCompletionFillupsEnabled(true);
     this->setAutoCompletionFillups(":.");
-    // set margins
+    // enable dwell
+    // this->setMouseTracking(true);
+    SendScintilla(SCI_SETMOUSEDWELLTIME, 300); // NOLINT
+    connect(this, SIGNAL(SCN_DWELLSTART(int,int,int)),
+            this, SLOT(diagnosticsExpand(int,int,int)));
+    // define markers
+    this->markerDefine(Circle, MARKER_BREAKPOINT);
+    this->setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
+    this->setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
 
+    this->markerDefine(Background, MARKER_HIGHLIGHT);
+    this->setMarkerBackgroundColor(QColor(255, 255, 0, 100), MARKER_HIGHLIGHT);
+    // define indicators
+    this->indicatorDefine(BoxIndicator, INDICATOR_ERROR);
+    this->setIndicatorForegroundColor(Qt::red, INDICATOR_ERROR);
+    this->setIndicatorDrawUnder(true, INDICATOR_ERROR);
+
+    this->indicatorDefine(BoxIndicator, INDICATOR_WARNING);
+    this->setIndicatorForegroundColor(Qt::yellow, INDICATOR_WARNING);
+    this->setIndicatorDrawUnder(true, INDICATOR_WARNING);
+    // set margins
     this->setMarginType(0, NumberMargin);
     this->QsciScintilla::setMarginWidth(0, "000");
 
     this->setMarginType(1, SymbolMargin);
     this->QsciScintilla::setMarginSensitivity(1, true);
     this->QsciScintilla::setMarginWidth(1, "16");
-    this->markerDefine(Circle, 1);
-    this->setMarkerBackgroundColor(Qt::red, 1);
-    this->setMarkerForegroundColor(Qt::red, 1);
     connect(this, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)),
             this, SLOT(onMarginClicked(int,int,Qt::KeyboardModifiers)));
 
@@ -432,9 +478,6 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->setMarginType(2, SymbolMargin);
     this->QsciScintilla::setMarginSensitivity(2, true);
     this->QsciScintilla::setMarginWidth(2, "16");
-
-    this->markerDefine(Background, 2);
-    this->setMarkerBackgroundColor(QColor(255, 255, 0, 100), 2);
     // script scintilla settings
     this->setScrollWidth(1);
     this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
@@ -474,6 +517,35 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     // style 20: label
 }
 
+void ScriptEditor::diagnosticsPublish(const QJsonArray &diagnosticsArray) {
+    m_diagnosticsArray = diagnosticsArray;
+    const int lastLine = this->lines() - 1;
+    const int lastIndex = this->lineLength(lastLine);
+    this->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+    for (const QJsonValue &diagnostic: m_diagnosticsArray) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const int severity = diagnosticObject["severity"].toInt();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        if (severity == 2) {
+            // error
+            this->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                     diagnosticStartPos["character"].toInt(),
+                                     diagnosticEndPos["line"].toInt(),
+                                     diagnosticEndPos["character"].toInt(),
+                                     INDICATOR_ERROR);
+        } else if (severity == 4) {
+            // warning
+            this->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                     diagnosticStartPos["character"].toInt(),
+                                     diagnosticEndPos["line"].toInt(),
+                                     diagnosticEndPos["character"].toInt(),
+                                     INDICATOR_WARNING);
+        }
+    }
+}
+
 // ScriptEditor protected
 void ScriptEditor::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
@@ -487,7 +559,7 @@ void ScriptEditor::mousePressEvent(QMouseEvent *event) {
 void ScriptEditor::breakpointUpdate() const {
     g_breakpoint.clear();
     for (int i = 0; i < this->lines(); ++i) {
-        if (this->markersAtLine(i) & 1 << 1) {
+        if (this->markersAtLine(i) & 1 << MARKER_BREAKPOINT) {
             g_breakpoint.append(i + 1);
         }
     }
@@ -496,14 +568,34 @@ void ScriptEditor::breakpointUpdate() const {
 
 void ScriptEditor::onMarginClicked(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
-        if (this->markersAtLine(line) & 1 << 1) {
-            this->markerDelete(line, 1);
+        if (this->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
+            this->markerDelete(line, MARKER_BREAKPOINT);
         } else {
-            this->markerAdd(line, 1);
+            this->markerAdd(line, MARKER_BREAKPOINT);
         }
     }
     // update g_breakpoint
     breakpointUpdate();
+}
+
+void ScriptEditor::diagnosticsExpand(const int pos, const int x, const int y) {
+    int line = 0, index = 0;
+    lineIndexFromPosition(pos, &line, &index);
+    QString message;
+    for (const QJsonValue &diagnostic: m_diagnosticsArray) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const int severity = diagnosticObject["severity"].toInt();
+        const QString code = diagnosticObject["code"].toString();
+        message = diagnosticObject["message"].toString();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        if (line == diagnosticStartPos["line"].toInt() && index >= diagnosticStartPos["character"].toInt() && index <= diagnosticEndPos["character"].toInt()) {
+            qDebug() << severity << code << message;
+            break;
+        }
+    }
+    SendScintilla(SCI_CALLTIPSHOW, pos, message.toUtf8().constData()); // NOLINT
 }
 
 // LuaInterpreter public
@@ -598,7 +690,7 @@ void LuaInterpreter::debug(const QString &script) {
         return;
     }
     g_script->scriptHighlight(-1);
-    g_stateMachine = STATE::RUN;
+    g_stateMachine = STATE_RUN;
     g_depth = 0;
     // lua exec
     while (true) {
@@ -625,7 +717,7 @@ void LuaInterpreter::debug(const QString &script) {
                 g_script->scriptHighlight(row);
                 g_script->appendLog(error, "error");
                 // clear if manually terminated
-                if (g_stateMachine == STATE::TERMINATE) {
+                if (g_stateMachine == STATE_TERMINATE) {
                     g_script->scriptHighlight(-1);
                     g_script->scriptTreeViewLoad({});
                 }
@@ -756,16 +848,16 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         g_depth -= 1;
     } else if (ar->event == LUA_HOOKLINE) {
         const int row = ar->currentline;
-        if (g_stateMachine == STATE::TERMINATE) {
+        if (g_stateMachine == STATE_TERMINATE) {
             lua_pushstring(L, "terminated");
             lua_error(L);
             return;
         }
-        if (g_breakpoint.contains(row)) g_stateMachine = STATE::PAUSE;
-        if (g_stateMachine == STATE::STEPOVER && g_depth == g_baseDepth) g_stateMachine = STATE::PAUSE;
-        if (g_stateMachine == STATE::STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE::PAUSE;
-        if (g_stateMachine == STATE::STEPINTO) g_stateMachine = STATE::PAUSE;
-        if (g_stateMachine == STATE::PAUSE) {
+        if (g_breakpoint.contains(row)) g_stateMachine = STATE_PAUSE;
+        if (g_stateMachine == STATE_STEPOVER && g_depth == g_baseDepth) g_stateMachine = STATE_PAUSE;
+        if (g_stateMachine == STATE_STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE_PAUSE;
+        if (g_stateMachine == STATE_STEPINTO) g_stateMachine = STATE_PAUSE;
+        if (g_stateMachine == STATE_PAUSE) {
             // highlight
             QMetaObject::invokeMethod(g_script, [row] {
                 g_script->scriptHighlight(row);

@@ -12,6 +12,7 @@
 #include "database.h"
 #include "datatable.h"
 #include "log.h"
+#include "luaLanguageServer.h"
 #include "manual.h"
 #include "port.h"
 #include "script.h"
@@ -49,6 +50,7 @@ private:
 
     Config *m_configModule = nullptr;
     Manual *m_manualModule = nullptr;
+    LuaLanguageServer *m_llsModule = nullptr;
     Script *m_scriptModule = nullptr;
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;

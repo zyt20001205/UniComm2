@@ -2,6 +2,7 @@
 
 #include <QPushButton>
 
+// Log public
 Log::Log(QObject *parent)
     : QDockWidget("log", qobject_cast<QWidget *>(parent)) {
     auto *widget = new QWidget(); // NOLINT
@@ -52,6 +53,10 @@ Log::Log(QObject *parent)
     m_textEdit = new QTextEdit();
     layout->addWidget(m_textEdit);
     m_textEdit->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
+
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "log module initialized");
 }
 
 void Log::logAppend(const QString &message, const QString &level) {
@@ -82,6 +87,7 @@ void Log::logConfigSave() const {
     g_config["logConfig"] = m_logConfig;
 }
 
+// Log private
 void Log::logSave() {
     if (m_textEdit->toPlainText().isEmpty()) {
         QMessageBox::warning(nullptr, "Warning", tr("Log is empty."));
