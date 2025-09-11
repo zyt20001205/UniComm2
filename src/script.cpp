@@ -39,8 +39,8 @@ Script::Script(QWidget *parent) : QWidget(parent) {
             m_scriptTabWidget->addTab(newTab, fileName);
             m_scriptTabWidget->setCurrentWidget(newTab);
             connect(newTab, &ScriptPageWidget::showManual, this, &Script::showManual);
-            connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
-                scriptEdited(m_scriptTabWidget->indexOf(newTab));
+            connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
+                scriptModify(m_scriptTabWidget->indexOf(newTab));
             });
             connect(newTab, &ScriptPageWidget::requestJson, this, &Script::requestJson);
             connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
@@ -168,13 +168,15 @@ Script::Script(QWidget *parent) : QWidget(parent) {
 void Script::scriptConfigSave() const {
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
         auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
-        if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
-            scriptPageWidget->m_scriptEdited = false;
+        if (scriptPageWidget) {
+            if (scriptPageWidget->m_scriptModify) {
+                // update tab name
+                QString tabName = m_scriptTabWidget->tabText(i);
+                tabName.chop(1);
+                m_scriptTabWidget->setTabText(i, tabName);
+            }
+            // save script
             scriptPageWidget->scriptSave();
-            // update tab name
-            QString tabName = m_scriptTabWidget->tabText(i);
-            tabName.chop(1);
-            m_scriptTabWidget->setTabText(i, tabName);
         }
     }
     g_config["scriptConfig"] = m_scriptConfig;
@@ -201,8 +203,8 @@ void Script::scriptOpen(const QString &scriptPath) {
     m_scriptTabWidget->addTab(newTab, fileName);
     m_scriptTabWidget->setCurrentWidget(newTab);
     connect(newTab, &ScriptPageWidget::showManual, this, &Script::showManual);
-    connect(newTab, &ScriptPageWidget::editScript, this, [this, newTab] {
-        scriptEdited(m_scriptTabWidget->indexOf(newTab));
+    connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
+        scriptModify(m_scriptTabWidget->indexOf(newTab));
     });
     // config
     scriptList.append(scriptPath);
@@ -257,8 +259,18 @@ void Script::diagnosticsPublish(const QJsonArray &diagnosticsArray, const QStrin
     if (index == -1) {
         qDebug() << "Script not found";
     } else {
-        scriptPageWidget->m_scriptEditor->diagnosticsPublish(diagnosticsArray);
+        scriptPageWidget->diagnosticsPublish(diagnosticsArray);
     }
+}
+
+void Script::textDocumentHover(const QString &message, const int line, const int character) const {
+    const int currentIndex = m_scriptTabWidget->currentIndex();
+    if (currentIndex < 0) {
+        return;
+    }
+    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
+    if (!scriptPageWidget) return;
+    scriptPageWidget->textDocumentHover(message, line, character);
 }
 
 // Script private
@@ -330,7 +342,7 @@ void Script::scriptDebug() {
     worker->start();
 }
 
-void Script::scriptEdited(const int index) const {
+void Script::scriptModify(const int index) const {
     const QString tabName = m_scriptTabWidget->tabText(index) + "*";
     m_scriptTabWidget->setTabText(index, tabName);
 }
@@ -338,7 +350,7 @@ void Script::scriptEdited(const int index) const {
 void Script::scriptClose(const int index) {
     // gui
     auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
-    if (scriptPageWidget && scriptPageWidget->m_scriptEdited) {
+    if (scriptPageWidget && scriptPageWidget->m_scriptModify) {
         const QMessageBox::StandardButton reply =
                 QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::No);
@@ -369,6 +381,12 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
 ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QWidget *parent) : QWidget(parent) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
+    m_editTimer = new QTimer(this);
+    m_editTimer->setInterval(1000);
+    m_editTimer->setSingleShot(true);
+    connect(m_editTimer, &QTimer::timeout, [this] {
+        scriptEditFinish();
+    });
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
@@ -381,13 +399,16 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     const QString content = in.readAll();
     file.close();
     m_scriptEditor->setText(content);
-    // import!!! must use old connect method!!! do not modify!!!
-    connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdited()));
+    // connect signals
+    connect(m_scriptEditor, SIGNAL(modificationChanged(bool)), this, SLOT(scriptModify(bool)));
+    connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
+    connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
+    connect(m_scriptEditor, SIGNAL(SCN_DWELLEND(int,int,int)), this, SLOT(diagnosticsHide(int,int,int)));
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
     // didOpen notification to lua language server
-    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + scriptPath;
+    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
     const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
     QTimer::singleShot(0, this, [this, scriptUri, content] {
         const QJsonObject didOpenParams{
@@ -395,7 +416,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
                 "textDocument", QJsonObject{
                     {"uri", scriptUri},
                     {"languageId", "lua"},
-                    {"version", 1},
+                    {"version", m_version++},
                     {"text", content}
                 }
             }
@@ -405,27 +426,148 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
 }
 
 void ScriptPageWidget::scriptSave() {
+    if (!m_scriptModify) return;
+    // save file
     const QDir scriptDir(QDir::current().filePath("script"));
     QFile file(scriptDir.filePath(m_scriptPath));
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
     out << m_scriptEditor->text();
     file.close();
-
+    // update status
+    m_scriptEditor->setModified(false);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
 }
 
+void ScriptPageWidget::diagnosticsPublish(const QJsonArray &diagnosticsArray) {
+    m_diagnosticsArray = diagnosticsArray;
+    const int lastLine = m_scriptEditor->lines() - 1;
+    const int lastIndex = m_scriptEditor->lineLength(lastLine);
+    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+    for (const auto &diagnostic: m_diagnosticsArray) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const int severity = diagnosticObject["severity"].toInt();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        if (severity == 2) {
+            // error
+            m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                               diagnosticStartPos["character"].toInt(),
+                                               diagnosticEndPos["line"].toInt(),
+                                               diagnosticEndPos["character"].toInt(),
+                                               INDICATOR_ERROR);
+        } else if (severity == 4) {
+            // warning
+            m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                               diagnosticStartPos["character"].toInt(),
+                                               diagnosticEndPos["line"].toInt(),
+                                               diagnosticEndPos["character"].toInt(),
+                                               INDICATOR_WARNING);
+        }
+    }
+}
+
+void ScriptPageWidget::textDocumentHover(const QString &message, const int line, const int character) const {
+    const long pos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_FINDCOLUMN, line, character);
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPSHOW, pos, message.toUtf8().constData()); // NOLINT
+}
+
 // ScriptPageWidget private
-void ScriptPageWidget::scriptEdited() {
-    if (!m_scriptEdited) {
-        emit editScript();
+void ScriptPageWidget::scriptModify(const bool status) {
+    m_scriptModify = status;
+    if (m_scriptModify) {
+        emit modifyScript();
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "modified");
     }
-    m_scriptEdited = true;
+}
+
+void ScriptPageWidget::scriptEdit() const {
+    m_editTimer->stop();
+    m_editTimer->start();
+}
+
+void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
+    int line = 0, character = 0;
+    m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
+    // hover request to lua language server
+    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
+    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
+    const QJsonObject hoverParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUri}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/hover", hoverParams);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "hovered");
+}
+
+void ScriptPageWidget::diagnosticsShow(const int pos, const int x, const int y) {
+    int line = 0, index = 0;
+    m_scriptEditor->lineIndexFromPosition(pos, &line, &index);
+    QString diagnosticHit;
+    for (const auto &diagnostic: m_diagnosticsArray) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const int severity = diagnosticObject["severity"].toInt();
+        const QString code = diagnosticObject["code"].toString();
+        const QString message = diagnosticObject["message"].toString();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        if (line == diagnosticStartPos["line"].toInt() && index >= diagnosticStartPos["character"].toInt() && index <= diagnosticEndPos["character"].toInt()) {
+            if (severity == 2) {
+                diagnosticHit = "error: " + code + "\n" + message;
+            } else if (severity == 4) {
+                diagnosticHit = "warning: " + code + "\n" + message;
+            }
+            break;
+        }
+    }
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPSHOW, pos, diagnosticHit.toUtf8().constData()); // NOLINT
+}
+
+void ScriptPageWidget::diagnosticsHide(const int pos, const int x, const int y) const {
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPCANCEL); // NOLINT
+}
+
+void ScriptPageWidget::scriptEditFinish() {
+    // didChange notification to lua language server
+    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
+    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
+    const QString content = m_scriptEditor->text();
+    const QJsonObject didChangeParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUri},
+                {"version", m_version++}
+            }
+        },
+        {
+            "contentChanges", QJsonArray{
+                QJsonObject{
+                    {"text", content}
+                }
+            }
+        }
+    };
+    emit notificationJson("textDocument/didChange", didChangeParams);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
 }
 
 // ScriptEditor public
@@ -444,11 +586,8 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->QsciScintilla::setAutoCompletionThreshold(1);
     this->setAutoCompletionFillupsEnabled(true);
     this->setAutoCompletionFillups(":.");
-    // enable dwell
-    // this->setMouseTracking(true);
-    SendScintilla(SCI_SETMOUSEDWELLTIME, 300); // NOLINT
-    connect(this, SIGNAL(SCN_DWELLSTART(int,int,int)),
-            this, SLOT(diagnosticsExpand(int,int,int)));
+    // init mouse dwell
+    SendScintilla(SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
     // define markers
     this->markerDefine(Circle, MARKER_BREAKPOINT);
     this->setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
@@ -472,7 +611,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->QsciScintilla::setMarginSensitivity(1, true);
     this->QsciScintilla::setMarginWidth(1, "16");
     connect(this, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)),
-            this, SLOT(onMarginClicked(int,int,Qt::KeyboardModifiers)));
+            this, SLOT(onMarginClick(int,int,Qt::KeyboardModifiers)));
 
     this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
     this->setMarginType(2, SymbolMargin);
@@ -515,35 +654,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     // style 16: user defined 1
     // m_scriptLexer->setColor(QColor(0x00627A), 16);
     // style 20: label
-}
-
-void ScriptEditor::diagnosticsPublish(const QJsonArray &diagnosticsArray) {
-    m_diagnosticsArray = diagnosticsArray;
-    const int lastLine = this->lines() - 1;
-    const int lastIndex = this->lineLength(lastLine);
-    this->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
-    for (const QJsonValue &diagnostic: m_diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const int severity = diagnosticObject["severity"].toInt();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        if (severity == 2) {
-            // error
-            this->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
-                                     diagnosticStartPos["character"].toInt(),
-                                     diagnosticEndPos["line"].toInt(),
-                                     diagnosticEndPos["character"].toInt(),
-                                     INDICATOR_ERROR);
-        } else if (severity == 4) {
-            // warning
-            this->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
-                                     diagnosticStartPos["character"].toInt(),
-                                     diagnosticEndPos["line"].toInt(),
-                                     diagnosticEndPos["character"].toInt(),
-                                     INDICATOR_WARNING);
-        }
-    }
+    // connect(this, SIGNAL(modificationChanged(bool m)), this, SLOT());
 }
 
 // ScriptEditor protected
@@ -556,17 +667,7 @@ void ScriptEditor::mousePressEvent(QMouseEvent *event) {
 }
 
 // ScriptEditor private
-void ScriptEditor::breakpointUpdate() const {
-    g_breakpoint.clear();
-    for (int i = 0; i < this->lines(); ++i) {
-        if (this->markersAtLine(i) & 1 << MARKER_BREAKPOINT) {
-            g_breakpoint.append(i + 1);
-        }
-    }
-    qDebug() << g_breakpoint;
-}
-
-void ScriptEditor::onMarginClicked(const int margin, const int line, Qt::KeyboardModifiers state) {
+void ScriptEditor::onMarginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
         if (this->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             this->markerDelete(line, MARKER_BREAKPOINT);
@@ -578,24 +679,14 @@ void ScriptEditor::onMarginClicked(const int margin, const int line, Qt::Keyboar
     breakpointUpdate();
 }
 
-void ScriptEditor::diagnosticsExpand(const int pos, const int x, const int y) {
-    int line = 0, index = 0;
-    lineIndexFromPosition(pos, &line, &index);
-    QString message;
-    for (const QJsonValue &diagnostic: m_diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const int severity = diagnosticObject["severity"].toInt();
-        const QString code = diagnosticObject["code"].toString();
-        message = diagnosticObject["message"].toString();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        if (line == diagnosticStartPos["line"].toInt() && index >= diagnosticStartPos["character"].toInt() && index <= diagnosticEndPos["character"].toInt()) {
-            qDebug() << severity << code << message;
-            break;
+void ScriptEditor::breakpointUpdate() const {
+    g_breakpoint.clear();
+    for (int i = 0; i < this->lines(); ++i) {
+        if (this->markersAtLine(i) & 1 << MARKER_BREAKPOINT) {
+            g_breakpoint.append(i + 1);
         }
     }
-    SendScintilla(SCI_CALLTIPSHOW, pos, message.toUtf8().constData()); // NOLINT
+    qDebug() << g_breakpoint;
 }
 
 // LuaInterpreter public

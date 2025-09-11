@@ -19,10 +19,13 @@ public:
     void jsonRequest(const QString &method, const QJsonObject &params);
 
     void jsonNotification(const QString &method, const QJsonObject &params) const;
+
 signals:
     void initialized();
 
     void publishDiagnostics(const QJsonArray &diagnosticsArray, const QString &scriptPath);
+
+    void hoverTextDocument(const QString &message, int line, int character);
 
 private:
     void jsonReturn();
@@ -30,6 +33,7 @@ private:
     QProcess *m_process = nullptr;
     QByteArray m_buffer = {};
     int m_id = 0;
+    QStringList m_methods = {};
 };
 
 #endif //LUALANGUAGESERVER_H

@@ -86,6 +86,8 @@ public:
 
     void diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const;
 
+    void textDocumentHover(const QString &message, int line, int character) const;
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -104,7 +106,7 @@ private:
 
     void scriptDebug();
 
-    void scriptEdited(int index) const;
+    void scriptModify(int index) const;
 
     void scriptClose(int index);
 
@@ -130,21 +132,40 @@ public:
 
     void scriptSave();
 
+    void diagnosticsPublish(const QJsonArray &diagnosticsArray);
+
+    void textDocumentHover(const QString &message, int line, int character) const;
+
+    int m_version = 1;
     ScriptEditor *m_scriptEditor = nullptr;
     QString m_scriptPath;
-    bool m_scriptEdited = false;
+    bool m_scriptModify = false;
 
 signals:
     void showManual(const QString &func);
 
-    void editScript();
+    void modifyScript();
 
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private slots:
-    void scriptEdited();
+    void scriptModify(bool status);
+
+    void scriptEdit() const;
+
+    void dwellStart(int pos, int x, int y);
+
+    void diagnosticsShow(int pos, int x, int y);
+
+    void diagnosticsHide(int pos, int x, int y) const;
+
+private:
+    void scriptEditFinish();
+
+    QTimer *m_editTimer = nullptr;
+    QJsonArray m_diagnosticsArray = {};
 };
 
 class LuaLexer final : public QsciLexerLua {
@@ -170,8 +191,6 @@ public:
 
     ~ScriptEditor() override = default;
 
-    void diagnosticsPublish(const QJsonArray &diagnosticsArray);
-
     LuaLexer *m_scriptLexer = nullptr;
 
 signals:
@@ -181,14 +200,10 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
 
 private slots:
-    void onMarginClicked(int margin, int line, Qt::KeyboardModifiers state);
-
-    void diagnosticsExpand(int pos, int x, int y);
+    void onMarginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
     void breakpointUpdate() const;
-
-    QJsonArray m_diagnosticsArray = {};
 };
 
 class LuaInterpreter final : public QObject {

@@ -31,6 +31,8 @@ void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &pa
         {"method", method},
         {"params", params}
     };
+    m_methods.append(method);
+    // qDebug() << m_methods;
     m_id++;
     const QByteArray data = QJsonDocument(msg).toJson(QJsonDocument::Compact);
     const QByteArray header = "Content-Length: " + QByteArray::number(data.size()) + "\r\n\r\n";
@@ -65,10 +67,26 @@ void LuaLanguageServer::jsonReturn() {
         const QJsonObject json = QJsonDocument::fromJson(dataBytes).object();
         // qDebug() << json;
         m_buffer.remove(0, headerEndIndex + 4 + lengthBytes.toInt());
-        // id 0: initialize request
-        if (json.contains("id") && json["id"].toInt() == 0 && json.contains("result")) {
-            emit initialized();
+        if (json.contains("id")) {
+            // return from request
+            const int id = json["id"].toInt();
+            // initialize request
+            if (m_methods[id] == "initialize") {
+                emit initialized();
+            } else if (m_methods[id] == "textDocument/hover") {
+                if (!json["result"].isObject()) return; // null result
+                const QJsonObject result = json["result"].toObject();
+                const QJsonObject contents = result["contents"].toObject();
+                QString value = contents["value"].toString();
+                QString message = value.remove("`");
+                const QJsonObject range = result["range"].toObject();
+                const QJsonObject start = range["start"].toObject();
+                const int line = start["line"].toInt();
+                const int character = start["character"].toInt();
+                emit hoverTextDocument(message, line, character);
+            }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
+            // return from notification
             const QJsonObject params = json["params"].toObject();
             const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
             const QUrl scriptUri(params["uri"].toString());
