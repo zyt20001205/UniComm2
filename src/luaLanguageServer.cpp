@@ -69,16 +69,17 @@ void LuaLanguageServer::jsonReturn() {
         m_buffer.remove(0, headerEndIndex + 4 + lengthBytes.toInt());
         if (json.contains("id")) {
             // return from request
-            const int id = json["id"].toInt();
-            // initialize request
-            if (m_methods[id] == "initialize") {
+            if (const int id = json["id"].toInt(); m_methods[id] == "initialize") {
+                // initialize request
                 emit initialized();
             } else if (m_methods[id] == "textDocument/hover") {
+                // hover request
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonObject contents = result["contents"].toObject();
-                QString value = contents["value"].toString();
-                QString message = value.remove("`");
+                const QString value = contents["value"].toString();
+                QString message = value;
+                message.remove("`");
                 const QJsonObject range = result["range"].toObject();
                 const QJsonObject start = range["start"].toObject();
                 const int line = start["line"].toInt();
