@@ -86,7 +86,9 @@ public:
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
-    void diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const;
+    void diagnosticsReceive(const QString &scriptPath, const QJsonArray &diagnosticsArray);
+
+    void diagnosticsPublish() const;
 
     void textDocumentHover(const QString &message) const;
 
@@ -119,6 +121,7 @@ private:
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QTabWidget *m_scriptTabWidget = nullptr;
     ScriptPageWidget *m_currentScriptPage = nullptr;
+    QHash<QString, QJsonArray> m_diagnosticsHash = {};
     TooltipWidget *m_tooltipWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
@@ -157,6 +160,8 @@ public:
 
     void scriptSave();
 
+    void scriptEditFinish();
+
     int m_version = 1;
     ScriptEditor *m_scriptEditor = nullptr;
     QString m_scriptPath;
@@ -179,8 +184,6 @@ private slots:
     // void diagnosticsShow(int pos, int x, int y);
 
 private:
-    void scriptEditFinish();
-
     QTimer *m_editTimer = nullptr;
 };
 

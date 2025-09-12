@@ -23,7 +23,7 @@ public:
 signals:
     void initialized();
 
-    void publishDiagnostics(const QJsonArray &diagnosticsArray, const QString &scriptPath);
+    void publishDiagnostics(const QString &scriptPath, const QJsonArray &diagnosticsArray);
 
     void hoverTextDocument(const QString &message);
 

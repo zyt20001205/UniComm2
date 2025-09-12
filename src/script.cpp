@@ -245,32 +245,36 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
     m_scriptDebugTreeView->resizeColumnToContents(1);
 }
 
-void Script::diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const {
-    if (m_currentScriptPage->m_scriptPath == scriptPath) {
-        const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
-        const int lastIndex = m_currentScriptPage->m_scriptEditor->lineLength(lastLine);
-        m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
-        for (const auto &diagnostic: diagnosticsArray) {
-            const QJsonObject diagnosticObject = diagnostic.toObject();
-            const int severity = diagnosticObject["severity"].toInt();
-            const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-            const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-            const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-            if (severity == 2) {
-                // error
-                m_currentScriptPage->m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
-                                                                        diagnosticStartPos["character"].toInt(),
-                                                                        diagnosticEndPos["line"].toInt(),
-                                                                        diagnosticEndPos["character"].toInt(),
-                                                                        INDICATOR_ERROR);
-            } else if (severity == 4) {
-                // warning
-                m_currentScriptPage->m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
-                                                                        diagnosticStartPos["character"].toInt(),
-                                                                        diagnosticEndPos["line"].toInt(),
-                                                                        diagnosticEndPos["character"].toInt(),
-                                                                        INDICATOR_WARNING);
-            }
+void Script::diagnosticsReceive(const QString &scriptPath, const QJsonArray &diagnosticsArray) {
+    m_diagnosticsHash.insert(scriptPath, diagnosticsArray);
+    diagnosticsPublish();
+}
+
+void Script::diagnosticsPublish() const {
+    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptPage->m_scriptPath];
+    const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
+    const int lastIndex = m_currentScriptPage->m_scriptEditor->lineLength(lastLine);
+    m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+    for (const auto &diagnostic: diagnosticsArray) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const int severity = diagnosticObject["severity"].toInt();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        if (severity == 2) {
+            // error
+            m_currentScriptPage->m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                                                    diagnosticStartPos["character"].toInt(),
+                                                                    diagnosticEndPos["line"].toInt(),
+                                                                    diagnosticEndPos["character"].toInt(),
+                                                                    INDICATOR_ERROR);
+        } else if (severity == 4) {
+            // warning
+            m_currentScriptPage->m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                                                    diagnosticStartPos["character"].toInt(),
+                                                                    diagnosticEndPos["line"].toInt(),
+                                                                    diagnosticEndPos["character"].toInt(),
+                                                                    INDICATOR_WARNING);
         }
     }
 }
@@ -378,6 +382,7 @@ void Script::scriptSelected(const int index) {
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
     if (!scriptPageWidget) return;
     m_currentScriptPage = scriptPageWidget;
+    diagnosticsPublish();
 }
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
@@ -485,6 +490,32 @@ void ScriptPageWidget::scriptSave() {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
 }
 
+void ScriptPageWidget::scriptEditFinish() {
+    // didChange notification to lua language server
+    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
+    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
+    const QString content = m_scriptEditor->text();
+    const QJsonObject didChangeParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUri},
+                {"version", m_version++}
+            }
+        },
+        {
+            "contentChanges", QJsonArray{
+                QJsonObject{
+                    {"text", content}
+                }
+            }
+        }
+    };
+    emit notificationJson("textDocument/didChange", didChangeParams);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
+}
+
 // ScriptPageWidget private
 void ScriptPageWidget::scriptModify(const bool status) {
     m_scriptModify = status;
@@ -550,32 +581,6 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
 //     }
 //     m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPSHOW, pos, diagnosticHit.toUtf8().constData()); // NOLINT
 // }
-
-void ScriptPageWidget::scriptEditFinish() {
-    // didChange notification to lua language server
-    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
-    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
-    const QString content = m_scriptEditor->text();
-    const QJsonObject didChangeParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", scriptUri},
-                {"version", m_version++}
-            }
-        },
-        {
-            "contentChanges", QJsonArray{
-                QJsonObject{
-                    {"text", content}
-                }
-            }
-        }
-    };
-    emit notificationJson("textDocument/didChange", didChangeParams);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
-}
 
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {

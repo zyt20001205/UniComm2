@@ -90,7 +90,7 @@ void LuaLanguageServer::jsonReturn() {
             const QString scriptAbsolutePath = scriptUri.toLocalFile();
             const QFileInfo fileInfo(scriptAbsolutePath);
             QString scriptPath = fileInfo.fileName();
-            emit publishDiagnostics(diagnosticsArray, scriptPath);
+            emit publishDiagnostics(scriptPath, diagnosticsArray);
         }
         if (m_buffer.size() == 0) break;
     }
