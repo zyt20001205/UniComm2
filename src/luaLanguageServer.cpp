@@ -31,8 +31,8 @@ void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &pa
         {"method", method},
         {"params", params}
     };
-    m_methods.append(method);
-    // qDebug() << m_methods;
+    m_methods.insert(m_id, method);
+    qDebug() << m_methods;
     m_id++;
     const QByteArray data = QJsonDocument(msg).toJson(QJsonDocument::Compact);
     const QByteArray header = "Content-Length: " + QByteArray::number(data.size()) + "\r\n\r\n";
@@ -69,11 +69,13 @@ void LuaLanguageServer::jsonReturn() {
         m_buffer.remove(0, headerEndIndex + 4 + lengthBytes.toInt());
         if (json.contains("id")) {
             // return from request
-            if (const int id = json["id"].toInt(); m_methods[id] == "initialize") {
+            if (const int id = json["id"].toInt(); m_methods.value(id) == "initialize") {
                 // initialize request
+                m_methods.remove(id);
                 emit initialized();
-            } else if (m_methods[id] == "textDocument/hover") {
+            } else if (m_methods.value(id) == "textDocument/hover") {
                 // hover request
+                m_methods.remove(id);
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonObject contents = result["contents"].toObject();

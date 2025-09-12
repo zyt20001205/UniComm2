@@ -33,7 +33,7 @@ private:
     QProcess *m_process = nullptr;
     QByteArray m_buffer = {};
     int m_id = 0;
-    QStringList m_methods = {};
+    QHash<int, QString> m_methods = {};
 };
 
 #endif //LUALANGUAGESERVER_H
