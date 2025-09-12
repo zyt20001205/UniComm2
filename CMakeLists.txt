@@ -37,7 +37,6 @@ qt_add_executable(UniComm src/main.cpp
         include/luaPort.h
         include/luaMiscellaneous.h
         include/luaModbus.h
-        include/manual.h
         include/port.h
         include/send.h
         include/script.h
@@ -52,7 +51,6 @@ qt_add_executable(UniComm src/main.cpp
         src/luaPort.cpp
         src/luaMiscellaneous.cpp
         src/luaModbus.cpp
-        src/manual.cpp
         src/port.cpp
         src/send.cpp
         src/script.cpp
@@ -62,19 +60,6 @@ qt_add_executable(UniComm src/main.cpp
 qt_add_resources(UniComm "readme_resources"
         FILES
         "readme.md"
-)
-
-qt_add_resources(UniComm "doc_resources"
-        PREFIX "/doc"
-        BASE "resources/doc"
-        FILES
-        "resources/doc/close.md"
-        "resources/doc/info.md"
-        "resources/doc/open.md"
-        "resources/doc/readData.md"
-        "resources/doc/readText.md"
-        "resources/doc/writeData.md"
-        "resources/doc/writeText.md"
 )
 
 qt_add_resources(UniComm "icon_resources"

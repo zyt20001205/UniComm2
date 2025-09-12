@@ -163,8 +163,6 @@ public:
     bool m_scriptModify = false;
 
 signals:
-    void showManual(const QString &func);
-
     void modifyScript();
 
     void requestJson(const QString &method, const QJsonObject &params);
@@ -210,12 +208,6 @@ public:
     ~ScriptEditor() override = default;
 
     LuaLexer *m_scriptLexer = nullptr;
-
-signals:
-    void showManual(const QString &func);
-
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
 
 private slots:
     void onMarginClick(int margin, int line, Qt::KeyboardModifiers state);

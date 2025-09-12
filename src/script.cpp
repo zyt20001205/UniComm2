@@ -8,7 +8,7 @@ int g_depth = 0;
 int g_baseDepth = 0;
 
 // Script public
-Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWidget(this)){
+Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWidget(this)) {
     g_script = this;
     // script module init
     auto *layout = new QHBoxLayout(this); // NOLINT
@@ -39,7 +39,6 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
             auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
             m_scriptTabWidget->addTab(newTab, fileName);
             m_scriptTabWidget->setCurrentWidget(newTab);
-            connect(newTab, &ScriptPageWidget::showManual, this, &Script::showManual);
             connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
                 scriptModify(m_scriptTabWidget->indexOf(newTab));
             });
@@ -203,7 +202,6 @@ void Script::scriptOpen(const QString &scriptPath) {
     auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
     m_scriptTabWidget->addTab(newTab, fileName);
     m_scriptTabWidget->setCurrentWidget(newTab);
-    connect(newTab, &ScriptPageWidget::showManual, this, &Script::showManual);
     connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
         scriptModify(m_scriptTabWidget->indexOf(newTab));
     });
@@ -398,6 +396,8 @@ TooltipWidget::TooltipWidget(QWidget *parent) : QWidget(parent) {
     layout->setContentsMargins(0, 0, 0, 0);
     m_textBrowser = new QTextBrowser(this);
     layout->addWidget(m_textBrowser);
+    m_textBrowser->setFixedWidth(600);
+    m_textBrowser->setFont(QFont("Consolas", 10));
     m_textBrowser->setOpenExternalLinks(true);
     m_textBrowser->installEventFilter(this);
 }
@@ -436,7 +436,6 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
-    connect(m_scriptEditor, &ScriptEditor::showManual, this, &ScriptPageWidget::showManual);
     m_scriptPath = scriptPath;
     const QDir scriptDir(QDir::current().filePath("script"));
     QFile file(scriptDir.filePath(scriptPath));
@@ -503,8 +502,9 @@ void ScriptPageWidget::scriptEdit() const {
 }
 
 void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
-    int line = 0, character = 0;
+    int line, character;
     m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
+    if (line == 0 && character == 0) return;
     // hover request to lua language server
     const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
     const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
@@ -662,15 +662,6 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     // m_scriptLexer->setColor(QColor(0x00627A), 16);
     // style 20: label
     // connect(this, SIGNAL(modificationChanged(bool m)), this, SLOT());
-}
-
-// ScriptEditor protected
-void ScriptEditor::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton && event->modifiers() & Qt::ControlModifier) {
-        const QString clickedWord = this->wordAtPoint(event->pos());
-        emit showManual(clickedWord);
-    }
-    QsciScintilla::mousePressEvent(event);
 }
 
 // ScriptEditor private

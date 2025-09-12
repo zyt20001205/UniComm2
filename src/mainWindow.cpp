@@ -49,7 +49,6 @@ void MainWindow::moduleInit() {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
-    m_manualModule = new Manual(this);
     m_llsModule = new LuaLanguageServer(this);
 
     m_scriptModule = new Script();
@@ -87,7 +86,6 @@ void MainWindow::moduleInit() {
     connect(m_llsModule,&LuaLanguageServer::hoverTextDocument, m_scriptModule, &Script::textDocumentHover);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &Script::showManual, m_manualModule, &Manual::manualShow);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
 
@@ -101,10 +99,6 @@ void MainWindow::moduleInit() {
 void MainWindow::menuInit() {
     auto *menuBar = new QMenuBar(); // NOLINT
     setMenuBar(menuBar);
-
-    menuBar->addAction(tr("Manual"), this, [this] {
-        m_manualModule->show();
-    });
 }
 
 void MainWindow::shortcutInit() {
