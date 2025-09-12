@@ -21,6 +21,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QSyntaxHighlighter>
+#include <QTableWidget>
 #include <QTextBrowser>
 #include <QThread>
 #include <QTreeView>
@@ -34,6 +35,13 @@
 #include "luaModbus.h"
 #include "port.h"
 #include "suffix.h"
+
+// tab index
+enum {
+    DIAGNOSTICS_TAB,
+    THREADPOOL_TAB,
+    DEBUG_TAB,
+};
 
 // debug state
 enum {
@@ -54,6 +62,7 @@ enum {
 enum {
     INDICATOR_ERROR,
     INDICATOR_WARNING,
+    INDICATOR_HINT,
 };
 
 class Port;
@@ -124,6 +133,7 @@ private:
     QHash<QString, QJsonArray> m_diagnosticsHash = {};
     TooltipWidget *m_tooltipWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
+    QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
