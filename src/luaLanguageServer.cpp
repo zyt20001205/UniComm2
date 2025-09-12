@@ -80,13 +80,7 @@ void LuaLanguageServer::jsonReturn() {
                 const QJsonObject result = json["result"].toObject();
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
-                QString message = value;
-                message.remove("`");
-                const QJsonObject range = result["range"].toObject();
-                const QJsonObject start = range["start"].toObject();
-                const int line = start["line"].toInt();
-                const int character = start["character"].toInt();
-                emit hoverTextDocument(message, line, character);
+                emit hoverTextDocument(value);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
             // return from notification

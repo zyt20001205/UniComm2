@@ -58,6 +58,8 @@ enum {
 
 class Port;
 
+class TooltipWidget;
+
 class ScriptPageWidget;
 
 class LuaLexer;
@@ -86,7 +88,7 @@ public:
 
     void diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const;
 
-    void textDocumentHover(const QString &message, int line, int character) const;
+    void textDocumentHover(const QString &message) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -110,16 +112,39 @@ private:
 
     void scriptClose(int index);
 
+    void scriptSelected(int index);
+
     void scriptSwap(int srcIndex, int dstIndex);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QTabWidget *m_scriptTabWidget = nullptr;
+    ScriptPageWidget *m_currentScriptPage = nullptr;
+    TooltipWidget *m_tooltipWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
+};
+
+class TooltipWidget final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit TooltipWidget(QWidget *parent = nullptr);
+
+    ~TooltipWidget() override = default;
+
+    void showTooltip(const QString &message);
+
+    void hideTooltip();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+    QTextBrowser *m_textBrowser = nullptr;
 };
 
 class ScriptPageWidget final : public QWidget {
@@ -131,10 +156,6 @@ public:
     ~ScriptPageWidget() override = default;
 
     void scriptSave();
-
-    void diagnosticsPublish(const QJsonArray &diagnosticsArray);
-
-    void textDocumentHover(const QString &message, int line, int character) const;
 
     int m_version = 1;
     ScriptEditor *m_scriptEditor = nullptr;
@@ -157,15 +178,12 @@ private slots:
 
     void dwellStart(int pos, int x, int y);
 
-    void diagnosticsShow(int pos, int x, int y);
-
-    void diagnosticsHide(int pos, int x, int y) const;
+    // void diagnosticsShow(int pos, int x, int y);
 
 private:
     void scriptEditFinish();
 
     QTimer *m_editTimer = nullptr;
-    QJsonArray m_diagnosticsArray = {};
 };
 
 class LuaLexer final : public QsciLexerLua {

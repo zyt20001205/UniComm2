@@ -8,7 +8,7 @@ int g_depth = 0;
 int g_baseDepth = 0;
 
 // Script public
-Script::Script(QWidget *parent) : QWidget(parent) {
+Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWidget(this)){
     g_script = this;
     // script module init
     auto *layout = new QHBoxLayout(this); // NOLINT
@@ -17,6 +17,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     // script widget -> script editor
     m_scriptTabWidget = new QTabWidget();
     scriptSplitter->addWidget(m_scriptTabWidget);
+    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, &Script::scriptSelected);
     m_scriptTabWidget->setTabsClosable(true);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
     m_scriptTabWidget->setMovable(true);
@@ -247,30 +248,37 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
 }
 
 void Script::diagnosticsPublish(const QJsonArray &diagnosticsArray, const QString &scriptPath) const {
-    int index = -1;
-    ScriptPageWidget *scriptPageWidget = nullptr;
-    for (int i = 0; i < m_scriptTabWidget->count(); i++) {
-        scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
-        if (scriptPageWidget->m_scriptPath == scriptPath) {
-            index = i;
-            break;
+    if (m_currentScriptPage->m_scriptPath == scriptPath) {
+        const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
+        const int lastIndex = m_currentScriptPage->m_scriptEditor->lineLength(lastLine);
+        m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+        for (const auto &diagnostic: diagnosticsArray) {
+            const QJsonObject diagnosticObject = diagnostic.toObject();
+            const int severity = diagnosticObject["severity"].toInt();
+            const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+            const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+            const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+            if (severity == 2) {
+                // error
+                m_currentScriptPage->m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                                                        diagnosticStartPos["character"].toInt(),
+                                                                        diagnosticEndPos["line"].toInt(),
+                                                                        diagnosticEndPos["character"].toInt(),
+                                                                        INDICATOR_ERROR);
+            } else if (severity == 4) {
+                // warning
+                m_currentScriptPage->m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
+                                                                        diagnosticStartPos["character"].toInt(),
+                                                                        diagnosticEndPos["line"].toInt(),
+                                                                        diagnosticEndPos["character"].toInt(),
+                                                                        INDICATOR_WARNING);
+            }
         }
-    }
-    if (index == -1) {
-        qDebug() << "Script not found";
-    } else {
-        scriptPageWidget->diagnosticsPublish(diagnosticsArray);
     }
 }
 
-void Script::textDocumentHover(const QString &message, const int line, const int character) const {
-    const int currentIndex = m_scriptTabWidget->currentIndex();
-    if (currentIndex < 0) {
-        return;
-    }
-    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
-    if (!scriptPageWidget) return;
-    scriptPageWidget->textDocumentHover(message, line, character);
+void Script::textDocumentHover(const QString &message) const {
+    m_tooltipWidget->showTooltip(message);
 }
 
 // Script private
@@ -368,6 +376,12 @@ void Script::scriptClose(const int index) {
     // qDebug() << m_scriptConfig;
 }
 
+void Script::scriptSelected(const int index) {
+    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
+    if (!scriptPageWidget) return;
+    m_currentScriptPage = scriptPageWidget;
+}
+
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
     // config
     QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
@@ -375,6 +389,38 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
     scriptList.insert(dstIndex, tmp);
     m_scriptConfig["scriptList"] = scriptList;
     // qDebug() << m_scriptConfig;
+}
+
+// Tooltip public
+TooltipWidget::TooltipWidget(QWidget *parent) : QWidget(parent) {
+    setWindowFlags(Qt::Popup);
+    auto *layout = new QVBoxLayout(this); //NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    m_textBrowser = new QTextBrowser(this);
+    layout->addWidget(m_textBrowser);
+    m_textBrowser->setOpenExternalLinks(true);
+    m_textBrowser->installEventFilter(this);
+}
+
+// Tooltip protected
+bool TooltipWidget::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::Leave) {
+        hideTooltip();
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+// Tooltip private
+void TooltipWidget::showTooltip(const QString &message) {
+    m_textBrowser->setMarkdown(message);
+    this->adjustSize();
+    this->move(QCursor::pos() + QPoint(15, 15));
+    this->show();
+}
+
+void TooltipWidget::hideTooltip() {
+    this->hide();
 }
 
 // ScriptPageWidget public
@@ -403,7 +449,6 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     connect(m_scriptEditor, SIGNAL(modificationChanged(bool)), this, SLOT(scriptModify(bool)));
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
-    connect(m_scriptEditor, SIGNAL(SCN_DWELLEND(int,int,int)), this, SLOT(diagnosticsHide(int,int,int)));
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
@@ -439,40 +484,6 @@ void ScriptPageWidget::scriptSave() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
-}
-
-void ScriptPageWidget::diagnosticsPublish(const QJsonArray &diagnosticsArray) {
-    m_diagnosticsArray = diagnosticsArray;
-    const int lastLine = m_scriptEditor->lines() - 1;
-    const int lastIndex = m_scriptEditor->lineLength(lastLine);
-    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
-    for (const auto &diagnostic: m_diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const int severity = diagnosticObject["severity"].toInt();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        if (severity == 2) {
-            // error
-            m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
-                                               diagnosticStartPos["character"].toInt(),
-                                               diagnosticEndPos["line"].toInt(),
-                                               diagnosticEndPos["character"].toInt(),
-                                               INDICATOR_ERROR);
-        } else if (severity == 4) {
-            // warning
-            m_scriptEditor->fillIndicatorRange(diagnosticStartPos["line"].toInt(),
-                                               diagnosticStartPos["character"].toInt(),
-                                               diagnosticEndPos["line"].toInt(),
-                                               diagnosticEndPos["character"].toInt(),
-                                               INDICATOR_WARNING);
-        }
-    }
-}
-
-void ScriptPageWidget::textDocumentHover(const QString &message, const int line, const int character) const {
-    const long pos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_FINDCOLUMN, line, character);
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPSHOW, pos, message.toUtf8().constData()); // NOLINT
 }
 
 // ScriptPageWidget private
@@ -516,33 +527,29 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "hovered");
 }
 
-void ScriptPageWidget::diagnosticsShow(const int pos, const int x, const int y) {
-    int line = 0, index = 0;
-    m_scriptEditor->lineIndexFromPosition(pos, &line, &index);
-    QString diagnosticHit;
-    for (const auto &diagnostic: m_diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const int severity = diagnosticObject["severity"].toInt();
-        const QString code = diagnosticObject["code"].toString();
-        const QString message = diagnosticObject["message"].toString();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        if (line == diagnosticStartPos["line"].toInt() && index >= diagnosticStartPos["character"].toInt() && index <= diagnosticEndPos["character"].toInt()) {
-            if (severity == 2) {
-                diagnosticHit = "error: " + code + "\n" + message;
-            } else if (severity == 4) {
-                diagnosticHit = "warning: " + code + "\n" + message;
-            }
-            break;
-        }
-    }
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPSHOW, pos, diagnosticHit.toUtf8().constData()); // NOLINT
-}
-
-void ScriptPageWidget::diagnosticsHide(const int pos, const int x, const int y) const {
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPCANCEL); // NOLINT
-}
+// void ScriptPageWidget::diagnosticsShow(const int pos, const int x, const int y) {
+//     int line = 0, index = 0;
+//     m_scriptEditor->lineIndexFromPosition(pos, &line, &index);
+//     QString diagnosticHit;
+//     for (const auto &diagnostic: m_diagnosticsArray) {
+//         const QJsonObject diagnosticObject = diagnostic.toObject();
+//         const int severity = diagnosticObject["severity"].toInt();
+//         const QString code = diagnosticObject["code"].toString();
+//         const QString message = diagnosticObject["message"].toString();
+//         const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+//         const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+//         const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+//         if (line == diagnosticStartPos["line"].toInt() && index >= diagnosticStartPos["character"].toInt() && index <= diagnosticEndPos["character"].toInt()) {
+//             if (severity == 2) {
+//                 diagnosticHit = "error: " + code + "\n" + message;
+//             } else if (severity == 4) {
+//                 diagnosticHit = "warning: " + code + "\n" + message;
+//             }
+//             break;
+//         }
+//     }
+//     m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_CALLTIPSHOW, pos, diagnosticHit.toUtf8().constData()); // NOLINT
+// }
 
 void ScriptPageWidget::scriptEditFinish() {
     // didChange notification to lua language server
@@ -587,7 +594,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->setAutoCompletionFillupsEnabled(true);
     this->setAutoCompletionFillups(":.");
     // init mouse dwell
-    SendScintilla(SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
+    SendScintilla(SCI_SETMOUSEDWELLTIME, 500); // NOLINT
     // define markers
     this->markerDefine(Circle, MARKER_BREAKPOINT);
     this->setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);

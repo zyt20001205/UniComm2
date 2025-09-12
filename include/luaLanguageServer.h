@@ -25,7 +25,7 @@ signals:
 
     void publishDiagnostics(const QJsonArray &diagnosticsArray, const QString &scriptPath);
 
-    void hoverTextDocument(const QString &message, int line, int character);
+    void hoverTextDocument(const QString &message);
 
 private:
     void jsonReturn();
