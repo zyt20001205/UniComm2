@@ -81,6 +81,13 @@ void LuaLanguageServer::jsonReturn() {
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
                 emit hoverTextDocument(value);
+            } else if (m_methods.value(id) == "textDocument/semanticTokens/full") {
+                // semanticTokens request
+                m_methods.remove(id);
+                if (!json["result"].isObject()) return; // null result
+                const QJsonObject result = json["result"].toObject();
+                const QJsonArray data = result["data"].toArray();
+                emit semanticTokensTextDocument(data);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
             // return from notification

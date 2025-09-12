@@ -63,6 +63,7 @@ enum {
     INDICATOR_ERROR,
     INDICATOR_WARNING,
     INDICATOR_HINT,
+    INDICATOR_SEMANTIC,
 };
 
 class Port;
@@ -100,6 +101,8 @@ public:
     void diagnosticsPublish() const;
 
     void textDocumentHover(const QString &message) const;
+
+    void textDocumentSemanticTokens(const QJsonArray &data);
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -190,8 +193,6 @@ private slots:
     void scriptEdit() const;
 
     void dwellStart(int pos, int x, int y);
-
-    // void diagnosticsShow(int pos, int x, int y);
 
 private:
     QTimer *m_editTimer = nullptr;

@@ -27,6 +27,8 @@ signals:
 
     void hoverTextDocument(const QString &message);
 
+    void semanticTokensTextDocument(const QJsonArray &data);
+
 private:
     void jsonReturn();
 

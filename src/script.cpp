@@ -182,11 +182,26 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
 
     scriptSplitter->setStretchFactor(0, 3);
     scriptSplitter->setStretchFactor(1, 1);
-
+    // diagnosticsPublish
     diagnosticsPublish();
+
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
+
+    QTimer::singleShot(0, [this] {
+        // semanticTokens request to lua language server
+        const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_currentScriptPage->m_scriptPath;
+        const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
+        const QJsonObject semanticTokensParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUri}
+                }
+            }
+        };
+        emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
+    });
 }
 
 void Script::scriptConfigSave() const {
@@ -326,6 +341,25 @@ void Script::textDocumentHover(const QString &message) const {
     m_tooltipWidget->showTooltip(message);
 }
 
+void Script::textDocumentSemanticTokens(const QJsonArray &data) {
+    qDebug() << data;
+    int currentLine = 0;
+    int currentChar = 0;
+    for (int i = 0; i < data.size(); i += 5) {
+        const int deltaLine = data[i].toInt();
+        const int deltaStartChar = data[i + 1].toInt();
+        const int length = data[i + 2].toInt();
+        const int tokenType = data[i + 3].toInt();
+        const int tokenModifiers = data[i + 4].toInt();
+        currentLine += deltaLine;
+        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
+        // m_currentScriptPage->m_scriptEditor->indicSetFore(INDICATOR_SEMANTIC, Qt::red);
+        const int endChar = currentChar + length;
+        // m_currentScriptPage->m_scriptEditor->fillIndicatorRange(currentLine, currentChar, currentLine, endChar, INDICATOR_SEMANTIC
+        );
+    }
+}
+
 // Script private
 void Script::scriptRun() {
     const int currentIndex = m_scriptTabWidget->currentIndex();
@@ -426,6 +460,17 @@ void Script::scriptSelected(const int index) {
     if (!scriptPageWidget) return;
     m_currentScriptPage = scriptPageWidget;
     diagnosticsPublish();
+    // semanticTokens request to lua language server
+    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_currentScriptPage->m_scriptPath;
+    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
+    const QJsonObject semanticTokensParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUri}
+            }
+        }
+    };
+    emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
 }
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
@@ -554,6 +599,15 @@ void ScriptPageWidget::scriptEditFinish() {
         }
     };
     emit notificationJson("textDocument/didChange", didChangeParams);
+    // semanticTokens request to lua language server
+    const QJsonObject semanticTokensParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUri}
+            }
+        }
+    };
+    emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
