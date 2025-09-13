@@ -175,8 +175,18 @@ modbusAscii = {}
 function modbusAscii.readHoldingRegisters() end
 
 database = {}
-function database.write() end
+--- Writes data to a key in database.
+--- @param key string The key to write to.
+--- @param value string|number The value to write.
+--- @return nil
+function database.write(key, value) end
+
+--- Clears all data in database.
 function database.clear() end
 
 datatable = {}
+--- Writes data to a key in datatable.
+--- @param key string The key to write to.
+--- @param value string|number The value to write.
+--- @return nil
 function datatable.write() end

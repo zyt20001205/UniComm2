@@ -40,8 +40,8 @@ private:
     QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
     QTableWidget *m_tableWidget = nullptr;
     bool m_dragging = false;
-    int m_srcIndex;
-    int m_dstIndex;
+    int m_srcIndex{};
+    int m_dstIndex{};
 };
 
 #endif //DATABASE_H

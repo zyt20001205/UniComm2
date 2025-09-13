@@ -355,8 +355,7 @@ void Script::textDocumentSemanticTokens(const QJsonArray &data) {
         currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
         // m_currentScriptPage->m_scriptEditor->indicSetFore(INDICATOR_SEMANTIC, Qt::red);
         const int endChar = currentChar + length;
-        // m_currentScriptPage->m_scriptEditor->fillIndicatorRange(currentLine, currentChar, currentLine, endChar, INDICATOR_SEMANTIC
-        );
+        // m_currentScriptPage->m_scriptEditor->fillIndicatorRange(currentLine, currentChar, currentLine, endChar, INDICATOR_SEMANTIC);
     }
 }
 
@@ -1143,7 +1142,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
 }
 
 // ScriptExplorer public
-ScriptExplorer::ScriptExplorer(QWidget *parent) {
+ScriptExplorer::ScriptExplorer(QWidget *parent) : QTreeView(parent) {
     this->installEventFilter(this);
     connect(this, &QTreeView::doubleClicked, this, &ScriptExplorer::scriptOpen);
 
@@ -1157,23 +1156,6 @@ ScriptExplorer::ScriptExplorer(QWidget *parent) {
     m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
 
     const QString scriptPath = QDir::current().filePath("script");
-
-    // check if script dir exists
-    if (const QDir scriptDir(scriptPath); !scriptDir.exists()) {
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "script directory generated");
-        if (!scriptDir.mkpath(".")) {
-            // logging
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "script directory generation failed");
-            return;
-        }
-    } else {
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "script directory found");
-    }
 
     m_model->setRootPath(scriptPath);
     this->QTreeView::setRootIndex(m_model->index(scriptPath));

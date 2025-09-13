@@ -8,6 +8,7 @@ set(CMAKE_AUTOUIC ON)
 
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/lib/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
+set(LUA_SCRIPT_DIR "${LUA_DIR}/script")
 set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
 set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/lib/lua-language-server-3.15.0")
@@ -217,5 +218,12 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "${LUA_LANGUAGE_SERVER_DIR}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
+    endif ()
+
+    if (EXISTS "${LUA_SCRIPT_DIR}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${LUA_SCRIPT_DIR}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/script")
     endif ()
 endif ()
