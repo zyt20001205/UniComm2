@@ -366,7 +366,7 @@ void Script::textDocumentSemanticTokens(const QJsonArray &data) const {
         const int tokenModifiers = data[i + 4].toInt();
         // calculate start position
         currentLine += deltaLine;
-        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
+        // currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
         const int startPos = m_currentScriptPage->m_scriptEditor->positionFromLineIndex(currentLine, currentChar);
         qDebug() << currentLine << currentChar << length << tokenType << tokenModifiers;
         // start styling
