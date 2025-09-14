@@ -17,11 +17,8 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
     // script widget -> script editor
     m_scriptTabWidget = new QTabWidget();
     scriptSplitter->addWidget(m_scriptTabWidget);
-    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, &Script::scriptSelected);
     m_scriptTabWidget->setTabsClosable(true);
-    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
     m_scriptTabWidget->setMovable(true);
-    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &Script::scriptSwap);
     auto *welcomePage = new QWidget(); // NOLINT
     if (const int scriptCount = m_scriptConfig["scriptList"].toArray().size(); scriptCount == 0) {
         m_scriptTabWidget->addTab(welcomePage, "welcome");
@@ -37,6 +34,7 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
             const QFileInfo fileInfo(scriptPath);
             const QString fileName = fileInfo.fileName();
             auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
+            m_currentScriptPage = newTab;
             m_scriptTabWidget->addTab(newTab, fileName);
             m_scriptTabWidget->setCurrentWidget(newTab);
             connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
@@ -49,6 +47,9 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(scriptCount), "script config found");
     }
+    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, &Script::scriptSelected);
+    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
+    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &Script::scriptSwap);
 
     // script widget -> ctrl widget
     auto *ctrlWidget = new QWidget(); // NOLINT
@@ -290,7 +291,7 @@ void Script::diagnosticsReceive(const QString &scriptPath, const QJsonArray &dia
 }
 
 void Script::diagnosticsPublish() const {
-    if (!m_scriptDiagnosticsTableWidget) return;
+    if (!m_currentScriptPage) return;
     const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptPage->m_scriptPath];
     // diagnostics annotate
     const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
@@ -341,21 +342,70 @@ void Script::textDocumentHover(const QString &message) const {
     m_tooltipWidget->showTooltip(message);
 }
 
-void Script::textDocumentSemanticTokens(const QJsonArray &data) {
-    qDebug() << data;
+void Script::textDocumentSemanticTokens(const QJsonArray &data) const {
+    // BGR!!! DO NOT FORGET!!!
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
+    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
+
     int currentLine = 0;
     int currentChar = 0;
     for (int i = 0; i < data.size(); i += 5) {
+        // semantic tokens response extract
         const int deltaLine = data[i].toInt();
         const int deltaStartChar = data[i + 1].toInt();
         const int length = data[i + 2].toInt();
         const int tokenType = data[i + 3].toInt();
         const int tokenModifiers = data[i + 4].toInt();
+        // calculate start position
         currentLine += deltaLine;
         currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
-        // m_currentScriptPage->m_scriptEditor->indicSetFore(INDICATOR_SEMANTIC, Qt::red);
-        const int endChar = currentChar + length;
-        // m_currentScriptPage->m_scriptEditor->fillIndicatorRange(currentLine, currentChar, currentLine, endChar, INDICATOR_SEMANTIC);
+        const int startPos = m_currentScriptPage->m_scriptEditor->positionFromLineIndex(currentLine, currentChar);
+        qDebug() << currentLine << currentChar << length << tokenType << tokenModifiers;
+        // start styling
+        m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
+        switch (tokenType) {
+            case TOKENTYPE_PARAMETER:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
+                break;
+            case TOKENTYPE_VARIABLE:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_VARIABLE); // NOLINT
+                break;
+            case TOKENTYPE_FUNCTION:
+                if (tokenModifiers == TOKENMODIFIERS_DECLARATION) {
+                    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
+                }
+                else {
+                    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
+                }
+                break;
+            case TOKENTYPE_METHOD:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
+                break;
+            case TOKENTYPE_KEYWORD:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
+                break;
+            case TOKENTYPE_COMMENT:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_COMMENT); // NOLINT
+                break;
+            case TOKENTYPE_STRING:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_STRING); // NOLINT
+                break;
+            case TOKENTYPE_NUMBER:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NUMBER); // NOLINT
+                break;
+            case TOKENTYPE_OPERATOR:
+                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
+                break;
+            default: break;
+        }
     }
 }
 
@@ -527,7 +577,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     });
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
-    m_scriptEditor->m_scriptLexer->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()), -1);
+    m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     m_scriptPath = scriptPath;
     const QDir scriptDir(QDir::current().filePath("script"));
     QFile file(scriptDir.filePath(scriptPath));
@@ -660,6 +710,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     // load lua lexer
     m_scriptLexer = new LuaLexer(); // NOLINT
     this->QsciScintilla::setLexer(m_scriptLexer);
+    m_scriptLexer->setFont(QFont("Consolas", 12)); // temporary
     // configure auto complete
     auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
     apis->load(":/api/Lua-5.4.8.api");
@@ -716,29 +767,29 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     m_scriptLexer->setPaper(Qt::white, -1);
     // style 0: default
     // style 1: comment
-    m_scriptLexer->setColor(QColor(0x8C8C8C), 1);
+    m_scriptLexer->setColor(QColor(Qt::black), 1);
     // style 2: line comment
-    m_scriptLexer->setColor(QColor(0x8C8C8C), 2);
+    m_scriptLexer->setColor(QColor(Qt::black), 2);
     // style 4: number
-    m_scriptLexer->setColor(QColor(0x1750EB), 4);
+    m_scriptLexer->setColor(QColor(Qt::black), 4);
     // style 5: keyword
-    m_scriptLexer->setColor(QColor(0x0033B3), 5);
+    m_scriptLexer->setColor(QColor(Qt::black), 5);
     // style 6: string
-    m_scriptLexer->setColor(QColor(0x067D17), 6);
+    m_scriptLexer->setColor(QColor(Qt::black), 6);
     // style 7: character
     // style 8: literal string
     // style 9: preprocessor
     // style 10: operator
-    m_scriptLexer->setColor(QColor(0x2B2D30), 10);
+    m_scriptLexer->setColor(QColor(Qt::black), 10);
     // style 11: identifier
-    // m_scriptLexer->setColor(QColor(0x00627A), 11);
+    m_scriptLexer->setColor(QColor(Qt::black), 11);
     // style 12: unclosed string
     // style 13: basic functions
-    // m_scriptLexer->setColor(QColor(0x00627A), 13);
+    m_scriptLexer->setColor(QColor(Qt::black), 13);
     // style 14: string, table and maths functions
-    // m_scriptLexer->setColor(QColor(0x00627A), 14);
+    m_scriptLexer->setColor(QColor(Qt::black), 14);
     // style 15: coroutines, i/o and system facilities
-    // m_scriptLexer->setColor(QColor(0x00627A), 15);
+    m_scriptLexer->setColor(QColor(Qt::black), 15);
     // style 16: user defined 1
     // m_scriptLexer->setColor(QColor(0x00627A), 16);
     // style 20: label

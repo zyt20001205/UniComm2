@@ -63,8 +63,8 @@ enum {
     INDICATOR_ERROR,
     INDICATOR_WARNING,
     INDICATOR_HINT,
-    INDICATOR_SEMANTIC,
 };
+
 
 class Port;
 
@@ -102,7 +102,7 @@ public:
 
     void textDocumentHover(const QString &message) const;
 
-    void textDocumentSemanticTokens(const QJsonArray &data);
+    void textDocumentSemanticTokens(const QJsonArray &data) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -142,6 +142,59 @@ private:
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
+
+    enum {
+        TOKENTYPE_NAMESPACE,
+        TOKENTYPE_TYPE,
+        TOKENTYPE_CLASS,
+        TOKENTYPE_ENUM,
+        TOKENTYPE_INTERFACE,
+        TOKENTYPE_STRUCT,
+        TOKENTYPE_TYPEPARAMETER,
+        TOKENTYPE_PARAMETER,
+        TOKENTYPE_VARIABLE,
+        TOKENTYPE_PROPERTY,
+        TOKENTYPE_ENUMMEMBAER,
+        TOKENTYPE_EVENT,
+        TOKENTYPE_FUNCTION,
+        TOKENTYPE_METHOD,
+        TOKENTYPE_MACRO,
+        TOKENTYPE_KEYWORD,
+        TOKENTYPE_MODIFIER,
+        TOKENTYPE_COMMENT,
+        TOKENTYPE_STRING,
+        TOKENTYPE_NUMBER,
+        TOKENTYPE_REGEXP,
+        TOKENTYPE_OPERATOR,
+        TOKENTYOE_DECORATOR,
+    };
+
+    enum {
+        TOKENMODIFIERS_DECLARATION = 1 << 0,
+        TOKENMODIFIERS_DEFINITION = 1 << 1,
+        TOKENMODIFIERS_READONLY = 1 << 2,
+        TOKENMODIFIERS_STATIC = 1 << 3,
+        TOKENMODIFIERS_DEPRECATED = 1 << 4,
+        TOKENMODIFIERS_ABSTRACT = 1 << 5,
+        TOKENMODIFIERS_ASYNC = 1 << 6,
+        TOKENMODIFIERS_MODIFICATION = 1 << 7,
+        TOKENMODIFIERS_DOCUMENTATION = 1 << 8,
+        TOKENMODIFIERS_DEFAULTLIBRARY = 1 << 9,
+        TOKENMODIFIERS_GLOBAL = 1 << 10,
+    };
+
+    enum {
+        LUATOKEN_PARAMETER = 64,
+        LUATOKEN_VARIABLE,
+        LUATOKEN_FUNCTION_DECLARATION,
+        LUATOKEN_FUNCTION_CALL,
+        LUATOKEN_METHOD,
+        LUATOKEN_KEYWORD,
+        LUATOKEN_COMMENT,
+        LUATOKEN_STRING,
+        LUATOKEN_NUMBER,
+        LUATOKEN_OPERATOR,
+    };
 };
 
 class TooltipWidget final : public QWidget {

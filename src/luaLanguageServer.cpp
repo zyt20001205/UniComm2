@@ -8,12 +8,12 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent) : QWidget(parent) {
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
-    const QJsonObject initParams{
+    const QJsonObject initializeParams{
         {"processId", QCoreApplication::applicationPid()},
         {"rootUri", QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/script").toString()},
         {"capabilities", QJsonObject{}}
     };
-    jsonRequest("initialize", initParams);
+    jsonRequest("initialize", initializeParams);
     // wait until lls initialized
     QEventLoop loop;
     connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
@@ -72,6 +72,7 @@ void LuaLanguageServer::jsonReturn() {
             if (const int id = json["id"].toInt(); m_methods.value(id) == "initialize") {
                 // initialize request
                 m_methods.remove(id);
+                // qDebug() << json;
                 emit initialized();
             } else if (m_methods.value(id) == "textDocument/hover") {
                 // hover request

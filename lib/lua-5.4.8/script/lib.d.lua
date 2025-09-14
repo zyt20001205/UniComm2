@@ -70,7 +70,7 @@ function port.info(index) end
 --- * &gt;0: The function will block for up to the specified time, waiting for data.
 ---
 --- * -1: The function will block indefinitely until data arrives.
---- @return data bytes
+--- @return bytes data
 ---
 --- @usage — Read data from current selected port.
 ---
@@ -104,7 +104,7 @@ function port.readData(index, timeout) end
 --- * &gt;0: The function will block for up to the specified time, waiting for data.
 ---
 --- * -1: The function will block indefinitely until data arrives.
---- @return text string
+--- @return string text
 ---
 --- @usage — Read text from current selected port.
 ---
@@ -132,7 +132,7 @@ function port.readText(index, timeout) end
 --- Writes **raw binary data** to a port.
 --- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
 --- @param data bytes The raw binary data to write.
---- @param peerIp string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
 --- @return nil
 ---
 --- @usage — Write data to current selected port.
@@ -151,7 +151,7 @@ function port.writeData(index, data, peerIp) end
 --- Writes **text data** to a port.
 --- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
 --- @param text string The text data to write.
---- @param peerIp string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
 --- @return nil
 ---
 --- @usage — Write text to current selected port.
