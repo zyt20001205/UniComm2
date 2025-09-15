@@ -100,6 +100,8 @@ public:
 
     void diagnosticsPublish() const;
 
+    void foldingRangeReturn(const QJsonArray &result) const;
+
     void formattingReturn(const QString &newText) const;
 
     void hoverReturn(const QString &message) const;

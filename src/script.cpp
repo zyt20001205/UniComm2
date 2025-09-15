@@ -340,6 +340,24 @@ void Script::diagnosticsPublish() const {
     }
 }
 
+void Script::foldingRangeReturn(const QJsonArray &result) const {
+    QMap<int, int> deltaDepthMap;
+    for (const QJsonValue &value: result) {
+        const int startLine = value["startLine"].toInt();
+        const int endLine = value["endLine"].toInt();
+        deltaDepthMap.insert(startLine + 1, deltaDepthMap.value(startLine + 1, 0) + 1);
+        deltaDepthMap.insert(endLine + 1, deltaDepthMap.value(endLine + 1, 0) - 1);
+    }
+    int currentDepth = 0;
+    for (int line = 0; line < m_currentScriptPage->m_scriptEditor->lines(); line++) {
+        const int deltaDepth = deltaDepthMap.value(line, 0);
+        currentDepth += deltaDepth;
+        int level = QsciScintilla::SC_FOLDLEVELBASE + currentDepth;
+        if (deltaDepthMap.value(line + 1, 0) > 0) level |= QsciScintilla::SC_FOLDLEVELHEADERFLAG;
+        m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETFOLDLEVEL, line, level); // NOLINT
+    }
+}
+
 void Script::formattingReturn(const QString &newText) const {
     m_currentScriptPage->m_scriptEditor->setText(newText);
 }
@@ -756,7 +774,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     SendScintilla(SCI_SETWORDCHARS, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:."); // NOLINT
     // load lua lexer
     m_scriptLexer = new LuaLexer(); // NOLINT
-    this->QsciScintilla::setLexer(m_scriptLexer);
+    // this->QsciScintilla::setLexer(m_scriptLexer);
     m_scriptLexer->setFont(QFont("Consolas", 12)); // temporary
     // configure auto complete
     auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT

@@ -189,4 +189,4 @@ datatable = {}
 --- @param key string The key to write to.
 --- @param value string|number The value to write.
 --- @return nil
-function datatable.write() end
+function datatable.write(key, value) end
