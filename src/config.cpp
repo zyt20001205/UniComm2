@@ -47,6 +47,7 @@ void Config::configGenerate() {
                         "scriptList", QJsonArray{
                         },
                     },
+                    {"formatting", "Ctrl+Alt+L"},
                     {"fontFamily", "consolas"},
                     {"fontSize", "12"}
                 },

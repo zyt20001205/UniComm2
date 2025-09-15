@@ -72,33 +72,51 @@ void LuaLanguageServer::jsonReturn() {
             if (const int id = json["id"].toInt(); m_methods.value(id) == "initialize") {
                 // initialize request
                 m_methods.remove(id);
+                qDebug() << m_methods;
                 // qDebug() << json;
                 emit initialized();
+            } else if (m_methods.value(id) == "textDocument/foldingRange") {
+                // hover request
+                m_methods.remove(id);
+                qDebug() << m_methods;
+                // qDebug() << json;
+                if (!json["result"].isObject()) return; // null result
+                // const QJsonObject result = json["result"].toObject();
+            } else if (m_methods.value(id) == "textDocument/formatting") {
+                // hover request
+                m_methods.remove(id);
+                qDebug() << m_methods;
+                // qDebug() << json;
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                const QString newText = result[0]["newText"].toString();
+                emit returnFormatting(newText);
             } else if (m_methods.value(id) == "textDocument/hover") {
                 // hover request
                 m_methods.remove(id);
+                qDebug() << m_methods;
+                // qDebug() << json;
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
-                emit hoverTextDocument(value);
+                emit returnHover(value);
             } else if (m_methods.value(id) == "textDocument/semanticTokens/full") {
                 // semanticTokens request
                 m_methods.remove(id);
+                qDebug() << m_methods;
+                // qDebug() << json;
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray data = result["data"].toArray();
-                emit semanticTokensTextDocument(data);
+                emit returnSemanticTokens(data);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
             // return from notification
             const QJsonObject params = json["params"].toObject();
             const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
-            const QUrl scriptUri(params["uri"].toString());
-            const QString scriptAbsolutePath = scriptUri.toLocalFile();
-            const QFileInfo fileInfo(scriptAbsolutePath);
-            QString scriptPath = fileInfo.fileName();
-            emit publishDiagnostics(scriptPath, diagnosticsArray);
+            const QString scriptUri = params["uri"].toString();
+            emit returnPublishDiagnostics(scriptUri, diagnosticsArray);
         }
         if (m_buffer.size() == 0) break;
     }

@@ -16,6 +16,7 @@
 #include <Qsci/qsciapis.h>
 #include <Qsci/qscilexerlua.h>
 #include <Qsci/qsciscintilla.h>
+#include <QShortcut>
 #include <QSplitter>
 #include <QStandardItem>
 #include <QStandardItemModel>
@@ -65,7 +66,6 @@ enum {
     INDICATOR_HINT,
 };
 
-
 class Port;
 
 class TooltipWidget;
@@ -90,19 +90,21 @@ public:
 
     void scriptConfigSave() const;
 
-    void scriptOpen(const QString &scriptPath);
+    void scriptOpen(const QString &scriptUrl);
 
     void scriptHighlight(int row) const;
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
-    void diagnosticsReceive(const QString &scriptPath, const QJsonArray &diagnosticsArray);
+    void diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagnosticsArray);
 
     void diagnosticsPublish() const;
 
-    void textDocumentHover(const QString &message) const;
+    void formattingReturn(const QString &newText) const;
 
-    void textDocumentSemanticTokens(const QJsonArray &data) const;
+    void hoverReturn(const QString &message) const;
+
+    void semanticTokensReturn(const QJsonArray &data) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -220,7 +222,7 @@ class ScriptPageWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QString &scriptPath = QString(), QWidget *parent = nullptr);
+    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QString &scriptUrl = QString(), QWidget *parent = nullptr);
 
     ~ScriptPageWidget() override = default;
 
@@ -228,9 +230,15 @@ public:
 
     void scriptEditFinish();
 
+    void foldingRangeRequest();
+
+    void formattingRequest();
+
+    void semanticTokensRequest();
+
     int m_version = 1;
     ScriptEditor *m_scriptEditor = nullptr;
-    QString m_scriptPath;
+    QString m_scriptUrl;
     bool m_scriptModify = false;
 
 signals:
@@ -248,6 +256,12 @@ private slots:
     void dwellStart(int pos, int x, int y);
 
 private:
+    void didChangeNotification();
+
+    void didOpenNotification();
+
+    void hoverRequest(int line, int character);
+
     QTimer *m_editTimer = nullptr;
 };
 

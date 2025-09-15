@@ -23,11 +23,13 @@ public:
 signals:
     void initialized();
 
-    void publishDiagnostics(const QString &scriptPath, const QJsonArray &diagnosticsArray);
+    void returnPublishDiagnostics(const QString &scriptUri, const QJsonArray &diagnosticsArray);
 
-    void hoverTextDocument(const QString &message);
+    void returnFormatting(const QString &newText);
 
-    void semanticTokensTextDocument(const QJsonArray &data);
+    void returnHover(const QString &message);
+
+    void returnSemanticTokens(const QJsonArray &data);
 
 private:
     void jsonReturn();

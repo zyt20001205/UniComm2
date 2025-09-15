@@ -10,6 +10,12 @@ int g_baseDepth = 0;
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWidget(this)) {
     g_script = this;
+    auto shortcutSave = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
+    connect(shortcutSave, &QShortcut::activated, this, [this] {
+        if (!m_currentScriptPage) return;
+        m_currentScriptPage->formattingRequest();
+        emit appendLog("script formatted", "info");
+    });
     // script module init
     auto *layout = new QHBoxLayout(this); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
@@ -30,12 +36,12 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
         qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, create a welcome page");
     } else {
         for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
-            const QString scriptPath = value.toString();
-            const QFileInfo fileInfo(scriptPath);
-            const QString fileName = fileInfo.fileName();
-            auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
+            const QString scriptUrl = value.toString();
+            auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
             m_currentScriptPage = newTab;
-            m_scriptTabWidget->addTab(newTab, fileName);
+            const QFileInfo scriptInfo(scriptUrl);
+            const QString scriptName = scriptInfo.fileName();
+            m_scriptTabWidget->addTab(newTab, scriptName);
             m_scriptTabWidget->setCurrentWidget(newTab);
             connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
                 scriptModify(m_scriptTabWidget->indexOf(newTab));
@@ -191,21 +197,15 @@ Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWi
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
     QTimer::singleShot(0, [this] {
-        // semanticTokens request to lua language server
-        const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_currentScriptPage->m_scriptPath;
-        const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
-        const QJsonObject semanticTokensParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUri}
-                }
-            }
-        };
-        emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
+        if (m_currentScriptPage) {
+            m_currentScriptPage->foldingRangeRequest();
+            m_currentScriptPage->semanticTokensRequest();
+        }
     });
 }
 
 void Script::scriptConfigSave() const {
+    if (!m_currentScriptPage) return;
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
         auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
         if (scriptPageWidget) {
@@ -222,12 +222,12 @@ void Script::scriptConfigSave() const {
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
-void Script::scriptOpen(const QString &scriptPath) {
+void Script::scriptOpen(const QString &scriptUrl) {
     // gui
     // switch to existing page if already opened
     QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
     for (int i = 0; i < scriptList.size(); i++) {
-        if (scriptList[i].toString() == scriptPath) {
+        if (scriptList[i].toString() == scriptUrl) {
             m_scriptTabWidget->setCurrentIndex(i);
             return;
         }
@@ -237,16 +237,18 @@ void Script::scriptOpen(const QString &scriptPath) {
         m_scriptTabWidget->removeTab(0);
     }
     // open new tab
-    const QFileInfo fileInfo(scriptPath);
-    const QString fileName = fileInfo.fileName();
-    auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptPath); // NOLINT
-    m_scriptTabWidget->addTab(newTab, fileName);
+    auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
+    const QFileInfo scriptInfo(scriptUrl);
+    const QString scriptName = scriptInfo.fileName();
+    m_scriptTabWidget->addTab(newTab, scriptName);
     m_scriptTabWidget->setCurrentWidget(newTab);
     connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
         scriptModify(m_scriptTabWidget->indexOf(newTab));
     });
+    connect(newTab, &ScriptPageWidget::requestJson, this, &Script::requestJson);
+    connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
     // config
-    scriptList.append(scriptPath);
+    scriptList.append(scriptUrl);
     m_scriptConfig["scriptList"] = scriptList;
     // qDebug() << m_scriptConfig;
 }
@@ -285,14 +287,14 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
     m_scriptDebugTreeView->resizeColumnToContents(1);
 }
 
-void Script::diagnosticsReceive(const QString &scriptPath, const QJsonArray &diagnosticsArray) {
-    m_diagnosticsHash.insert(scriptPath, diagnosticsArray);
+void Script::diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagnosticsArray) {
+    m_diagnosticsHash.insert(scriptUri, diagnosticsArray);
     diagnosticsPublish();
 }
 
 void Script::diagnosticsPublish() const {
     if (!m_currentScriptPage) return;
-    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptPage->m_scriptPath];
+    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptPage->m_scriptUrl];
     // diagnostics annotate
     const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
     const int lastIndex = m_currentScriptPage->m_scriptEditor->lineLength(lastLine);
@@ -338,12 +340,16 @@ void Script::diagnosticsPublish() const {
     }
 }
 
-void Script::textDocumentHover(const QString &message) const {
+void Script::formattingReturn(const QString &newText) const {
+    m_currentScriptPage->m_scriptEditor->setText(newText);
+}
+
+void Script::hoverReturn(const QString &message) const {
     m_tooltipWidget->showTooltip(message);
 }
 
-void Script::textDocumentSemanticTokens(const QJsonArray &data) const {
-    // BGR!!! DO NOT FORGET!!!
+void Script::semanticTokensReturn(const QJsonArray &data) const {
+    // color format is BGR!!! DO NOT FORGET!!!
     m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
     m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
     m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
@@ -366,9 +372,14 @@ void Script::textDocumentSemanticTokens(const QJsonArray &data) const {
         const int tokenModifiers = data[i + 4].toInt();
         // calculate start position
         currentLine += deltaLine;
-        // currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
+        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
         const int startPos = m_currentScriptPage->m_scriptEditor->positionFromLineIndex(currentLine, currentChar);
-        qDebug() << currentLine << currentChar << length << tokenType << tokenModifiers;
+        const int endPos = startPos + length;
+        if (startPos < 0 || endPos > m_currentScriptPage->m_scriptEditor->length() || length <= 0) {
+            qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
+            continue;
+        }
+        // qDebug() << currentLine << currentChar << length << tokenType << tokenModifiers;
         // start styling
         m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
         switch (tokenType) {
@@ -381,8 +392,7 @@ void Script::textDocumentSemanticTokens(const QJsonArray &data) const {
             case TOKENTYPE_FUNCTION:
                 if (tokenModifiers == TOKENMODIFIERS_DECLARATION) {
                     m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
-                }
-                else {
+                } else {
                     m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
                 }
                 break;
@@ -509,17 +519,8 @@ void Script::scriptSelected(const int index) {
     if (!scriptPageWidget) return;
     m_currentScriptPage = scriptPageWidget;
     diagnosticsPublish();
-    // semanticTokens request to lua language server
-    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_currentScriptPage->m_scriptPath;
-    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
-    const QJsonObject semanticTokensParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", scriptUri}
-            }
-        }
-    };
-    emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
+    m_currentScriptPage->foldingRangeRequest();
+    m_currentScriptPage->semanticTokensRequest();
 }
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
@@ -566,7 +567,7 @@ void TooltipWidget::hideTooltip() {
 }
 
 // ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptPath, QWidget *parent) : QWidget(parent) {
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_editTimer = new QTimer(this);
@@ -578,9 +579,10 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-    m_scriptPath = scriptPath;
-    const QDir scriptDir(QDir::current().filePath("script"));
-    QFile file(scriptDir.filePath(scriptPath));
+    m_scriptUrl = scriptUrl;
+    const QUrl url(scriptUrl);
+    const QString scriptPath = url.toLocalFile();
+    QFile file(scriptPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);
     const QString content = in.readAll();
@@ -594,28 +596,17 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
     // didOpen notification to lua language server
-    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
-    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
-    QTimer::singleShot(0, this, [this, scriptUri, content] {
-        const QJsonObject didOpenParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUri},
-                    {"languageId", "lua"},
-                    {"version", m_version++},
-                    {"text", content}
-                }
-            }
-        };
-        emit notificationJson("textDocument/didOpen", didOpenParams);
+    QTimer::singleShot(0, this, [this] {
+        didOpenNotification();
     });
 }
 
 void ScriptPageWidget::scriptSave() {
     if (!m_scriptModify) return;
     // save file
-    const QDir scriptDir(QDir::current().filePath("script"));
-    QFile file(scriptDir.filePath(m_scriptPath));
+    const QUrl url(m_scriptUrl);
+    const QString scriptPath = url.toLocalFile();
+    QFile file(scriptPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
     out << m_scriptEditor->text();
@@ -624,42 +615,60 @@ void ScriptPageWidget::scriptSave() {
     m_scriptEditor->setModified(false);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "saved");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "saved");
 }
 
 void ScriptPageWidget::scriptEditFinish() {
-    // didChange notification to lua language server
-    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
-    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
-    const QString content = m_scriptEditor->text();
-    const QJsonObject didChangeParams{
+    didChangeNotification();
+    foldingRangeRequest();
+    semanticTokensRequest();
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "edited");
+}
+
+void ScriptPageWidget::foldingRangeRequest() {
+    // folding range request to lua language server
+    const QJsonObject foldingRangeParams{
         {
             "textDocument", QJsonObject{
-                {"uri", scriptUri},
-                {"version", m_version++}
-            }
-        },
-        {
-            "contentChanges", QJsonArray{
-                QJsonObject{
-                    {"text", content}
-                }
+                {"uri", m_scriptUrl}
             }
         }
     };
-    emit notificationJson("textDocument/didChange", didChangeParams);
+    emit requestJson("textDocument/foldingRange", foldingRangeParams);
+}
+
+void ScriptPageWidget::formattingRequest() {
+    // formatting request to lua language server
+    const QJsonObject formattingParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl}
+            }
+        },
+        {
+            "options", QJsonObject{
+                {"tabSize", m_scriptEditor->tabWidth()},
+                {"insertSpaces", true},
+                {"trimTrailingWhitespace", true},
+                {"insertFinalNewline", true}
+            }
+        }
+    };
+    emit requestJson("textDocument/formatting", formattingParams);
+}
+
+void ScriptPageWidget::semanticTokensRequest() {
     // semanticTokens request to lua language server
     const QJsonObject semanticTokensParams{
         {
             "textDocument", QJsonObject{
-                {"uri", scriptUri}
+                {"uri", m_scriptUrl}
             }
         }
     };
     emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "edited");
 }
 
 // ScriptPageWidget private
@@ -669,7 +678,7 @@ void ScriptPageWidget::scriptModify(const bool status) {
         emit modifyScript();
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "modified");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "modified");
     }
 }
 
@@ -682,13 +691,54 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
     int line, character;
     m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
     if (line == 0 && character == 0) return;
+    hoverRequest(line, character);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "hovered");
+}
+
+void ScriptPageWidget::didChangeNotification() {
+    // didChange notification to lua language server
+    const QString content = m_scriptEditor->text();
+    const QJsonObject didChangeParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl},
+                {"version", m_version++}
+            }
+        },
+        {
+            "contentChanges", QJsonArray{
+                QJsonObject{
+                    {"text", content}
+                }
+            }
+        }
+    };
+    emit notificationJson("textDocument/didChange", didChangeParams);
+}
+
+void ScriptPageWidget::didOpenNotification() {
+    // didOpen notification to lua language server
+    const QJsonObject didOpenParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl},
+                {"languageId", "lua"},
+                {"version", m_version++},
+                {"text", m_scriptEditor->text()}
+            }
+        }
+    };
+    emit notificationJson("textDocument/didOpen", didOpenParams);
+}
+
+void ScriptPageWidget::hoverRequest(const int line, const int character) {
     // hover request to lua language server
-    const QString scriptAbsolutePath = QCoreApplication::applicationDirPath() + "/script/" + m_scriptPath;
-    const QString scriptUri = QUrl::fromLocalFile(scriptAbsolutePath).toString();
     const QJsonObject hoverParams{
         {
             "textDocument", QJsonObject{
-                {"uri", scriptUri}
+                {"uri", m_scriptUrl}
             }
         },
         {
@@ -699,9 +749,6 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
         }
     };
     emit requestJson("textDocument/hover", hoverParams);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptPath, "hovered");
 }
 
 // ScriptEditor public
@@ -1263,10 +1310,9 @@ void ScriptExplorer::scriptRun(const QModelIndex &index) {
 }
 
 void ScriptExplorer::scriptOpen(const QModelIndex &index) {
-    // using relative file path
-    const QString filePath = m_model->filePath(index);
-    const QDir scriptDir(QDir::current().filePath("script"));
-    emit openScript(scriptDir.relativeFilePath(filePath));
+    const QString scriptPath = m_model->filePath(index);
+    const QString scriptUrl = QUrl::fromLocalFile(scriptPath).toString();
+    emit openScript(scriptUrl);
 }
 
 void ScriptExplorer::scriptDelete(const QModelIndex &index) {
