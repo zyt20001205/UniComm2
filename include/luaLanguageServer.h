@@ -25,6 +25,8 @@ signals:
 
     void returnPublishDiagnostics(const QString &scriptUri, const QJsonArray &diagnosticsArray);
 
+    void returnCompletion(const QJsonArray &items);
+
     void returnFoldingRange(const QJsonArray &result);
 
     void returnFormatting(const QString &newText);

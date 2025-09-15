@@ -8,7 +8,7 @@ int g_depth = 0;
 int g_baseDepth = 0;
 
 // Script public
-Script::Script(QWidget *parent) : QWidget(parent), m_tooltipWidget(new TooltipWidget(this)) {
+Script::Script(QWidget *parent) : QWidget(parent), m_tooltipHover(new TooltipHover(this)) {
     g_script = this;
     auto shortcutSave = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
     connect(shortcutSave, &QShortcut::activated, this, [this] {
@@ -340,6 +340,18 @@ void Script::diagnosticsPublish() const {
     }
 }
 
+void Script::completionReturn(const QJsonArray &items) const {
+    m_currentScriptPage->m_tooltipCompletion->showTooltip(items);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptPage->m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_currentScriptPage->m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+}
+
 void Script::foldingRangeReturn(const QJsonArray &result) const {
     QMap<int, int> deltaDepthMap;
     for (const QJsonValue &value: result) {
@@ -363,7 +375,7 @@ void Script::formattingReturn(const QString &newText) const {
 }
 
 void Script::hoverReturn(const QString &message) const {
-    m_tooltipWidget->showTooltip(message);
+    m_tooltipHover->showTooltip(message);
 }
 
 void Script::semanticTokensReturn(const QJsonArray &data) const {
@@ -550,12 +562,11 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
     // qDebug() << m_scriptConfig;
 }
 
-// Tooltip public
-TooltipWidget::TooltipWidget(QWidget *parent) : QWidget(parent) {
+// TooltipHover public
+TooltipHover::TooltipHover(QWidget *parent) : QWidget(parent), m_textBrowser(new QTextBrowser(this)) {
     setWindowFlags(Qt::Popup);
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
-    m_textBrowser = new QTextBrowser(this);
     layout->addWidget(m_textBrowser);
     m_textBrowser->setFixedWidth(600);
     m_textBrowser->setFont(QFont("Consolas", 10));
@@ -563,8 +574,8 @@ TooltipWidget::TooltipWidget(QWidget *parent) : QWidget(parent) {
     m_textBrowser->installEventFilter(this);
 }
 
-// Tooltip protected
-bool TooltipWidget::eventFilter(QObject *obj, QEvent *event) {
+// TooltipHover protected
+bool TooltipHover::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::Leave) {
         hideTooltip();
         return true;
@@ -572,24 +583,24 @@ bool TooltipWidget::eventFilter(QObject *obj, QEvent *event) {
     return QWidget::eventFilter(obj, event);
 }
 
-// Tooltip private
-void TooltipWidget::showTooltip(const QString &message) {
+// TooltipHover private
+void TooltipHover::showTooltip(const QString &message) {
     m_textBrowser->setMarkdown(message);
     this->adjustSize();
     this->move(QCursor::pos() + QPoint(15, 15));
     this->show();
 }
 
-void TooltipWidget::hideTooltip() {
+void TooltipHover::hideTooltip() {
     this->hide();
 }
 
 // ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent) {
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent), m_tooltipCompletion(new TooltipCompletion(this)) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_editTimer = new QTimer(this);
-    m_editTimer->setInterval(1000);
+    m_editTimer->setInterval(300);
     m_editTimer->setSingleShot(true);
     connect(m_editTimer, &QTimer::timeout, [this] {
         scriptEditFinish();
@@ -606,6 +617,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     const QString content = in.readAll();
     file.close();
     m_scriptEditor->setText(content);
+    m_scriptEditor->installEventFilter(m_tooltipCompletion);
     // connect signals
     connect(m_scriptEditor, SIGNAL(modificationChanged(bool)), this, SLOT(scriptModify(bool)));
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
@@ -638,11 +650,32 @@ void ScriptPageWidget::scriptSave() {
 
 void ScriptPageWidget::scriptEditFinish() {
     didChangeNotification();
+    completionRequest();
     foldingRangeRequest();
     semanticTokensRequest();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "edited");
+}
+
+void ScriptPageWidget::completionRequest() {
+    // completion request to lua language server
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    const QJsonObject completionParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/completion", completionParams);
 }
 
 void ScriptPageWidget::foldingRangeRequest() {
@@ -769,9 +802,77 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
     emit requestJson("textDocument/hover", hoverParams);
 }
 
+// TooltipCompletion public
+TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_tableWidget(new QTableWidget(this)) {
+    setWindowFlags(Qt::ToolTip);
+    auto *layout = new QVBoxLayout(this); //NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_tableWidget);
+    m_tableWidget->setFixedWidth(600);
+    m_tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    m_tableWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    m_tableWidget->setFont(QFont("Consolas", 12));
+    m_tableWidget->setShowGrid(false);
+    m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_tableWidget->setColumnCount(2);
+    m_tableWidget->horizontalHeader()->setVisible(false);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_tableWidget->verticalHeader()->setVisible(false);
+
+    this->installEventFilter(this);
+}
+
+// TooltipCompletion protected
+bool TooltipCompletion::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::KeyPress) {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            case Qt::Key_Tab:
+                qDebug() << "tab";
+                return true;
+            case Qt::Key_Return:
+                qDebug() << "return";
+                return true;
+            case Qt::Key_Up:
+                qDebug() << "up";
+                return true;
+            case Qt::Key_Down:
+                qDebug() << "down";
+                return true;
+            default:
+                return false;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+// TooltipCompletion private
+void TooltipCompletion::showTooltip(const QJsonArray &items) {
+    m_tableWidget->setRowCount(0);
+    int row = 0;
+    for (const QJsonValue &value: items) {
+        QJsonObject item = value.toObject();
+        const QString label = item["label"].toString();
+        const QString insertText = item["insertText"].toString(label);
+        m_tableWidget->insertRow(row);
+        auto *insertTextItem = new QTableWidgetItem(insertText); // NOLINT
+        auto *labelItem = new QTableWidgetItem(label); // NOLINT
+        m_tableWidget->setItem(row, 0, insertTextItem);
+        m_tableWidget->setItem(row, 1, labelItem);
+        row++;
+    }
+    m_tableWidget->resizeRowsToContents();
+    this->adjustSize();
+    this->show();
+}
+
+void TooltipCompletion::hideTooltip() {
+    this->hide();
+}
+
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
-    SendScintilla(SCI_SETWORDCHARS, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:."); // NOLINT
     // load lua lexer
     m_scriptLexer = new LuaLexer(); // NOLINT
     // this->QsciScintilla::setLexer(m_scriptLexer);

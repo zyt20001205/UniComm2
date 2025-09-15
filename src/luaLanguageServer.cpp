@@ -75,6 +75,15 @@ void LuaLanguageServer::jsonReturn() {
                 qDebug() << m_methods;
                 // qDebug() << json;
                 emit initialized();
+            } else if (m_methods.value(id) == "textDocument/completion") {
+                // hover request
+                m_methods.remove(id);
+                qDebug() << m_methods;
+                // qDebug() << json;
+                if (!json["result"].isObject()) return; // null result
+                const QJsonObject result = json["result"].toObject();
+                const QJsonArray items = result["items"].toArray();
+                emit returnCompletion(items);
             } else if (m_methods.value(id) == "textDocument/foldingRange") {
                 // hover request
                 m_methods.remove(id);

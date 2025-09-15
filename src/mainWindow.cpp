@@ -83,6 +83,7 @@ void MainWindow::moduleInit() {
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
+    connect(m_llsModule,&LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
     connect(m_llsModule,&LuaLanguageServer::returnFoldingRange, m_scriptModule, &Script::foldingRangeReturn);
     connect(m_llsModule,&LuaLanguageServer::returnFormatting, m_scriptModule, &Script::formattingReturn);
     connect(m_llsModule,&LuaLanguageServer::returnHover, m_scriptModule, &Script::hoverReturn);

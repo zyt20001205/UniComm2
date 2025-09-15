@@ -68,7 +68,9 @@ enum {
 
 class Port;
 
-class TooltipWidget;
+class TooltipCompletion;
+
+class TooltipHover;
 
 class ScriptPageWidget;
 
@@ -99,6 +101,8 @@ public:
     void diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagnosticsArray);
 
     void diagnosticsPublish() const;
+
+    void completionReturn(const QJsonArray &items) const;
 
     void foldingRangeReturn(const QJsonArray &result) const;
 
@@ -138,7 +142,7 @@ private:
     QTabWidget *m_scriptTabWidget = nullptr;
     ScriptPageWidget *m_currentScriptPage = nullptr;
     QHash<QString, QJsonArray> m_diagnosticsHash = {};
-    TooltipWidget *m_tooltipWidget = nullptr;
+    TooltipHover *m_tooltipHover = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
@@ -201,13 +205,32 @@ private:
     };
 };
 
-class TooltipWidget final : public QWidget {
+class TooltipCompletion final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TooltipWidget(QWidget *parent = nullptr);
+    explicit TooltipCompletion(QWidget *parent = nullptr);
 
-    ~TooltipWidget() override = default;
+    ~TooltipCompletion() override = default;
+
+    void showTooltip(const QJsonArray &items);
+
+    void hideTooltip();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+    QTableWidget *m_tableWidget = nullptr;
+};
+
+class TooltipHover final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit TooltipHover(QWidget *parent = nullptr);
+
+    ~TooltipHover() override = default;
 
     void showTooltip(const QString &message);
 
@@ -232,6 +255,8 @@ public:
 
     void scriptEditFinish();
 
+    void completionRequest();
+
     void foldingRangeRequest();
 
     void formattingRequest();
@@ -242,6 +267,7 @@ public:
     ScriptEditor *m_scriptEditor = nullptr;
     QString m_scriptUrl;
     bool m_scriptModify = false;
+    TooltipCompletion *m_tooltipCompletion = nullptr;
 
 signals:
     void modifyScript();
