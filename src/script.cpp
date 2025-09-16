@@ -299,6 +299,7 @@ void Script::diagnosticsPublish() const {
     const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
     const int lastIndex = m_currentScriptPage->m_scriptEditor->lineLength(lastLine);
     m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+    m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
     // diagnostics table
     m_scriptDiagnosticsTableWidget->setRowCount(0);
     int row = 0;
@@ -349,7 +350,7 @@ void Script::completionReturn(const QJsonArray &items) const {
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptPage->m_tooltipCompletion->move(cursorGlobalPos.x() - 18, cursorGlobalPos.y() + lineHeight);
+    m_currentScriptPage->m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void Script::foldingRangeReturn(const QJsonArray &result) const {
@@ -379,17 +380,22 @@ void Script::hoverReturn(const QString &message) const {
 }
 
 void Script::semanticTokensReturn(const QJsonArray &data) const {
+    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptPage->m_scriptEditor);
+    // clear
+    editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0, 0xFF); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, editor->length(), static_cast<long>(0));
     // color format is BGR!!! DO NOT FORGET!!!
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
-    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
 
     int currentLine = 0;
     int currentChar = 0;
@@ -403,48 +409,53 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
         // calculate start position
         currentLine += deltaLine;
         currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
-        const int startPos = m_currentScriptPage->m_scriptEditor->positionFromLineIndex(currentLine, currentChar);
+        const int startPos = editor->positionFromLineIndex(currentLine, currentChar);
         const int endPos = startPos + length;
-        if (startPos < 0 || endPos > m_currentScriptPage->m_scriptEditor->length() || length <= 0) {
+        if (startPos < 0 || endPos > editor->length() || length <= 0) {
             qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
             continue;
         }
         // qDebug() << currentLine << currentChar << length << tokenType << tokenModifiers;
         // start styling
-        m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
+        editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
         switch (tokenType) {
             case TOKENTYPE_PARAMETER:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
                 break;
             case TOKENTYPE_VARIABLE:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_VARIABLE); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_VARIABLE); // NOLINT
+                break;
+            case TOKENTYPE_PROPERTY:
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PROPERTY); // NOLINT
                 break;
             case TOKENTYPE_FUNCTION:
                 if (tokenModifiers == TOKENMODIFIERS_DECLARATION) {
-                    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
+                    editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
                 } else {
-                    m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
+                    editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
                 }
                 break;
             case TOKENTYPE_METHOD:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
                 break;
             case TOKENTYPE_KEYWORD:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
                 break;
             case TOKENTYPE_COMMENT:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_COMMENT); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_COMMENT); // NOLINT
                 break;
             case TOKENTYPE_STRING:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_STRING); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_STRING); // NOLINT
                 break;
             case TOKENTYPE_NUMBER:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NUMBER); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NUMBER); // NOLINT
                 break;
             case TOKENTYPE_OPERATOR:
-                m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
                 break;
-            default: break;
+            default:
+                qDebug() << tokenType;
+                break;
         }
     }
 }
@@ -853,8 +864,8 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
     emit requestJson("textDocument/hover", hoverParams);
 }
 
-void ScriptPageWidget::textReplace(const QString &kind, QString &text) const {
-    if (kind == "F") {
+void ScriptPageWidget::textReplace(QString &text, const QString &kind) const {
+    if (kind == "Function") {
         text += "()";
     }
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
@@ -862,7 +873,7 @@ void ScriptPageWidget::textReplace(const QString &kind, QString &text) const {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETTARGETRANGE, startPos, currentPos); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_REPLACETARGET, text.length(), text.toUtf8().constData()); // NOLINT
     long cursorPos;
-    if (kind == "F") {
+    if (kind == "Function") {
         cursorPos = startPos + text.length() - 1;
     } else {
         cursorPos = startPos + text.length();
@@ -872,14 +883,14 @@ void ScriptPageWidget::textReplace(const QString &kind, QString &text) const {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }
 
-void ScriptPageWidget::textInsert(const QString &kind, QString &text) const {
-    if (kind == "F") {
+void ScriptPageWidget::textInsert(QString &text, const QString &kind) const {
+    if (kind == "Function") {
         text += "()";
     }
     m_scriptEditor->insert(text);
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     long cursorPos;
-    if (kind == "F") {
+    if (kind == "Function") {
         cursorPos = currentPos + text.length() - 1;
     } else {
         cursorPos = currentPos + text.length();
@@ -907,7 +918,10 @@ TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_table
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     m_tableWidget->verticalHeader()->setVisible(false);
-    m_kindList = {"0", "1", "2", "F", "4", "C", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"};
+    m_kindList = {
+        "0", "Text", "Method", "Function", "Constructor", "Field", "Variable", "Class", "Interface", "Module", "Property", "Unit", "Value", "Enum", "Keyword", "Snippet", "Color",
+        "File", "Reference", "Folder", "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParamater"
+    };
 }
 
 void TooltipCompletion::showTooltip(const QJsonArray &items) {
@@ -919,19 +933,19 @@ void TooltipCompletion::showTooltip(const QJsonArray &items) {
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
         m_tableWidget->insertRow(row);
-        auto *kindItem = new QTableWidgetItem(kind); // NOLINT
         auto *insertTextItem = new QTableWidgetItem(insertText); // NOLINT
+        auto *kindItem = new QTableWidgetItem(kind); // NOLINT
         auto *labelItem = new QTableWidgetItem(label); // NOLINT
-        m_tableWidget->setItem(row, 0, kindItem);
-        m_tableWidget->setItem(row, 1, insertTextItem);
+        m_tableWidget->setItem(row, 0, insertTextItem);
+        m_tableWidget->setItem(row, 1, kindItem);
         m_tableWidget->setItem(row, 2, labelItem);
         row++;
     }
     if (m_tableWidget->rowCount() > 0) {
         m_currentRow = 0;
         m_tableWidget->selectRow(m_currentRow);
-        m_kind = m_tableWidget->item(m_currentRow, 0)->text();
-        m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
+        m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
+        m_kind = m_tableWidget->item(m_currentRow, 1)->text();
     } else {
         m_currentRow = -1;
         m_kind.clear();
@@ -952,10 +966,10 @@ bool TooltipCompletion::eventFilter(QObject *obj, QEvent *event) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
             case Qt::Key_Tab:
-                if (!m_insertText.isEmpty()) emit replaceText(m_kind, m_insertText);
+                if (!m_insertText.isEmpty()) emit replaceText(m_insertText, m_kind);
                 return true;
             case Qt::Key_Return:
-                if (!m_insertText.isEmpty()) emit insertText(m_kind, m_insertText);
+                if (!m_insertText.isEmpty()) emit insertText(m_insertText, m_kind);
                 return true;
             case Qt::Key_Escape:
                 hideTooltip();
@@ -983,8 +997,8 @@ void TooltipCompletion::moveUp() {
     if (m_currentRow > 0) {
         m_currentRow--;
         m_tableWidget->selectRow(m_currentRow);
-        m_kind = m_tableWidget->item(m_currentRow, 0)->text();
-        m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
+        m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
+        m_kind = m_tableWidget->item(m_currentRow, 1)->text();
     }
 }
 
@@ -993,8 +1007,8 @@ void TooltipCompletion::moveDown() {
     if (m_currentRow < m_tableWidget->rowCount() - 1) {
         m_currentRow++;
         m_tableWidget->selectRow(m_currentRow);
-        m_kind = m_tableWidget->item(m_currentRow, 0)->text();
-        m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
+        m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
+        m_kind = m_tableWidget->item(m_currentRow, 1)->text();
     }
 }
 
@@ -1097,6 +1111,16 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->QsciScintilla::setTabWidth(4);
 }
 
+// ScriptEditor protected
+void ScriptEditor::keyPressEvent(QKeyEvent *event) {
+    if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Slash) {
+        commentToggle();
+        event->accept();
+        return;
+    }
+    QsciScintilla::keyPressEvent(event);
+}
+
 // ScriptEditor private
 void ScriptEditor::onMarginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
@@ -1118,6 +1142,26 @@ void ScriptEditor::breakpointUpdate() const {
         }
     }
     qDebug() << g_breakpoint;
+}
+
+void ScriptEditor::commentToggle() {
+    int startLine, startCharacter, endLine, endCharacter;
+    getSelection(&startLine, &startCharacter, &endLine, &endCharacter);
+    if (startLine == -1) {
+        getCursorPosition(&startLine, &startCharacter);
+        endLine = startLine;
+    }
+    beginUndoAction();
+    for (int line = startLine; line <= endLine; ++line) {
+        QString lineText = text(line);
+        if (lineText.startsWith("-- ")) {
+            setSelection(line, 0, line, 3);
+            removeSelectedText();
+        } else {
+            insertAt("-- ", line, 0);
+        }
+    }
+    endUndoAction();
 }
 
 // LuaInterpreter public

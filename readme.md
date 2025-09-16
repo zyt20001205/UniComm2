@@ -33,7 +33,7 @@
 <img src="resources/sketch/roadmap.svg" alt="roadmap" style="max-width: 100%; height: auto;">
 </div>
 
-# Supported Protocols
+# Port Module
 
 <style>
     .osi-table td {
@@ -85,147 +85,71 @@
 </table>
 
 <a id="TCP"></a>
+
 ## TCP
 
 <a id="UDP"></a>
+
 ## UDP
 
 <a id="Serial Port"></a>
+
 ## Serial Port
 
 <a id="Modbus RTU/ASCII"></a>
+
 ### Modbus RTU/ASCII
 
-<table>
-    <tr>
-        <th></th>
-        <th>RTU</th>
-        <th>ASCII</th>
-    </tr>
-    <tr>
-        <td>01 (0x01) Read Coils</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>02 (0x02) Read Discrete Inputs</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>03 (0x03) Read Holding Registers</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-Passing-brightgreen" alt="Test Passing">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-Passing-brightgreen" alt="Test Passing">
-        </td>
-    </tr>
-    <tr>
-        <td>04 (0x04) Read Input Registers</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>05 (0x05) Write Single Coil</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>06 (0x06) Write Single Register</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>08 (0x08) Diagnostics</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>11 (0x0B) Get Comm Event Counter</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>15 (0x0F) Write Multiple Coils</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>    
-    <tr>
-        <td>16 (0x10) Write Multiple Registers</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-Passing-brightgreen" alt="Test Passing">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>17 (0x11) Report Server ID</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>22 (0x16) Mask Write Register</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>23 (0x17) Read/Write Multiple Registers</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-    <tr>
-        <td>43 / 14 (0x2B / 0x0E) Read Device Identification</td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-        <td>
-            <img src="https://img.shields.io/badge/Status-WIP-yellow" alt="WIP">
-        </td>
-    </tr>
-</table>
+| Function Code & Name                             | RTU Mode                                                            | ASCII Mode                                                          |
+|:-------------------------------------------------|:--------------------------------------------------------------------|:--------------------------------------------------------------------|
+| 01 (0x01) Read Coils                             | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 02 (0x02) Read Discrete Inputs                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 03 (0x03) Read Holding Registers                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| 04 (0x04) Read Input Registers                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 05 (0x05) Write Single Coil                      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 06 (0x06) Write Single Register                  | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 08 (0x08) Diagnostics                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 11 (0x0B) Get Comm Event Counter                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 15 (0x0F) Write Multiple Coils                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 16 (0x10) Write Multiple Registers               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 17 (0x11) Report Server ID                       | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 22 (0x16) Mask Write Register                    | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 23 (0x17) Read/Write Multiple Registers          | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 43 / 14 (0x2B / 0x0E) Read Device Identification | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+
+# Script Module
+
+## Script Edit
+
+```mermaid
+flowchart LR
+    A[Script Module]
+    B[LuaLanguageServer]
+    B -->|LSP Response| A
+    A -->|LSP Request| B
+    A -->|LSP Notification| B
+```
+
+| LSP Request Type            | Status                                                              |
+|:----------------------------|:--------------------------------------------------------------------|
+| initialize                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| textDocument/completion     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/foldingRange   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/formatting     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/hover          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/semanticTokens | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/signatureHelp  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/definition     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| textDocument/references     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+
+## Script Debug
+
+| Feature             | Status                                                              |
+|:--------------------|:--------------------------------------------------------------------|
+| continue            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| pause               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| step into           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| step over           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| step out            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| variable watch      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| variable hot update | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 

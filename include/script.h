@@ -192,6 +192,7 @@ private:
     enum {
         LUATOKEN_PARAMETER = 64,
         LUATOKEN_VARIABLE,
+        LUATOKEN_PROPERTY,
         LUATOKEN_FUNCTION_DECLARATION,
         LUATOKEN_FUNCTION_CALL,
         LUATOKEN_METHOD,
@@ -276,9 +277,9 @@ private:
 
     void hoverRequest(int line, int character);
 
-    void textReplace(const QString &kind, QString &text) const;
+    void textReplace(QString &text, const QString &kind) const;
 
-    void textInsert(const QString &kind, QString &text) const;
+    void textInsert(QString &text, const QString &kind) const;
 
     QTimer *m_editTimer = nullptr;
 };
@@ -296,9 +297,9 @@ public:
     void hideTooltip();
 
 signals:
-    void replaceText(const QString &kind, QString &text);
+    void replaceText(QString &text, const QString &kind);
 
-    void insertText(const QString &kind, QString &text);
+    void insertText(QString &text, const QString &kind);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -342,11 +343,16 @@ public:
 
     ~ScriptEditor() override = default;
 
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
+
 private slots:
     void onMarginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
     void breakpointUpdate() const;
+
+    void commentToggle();
 };
 
 class LuaInterpreter final : public QObject {
