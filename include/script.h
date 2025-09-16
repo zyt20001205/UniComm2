@@ -217,11 +217,24 @@ public:
 
     void hideTooltip();
 
+    void moveUp();
+
+    void moveDown();
+
+signals:
+    void replaceText(const QString &kind, QString &text);
+
+    void insertText(const QString &kind, QString &text);
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     QTableWidget *m_tableWidget = nullptr;
+    int m_currentRow{};
+    QString m_insertText{};
+    QString m_kind{};
+    QList<QString> m_kindList{};
 };
 
 class TooltipHover final : public QWidget {
@@ -290,22 +303,11 @@ private:
 
     void hoverRequest(int line, int character);
 
+    void textReplace(const QString &kind, QString &text) const;
+
+    void textInsert(const QString &kind, QString &text) const;
+
     QTimer *m_editTimer = nullptr;
-};
-
-class LuaLexer final : public QsciLexerLua {
-    Q_OBJECT
-
-public:
-    using QsciLexerLua::QsciLexerLua;
-
-    const char *wordCharacters() const override {
-        return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.";
-    }
-
-    QStringList autoCompletionWordSeparators() const override {
-        return {};
-    }
 };
 
 class ScriptEditor final : public QsciScintilla {

@@ -349,7 +349,7 @@ void Script::completionReturn(const QJsonArray &items) const {
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptPage->m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    m_currentScriptPage->m_tooltipCompletion->move(cursorGlobalPos.x() - 18, cursorGlobalPos.y() + lineHeight);
 }
 
 void Script::foldingRangeReturn(const QJsonArray &result) const {
@@ -622,6 +622,8 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     connect(m_scriptEditor, SIGNAL(modificationChanged(bool)), this, SLOT(scriptModify(bool)));
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
+    connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPageWidget::textReplace);
+    connect(m_tooltipCompletion, &TooltipCompletion::insertText, this, &ScriptPageWidget::textInsert);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
@@ -649,8 +651,16 @@ void ScriptPageWidget::scriptSave() {
 }
 
 void ScriptPageWidget::scriptEditFinish() {
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const int prevChar = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
     didChangeNotification();
-    completionRequest();
+    if ((prevChar >= 'a' && prevChar <= 'z') ||
+        (prevChar >= 'A' && prevChar <= 'Z') ||
+        prevChar == '.' || prevChar == ':') {
+        completionRequest();
+    } else {
+        m_tooltipCompletion->hideTooltip();
+    }
     foldingRangeRequest();
     semanticTokensRequest();
     // logging
@@ -802,6 +812,42 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
     emit requestJson("textDocument/hover", hoverParams);
 }
 
+void ScriptPageWidget::textReplace(const QString &kind, QString &text) const {
+    if (kind == "F") {
+        text += "()";
+    }
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETTARGETRANGE, startPos, currentPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_REPLACETARGET, text.length(), text.toUtf8().constData()); // NOLINT
+    long cursorPos;
+    if (kind == "F") {
+        cursorPos = startPos + text.length() - 1;
+    } else {
+        cursorPos = startPos + text.length();
+    }
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
+}
+
+void ScriptPageWidget::textInsert(const QString &kind, QString &text) const {
+    if (kind == "F") {
+        text += "()";
+    }
+    m_scriptEditor->insert(text);
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    long cursorPos;
+    if (kind == "F") {
+        cursorPos = currentPos + text.length() - 1;
+    } else {
+        cursorPos = currentPos + text.length();
+    }
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
+}
+
 // TooltipCompletion public
 TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_tableWidget(new QTableWidget(this)) {
     setWindowFlags(Qt::ToolTip);
@@ -814,31 +860,38 @@ TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_table
     m_tableWidget->setFont(QFont("Consolas", 12));
     m_tableWidget->setShowGrid(false);
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tableWidget->setColumnCount(2);
+    m_tableWidget->setColumnCount(3);
     m_tableWidget->horizontalHeader()->setVisible(false);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     m_tableWidget->verticalHeader()->setVisible(false);
-
-    this->installEventFilter(this);
+    m_kindList = {"0", "1", "2", "F", "4", "C", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"};
 }
 
 // TooltipCompletion protected
 bool TooltipCompletion::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::KeyPress) {
+    if (event->type() == QEvent::KeyPress && this->isVisible()) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
             case Qt::Key_Tab:
-                qDebug() << "tab";
+                if (!m_insertText.isEmpty()) emit replaceText(m_kind, m_insertText);
                 return true;
             case Qt::Key_Return:
-                qDebug() << "return";
+                if (!m_insertText.isEmpty()) emit insertText(m_kind, m_insertText);
+                return true;
+            case Qt::Key_Escape:
+                hideTooltip();
                 return true;
             case Qt::Key_Up:
-                qDebug() << "up";
+                moveUp();
                 return true;
             case Qt::Key_Down:
-                qDebug() << "down";
+                moveDown();
+                return true;
+            case Qt::Key_Left:
+                return true;
+            case Qt::Key_Right:
                 return true;
             default:
                 return false;
@@ -853,14 +906,27 @@ void TooltipCompletion::showTooltip(const QJsonArray &items) {
     int row = 0;
     for (const QJsonValue &value: items) {
         QJsonObject item = value.toObject();
+        const QString kind = m_kindList[item["kind"].toInt()];
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
         m_tableWidget->insertRow(row);
+        auto *kindItem = new QTableWidgetItem(kind); // NOLINT
         auto *insertTextItem = new QTableWidgetItem(insertText); // NOLINT
         auto *labelItem = new QTableWidgetItem(label); // NOLINT
-        m_tableWidget->setItem(row, 0, insertTextItem);
-        m_tableWidget->setItem(row, 1, labelItem);
+        m_tableWidget->setItem(row, 0, kindItem);
+        m_tableWidget->setItem(row, 1, insertTextItem);
+        m_tableWidget->setItem(row, 2, labelItem);
         row++;
+    }
+    if (m_tableWidget->rowCount() > 0) {
+        m_currentRow = 0;
+        m_tableWidget->selectRow(m_currentRow);
+        m_kind = m_tableWidget->item(m_currentRow, 0)->text();
+        m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
+    } else {
+        m_currentRow = -1;
+        m_kind.clear();
+        m_insertText.clear();
     }
     m_tableWidget->resizeRowsToContents();
     this->adjustSize();
@@ -871,22 +937,28 @@ void TooltipCompletion::hideTooltip() {
     this->hide();
 }
 
+void TooltipCompletion::moveUp() {
+    if (m_currentRow == -1) return;
+    if (m_currentRow > 0) {
+        m_currentRow--;
+        m_tableWidget->selectRow(m_currentRow);
+        m_kind = m_tableWidget->item(m_currentRow, 0)->text();
+        m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
+    }
+}
+
+void TooltipCompletion::moveDown() {
+    if (m_currentRow == -1) return;
+    if (m_currentRow < m_tableWidget->rowCount() - 1) {
+        m_currentRow++;
+        m_tableWidget->selectRow(m_currentRow);
+        m_kind = m_tableWidget->item(m_currentRow, 0)->text();
+        m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
+    }
+}
+
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
-    // load lua lexer
-    m_scriptLexer = new LuaLexer(); // NOLINT
-    // this->QsciScintilla::setLexer(m_scriptLexer);
-    m_scriptLexer->setFont(QFont("Consolas", 12)); // temporary
-    // configure auto complete
-    auto *apis = new QsciAPIs(m_scriptLexer); // NOLINT
-    apis->load(":/api/Lua-5.4.8.api");
-    apis->load(":/api/Custom-1.0.0.api");
-    apis->prepare();
-    this->QsciScintilla::setAutoCompletionSource(AcsAPIs);
-    this->QsciScintilla::setAutoCompletionCaseSensitivity(false);
-    this->QsciScintilla::setAutoCompletionThreshold(1);
-    this->setAutoCompletionFillupsEnabled(true);
-    this->setAutoCompletionFillups(":.");
     // init mouse dwell
     SendScintilla(SCI_SETMOUSEDWELLTIME, 500); // NOLINT
     // define markers
@@ -929,37 +1001,6 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->QsciScintilla::setBackspaceUnindents(true);
     this->QsciScintilla::setIndentationGuides(true);
     this->QsciScintilla::setTabWidth(4);
-    // load settings from config
-    m_scriptLexer->setPaper(Qt::white, -1);
-    // style 0: default
-    // style 1: comment
-    m_scriptLexer->setColor(QColor(Qt::black), 1);
-    // style 2: line comment
-    m_scriptLexer->setColor(QColor(Qt::black), 2);
-    // style 4: number
-    m_scriptLexer->setColor(QColor(Qt::black), 4);
-    // style 5: keyword
-    m_scriptLexer->setColor(QColor(Qt::black), 5);
-    // style 6: string
-    m_scriptLexer->setColor(QColor(Qt::black), 6);
-    // style 7: character
-    // style 8: literal string
-    // style 9: preprocessor
-    // style 10: operator
-    m_scriptLexer->setColor(QColor(Qt::black), 10);
-    // style 11: identifier
-    m_scriptLexer->setColor(QColor(Qt::black), 11);
-    // style 12: unclosed string
-    // style 13: basic functions
-    m_scriptLexer->setColor(QColor(Qt::black), 13);
-    // style 14: string, table and maths functions
-    m_scriptLexer->setColor(QColor(Qt::black), 14);
-    // style 15: coroutines, i/o and system facilities
-    m_scriptLexer->setColor(QColor(Qt::black), 15);
-    // style 16: user defined 1
-    // m_scriptLexer->setColor(QColor(0x00627A), 16);
-    // style 20: label
-    // connect(this, SIGNAL(modificationChanged(bool m)), this, SLOT());
 }
 
 // ScriptEditor private
