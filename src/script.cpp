@@ -10,8 +10,8 @@ int g_baseDepth = 0;
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent), m_tooltipHover(new TooltipHover(this)) {
     g_script = this;
-    auto shortcutSave = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
-    connect(shortcutSave, &QShortcut::activated, this, [this] {
+    auto shortcutFormatting = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
+    connect(shortcutFormatting, &QShortcut::activated, this, [this] {
         if (!m_currentScriptPage) return;
         m_currentScriptPage->formattingRequest();
         emit appendLog("script formatted", "info");
