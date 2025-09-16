@@ -449,6 +449,22 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
     }
 }
 
+void Script::signatureHelpReturn(const QJsonObject &signature) const {
+    m_currentScriptPage->m_tooltipSignatureHelp->showTooltip(signature);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptPage->m_scriptEditor);
+    long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    while (true) {
+        const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
+        if (prevChar == '(') break;
+        currentPos--;
+    }
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, currentPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_currentScriptPage->m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+}
+
 // Script private
 void Script::scriptRun() {
     const int currentIndex = m_scriptTabWidget->currentIndex();
@@ -596,7 +612,9 @@ void TooltipHover::hideTooltip() {
 }
 
 // ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent), m_tooltipCompletion(new TooltipCompletion(this)) {
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent),
+                                                                                                                 m_tooltipCompletion(new TooltipCompletion(this)),
+                                                                                                                 m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_editTimer = new QTimer(this);
@@ -654,12 +672,15 @@ void ScriptPageWidget::scriptEditFinish() {
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const int prevChar = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
     didChangeNotification();
-    if ((prevChar >= 'a' && prevChar <= 'z') ||
-        (prevChar >= 'A' && prevChar <= 'Z') ||
-        prevChar == '.' || prevChar == ':') {
+    if ((prevChar >= 'a' && prevChar <= 'z') || (prevChar >= 'A' && prevChar <= 'Z') || prevChar == '.' || prevChar == ':') {
         completionRequest();
+        m_tooltipSignatureHelp->hideTooltip();
+    } else if (prevChar == '(' || prevChar == ',') {
+        signatureHelpRequest();
+        m_tooltipCompletion->hideTooltip();
     } else {
         m_tooltipCompletion->hideTooltip();
+        m_tooltipSignatureHelp->hideTooltip();
     }
     foldingRangeRequest();
     semanticTokensRequest();
@@ -730,6 +751,26 @@ void ScriptPageWidget::semanticTokensRequest() {
         }
     };
     emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
+}
+
+void ScriptPageWidget::signatureHelpRequest() {
+    // signatureHelp request to lua language server
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    const QJsonObject signatureHelpParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
 
 // ScriptPageWidget private
@@ -869,38 +910,6 @@ TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_table
     m_kindList = {"0", "1", "2", "F", "4", "C", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"};
 }
 
-// TooltipCompletion protected
-bool TooltipCompletion::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::KeyPress && this->isVisible()) {
-        auto *keyEvent = static_cast<QKeyEvent *>(event);
-        switch (keyEvent->key()) {
-            case Qt::Key_Tab:
-                if (!m_insertText.isEmpty()) emit replaceText(m_kind, m_insertText);
-                return true;
-            case Qt::Key_Return:
-                if (!m_insertText.isEmpty()) emit insertText(m_kind, m_insertText);
-                return true;
-            case Qt::Key_Escape:
-                hideTooltip();
-                return true;
-            case Qt::Key_Up:
-                moveUp();
-                return true;
-            case Qt::Key_Down:
-                moveDown();
-                return true;
-            case Qt::Key_Left:
-                return true;
-            case Qt::Key_Right:
-                return true;
-            default:
-                return false;
-        }
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
-// TooltipCompletion private
 void TooltipCompletion::showTooltip(const QJsonArray &items) {
     m_tableWidget->setRowCount(0);
     int row = 0;
@@ -937,6 +946,38 @@ void TooltipCompletion::hideTooltip() {
     this->hide();
 }
 
+// TooltipCompletion protected
+bool TooltipCompletion::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::KeyPress && this->isVisible()) {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            case Qt::Key_Tab:
+                if (!m_insertText.isEmpty()) emit replaceText(m_kind, m_insertText);
+                return true;
+            case Qt::Key_Return:
+                if (!m_insertText.isEmpty()) emit insertText(m_kind, m_insertText);
+                return true;
+            case Qt::Key_Escape:
+                hideTooltip();
+                return true;
+            case Qt::Key_Up:
+                moveUp();
+                return true;
+            case Qt::Key_Down:
+                moveDown();
+                return true;
+            case Qt::Key_Left:
+                return true;
+            case Qt::Key_Right:
+                return true;
+            default:
+                return false;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+// TooltipCompletion private
 void TooltipCompletion::moveUp() {
     if (m_currentRow == -1) return;
     if (m_currentRow > 0) {
@@ -955,6 +996,59 @@ void TooltipCompletion::moveDown() {
         m_kind = m_tableWidget->item(m_currentRow, 0)->text();
         m_insertText = m_tableWidget->item(m_currentRow, 1)->text();
     }
+}
+
+// TooltipSignatureHelp public
+TooltipSignatureHelp::TooltipSignatureHelp(QWidget *parent) : QWidget(parent),
+                                                              m_label(new QLabel(this)) {
+    setWindowFlags(Qt::ToolTip);
+    auto *layout = new QVBoxLayout(this); //NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_label);
+    m_label->setFont(QFont("consolas", 12));
+    m_label->setStyleSheet("QLabel{background-color: white; border: 1px solid #d0d0d0;}");
+}
+
+void TooltipSignatureHelp::showTooltip(const QJsonObject &signature) {
+    QString helpText;
+    int index = 0;
+    const int activeParameter = signature["activeParameter"].toInt();
+    const QString label = signature["label"].toString();
+    const QJsonArray parameters = signature["parameters"].toArray();
+    for (const QJsonValue &value: parameters) {
+        const QJsonObject parameter = value.toObject();
+        const QJsonArray range = parameter["label"].toArray();
+        const int startIndex = range[0].toInt();
+        const int endIndex = range[1].toInt();
+        QString param = label.mid(startIndex, endIndex - startIndex);
+        if (index == activeParameter) {
+            param = QString("<span style='color: orange;'>%1</span>").arg(param);
+        }
+        helpText += param;
+        helpText += ", ";
+        index++;
+    }
+    helpText.chop(2);
+    m_label->setText(helpText);
+    this->show();
+}
+
+void TooltipSignatureHelp::hideTooltip() {
+    this->hide();
+}
+
+// TooltipSignatureHelp protected
+bool TooltipSignatureHelp::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::KeyPress && this->isVisible()) {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            case Qt::Key_Tab:
+                return true;
+            default:
+                return false;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 // ScriptEditor public

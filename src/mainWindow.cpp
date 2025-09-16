@@ -88,6 +88,7 @@ void MainWindow::moduleInit() {
     connect(m_llsModule,&LuaLanguageServer::returnFormatting, m_scriptModule, &Script::formattingReturn);
     connect(m_llsModule,&LuaLanguageServer::returnHover, m_scriptModule, &Script::hoverReturn);
     connect(m_llsModule,&LuaLanguageServer::returnSemanticTokens, m_scriptModule, &Script::semanticTokensReturn);
+    connect(m_llsModule,&LuaLanguageServer::returnSignatureHelp, m_scriptModule, &Script::signatureHelpReturn);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);

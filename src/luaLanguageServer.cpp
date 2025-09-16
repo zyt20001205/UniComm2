@@ -120,6 +120,16 @@ void LuaLanguageServer::jsonReturn() {
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray data = result["data"].toArray();
                 emit returnSemanticTokens(data);
+            } else if (m_methods.value(id) == "textDocument/signatureHelp") {
+                // signatureHelp request
+                m_methods.remove(id);
+                qDebug() << m_methods;
+                // qDebug() << json;
+                if (!json["result"].isObject()) return; // null result
+                const QJsonObject result = json["result"].toObject();
+                const QJsonArray signatures = result["signatures"].toArray();
+                const QJsonObject signature = signatures[0].toObject();
+                emit returnSignatureHelp(signature);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
             // return from notification

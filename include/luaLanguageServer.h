@@ -35,6 +35,8 @@ signals:
 
     void returnSemanticTokens(const QJsonArray &data);
 
+    void returnSignatureHelp(const QJsonObject &signature);
+
 private:
     void jsonReturn();
 
