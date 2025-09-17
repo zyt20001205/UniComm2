@@ -1019,11 +1019,7 @@ void SerialPort::reload(const QJsonObject &portConfig) {
 }
 
 QHash<QString, QVariant> SerialPort::info() {
-    QString status;
-    if (m_serialPort->isOpen())
-        status = "opened";
-    else
-        status = "closed";
+    const bool status = m_serialPort->isOpen();
     const QString portName = m_portName;
     const QString baudRate = QString::number(m_baudRate);
     const QString dataBits = QString::number(m_dataBits);
