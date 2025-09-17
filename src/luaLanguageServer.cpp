@@ -32,7 +32,7 @@ void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &pa
         {"params", params}
     };
     m_methods.insert(m_id, method);
-    qDebug() << m_methods;
+    // qDebug() << m_methods;
     m_id++;
     const QByteArray data = QJsonDocument(msg).toJson(QJsonDocument::Compact);
     const QByteArray header = "Content-Length: " + QByteArray::number(data.size()) + "\r\n\r\n";
@@ -72,13 +72,13 @@ void LuaLanguageServer::jsonReturn() {
             if (const int id = json["id"].toInt(); m_methods.value(id) == "initialize") {
                 // initialize request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 emit initialized();
             } else if (m_methods.value(id) == "textDocument/completion") {
                 // hover request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
@@ -87,7 +87,7 @@ void LuaLanguageServer::jsonReturn() {
             } else if (m_methods.value(id) == "textDocument/foldingRange") {
                 // hover request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
@@ -95,7 +95,7 @@ void LuaLanguageServer::jsonReturn() {
             } else if (m_methods.value(id) == "textDocument/formatting") {
                 // hover request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
@@ -104,7 +104,7 @@ void LuaLanguageServer::jsonReturn() {
             } else if (m_methods.value(id) == "textDocument/hover") {
                 // hover request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
@@ -114,7 +114,7 @@ void LuaLanguageServer::jsonReturn() {
             } else if (m_methods.value(id) == "textDocument/semanticTokens/full") {
                 // semanticTokens request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
@@ -123,7 +123,7 @@ void LuaLanguageServer::jsonReturn() {
             } else if (m_methods.value(id) == "textDocument/signatureHelp") {
                 // signatureHelp request
                 m_methods.remove(id);
-                qDebug() << m_methods;
+                // qDebug() << m_methods;
                 // qDebug() << json;
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();

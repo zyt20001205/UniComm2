@@ -28,6 +28,7 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QPointer>
 #include <lua.hpp>
 #include "config.h"
 #include "luaDataProcess.h"
@@ -67,8 +68,6 @@ enum {
 };
 
 class Port;
-
-class TooltipHover;
 
 class ScriptPageWidget;
 
@@ -140,7 +139,6 @@ private:
     QTabWidget *m_scriptTabWidget = nullptr;
     ScriptPageWidget *m_currentScriptPage = nullptr;
     QHash<QString, QJsonArray> m_diagnosticsHash = {};
-    TooltipHover *m_tooltipHover = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
@@ -204,26 +202,9 @@ private:
     };
 };
 
-class TooltipHover final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit TooltipHover(QWidget *parent = nullptr);
-
-    ~TooltipHover() override = default;
-
-    void showTooltip(const QString &message);
-
-    void hideTooltip();
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private:
-    QTextBrowser *m_textBrowser = nullptr;
-};
-
 class TooltipCompletion;
+
+class TooltipHover;
 
 class TooltipSignatureHelp;
 
@@ -254,6 +235,7 @@ public:
     QString m_scriptUrl;
     bool m_scriptModify = false;
     TooltipCompletion *m_tooltipCompletion = nullptr;
+    TooltipHover *m_tooltipHover = nullptr;
     TooltipSignatureHelp *m_tooltipSignatureHelp = nullptr;
 
 signals:
@@ -271,6 +253,8 @@ private slots:
     void dwellStart(int pos, int x, int y);
 
 private:
+    void dwellSwitch(bool status) const;
+
     void didChangeNotification();
 
     void didOpenNotification();
@@ -316,6 +300,29 @@ private:
     QList<QString> m_kindList{};
 };
 
+class TooltipHover final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit TooltipHover(QWidget *parent = nullptr);
+
+    ~TooltipHover() override = default;
+
+    void showTooltip(const QString &message);
+
+    void hideTooltip();
+
+signals:
+    void switchDwell(bool status);
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+    QTextBrowser *m_textBrowser = nullptr;
+    QPointer<QWidget> m_previousFocus = nullptr;
+};
+
 class TooltipSignatureHelp final : public QWidget {
     Q_OBJECT
 
@@ -352,7 +359,9 @@ private slots:
 private:
     void breakpointUpdate() const;
 
-    void commentToggle();
+    void commentHandle();
+
+    void duplicateHandle();
 };
 
 class LuaInterpreter final : public QObject {

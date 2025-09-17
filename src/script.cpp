@@ -8,7 +8,7 @@ int g_depth = 0;
 int g_baseDepth = 0;
 
 // Script public
-Script::Script(QWidget *parent) : QWidget(parent), m_tooltipHover(new TooltipHover(this)) {
+Script::Script(QWidget *parent) : QWidget(parent) {
     g_script = this;
     auto shortcutFormatting = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
     connect(shortcutFormatting, &QShortcut::activated, this, [this] {
@@ -376,7 +376,7 @@ void Script::formattingReturn(const QString &newText) const {
 }
 
 void Script::hoverReturn(const QString &message) const {
-    m_tooltipHover->showTooltip(message);
+    m_currentScriptPage->m_tooltipHover->showTooltip(message);
 }
 
 void Script::semanticTokensReturn(const QJsonArray &data) const {
@@ -473,7 +473,7 @@ void Script::signatureHelpReturn(const QJsonObject &signature) const {
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptPage->m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    m_currentScriptPage->m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
 // Script private
@@ -589,42 +589,10 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
     // qDebug() << m_scriptConfig;
 }
 
-// TooltipHover public
-TooltipHover::TooltipHover(QWidget *parent) : QWidget(parent), m_textBrowser(new QTextBrowser(this)) {
-    setWindowFlags(Qt::Popup);
-    auto *layout = new QVBoxLayout(this); //NOLINT
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_textBrowser);
-    m_textBrowser->setFixedWidth(600);
-    m_textBrowser->setFont(QFont("Consolas", 10));
-    m_textBrowser->setOpenExternalLinks(true);
-    m_textBrowser->installEventFilter(this);
-}
-
-// TooltipHover protected
-bool TooltipHover::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::Leave) {
-        hideTooltip();
-        return true;
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
-// TooltipHover private
-void TooltipHover::showTooltip(const QString &message) {
-    m_textBrowser->setMarkdown(message);
-    this->adjustSize();
-    this->move(QCursor::pos() + QPoint(15, 15));
-    this->show();
-}
-
-void TooltipHover::hideTooltip() {
-    this->hide();
-}
-
 // ScriptPageWidget public
 ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent),
                                                                                                                  m_tooltipCompletion(new TooltipCompletion(this)),
+                                                                                                                 m_tooltipHover(new TooltipHover(this)),
                                                                                                                  m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
@@ -646,6 +614,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     const QString content = in.readAll();
     file.close();
     m_scriptEditor->setText(content);
+    dwellSwitch(true);
     m_scriptEditor->installEventFilter(m_tooltipCompletion);
     // connect signals
     connect(m_scriptEditor, SIGNAL(modificationChanged(bool)), this, SLOT(scriptModify(bool)));
@@ -653,6 +622,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPageWidget::textReplace);
     connect(m_tooltipCompletion, &TooltipCompletion::insertText, this, &ScriptPageWidget::textInsert);
+    connect(m_tooltipHover, &TooltipHover::switchDwell, this, &ScriptPageWidget::dwellSwitch);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
@@ -681,12 +651,13 @@ void ScriptPageWidget::scriptSave() {
 
 void ScriptPageWidget::scriptEditFinish() {
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const int prevChar = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
+    const QChar currentChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1));
+    const QChar prevChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 2));
     didChangeNotification();
-    if ((prevChar >= 'a' && prevChar <= 'z') || (prevChar >= 'A' && prevChar <= 'Z') || prevChar == '.' || prevChar == ':') {
+    if (currentChar.isLetter() || currentChar == '.' || currentChar == ':') {
         completionRequest();
         m_tooltipSignatureHelp->hideTooltip();
-    } else if (prevChar == '(' || prevChar == ',') {
+    } else if (currentChar == '(' || currentChar == ',' || prevChar == ',') {
         signatureHelpRequest();
         m_tooltipCompletion->hideTooltip();
     } else {
@@ -810,6 +781,11 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "hovered");
 }
 
+void ScriptPageWidget::dwellSwitch(const bool status) const {
+    if (status) m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, 500); // NOLINT
+    else m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, QsciScintilla::SC_TIME_FOREVER); // NOLINT
+}
+
 void ScriptPageWidget::didChangeNotification() {
     // didChange notification to lua language server
     const QString content = m_scriptEditor->text();
@@ -867,6 +843,8 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
 void ScriptPageWidget::textReplace(QString &text, const QString &kind) const {
     if (kind == "Function") {
         text += "()";
+    } else if (kind == "Field") {
+        text += ".";
     }
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT
@@ -886,6 +864,8 @@ void ScriptPageWidget::textReplace(QString &text, const QString &kind) const {
 void ScriptPageWidget::textInsert(QString &text, const QString &kind) const {
     if (kind == "Function") {
         text += "()";
+    } else if (kind == "Field") {
+        text += ".";
     }
     m_scriptEditor->insert(text);
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
@@ -920,7 +900,7 @@ TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_table
     m_tableWidget->verticalHeader()->setVisible(false);
     m_kindList = {
         "0", "Text", "Method", "Function", "Constructor", "Field", "Variable", "Class", "Interface", "Module", "Property", "Unit", "Value", "Enum", "Keyword", "Snippet", "Color",
-        "File", "Reference", "Folder", "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParamater"
+        "File", "Reference", "Folder", "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParameter"
     };
 }
 
@@ -1012,6 +992,41 @@ void TooltipCompletion::moveDown() {
     }
 }
 
+// TooltipHover public
+TooltipHover::TooltipHover(QWidget *parent) : QWidget(parent), m_textBrowser(new QTextBrowser(this)) {
+    setWindowFlags(Qt::ToolTip);
+    auto *layout = new QVBoxLayout(this); //NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_textBrowser);
+    m_textBrowser->setFixedWidth(600);
+    m_textBrowser->setFont(QFont("Consolas", 10));
+    m_textBrowser->setOpenExternalLinks(true);
+    m_textBrowser->installEventFilter(this);
+}
+
+// TooltipHover protected
+bool TooltipHover::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::Leave) {
+        hideTooltip();
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+// TooltipHover private
+void TooltipHover::showTooltip(const QString &message) {
+    emit switchDwell(false);
+    m_textBrowser->setMarkdown(message);
+    this->adjustSize();
+    this->move(QCursor::pos() + QPoint(15, 15));
+    this->show();
+}
+
+void TooltipHover::hideTooltip() {
+    emit switchDwell(true);
+    this->hide();
+}
+
 // TooltipSignatureHelp public
 TooltipSignatureHelp::TooltipSignatureHelp(QWidget *parent) : QWidget(parent),
                                                               m_label(new QLabel(this)) {
@@ -1056,7 +1071,8 @@ bool TooltipSignatureHelp::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::KeyPress && this->isVisible()) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
-            case Qt::Key_Tab:
+            case Qt::Key_Escape:
+                hideTooltip();
                 return true;
             default:
                 return false;
@@ -1067,8 +1083,6 @@ bool TooltipSignatureHelp::eventFilter(QObject *obj, QEvent *event) {
 
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
-    // init mouse dwell
-    SendScintilla(SCI_SETMOUSEDWELLTIME, 500); // NOLINT
     // define markers
     this->markerDefine(Circle, MARKER_BREAKPOINT);
     this->setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
@@ -1113,10 +1127,18 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
 
 // ScriptEditor protected
 void ScriptEditor::keyPressEvent(QKeyEvent *event) {
-    if (event->modifiers() == Qt::ControlModifier && event->key() == Qt::Key_Slash) {
-        commentToggle();
-        event->accept();
-        return;
+    if (event->modifiers() == Qt::ControlModifier) {
+        switch (event->key()) {
+            case Qt::Key_Slash:
+                commentHandle();
+                event->accept();
+                return;
+            case Qt::Key_D:
+                duplicateHandle();
+                event->accept();
+                return;
+            default: break;
+        }
     }
     QsciScintilla::keyPressEvent(event);
 }
@@ -1144,7 +1166,7 @@ void ScriptEditor::breakpointUpdate() const {
     qDebug() << g_breakpoint;
 }
 
-void ScriptEditor::commentToggle() {
+void ScriptEditor::commentHandle() {
     int startLine, startCharacter, endLine, endCharacter;
     getSelection(&startLine, &startCharacter, &endLine, &endCharacter);
     if (startLine == -1) {
@@ -1161,6 +1183,16 @@ void ScriptEditor::commentToggle() {
             insertAt("-- ", line, 0);
         }
     }
+    endUndoAction();
+}
+
+void ScriptEditor::duplicateHandle() {
+    int currentLine, currentCharacter;
+    getCursorPosition(&currentLine, &currentCharacter);
+    const QString lineText = text(currentLine);
+    beginUndoAction();
+    insertAt(lineText, currentLine + 1, 0);
+    setCursorPosition(currentLine + 1, currentCharacter);
     endUndoAction();
 }
 

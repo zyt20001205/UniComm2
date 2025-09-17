@@ -169,7 +169,15 @@ function port.writeText(index, text, peerIp) end
 
 modbusRtu = {}
 function modbusRtu.readHoldingRegisters() end
-function modbusRtu.writeMultipleRegisters() end
+
+--- Writes data to multiple holding registers to a Modbus RTU device.
+--- @param slaveAddr integer The slave address (1-247) of the target device on the network.
+--- @param startAddr integer The starting address of the first register to write to.
+--- @param data string **Binary string** containing the raw data to be written.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @return nil
+function modbusRtu.writeMultipleRegisters(slaveAddr, startAddr, data, timeout, index) end
 
 modbusAscii = {}
 function modbusAscii.readHoldingRegisters() end
