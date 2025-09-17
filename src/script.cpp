@@ -1,7 +1,6 @@
 #include "../include/script.h"
 
 static Script *g_script = nullptr;
-QList<int> g_breakpoint;
 
 auto g_stateMachine = STATE_RUN;
 int g_depth = 0;
@@ -12,8 +11,8 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     g_script = this;
     auto shortcutFormatting = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
     connect(shortcutFormatting, &QShortcut::activated, this, [this] {
-        if (!m_currentScriptPage) return;
-        m_currentScriptPage->formattingRequest();
+        if (!m_currentScriptWidget) return;
+        m_currentScriptWidget->formattingRequest();
         emit appendLog("script formatted", "info");
     });
     // script module init
@@ -38,7 +37,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
             const QString scriptUrl = value.toString();
             auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
-            m_currentScriptPage = newTab;
+            m_currentScriptWidget = newTab;
             const QFileInfo scriptInfo(scriptUrl);
             const QString scriptName = scriptInfo.fileName();
             m_scriptTabWidget->addTab(newTab, scriptName);
@@ -101,10 +100,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         const int startCharacter = pos[1].toInt();
         const int endLine = pos[2].toInt();
         const int endCharacter = pos[3].toInt();
-        m_currentScriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
-        m_currentScriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HINT);
+        m_currentScriptWidget->m_scriptEditor->setCursorPosition(startLine, startCharacter);
+        m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HINT);
         QTimer::singleShot(1000, [this, startLine, startCharacter, endLine, endCharacter] {
-            m_currentScriptPage->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HINT);
+            m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HINT);
         });
     });
     // script monitor widget -> script monitor tab widget -> script thread pool widget
@@ -197,15 +196,15 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
     QTimer::singleShot(0, [this] {
-        if (m_currentScriptPage) {
-            m_currentScriptPage->foldingRangeRequest();
-            m_currentScriptPage->semanticTokensRequest();
+        if (m_currentScriptWidget) {
+            m_currentScriptWidget->foldingRangeRequest();
+            m_currentScriptWidget->semanticTokensRequest();
         }
     });
 }
 
 void Script::scriptConfigSave() const {
-    if (!m_currentScriptPage) return;
+    if (!m_currentScriptWidget) return;
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
         auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
         if (scriptPageWidget) {
@@ -293,13 +292,13 @@ void Script::diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagn
 }
 
 void Script::diagnosticsPublish() const {
-    if (!m_currentScriptPage) return;
-    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptPage->m_scriptUrl];
+    if (!m_currentScriptWidget) return;
+    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrl];
     // diagnostics annotate
-    const int lastLine = m_currentScriptPage->m_scriptEditor->lines() - 1;
-    const int lastIndex = m_currentScriptPage->m_scriptEditor->lineLength(lastLine);
-    m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
-    m_currentScriptPage->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
+    const int lastLine = m_currentScriptWidget->m_scriptEditor->lines() - 1;
+    const int lastIndex = m_currentScriptWidget->m_scriptEditor->lineLength(lastLine);
+    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
     // diagnostics table
     m_scriptDiagnosticsTableWidget->setRowCount(0);
     int row = 0;
@@ -315,10 +314,10 @@ void Script::diagnosticsPublish() const {
         const int endCharacter = diagnosticEndPos["character"].toInt();
         if (severity == 2) {
             // error
-            m_currentScriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_ERROR);
+            m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_ERROR);
         } else if (severity == 4) {
             // warning
-            m_currentScriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_WARNING);
+            m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_WARNING);
         }
         const QString code = diagnosticObject["code"].toString();
         const QString message = diagnosticObject["message"].toString();
@@ -342,15 +341,15 @@ void Script::diagnosticsPublish() const {
 }
 
 void Script::completionReturn(const QJsonArray &items) const {
-    m_currentScriptPage->m_tooltipCompletion->showTooltip(items);
-    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptPage->m_scriptEditor);
+    m_currentScriptWidget->m_tooltipCompletion->showTooltip(items);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptWidget->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptPage->m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    m_currentScriptWidget->m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void Script::foldingRangeReturn(const QJsonArray &result) const {
@@ -362,25 +361,25 @@ void Script::foldingRangeReturn(const QJsonArray &result) const {
         deltaDepthMap.insert(endLine + 1, deltaDepthMap.value(endLine + 1, 0) - 1);
     }
     int currentDepth = 0;
-    for (int line = 0; line < m_currentScriptPage->m_scriptEditor->lines(); line++) {
+    for (int line = 0; line < m_currentScriptWidget->m_scriptEditor->lines(); line++) {
         const int deltaDepth = deltaDepthMap.value(line, 0);
         currentDepth += deltaDepth;
         int level = QsciScintilla::SC_FOLDLEVELBASE + currentDepth;
         if (deltaDepthMap.value(line + 1, 0) > 0) level |= QsciScintilla::SC_FOLDLEVELHEADERFLAG;
-        m_currentScriptPage->m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETFOLDLEVEL, line, level); // NOLINT
+        m_currentScriptWidget->m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETFOLDLEVEL, line, level); // NOLINT
     }
 }
 
 void Script::formattingReturn(const QString &newText) const {
-    m_currentScriptPage->m_scriptEditor->setText(newText);
+    m_currentScriptWidget->m_scriptEditor->setText(newText);
 }
 
 void Script::hoverReturn(const QString &message) const {
-    m_currentScriptPage->m_tooltipHover->showTooltip(message);
+    m_currentScriptWidget->m_tooltipHover->showTooltip(message);
 }
 
 void Script::semanticTokensReturn(const QJsonArray &data) const {
-    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptPage->m_scriptEditor);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptWidget->m_scriptEditor);
     // clear
     editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0, 0xFF); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, editor->length(), static_cast<long>(0));
@@ -461,8 +460,8 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
 }
 
 void Script::signatureHelpReturn(const QJsonObject &signature) const {
-    m_currentScriptPage->m_tooltipSignatureHelp->showTooltip(signature);
-    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptPage->m_scriptEditor);
+    m_currentScriptWidget->m_tooltipSignatureHelp->showTooltip(signature);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptWidget->m_scriptEditor);
     long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     while (true) {
         const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
@@ -473,7 +472,7 @@ void Script::signatureHelpReturn(const QJsonObject &signature) const {
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptPage->m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
+    m_currentScriptWidget->m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
 // Script private
@@ -524,21 +523,17 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
 }
 
 void Script::scriptDebug() {
-    const int currentIndex = m_scriptTabWidget->currentIndex();
-    if (currentIndex < 0) {
-        return;
-    }
-    const auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
-    if (!scriptPageWidget) return;
-    QString script = scriptPageWidget->m_scriptEditor->text();
+    if (!m_currentScriptWidget) return;
+    QString script = m_currentScriptWidget->m_scriptEditor->text();
+    QSet<int>* breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     m_debugInterpreter = new LuaInterpreter(); // NOLINT
     m_debugInterpreter->moveToThread(worker);
     connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [this, script] {
-        m_debugInterpreter->debug(script);
+    connect(worker, &QThread::started, [this, script, breakpoints] {
+        m_debugInterpreter->debug(script, breakpoints);
         QThread::currentThread()->quit();
     });
     m_scriptMonitorTabWidget->setCurrentIndex(DEBUG_TAB); // switch to debug tab
@@ -574,10 +569,10 @@ void Script::scriptClose(const int index) {
 void Script::scriptSelected(const int index) {
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
     if (!scriptPageWidget) return;
-    m_currentScriptPage = scriptPageWidget;
+    m_currentScriptWidget = scriptPageWidget;
     diagnosticsPublish();
-    m_currentScriptPage->foldingRangeRequest();
-    m_currentScriptPage->semanticTokensRequest();
+    m_currentScriptWidget->foldingRangeRequest();
+    m_currentScriptWidget->semanticTokensRequest();
 }
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
@@ -1133,6 +1128,10 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
                 commentHandle();
                 event->accept();
                 return;
+            case Qt::Key_B:
+                breakpointHandle();
+                event->accept();
+                return;
             case Qt::Key_D:
                 duplicateHandle();
                 event->accept();
@@ -1148,22 +1147,24 @@ void ScriptEditor::onMarginClick(const int margin, const int line, Qt::KeyboardM
     if (margin == 1 && line >= 0) {
         if (this->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             this->markerDelete(line, MARKER_BREAKPOINT);
+            m_breakpoints.remove(line + 1);
         } else {
             this->markerAdd(line, MARKER_BREAKPOINT);
+            m_breakpoints.insert(line + 1);
         }
     }
-    // update g_breakpoint
-    breakpointUpdate();
 }
 
-void ScriptEditor::breakpointUpdate() const {
-    g_breakpoint.clear();
-    for (int i = 0; i < this->lines(); ++i) {
-        if (this->markersAtLine(i) & 1 << MARKER_BREAKPOINT) {
-            g_breakpoint.append(i + 1);
-        }
+void ScriptEditor::breakpointHandle() {
+    int currentLine, currentCharacter;
+    getCursorPosition(&currentLine, &currentCharacter);
+    if (this->markersAtLine(currentLine) & 1 << MARKER_BREAKPOINT) {
+        this->markerDelete(currentLine, MARKER_BREAKPOINT);
+        m_breakpoints.remove(currentLine + 1);
+    } else {
+        this->markerAdd(currentLine, MARKER_BREAKPOINT);
+        m_breakpoints.insert(currentLine + 1);
     }
-    qDebug() << g_breakpoint;
 }
 
 void ScriptEditor::commentHandle() {
@@ -1269,8 +1270,10 @@ void LuaInterpreter::run(const QString &script) const {
     lua_close(L);
 }
 
-void LuaInterpreter::debug(const QString &script) {
+void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) {
     co = lua_newthread(L);
+    const auto ptrHolder = static_cast<void **>(lua_getextraspace(co));
+    *ptrHolder = const_cast<QSet<int>*>(breakpoints);
     // set debug hook
     lua_sethook(co, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     // lua load
@@ -1440,6 +1443,8 @@ void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
 }
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
+    const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
+    const auto breakpoints = static_cast<QSet<int>*>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
         g_depth += 1;
     } else if (ar->event == LUA_HOOKRET) {
@@ -1451,7 +1456,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             lua_error(L);
             return;
         }
-        if (g_breakpoint.contains(row)) g_stateMachine = STATE_PAUSE;
+        if (breakpoints->contains(row)) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPOVER && g_depth == g_baseDepth) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPINTO) g_stateMachine = STATE_PAUSE;

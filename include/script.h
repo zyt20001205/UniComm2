@@ -137,7 +137,7 @@ private:
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QTabWidget *m_scriptTabWidget = nullptr;
-    ScriptPageWidget *m_currentScriptPage = nullptr;
+    ScriptPageWidget *m_currentScriptWidget = nullptr;
     QHash<QString, QJsonArray> m_diagnosticsHash = {};
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
@@ -350,6 +350,8 @@ public:
 
     ~ScriptEditor() override = default;
 
+    QSet<int> m_breakpoints{};
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -357,7 +359,7 @@ private slots:
     void onMarginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
-    void breakpointUpdate() const;
+    void breakpointHandle();
 
     void commentHandle();
 
@@ -374,7 +376,7 @@ public:
 
     void run(const QString &script) const;
 
-    void debug(const QString &script);
+    void debug(const QString &script, const QSet<int> *breakpoints);
 
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 
