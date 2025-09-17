@@ -101,9 +101,9 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         const int endLine = pos[2].toInt();
         const int endCharacter = pos[3].toInt();
         m_currentScriptWidget->m_scriptEditor->setCursorPosition(startLine, startCharacter);
-        m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HINT);
+        m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
         QTimer::singleShot(1000, [this, startLine, startCharacter, endLine, endCharacter] {
-            m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HINT);
+            m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
         });
     });
     // script monitor widget -> script monitor tab widget -> script thread pool widget
@@ -299,6 +299,8 @@ void Script::diagnosticsPublish() const {
     const int lastIndex = m_currentScriptWidget->m_scriptEditor->lineLength(lastLine);
     m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
     m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
+    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_INFO);
+    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HINT);
     // diagnostics table
     m_scriptDiagnosticsTableWidget->setRowCount(0);
     int row = 0;
@@ -312,27 +314,31 @@ void Script::diagnosticsPublish() const {
         const int startCharacter = diagnosticStartPos["character"].toInt();
         const int endLine = diagnosticEndPos["line"].toInt();
         const int endCharacter = diagnosticEndPos["character"].toInt();
-        if (severity == 2) {
-            // error
-            m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_ERROR);
-        } else if (severity == 4) {
-            // warning
-            m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_WARNING);
-        }
+        m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, severity);
         const QString code = diagnosticObject["code"].toString();
         const QString message = diagnosticObject["message"].toString();
         m_scriptDiagnosticsTableWidget->insertRow(row);
         auto *codeItem = new QTableWidgetItem(code); // NOLINT
         codeItem->setData(Qt::UserRole + 1, QVariantList({startLine, startCharacter, endLine, endCharacter}));
         auto *messageItem = new QTableWidgetItem(message); // NOLINT
-        if (severity == 2) {
-            // error
-            codeItem->setBackground(QColor(255, 230, 230));
-            messageItem->setBackground(QColor(255, 230, 230));
-        } else if (severity == 4) {
-            // warning
-            codeItem->setBackground(QColor(255, 245, 230));
-            messageItem->setBackground(QColor(255, 245, 230));
+        switch (severity) {
+            case INDICATOR_ERROR:
+                codeItem->setBackground(QColor(255, 230, 230));
+                messageItem->setBackground(QColor(255, 230, 230));
+                break;
+            case INDICATOR_WARNING:
+                codeItem->setBackground(QColor(255, 245, 230));
+                messageItem->setBackground(QColor(255, 245, 230));
+                break;
+            case INDICATOR_INFO:
+                codeItem->setBackground(QColor(230, 240, 250));
+                messageItem->setBackground(QColor(230, 240, 250));
+                break;
+            case INDICATOR_HINT:
+                codeItem->setBackground(QColor(245, 245, 245));
+                messageItem->setBackground(QColor(245, 245, 245));
+                break;
+            default: break;
         }
         m_scriptDiagnosticsTableWidget->setItem(row, 0, codeItem);
         m_scriptDiagnosticsTableWidget->setItem(row, 1, messageItem);
@@ -428,7 +434,7 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
                 editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PROPERTY); // NOLINT
                 break;
             case TOKENTYPE_FUNCTION:
-                if (tokenModifiers == TOKENMODIFIERS_DECLARATION) {
+                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
                     editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
                 } else {
                     editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
@@ -525,7 +531,7 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
 void Script::scriptDebug() {
     if (!m_currentScriptWidget) return;
     QString script = m_currentScriptWidget->m_scriptEditor->text();
-    QSet<int>* breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
+    QSet<int> *breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     m_debugInterpreter = new LuaInterpreter(); // NOLINT
@@ -541,8 +547,10 @@ void Script::scriptDebug() {
 }
 
 void Script::scriptModify(const int index) const {
-    const QString tabName = m_scriptTabWidget->tabText(index) + "*";
-    m_scriptTabWidget->setTabText(index, tabName);
+    QString tabName = m_scriptTabWidget->tabText(index);
+    if (!tabName.endsWith("*")) {
+        m_scriptTabWidget->setTabText(index, tabName + "*");
+    }
 }
 
 void Script::scriptClose(const int index) {
@@ -611,6 +619,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor->setText(content);
     dwellSwitch(true);
     m_scriptEditor->installEventFilter(m_tooltipCompletion);
+    m_scriptEditor->installEventFilter(m_tooltipSignatureHelp);
     // connect signals
     connect(m_scriptEditor, SIGNAL(modificationChanged(bool)), this, SLOT(scriptModify(bool)));
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
@@ -1094,9 +1103,17 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->setIndicatorForegroundColor(Qt::yellow, INDICATOR_WARNING);
     this->setIndicatorDrawUnder(true, INDICATOR_WARNING);
 
-    this->indicatorDefine(StraightBoxIndicator, INDICATOR_HINT);
-    this->setIndicatorForegroundColor(Qt::cyan, INDICATOR_HINT);
+    this->indicatorDefine(BoxIndicator, INDICATOR_INFO);
+    this->setIndicatorForegroundColor(Qt::cyan, INDICATOR_INFO);
+    this->setIndicatorDrawUnder(true, INDICATOR_INFO);
+
+    this->indicatorDefine(BoxIndicator, INDICATOR_HINT);
+    this->setIndicatorForegroundColor(Qt::lightGray, INDICATOR_HINT);
     this->setIndicatorDrawUnder(true, INDICATOR_HINT);
+
+    this->indicatorDefine(StraightBoxIndicator, INDICATOR_HIGHLIGHT);
+    this->setIndicatorForegroundColor(Qt::cyan, INDICATOR_HIGHLIGHT);
+    this->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
     // set margins
     this->setMarginType(0, NumberMargin);
     this->QsciScintilla::setMarginWidth(0, "000");
@@ -1202,6 +1219,9 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     // init lua interpreter
     L = luaL_newstate();
     luaL_openlibs(L);
+    lua_getglobal(L, "package");
+    lua_pushstring(L, "script/?.lua");
+    lua_setfield(L, -2, "path");
     // register C++ functions
     lua_register(L, "input", lua_input);
     lua_register(L, "print", lua_print);
@@ -1273,7 +1293,7 @@ void LuaInterpreter::run(const QString &script) const {
 void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) {
     co = lua_newthread(L);
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(co));
-    *ptrHolder = const_cast<QSet<int>*>(breakpoints);
+    *ptrHolder = const_cast<QSet<int> *>(breakpoints);
     // set debug hook
     lua_sethook(co, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     // lua load
@@ -1444,7 +1464,7 @@ void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
-    const auto breakpoints = static_cast<QSet<int>*>(*ptrHolder);
+    const auto breakpoints = static_cast<QSet<int> *>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
         g_depth += 1;
     } else if (ar->event == LUA_HOOKRET) {

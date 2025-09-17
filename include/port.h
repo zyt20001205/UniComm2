@@ -200,7 +200,7 @@ public:
 
     virtual void reload(const QJsonObject &portConfig) =0;
 
-    virtual QString info() = 0;
+    virtual QHash<QString, QVariant> info() = 0;
 
     virtual bool open() = 0;
 
@@ -236,7 +236,7 @@ public:
 
     void reload(const QJsonObject &portConfig) override;
 
-    QString info() override;
+    QHash<QString, QVariant> info() override;
 
     bool open() override;
 
@@ -294,7 +294,7 @@ public:
 
     void reload(const QJsonObject &portConfig) override;
 
-    QString info() override;
+    QHash<QString, QVariant> info() override;
 
     bool open() override;
 
@@ -360,7 +360,7 @@ public:
 
     void close() override;
 
-    QString info() override;
+    QHash<QString, QVariant> info() override;
 
     void writeText(const QString &txText) override;
 
@@ -427,7 +427,7 @@ public:
 
     void reload(const QJsonObject &portConfig) override;
 
-    QString info() override;
+    QHash<QString, QVariant> info() override;
 
     bool open() override;
 
@@ -489,7 +489,7 @@ public:
 
     void close() override;
 
-    QString info() override;
+    QHash<QString, QVariant> info() override;
 
     QString readText(int timeout) override;
 
@@ -514,7 +514,7 @@ public:
 
     void close() override;
 
-    QString info() override;
+    QHash<QString, QVariant> info() override;
 
     QString readText(int timeout) override;
 

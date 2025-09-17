@@ -62,9 +62,11 @@ enum {
 };
 
 enum {
-    INDICATOR_ERROR,
+    INDICATOR_ERROR = 1,
     INDICATOR_WARNING,
+    INDICATOR_INFO,
     INDICATOR_HINT,
+    INDICATOR_HIGHLIGHT,
 };
 
 class Port;

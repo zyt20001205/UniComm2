@@ -1018,15 +1018,15 @@ void SerialPort::reload(const QJsonObject &portConfig) {
     m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
-QString SerialPort::info() {
+QHash<QString, QVariant> SerialPort::info() {
     QString status;
     if (m_serialPort->isOpen())
         status = "opened";
     else
         status = "closed";
-    QString portName = m_portName;
-    QString baudRate = QString::number(m_baudRate);
-    QString dataBits = QString::number(m_dataBits);
+    const QString portName = m_portName;
+    const QString baudRate = QString::number(m_baudRate);
+    const QString dataBits = QString::number(m_dataBits);
     QString parity;
     switch (m_parity) {
         case 0: parity = "no";
@@ -1051,7 +1051,15 @@ QString SerialPort::info() {
             break;
         default: stopBits = "unknown";
     }
-    return QString("(%1) %2 baudrate: %3, databits: %4, parity: %5, stopbits: %6").arg(status, portName, baudRate, dataBits, parity, stopBits);
+
+    QHash<QString, QVariant> infoTable;
+    infoTable["status"] = status;
+    infoTable["portName"] = portName;
+    infoTable["baudRate"] = baudRate;
+    infoTable["dataBits"] = dataBits;
+    infoTable["parity"] = parity;
+    infoTable["stopBits"] = stopBits;
+    return infoTable;
 }
 
 bool SerialPort::open() {
@@ -1216,7 +1224,7 @@ void TcpClient::reload(const QJsonObject &portConfig) {
     m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
-QString TcpClient::info() {
+QHash<QString, QVariant> TcpClient::info() {
     QString status;
     switch (m_tcpClient->state()) {
         case QAbstractSocket::UnconnectedState: status = "unconnected";
@@ -1237,8 +1245,8 @@ QString TcpClient::info() {
     QString localPort = QString::number(m_tcpClient->localPort());
     QString remoteAddress = m_tcpClientRemoteAddress;
     QString remotePort = QString::number(m_tcpClientRemotePort);
-
-    return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
+    return {};
+    // return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
 }
 
 bool TcpClient::open() {
@@ -1404,7 +1412,7 @@ void TcpServer::reload(const QJsonObject &portConfig) {
     m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
-QString TcpServer::info() {
+QHash<QString, QVariant> TcpServer::info() {
     QString status;
     if (m_tcpServer->isListening())
         status = "listening";
@@ -1418,8 +1426,8 @@ QString TcpServer::info() {
         message.append(peerIp);
     }
     message.append("]");
-
-    return message;
+    return {};
+    // return message;
 }
 
 bool TcpServer::open() {
@@ -1710,7 +1718,7 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
     m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
-QString UdpSocket::info() {
+QHash<QString, QVariant> UdpSocket::info() {
     QString status;
     if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
         status = "opened";
@@ -1720,7 +1728,8 @@ QString UdpSocket::info() {
     QString localPort = QString::number(m_udpSocketLocalPort);
     QString remoteAddress = m_udpSocketRemoteAddress;
     QString remotePort = QString::number(m_udpSocketRemotePort);
-    return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
+    return {};
+    // return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
 }
 
 bool UdpSocket::open() {
@@ -1875,8 +1884,8 @@ void Screen::close() {
     // m_previewDialog->hide();
 }
 
-QString Screen::info() {
-    return "";
+QHash<QString, QVariant> Screen::info() {
+    return {};
 }
 
 QString Screen::readText(int timeout) {
@@ -1946,8 +1955,8 @@ void Camera::close() {
     // m_previewDialog->hide();
 }
 
-QString Camera::info() {
-    return "";
+QHash<QString, QVariant> Camera::info() {
+    return {};
 }
 
 QString Camera::readText(int timeout) {

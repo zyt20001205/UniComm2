@@ -41,11 +41,11 @@ int lua_portInfo(lua_State *L) {
     // start operation
     const int index = param1;
     auto *portObject = g_port->portObject(index);
-    QString info;
+    QHash<QString, QVariant> info;
     QMetaObject::invokeMethod(portObject, [&info, portObject] {
         info = portObject->info();
     }, Qt::BlockingQueuedConnection);
-    g_log->logAppend(info, "info");
+    qDebug() << info;
     return 0;
 }
 
