@@ -119,7 +119,7 @@
 
 # Script Module
 
-## Script Edit
+## LSP Integration
 
 ```mermaid
 flowchart LR
@@ -132,7 +132,6 @@ flowchart LR
 
 | LSP Request Type            | Status                                                              |
 |:----------------------------|:--------------------------------------------------------------------|
-| initialize                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | textDocument/completion     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | textDocument/foldingRange   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | textDocument/formatting     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
@@ -142,7 +141,18 @@ flowchart LR
 | textDocument/definition     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
 | textDocument/references     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
 
-## Script Debug
+## Editor Features
+
+| Feature                 | Status                                                              |
+|:------------------------|:--------------------------------------------------------------------|
+| comment (Ctrl+/)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| duplicate line (Ctrl+D) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| auto pair ( [ { \" '    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| search                  | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| replace                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| workspace               | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+
+## Debugging Features
 
 | Feature             | Status                                                              |
 |:--------------------|:--------------------------------------------------------------------|
