@@ -1048,14 +1048,14 @@ QHash<QString, QVariant> SerialPort::info() {
         default: stopBits = "unknown";
     }
 
-    QHash<QString, QVariant> infoTable;
-    infoTable["status"] = status;
-    infoTable["portName"] = portName;
-    infoTable["baudRate"] = baudRate;
-    infoTable["dataBits"] = dataBits;
-    infoTable["parity"] = parity;
-    infoTable["stopBits"] = stopBits;
-    return infoTable;
+    QHash<QString, QVariant> infoHash;
+    infoHash["status"] = status;
+    infoHash["portName"] = portName;
+    infoHash["baudRate"] = baudRate;
+    infoHash["dataBits"] = dataBits;
+    infoHash["parity"] = parity;
+    infoHash["stopBits"] = stopBits;
+    return infoHash;
 }
 
 bool SerialPort::open() {
@@ -1237,12 +1237,18 @@ QHash<QString, QVariant> TcpClient::info() {
             break;
         default: status = "unknown";
     }
-    QString localAddress = m_tcpClient->localAddress().toString();
-    QString localPort = QString::number(m_tcpClient->localPort());
-    QString remoteAddress = m_tcpClientRemoteAddress;
-    QString remotePort = QString::number(m_tcpClientRemotePort);
-    return {};
-    // return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
+    const QString localAddress = m_tcpClient->localAddress().toString();
+    const QString localPort = QString::number(m_tcpClient->localPort());
+    const QString remoteAddress = m_tcpClientRemoteAddress;
+    const QString remotePort = QString::number(m_tcpClientRemotePort);
+
+    QHash<QString, QVariant> infoHash;
+    infoHash["status"] = status;
+    infoHash["localAddress"] = localAddress;
+    infoHash["localPort"] = localPort;
+    infoHash["remoteAddress"] = remoteAddress;
+    infoHash["remotePort"] = remotePort;
+    return infoHash;
 }
 
 bool TcpClient::open() {
@@ -1715,17 +1721,23 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
 }
 
 QHash<QString, QVariant> UdpSocket::info() {
-    QString status;
+    bool status;
     if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
-        status = "opened";
+        status = true;
     else
-        status = "closed";
-    QString localAddress = m_udpSocketLocalAddress;
-    QString localPort = QString::number(m_udpSocketLocalPort);
-    QString remoteAddress = m_udpSocketRemoteAddress;
-    QString remotePort = QString::number(m_udpSocketRemotePort);
-    return {};
-    // return QString("(%1) local ip: %2:%3, remote ip: %4:%5").arg(status, localAddress, localPort, remoteAddress, remotePort);
+        status = false;
+    const QString localAddress = m_udpSocketLocalAddress;
+    const QString localPort = QString::number(m_udpSocketLocalPort);
+    const QString remoteAddress = m_udpSocketRemoteAddress;
+    const QString remotePort = QString::number(m_udpSocketRemotePort);
+
+    QHash<QString, QVariant> infoHash;
+    infoHash["status"] = status;
+    infoHash["localAddress"] = localAddress;
+    infoHash["localPort"] = localPort;
+    infoHash["remoteAddress"] = remoteAddress;
+    infoHash["remotePort"] = remotePort;
+    return infoHash;
 }
 
 bool UdpSocket::open() {

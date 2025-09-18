@@ -41,12 +41,28 @@ int lua_portInfo(lua_State *L) {
     // start operation
     const int index = param1;
     auto *portObject = g_port->portObject(index);
-    QHash<QString, QVariant> info;
-    QMetaObject::invokeMethod(portObject, [&info, portObject] {
-        info = portObject->info();
+    QHash<QString, QVariant> infoHash;
+    QMetaObject::invokeMethod(portObject, [&infoHash, portObject] {
+        infoHash = portObject->info();
     }, Qt::BlockingQueuedConnection);
-    qDebug() << info;
-    return 0;
+    lua_createtable(L, 0, static_cast<int>(infoHash.size()));
+    for (auto it = infoHash.constBegin(); it != infoHash.constEnd(); ++it) {
+        const QString& key = it.key();
+        const QVariant& value = it.value();
+        lua_pushstring(L, key.toUtf8().constData());
+        switch (value.typeId()) {
+            case QMetaType::Bool:
+                lua_pushboolean(L, value.toBool());
+                break;
+            case QMetaType::QString:
+                lua_pushstring(L, value.toString().toUtf8().constData());
+                break;
+            default:
+                break;
+        }
+        lua_settable(L, -3);
+    }
+    return 1;
 }
 
 int lua_portWriteText(lua_State *L) {
