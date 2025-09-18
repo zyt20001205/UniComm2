@@ -45,7 +45,13 @@ private:
 
     void shortcutInit();
 
-    void saveConfig() const;
+    void layoutInit();
+
+    void layoutSave();
+
+    void saveConfig();
+
+    QJsonObject m_mainConfig{};
 
     Config *m_configModule = nullptr;
     LuaLanguageServer *m_llsModule = nullptr;
@@ -55,6 +61,12 @@ private:
     Database *m_databaseModule = nullptr;
     Datatable *m_datatableModule = nullptr;
     Log *m_logModule = nullptr;
+
+    QAction *m_viewPort = nullptr;
+    QAction *m_viewSend = nullptr;
+    QAction *m_viewDatabase = nullptr;
+    QAction *m_viewDatatable = nullptr;
+    QAction *m_viewLog = nullptr;
 };
 
 #endif //MAINWINDOW_H

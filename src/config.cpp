@@ -19,7 +19,13 @@ void Config::configInit() {
 void Config::configGenerate() {
     if (m_configFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
-            {"version", "1.0.0"},
+            {
+                "mainConfig", QJsonObject{
+                    {"version", "1.0.0"},
+                    {"geometry", ""},
+                    {"state", ""},
+                },
+            },
             {
                 "shortcutConfig", QJsonObject{
                     {"save", "Ctrl+S"}
