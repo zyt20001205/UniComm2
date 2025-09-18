@@ -358,7 +358,9 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
-    void onMarginClick(int margin, int line, Qt::KeyboardModifiers state);
+    void autoPairHandle(int ascii);
+
+    void marginClickHandle(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
     void breakpointHandle();
@@ -366,6 +368,8 @@ private:
     void commentHandle();
 
     void duplicateHandle();
+
+    QHash<QChar, QChar> m_autoPairHash{};
 };
 
 class LuaInterpreter final : public QObject {

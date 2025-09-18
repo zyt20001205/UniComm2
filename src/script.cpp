@@ -1121,8 +1121,7 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->setMarginType(1, SymbolMargin);
     this->QsciScintilla::setMarginSensitivity(1, true);
     this->QsciScintilla::setMarginWidth(1, "16");
-    connect(this, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)),
-            this, SLOT(onMarginClick(int,int,Qt::KeyboardModifiers)));
+    connect(this, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClickHandle(int,int,Qt::KeyboardModifiers)));
 
     this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
     this->setMarginType(2, SymbolMargin);
@@ -1135,6 +1134,13 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->QsciScintilla::setBackspaceUnindents(true);
     this->QsciScintilla::setIndentationGuides(true);
     this->QsciScintilla::setTabWidth(4);
+    // connect auto pair
+    connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(autoPairHandle(int)));
+    m_autoPairHash['('] = ')';
+    m_autoPairHash['['] = ']';
+    m_autoPairHash['{'] = '}';
+    m_autoPairHash['"'] = '"';
+    m_autoPairHash['\''] = '\'';
 }
 
 // ScriptEditor protected
@@ -1160,7 +1166,13 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
 }
 
 // ScriptEditor private
-void ScriptEditor::onMarginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
+void ScriptEditor::autoPairHandle(const int ascii) {
+    const auto input = QChar(ascii);
+    if (!m_autoPairHash.contains(input)) return;
+    insert(m_autoPairHash[input]);
+}
+
+void ScriptEditor::marginClickHandle(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
         if (this->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             this->markerDelete(line, MARKER_BREAKPOINT);
