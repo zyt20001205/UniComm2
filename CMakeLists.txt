@@ -17,6 +17,11 @@ set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/lib/qscintilla-2.14.1")
 set(QSCINTILLA_INCLUDE_DIR "${QSCINTILLA_DIR}/include")
 set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
 
+set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/lib/qcustomplot-2.1.1")
+set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
+set(QCUSTOMPLOT_SRC "${QCUSTOMPLOT_DIR}/src/qcustomplot.cpp")
+set(QCUSTOMPLOT_HDR "${QCUSTOMPLOT_DIR}/include/qcustomplot.h")
+
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
 set(TESSERACT_DLL "${TESSERACT_DIR}/bin/libtesseract55.dll")
@@ -56,6 +61,8 @@ qt_add_executable(UniComm src/main.cpp
         src/send.cpp
         src/script.cpp
         src/suffix.cpp
+        ${QCUSTOMPLOT_SRC}
+        ${QCUSTOMPLOT_HDR}
 )
 
 qt_add_resources(UniComm "readme_resources"
@@ -112,6 +119,7 @@ target_link_libraries(UniComm PRIVATE
 target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE_DIR}
         ${QSCINTILLA_INCLUDE_DIR}
+        ${QCUSTOMPLOT_INCLUDE_DIR}
         ${TESSERACT_INCLUDE_DIR}
         ${LEPTONICA_INCLUDE_DIR}
 )
