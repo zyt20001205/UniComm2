@@ -51,6 +51,22 @@ void lua_pushqstring(lua_State *L, const int idx, const QString &value) {
     }
 }
 
+int lua_exec(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 1)
+        luaL_error(L, "unexpected number of arguments");
+    // extract arguments
+    const char *param1 = luaL_checkstring(L, 1);
+    // start operation
+    const QString scriptPath = QString::fromUtf8(param1);
+    QMetaObject::invokeMethod(g_log, [scriptPath] {
+            g_script->scriptExec(scriptPath);
+        }, Qt::QueuedConnection);
+    return 0;
+}
+
+int lua_terminate(lua_State *L);
+
 int lua_print(lua_State *L) {
     const int n = lua_gettop(L);
     QString message;

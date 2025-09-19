@@ -91,6 +91,8 @@ public:
 
     void scriptOpen(const QString &scriptUrl);
 
+    void scriptExec(const QString &scriptPath);
+
     void scriptHighlight(int row) const;
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;

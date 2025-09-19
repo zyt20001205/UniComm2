@@ -67,6 +67,7 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
         m_tableWidget->setRowCount(row + 1);
     }
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
+    m_tableWidget->scrollToBottom();
     double time = 0.0;
     if (!m_data[key].basetime.isValid()) {
         m_data[key].basetime = QDateTime::currentDateTime();
@@ -90,8 +91,7 @@ void Datatable::datatableClear(const QString &key) {
                 /*y*/ {}
             };
         }
-    }
-    else {
+    } else {
         int column = -1;
         for (int index = 0; index < m_tableWidget->columnCount(); index++) {
             if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {

@@ -18,6 +18,7 @@
 #include "script.h"
 #include "send.h"
 
+inline Script *g_script = nullptr;
 inline Database *g_database = nullptr;
 inline Datatable *g_datatable = nullptr;
 inline Dataplot *g_dataplot = nullptr;

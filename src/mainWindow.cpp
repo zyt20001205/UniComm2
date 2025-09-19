@@ -106,6 +106,7 @@ void MainWindow::moduleInit() {
     connect(m_dataplotModule,&Dataplot::addGraphDatatable,m_datatableModule,&Datatable::datatableAddGraph);
 
     m_sendModule->setPort(m_portModule);
+    g_script = m_scriptModule;
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
     g_dataplot = m_dataplotModule;

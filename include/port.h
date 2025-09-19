@@ -37,6 +37,7 @@
 #include <QUdpSocket>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QMutex>
 #include <baseapi.h>
 #include <allheaders.h>
 #include "config.h"
@@ -226,6 +227,10 @@ public:
 
 signals:
     void appendLog(const QString &message, const QString &level);
+public:
+    QMutex &transactionMutex() { return m_transactionMutex; }
+private:
+    QMutex m_transactionMutex;
 };
 
 class SerialPort final : public BasePort {

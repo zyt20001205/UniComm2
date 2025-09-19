@@ -24,14 +24,20 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     txData.append(static_cast<char>(txQuantity >> 8 & 0xFF));
     txData.append(static_cast<char>(txQuantity & 0xFF));
     txData += modbusCRC(txData);
-    QMetaObject::invokeMethod(portObject, [portObject, txData] {
-        portObject->writeData(txData);
-    }, Qt::BlockingQueuedConnection);
-    QByteArray rxData;
-    const int timeout = param4;
-    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
-        rxData = portObject->readData(timeout);
-    }, Qt::BlockingQueuedConnection);
+    QByteArray rxData; {
+        QMutexLocker locker(&portObject->transactionMutex());
+        QMetaObject::invokeMethod(portObject, [portObject, txData] {
+            portObject->writeData(txData);
+        }, Qt::BlockingQueuedConnection);
+        const int timeout = param4;
+        QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
+            rxData = portObject->readData(timeout);
+        }, Qt::BlockingQueuedConnection);
+    }
+    if (const int rxLength = txQuantity * 2 + 5; rxData.length() != rxLength) {
+        luaL_error(L, "modbus rtu read holding registers wrong length");
+        return 0;
+    }
     if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu read holding registers slave address inconsistent");
         return 0;
@@ -80,14 +86,20 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
     txData.append(txByteCount);
     txData += txRegData;
     txData += modbusCRC(txData);
-    QMetaObject::invokeMethod(portObject, [portObject, txData] {
-        portObject->writeData(txData);
-    }, Qt::BlockingQueuedConnection);
-    QByteArray rxData;
-    const int timeout = param4;
-    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
-        rxData = portObject->readData(timeout);
-    }, Qt::BlockingQueuedConnection);
+    QByteArray rxData; {
+        QMutexLocker locker(&portObject->transactionMutex());
+        QMetaObject::invokeMethod(portObject, [portObject, txData] {
+            portObject->writeData(txData);
+        }, Qt::BlockingQueuedConnection);
+        const int timeout = param4;
+        QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
+            rxData = portObject->readData(timeout);
+        }, Qt::BlockingQueuedConnection);
+    }
+    if (rxData.length() != 8) {
+        luaL_error(L, "modbus rtu write multiple registers wrong length");
+        return 0;
+    }
     if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu write multiple registers slave address inconsistent");
     }

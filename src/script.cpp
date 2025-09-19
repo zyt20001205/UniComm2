@@ -1,6 +1,6 @@
 #include "../include/script.h"
 
-static Script *g_script = nullptr;
+extern Script *g_script;
 
 auto g_stateMachine = STATE_RUN;
 int g_depth = 0;
@@ -8,7 +8,6 @@ int g_baseDepth = 0;
 
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
-    g_script = this;
     auto shortcutFormatting = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
     connect(shortcutFormatting, &QShortcut::activated, this, [this] {
         if (!m_currentScriptWidget) return;
@@ -250,6 +249,28 @@ void Script::scriptOpen(const QString &scriptUrl) {
     scriptList.append(scriptUrl);
     m_scriptConfig["scriptList"] = scriptList;
     // qDebug() << m_scriptConfig;
+}
+
+void Script::scriptExec(const QString &scriptPath) {
+    QFile file(QDir::current().filePath("script/" + scriptPath));
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+    const QString script = in.readAll();
+    file.close();
+    // launch lua interpreter thread
+    auto *worker = new QThread(); // NOLINT
+    auto *interpreter = new LuaInterpreter(); // NOLINT
+    interpreter->moveToThread(worker);
+    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
+    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker, &QThread::started, [interpreter, script] {
+        interpreter->run(script);
+        QThread::currentThread()->quit();
+    });
+    scriptRunning(scriptPath, worker);
+    m_scriptMonitorTabWidget->setCurrentIndex(THREADPOOL_TAB); // switch to threadpool tab
+    worker->start();
 }
 
 void Script::scriptHighlight(const int row) const {
@@ -1236,6 +1257,7 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_pushstring(L, "script/?.lua");
     lua_setfield(L, -2, "path");
     // register C++ functions
+    lua_register(L, "exec", lua_exec);
     lua_register(L, "input", lua_input);
     lua_register(L, "print", lua_print);
     lua_register(L, "sleep", lua_sleep);
