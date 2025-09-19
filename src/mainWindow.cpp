@@ -80,7 +80,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
 
-    m_dataplotModule = new Dataplot();
+    m_dataplotModule = new Dataplot(this);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
@@ -101,10 +101,13 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
+    connect(m_datatableModule,&Datatable::addGraphDataPlot,m_dataplotModule,&Dataplot::dataplotAddGraph);
+    connect(m_dataplotModule,&Dataplot::addGraphDatatable,m_datatableModule,&Datatable::datatableAddGraph);
 
     m_sendModule->setPort(m_portModule);
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
+    g_dataplot = m_dataplotModule;
     g_log = m_logModule;
     g_port = m_portModule;
 }

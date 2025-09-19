@@ -29,6 +29,12 @@ Datatable::Datatable(QObject *parent)
         const int logicalIndex = m_tableWidget->columnCount();
         m_tableWidget->insertColumn(logicalIndex);
         m_tableWidget->setHorizontalHeaderItem(logicalIndex, new QTableWidgetItem(key.toString()));
+        m_data[key.toString()] = DataMap{
+            /*enable*/ true,
+            /*basetime*/ {},
+            /*x*/ {},
+            /*y*/ {}
+        };
     }
 
     m_tableWidget->installEventFilter(this);
@@ -38,7 +44,7 @@ void Datatable::datatableConfigSave() const {
     g_config["datatableConfig"] = m_datatableConfig;
 }
 
-bool Datatable::datatableWrite(const QString &key, const QString &value) const {
+bool Datatable::datatableWrite(const QString &key, const QString &value) {
     int column = -1;
     for (int index = 0; index < m_tableWidget->columnCount(); index++) {
         if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
@@ -61,7 +67,21 @@ bool Datatable::datatableWrite(const QString &key, const QString &value) const {
         m_tableWidget->setRowCount(row + 1);
     }
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
+    if (!m_data[key].basetime.isValid()) {
+        m_data[key].basetime = QDateTime::currentDateTime();
+        m_data[key].x.append(0.0);
+    } else {
+        const double time = m_data[key].basetime.msecsTo(QDateTime::currentDateTime()) / 1000.0;
+        m_data[key].x.append(time);
+    }
+    m_data[key].y.append(value.toDouble());
     return true;
+}
+
+void Datatable::datatableAddGraph(const QString &key) {
+    if (!m_data.contains(key)) return;
+    m_data[key].enable = true;
+    emit addGraphDataPlot(m_data[key].x, m_data[key].y);
 }
 
 // Datatable protected

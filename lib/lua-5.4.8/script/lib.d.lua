@@ -198,3 +198,9 @@ datatable = {}
 --- @param value string|number The value to write.
 --- @return nil
 function datatable.write(key, value) end
+
+dataplot = {}
+--- Appends a column from the datatable to dataplot using a key identifier
+--- @param key string The named key of the column to append from the datatable.
+--- @return nil
+function dataplot.append(key) end

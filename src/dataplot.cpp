@@ -6,16 +6,20 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(pa
     setWindowTitle(tr("Data Plot"));
     resize(800, 600);
 
-    auto* layout = new QVBoxLayout(this); // NOLINT
+    auto *layout = new QVBoxLayout(this); // NOLINT
     layout->addWidget(m_plot);
-
-    QVector<double> x(100), y(100);
-    for (int i = 0; i < 100; ++i) {
-        x[i] = i / 10.0;
-        y[i] = qSin(x[i]);
-    }
-
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     m_plot->addGraph();
-    m_plot->graph(0)->setData(x, y);
 }
+
+void Dataplot::dataplotAppend(const QString &key) {
+    emit addGraphDatatable(key);
+}
+
+void Dataplot::dataplotAddGraph(const QList<double> &x, const QList<double> &y) const {
+    m_plot->graph(0)->setData(x, y);
+    m_plot->graph(0)->rescaleAxes(true);
+    m_plot->replot();
+}
+
+// Dataplot private

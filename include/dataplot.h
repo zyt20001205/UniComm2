@@ -13,8 +13,15 @@ public:
 
     ~Dataplot() override = default;
 
+    void dataplotAppend(const QString &key);
+
+    void dataplotAddGraph(const QList<double> &x, const QList<double> &y) const;
+
+signals:
+    void addGraphDatatable(const QString &key);
+
 private:
-    QCustomPlot* m_plot = nullptr;
+    QCustomPlot *m_plot = nullptr;
 };
 
 #endif //DATAPLOT_H

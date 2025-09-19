@@ -21,7 +21,12 @@ public:
 
     void datatableConfigSave() const;
 
-    bool datatableWrite(const QString &key, const QString &value) const;
+    bool datatableWrite(const QString &key, const QString &value);
+
+    void datatableAddGraph(const QString &key);
+
+signals:
+    void addGraphDataPlot(const QList<double> &x, const QList<double> &y);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -35,9 +40,16 @@ private:
 
     void datatableRemove(int visualColumn);
 
+    struct DataMap {
+        bool enable;
+        QDateTime basetime;
+        QList<double> x;
+        QList<double> y;
+    };
+
     QJsonArray m_datatableConfig = g_config["datatableConfig"].toArray();
     QTableWidget *m_tableWidget = nullptr;
-    bool m_dragging = false;
+    QHash<QString, DataMap> m_data{};
     int m_srcIndex;
     int m_dstIndex;
 };

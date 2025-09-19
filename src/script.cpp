@@ -1279,6 +1279,11 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_pushcfunction(L, lua_datatableWrite);
     lua_setfield(L, -2, "write");
     lua_setglobal(L, "datatable");
+    // register dataplot class
+    lua_newtable(L);
+    lua_pushcfunction(L, lua_dataplotAppend);
+    lua_setfield(L, -2, "append");
+    lua_setglobal(L, "dataplot");
 }
 
 void LuaInterpreter::run(const QString &script) const {
