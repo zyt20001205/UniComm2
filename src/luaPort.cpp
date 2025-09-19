@@ -136,18 +136,20 @@ int lua_portWriteData(lua_State *L) {
 
 int lua_portReadText(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 2)
+    if (lua_gettop(L) > 3)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
     const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
     const int param2 = static_cast<int>(luaL_optinteger(L, 2, 0));
+    const int param3 = static_cast<int>(luaL_optinteger(L, 3, 0));
     // start operation
     const int index = param1;
     const int timeout = param2;
+    const int length = param3;
     QString rxText;
     auto *portObject = g_port->portObject(index);
-    QMetaObject::invokeMethod(portObject, [&rxText, portObject, timeout] {
-        rxText = portObject->readText(timeout);
+    QMetaObject::invokeMethod(portObject, [&rxText, portObject, timeout, length] {
+        rxText = portObject->readText(timeout, length);
     }, Qt::BlockingQueuedConnection);
     if (rxText == "timeout") {
         luaL_error(L, "port read data timeout");
@@ -159,18 +161,20 @@ int lua_portReadText(lua_State *L) {
 
 int lua_portReadData(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 2)
+    if (lua_gettop(L) > 3)
         luaL_error(L, "unexpected number of arguments");
     // extract arguments
     const int param1 = static_cast<int>(luaL_optinteger(L, 1, -1));
     const int param2 = static_cast<int>(luaL_optinteger(L, 2, 0));
+    const int param3 = static_cast<int>(luaL_optinteger(L, 3, 0));
     // start operation
     const int index = param1;
     const int timeout = param2;
+    const int length = param3;
     QByteArray rxData;
     auto *portObject = g_port->portObject(index);
-    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
-        rxData = portObject->readData(timeout);
+    QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout, length] {
+        rxData = portObject->readData(timeout, length);
     }, Qt::BlockingQueuedConnection);
     if (rxData == "timeout") {
         luaL_error(L, "port read data timeout");

@@ -219,9 +219,9 @@ public:
     virtual void writeData(const QByteArray &txData, const QString &peerIp) {
     }
 
-    virtual QString readText(int timeout) = 0;
+    virtual QString readText(int timeout, int length) = 0;
 
-    virtual QByteArray readData(int timeout) {
+    virtual QByteArray readData(int timeout, int length) {
         return QByteArray();
     };
 
@@ -251,9 +251,9 @@ public:
 
     void writeData(const QByteArray &txData) override;
 
-    QString readText(int timeout) override;
+    QString readText(int timeout, int length) override;
 
-    QByteArray readData(int timeout) override;
+    QByteArray readData(int timeout, int length) override;
 
 signals:
     void connected();
@@ -267,7 +267,7 @@ signals:
 private:
     void handleWrite();
 
-    QByteArray handleRead();
+    QByteArray handleRead(int length);
 
     void handleError();
 
@@ -309,9 +309,9 @@ public:
 
     void writeData(const QByteArray &txData) override;
 
-    QString readText(int timeout) override;
+    QString readText(int timeout, int length) override;
 
-    QByteArray readData(int timeout) override;
+    QByteArray readData(int timeout, int length) override;
 
 signals:
     void connected();
@@ -331,7 +331,7 @@ private:
 
     void handleWrite();
 
-    QByteArray handleRead();
+    QByteArray handleRead(int length);
 
     QTcpSocket *m_tcpClient;
     // port config
@@ -375,9 +375,9 @@ public:
 
     void writeData(const QByteArray &txData, const QString &peerIp) override;
 
-    QString readText(int timeout) override;
+    QString readText(int timeout, int length) override;
 
-    QByteArray readData(int timeout) override;
+    QByteArray readData(int timeout, int length) override;
 
 signals:
     void newConnection();
@@ -442,9 +442,9 @@ public:
 
     void writeData(const QByteArray &txData) override;
 
-    QString readText(int timeout) override;
+    QString readText(int timeout, int length) override;
 
-    QByteArray readData(int timeout) override;
+    QByteArray readData(int timeout, int length) override;
 
 signals:
     void connected();
@@ -460,7 +460,7 @@ private:
 
     void handleWrite();
 
-    QByteArray handleRead();
+    QByteArray handleRead(int length);
 
     QUdpSocket *m_udpSocket;
     // port config
@@ -496,7 +496,7 @@ public:
 
     QHash<QString, QVariant> info() override;
 
-    QString readText(int timeout) override;
+    QString readText(int timeout, int length) override;
 
 private:
     QScreen *m_screen = nullptr;
@@ -521,7 +521,7 @@ public:
 
     QHash<QString, QVariant> info() override;
 
-    QString readText(int timeout) override;
+    QString readText(int timeout, int length) override;
 
 private:
     QCameraDevice m_camera;
