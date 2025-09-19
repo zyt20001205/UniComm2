@@ -21,12 +21,14 @@ public:
 
     void datatableConfigSave() const;
 
-    bool datatableWrite(const QString &key, const QString &value);
+    void datatableWrite(const QString &key, const QString &value);
 
     void datatableAddGraph(const QString &key);
 
 signals:
-    void addGraphDataPlot(const QList<double> &x, const QList<double> &y);
+    void addGraphDataPlot(const QString &key, const QList<double> &x, const QList<double> &y);
+
+    void addPointDataPlot(const QString &key, double x, double y);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

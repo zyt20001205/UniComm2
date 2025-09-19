@@ -15,13 +15,16 @@ public:
 
     void dataplotAppend(const QString &key);
 
-    void dataplotAddGraph(const QList<double> &x, const QList<double> &y) const;
+    void dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y);
 
+    void dataplotAddPoint(const QString &key, double x, double y);
 signals:
     void addGraphDatatable(const QString &key);
 
 private:
     QCustomPlot *m_plot = nullptr;
+    QHash<QString, int> m_indexHash{};
+    QSet<int> m_indexSet{};
 };
 
 #endif //DATAPLOT_H

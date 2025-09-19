@@ -44,7 +44,7 @@ void Datatable::datatableConfigSave() const {
     g_config["datatableConfig"] = m_datatableConfig;
 }
 
-bool Datatable::datatableWrite(const QString &key, const QString &value) {
+void Datatable::datatableWrite(const QString &key, const QString &value) {
     int column = -1;
     for (int index = 0; index < m_tableWidget->columnCount(); index++) {
         if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
@@ -53,7 +53,8 @@ bool Datatable::datatableWrite(const QString &key, const QString &value) {
         }
     }
     if (column == -1) {
-        return false;
+        qDebug() << "key not found in datatable";
+        return;
     }
     int row = -1;
     for (int index = 0; index < m_tableWidget->rowCount(); index++) {
@@ -67,21 +68,21 @@ bool Datatable::datatableWrite(const QString &key, const QString &value) {
         m_tableWidget->setRowCount(row + 1);
     }
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
+    double time = 0.0;
     if (!m_data[key].basetime.isValid()) {
         m_data[key].basetime = QDateTime::currentDateTime();
-        m_data[key].x.append(0.0);
     } else {
-        const double time = m_data[key].basetime.msecsTo(QDateTime::currentDateTime()) / 1000.0;
-        m_data[key].x.append(time);
+        time = m_data[key].basetime.msecsTo(QDateTime::currentDateTime()) / 1000.0;
     }
+    m_data[key].x.append(time);
     m_data[key].y.append(value.toDouble());
-    return true;
+    if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
 }
 
 void Datatable::datatableAddGraph(const QString &key) {
     if (!m_data.contains(key)) return;
     m_data[key].enable = true;
-    emit addGraphDataPlot(m_data[key].x, m_data[key].y);
+    emit addGraphDataPlot(key, m_data[key].x, m_data[key].y);
 }
 
 // Datatable protected

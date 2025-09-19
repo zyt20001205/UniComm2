@@ -102,6 +102,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_datatableModule,&Datatable::addGraphDataPlot,m_dataplotModule,&Dataplot::dataplotAddGraph);
+    connect(m_datatableModule,&Datatable::addPointDataPlot,m_dataplotModule,&Dataplot::dataplotAddPoint);
     connect(m_dataplotModule,&Dataplot::addGraphDatatable,m_datatableModule,&Datatable::datatableAddGraph);
 
     m_sendModule->setPort(m_portModule);

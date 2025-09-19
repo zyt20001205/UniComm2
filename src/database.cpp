@@ -40,14 +40,14 @@ void Database::databaseConfigSave() const {
     g_config["databaseConfig"] = m_databaseConfig;
 }
 
-bool Database::databaseWrite(const QString &key, const QString &value) const {
+void Database::databaseWrite(const QString &key, const QString &value) const {
     for (int index = 0; index < m_tableWidget->rowCount(); index++) {
         if (m_tableWidget->verticalHeaderItem(index)->text() == key) {
             m_tableWidget->item(index, 0)->setText(value);
-            return true;
+            return;
         }
     }
-    return false;
+    qDebug() << "key not found in database";
 }
 
 void Database::databaseClear() const {

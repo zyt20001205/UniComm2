@@ -10,13 +10,9 @@ int lua_databaseWrite(lua_State *L) {
     // start operation
     const QString key = param1;
     const QString value = param2;
-    bool status;
-    QMetaObject::invokeMethod(g_database, [key, value, &status] {
-        status = g_database->databaseWrite(key, value);
-    }, Qt::BlockingQueuedConnection);
-    if (!status) {
-        luaL_error(L, "key not found in database");
-    }
+    QMetaObject::invokeMethod(g_database, [key, value] {
+        g_database->databaseWrite(key, value);
+    }, Qt::QueuedConnection);
     return 0;
 }
 
@@ -27,7 +23,7 @@ int lua_databaseClear(lua_State *L) {
     // start operation
     QMetaObject::invokeMethod(g_database, [] {
         g_database->databaseClear();
-    }, Qt::BlockingQueuedConnection);
+    }, Qt::QueuedConnection);
     return 0;
 }
 
@@ -41,13 +37,9 @@ int lua_datatableWrite(lua_State *L) {
     // start operation
     const QString key = param1;
     const QString value = param2;
-    bool status;
-    QMetaObject::invokeMethod(g_datatable, [key, value, &status] {
-        status = g_datatable->datatableWrite(key, value);
-    }, Qt::BlockingQueuedConnection);
-    if (!status) {
-        luaL_error(L, "key not found in datatable");
-    }
+    QMetaObject::invokeMethod(g_datatable, [key, value] {
+        g_datatable->datatableWrite(key, value);
+    }, Qt::QueuedConnection);
     return 0;
 }
 
@@ -61,6 +53,6 @@ int lua_dataplotAppend(lua_State *L) {
     const QString key = param1;
     QMetaObject::invokeMethod(g_dataplot, [key] {
         g_dataplot->dataplotAppend(key);
-    }, Qt::BlockingQueuedConnection);
+    }, Qt::QueuedConnection);
     return 0;
 }
