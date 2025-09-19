@@ -19,7 +19,7 @@ set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
 
 set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/lib/qcustomplot-2.1.1")
 set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
-set(QCUSTOMPLOT_SRC "${QCUSTOMPLOT_DIR}/src/qcustomplot.cpp")
+set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
 
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
@@ -62,7 +62,6 @@ qt_add_executable(UniComm src/main.cpp
         src/send.cpp
         src/script.cpp
         src/suffix.cpp
-        ${QCUSTOMPLOT_SRC}
 )
 
 qt_add_resources(UniComm "readme_resources"
@@ -104,6 +103,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::Multimedia
         ${LUA_DLL}
         ${QSCINTILLA_DLL}
+        ${QCUSTOMPLOT_DLL}
         ${TESSERACT_DLL}
         ${LEPTONICA_DLL}
 )
@@ -167,6 +167,13 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endif ()
+
+    if (EXISTS "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
