@@ -23,6 +23,8 @@ public:
 
     void datatableWrite(const QString &key, const QString &value);
 
+    void datatableClear(const QString &key);
+
     void datatableAddGraph(const QString &key);
 
 signals:

@@ -168,7 +168,14 @@ function port.writeData(index, data, peerIp) end
 function port.writeText(index, text, peerIp) end
 
 modbusRtu = {}
-function modbusRtu.readHoldingRegisters() end
+--- Reads data from multiple holding registers of a Modbus RTU device.
+--- @param slaveAddr integer The slave address (1-247) of the target device on the network.
+--- @param startAddr integer The starting address of the first register to write to.
+--- @param quantity integer Number of registers to read.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @return bytes
+function modbusRtu.readHoldingRegisters(slaveAddr, startAddr, quantity, timeout, index) end
 
 --- Writes data to multiple holding registers to a Modbus RTU device.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
@@ -198,6 +205,11 @@ datatable = {}
 --- @param value string|number The value to write.
 --- @return nil
 function datatable.write(key, value) end
+
+--- Clears a column of datatable using a key identifier.
+--- @param key? string The target column key identifier. ; when omitted or set to "all" clears all columns.
+--- @return nil
+function datatable.clear(key) end
 
 dataplot = {}
 --- Appends a column from the datatable to dataplot using a key identifier

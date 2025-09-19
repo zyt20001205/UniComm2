@@ -30,13 +30,12 @@ Datatable::Datatable(QObject *parent)
         m_tableWidget->insertColumn(logicalIndex);
         m_tableWidget->setHorizontalHeaderItem(logicalIndex, new QTableWidgetItem(key.toString()));
         m_data[key.toString()] = DataMap{
-            /*enable*/ true,
+            /*enable*/ false,
             /*basetime*/ {},
             /*x*/ {},
             /*y*/ {}
         };
     }
-
     m_tableWidget->installEventFilter(this);
 }
 
@@ -77,6 +76,45 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
     m_data[key].x.append(time);
     m_data[key].y.append(value.toDouble());
     if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
+}
+
+void Datatable::datatableClear(const QString &key) {
+    if (key == "all") {
+        for (const QJsonValue &value: m_datatableConfig) {
+            m_tableWidget->setRowCount(0);
+            m_tableWidget->setRowCount(1);
+            m_data[value.toString()] = DataMap{
+                /*enable*/ false,
+                /*basetime*/ {},
+                /*x*/ {},
+                /*y*/ {}
+            };
+        }
+    }
+    else {
+        int column = -1;
+        for (int index = 0; index < m_tableWidget->columnCount(); index++) {
+            if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
+                column = index;
+                break;
+            }
+        }
+        if (column == -1) {
+            qDebug() << "key not found in datatable";
+            return;
+        }
+        for (int row = 0; row < m_tableWidget->rowCount(); ++row) {
+            if (QTableWidgetItem *item = m_tableWidget->item(row, column)) {
+                item->setText("");
+            }
+        }
+        m_data[key] = DataMap{
+            /*enable*/ false,
+            /*basetime*/ {},
+            /*x*/ {},
+            /*y*/ {}
+        };
+    }
 }
 
 void Datatable::datatableAddGraph(const QString &key) {

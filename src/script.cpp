@@ -108,7 +108,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     });
     // script monitor widget -> script monitor tab widget -> script thread pool widget
     m_scriptThreadPoolListWidget = new QListWidget();
-    m_scriptMonitorTabWidget->addTab(m_scriptThreadPoolListWidget, "thread pool");
+    m_scriptMonitorTabWidget->addTab(m_scriptThreadPoolListWidget, "threadpool");
     m_scriptThreadPoolListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
     // script monitor widget -> script monitor tab widget -> script debug widget
     m_scriptDebugWidget = new QWidget();
@@ -502,6 +502,7 @@ void Script::scriptRun() {
         QThread::currentThread()->quit();
     });
     scriptRunning(name, worker);
+    m_scriptMonitorTabWidget->setCurrentIndex(THREADPOOL_TAB); // switch to threadpool tab
     worker->start();
 }
 
@@ -1278,6 +1279,8 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_newtable(L);
     lua_pushcfunction(L, lua_datatableWrite);
     lua_setfield(L, -2, "write");
+    lua_pushcfunction(L, lua_datatableClear);
+    lua_setfield(L, -2, "clear");
     lua_setglobal(L, "datatable");
     // register dataplot class
     lua_newtable(L);

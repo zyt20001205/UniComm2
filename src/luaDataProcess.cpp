@@ -43,6 +43,20 @@ int lua_datatableWrite(lua_State *L) {
     return 0;
 }
 
+int lua_datatableClear(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 1)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    const char *param1 = luaL_optstring(L, 1, "all");
+    // start operation
+    const QString key = param1;
+    QMetaObject::invokeMethod(g_database, [key] {
+        g_datatable->datatableClear(key);
+    }, Qt::QueuedConnection);
+    return 0;
+}
+
 int lua_dataplotAppend(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 1)

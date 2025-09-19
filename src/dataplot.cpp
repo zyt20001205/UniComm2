@@ -13,6 +13,7 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(pa
 }
 
 void Dataplot::dataplotAppend(const QString &key) {
+    this->show();
     emit addGraphDatatable(key);
 }
 

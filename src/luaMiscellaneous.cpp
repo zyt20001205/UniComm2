@@ -61,7 +61,11 @@ int lua_print(lua_State *L) {
         if (s) message += QString::fromUtf8(s, static_cast<int>(len));
         lua_pop(L, 1);
     }
-    if (!message.isEmpty()) g_log->logAppend(message, "info");
+    if (!message.isEmpty()) {
+        QMetaObject::invokeMethod(g_log, [message] {
+            g_log->logAppend(message, "info");
+        }, Qt::QueuedConnection);
+    }
     return 0;
 }
 
