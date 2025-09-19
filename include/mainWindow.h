@@ -10,6 +10,7 @@
 #include <QWidget>
 #include "config.h"
 #include "database.h"
+#include "dataplot.h"
 #include "datatable.h"
 #include "log.h"
 #include "luaLanguageServer.h"
@@ -60,12 +61,14 @@ private:
     Send *m_sendModule = nullptr;
     Database *m_databaseModule = nullptr;
     Datatable *m_datatableModule = nullptr;
+    Dataplot *m_dataplotModule = nullptr;
     Log *m_logModule = nullptr;
 
     QAction *m_viewPort = nullptr;
     QAction *m_viewSend = nullptr;
     QAction *m_viewDatabase = nullptr;
     QAction *m_viewDatatable = nullptr;
+    QAction *m_viewDataplot = nullptr;
     QAction *m_viewLog = nullptr;
 };
 

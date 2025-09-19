@@ -20,7 +20,6 @@ set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
 set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/lib/qcustomplot-2.1.1")
 set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
 set(QCUSTOMPLOT_SRC "${QCUSTOMPLOT_DIR}/src/qcustomplot.cpp")
-set(QCUSTOMPLOT_HDR "${QCUSTOMPLOT_DIR}/include/qcustomplot.h")
 
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
@@ -36,6 +35,7 @@ qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
         include/config.h
         include/database.h
+        include/dataplot.h
         include/datatable.h
         include/log.h
         include/luaDataProcess.h
@@ -50,6 +50,7 @@ qt_add_executable(UniComm src/main.cpp
         src/mainWindow.cpp
         src/config.cpp
         src/database.cpp
+        src/dataplot.cpp
         src/datatable.cpp
         src/log.cpp
         src/luaDataProcess.cpp
@@ -62,7 +63,6 @@ qt_add_executable(UniComm src/main.cpp
         src/script.cpp
         src/suffix.cpp
         ${QCUSTOMPLOT_SRC}
-        ${QCUSTOMPLOT_HDR}
 )
 
 qt_add_resources(UniComm "readme_resources"
@@ -91,14 +91,6 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/save.svg"
         "resources/icon/send.svg"
         "resources/icon/stop.svg"
-)
-
-qt_add_resources(UniComm "api_resources"
-        PREFIX "/api"
-        BASE "resources/api"
-        FILES
-        "resources/api/Lua-5.4.8.api"
-        "resources/api/Custom-1.0.0.api"
 )
 
 target_link_libraries(UniComm PRIVATE

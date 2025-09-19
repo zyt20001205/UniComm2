@@ -80,6 +80,11 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
 
+    m_dataplotModule = new Dataplot();
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
+
     m_logModule = new Log();
     m_logModule->setObjectName("logModule");
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
@@ -145,6 +150,15 @@ void MainWindow::menuInit() {
     });
     connect(m_viewDatatable,&QAction::triggered,this,[this](const bool visible) {
        m_datatableModule->setVisible(visible);
+    });
+    m_viewDataplot = new QAction(tr("data plot")); // NOLINT
+    viewMenu->addAction(m_viewDataplot);
+    m_viewDataplot->setCheckable(true);
+    QTimer::singleShot(0, this, [this] {
+        m_viewDataplot->setChecked(m_dataplotModule->isVisible());
+    });
+    connect(m_viewDataplot,&QAction::triggered,this,[this](const bool visible) {
+       m_dataplotModule->setVisible(visible);
     });
     m_viewLog = new QAction(tr("log")); // NOLINT
     viewMenu->addAction(m_viewLog);
