@@ -21,6 +21,10 @@ set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/lib/qcustomplot-2.1.1")
 set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
 set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
 
+set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/lib/opencv-4.12.0")
+set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
+set(OPENCV_DLL "${OPENCV_DIR}/bin/opencv_world4120.dll")
+
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
 set(TESSERACT_DLL "${TESSERACT_DIR}/bin/libtesseract55.dll")
@@ -105,6 +109,7 @@ target_link_libraries(UniComm PRIVATE
         ${LUA_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
+        ${OPENCV_DLL}
         ${TESSERACT_DLL}
         ${LEPTONICA_DLL}
 )
@@ -113,6 +118,7 @@ target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE_DIR}
         ${QSCINTILLA_INCLUDE_DIR}
         ${QCUSTOMPLOT_INCLUDE_DIR}
+        ${OPENCV_INCLUDE_DIR}
         ${TESSERACT_INCLUDE_DIR}
         ${LEPTONICA_INCLUDE_DIR}
 )
@@ -144,6 +150,27 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
+
+    if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+    endif ()
+
+    if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+    endif ()
+
     if (EXISTS "${QT_INSTALL_PATH}/plugins/multimedia")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -156,6 +183,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
         endforeach ()
     endif ()
+
     if (EXISTS "${QT_INSTALL_PATH}/plugins/texttospeech")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -169,24 +197,45 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         endforeach ()
     endif ()
 
-    if (EXISTS "${LUA_DIR}/bin/lua54.dll")
+    if (EXISTS "${LUA_SCRIPT_DIR}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${LUA_SCRIPT_DIR}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/script")
+    endif ()
+
+    if (EXISTS "${LUA_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${LUA_DIR}/bin/lua54.dll"
+                "${LUA_DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
-    if (EXISTS "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
+    if (EXISTS "${LUA_LANGUAGE_SERVER_DIR}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${LUA_LANGUAGE_SERVER_DIR}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
+    endif ()
+
+    if (EXISTS "${QSCINTILLA_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll"
+                "${QSCINTILLA_DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
-    if (EXISTS "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
+    if (EXISTS "${QCUSTOMPLOT_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll"
+                "${QCUSTOMPLOT_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endif ()
+
+    if (EXISTS "${OPENCV_DLL}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${OPENCV_DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
@@ -213,37 +262,4 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-    endif ()
-
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-    endif ()
-
-    if (EXISTS "${LUA_LANGUAGE_SERVER_DIR}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${LUA_LANGUAGE_SERVER_DIR}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
-    endif ()
-
-    if (EXISTS "${LUA_SCRIPT_DIR}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${LUA_SCRIPT_DIR}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/script")
-    endif ()
 endif ()

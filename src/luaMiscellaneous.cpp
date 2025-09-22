@@ -141,6 +141,7 @@ int lua_speak(lua_State *L) {
     if (tts.engine().isEmpty()) {
         luaL_error(L, "no tts engine found");
     }
+    // tts.setLocale(QLocale::Chinese);
     tts.setLocale(QLocale::English);
     tts.setRate(0.0);
     tts.setVolume(1.0);
