@@ -3,6 +3,7 @@
 
 #include <QApplication>
 #include <QString>
+#include <QtTextToSpeech/QTextToSpeech>
 #include <QThread>
 #include <lua.hpp>
 #include "script.h"
@@ -26,5 +27,7 @@ int lua_input(lua_State *L);
 int lua_print(lua_State *L);
 
 int lua_sleep(lua_State *L);
+
+int lua_speak(lua_State *L);
 
 #endif //LUAMISCELLANEOUS_H

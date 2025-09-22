@@ -1259,6 +1259,7 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_register(L, "input", lua_input);
     lua_register(L, "print", lua_print);
     lua_register(L, "sleep", lua_sleep);
+    lua_register(L, "speak", lua_speak);
     // register port class
     lua_newtable(L);
     lua_pushcfunction(L, lua_portOpen);

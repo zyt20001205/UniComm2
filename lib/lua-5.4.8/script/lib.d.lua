@@ -1,14 +1,5 @@
 --- @meta
 
---- Suspends the current thread for a specified amount of time.
---- @param ms integer The number of milliseconds to sleep.
---- @return nil
----
---- @usage — Sleep for 1 second.
----
---- sleep(1000)
-function sleep(ms) end
-
 --- Shows an input dialog for variable assignment.
 --- @return string
 ---
@@ -19,6 +10,19 @@ function input() end
 
 --- The output has been redirected to the logging system.
 function print(...) end
+
+--- Suspends the current thread for a specified amount of time.
+--- @param ms integer The number of milliseconds to sleep.
+--- @return nil
+---
+--- @usage — Sleep for 1 second.
+---
+--- sleep(1000)
+function sleep(ms) end
+
+--- Converts text to speech and outputs it through the audio system.
+--- @param text string The text content to be spoken (use "help" to list available voices/languages).
+function speak(text) end
 
 port = {}
 

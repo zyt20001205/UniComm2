@@ -29,7 +29,7 @@ set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/lib/leptonica-1.85.0")
 set(LEPTONICA_INCLUDE_DIR "${LEPTONICA_DIR}/include")
 set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica.dll")
 
-find_package(Qt6 COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
 
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
@@ -101,6 +101,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::SerialPort
         Qt::Network
         Qt::Multimedia
+        Qt::TextToSpeech
         ${LUA_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
@@ -137,7 +138,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
     endif ()
-    foreach (QT_LIB Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia)
+    foreach (QT_LIB Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
@@ -153,6 +154,18 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     "${DLL}"
                     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
+        endforeach ()
+    endif ()
+    if (EXISTS "${QT_INSTALL_PATH}/plugins/texttospeech")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/texttospeech/")
+        file(GLOB QT_MM_BACKENDS "${QT_INSTALL_PATH}/plugins/texttospeech/*.dll")
+        foreach (DLL ${QT_MM_BACKENDS})
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${DLL}"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/texttospeech/")
         endforeach ()
     endif ()
 
