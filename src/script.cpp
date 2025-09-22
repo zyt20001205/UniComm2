@@ -1,7 +1,5 @@
 #include "../include/script.h"
 
-extern Script *g_script;
-
 auto g_stateMachine = STATE_RUN;
 int g_depth = 0;
 int g_baseDepth = 0;

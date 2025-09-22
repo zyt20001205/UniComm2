@@ -17,26 +17,24 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     const int txStartAddr = param2;
     const int txQuantity = param3;
     const int rxLength = txQuantity * 2 + 5;
+    const int rxTimeout = param4;
+
     QByteArray txData;
-    txData.append(txSlaveAddr);
+    txData.append(static_cast<char>(txSlaveAddr));
     txData.append(txFuncCode);
     txData.append(static_cast<char>(txStartAddr >> 8 & 0xFF));
     txData.append(static_cast<char>(txStartAddr & 0xFF));
     txData.append(static_cast<char>(txQuantity >> 8 & 0xFF));
     txData.append(static_cast<char>(txQuantity & 0xFF));
     txData += modbusCRC(txData);
-    QByteArray rxData; {
-        QMutexLocker locker(&portObject->transactionMutex());
-        QMetaObject::invokeMethod(portObject, [portObject, txData] {
-            portObject->writeData(txData);
-        }, Qt::BlockingQueuedConnection);
-        const int timeout = param4;
-        QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout, rxLength] {
-            rxData = portObject->readData(timeout, rxLength);
-        }, Qt::BlockingQueuedConnection);
-    }
+    QByteArray rxData;
+    QMetaObject::invokeMethod(portObject, [portObject, txData, &rxData, rxTimeout, rxLength] {
+        portObject->writeData(txData);
+        rxData = portObject->readData(rxTimeout, rxLength);
+    }, Qt::BlockingQueuedConnection);
     if (rxData.length() != rxLength) {
         luaL_error(L, "modbus rtu read holding registers wrong length");
+        qDebug() << rxData;
         return 0;
     }
     if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
@@ -75,30 +73,28 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
     constexpr int txFuncCode = 0x10;
     const int txStartAddr = param2;
     const QByteArray txRegData(param3, static_cast<qsizetype>(len3));
-    const int txRegCount = static_cast<qsizetype>(len3) / 2;
-    const int txByteCount = static_cast<qsizetype>(len3);
+    const int rxTimeout = param4;
+    const int txRegCount = static_cast<int>(len3) / 2;
+    const int txByteCount = static_cast<int>(len3);
     constexpr int rxLength = 8;
+
     QByteArray txData;
-    txData.append(txSlaveAddr);
+    txData.append(static_cast<char>(txSlaveAddr));
     txData.append(txFuncCode);
     txData.append(static_cast<char>(txStartAddr >> 8 & 0xFF));
     txData.append(static_cast<char>(txStartAddr & 0xFF));
     txData.append(static_cast<char>(txRegCount >> 8 & 0xFF));
     txData.append(static_cast<char>(txRegCount & 0xFF));
-    txData.append(txByteCount);
+    txData.append(static_cast<char>(txByteCount));
     txData += txRegData;
     txData += modbusCRC(txData);
-    QByteArray rxData; {
-        QMutexLocker locker(&portObject->transactionMutex());
-        QMetaObject::invokeMethod(portObject, [portObject, txData] {
-            portObject->writeData(txData);
-        }, Qt::BlockingQueuedConnection);
-        const int timeout = param4;
-        QMetaObject::invokeMethod(portObject, [&rxData, portObject, timeout] {
-            rxData = portObject->readData(timeout, 8);
-        }, Qt::BlockingQueuedConnection);
-    }
+    QByteArray rxData;
+    QMetaObject::invokeMethod(portObject, [portObject, txData, &rxData, rxTimeout] {
+        portObject->writeData(txData);
+        rxData = portObject->readData(rxTimeout, 8);
+    }, Qt::BlockingQueuedConnection);
     if (rxData.length() != rxLength) {
+        qDebug() << rxData;
         luaL_error(L, "modbus rtu write multiple registers wrong length");
         return 0;
     }

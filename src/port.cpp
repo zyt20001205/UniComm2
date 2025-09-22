@@ -258,17 +258,6 @@ Port::Port(QObject *parent)
             txSuffixLayout->addWidget(m_txSuffixCombobox);
             m_txSuffixCombobox->addItems(QStringList{"null", "crlf", "crc8 maxim", "crc16 modbus"});
 
-            m_txIntervalWidget = new QWidget(m_portSettingDialog);
-            m_portSettingLayout->addWidget(m_txIntervalWidget);
-            const auto txIntervalLayout = new QHBoxLayout(m_txIntervalWidget); // NOLINT
-            txIntervalLayout->setContentsMargins(0, 0, 0, 0);
-            const auto txIntervalLabel = new QLabel("tx interval"); // NOLINT
-            txIntervalLayout->addWidget(txIntervalLabel);
-            m_txIntervalSpinBox = new QSpinBox();
-            txIntervalLayout->addWidget(m_txIntervalSpinBox);
-            m_txIntervalSpinBox->setRange(0, 1000);
-            m_txIntervalSpinBox->setSuffix("ms");
-
             m_rxFormatWidget = new QWidget(m_portSettingDialog);
             m_portSettingLayout->addWidget(m_rxFormatWidget);
             const auto rxFormatLayout = new QHBoxLayout(m_rxFormatWidget); // NOLINT
@@ -278,17 +267,6 @@ Port::Port(QObject *parent)
             m_rxFormatCombobox = new QComboBox();
             rxFormatLayout->addWidget(m_rxFormatCombobox);
             m_rxFormatCombobox->addItems(QStringList{"hex", "ascii", "utf-8"});
-
-            m_rxTimeoutWidget = new QWidget(m_portSettingDialog);
-            m_portSettingLayout->addWidget(m_rxTimeoutWidget);
-            const auto rxTimeoutLayout = new QHBoxLayout(m_rxTimeoutWidget); // NOLINT
-            rxTimeoutLayout->setContentsMargins(0, 0, 0, 0);
-            const auto rxTimeoutLabel = new QLabel("rx timeout"); // NOLINT
-            rxTimeoutLayout->addWidget(rxTimeoutLabel);
-            m_rxTimeoutSpinBox = new QSpinBox();
-            rxTimeoutLayout->addWidget(m_rxTimeoutSpinBox);
-            m_rxTimeoutSpinBox->setRange(0, 1000);
-            m_rxTimeoutSpinBox->setSuffix("ms");
         }
         // init setting save button
         m_portSettingSavePushButton = new QPushButton("save setting");
@@ -383,9 +361,7 @@ void Port::portSettingLoad(const int index) {
         // tx/rx
         m_txFormatCombobox->setCurrentText("hex");
         m_txSuffixCombobox->setCurrentText("null");
-        m_txIntervalSpinBox->setValue(0);
         m_rxFormatCombobox->setCurrentText("hex");
-        m_rxTimeoutSpinBox->setValue(0);
     } else {
         m_currentIndex = m_tabWidget->currentIndex();
         QJsonObject portInfo = m_portConfig[index].toObject();
@@ -403,25 +379,19 @@ void Port::portSettingLoad(const int index) {
             m_serialPortStopBitsCombobox->setCurrentIndex(i);
             m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
             m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
-            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
-            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp client") {
             m_tcpClientRemoteAddressLineEdit->setText(portInfo["tcpClientRemoteAddress"].toString());
             m_tcpClientRemotePortSpinBox->setValue(portInfo["tcpClientRemotePort"].toInt());
             m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
             m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
-            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
-            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "tcp server") {
             m_tcpServerLocalAddressLineEdit->setText(portInfo["tcpServerLocalAddress"].toString());
             m_tcpServerLocalPortSpinBox->setValue(portInfo["tcpServerLocalPort"].toInt());
             m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
             m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
-            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
-            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "udp socket") {
             m_udpSocketLocalAddressLineEdit->setText(portInfo["udpSocketLocalAddress"].toString());
             m_udpSocketLocalPortSpinBox->setValue(portInfo["udpSocketLocalPort"].toInt());
@@ -429,9 +399,7 @@ void Port::portSettingLoad(const int index) {
             m_udpSocketRemotePortSpinBox->setValue(portInfo["udpSocketRemotePort"].toInt());
             m_txFormatCombobox->setCurrentText(portInfo["txFormat"].toString());
             m_txSuffixCombobox->setCurrentText(portInfo["txSuffix"].toString());
-            m_txIntervalSpinBox->setValue(portInfo["txInterval"].toInt());
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
-            m_rxTimeoutSpinBox->setValue(portInfo["rxTimeout"].toInt());
         } else if (portType == "screen") {
             m_screenNameCombobox->setCurrentText(portInfo["portName"].toString());
         } else /* portType == "camera" */ {
@@ -479,9 +447,7 @@ void Port::portSettingWidgetReset() const {
     // rx/tx setting widget
     m_txFormatWidget->hide();
     m_txSuffixWidget->hide();
-    m_txIntervalWidget->hide();
     m_rxFormatWidget->hide();
-    m_rxTimeoutWidget->hide();
     // save button
     m_portSettingSavePushButton->hide();
 };
@@ -499,9 +465,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_serialPortStopBitsWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
-        m_txIntervalWidget->show();
         m_rxFormatWidget->show();
-        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 2) {
         portSettingWidgetReset();
@@ -510,9 +474,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_tcpClientRemotePortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
-        m_txIntervalWidget->show();
         m_rxFormatWidget->show();
-        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 3) {
         portSettingWidgetReset();
@@ -521,9 +483,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_tcpServerLocalPortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
-        m_txIntervalWidget->show();
         m_rxFormatWidget->show();
-        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 4) {
         portSettingWidgetReset();
@@ -534,9 +494,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_udpSocketRemotePortWidget->show();
         m_txFormatWidget->show();
         m_txSuffixWidget->show();
-        m_txIntervalWidget->show();
         m_rxFormatWidget->show();
-        m_rxTimeoutWidget->show();
         m_portSettingSavePushButton->show();
     } else if (type == 5) {
         portSettingWidgetReset();
@@ -575,9 +533,7 @@ void Port::portSettingSave(const int type) {
         portConfig["stopBits"] = m_serialPortStopBitsCombobox->currentData().toInt();
         portConfig["txFormat"] = m_txFormatCombobox->currentText();
         portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-        portConfig["txInterval"] = m_txIntervalSpinBox->value();
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
-        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
@@ -601,9 +557,7 @@ void Port::portSettingSave(const int type) {
         portConfig["tcpClientRemotePort"] = m_tcpClientRemotePortSpinBox->value();
         portConfig["txFormat"] = m_txFormatCombobox->currentText();
         portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-        portConfig["txInterval"] = m_txIntervalSpinBox->value();
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
-        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
@@ -626,9 +580,7 @@ void Port::portSettingSave(const int type) {
         portConfig["tcpServerLocalPort"] = m_tcpServerLocalPortSpinBox->value();
         portConfig["txFormat"] = m_txFormatCombobox->currentText();
         portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-        portConfig["txInterval"] = m_txIntervalSpinBox->value();
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
-        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
@@ -653,9 +605,7 @@ void Port::portSettingSave(const int type) {
         portConfig["udpSocketRemotePort"] = m_udpSocketRemotePortSpinBox->value();
         portConfig["txFormat"] = m_txFormatCombobox->currentText();
         portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-        portConfig["txInterval"] = m_txIntervalSpinBox->value();
         portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
-        portConfig["rxTimeout"] = m_rxTimeoutSpinBox->value();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
@@ -988,12 +938,10 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePor
     // tx/rx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
     connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-        handleRead(0);
+        handleRead(0, 0);
     });
     connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
 }
@@ -1014,10 +962,8 @@ void SerialPort::reload(const QJsonObject &portConfig) {
     // tx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QHash<QString, QVariant> SerialPort::info() {
@@ -1112,12 +1058,8 @@ void SerialPort::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
-    // append to tx queue
-    m_txQueue.append(f_txData);
-    if (!m_txBlock) {
-        m_txBlock = true;
-        handleWrite();
-    }
+    // call handle write
+    handleWrite(f_txData);
 }
 
 QString SerialPort::readText(const int timeout, const int length) {
@@ -1130,56 +1072,46 @@ QString SerialPort::readText(const int timeout, const int length) {
 }
 
 QByteArray SerialPort::readData(const int timeout, const int length) {
+    QByteArray rxData;
     // async mode
-    if (timeout == 0) return m_rxBuffer;
-    // sync mode
-    disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
-    if (m_serialPort->waitForReadyRead(timeout)) {
-        connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-            handleRead(0);
-        });
-        return handleRead(length);
+    if (timeout == 0) {
+        rxData = m_rxBuffer;
     }
-    connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-        handleRead(0);
-    });
-    return "timeout";
+    // sync mode
+    else {
+        disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
+        rxData = handleRead(timeout, length);
+        connect(m_serialPort, &QSerialPort::readyRead, this, [this] { handleRead(0, 0); });
+    }
+    return rxData;
 }
 
 // SerialPort private
-void SerialPort::handleWrite() {
-    QByteArray txData;
-    if (!m_txQueue.isEmpty()) {
-        txData = m_txQueue.takeFirst();
-        m_serialPort->write(txData);
-        QTimer::singleShot(m_txInterval, this, &SerialPort::handleWrite);
-    } else {
-        m_txBlock = false;
-        return;
-    }
+void SerialPort::handleWrite(const QByteArray &f_txData) {
+    m_serialPort->write(f_txData);
     // tx message reformat
     QString txMessage;
     // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
+    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
+    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
+    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
     // 2: add port info
     txMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), txMessage);
     emit appendLog(txMessage, "tx");
 }
 
-QByteArray SerialPort::handleRead(const int length) {
+QByteArray SerialPort::handleRead(const int timeout, const int length) {
     QByteArray rxData = m_serialPort->readAll();
-    if (length == 0) {
-        while (true) {
-            if (m_serialPort->waitForReadyRead(m_rxTimeout)) {
-                rxData += m_serialPort->readAll();
-            } else break;
-        }
-    } else {
+    if (timeout != 0 && length != 0) {
+        int time = 0;
         while (rxData.size() != length) {
             if (m_serialPort->waitForReadyRead(10)) {
                 rxData += m_serialPort->readAll();
+            }
+            time += 10;
+            if (time >= timeout) {
+                rxData = "timeout";
+                break;
             }
         }
     }
@@ -1211,15 +1143,11 @@ TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(
     // tx/rx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
     connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
     connect(m_tcpClient, &QTcpSocket::disconnected, this, &TcpClient::handleDisconnected);
-    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-        handleRead(0);
-    });
+    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] { handleRead(0, 0); });
     connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
 }
 
@@ -1230,10 +1158,8 @@ void TcpClient::reload(const QJsonObject &portConfig) {
     // tx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QHash<QString, QVariant> TcpClient::info() {
@@ -1305,12 +1231,8 @@ void TcpClient::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
-    // append to tx queue
-    m_txQueue.append(f_txData);
-    if (!m_txBlock) {
-        m_txBlock = true;
-        handleWrite();
-    }
+    // call handle write
+    handleWrite(f_txData);
 }
 
 QString TcpClient::readText(const int timeout, const int length) {
@@ -1323,20 +1245,18 @@ QString TcpClient::readText(const int timeout, const int length) {
 }
 
 QByteArray TcpClient::readData(const int timeout, const int length) {
+    QByteArray rxData;
     // async mode
-    if (timeout == 0) return m_rxBuffer;
-    // sync mode
-    disconnect(m_tcpClient, &QTcpSocket::readyRead, this, nullptr);
-    if (m_tcpClient->waitForReadyRead(timeout)) {
-        connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-            handleRead(0);
-        });
-        return handleRead(length);
+    if (timeout == 0) {
+        rxData = m_rxBuffer;
     }
-    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] {
-        handleRead(0);
-    });
-    return "timeout";
+    // sync mode
+    else {
+        disconnect(m_tcpClient, &QTcpSocket::readyRead, this, nullptr);
+        rxData = handleRead(timeout, length);
+        connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] { handleRead(0, 0); });
+    }
+    return rxData;
 }
 
 // TcpClient private
@@ -1359,40 +1279,32 @@ void TcpClient::handleDisconnected() {
 void TcpClient::handleError() {
 }
 
-void TcpClient::handleWrite() {
-    QByteArray txData;
-    if (!m_txQueue.isEmpty()) {
-        txData = m_txQueue.takeFirst();
-        m_tcpClient->write(txData);
-        QTimer::singleShot(m_txInterval, this, &TcpClient::handleWrite);
-    } else {
-        m_txBlock = false;
-        return;
-    }
+void TcpClient::handleWrite(const QByteArray &f_txData) {
+    m_tcpClient->write(f_txData);
     // tx message reformat
     QString txMessage;
     // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
+    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
+    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
+    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
     // 2: add port info
     txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
                                                       QString::number(m_tcpClientRemotePort), txMessage);
     emit appendLog(txMessage, "tx");
 }
 
-QByteArray TcpClient::handleRead(const int length) {
+QByteArray TcpClient::handleRead(const int timeout, const int length) {
     QByteArray rxData = m_tcpClient->readAll();
-    if (length == 0) {
-        while (true) {
-            if (m_tcpClient->waitForReadyRead(m_rxTimeout)) {
-                rxData += m_tcpClient->readAll();
-            } else break;
-        }
-    } else {
+    if (timeout != 0 && length != 0) {
+        int time = 0;
         while (rxData.size() != length) {
-            if (m_tcpClient->waitForReadyRead(10)) {
+            if (!m_tcpClient->waitForReadyRead(10)) {
                 rxData += m_tcpClient->readAll();
+            }
+            time += 10;
+            if (time >= timeout) {
+                rxData = "timeout";
+                break;
             }
         }
     }
@@ -1421,9 +1333,7 @@ TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent) : BasePort(
     // tx/rx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
     connect(m_tcpServer, &QTcpServer::newConnection, this, &TcpServer::handleNewConnection);
     connect(m_tcpServer, &QTcpServer::acceptError, this, &TcpServer::handleServerError);
@@ -1436,10 +1346,8 @@ void TcpServer::reload(const QJsonObject &portConfig) {
     // tx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     // rx config
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QHash<QString, QVariant> TcpServer::info() {
@@ -1535,12 +1443,8 @@ void TcpServer::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
-    // append to tx queue
-    m_txQueue.append(f_txData);
-    if (!m_txBlock) {
-        m_txBlock = true;
-        handleWrite();
-    }
+    // call handle write
+    handleWrite(f_txData);
 }
 
 void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
@@ -1559,16 +1463,12 @@ void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
-    // append to tx queue
-    m_txQueue.append(f_txData);
-    if (!m_txBlock) {
-        m_txBlock = true;
-        handleWrite(peerIp);
-    }
+    // call handle write
+    handleWrite(f_txData, peerIp);
 }
 
-QString TcpServer::readText(const int timeout, const int length) {
-    const QByteArray rxData = readData(timeout, length);
+QString TcpServer::readText(const int timeout, const int length, const QString &peerIp) {
+    const QByteArray rxData = readData(timeout, length, peerIp);
     if (rxData == "timeout") return "timeout";
     if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
     if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
@@ -1576,11 +1476,21 @@ QString TcpServer::readText(const int timeout, const int length) {
     return QString::fromUtf8(m_rxBuffer);
 }
 
-QByteArray TcpServer::readData(const int timeout, const int length) {
+QByteArray TcpServer::readData(const int timeout, const int length, const QString &peerIp) {
+    QByteArray rxData;
     // async mode
-    if (timeout == 0) return m_rxBuffer;
-    // sync mode (WIP)
-    return {};
+    if (timeout == 0) {
+        rxData = m_rxBuffer;
+    }
+    // sync mode
+    else {
+        foreach(QTcpSocket* tcpServerPeer, m_tcpServerPeerList) {
+            disconnect(tcpServerPeer, &QTcpSocket::readyRead, this, nullptr);
+            rxData = handleRead(timeout, length, tcpServerPeer);
+            connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
+        }
+    }
+    return rxData;
 }
 
 // TcpServer private
@@ -1588,15 +1498,9 @@ void TcpServer::handleNewConnection() {
     while (m_tcpServer->hasPendingConnections()) {
         QTcpSocket *tcpServerPeer = m_tcpServer->nextPendingConnection();
         handleConnected(tcpServerPeer);
-        connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] {
-            handleRead(tcpServerPeer);
-        });
-        connect(tcpServerPeer, &QTcpSocket::disconnected, this, [this, tcpServerPeer]() {
-            handleDisconnected(tcpServerPeer);
-        });
-        connect(tcpServerPeer, &QTcpSocket::errorOccurred, this, [this, tcpServerPeer](QAbstractSocket::SocketError error) {
-            handleError(tcpServerPeer);
-        });
+        connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
+        connect(tcpServerPeer, &QTcpSocket::disconnected, this, [this, tcpServerPeer] { handleDisconnected(tcpServerPeer); });
+        connect(tcpServerPeer, &QTcpSocket::errorOccurred, this, [this, tcpServerPeer](QAbstractSocket::SocketError error) { handleError(tcpServerPeer); });
     }
 }
 
@@ -1626,63 +1530,42 @@ void TcpServer::handleDisconnected(QTcpSocket *tcpServerPeer) {
 void TcpServer::handleError(QTcpSocket *tcpServerPeer) {
 }
 
-void TcpServer::handleWrite(const QString &peerIp) {
+void TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
     if (peerIp == "") {
-        QByteArray txData;
-        if (!m_txQueue.isEmpty()) {
-            txData = m_txQueue.takeFirst();
-            foreach(QTcpSocket* tcpServerPeer, m_tcpServerPeerList) {
-                tcpServerPeer->write(txData);
-            }
-            QTimer::singleShot(m_txInterval, this, [this, peerIp] {
-                handleWrite(peerIp);
-            });
-        } else {
-            m_txBlock = false;
-            return;
+        foreach(QTcpSocket* tcpServerPeer, m_tcpServerPeerList) {
+            tcpServerPeer->write(f_txData);
         }
         // tx message reformat
         QString txMessage;
         // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
+        if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
+        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
+        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
         // 2: add port info
         txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), "broadcast", txMessage);
         emit appendLog(txMessage, "tx");
     } else {
-        QByteArray txData;
         QTcpSocket *tcpServerPeer = nullptr;
-        if (!m_txQueue.isEmpty()) {
-            txData = m_txQueue.takeFirst();
-            foreach(QTcpSocket* peer, m_tcpServerPeerList) {
-                if (peerIp == QString("%1:%2").arg(peer->peerAddress().toString(), QString::number(peer->peerPort()))) {
-                    tcpServerPeer = peer;
-                    break;
-                }
+        foreach(QTcpSocket* peer, m_tcpServerPeerList) {
+            if (peerIp == QString("%1:%2").arg(peer->peerAddress().toString(), QString::number(peer->peerPort()))) {
+                tcpServerPeer = peer;
+                break;
             }
-            if (tcpServerPeer == nullptr) {
-                emit appendLog("peer not found", "error");
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2").arg(timestamp, "peer not found");
-                m_txBlock = false;
-                return;
-            }
-            tcpServerPeer->write(txData);
-            QTimer::singleShot(m_txInterval, this, [this, peerIp] {
-                handleWrite(peerIp);
-            });
-        } else {
-            m_txBlock = false;
+        }
+        if (tcpServerPeer == nullptr) {
+            emit appendLog("peer not found", "error");
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "peer not found");
             return;
         }
+        tcpServerPeer->write(f_txData);
         // tx message reformat
         QString txMessage;
         // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
+        if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
+        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
+        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
         // 2: add port info
         QString peerAddress = tcpServerPeer->peerAddress().toString();
         QString peerPort = QString::number(tcpServerPeer->peerPort());
@@ -1691,12 +1574,20 @@ void TcpServer::handleWrite(const QString &peerIp) {
     }
 }
 
-QByteArray TcpServer::handleRead(QTcpSocket *tcpServerPeer) {
+QByteArray TcpServer::handleRead(const int timeout, const int length, QTcpSocket *tcpServerPeer) {
     QByteArray rxData = tcpServerPeer->readAll();
-    while (true) {
-        if (tcpServerPeer->waitForReadyRead(m_rxTimeout)) {
-            rxData += tcpServerPeer->readAll();
-        } else break;
+    if (timeout != 0 && length != 0) {
+        int time = 0;
+        while (rxData.size() != length) {
+            if (!tcpServerPeer->waitForReadyRead(10)) {
+                rxData += tcpServerPeer->readAll();
+            }
+            time += 10;
+            if (time >= timeout) {
+                rxData = "timeout";
+                break;
+            }
+        }
     }
     m_rxBuffer = rxData;
     // rx message reformat
@@ -1725,13 +1616,9 @@ UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent) : BasePort(
     // tx/rx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
     // connect slot
-    connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] {
-        handleRead(0);
-    });
+    connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
     connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
 }
 
@@ -1745,9 +1632,7 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
     // tx/rx config
     m_txFormat = portConfig["txFormat"].toString();
     m_txSuffix = portConfig["txSuffix"].toString();
-    m_txInterval = portConfig["txInterval"].toInt();
     m_rxFormat = portConfig["rxFormat"].toString();
-    m_rxTimeout = portConfig["rxTimeout"].toInt();
 }
 
 QHash<QString, QVariant> UdpSocket::info() {
@@ -1821,12 +1706,8 @@ void UdpSocket::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
-    // append to tx queue
-    m_txQueue.append(f_txData);
-    if (!m_txBlock) {
-        m_txBlock = true;
-        handleWrite();
-    }
+    // call handle write
+    handleWrite(f_txData);
 }
 
 QString UdpSocket::readText(const int timeout, const int length) {
@@ -1839,60 +1720,50 @@ QString UdpSocket::readText(const int timeout, const int length) {
 }
 
 QByteArray UdpSocket::readData(const int timeout, const int length) {
+    QByteArray rxData;
     // async mode
-    if (timeout == 0) return m_rxBuffer;
-    // sync mode
-    disconnect(m_udpSocket, &QUdpSocket::readyRead, this, nullptr);
-    if (m_udpSocket->waitForReadyRead(timeout)) {
-        connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] {
-            handleRead(0);
-        });
-        return handleRead(length);
+    if (timeout == 0) {
+        rxData = m_rxBuffer;
     }
-    connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] {
-        handleRead(0);
-    });
-    return "timeout";
+    // sync mode
+    else {
+        disconnect(m_udpSocket, &QUdpSocket::readyRead, this, nullptr);
+        rxData = handleRead(timeout, length);
+        connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
+    }
+    return rxData;
 }
 
 // UdpSocket private
 void UdpSocket::handleError() {
 }
 
-void UdpSocket::handleWrite() {
-    QByteArray txData;
-    if (!m_txQueue.isEmpty()) {
-        txData = m_txQueue.takeFirst();
-        m_udpSocket->write(txData);
-        QTimer::singleShot(m_txInterval, this, &UdpSocket::handleWrite);
-    } else {
-        m_txBlock = false;
-        return;
-    }
+void UdpSocket::handleWrite(const QByteArray &f_txData) {
+    m_udpSocket->write(f_txData);
     // tx message reformat
     QString txMessage;
     // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(txData);
+    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
+    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
+    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
     // 2: add port info
     txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
                                                       QString::number(m_udpSocketRemotePort), txMessage);
     emit appendLog(txMessage, "tx");
 }
 
-QByteArray UdpSocket::handleRead(const int length) {
+QByteArray UdpSocket::handleRead(const int timeout, const int length) {
     QByteArray rxData = m_udpSocket->readAll();
-    if (length == 0) {
-        while (true) {
-            if (m_udpSocket->waitForReadyRead(m_rxTimeout)) {
-                rxData += m_udpSocket->readAll();
-            } else break;
-        }
-    } else {
+    if (timeout != 0 && length != 0) {
+        int time = 0;
         while (rxData.size() != length) {
-            if (m_udpSocket->waitForReadyRead(10)) {
+            if (!m_udpSocket->waitForReadyRead(10)) {
                 rxData += m_udpSocket->readAll();
+            }
+            time += 10;
+            if (time >= timeout) {
+                rxData = "timeout";
+                break;
             }
         }
     }

@@ -135,12 +135,8 @@ private:
     QComboBox *m_txFormatCombobox = nullptr;
     QWidget *m_txSuffixWidget = nullptr;
     QComboBox *m_txSuffixCombobox = nullptr;
-    QWidget *m_txIntervalWidget = nullptr;
-    QSpinBox *m_txIntervalSpinBox = nullptr;
     QWidget *m_rxFormatWidget = nullptr;
     QComboBox *m_rxFormatCombobox = nullptr;
-    QWidget *m_rxTimeoutWidget = nullptr;
-    QSpinBox *m_rxTimeoutSpinBox = nullptr;
     // save button
     QPushButton *m_portSettingSavePushButton = nullptr;
 };
@@ -219,18 +215,24 @@ public:
     virtual void writeData(const QByteArray &txData, const QString &peerIp) {
     }
 
-    virtual QString readText(int timeout, int length) = 0;
+    virtual QString readText(int timeout, int length) {
+        return {};
+    }
+
+    virtual QString readText(int timeout, int length, const QString &peerIp) {
+        return {};
+    }
 
     virtual QByteArray readData(int timeout, int length) {
-        return QByteArray();
-    };
+        return {};
+    }
+
+    virtual QByteArray readData(int timeout, int length, const QString &peerIp) {
+        return {};
+    }
 
 signals:
     void appendLog(const QString &message, const QString &level);
-public:
-    QMutex &transactionMutex() { return m_transactionMutex; }
-private:
-    QMutex m_transactionMutex;
 };
 
 class SerialPort final : public BasePort {
@@ -265,9 +267,9 @@ signals:
     void errorOccurred(const QString &error);
 
 private:
-    void handleWrite();
+    void handleWrite(const QByteArray &f_txData);
 
-    QByteArray handleRead(int length);
+    QByteArray handleRead(int timeout, int length);
 
     void handleError();
 
@@ -281,13 +283,9 @@ private:
     // tx config
     QString m_txFormat;
     QString m_txSuffix;
-    int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
     //
-    QList<QByteArray> m_txQueue;
-    bool m_txBlock = false;
     QByteArray m_rxBuffer;
 };
 
@@ -329,9 +327,9 @@ private:
 
     void handleError();
 
-    void handleWrite();
+    void handleWrite(const QByteArray &f_txData);
 
-    QByteArray handleRead(int length);
+    QByteArray handleRead(int timeout, int length);
 
     QTcpSocket *m_tcpClient;
     // port config
@@ -343,13 +341,9 @@ private:
     // tx config
     QString m_txFormat;
     QString m_txSuffix;
-    int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
     //
-    QList<QByteArray> m_txQueue;
-    bool m_txBlock = false;
     QByteArray m_rxBuffer;
 };
 
@@ -375,9 +369,9 @@ public:
 
     void writeData(const QByteArray &txData, const QString &peerIp) override;
 
-    QString readText(int timeout, int length) override;
+    QString readText(int timeout, int length, const QString &peerIp) override;
 
-    QByteArray readData(int timeout, int length) override;
+    QByteArray readData(int timeout, int length, const QString &peerIp) override;
 
 signals:
     void newConnection();
@@ -401,9 +395,9 @@ private:
 
     void handleError(QTcpSocket *tcpServerPeer);
 
-    void handleWrite(const QString &peerIp = QString());
+    void handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
-    QByteArray handleRead(QTcpSocket *tcpServerPeer);
+    QByteArray handleRead(int timeout, int length, QTcpSocket *tcpServerPeer);
 
     QTcpServer *m_tcpServer;
     // port config
@@ -414,13 +408,9 @@ private:
     // tx config
     QString m_txFormat;
     QString m_txSuffix;
-    int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
     //
-    QList<QByteArray> m_txQueue;
-    bool m_txBlock = false;
     QByteArray m_rxBuffer;
 };
 
@@ -458,9 +448,9 @@ signals:
 private:
     void handleError();
 
-    void handleWrite();
+    void handleWrite(const QByteArray &f_txData);
 
-    QByteArray handleRead(int length);
+    QByteArray handleRead(int timeout, int length);
 
     QUdpSocket *m_udpSocket;
     // port config
@@ -472,13 +462,9 @@ private:
     // tx config
     QString m_txFormat;
     QString m_txSuffix;
-    int m_txInterval;
     // rx config
     QString m_rxFormat;
-    int m_rxTimeout;
     //
-    QList<QByteArray> m_txQueue;
-    bool m_txBlock = false;
     QByteArray m_rxBuffer;
 };
 
