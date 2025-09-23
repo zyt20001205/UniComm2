@@ -45,6 +45,7 @@
 #include <opencv2/highgui.hpp>
 #include "config.h"
 #include "suffix.h"
+#include "utils.h"
 
 class AreaSelectDialog;
 
@@ -157,15 +158,18 @@ public:
     QJsonArray save();
 
 private:
-    void crop();
+    void crop(bool status) const;
 
-    void getCropArea(const QRect &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
+    void cropHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
+
+    void previewShow();
 
     QString m_type;
     QString m_target;
     qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
     QPixmap m_shot{};
+    QRectF m_rectF;
     QRect m_rect;
     QJsonArray m_area;
 };

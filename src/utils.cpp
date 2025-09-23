@@ -34,7 +34,7 @@ void lua_pushqstring(lua_State *L, const int idx, const QString &value) {
                 lua_pushboolean(L, 0);
             }
         }
-            break;
+        break;
         case LUA_TNUMBER: {
             if (value.contains(".") || value.contains("e")) {
                 lua_pushnumber(L, value.toDouble());
@@ -42,11 +42,25 @@ void lua_pushqstring(lua_State *L, const int idx, const QString &value) {
                 lua_pushinteger(L, value.toInt());
             }
         }
-            break;
+        break;
         case LUA_TSTRING: {
             lua_pushstring(L, value.toUtf8().constData());
         }
-            break;
+        break;
         default: break;
     }
+}
+
+QString ocr(const QPixmap &pixmap, const QString &charset) {
+    QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888);
+    const char *tessCharset = charset.toUtf8().data();
+    auto *ocr = new tesseract::TessBaseAPI();
+    ocr->Init(nullptr, tessCharset);
+    ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
+    char* result = ocr->GetUTF8Text();
+    QString recognizedText = QString::fromUtf8(result);
+    delete result;
+    ocr->End();
+    delete ocr;
+    return recognizedText;
 }

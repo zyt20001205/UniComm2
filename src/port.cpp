@@ -670,13 +670,23 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     m_graphicsView = new QGraphicsView();
     layout->addWidget(m_graphicsView);
-    auto *toolbar = new QToolBar(); // NOLINT
-    layout->addWidget(toolbar);
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    const auto *refreshAction = toolbar->addAction(QIcon(":/icon/arrowClockwise.svg"), "refresh");
-    connect(refreshAction, &QAction::triggered, this, [this] { capture(m_type, m_target); });
-    const auto *addAction = toolbar->addAction(QIcon(":/icon/crop.svg"), "crop");
-    connect(addAction, &QAction::triggered, this, [this] { crop(); });
+    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::cropHandle);
+    auto *ctrlWidget = new QWidget(); // NOLINT
+    layout->addWidget(ctrlWidget);
+    auto *ctrlLayout = new QHBoxLayout(ctrlWidget);
+    ctrlLayout->setContentsMargins(0, 0, 0, 0);
+    ctrlLayout->setAlignment(Qt::AlignLeft);
+    auto *refreshButton = new QPushButton("refresh");
+    ctrlLayout->addWidget(refreshButton);
+    refreshButton->setFixedSize(80, 48);
+    refreshButton->setIcon(QIcon(":/icon/arrowClockwise.svg"));
+    connect(refreshButton, &QPushButton::clicked, this, [this] { capture(m_type, m_target); });
+    auto *cropButton = new QPushButton("crop");
+    ctrlLayout->addWidget(cropButton);
+    cropButton->setCheckable(true);
+    cropButton->setFixedSize(80, 48);
+    cropButton->setIcon(QIcon(":/icon/crop.svg"));
+    connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::crop);
 }
 
 void AreaSelectDialog::capture(const QString &type, const QString &target) {
@@ -705,6 +715,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
             }
         }
         if (cameraDevice.isNull()) return;
+        m_dpr = 1;
         // take picture
         const auto camera = new QCamera(cameraDevice, this);
         QMediaCaptureSession captureSession;
@@ -739,40 +750,34 @@ QJsonArray AreaSelectDialog::save() {
 }
 
 // AreaSelectDialog private
-void AreaSelectDialog::crop() {
-    QImage qimage = m_shot.toImage().convertToFormat(QImage::Format_RGB888);
-    const cv::Mat cvImage(qimage.height(), qimage.width(), CV_8UC3, const_cast<uchar *>(qimage.bits()), qimage.bytesPerLine());
-    const cv::Mat image = cvImage.clone();
-    std::vector<cv::Rect> rois;
-    cv::selectROIs("Select Areas", image, rois, false, false);
-
-    // m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
-    // connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::getCropArea, Qt::UniqueConnection);
+void AreaSelectDialog::crop(const bool status) const {
+    if (status) {
+        m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    } else {
+        m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+    }
 }
 
-void AreaSelectDialog::getCropArea(const QRect &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
+void AreaSelectDialog::cropHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
     const bool rubberBandEnded = viewportRect.isNull();
-    QRect sceneRect = QRectF(fromScenePoint, toScenePoint).normalized().toRect();
+    QRectF sceneRect = QRectF(fromScenePoint, toScenePoint).normalized().toRect();
     if (!sceneRect.isNull() && sceneRect.isValid()) {
-        m_rect = sceneRect;
+        m_rectF = sceneRect;
     }
     if (rubberBandEnded) {
-        if (m_type == "screen") {
-            m_area = {
-                static_cast<int>(m_rect.x() * m_dpr),
-                static_cast<int>(m_rect.y() * m_dpr),
-                static_cast<int>(m_rect.width() * m_dpr),
-                static_cast<int>(m_rect.height() * m_dpr)
-            };
-        } else {
-            m_area = {
-                m_rect.x(),
-                m_rect.y(),
-                m_rect.width(),
-                m_rect.height()
-            };
-        }
+        m_rect = QRectF(m_rectF.x() * m_dpr, m_rectF.y() * m_dpr, m_rectF.width() * m_dpr, m_rectF.height() * m_dpr).toRect();
+        m_area = {m_rect.x(), m_rect.y(), m_rect.width(), m_rect.height()};
+        previewShow();
     }
+}
+
+void AreaSelectDialog::previewShow() {
+    auto *graphicsRectItem = new QGraphicsRectItem(m_rectF);
+    graphicsRectItem->setPen(QPen(Qt::red, 2, Qt::DashLine));
+    m_graphicsView->scene()->addItem(graphicsRectItem);
+    const QPixmap cropped = m_shot.copy(m_rect);
+    const QString recognizedText = ocr(cropped, "eng");
+    qDebug() << recognizedText;
 }
 
 // PageWidget public
