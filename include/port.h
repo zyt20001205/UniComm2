@@ -38,8 +38,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QMutex>
-#include <baseapi.h>
 #include <allheaders.h>
+#include <baseapi.h>
+// #include <opencv2/core.hpp>
+// #include <opencv2/imgproc.hpp>
+// #include <opencv2/highgui.hpp>
 #include "config.h"
 #include "suffix.h"
 
@@ -160,9 +163,9 @@ private:
 
     QString m_type;
     QString m_target;
-    QScreen *m_screen{};
-    QCameraDevice m_camera;
+    qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
+    QPixmap m_shot{};
     QRect m_rect;
     QJsonArray m_area;
 };

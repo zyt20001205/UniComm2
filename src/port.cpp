@@ -674,51 +674,46 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     layout->addWidget(toolbar);
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     const auto *refreshAction = toolbar->addAction(QIcon(":/icon/arrowClockwise.svg"), "refresh");
-    connect(refreshAction, &QAction::triggered, this, [this]() {
-        capture(m_type, m_target);
-    });
+    connect(refreshAction, &QAction::triggered, this, [this] { capture(m_type, m_target); });
     const auto *addAction = toolbar->addAction(QIcon(":/icon/crop.svg"), "crop");
-    connect(addAction, &QAction::triggered, this, [this]() {
-        crop();
-    });
+    connect(addAction, &QAction::triggered, this, [this] { crop(); });
 }
 
 void AreaSelectDialog::capture(const QString &type, const QString &target) {
     m_type = type;
     m_target = target;
-    QPixmap shot;
     if (m_type == "screen") {
         // find screen
-        m_screen = nullptr;
-        for (QScreen *screen: QGuiApplication::screens()) {
+        QScreen *screen = nullptr;
+        for (QScreen *s: QGuiApplication::screens()) {
             if (screen->name() == target) {
-                m_screen = screen;
+                screen = s;
                 break;
             }
         }
-        if (!m_screen) return;
+        if (!screen) return;
+        m_dpr = screen->devicePixelRatio();
         // screenshot
-        shot = m_screen->grabWindow(0);
+        m_shot = screen->grabWindow(0);
     } else {
         // find camera
-        m_camera = QCameraDevice();
-        for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
-            if (camera.description() == target) {
-                m_camera = camera;
+        QCameraDevice cameraDevice;
+        for (const QCameraDevice &c: QMediaDevices::videoInputs()) {
+            if (cameraDevice.description() == target) {
+                cameraDevice = c;
                 break;
             }
         }
-        if (m_camera.isNull()) return;
+        if (cameraDevice.isNull()) return;
         // take picture
-        const auto camera = new QCamera(m_camera, this);
+        const auto camera = new QCamera(cameraDevice, this);
         QMediaCaptureSession captureSession;
         captureSession.setCamera(camera);
         QImageCapture imageCapture;
         captureSession.setImageCapture(&imageCapture);
         QEventLoop loop;
-        connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](const int id, const QImage &img) {
-            Q_UNUSED(id);
-            shot = QPixmap::fromImage(img);
+        connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &loop](int, const QImage &img) {
+            m_shot = QPixmap::fromImage(img);
             loop.quit();
         });
         camera->start();
@@ -729,12 +724,12 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
     }
     // show in graphics view (native pixel size, no smoothing)
     auto *scene = new QGraphicsScene(m_graphicsView); // NOLINT
-    auto *item = scene->addPixmap(shot);
+    auto *item = scene->addPixmap(m_shot);
     item->setTransformationMode(Qt::FastTransformation);
     m_graphicsView->setRenderHint(QPainter::SmoothPixmapTransform, false);
     m_graphicsView->setScene(scene);
     m_graphicsView->resetTransform();
-    m_graphicsView->setSceneRect(shot.rect());
+    m_graphicsView->setSceneRect(m_shot.rect());
     m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     m_graphicsView->setAlignment(Qt::AlignCenter);
 }
@@ -745,8 +740,16 @@ QJsonArray AreaSelectDialog::save() {
 
 // AreaSelectDialog private
 void AreaSelectDialog::crop() {
-    m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
-    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::getCropArea, Qt::UniqueConnection);
+    QImage qimage = m_shot.toImage().convertToFormat(QImage::Format_RGB888);
+    // cv::Mat cvImage(qimage.height(), qimage.width(), CV_8UC3,
+    //                const_cast<uchar*>(qimage.bits()),
+    //                qimage.bytesPerLine());
+    // cv::Mat image = cvImage.clone();
+    // std::vector<cv::Rect> rois;
+    // cv::selectROIs("Select Areas", image, rois);
+
+    // m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    // connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::getCropArea, Qt::UniqueConnection);
 }
 
 void AreaSelectDialog::getCropArea(const QRect &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
@@ -757,12 +760,11 @@ void AreaSelectDialog::getCropArea(const QRect &viewportRect, const QPointF &fro
     }
     if (rubberBandEnded) {
         if (m_type == "screen") {
-            const qreal dpr = m_screen->devicePixelRatio();
             m_area = {
-                static_cast<int>(m_rect.x() * dpr),
-                static_cast<int>(m_rect.y() * dpr),
-                static_cast<int>(m_rect.width() * dpr),
-                static_cast<int>(m_rect.height() * dpr)
+                static_cast<int>(m_rect.x() * m_dpr),
+                static_cast<int>(m_rect.y() * m_dpr),
+                static_cast<int>(m_rect.width() * m_dpr),
+                static_cast<int>(m_rect.height() * m_dpr)
             };
         } else {
             m_area = {

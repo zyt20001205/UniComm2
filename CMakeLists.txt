@@ -6,30 +6,31 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(LUA_DIR "${CMAKE_SOURCE_DIR}/lib/lua-5.4.8")
+set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
 set(LUA_SCRIPT_DIR "${LUA_DIR}/script")
 set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
-set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/lib/lua-language-server-3.15.0")
+set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
 
-set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/lib/qscintilla-2.14.1")
+set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/qscintilla-2.14.1")
 set(QSCINTILLA_INCLUDE_DIR "${QSCINTILLA_DIR}/include")
 set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
 
-set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/lib/qcustomplot-2.1.1")
+set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/3rd/qcustomplot-2.1.1")
 set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
 set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
 
-set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/lib/opencv-4.12.0")
-set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
-set(OPENCV_DLL "${OPENCV_DIR}/bin/opencv_world4120.dll")
+#set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
+#set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
+#set(OPENCV_DLL "${OPENCV_DIR}/bin/libopencv_world4120.dll")
+#file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/libopencv_*.dll")
 
-set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/lib/tesseract-5.5.1")
+set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
 set(TESSERACT_DLL "${TESSERACT_DIR}/bin/libtesseract55.dll")
 
-set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/lib/leptonica-1.85.0")
+set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica-1.85.0")
 set(LEPTONICA_INCLUDE_DIR "${LEPTONICA_DIR}/include")
 set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica.dll")
 
@@ -109,7 +110,8 @@ target_link_libraries(UniComm PRIVATE
         ${LUA_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
-        ${OPENCV_DLL}
+#        ${OPENCV_DLL}
+#        ${OPENCV_DLLS}
         ${TESSERACT_DLL}
         ${LEPTONICA_DLL}
 )
@@ -232,12 +234,20 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
-    if (EXISTS "${OPENCV_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${OPENCV_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
+#    if (EXISTS "${OPENCV_DLL}")
+#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                "${OPENCV_DLL}"
+#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+#    endif ()
+
+#    file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/*.dll")
+#    foreach (DLL ${OPENCV_DLLS})
+#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                "${DLL}"
+#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+#    endforeach ()
 
     file(GLOB TESSERACT_DLLS "${TESSERACT_DIR}/bin/*.dll")
     foreach (DLL ${TESSERACT_DLLS})
