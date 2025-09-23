@@ -27,6 +27,7 @@ private:
     QCPLegend *m_rightLegend = nullptr;
     QHash<QString, int> m_indexHash{};
     QSet<int> m_indexSet{};
+    QList<QColor> m_colors={QColor("#544559"),QColor("#b5aabd"),QColor("#aabdc4"),QColor("#d1c7ae"),QColor("#e5d9da")};
 };
 
 #endif //DATAPLOT_H
