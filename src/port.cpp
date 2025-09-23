@@ -687,11 +687,20 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     cropButton->setFixedSize(80, 48);
     cropButton->setIcon(QIcon(":/icon/crop.svg"));
     connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::crop);
+    // auto *processCombobox = new QComboBox();
+    // ctrlLayout->addWidget(processCombobox);
+    // processCombobox->addItem(tr("raw"));
+    // processCombobox->addItem(tr("threshold"));
+    // connect(processCombobox, &QComboBox::currentIndexChanged, this, [this, processCombobox] {
+    //     m_process = processCombobox->currentIndex();
+    //     capture(m_type, m_target);
+    // });
 }
 
 void AreaSelectDialog::capture(const QString &type, const QString &target) {
     m_type = type;
     m_target = target;
+    QPixmap shot;
     if (m_type == "screen") {
         // find screen
         QScreen *screen = nullptr;
@@ -704,7 +713,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         if (!screen) return;
         m_dpr = screen->devicePixelRatio();
         // screenshot
-        m_shot = screen->grabWindow(0);
+        shot = screen->grabWindow(0);
     } else {
         // find camera
         QCameraDevice cameraDevice;
@@ -723,8 +732,8 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         QImageCapture imageCapture;
         captureSession.setImageCapture(&imageCapture);
         QEventLoop loop;
-        connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &loop](int, const QImage &img) {
-            m_shot = QPixmap::fromImage(img);
+        connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](int, const QImage &img) {
+            shot = QPixmap::fromImage(img);
             loop.quit();
         });
         camera->start();
@@ -733,14 +742,44 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         camera->stop();
         delete camera;
     }
+    // image process
+    m_shot = shot;
+    // if (m_process != RAW) {
+    //     QImage image = shot.toImage();
+    //     image.setDevicePixelRatio(1.0);
+    //     cv::Mat cvImg(image.height(), image.width(),
+    //                   image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+    //                   image.bits(),
+    //                   image.bytesPerLine());
+    //     cv::Mat processed;
+    //     switch (m_process) {
+    //         case THRESHOLD: {
+    //             cv::Mat gray;
+    //             cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
+    //             cv::threshold(gray, processed, 128, 255, cv::THRESH_BINARY);
+    //             cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
+    //             break;
+    //         }
+    //         break;
+    //         default: break;
+    //     }
+    //     QImage result(
+    //         processed.data,
+    //         processed.cols,
+    //         processed.rows,
+    //         processed.step,
+    //         image.format()
+    //     );
+    //     shot = QPixmap::fromImage(result.copy());
+    // }
     // show in graphics view (native pixel size, no smoothing)
     auto *scene = new QGraphicsScene(m_graphicsView); // NOLINT
-    auto *item = scene->addPixmap(m_shot);
+    auto *item = scene->addPixmap(shot);
     item->setTransformationMode(Qt::FastTransformation);
     m_graphicsView->setRenderHint(QPainter::SmoothPixmapTransform, false);
     m_graphicsView->setScene(scene);
     m_graphicsView->resetTransform();
-    m_graphicsView->setSceneRect(m_shot.rect());
+    m_graphicsView->setSceneRect(shot.rect());
     m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     m_graphicsView->setAlignment(Qt::AlignCenter);
 }
@@ -773,11 +812,16 @@ void AreaSelectDialog::cropHandle(const QRectF &viewportRect, const QPointF &fro
 
 void AreaSelectDialog::previewShow() {
     auto *graphicsRectItem = new QGraphicsRectItem(m_rectF);
-    graphicsRectItem->setPen(QPen(Qt::red, 2, Qt::DashLine));
     m_graphicsView->scene()->addItem(graphicsRectItem);
+    graphicsRectItem->setPen(QPen(Qt::red, 2, Qt::DashLine));
     const QPixmap cropped = m_shot.copy(m_rect);
     const QString recognizedText = ocr(cropped, "eng");
-    qDebug() << recognizedText;
+
+    auto *graphicsTextItem = new QGraphicsTextItem(recognizedText);
+    m_graphicsView->scene()->addItem(graphicsTextItem);
+    graphicsTextItem->setPos(m_rectF.topLeft() - QPointF(0, 30));
+    graphicsTextItem->setDefaultTextColor(Qt::yellow);
+    graphicsTextItem->setFont(QFont("consolas", 12));
 }
 
 // PageWidget public

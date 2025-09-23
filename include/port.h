@@ -168,10 +168,16 @@ private:
     QString m_target;
     qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
+    int m_process = 0;
     QPixmap m_shot{};
     QRectF m_rectF;
     QRect m_rect;
     QJsonArray m_area;
+
+    enum {
+        RAW,
+        THRESHOLD,
+    };
 };
 
 class PageWidget final : public QWidget {
