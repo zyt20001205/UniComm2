@@ -9,23 +9,32 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(pa
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->addWidget(m_plot);
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    m_plot->addGraph();
+    m_plot->yAxis2->setVisible(true);
 }
 
-void Dataplot::dataplotAppend(const QString &key) {
+void Dataplot::dataplotAppend(const QString &key, const int position) {
     this->show();
-    emit addGraphDatatable(key);
+    emit addGraphDatatable(key, position);
 }
 
-void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y) {
+void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y, const int position) {
     if (!m_indexHash.contains(key)) {
         // find available index
         int i = 0;
         while (true) {
-            if (!m_indexSet.contains(i)) break;
+            if (!m_indexSet.contains(i)) {
+                m_indexSet.insert(i);
+                m_indexHash[key] = i;
+                if (position != 1) {
+                    m_plot->addGraph();
+                }
+                else {
+                    m_plot->addGraph(m_plot->xAxis, m_plot->yAxis2);
+                }
+                break;
+            }
             i++;
         }
-        m_indexHash[key] = i;
     }
     m_plot->graph(m_indexHash[key])->setData(x, y);
     m_plot->graph(m_indexHash[key])->rescaleAxes(true);

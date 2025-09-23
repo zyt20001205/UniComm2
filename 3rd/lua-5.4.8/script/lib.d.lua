@@ -218,5 +218,6 @@ function datatable.clear(key) end
 dataplot = {}
 --- Appends a column from the datatable to dataplot using a key identifier
 --- @param key string The named key of the column to append from the datatable.
+--- @param position? integer 0=left Y-axis (default), 1=right Y-axis.
 --- @return nil
-function dataplot.append(key) end
+function dataplot.append(key, position) end

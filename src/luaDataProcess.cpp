@@ -59,14 +59,16 @@ int lua_datatableClear(lua_State *L) {
 
 int lua_dataplotAppend(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) != 1)
+    if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     const char *param1 = luaL_checkstring(L, 1);
+    const int param2 = luaL_optinteger(L, 2, 0);
     // start operation
     const QString key = param1;
-    QMetaObject::invokeMethod(g_dataplot, [key] {
-        g_dataplot->dataplotAppend(key);
+    const int position = param2;
+    QMetaObject::invokeMethod(g_dataplot, [key, position] {
+        g_dataplot->dataplotAppend(key, position);
     }, Qt::QueuedConnection);
     return 0;
 }

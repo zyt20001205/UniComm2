@@ -117,10 +117,10 @@ void Datatable::datatableClear(const QString &key) {
     }
 }
 
-void Datatable::datatableAddGraph(const QString &key) {
+void Datatable::datatableAddGraph(const QString &key, const int position) {
     if (!m_data.contains(key)) return;
     m_data[key].enable = true;
-    emit addGraphDataPlot(key, m_data[key].x, m_data[key].y);
+    emit addGraphDataPlot(key, m_data[key].x, m_data[key].y, position);
 }
 
 // Datatable protected

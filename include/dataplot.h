@@ -13,13 +13,13 @@ public:
 
     ~Dataplot() override = default;
 
-    void dataplotAppend(const QString &key);
+    void dataplotAppend(const QString &key, int position);
 
-    void dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y);
+    void dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y, int position);
 
     void dataplotAddPoint(const QString &key, double x, double y);
 signals:
-    void addGraphDatatable(const QString &key);
+    void addGraphDatatable(const QString &key, int position);
 
 private:
     QCustomPlot *m_plot = nullptr;

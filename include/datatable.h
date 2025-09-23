@@ -25,10 +25,10 @@ public:
 
     void datatableClear(const QString &key);
 
-    void datatableAddGraph(const QString &key);
+    void datatableAddGraph(const QString &key, int position);
 
 signals:
-    void addGraphDataPlot(const QString &key, const QList<double> &x, const QList<double> &y);
+    void addGraphDataPlot(const QString &key, const QList<double> &x, const QList<double> &y, int position);
 
     void addPointDataPlot(const QString &key, double x, double y);
 
