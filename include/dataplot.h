@@ -23,6 +23,8 @@ signals:
 
 private:
     QCustomPlot *m_plot = nullptr;
+    QCPLegend *m_leftLegend = nullptr;
+    QCPLegend *m_rightLegend = nullptr;
     QHash<QString, int> m_indexHash{};
     QSet<int> m_indexSet{};
 };

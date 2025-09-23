@@ -4,12 +4,21 @@
 Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(parent)) {
     setWindowFlags(Qt::Dialog);
     setWindowTitle(tr("Data Plot"));
-    resize(800, 600);
+    resize(1200, 600);
 
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->addWidget(m_plot);
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     m_plot->yAxis2->setVisible(true);
+    m_plot->plotLayout()->addElement(0, 1, m_plot->axisRect());
+    m_leftLegend = new QCPLegend();
+    m_plot->plotLayout()->addElement(0, 0, m_leftLegend);
+    m_rightLegend = new QCPLegend();
+    m_plot->plotLayout()->addElement(0, 2, m_rightLegend);
+
+    m_plot->plotLayout()->setColumnStretchFactor(0, 0.1);
+    m_plot->plotLayout()->setColumnStretchFactor(1, 0.8);
+    m_plot->plotLayout()->setColumnStretchFactor(2, 0.1);
 }
 
 void Dataplot::dataplotAppend(const QString &key, const int position) {
@@ -25,7 +34,7 @@ void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, cons
             if (!m_indexSet.contains(i)) {
                 m_indexSet.insert(i);
                 m_indexHash[key] = i;
-                if (position != 1) {
+                if (position == 0) {
                     m_plot->addGraph();
                 }
                 else {
@@ -37,6 +46,13 @@ void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, cons
         }
     }
     m_plot->graph(m_indexHash[key])->setData(x, y);
+    m_plot->graph(m_indexHash[key])->setName(key);
+    if (position == 0) {
+        m_leftLegend->addItem(new QCPPlottableLegendItem(m_leftLegend, m_plot->graph(m_indexHash[key])));
+    }
+    else {
+        m_rightLegend->addItem(new QCPPlottableLegendItem(m_rightLegend, m_plot->graph(m_indexHash[key])));
+    }
     m_plot->graph(m_indexHash[key])->rescaleAxes(true);
     m_plot->rescaleAxes();
     m_plot->replot();
