@@ -37,6 +37,7 @@
 #include "luaModbus.h"
 #include "port.h"
 #include "suffix.h"
+#include "utils.h"
 
 // tab index
 enum {

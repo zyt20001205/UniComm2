@@ -686,7 +686,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         // find screen
         QScreen *screen = nullptr;
         for (QScreen *s: QGuiApplication::screens()) {
-            if (screen->name() == target) {
+            if (s->name() == target) {
                 screen = s;
                 break;
             }
@@ -699,7 +699,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         // find camera
         QCameraDevice cameraDevice;
         for (const QCameraDevice &c: QMediaDevices::videoInputs()) {
-            if (cameraDevice.description() == target) {
+            if (c.description() == target) {
                 cameraDevice = c;
                 break;
             }
@@ -741,12 +741,10 @@ QJsonArray AreaSelectDialog::save() {
 // AreaSelectDialog private
 void AreaSelectDialog::crop() {
     QImage qimage = m_shot.toImage().convertToFormat(QImage::Format_RGB888);
-    // cv::Mat cvImage(qimage.height(), qimage.width(), CV_8UC3,
-    //                const_cast<uchar*>(qimage.bits()),
-    //                qimage.bytesPerLine());
-    // cv::Mat image = cvImage.clone();
-    // std::vector<cv::Rect> rois;
-    // cv::selectROIs("Select Areas", image, rois);
+    const cv::Mat cvImage(qimage.height(), qimage.width(), CV_8UC3, const_cast<uchar *>(qimage.bits()), qimage.bytesPerLine());
+    const cv::Mat image = cvImage.clone();
+    std::vector<cv::Rect> rois;
+    cv::selectROIs("Select Areas", image, rois, false, false);
 
     // m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     // connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::getCropArea, Qt::UniqueConnection);

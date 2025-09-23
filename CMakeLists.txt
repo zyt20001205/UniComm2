@@ -21,10 +21,9 @@ set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/3rd/qcustomplot-2.1.1")
 set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
 set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
 
-#set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
-#set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
-#set(OPENCV_DLL "${OPENCV_DIR}/bin/libopencv_world4120.dll")
-#file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/libopencv_*.dll")
+set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
+set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
+file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/libopencv_*.dll")
 
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
 set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
@@ -52,6 +51,7 @@ qt_add_executable(UniComm src/main.cpp
         include/send.h
         include/script.h
         include/suffix.h
+        include/utils.h
         src/mainWindow.cpp
         src/config.cpp
         src/database.cpp
@@ -67,6 +67,7 @@ qt_add_executable(UniComm src/main.cpp
         src/send.cpp
         src/script.cpp
         src/suffix.cpp
+        src/utils.cpp
 )
 
 qt_add_resources(UniComm "readme_resources"
@@ -110,8 +111,7 @@ target_link_libraries(UniComm PRIVATE
         ${LUA_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
-#        ${OPENCV_DLL}
-#        ${OPENCV_DLLS}
+        ${OPENCV_DLLS}
         ${TESSERACT_DLL}
         ${LEPTONICA_DLL}
 )
@@ -234,20 +234,13 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
-#    if (EXISTS "${OPENCV_DLL}")
-#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#                "${OPENCV_DLL}"
-#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-#    endif ()
-
-#    file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/*.dll")
-#    foreach (DLL ${OPENCV_DLLS})
-#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#                "${DLL}"
-#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-#    endforeach ()
+    file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/*.dll")
+    foreach (DLL ${OPENCV_DLLS})
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach ()
 
     file(GLOB TESSERACT_DLLS "${TESSERACT_DIR}/bin/*.dll")
     foreach (DLL ${TESSERACT_DLLS})
