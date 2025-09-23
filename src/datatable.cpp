@@ -44,6 +44,16 @@ void Datatable::datatableConfigSave() const {
 }
 
 void Datatable::datatableWrite(const QString &key, const QString &value) {
+    double time = 0.0;
+    if (!m_data[key].basetime.isValid()) {
+        m_data[key].basetime = QDateTime::currentDateTime();
+    } else {
+        time = m_data[key].basetime.msecsTo(QDateTime::currentDateTime()) / 1000.0;
+    }
+    m_data[key].x.append(time);
+    m_data[key].y.append(value.toDouble());
+    if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
+
     int column = -1;
     for (int index = 0; index < m_tableWidget->columnCount(); index++) {
         if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
@@ -55,28 +65,10 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
         qDebug() << "key not found in datatable";
         return;
     }
-    int row = -1;
-    for (int index = 0; index < m_tableWidget->rowCount(); index++) {
-        if (m_tableWidget->item(index, column) == nullptr || m_tableWidget->item(index, column)->text().isEmpty()) {
-            row = index;
-            break;
-        }
-    }
-    if (row == -1) {
-        row = m_tableWidget->rowCount();
-        m_tableWidget->setRowCount(row + 1);
-    }
+    const int row = m_data[key].x.size() - 1;
+    m_tableWidget->setRowCount(row + 1);
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
     m_tableWidget->scrollToBottom();
-    double time = 0.0;
-    if (!m_data[key].basetime.isValid()) {
-        m_data[key].basetime = QDateTime::currentDateTime();
-    } else {
-        time = m_data[key].basetime.msecsTo(QDateTime::currentDateTime()) / 1000.0;
-    }
-    m_data[key].x.append(time);
-    m_data[key].y.append(value.toDouble());
-    if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
 }
 
 void Datatable::datatableClear(const QString &key) {
