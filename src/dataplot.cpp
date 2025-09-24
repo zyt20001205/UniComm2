@@ -10,22 +10,18 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(pa
     layout->addWidget(m_plot);
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     m_plot->yAxis2->setVisible(true);
-    m_plot->plotLayout()->addElement(0, 1, m_plot->axisRect());
+    auto *axisRect = m_plot->axisRect();
+    axisRect->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    axisRect->setRangeZoomAxes(QList<QCPAxis *>() << m_plot->xAxis,
+                               QList<QCPAxis *>() << m_plot->yAxis << m_plot->yAxis2);
+    axisRect->setRangeDragAxes(QList<QCPAxis *>() << m_plot->xAxis,
+                               QList<QCPAxis *>() << m_plot->yAxis << m_plot->yAxis2);
+
     m_leftLegend = new QCPLegend();
-    m_plot->plotLayout()->addElement(0, 0, m_leftLegend);
     m_rightLegend = new QCPLegend();
-    m_plot->plotLayout()->addElement(0, 2, m_rightLegend);
-
-    auto *ar = m_plot->axisRect();
-    ar->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-    ar->setRangeZoomAxes(QList<QCPAxis*>() << m_plot->xAxis,
-                         QList<QCPAxis*>() << m_plot->yAxis << m_plot->yAxis2);
-    ar->setRangeDragAxes(QList<QCPAxis*>() << m_plot->xAxis,
-                         QList<QCPAxis*>() << m_plot->yAxis << m_plot->yAxis2);
-
-    m_plot->plotLayout()->setColumnStretchFactor(0, 0.1);
-    m_plot->plotLayout()->setColumnStretchFactor(1, 0.8);
-    m_plot->plotLayout()->setColumnStretchFactor(2, 0.1);
+    auto *insetLayout = axisRect->insetLayout();
+    insetLayout->addElement(m_leftLegend, Qt::AlignTop | Qt::AlignLeft);
+    insetLayout->addElement(m_rightLegend, Qt::AlignTop | Qt::AlignRight);
 }
 
 void Dataplot::dataplotAppend(const QString &key, const int position) {
