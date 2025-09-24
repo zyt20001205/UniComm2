@@ -12,6 +12,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QHeaderView>
 #include <QImage>
 #include <QImageCapture>
 #include <QLabel>
@@ -27,7 +28,9 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QSpinbox>
+#include <QSplitter>
 #include <QStackedLayout>
+#include <QTableWidget>
 #include <QTabWidget>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -155,24 +158,23 @@ public:
 
     void capture(const QString &type, const QString &target);
 
-    QJsonArray save();
+    QJsonArray areaExport() const;
 
 private:
     void crop(bool status) const;
 
     void cropHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
 
-    void previewShow();
+    void previewRefresh() const;
 
     QString m_type;
     QString m_target;
     qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
+    QTableWidget *m_cropTableWidget = nullptr;
     int m_process = 0;
     QPixmap m_shot{};
     QRectF m_rectF;
-    QRect m_rect;
-    QJsonArray m_area;
 
     enum {
         RAW,
