@@ -1092,26 +1092,26 @@ ScriptEditor::ScriptEditor(QWidget *parent) : QsciScintilla(parent) {
     this->setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
 
     this->markerDefine(Background, MARKER_HIGHLIGHT);
-    this->setMarkerBackgroundColor(QColor(255, 255, 0, 100), MARKER_HIGHLIGHT);
+    this->setMarkerBackgroundColor(QColor(255, 255, 0), MARKER_HIGHLIGHT);
     // define indicators
-    this->indicatorDefine(BoxIndicator, INDICATOR_ERROR);
-    this->setIndicatorForegroundColor(Qt::red, INDICATOR_ERROR);
+    this->indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
+    this->setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);
     this->setIndicatorDrawUnder(true, INDICATOR_ERROR);
 
-    this->indicatorDefine(BoxIndicator, INDICATOR_WARNING);
-    this->setIndicatorForegroundColor(Qt::yellow, INDICATOR_WARNING);
+    this->indicatorDefine(StraightBoxIndicator, INDICATOR_WARNING);
+    this->setIndicatorForegroundColor(QColor(255, 245, 230), INDICATOR_WARNING);
     this->setIndicatorDrawUnder(true, INDICATOR_WARNING);
 
-    this->indicatorDefine(BoxIndicator, INDICATOR_INFO);
-    this->setIndicatorForegroundColor(Qt::cyan, INDICATOR_INFO);
+    this->indicatorDefine(StraightBoxIndicator, INDICATOR_INFO);
+    this->setIndicatorForegroundColor(QColor(230, 240, 250), INDICATOR_INFO);
     this->setIndicatorDrawUnder(true, INDICATOR_INFO);
 
-    this->indicatorDefine(BoxIndicator, INDICATOR_HINT);
-    this->setIndicatorForegroundColor(Qt::lightGray, INDICATOR_HINT);
+    this->indicatorDefine(StraightBoxIndicator, INDICATOR_HINT);
+    this->setIndicatorForegroundColor(QColor(245, 245, 245), INDICATOR_HINT);
     this->setIndicatorDrawUnder(true, INDICATOR_HINT);
 
-    this->indicatorDefine(StraightBoxIndicator, INDICATOR_HIGHLIGHT);
-    this->setIndicatorForegroundColor(Qt::cyan, INDICATOR_HIGHLIGHT);
+    this->indicatorDefine(BoxIndicator, INDICATOR_HIGHLIGHT);
+    this->setIndicatorForegroundColor(Qt::red, INDICATOR_HIGHLIGHT);
     this->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
     // set margins
     this->setMarginType(0, NumberMargin);

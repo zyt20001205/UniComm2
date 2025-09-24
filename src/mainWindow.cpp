@@ -53,29 +53,41 @@ void MainWindow::moduleInit() {
     this->setCentralWidget(m_scriptModule);
 
     m_portModule = new Port();
-    m_portModule->setObjectName("portModule");
     this->addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
+    m_portModule->setObjectName("portModule");
+    connect(m_portModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
+        m_viewPort->setChecked(visible);
+    });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
 
     m_sendModule = new Send();
-    m_sendModule->setObjectName("sendModule");
     this->addDockWidget(Qt::LeftDockWidgetArea, m_sendModule);
+    m_sendModule->setObjectName("sendModule");
+    connect(m_sendModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
+        m_viewSend->setChecked(visible);
+    });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
 
     m_databaseModule = new Database();
-    m_databaseModule->setObjectName("databaseModule");
     this->addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
+    m_databaseModule->setObjectName("databaseModule");
+    connect(m_databaseModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
+        m_viewDatabase->setChecked(visible);
+    });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
 
     m_datatableModule = new Datatable();
-    m_datatableModule->setObjectName("datatableModule");
     this->addDockWidget(Qt::RightDockWidgetArea, m_datatableModule);
+    m_datatableModule->setObjectName("datatableModule");
+    connect(m_datatableModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
+        m_viewDatatable->setChecked(visible);
+    });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
@@ -86,8 +98,11 @@ void MainWindow::moduleInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
 
     m_logModule = new Log();
-    m_logModule->setObjectName("logModule");
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
+    m_logModule->setObjectName("logModule");
+    connect(m_logModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
+        m_viewLog->setChecked(visible);
+    });
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
@@ -101,9 +116,9 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
-    connect(m_datatableModule,&Datatable::addGraphDataPlot,m_dataplotModule,&Dataplot::dataplotAddGraph);
-    connect(m_datatableModule,&Datatable::addPointDataPlot,m_dataplotModule,&Dataplot::dataplotAddPoint);
-    connect(m_dataplotModule,&Dataplot::addGraphDatatable,m_datatableModule,&Datatable::datatableAddGraph);
+    connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
+    connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
+    connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
 
     m_sendModule->setPort(m_portModule);
     g_script = m_scriptModule;
@@ -126,8 +141,8 @@ void MainWindow::menuInit() {
     QTimer::singleShot(0, this, [this] {
         m_viewPort->setChecked(m_portModule->isVisible());
     });
-    connect(m_viewPort,&QAction::triggered,this,[this](const bool visible) {
-       m_portModule->setVisible(visible);
+    connect(m_viewPort, &QAction::triggered, this, [this](const bool visible) {
+        m_portModule->setVisible(visible);
     });
     m_viewSend = new QAction(tr("send")); // NOLINT
     viewMenu->addAction(m_viewSend);
@@ -135,8 +150,8 @@ void MainWindow::menuInit() {
     QTimer::singleShot(0, this, [this] {
         m_viewSend->setChecked(m_sendModule->isVisible());
     });
-    connect(m_viewSend,&QAction::triggered,this,[this](const bool visible) {
-       m_sendModule->setVisible(visible);
+    connect(m_viewSend, &QAction::triggered, this, [this](const bool visible) {
+        m_sendModule->setVisible(visible);
     });
     m_viewDatabase = new QAction(tr("database")); // NOLINT
     viewMenu->addAction(m_viewDatabase);
@@ -144,8 +159,8 @@ void MainWindow::menuInit() {
     QTimer::singleShot(0, this, [this] {
         m_viewDatabase->setChecked(m_databaseModule->isVisible());
     });
-    connect(m_viewDatabase,&QAction::triggered,this,[this](const bool visible) {
-       m_databaseModule->setVisible(visible);
+    connect(m_viewDatabase, &QAction::triggered, this, [this](const bool visible) {
+        m_databaseModule->setVisible(visible);
     });
     m_viewDatatable = new QAction(tr("data table")); // NOLINT
     viewMenu->addAction(m_viewDatatable);
@@ -153,8 +168,8 @@ void MainWindow::menuInit() {
     QTimer::singleShot(0, this, [this] {
         m_viewDatatable->setChecked(m_datatableModule->isVisible());
     });
-    connect(m_viewDatatable,&QAction::triggered,this,[this](const bool visible) {
-       m_datatableModule->setVisible(visible);
+    connect(m_viewDatatable, &QAction::triggered, this, [this](const bool visible) {
+        m_datatableModule->setVisible(visible);
     });
     m_viewDataplot = new QAction(tr("data plot")); // NOLINT
     viewMenu->addAction(m_viewDataplot);
@@ -162,8 +177,8 @@ void MainWindow::menuInit() {
     QTimer::singleShot(0, this, [this] {
         m_viewDataplot->setChecked(m_dataplotModule->isVisible());
     });
-    connect(m_viewDataplot,&QAction::triggered,this,[this](const bool visible) {
-       m_dataplotModule->setVisible(visible);
+    connect(m_viewDataplot, &QAction::triggered, this, [this](const bool visible) {
+        m_dataplotModule->setVisible(visible);
     });
     m_viewLog = new QAction(tr("log")); // NOLINT
     viewMenu->addAction(m_viewLog);
@@ -171,8 +186,8 @@ void MainWindow::menuInit() {
     QTimer::singleShot(0, this, [this] {
         m_viewLog->setChecked(m_logModule->isVisible());
     });
-    connect(m_viewLog,&QAction::triggered,this,[this](const bool visible) {
-       m_logModule->setVisible(visible);
+    connect(m_viewLog, &QAction::triggered, this, [this](const bool visible) {
+        m_logModule->setVisible(visible);
     });
 }
 
