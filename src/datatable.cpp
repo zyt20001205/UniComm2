@@ -11,6 +11,7 @@ Datatable::Datatable(QObject *parent)
     m_tableWidget->horizontalHeader()->setMinimumHeight(30);
     m_tableWidget->horizontalHeader()->setSectionsMovable(true);
     connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionMoved, this, [this](int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
+        // config
         const QJsonValue tmp = m_datatableConfig.takeAt(oldVisualIndex);
         m_datatableConfig.insert(newVisualIndex, tmp);
         qDebug() << m_datatableConfig;
@@ -20,8 +21,8 @@ Datatable::Datatable(QObject *parent)
         const QString input = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->horizontalHeaderItem(logicalIndex)->text(), &ok);
         if (ok) {
             m_tableWidget->horizontalHeaderItem(logicalIndex)->setText(input);
-            const int visualColumn = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
-            datatableRename(visualColumn);
+            const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
+            datatableRename(visualIndex);
         }
     });
 
@@ -37,6 +38,9 @@ Datatable::Datatable(QObject *parent)
             /*x*/ {},
             /*y*/ {}
         };
+    }
+    for (auto &key: m_data.keys()) {
+        qDebug() << key << m_data[key].index;
     }
     m_tableWidget->installEventFilter(this);
 }
@@ -112,10 +116,10 @@ void Datatable::contextMenuEvent(QContextMenuEvent *event) {
     const auto *vp = m_tableWidget->viewport();
     const QPoint vpPos = vp->mapFromGlobal(event->globalPos());
     if (!vp->rect().contains(vpPos)) return; // only show menu inside table(not header)
-    const int logicalColumn = m_tableWidget->indexAt(vpPos).column();
-    const int visualColumn = m_tableWidget->horizontalHeader()->visualIndex(logicalColumn);
+    const int logicalIndex = m_tableWidget->indexAt(vpPos).column();
+    const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
     QMenu menu(this);
-    if (logicalColumn == -1) {
+    if (logicalIndex == -1) {
         menu.addAction(tr("new"), [this] {
             if (m_datatableConfig.isEmpty()) {
                 datatableInsert(0);
@@ -124,14 +128,14 @@ void Datatable::contextMenuEvent(QContextMenuEvent *event) {
             }
         });
     } else {
-        menu.addAction(tr("insert left (Ins)"), [this, visualColumn] {
-            datatableInsert(visualColumn);
+        menu.addAction(tr("insert left (Ins)"), [this, visualIndex] {
+            datatableInsert(visualIndex);
         });
-        menu.addAction(tr("insert right (Ctrl+Ins)"), [this, visualColumn] {
-            datatableInsert(visualColumn + 1);
+        menu.addAction(tr("insert right (Ctrl+Ins)"), [this, visualIndex] {
+            datatableInsert(visualIndex + 1);
         });
-        menu.addAction(tr("remove (Del)"), [this, visualColumn] {
-            datatableRemove(visualColumn);
+        menu.addAction(tr("remove (Del)"), [this, visualIndex] {
+            datatableRemove(visualIndex);
         });
     }
     menu.exec(event->globalPos());
@@ -141,19 +145,19 @@ bool Datatable::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
-                const int logicalColumn = m_tableWidget->currentColumn();
-                const int visualColumn = m_tableWidget->horizontalHeader()->visualIndex(logicalColumn);
+                const int logicalIndex = m_tableWidget->currentColumn();
+                const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
                 if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
-                    datatableInsert(visualColumn + 1);
+                    datatableInsert(visualIndex + 1);
                 } else {
-                    datatableInsert(visualColumn);
+                    datatableInsert(visualIndex);
                 }
                 return true;
             }
             case Qt::Key_Delete: {
-                const int logicalColumn = m_tableWidget->currentColumn();
-                const int visualColumn = m_tableWidget->horizontalHeader()->visualIndex(logicalColumn);
-                datatableRemove(visualColumn);
+                const int logicalIndex = m_tableWidget->currentColumn();
+                const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
+                datatableRemove(visualIndex);
                 return true;
             }
             case Qt::Key_Escape: {
@@ -170,21 +174,27 @@ bool Datatable::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // Datatable private
-void Datatable::datatableRename(const int visualColumn) {
-    const int logicalColumn = m_tableWidget->horizontalHeader()->logicalIndex(visualColumn);
-    const QString oldKey = m_datatableConfig[visualColumn].toString();
-    const QString newKey = m_tableWidget->horizontalHeaderItem(logicalColumn)->text();
+void Datatable::datatableRename(const int visualIndex) {
+    const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
+    const QString oldKey = m_datatableConfig[visualIndex].toString();
+    const QString newKey = m_tableWidget->horizontalHeaderItem(logicalIndex)->text();
     // config
-    m_datatableConfig[visualColumn] = newKey;
+    m_datatableConfig[visualIndex] = newKey;
     qDebug() << m_datatableConfig;
     // data
     m_data[newKey] = m_data.take(oldKey);
+    for (auto &key: m_data.keys()) {
+        qDebug() << key << m_data[key].index;
+    }
 }
 
-void Datatable::datatableInsert(const int visualColumn) {
+void Datatable::datatableInsert(const int visualIndex) {
     const QString newKey = "";
+    // gui
+    m_tableWidget->insertColumn(visualIndex);
+    m_tableWidget->setHorizontalHeaderItem(visualIndex, new QTableWidgetItem(newKey));
     // config
-    m_datatableConfig.insert(visualColumn, newKey);
+    m_datatableConfig.insert(visualIndex, newKey);
     qDebug() << m_datatableConfig;
     // data
     m_data[newKey] = DataMap{
@@ -197,28 +207,31 @@ void Datatable::datatableInsert(const int visualColumn) {
     int index = 0;
     for (const QJsonValue &value: m_datatableConfig) {
         const QString key = value.toString();
-        m_data[key].index = index;
+        m_data[key].index = m_tableWidget->horizontalHeader()->logicalIndex(index);
         index++;
     }
-    // gui
-    m_tableWidget->insertColumn(visualColumn);
-    m_tableWidget->setHorizontalHeaderItem(visualColumn, new QTableWidgetItem(newKey));
+    for (auto &key: m_data.keys()) {
+        qDebug() << key << m_data[key].index;
+    }
 }
 
-void Datatable::datatableRemove(const int visualColumn) {
-    const int logicalColumn = m_tableWidget->horizontalHeader()->logicalIndex(visualColumn);
-    const QString oldKey = m_datatableConfig[visualColumn].toString();
+void Datatable::datatableRemove(const int visualIndex) {
+    const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
+    const QString oldKey = m_datatableConfig[visualIndex].toString();
+    // gui
+    m_tableWidget->removeColumn(logicalIndex);
     // config
-    m_datatableConfig.removeAt(visualColumn);
+    m_datatableConfig.removeAt(visualIndex);
     qDebug() << m_datatableConfig;
     // data
     m_data.remove(oldKey);
     int index = 0;
     for (const QJsonValue &value: m_datatableConfig) {
         const QString key = value.toString();
-        m_data[key].index = index;
+        m_data[key].index = m_tableWidget->horizontalHeader()->logicalIndex(index);
         index++;
     }
-    // gui
-    m_tableWidget->removeColumn(logicalColumn);
+    for (auto &key: m_data.keys()) {
+        qDebug() << key << m_data[key].index;
+    }
 }

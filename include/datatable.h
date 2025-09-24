@@ -38,11 +38,11 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void datatableRename(int visualColumn);
+    void datatableRename(int visualIndex);
 
-    void datatableInsert(int visualColumn);
+    void datatableInsert(int visualIndex);
 
-    void datatableRemove(int visualColumn);
+    void datatableRemove(int visualIndex);
 
     struct DataMap {
         int index;

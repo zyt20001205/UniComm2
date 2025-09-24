@@ -39,9 +39,13 @@ void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, cons
                 m_indexHash[key] = i;
                 if (position == 0) {
                     m_plot->addGraph();
+                    m_leftLegend->addItem(new QCPPlottableLegendItem(m_leftLegend, m_plot->graph(i)));
                 } else {
                     m_plot->addGraph(m_plot->xAxis, m_plot->yAxis2);
+                    m_rightLegend->addItem(new QCPPlottableLegendItem(m_rightLegend, m_plot->graph(i)));
                 }
+                m_plot->graph(i)->setName(key);
+                m_plot->graph(i)->setPen(QPen(m_colors[i], 2));
                 break;
             }
             i++;
@@ -49,13 +53,6 @@ void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, cons
     }
     const int index = m_indexHash[key];
     m_plot->graph(index)->setData(x, y);
-    m_plot->graph(index)->setName(key);
-    m_plot->graph(index)->setPen(QPen(m_colors[index], 2));
-    if (position == 0) {
-        m_leftLegend->addItem(new QCPPlottableLegendItem(m_leftLegend, m_plot->graph(index)));
-    } else {
-        m_rightLegend->addItem(new QCPPlottableLegendItem(m_rightLegend, m_plot->graph(index)));
-    }
     m_plot->graph(index)->rescaleAxes(true);
     m_plot->rescaleAxes();
     m_plot->replot();
