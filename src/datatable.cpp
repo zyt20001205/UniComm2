@@ -7,7 +7,7 @@ Datatable::Datatable(QObject *parent)
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->verticalHeader()->setVisible(false);
-    m_tableWidget->setRowCount(1);
+    // m_tableWidget->setRowCount(1);
     m_tableWidget->horizontalHeader()->setMinimumHeight(30);
     m_tableWidget->horizontalHeader()->setSectionsMovable(true);
     connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionMoved, this, [this](int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
@@ -15,15 +15,6 @@ Datatable::Datatable(QObject *parent)
         const QJsonValue tmp = m_datatableConfig.takeAt(oldVisualIndex);
         m_datatableConfig.insert(newVisualIndex, tmp);
         qDebug() << m_datatableConfig;
-    });
-    connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionDoubleClicked, this, [this](const int logicalIndex) {
-        bool ok = false;
-        const QString input = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->horizontalHeaderItem(logicalIndex)->text(), &ok);
-        if (ok) {
-            m_tableWidget->horizontalHeaderItem(logicalIndex)->setText(input);
-            const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
-            datatableRename(visualIndex);
-        }
     });
 
     for (const QJsonValue &value: m_datatableConfig) {
@@ -81,7 +72,6 @@ void Datatable::datatableClear(const QString &key) {
             data.y = {};
         }
         m_tableWidget->setRowCount(0);
-        m_tableWidget->setRowCount(1);
     } else {
         if (!m_data.contains(key)) {
             qDebug() << "key not found in datatable";
@@ -113,32 +103,37 @@ void Datatable::datatableAddGraph(const QString &key, const int position) {
 
 // Datatable protected
 void Datatable::contextMenuEvent(QContextMenuEvent *event) {
-    const auto *vp = m_tableWidget->viewport();
-    const QPoint vpPos = vp->mapFromGlobal(event->globalPos());
-    if (!vp->rect().contains(vpPos)) return; // only show menu inside table(not header)
-    const int logicalIndex = m_tableWidget->indexAt(vpPos).column();
-    const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
-    QMenu menu(this);
-    if (logicalIndex == -1) {
-        menu.addAction(tr("new"), [this] {
-            if (m_datatableConfig.isEmpty()) {
-                datatableInsert(0);
-            } else {
-                datatableInsert(m_datatableConfig.size());
-            }
-        });
-    } else {
-        menu.addAction(tr("insert left (Ins)"), [this, visualIndex] {
-            datatableInsert(visualIndex);
-        });
-        menu.addAction(tr("insert right (Ctrl+Ins)"), [this, visualIndex] {
-            datatableInsert(visualIndex + 1);
-        });
-        menu.addAction(tr("remove (Del)"), [this, visualIndex] {
-            datatableRemove(visualIndex);
-        });
+    const QPoint globalPos = event->globalPos();
+    const auto *header = m_tableWidget->horizontalHeader();
+    const QPoint headerPos = header->mapFromGlobal(globalPos);
+    if (header->rect().contains(headerPos)) {
+        const int logicalIndex = header->logicalIndexAt(headerPos);
+        const int visualIndex = header->visualIndex(logicalIndex);
+        QMenu menu(this);
+        if (logicalIndex == -1) {
+            menu.addAction(tr("new"), [this] {
+                if (m_datatableConfig.isEmpty()) {
+                    datatableInsert(0);
+                } else {
+                    datatableInsert(m_datatableConfig.size());
+                }
+            });
+        } else {
+            menu.addAction(tr("rename"), [this, visualIndex] {
+                datatableRename(visualIndex);
+            });
+            menu.addAction(tr("insert left (Ins)"), [this, visualIndex] {
+                datatableInsert(visualIndex);
+            });
+            menu.addAction(tr("insert right (Ctrl+Ins)"), [this, visualIndex] {
+                datatableInsert(visualIndex + 1);
+            });
+            menu.addAction(tr("remove (Del)"), [this, visualIndex] {
+                datatableRemove(visualIndex);
+            });
+        }
+        menu.exec(event->globalPos());
     }
-    menu.exec(event->globalPos());
 }
 
 bool Datatable::eventFilter(QObject *obj, QEvent *event) {
@@ -176,8 +171,12 @@ bool Datatable::eventFilter(QObject *obj, QEvent *event) {
 // Datatable private
 void Datatable::datatableRename(const int visualIndex) {
     const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
-    const QString oldKey = m_datatableConfig[visualIndex].toString();
-    const QString newKey = m_tableWidget->horizontalHeaderItem(logicalIndex)->text();
+    const QString oldKey = m_tableWidget->horizontalHeaderItem(logicalIndex)->text();
+    // gui
+    bool ok = false;
+    const QString newKey = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->horizontalHeaderItem(logicalIndex)->text(), &ok);
+    if (!ok) return;
+    m_tableWidget->horizontalHeaderItem(logicalIndex)->setText(newKey);
     // config
     m_datatableConfig[visualIndex] = newKey;
     qDebug() << m_datatableConfig;
