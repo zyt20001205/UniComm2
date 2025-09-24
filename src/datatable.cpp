@@ -25,11 +25,13 @@ Datatable::Datatable(QObject *parent)
         }
     });
 
-    for (const QJsonValue &key: m_datatableConfig) {
+    for (const QJsonValue &value: m_datatableConfig) {
+        const QString key = value.toString();
         const int logicalIndex = m_tableWidget->columnCount();
         m_tableWidget->insertColumn(logicalIndex);
-        m_tableWidget->setHorizontalHeaderItem(logicalIndex, new QTableWidgetItem(key.toString()));
-        m_data[key.toString()] = DataMap{
+        m_tableWidget->setHorizontalHeaderItem(logicalIndex, new QTableWidgetItem(key));
+        m_data[key] = DataMap{
+            /*index*/ logicalIndex,
             /*enable*/ false,
             /*basetime*/ {},
             /*x*/ {},
@@ -44,6 +46,11 @@ void Datatable::datatableConfigSave() const {
 }
 
 void Datatable::datatableWrite(const QString &key, const QString &value) {
+    if (!m_data.contains(key)) {
+        qDebug() << "key not found in datatable";
+        return;
+    }
+
     double time = 0.0;
     if (!m_data[key].basetime.isValid()) {
         m_data[key].basetime = QDateTime::currentDateTime();
@@ -54,18 +61,8 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
     m_data[key].y.append(value.toDouble());
     if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
 
-    int column = -1;
-    for (int index = 0; index < m_tableWidget->columnCount(); index++) {
-        if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
-            column = index;
-            break;
-        }
-    }
-    if (column == -1) {
-        qDebug() << "key not found in datatable";
-        return;
-    }
     const int row = m_data[key].x.size() - 1;
+    const int column = m_data.find(key).value().index;
     m_tableWidget->setRowCount(row + 1);
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
     m_tableWidget->scrollToBottom();
@@ -73,44 +70,39 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
 
 void Datatable::datatableClear(const QString &key) {
     if (key == "all") {
-        for (const QJsonValue &value: m_datatableConfig) {
-            m_tableWidget->setRowCount(0);
-            m_tableWidget->setRowCount(1);
-            m_data[value.toString()] = DataMap{
-                /*enable*/ false,
-                /*basetime*/ {},
-                /*x*/ {},
-                /*y*/ {}
-            };
+        for (auto &data: m_data) {
+            data.enable = false;
+            data.basetime = {};
+            data.x = {};
+            data.y = {};
         }
+        m_tableWidget->setRowCount(0);
+        m_tableWidget->setRowCount(1);
     } else {
-        int column = -1;
-        for (int index = 0; index < m_tableWidget->columnCount(); index++) {
-            if (m_tableWidget->horizontalHeaderItem(index)->text() == key) {
-                column = index;
-                break;
-            }
-        }
-        if (column == -1) {
+        if (!m_data.contains(key)) {
             qDebug() << "key not found in datatable";
             return;
         }
+
+        m_data[key].enable = false;
+        m_data[key].basetime = {};
+        m_data[key].x = {};
+        m_data[key].y = {};
+
+        const int column = m_data.find(key).value().index;
         for (int row = 0; row < m_tableWidget->rowCount(); ++row) {
             if (QTableWidgetItem *item = m_tableWidget->item(row, column)) {
                 item->setText("");
             }
         }
-        m_data[key] = DataMap{
-            /*enable*/ false,
-            /*basetime*/ {},
-            /*x*/ {},
-            /*y*/ {}
-        };
     }
 }
 
 void Datatable::datatableAddGraph(const QString &key, const int position) {
-    if (!m_data.contains(key)) return;
+    if (!m_data.contains(key)) {
+        qDebug() << "key not found in datatable";
+        return;
+    }
     m_data[key].enable = true;
     emit addGraphDataPlot(key, m_data[key].x, m_data[key].y, position);
 }
@@ -180,20 +172,53 @@ bool Datatable::eventFilter(QObject *obj, QEvent *event) {
 // Datatable private
 void Datatable::datatableRename(const int visualColumn) {
     const int logicalColumn = m_tableWidget->horizontalHeader()->logicalIndex(visualColumn);
-    m_datatableConfig[visualColumn] = m_tableWidget->horizontalHeaderItem(logicalColumn)->text();
+    const QString oldKey = m_datatableConfig[visualColumn].toString();
+    const QString newKey = m_tableWidget->horizontalHeaderItem(logicalColumn)->text();
+    // config
+    m_datatableConfig[visualColumn] = newKey;
     qDebug() << m_datatableConfig;
+    // data
+    m_data[newKey] = m_data.take(oldKey);
 }
 
 void Datatable::datatableInsert(const int visualColumn) {
-    m_datatableConfig.insert(visualColumn, "");
-    m_tableWidget->insertColumn(visualColumn);
-    m_tableWidget->setHorizontalHeaderItem(visualColumn, new QTableWidgetItem(""));
+    const QString newKey = "";
+    // config
+    m_datatableConfig.insert(visualColumn, newKey);
     qDebug() << m_datatableConfig;
+    // data
+    m_data[newKey] = DataMap{
+        /*index*/ 0,
+        /*enable*/ false,
+        /*basetime*/ {},
+        /*x*/ {},
+        /*y*/ {}
+    };
+    int index = 0;
+    for (const QJsonValue &value: m_datatableConfig) {
+        const QString key = value.toString();
+        m_data[key].index = index;
+        index++;
+    }
+    // gui
+    m_tableWidget->insertColumn(visualColumn);
+    m_tableWidget->setHorizontalHeaderItem(visualColumn, new QTableWidgetItem(newKey));
 }
 
 void Datatable::datatableRemove(const int visualColumn) {
     const int logicalColumn = m_tableWidget->horizontalHeader()->logicalIndex(visualColumn);
-    m_tableWidget->removeColumn(logicalColumn);
+    const QString oldKey = m_datatableConfig[visualColumn].toString();
+    // config
     m_datatableConfig.removeAt(visualColumn);
     qDebug() << m_datatableConfig;
+    // data
+    m_data.remove(oldKey);
+    int index = 0;
+    for (const QJsonValue &value: m_datatableConfig) {
+        const QString key = value.toString();
+        m_data[key].index = index;
+        index++;
+    }
+    // gui
+    m_tableWidget->removeColumn(logicalColumn);
 }

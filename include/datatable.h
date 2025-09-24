@@ -45,6 +45,7 @@ private:
     void datatableRemove(int visualColumn);
 
     struct DataMap {
+        int index;
         bool enable;
         QDateTime basetime;
         QList<double> x;
