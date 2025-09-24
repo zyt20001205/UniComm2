@@ -126,7 +126,7 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
-    void scriptRun();
+    void scriptRun(const QString &script);
 
     void scriptRunning(const QString &name, QThread *worker);
 

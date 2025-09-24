@@ -8,9 +8,10 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent) : QWidget(parent) {
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
+    const QString rootUri = g_config["mainConfig"].toObject()["workspace"].toString();
     const QJsonObject initializeParams{
         {"processId", QCoreApplication::applicationPid()},
-        {"rootUri", QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/script").toString()},
+        {"rootUri", rootUri},
         {"capabilities", QJsonObject{}}
     };
     jsonRequest("initialize", initializeParams);

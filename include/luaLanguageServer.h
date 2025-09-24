@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QProcess>
 #include <QWidget>
+#include "config.h"
 
 class LuaLanguageServer final : public QWidget {
     Q_OBJECT

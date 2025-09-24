@@ -63,7 +63,11 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     ctrlLayout->addWidget(runButton);
     runButton->setFixedSize(24, 24);
     runButton->setIcon(QIcon(":/icon/play.svg"));
-    connect(runButton, &QPushButton::clicked, this, &Script::scriptRun);
+    connect(runButton, &QPushButton::clicked, this, [this] {
+        if (!m_currentScriptWidget) return;
+        QString script = m_currentScriptWidget->m_scriptEditor->text();
+        scriptRun(script);
+    });
     auto *debugButton = new QPushButton(); // NOLINT
     ctrlLayout->addWidget(debugButton);
     debugButton->setFixedSize(24, 24);
@@ -256,32 +260,15 @@ void Script::scriptExec(const QString &scriptPath) {
     in.setEncoding(QStringConverter::Utf8);
     const QString script = in.readAll();
     file.close();
-    // launch lua interpreter thread
-    auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(); // NOLINT
-    interpreter->moveToThread(worker);
-    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
-    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [interpreter, script] {
-        interpreter->run(script);
-        QThread::currentThread()->quit();
-    });
-    scriptRunning(scriptPath, worker);
-    m_scriptMonitorTabWidget->setCurrentIndex(THREADPOOL_TAB); // switch to threadpool tab
-    worker->start();
+    // call script run
+    scriptRun(script);
 }
 
 void Script::scriptHighlight(const int row) const {
-    const int currentIndex = m_scriptTabWidget->currentIndex();
-    if (currentIndex < 0) {
-        return;
-    }
-    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
-    if (!scriptPageWidget) return;
-
-    scriptPageWidget->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
+    if (!m_currentScriptWidget) return;
+    m_currentScriptWidget->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
     if (row == -1) return;
-    scriptPageWidget->m_scriptEditor->markerAdd(row - 1, MARKER_HIGHLIGHT);
+    m_currentScriptWidget->m_scriptEditor->markerAdd(row - 1, MARKER_HIGHLIGHT);
 }
 
 void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
@@ -501,15 +488,7 @@ void Script::signatureHelpReturn(const QJsonObject &signature) const {
 }
 
 // Script private
-void Script::scriptRun() {
-    const int currentIndex = m_scriptTabWidget->currentIndex();
-    if (currentIndex < 0) {
-        return;
-    }
-    const QString name = m_scriptTabWidget->tabText(currentIndex);
-    const auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(currentIndex));
-    if (!scriptPageWidget) return;
-    const QString script = scriptPageWidget->m_scriptEditor->text();
+void Script::scriptRun(const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     auto *interpreter = new LuaInterpreter(); // NOLINT
@@ -520,7 +499,7 @@ void Script::scriptRun() {
         interpreter->run(script);
         QThread::currentThread()->quit();
     });
-    scriptRunning(name, worker);
+    scriptRunning("name", worker);
     m_scriptMonitorTabWidget->setCurrentIndex(THREADPOOL_TAB); // switch to threadpool tab
     worker->start();
 }
@@ -1314,6 +1293,7 @@ void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec
+    g_script->scriptHighlight(-1);
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         const QString error = lua_tostring(L, -1);
         int row = -1;

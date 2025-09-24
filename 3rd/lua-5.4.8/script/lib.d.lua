@@ -1,5 +1,7 @@
 --- @meta
 
+--- @alias bytes string
+
 --- Shows an input dialog for variable assignment.
 --- @return string
 ---
