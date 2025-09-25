@@ -47,8 +47,8 @@ int lua_portInfo(lua_State *L) {
     }, Qt::BlockingQueuedConnection);
     lua_createtable(L, 0, static_cast<int>(infoHash.size()));
     for (auto it = infoHash.constBegin(); it != infoHash.constEnd(); ++it) {
-        const QString& key = it.key();
-        const QVariant& value = it.value();
+        const QString &key = it.key();
+        const QVariant &value = it.value();
         lua_pushstring(L, key.toUtf8().constData());
         switch (value.typeId()) {
             case QMetaType::Bool:
@@ -155,7 +155,17 @@ int lua_portReadText(lua_State *L) {
         luaL_error(L, "port read data timeout");
         return 0;
     }
-    lua_pushstring(L, rxText.toUtf8().constData());
+    if (rxText.contains("\x1E")) {
+        const QStringList rxTextList = rxText.split("\x1E");
+        lua_createtable(L, rxTextList.size(), 0);
+        for (int i = 0; i < rxTextList.size(); ++i) {
+            const QString& text = rxTextList.at(i);
+            lua_pushstring(L, text.toUtf8().constData());
+            lua_rawseti(L, -2, i + 1);
+        }
+    } else {
+        lua_pushstring(L, rxText.toUtf8().constData());
+    }
     return 1;
 }
 

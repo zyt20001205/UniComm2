@@ -58,9 +58,10 @@ QString ocr(const QPixmap &pixmap, const QString &charset) {
     ocr->Init(nullptr, tessCharset);
     ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
     char* result = ocr->GetUTF8Text();
-    const QString recognizedText = QString::fromUtf8(result);
+    QString text = QString::fromUtf8(result);
     delete result;
     ocr->End();
     delete ocr;
-    return recognizedText.trimmed();
+    text = text.trimmed();
+    return text.isEmpty() ? "null" : text;
 }

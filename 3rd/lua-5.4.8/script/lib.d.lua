@@ -110,7 +110,7 @@ function port.readData(index, timeout) end
 --- * &gt;0: The function will block for up to the specified time, waiting for data.
 ---
 --- * -1: The function will block indefinitely until data arrives.
---- @return string text
+--- @return string|table text
 ---
 --- @usage — Read text from current selected port.
 ---

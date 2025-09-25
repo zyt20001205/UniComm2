@@ -157,6 +157,8 @@ public:
 
     ~AreaSelectDialog() override = default;
 
+    void reload(const QJsonObject &config) const;
+
     void capture(const QString &type, const QString &target);
 
     QJsonArray areaExport() const;
@@ -508,11 +510,9 @@ public:
 
 private:
     QScreen *m_screen = nullptr;
-    QDialog *m_previewDialog = new QDialog();;
-    QLabel *m_previewLabel = new QLabel();
     // port config
     QString m_portName;
-    QRect m_area;
+    QJsonArray m_areaList;
 };
 
 class Camera final : public BasePort {
@@ -533,11 +533,9 @@ public:
 
 private:
     QCameraDevice m_camera;
-    QDialog *m_previewDialog = new QDialog();;
-    QLabel *m_previewLabel = new QLabel();
     // port config
     QString m_portName;
-    QRect m_area;
+    QJsonArray m_areaList;
 };
 
 #endif //PORT_H

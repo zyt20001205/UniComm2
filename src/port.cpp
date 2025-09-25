@@ -402,8 +402,14 @@ void Port::portSettingLoad(const int index) {
             m_rxFormatCombobox->setCurrentText(portInfo["rxFormat"].toString());
         } else if (portType == "screen") {
             m_screenNameCombobox->setCurrentText(portInfo["portName"].toString());
+            m_areaChooseDialog->show();
+            m_areaChooseDialog->capture("screen", m_screenNameCombobox->currentText());
+            m_areaChooseDialog->reload(portInfo);
         } else /* portType == "camera" */ {
             m_cameraNameCombobox->setCurrentText(portInfo["portName"].toString());
+            m_areaChooseDialog->show();
+            m_areaChooseDialog->capture("camera", m_cameraNameCombobox->currentText());
+            m_areaChooseDialog->reload(portInfo);
         }
     }
 }
@@ -502,7 +508,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_screenNameWidget->show();
         m_areaSelectWidget->show();
         disconnect(m_areaSelectPushButton, &QPushButton::clicked, this, nullptr);
-        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this]() {
+        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this] {
             m_areaChooseDialog->show();
             m_areaChooseDialog->capture("screen", m_screenNameCombobox->currentText());
         });
@@ -513,7 +519,7 @@ void Port::portSettingTypeSwitch(const int type) {
         m_cameraNameWidget->show();
         m_areaSelectWidget->show();
         disconnect(m_areaSelectPushButton, &QPushButton::clicked, this, nullptr);
-        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this]() {
+        connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this] {
             m_areaChooseDialog->show();
             m_areaChooseDialog->capture("camera", m_cameraNameCombobox->currentText());
         });
@@ -624,7 +630,7 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "screen";
         portConfig["portName"] = m_screenNameCombobox->currentText();
-        // portConfig["area"] = m_areaChooseDialog->save();
+        portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
@@ -643,7 +649,7 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "camera";
         portConfig["portName"] = m_cameraNameCombobox->currentText();
-        // portConfig["area"] = m_areaChooseDialog->save();
+        portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
                 m_tabWidget->removeTab(0);
@@ -803,11 +809,42 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
     item->setTransformationMode(Qt::FastTransformation);
     m_graphicsView->setScene(scene);
     m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+
+    selectionRefresh();
+    ocrRefresh();
+}
+
+void AreaSelectDialog::reload(const QJsonObject &config) const {
+    // load area list
+    m_cropModel->clear();
+    const QJsonArray areaList = config["areaList"].toArray();
+    for (const QJsonValue &value: areaList) {
+        QJsonArray areaArray = value.toArray();
+        const int x = areaArray[0].toInt();
+        const int y = areaArray[1].toInt();
+        const int width = areaArray[2].toInt();
+        const int height = areaArray[3].toInt();
+        const auto physicalRect = QRectF(x, y, width, height);
+        const auto logicalRect = QRectF(physicalRect.x() / m_dpr, physicalRect.y() / m_dpr, physicalRect.width() / m_dpr, physicalRect.height() / m_dpr);
+        auto *item = new QStandardItem();
+        const QPixmap cropped = m_shot.copy(physicalRect.toRect());
+        const QString recognizedText = ocr(cropped, "eng");
+        item->setText(recognizedText);
+        item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
+        item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
+        m_cropModel->appendRow(item);
+    }
+    selectionRefresh();
 }
 
 QJsonArray AreaSelectDialog::areaExport() const {
     QJsonArray areaList;
-    qDebug() << areaList;
+    for (int row = 0; row < m_cropModel->rowCount(); ++row) {
+        const QStandardItem *item = m_cropModel->item(row);
+        const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
+        QJsonArray areaArray = {physicalRect.x(), physicalRect.y(), physicalRect.width(), physicalRect.height()};
+        areaList.append(areaArray);
+    }
     return areaList;
 }
 
@@ -860,7 +897,7 @@ void AreaSelectDialog::selectionRefresh() const {
     m_graphicsView->scene()->clear();
     m_graphicsView->scene()->addPixmap(m_shot);
     for (int row = 0; row < m_cropModel->rowCount(); ++row) {
-        QStandardItem *item = m_cropModel->item(row);
+        const QStandardItem *item = m_cropModel->item(row);
         const auto logicalRect = item->data(Qt::UserRole + 1).value<QRectF>().toRect();
         // gui
         auto *graphicsRectItem = new QGraphicsRectItem(logicalRect);
@@ -966,7 +1003,7 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
         pageLayout->addWidget(m_pushButton);
         // port init
         m_thread = new QThread(this);
-        m_port = new Screen(portConfig, this);
+        m_port = new Screen(portConfig);
         m_port->moveToThread(m_thread);
         // start thread
         connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
@@ -984,7 +1021,7 @@ PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
         pageLayout->addWidget(m_pushButton);
         // port init
         m_thread = new QThread(this);
-        m_port = new Camera(portConfig, this);
+        m_port = new Camera(portConfig);
         m_port->moveToThread(m_thread);
         // start thread
         connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
@@ -1895,24 +1932,20 @@ QByteArray UdpSocket::handleRead(const int timeout, const int length) {
 Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
     // port config
     m_portName = portConfig["portName"].toString();
-    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
-    auto *layout = new QVBoxLayout(m_previewDialog);
-    layout->addWidget(m_previewLabel);
+    m_areaList = portConfig["areaList"].toArray();
 }
 
 void Screen::reload(const QJsonObject &portConfig) {
     // port config
     m_portName = portConfig["portName"].toString();
-    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+    m_areaList = portConfig["areaList"].toArray();
 }
 
 bool Screen::open() {
-    // m_previewDialog->show();
     return true;
 }
 
 void Screen::close() {
-    // m_previewDialog->hide();
 }
 
 QHash<QString, QVariant> Screen::info() {
@@ -1921,69 +1954,47 @@ QHash<QString, QVariant> Screen::info() {
 
 QString Screen::readText(const int timeout, const int length) {
     // find screen
-    for (QScreen *screen: QGuiApplication::screens()) {
-        if (screen->name() == m_portName) {
-            m_screen = screen;
+    for (QScreen *s: QGuiApplication::screens()) {
+        if (s->name() == m_portName) {
+            m_screen = s;
             break;
         }
     }
-    if (!m_screen)
-        return "screen not found";
-    // screenshot and crop
-    const QPixmap shot = m_screen->grabWindow(0).copy(m_area);
-
-    if (m_previewDialog->isVisible())
-        m_previewLabel->setPixmap(shot);
-
-    QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
-
-    // init ocr engine
-    auto *ocr = new tesseract::TessBaseAPI();
-    ocr->Init(nullptr, "eng+7seg");
-    // load pic
-    ocr->SetImage(
-        image.bits(),
-        image.width(),
-        image.height(),
-        3,
-        image.bytesPerLine()
-    );
-
-    // exec ocr
-    char *outText = ocr->GetUTF8Text();
-    QString recognizedText = QString::fromUtf8(outText);
-
-    // free resources
-    delete[] outText;
-    ocr->End();
-    delete ocr;
-    //
-    recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
-    return recognizedText.isEmpty() ? "null" : recognizedText;
+    if (!m_screen) return "screen not found";
+    const auto shot = m_screen->grabWindow(0);
+    QStringList resultList;
+    for (const QJsonValue &value: m_areaList) {
+        QJsonArray areaArray = value.toArray();
+        const int x = areaArray[0].toInt();
+        const int y = areaArray[1].toInt();
+        const int width = areaArray[2].toInt();
+        const int height = areaArray[3].toInt();
+        const auto rect = QRect(x, y, width, height);
+        const QPixmap cropped = shot.copy(rect);
+        const QString text = ocr(cropped, "eng");
+        resultList.append(text);
+    }
+    return resultList.join("\x1E");
 }
 
 // Camera public
 Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
     // port config
     m_portName = portConfig["portName"].toString();
-    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
-    auto *layout = new QVBoxLayout(m_previewDialog);
-    layout->addWidget(m_previewLabel);
+    m_areaList = portConfig["areaList"].toArray();
 }
 
 void Camera::reload(const QJsonObject &portConfig) {
     // port config
     m_portName = portConfig["portName"].toString();
-    m_area = QRect(portConfig["area"][0].toInt(), portConfig["area"][1].toInt(), portConfig["area"][2].toInt(), portConfig["area"][3].toInt());
+    m_areaList = portConfig["areaList"].toArray();
 }
 
 bool Camera::open() {
-    // m_previewDialog->show();
     return true;
 }
 
 void Camera::close() {
-    // m_previewDialog->hide();
 }
 
 QHash<QString, QVariant> Camera::info() {
@@ -1991,7 +2002,6 @@ QHash<QString, QVariant> Camera::info() {
 }
 
 QString Camera::readText(const int timeout, const int length) {
-    QPixmap shot;
     // find camera
     m_camera = QCameraDevice();
     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
@@ -2003,15 +2013,15 @@ QString Camera::readText(const int timeout, const int length) {
     if (m_camera.isNull())
         return "camera not found";;
     // take picture
+    QPixmap shot;
     const auto camera = new QCamera(m_camera, this);
     QMediaCaptureSession captureSession;
     captureSession.setCamera(camera);
     QImageCapture imageCapture;
     captureSession.setImageCapture(&imageCapture);
     QEventLoop loop;
-    connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &shot, &loop](const int id, const QImage &img) {
-        Q_UNUSED(id);
-        shot = QPixmap::fromImage(img).copy(m_area);
+    connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](int, const QImage &img) {
+        shot = QPixmap::fromImage(img);
         loop.quit();
     });
     camera->start();
@@ -2019,35 +2029,17 @@ QString Camera::readText(const int timeout, const int length) {
     loop.exec();
     camera->stop();
     delete camera;
-
-    if (m_previewDialog->isVisible())
-        m_previewLabel->setPixmap(shot);
-
-    QImage image = shot.toImage().convertToFormat(QImage::Format_RGB888);
-
-    // init ocr engine
-    auto *ocr = new tesseract::TessBaseAPI();
-    ocr->Init(nullptr, "eng");
-    // ocr->Init(nullptr, "7seg+eng");
-    // load pic
-    ocr->SetImage(
-        image.bits(),
-        image.width(),
-        image.height(),
-        3,
-        image.bytesPerLine()
-    );
-
-    // exec ocr
-    char *outText = ocr->GetUTF8Text();
-    QString recognizedText = QString::fromUtf8(outText);
-
-    // free resources
-    delete[] outText;
-    ocr->End();
-    delete ocr;
-    //
-    recognizedText = recognizedText.trimmed().replace("\n", "<br>");;
-    qDebug() << recognizedText;
-    return recognizedText.isEmpty() ? "null" : recognizedText;
+    QStringList resultList;
+    for (const QJsonValue &value: m_areaList) {
+        QJsonArray areaArray = value.toArray();
+        const int x = areaArray[0].toInt();
+        const int y = areaArray[1].toInt();
+        const int width = areaArray[2].toInt();
+        const int height = areaArray[3].toInt();
+        const auto rect = QRect(x, y, width, height);
+        const QPixmap cropped = shot.copy(rect);
+        const QString text = ocr(cropped, "eng");
+        resultList.append(text);
+    }
+    return resultList.join("\x1E");
 }
