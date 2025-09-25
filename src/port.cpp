@@ -693,12 +693,6 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     cropButton->setIcon(QIcon(":/icon/crop.svg"));
     connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::crop);
 
-    auto *confirmButton = new QPushButton("confirm");
-    ctrlLayout->addWidget(confirmButton);
-    confirmButton->setFixedSize(80, 48);
-    confirmButton->setIcon(QIcon(":/icon/checkmark.svg"));
-    connect(confirmButton, &QPushButton::clicked, this, &AreaSelectDialog::areaExport);
-
     m_cropTableWidget = new QTableWidget();
     ctrlLayout->addWidget(m_cropTableWidget);
     m_cropTableWidget->setColumnCount(1);
