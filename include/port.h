@@ -15,9 +15,10 @@
 #include <QHeaderView>
 #include <QImage>
 #include <QImageCapture>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
-#include <QList>
+#include <QListView>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
 #include <QMenu>
@@ -30,7 +31,6 @@
 #include <QSpinbox>
 #include <QSplitter>
 #include <QStackedLayout>
-#include <QTableWidget>
 #include <QTabWidget>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -43,6 +43,7 @@
 #include <QMutex>
 #include <allheaders.h>
 #include <baseapi.h>
+#include <QStandardItemModel>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -160,18 +161,24 @@ public:
 
     QJsonArray areaExport() const;
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 private:
     void crop(bool status) const;
 
     void cropHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
 
-    void previewRefresh() const;
+    void selectionRefresh() const;
+
+    void ocrRefresh() const;
 
     QString m_type;
     QString m_target;
     qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
-    QTableWidget *m_cropTableWidget = nullptr;
+    QListView *m_cropListView = nullptr;
+    QStandardItemModel *m_cropModel = nullptr;
     int m_process = 0;
     QPixmap m_shot{};
     QRectF m_rectF;

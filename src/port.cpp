@@ -693,16 +693,19 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     cropButton->setIcon(QIcon(":/icon/crop.svg"));
     connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::crop);
 
-    m_cropTableWidget = new QTableWidget();
-    ctrlLayout->addWidget(m_cropTableWidget);
-    m_cropTableWidget->setColumnCount(1);
-    m_cropTableWidget->setHorizontalHeaderLabels({tr("OCR result")});
-    m_cropTableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    m_cropTableWidget->verticalHeader()->setMinimumWidth(30);
-    m_cropTableWidget->verticalHeader()->setSectionsMovable(true);
-    connect(m_cropTableWidget->verticalHeader(), &QHeaderView::sectionMoved, this, [this](int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
-        previewRefresh();
-    });
+    m_cropListView = new QListView();
+    ctrlLayout->addWidget(m_cropListView);
+    m_cropListView->setStyleSheet("QListView::item { min-height: 30px; }");
+    m_cropListView->setDragDropMode(QAbstractItemView::InternalMove);
+    m_cropListView->setDefaultDropAction(Qt::MoveAction);
+    m_cropListView->setDragEnabled(true);
+    m_cropListView->setAcceptDrops(true);
+    m_cropListView->setDropIndicatorShown(true);
+    m_cropListView->installEventFilter(this);
+    m_cropModel = new QStandardItemModel();
+    m_cropListView->setModel(m_cropModel);
+    connect(m_cropModel, &QStandardItemModel::rowsMoved, this, [this] { selectionRefresh(); });
+    connect(m_cropModel, &QStandardItemModel::rowsRemoved, this, [this] { selectionRefresh(); });
 
     // auto *processCombobox = new QComboBox();
     // ctrlLayout->addWidget(processCombobox);
@@ -800,21 +803,28 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
     item->setTransformationMode(Qt::FastTransformation);
     m_graphicsView->setScene(scene);
     m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
-
-    previewRefresh();
 }
 
 QJsonArray AreaSelectDialog::areaExport() const {
     QJsonArray areaList;
-    for (int row = 0; row < m_cropTableWidget->rowCount(); ++row) {
-        const int index = m_cropTableWidget->verticalHeader()->visualIndex(row);
-        const QTableWidgetItem *item = m_cropTableWidget->item(index, 0);
-        const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
-        QJsonArray areaArray = {physicalRect.x(), physicalRect.y(), physicalRect.width(), physicalRect.height()};
-        areaList.append(areaArray);
-    }
     qDebug() << areaList;
     return areaList;
+}
+
+// AreaSelectDialog protected
+bool AreaSelectDialog::eventFilter(QObject *obj, QEvent *event) {
+    if (obj == m_cropListView && event->type() == QEvent::KeyPress) {
+        switch (static_cast<QKeyEvent *>(event)->key()) {
+            case Qt::Key_Delete: {
+                const int row = m_cropListView->currentIndex().row();
+                m_cropModel->removeRow(row);
+                return true;
+            }
+            default:
+                break;
+        }
+    }
+    return QDialog::eventFilter(obj, event);
 }
 
 // AreaSelectDialog private
@@ -835,31 +845,24 @@ void AreaSelectDialog::cropHandle(const QRectF &viewportRect, const QPointF &fro
     if (rubberBandEnded) {
         const auto logicalRect = m_rectF;
         const auto physicalRect = QRectF(m_rectF.x() * m_dpr, m_rectF.y() * m_dpr, m_rectF.width() * m_dpr, m_rectF.height() * m_dpr);
-        const int row = m_cropTableWidget->rowCount();
-        m_cropTableWidget->insertRow(row);
-        auto *item = new QTableWidgetItem();
-        item->setData(Qt::UserRole + 1, QVariant::fromValue(logicalRect));
-        item->setData(Qt::UserRole + 2, QVariant::fromValue(physicalRect));
-        m_cropTableWidget->setItem(row, 0, item);
-        m_cropTableWidget->setVerticalHeaderItem(row, new QTableWidgetItem());
-        previewRefresh();
+        auto *item = new QStandardItem();
+        const QPixmap cropped = m_shot.copy(physicalRect.toRect());
+        const QString recognizedText = ocr(cropped, "eng");
+        item->setText(recognizedText);
+        item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
+        item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
+        m_cropModel->appendRow(item);
+        selectionRefresh();
     }
 }
 
-void AreaSelectDialog::previewRefresh() const {
+void AreaSelectDialog::selectionRefresh() const {
     m_graphicsView->scene()->clear();
     m_graphicsView->scene()->addPixmap(m_shot);
-    for (int row = 0; row < m_cropTableWidget->rowCount(); ++row) {
-        const int index = m_cropTableWidget->verticalHeader()->visualIndex(row);
-        QTableWidgetItem *item = m_cropTableWidget->item(index, 0);
+    for (int row = 0; row < m_cropModel->rowCount(); ++row) {
+        QStandardItem *item = m_cropModel->item(row);
         const auto logicalRect = item->data(Qt::UserRole + 1).value<QRectF>().toRect();
-        const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
-        // update ocr result
-        const QPixmap cropped = m_shot.copy(physicalRect);
-        const QString recognizedText = ocr(cropped, "eng");
-        item->setText(recognizedText);
         // gui
-        m_cropTableWidget->verticalHeaderItem(index)->setText(QString::number(row + 1));
         auto *graphicsRectItem = new QGraphicsRectItem(logicalRect);
         m_graphicsView->scene()->addItem(graphicsRectItem);
         graphicsRectItem->setPen(QPen(Qt::red, 2));
@@ -868,6 +871,17 @@ void AreaSelectDialog::previewRefresh() const {
         graphicsTextItem->setPos(logicalRect.center() - graphicsTextItem->boundingRect().center());
         graphicsTextItem->setBrush(Qt::red);
         graphicsTextItem->setFont(QFont("consolas", 12));
+    }
+}
+
+void AreaSelectDialog::ocrRefresh() const {
+    for (int row = 0; row < m_cropModel->rowCount(); ++row) {
+        QStandardItem *item = m_cropModel->item(row);
+        const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
+        // update ocr result
+        const QPixmap cropped = m_shot.copy(physicalRect);
+        const QString recognizedText = ocr(cropped, "eng");
+        item->setText(recognizedText);
     }
 }
 
