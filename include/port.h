@@ -167,9 +167,11 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void crop(bool status) const;
+    void select(bool status) const;
 
-    void cropHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
+    void charsetRefresh();
+
+    void selectionHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
 
     void selectionRefresh() const;
 
@@ -179,8 +181,11 @@ private:
     QString m_target;
     qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
-    QListView *m_cropListView = nullptr;
-    QStandardItemModel *m_cropModel = nullptr;
+    QString m_charsetString= "eng";
+    QListView *m_charsetListView = nullptr;
+    QStandardItemModel *m_charsetModel = nullptr;
+    QListView *m_selectionListView = nullptr;
+    QStandardItemModel *m_selectionModel = nullptr;
     int m_process = 0;
     QPixmap m_shot{};
     QRectF m_rectF;

@@ -679,7 +679,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
 
     m_graphicsView = new QGraphicsView();
     splitter->addWidget(m_graphicsView);
-    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::cropHandle);
+    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::selectionHandle);
 
     auto *ctrlWidget = new QWidget(); // NOLINT
     splitter->addWidget(ctrlWidget);
@@ -697,21 +697,81 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     cropButton->setCheckable(true);
     cropButton->setFixedSize(80, 48);
     cropButton->setIcon(QIcon(":/icon/crop.svg"));
-    connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::crop);
+    connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::select);
 
-    m_cropListView = new QListView();
-    ctrlLayout->addWidget(m_cropListView);
-    m_cropListView->setStyleSheet("QListView::item { min-height: 30px; }");
-    m_cropListView->setDragDropMode(QAbstractItemView::InternalMove);
-    m_cropListView->setDefaultDropAction(Qt::MoveAction);
-    m_cropListView->setDragEnabled(true);
-    m_cropListView->setAcceptDrops(true);
-    m_cropListView->setDropIndicatorShown(true);
-    m_cropListView->installEventFilter(this);
-    m_cropModel = new QStandardItemModel();
-    m_cropListView->setModel(m_cropModel);
-    connect(m_cropModel, &QStandardItemModel::rowsMoved, this, [this] { selectionRefresh(); });
-    connect(m_cropModel, &QStandardItemModel::rowsRemoved, this, [this] { selectionRefresh(); });
+    // charset widget
+    {
+        auto *charsetWidget = new QWidget();
+        ctrlLayout->addWidget(charsetWidget);
+        auto *charsetLayout = new QVBoxLayout(charsetWidget);
+        charsetLayout->setContentsMargins(0, 0, 0, 0);
+
+        auto *charsetLabel = new QLabel(tr("Charset"));
+        charsetLayout->addWidget(charsetLabel);
+        charsetLabel->setFont(QFont("consolas", 16));
+
+        auto *seperator = new QFrame();
+        seperator->setFrameShape(QFrame::HLine);
+        seperator->setLineWidth(1);
+        charsetLayout->addWidget(seperator);
+
+        m_charsetListView = new QListView();
+        charsetLayout->addWidget(m_charsetListView);
+        m_charsetListView->setStyleSheet("QListView::item { min-height: 30px; }");
+        m_charsetListView->setDragDropMode(QAbstractItemView::InternalMove);
+        m_charsetListView->setDefaultDropAction(Qt::MoveAction);
+        m_charsetListView->setDragEnabled(true);
+        m_charsetListView->setAcceptDrops(true);
+        m_charsetListView->setDropIndicatorShown(true);
+        m_charsetModel = new QStandardItemModel();
+        m_charsetListView->setModel(m_charsetModel);
+        auto *engItem = new QStandardItem();
+        m_charsetModel->appendRow(engItem);
+        engItem->setText(tr("English"));
+        engItem->setData("eng", Qt::UserRole + 1);
+        engItem->setCheckable(true);
+        engItem->setCheckState(Qt::Checked);
+        engItem->setFlags(engItem->flags() &= ~Qt::ItemIsDropEnabled);
+        auto *ssegItem = new QStandardItem();
+        m_charsetModel->appendRow(ssegItem);
+        ssegItem->setText(tr("Seven Segment"));
+        ssegItem->setData("7seg", Qt::UserRole + 1);
+        ssegItem->setCheckable(true);
+        ssegItem->setFlags(ssegItem->flags() &= ~Qt::ItemIsDropEnabled);
+        connect(m_charsetModel, &QStandardItemModel::rowsRemoved, this, [this] { charsetRefresh(); });
+        connect(m_charsetModel, &QStandardItemModel::itemChanged, this, [this] { charsetRefresh(); });
+    }
+
+    // selection widget
+    {
+        auto *selectionWidget = new QWidget();
+        ctrlLayout->addWidget(selectionWidget);
+        auto *selectionLayout = new QVBoxLayout(selectionWidget);
+        selectionLayout->setContentsMargins(0, 0, 0, 0);
+
+        auto *selectionLabel = new QLabel(tr("Selection"));
+        selectionLayout->addWidget(selectionLabel);
+        selectionLabel->setFont(QFont("consolas", 16));
+
+        auto *seperator = new QFrame();
+        seperator->setFrameShape(QFrame::HLine);
+        seperator->setLineWidth(1);
+        selectionLayout->addWidget(seperator);
+
+        m_selectionListView = new QListView();
+        selectionLayout->addWidget(m_selectionListView);
+        m_selectionListView->setStyleSheet("QListView::item { min-height: 30px; }");
+        m_selectionListView->setDragDropMode(QAbstractItemView::InternalMove);
+        m_selectionListView->setDefaultDropAction(Qt::MoveAction);
+        m_selectionListView->setDragEnabled(true);
+        m_selectionListView->setAcceptDrops(true);
+        m_selectionListView->setDropIndicatorShown(true);
+        m_selectionListView->installEventFilter(this);
+        m_selectionModel = new QStandardItemModel();
+        m_selectionListView->setModel(m_selectionModel);
+        connect(m_selectionModel, &QStandardItemModel::rowsMoved, this, [this] { selectionRefresh(); });
+        connect(m_selectionModel, &QStandardItemModel::rowsRemoved, this, [this] { selectionRefresh(); });
+    }
 
     // auto *processCombobox = new QComboBox();
     // ctrlLayout->addWidget(processCombobox);
@@ -815,8 +875,10 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
 }
 
 void AreaSelectDialog::reload(const QJsonObject &config) const {
+    // load charset string
+
     // load area list
-    m_cropModel->clear();
+    m_selectionModel->clear();
     const QJsonArray areaList = config["areaList"].toArray();
     for (const QJsonValue &value: areaList) {
         QJsonArray areaArray = value.toArray();
@@ -828,19 +890,20 @@ void AreaSelectDialog::reload(const QJsonObject &config) const {
         const auto logicalRect = QRectF(physicalRect.x() / m_dpr, physicalRect.y() / m_dpr, physicalRect.width() / m_dpr, physicalRect.height() / m_dpr);
         auto *item = new QStandardItem();
         const QPixmap cropped = m_shot.copy(physicalRect.toRect());
-        const QString recognizedText = ocr(cropped, "eng");
+        const QString recognizedText = ocr(cropped, m_charsetString);
         item->setText(recognizedText);
         item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
         item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
-        m_cropModel->appendRow(item);
+        item->setFlags(item->flags() &= ~Qt::ItemIsDropEnabled);
+        m_selectionModel->appendRow(item);
     }
     selectionRefresh();
 }
 
 QJsonArray AreaSelectDialog::areaExport() const {
     QJsonArray areaList;
-    for (int row = 0; row < m_cropModel->rowCount(); ++row) {
-        const QStandardItem *item = m_cropModel->item(row);
+    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
+        const QStandardItem *item = m_selectionModel->item(row);
         const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
         QJsonArray areaArray = {physicalRect.x(), physicalRect.y(), physicalRect.width(), physicalRect.height()};
         areaList.append(areaArray);
@@ -850,11 +913,11 @@ QJsonArray AreaSelectDialog::areaExport() const {
 
 // AreaSelectDialog protected
 bool AreaSelectDialog::eventFilter(QObject *obj, QEvent *event) {
-    if (obj == m_cropListView && event->type() == QEvent::KeyPress) {
+    if (obj == m_selectionListView && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Delete: {
-                const int row = m_cropListView->currentIndex().row();
-                m_cropModel->removeRow(row);
+                const int row = m_selectionListView->currentIndex().row();
+                m_selectionModel->removeRow(row);
                 return true;
             }
             default:
@@ -865,7 +928,7 @@ bool AreaSelectDialog::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // AreaSelectDialog private
-void AreaSelectDialog::crop(const bool status) const {
+void AreaSelectDialog::select(const bool status) const {
     if (status) {
         m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     } else {
@@ -873,7 +936,20 @@ void AreaSelectDialog::crop(const bool status) const {
     }
 }
 
-void AreaSelectDialog::cropHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
+void AreaSelectDialog::charsetRefresh() {
+    QStringList characterStringList;
+    for (int row = 0; row < m_charsetModel->rowCount(); ++row) {
+        const QStandardItem *item = m_charsetModel->item(row);
+        if (item->checkState() == Qt::Checked) {
+            const auto lang = item->data(Qt::UserRole + 1).value<QString>();
+            characterStringList.append(lang);
+        }
+    }
+    m_charsetString = characterStringList.join("+");
+    ocrRefresh();
+}
+
+void AreaSelectDialog::selectionHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
     const bool rubberBandEnded = viewportRect.isNull();
     auto sceneRect = QRectF(fromScenePoint, toScenePoint);
     if (!sceneRect.isNull() && sceneRect.isValid()) {
@@ -884,11 +960,12 @@ void AreaSelectDialog::cropHandle(const QRectF &viewportRect, const QPointF &fro
         const auto physicalRect = QRectF(m_rectF.x() * m_dpr, m_rectF.y() * m_dpr, m_rectF.width() * m_dpr, m_rectF.height() * m_dpr);
         auto *item = new QStandardItem();
         const QPixmap cropped = m_shot.copy(physicalRect.toRect());
-        const QString recognizedText = ocr(cropped, "eng");
+        const QString recognizedText = ocr(cropped, m_charsetString);
         item->setText(recognizedText);
         item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
         item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
-        m_cropModel->appendRow(item);
+        item->setFlags(item->flags() &= ~Qt::ItemIsDropEnabled);
+        m_selectionModel->appendRow(item);
         selectionRefresh();
     }
 }
@@ -896,8 +973,8 @@ void AreaSelectDialog::cropHandle(const QRectF &viewportRect, const QPointF &fro
 void AreaSelectDialog::selectionRefresh() const {
     m_graphicsView->scene()->clear();
     m_graphicsView->scene()->addPixmap(m_shot);
-    for (int row = 0; row < m_cropModel->rowCount(); ++row) {
-        const QStandardItem *item = m_cropModel->item(row);
+    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
+        const QStandardItem *item = m_selectionModel->item(row);
         const auto logicalRect = item->data(Qt::UserRole + 1).value<QRectF>().toRect();
         // gui
         auto *graphicsRectItem = new QGraphicsRectItem(logicalRect);
@@ -912,12 +989,12 @@ void AreaSelectDialog::selectionRefresh() const {
 }
 
 void AreaSelectDialog::ocrRefresh() const {
-    for (int row = 0; row < m_cropModel->rowCount(); ++row) {
-        QStandardItem *item = m_cropModel->item(row);
+    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
+        QStandardItem *item = m_selectionModel->item(row);
         const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
         // update ocr result
         const QPixmap cropped = m_shot.copy(physicalRect);
-        const QString recognizedText = ocr(cropped, "eng");
+        const QString recognizedText = ocr(cropped, m_charsetString);
         item->setText(recognizedText);
     }
 }
