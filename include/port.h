@@ -44,9 +44,6 @@
 #include <allheaders.h>
 #include <baseapi.h>
 #include <QStandardItemModel>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
 #include "config.h"
 #include "suffix.h"
 #include "utils.h"
@@ -184,6 +181,13 @@ private:
     QGraphicsView *m_graphicsView = nullptr;
     QGraphicsScene *m_graphicsScene = nullptr;
     double m_dpr{};
+
+    QSlider *m_gaussianblurSlider = nullptr;
+    QLabel *m_gaussianblurValueLabel = nullptr;
+    int m_kernalSize = 0;
+    QSlider *m_thresholdSlider = nullptr;
+    QLabel *m_thresholdValueLabel = nullptr;
+    int m_thresh = 128;
     QString m_charsetString = "eng";
     QListView *m_charsetListView = nullptr;
     QStandardItemModel *m_charsetModel = nullptr;
@@ -196,6 +200,7 @@ private:
 
     enum {
         RAW,
+        GAUSSIANBLUR,
         THRESHOLD,
     };
 };

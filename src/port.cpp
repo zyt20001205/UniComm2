@@ -1,5 +1,7 @@
 #include "../include/port.h"
 
+#include <qstackedwidget.h>
+
 // Port public
 Port::Port(QObject *parent)
     : QDockWidget("port", qobject_cast<QWidget *>(parent)) {
@@ -747,14 +749,64 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         seperator->setLineWidth(1);
         processLayout->addWidget(seperator);
 
-        auto *processCombobox = new QComboBox();
-        ctrlLayout->addWidget(processCombobox);
-        processCombobox->addItem(tr("raw"));
-        processCombobox->addItem(tr("threshold"));
-        connect(processCombobox, &QComboBox::currentIndexChanged, this, [this, processCombobox] {
-            m_process = processCombobox->currentIndex();
+        auto *processStackedWidget = new QStackedWidget();
+        auto *processComboBox = new QComboBox();
+        ctrlLayout->addWidget(processComboBox);
+        processComboBox->addItem(tr("Raw"));
+        processComboBox->addItem(tr("Gaussian Blur"));
+        processComboBox->addItem(tr("Threshold"));
+        connect(processComboBox, &QComboBox::currentIndexChanged, this, [this, processComboBox, processStackedWidget] {
+            m_process = processComboBox->currentIndex();
+            processStackedWidget->setCurrentIndex(m_process);
             processRequest();
         });
+
+        ctrlLayout->addWidget(processStackedWidget);
+        // raw
+        {
+            auto *rawWidget = new QWidget();
+            processStackedWidget->addWidget(rawWidget);
+        }
+        // gaussianblur
+        {
+            auto *gaussianblurWidget = new QWidget();
+            processStackedWidget->addWidget(gaussianblurWidget);
+            auto *gaussianblurLayout = new QHBoxLayout(gaussianblurWidget);
+            gaussianblurLayout->setContentsMargins(0, 0, 0, 0);
+            auto* gaussianblurLabel = new QLabel(tr("Kernal Size"));
+            gaussianblurLayout->addWidget(gaussianblurLabel);
+            m_gaussianblurSlider = new QSlider(Qt::Horizontal);
+            gaussianblurLayout->addWidget(m_gaussianblurSlider);
+            m_gaussianblurSlider->setRange(0, 20);
+            m_gaussianblurSlider->setValue(m_kernalSize);
+            connect(m_gaussianblurSlider, &QSlider::sliderReleased, [this] {
+                m_kernalSize = m_gaussianblurSlider->value();
+                m_gaussianblurValueLabel->setText(QString::number(m_kernalSize));
+                processRequest();
+            });
+            m_gaussianblurValueLabel = new QLabel(QString::number(m_kernalSize));
+            gaussianblurLayout->addWidget(m_gaussianblurValueLabel);
+        }
+        // threshold
+        {
+            auto *thresholdWidget = new QWidget();
+            processStackedWidget->addWidget(thresholdWidget);
+            auto *thresholdLayout = new QHBoxLayout(thresholdWidget);
+            thresholdLayout->setContentsMargins(0, 0, 0, 0);
+            auto* thresholdLabel = new QLabel(tr("Thresh"));
+            thresholdLayout->addWidget(thresholdLabel);
+            m_thresholdSlider = new QSlider(Qt::Horizontal);
+            thresholdLayout->addWidget(m_thresholdSlider);
+            m_thresholdSlider->setRange(0, 255);
+            m_thresholdSlider->setValue(m_thresh);
+            connect(m_thresholdSlider, &QSlider::sliderReleased, [this] {
+                m_thresh = m_thresholdSlider->value();
+                m_thresholdValueLabel->setText(QString::number(m_thresh));
+                processRequest();
+            });
+            m_thresholdValueLabel = new QLabel(QString::number(m_thresh));
+            thresholdLayout->addWidget(m_thresholdValueLabel);
+        }
     }
 
     // charset widget
@@ -946,40 +998,24 @@ void AreaSelectDialog::processRequest() {
     if (m_process == RAW) {
         m_pshot = m_shot;
     } else {
-        QImage image = m_shot.toImage();
-        image.setDevicePixelRatio(1.0);
-        cv::Mat cvImg(image.height(), image.width(),
-                      image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-                      image.bits(),
-                      image.bytesPerLine());
-        cv::Mat processed;
         switch (m_process) {
-            case THRESHOLD: {
-                cv::Mat gray;
-                cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
-                cv::threshold(gray, processed, 128, 255, cv::THRESH_BINARY);
-                cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
+            case GAUSSIANBLUR: {
+                m_pshot = processGaussianBlur(m_shot, m_kernalSize);
                 break;
             }
-            break;
+            case THRESHOLD: {
+                m_pshot = processThreshold(m_shot, m_thresh);
+                break;
+            }
             default: break;
         }
-        QImage result(
-            processed.data,
-            processed.cols,
-            processed.rows,
-            processed.step,
-            image.format()
-        );
-        m_pshot = QPixmap::fromImage(result.copy());
     }
+    m_pshot.setDevicePixelRatio(m_dpr);
     selectionRequest();
 }
 
 void AreaSelectDialog::selectionRequest() const {
     m_graphicsScene->clear();
-    // item->setTransformationMode(Qt::FastTransformation);
-
     m_graphicsScene->addPixmap(m_pshot);
     for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
         const QStandardItem *item = m_selectionModel->item(row);

@@ -70,3 +70,42 @@ QString ocr(const QPixmap &pixmap, const QString &charset) {
     text = text.trimmed();
     return text.isEmpty() ? "null" : text;
 }
+
+QPixmap processGaussianBlur(const QPixmap &pixmap, const int size) {
+    QImage image = pixmap.toImage();
+    const cv::Mat cvImg(image.height(), image.width(),
+                  image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                  image.bits(),
+                  image.bytesPerLine());
+    cv::Mat processed;
+    cv::GaussianBlur(cvImg, processed, cv::Size(2 * size + 1, 2 * size + 1), 0);
+    const QImage result(
+        processed.data,
+        processed.cols,
+        processed.rows,
+        processed.step,
+        image.format()
+    );
+    return QPixmap::fromImage(result.copy());
+}
+
+QPixmap processThreshold(const QPixmap &pixmap, const int thresh) {
+    QImage image = pixmap.toImage();
+    const cv::Mat cvImg(image.height(), image.width(),
+                  image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                  image.bits(),
+                  image.bytesPerLine());
+    cv::Mat processed;
+    cv::Mat gray;
+    cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
+    cv::threshold(gray, processed, thresh, 255, cv::THRESH_BINARY);
+    cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
+    const QImage result(
+        processed.data,
+        processed.cols,
+        processed.rows,
+        processed.step,
+        image.format()
+    );
+    return QPixmap::fromImage(result.copy());
+}
