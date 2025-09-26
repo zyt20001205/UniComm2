@@ -820,6 +820,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
             m_thresholdNone = new QRadioButton(tr("None"));
             thresholdTypeLayout->addWidget(m_thresholdNone);
             buttonGroup->addButton(m_thresholdNone);
+            m_thresholdNone->setChecked(true);
             connect(m_thresholdNone,&QRadioButton::toggled, [this] {
                 m_thresholdType = 0;
                 processRequest();
@@ -827,7 +828,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
             m_thresholdOtsu = new QRadioButton(tr("Otsu"));
             thresholdTypeLayout->addWidget(m_thresholdOtsu);
             buttonGroup->addButton(m_thresholdOtsu);
-            connect(m_thresholdNone,&QRadioButton::toggled, [this] {
+            connect(m_thresholdOtsu,&QRadioButton::toggled, [this] {
                 m_thresholdType = 8;
                 processRequest();
             });
@@ -835,7 +836,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
             thresholdTypeLayout->addWidget(m_thresholdTriangle);
             buttonGroup->addButton(m_thresholdTriangle);
             m_thresholdNone->setChecked(true);
-            connect(m_thresholdNone,&QRadioButton::toggled, [this] {
+            connect(m_thresholdTriangle,&QRadioButton::toggled, [this] {
                 m_thresholdType = 16;
                 processRequest();
             });
