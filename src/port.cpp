@@ -794,28 +794,28 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         seperator->setLineWidth(1);
         processLayout->addWidget(seperator);
 
-        m_processStackedWidget = new QStackedWidget();
-        auto *processComboBox = new QComboBox();
-        ctrlLayout->addWidget(processComboBox);
-        processComboBox->addItem(tr("Raw"));
-        processComboBox->addItem(tr("Gaussian Blur"));
-        processComboBox->addItem(tr("Threshold"));
-        connect(processComboBox, &QComboBox::currentIndexChanged, this, [this, processComboBox] {
-            m_processType = processComboBox->currentIndex();
-            m_processStackedWidget->setCurrentIndex(m_processType);
+        auto* processStackedWidget = new QStackedWidget();
+        m_processComboBox = new QComboBox();
+        ctrlLayout->addWidget(m_processComboBox);
+        m_processComboBox->addItem(tr("Raw"));
+        m_processComboBox->addItem(tr("Gaussian Blur"));
+        m_processComboBox->addItem(tr("Threshold"));
+        connect(m_processComboBox, &QComboBox::currentIndexChanged, this, [this, processStackedWidget] {
+            m_processType = m_processComboBox->currentIndex();
+            processStackedWidget->setCurrentIndex(m_processType);
             processRequest();
         });
 
-        ctrlLayout->addWidget(m_processStackedWidget);
+        ctrlLayout->addWidget(processStackedWidget);
         // raw
         {
             auto *rawWidget = new QWidget();
-            m_processStackedWidget->addWidget(rawWidget);
+            processStackedWidget->addWidget(rawWidget);
         }
         // gaussianblur
         {
             auto *gaussianblurWidget = new QWidget();
-            m_processStackedWidget->addWidget(gaussianblurWidget);
+            processStackedWidget->addWidget(gaussianblurWidget);
             auto *gaussianblurLayout = new QHBoxLayout(gaussianblurWidget);
             gaussianblurLayout->setContentsMargins(0, 0, 0, 0);
             auto *gaussianblurLabel = new QLabel(tr("Kernal Size"));
@@ -835,7 +835,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         // threshold
         {
             auto *thresholdWidget = new QWidget();
-            m_processStackedWidget->addWidget(thresholdWidget);
+            processStackedWidget->addWidget(thresholdWidget);
             auto *thresholdLayout = new QVBoxLayout(thresholdWidget);
             thresholdLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -977,29 +977,29 @@ void AreaSelectDialog::reload(const QJsonObject &config) {
     // load dpr
     m_dpr = config["dpr"].toDouble();
     // load charset string (WIP)
-    QStringList charsetList = config["charset"].toString().split('+');
-    // load process
-    QJsonObject process = config["process"].toObject();
-    const int type = process["type"].toInt();
-    m_processStackedWidget->setCurrentIndex(type);
-    switch (type) {
-        case 0: break;
-        case 2: {
-            const int thresholdValue = process["value"].toInt();
-            m_thresholdSlider->setValue(thresholdValue);
-            switch (process["type"].toInt()) {
-                case 0: m_thresholdNone->setChecked(true);
-                    break;
-                case 8: m_thresholdOtsu->setChecked(true);
-                    break;
-                case 16: m_thresholdTriangle->setChecked(true);
-                    break;
-                default: break;
-            }
-        }
-        break;
-        default: break;
-    }
+    // QStringList charsetList = config["charset"].toString().split('+');
+    // load process (WIP)
+    // QJsonObject process = config["process"].toObject();
+    // const int type = process["type"].toInt();
+    // m_processComboBox->setCurrentIndex(type);
+    // switch (type) {
+    //     case 0: break;
+    //     case 2: {
+    //         const int thresholdValue = process["thresholdValue"].toInt();
+    //         m_thresholdSlider->setValue(thresholdValue);
+    //         switch (process["thresholdType"].toInt()) {
+    //             case 0: m_thresholdNone->setChecked(true);
+    //                 break;
+    //             case 8: m_thresholdOtsu->setChecked(true);
+    //                 break;
+    //             case 16: m_thresholdTriangle->setChecked(true);
+    //                 break;
+    //             default: break;
+    //         }
+    //     }
+    //     break;
+    //     default: break;
+    // }
     // load area list
     m_selectionModel->clear();
     const QJsonArray areaList = config["areaList"].toArray();
@@ -1037,8 +1037,8 @@ QJsonObject AreaSelectDialog::processExport() const {
             process["kernalSize"] = m_kernalSize;
             break;
         case 2:
-            process["value"] = m_thresholdValue;
-            process["type"] = m_thresholdType;
+            process["thresholdValue"] = m_thresholdValue;
+            process["thresholdType"] = m_thresholdType;
             break;
         default:
             break;

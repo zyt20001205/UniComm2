@@ -187,7 +187,7 @@ private:
     QGraphicsScene *m_graphicsScene = nullptr;
     double m_dpr{};
 
-    QStackedWidget* m_processStackedWidget = nullptr;
+    QComboBox *m_processComboBox = nullptr;
     int m_processType = 0;
 
     QSlider *m_gaussianblurSlider = nullptr;
