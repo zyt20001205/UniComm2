@@ -188,6 +188,7 @@ private:
     QLabel *m_gaussianblurValueLabel = nullptr;
     int m_kernalSize = 0;
 
+    QWidget *m_thresholdValueWidget = nullptr;
     QSlider *m_thresholdSlider = nullptr;
     QLabel *m_thresholdValueLabel = nullptr;
     int m_thresholdValue = 128;

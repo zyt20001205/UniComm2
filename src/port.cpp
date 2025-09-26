@@ -794,9 +794,9 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
             auto *thresholdLayout = new QVBoxLayout(thresholdWidget);
             thresholdLayout->setContentsMargins(0, 0, 0, 0);
 
-            auto *thresholdValueWidget = new QWidget();
-            thresholdLayout->addWidget(thresholdValueWidget);
-            auto *thresholdValueLayout = new QHBoxLayout(thresholdValueWidget);
+            m_thresholdValueWidget = new QWidget();
+            thresholdLayout->addWidget(m_thresholdValueWidget);
+            auto *thresholdValueLayout = new QHBoxLayout(m_thresholdValueWidget);
             thresholdValueLayout->setContentsMargins(0, 0, 0, 0);
             auto *label = new QLabel(tr("Thresh"));
             thresholdValueLayout->addWidget(label);
@@ -816,28 +816,31 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
             thresholdLayout->addWidget(thresholdTypeWidget);
             auto *thresholdTypeLayout = new QVBoxLayout(thresholdTypeWidget);
             thresholdTypeLayout->setContentsMargins(0, 0, 0, 0);
-            auto* buttonGroup = new QButtonGroup();
+            auto *buttonGroup = new QButtonGroup();
             m_thresholdNone = new QRadioButton(tr("None"));
             thresholdTypeLayout->addWidget(m_thresholdNone);
             buttonGroup->addButton(m_thresholdNone);
             m_thresholdNone->setChecked(true);
-            connect(m_thresholdNone,&QRadioButton::toggled, [this] {
+            connect(m_thresholdNone, &QRadioButton::toggled, [this] {
                 m_thresholdType = 0;
+                m_thresholdValueWidget->show();
                 processRequest();
             });
             m_thresholdOtsu = new QRadioButton(tr("Otsu"));
             thresholdTypeLayout->addWidget(m_thresholdOtsu);
             buttonGroup->addButton(m_thresholdOtsu);
-            connect(m_thresholdOtsu,&QRadioButton::toggled, [this] {
+            connect(m_thresholdOtsu, &QRadioButton::toggled, [this] {
                 m_thresholdType = 8;
+                m_thresholdValueWidget->hide();
                 processRequest();
             });
             m_thresholdTriangle = new QRadioButton(tr("Triangle"));
             thresholdTypeLayout->addWidget(m_thresholdTriangle);
             buttonGroup->addButton(m_thresholdTriangle);
             m_thresholdNone->setChecked(true);
-            connect(m_thresholdTriangle,&QRadioButton::toggled, [this] {
+            connect(m_thresholdTriangle, &QRadioButton::toggled, [this] {
                 m_thresholdType = 16;
+                m_thresholdValueWidget->hide();
                 processRequest();
             });
         }
