@@ -157,9 +157,11 @@ public:
 
     ~AreaSelectDialog() override = default;
 
-    void reload(const QJsonObject &config) const;
+    void reload(const QJsonObject &config);
 
-    void capture(const QString &type, const QString &target);
+    void captureRequest(const QString &type, const QString &target);
+
+    double dprExport() const;
 
     QString charsetExport() const;
 
@@ -169,27 +171,27 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void select(bool status) const;
+    void processRequest();
 
-    void charsetRefresh();
+    void selectionRequest() const;
 
-    void selectionHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint);
+    void ocrRequest() const;
 
-    void selectionRefresh() const;
-
-    void ocrRefresh() const;
+    void charsetRequest();
 
     QString m_type;
     QString m_target;
-    qreal m_dpr{};
     QGraphicsView *m_graphicsView = nullptr;
-    QString m_charsetString= "eng";
+    QGraphicsScene *m_graphicsScene = nullptr;
+    double m_dpr{};
+    QString m_charsetString = "eng";
     QListView *m_charsetListView = nullptr;
     QStandardItemModel *m_charsetModel = nullptr;
     QListView *m_selectionListView = nullptr;
     QStandardItemModel *m_selectionModel = nullptr;
     int m_process = 0;
     QPixmap m_shot{};
+    QPixmap m_pshot{};
     QRectF m_rectF;
 
     enum {

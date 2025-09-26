@@ -403,13 +403,13 @@ void Port::portSettingLoad(const int index) {
         } else if (portType == "screen") {
             m_screenNameCombobox->setCurrentText(portInfo["portName"].toString());
             m_areaChooseDialog->show();
-            m_areaChooseDialog->capture("screen", m_screenNameCombobox->currentText());
             m_areaChooseDialog->reload(portInfo);
+            m_areaChooseDialog->captureRequest("screen", m_screenNameCombobox->currentText());
         } else /* portType == "camera" */ {
             m_cameraNameCombobox->setCurrentText(portInfo["portName"].toString());
             m_areaChooseDialog->show();
-            m_areaChooseDialog->capture("camera", m_cameraNameCombobox->currentText());
             m_areaChooseDialog->reload(portInfo);
+            m_areaChooseDialog->captureRequest("camera", m_cameraNameCombobox->currentText());
         }
     }
 }
@@ -510,7 +510,7 @@ void Port::portSettingTypeSwitch(const int type) {
         disconnect(m_areaSelectPushButton, &QPushButton::clicked, this, nullptr);
         connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this] {
             m_areaChooseDialog->show();
-            m_areaChooseDialog->capture("screen", m_screenNameCombobox->currentText());
+            m_areaChooseDialog->captureRequest("screen", m_screenNameCombobox->currentText());
         });
         m_portSettingSavePushButton->show();
     } else {
@@ -521,7 +521,7 @@ void Port::portSettingTypeSwitch(const int type) {
         disconnect(m_areaSelectPushButton, &QPushButton::clicked, this, nullptr);
         connect(m_areaSelectPushButton, &QPushButton::clicked, this, [this] {
             m_areaChooseDialog->show();
-            m_areaChooseDialog->capture("camera", m_cameraNameCombobox->currentText());
+            m_areaChooseDialog->captureRequest("camera", m_cameraNameCombobox->currentText());
         });
         m_portSettingSavePushButton->show();
     }
@@ -630,6 +630,7 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "screen";
         portConfig["portName"] = m_screenNameCombobox->currentText();
+        portConfig["dpr"] = m_areaChooseDialog->dprExport();
         portConfig["charset"] = m_areaChooseDialog->charsetExport();
         portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
@@ -650,6 +651,7 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "camera";
         portConfig["portName"] = m_cameraNameCombobox->currentText();
+        portConfig["dpr"] = m_areaChooseDialog->dprExport();
         portConfig["charset"] = m_areaChooseDialog->charsetExport();
         portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
@@ -681,7 +683,29 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
 
     m_graphicsView = new QGraphicsView();
     splitter->addWidget(m_graphicsView);
-    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, &AreaSelectDialog::selectionHandle);
+    connect(m_graphicsView, &QGraphicsView::rubberBandChanged, this, [this](const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
+        const bool rubberBandEnded = viewportRect.isNull();
+        auto sceneRect = QRectF(fromScenePoint, toScenePoint);
+        if (!sceneRect.isNull() && sceneRect.isValid()) {
+            m_rectF = sceneRect;
+        }
+        if (rubberBandEnded) {
+            const auto logicalRect = m_rectF;
+            const auto physicalRect = QRectF(m_rectF.x() * m_dpr, m_rectF.y() * m_dpr, m_rectF.width() * m_dpr, m_rectF.height() * m_dpr);
+            auto *item = new QStandardItem();
+            const QPixmap cropped = m_shot.copy(physicalRect.toRect());
+            const QString recognizedText = ocr(cropped, m_charsetString);
+            item->setText(recognizedText);
+            item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
+            item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
+            item->setFlags(item->flags() &= ~Qt::ItemIsDropEnabled);
+            m_selectionModel->appendRow(item);
+            selectionRequest();
+        }
+    });
+    m_graphicsScene = new QGraphicsScene();
+    m_graphicsView->setScene(m_graphicsScene);
+    m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
 
     auto *ctrlWidget = new QWidget(); // NOLINT
     splitter->addWidget(ctrlWidget);
@@ -692,14 +716,46 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
     ctrlLayout->addWidget(refreshButton);
     refreshButton->setFixedSize(80, 48);
     refreshButton->setIcon(QIcon(":/icon/arrowClockwise.svg"));
-    connect(refreshButton, &QPushButton::clicked, this, [this] { capture(m_type, m_target); });
+    connect(refreshButton, &QPushButton::clicked, this, [this] { captureRequest(m_type, m_target); });
 
-    auto *cropButton = new QPushButton("crop");
-    ctrlLayout->addWidget(cropButton);
-    cropButton->setCheckable(true);
-    cropButton->setFixedSize(80, 48);
-    cropButton->setIcon(QIcon(":/icon/crop.svg"));
-    connect(cropButton, &QPushButton::clicked, this, &AreaSelectDialog::select);
+    auto *selectButton = new QPushButton("select");
+    ctrlLayout->addWidget(selectButton);
+    selectButton->setCheckable(true);
+    selectButton->setFixedSize(80, 48);
+    selectButton->setIcon(QIcon(":/icon/crop.svg"));
+    connect(selectButton, &QPushButton::clicked, this, [this](const bool status) {
+        if (status) {
+            m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+        } else {
+            m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+        }
+    });
+
+    // process widget
+    {
+        auto *processWidget = new QWidget();
+        ctrlLayout->addWidget(processWidget);
+        auto *processLayout = new QVBoxLayout(processWidget);
+        processLayout->setContentsMargins(0, 0, 0, 0);
+
+        auto *processLabel = new QLabel(tr("Process"));
+        processLayout->addWidget(processLabel);
+        processLabel->setFont(QFont("consolas", 16));
+
+        auto *seperator = new QFrame();
+        seperator->setFrameShape(QFrame::HLine);
+        seperator->setLineWidth(1);
+        processLayout->addWidget(seperator);
+
+        auto *processCombobox = new QComboBox();
+        ctrlLayout->addWidget(processCombobox);
+        processCombobox->addItem(tr("raw"));
+        processCombobox->addItem(tr("threshold"));
+        connect(processCombobox, &QComboBox::currentIndexChanged, this, [this, processCombobox] {
+            m_process = processCombobox->currentIndex();
+            processRequest();
+        });
+    }
 
     // charset widget
     {
@@ -740,8 +796,8 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         ssegItem->setData("7seg", Qt::UserRole + 1);
         ssegItem->setCheckable(true);
         ssegItem->setFlags(ssegItem->flags() &= ~Qt::ItemIsDropEnabled);
-        connect(m_charsetModel, &QStandardItemModel::rowsRemoved, this, [this] { charsetRefresh(); });
-        connect(m_charsetModel, &QStandardItemModel::itemChanged, this, [this] { charsetRefresh(); });
+        connect(m_charsetModel, &QStandardItemModel::rowsRemoved, this, [this] { charsetRequest(); });
+        connect(m_charsetModel, &QStandardItemModel::itemChanged, this, [this] { charsetRequest(); });
     }
 
     // selection widget
@@ -771,27 +827,17 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         m_selectionListView->installEventFilter(this);
         m_selectionModel = new QStandardItemModel();
         m_selectionListView->setModel(m_selectionModel);
-        connect(m_selectionModel, &QStandardItemModel::rowsMoved, this, [this] { selectionRefresh(); });
-        connect(m_selectionModel, &QStandardItemModel::rowsRemoved, this, [this] { selectionRefresh(); });
+        connect(m_selectionModel, &QStandardItemModel::rowsMoved, this, [this] { selectionRequest(); });
+        connect(m_selectionModel, &QStandardItemModel::rowsRemoved, this, [this] { selectionRequest(); });
     }
-
-    // auto *processCombobox = new QComboBox();
-    // ctrlLayout->addWidget(processCombobox);
-    // processCombobox->addItem(tr("raw"));
-    // processCombobox->addItem(tr("threshold"));
-    // connect(processCombobox, &QComboBox::currentIndexChanged, this, [this, processCombobox] {
-    //     m_process = processCombobox->currentIndex();
-    //     capture(m_type, m_target);
-    // });
 
     splitter->setStretchFactor(0, 3);
     splitter->setStretchFactor(1, 1);
 }
 
-void AreaSelectDialog::capture(const QString &type, const QString &target) {
+void AreaSelectDialog::captureRequest(const QString &type, const QString &target) {
     m_type = type;
     m_target = target;
-    QPixmap shot;
     if (m_type == "screen") {
         // find screen
         QScreen *screen = nullptr;
@@ -804,7 +850,7 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         if (!screen) return;
         m_dpr = screen->devicePixelRatio();
         // screenshot
-        shot = screen->grabWindow(0);
+        m_shot = screen->grabWindow(0);
     } else {
         // find camera
         QCameraDevice cameraDevice;
@@ -823,8 +869,8 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         QImageCapture imageCapture;
         captureSession.setImageCapture(&imageCapture);
         QEventLoop loop;
-        connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](int, const QImage &img) {
-            shot = QPixmap::fromImage(img);
+        connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &loop](int, const QImage &img) {
+            m_shot = QPixmap::fromImage(img);
             loop.quit();
         });
         camera->start();
@@ -833,50 +879,12 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
         camera->stop();
         delete camera;
     }
-    // image process
-    m_shot = shot;
-
-    // if (m_process != RAW) {
-    //     QImage image = shot.toImage();
-    //     image.setDevicePixelRatio(1.0);
-    //     cv::Mat cvImg(image.height(), image.width(),
-    //                   image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-    //                   image.bits(),
-    //                   image.bytesPerLine());
-    //     cv::Mat processed;
-    //     switch (m_process) {
-    //         case THRESHOLD: {
-    //             cv::Mat gray;
-    //             cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
-    //             cv::threshold(gray, processed, 128, 255, cv::THRESH_BINARY);
-    //             cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
-    //             break;
-    //         }
-    //         break;
-    //         default: break;
-    //     }
-    //     QImage result(
-    //         processed.data,
-    //         processed.cols,
-    //         processed.rows,
-    //         processed.step,
-    //         image.format()
-    //     );
-    //     shot = QPixmap::fromImage(result.copy());
-    // }
-
-    // show in graphics view
-    auto *scene = new QGraphicsScene(m_graphicsView); // NOLINT
-    auto *item = scene->addPixmap(shot);
-    item->setTransformationMode(Qt::FastTransformation);
-    m_graphicsView->setScene(scene);
-    m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
-
-    selectionRefresh();
-    ocrRefresh();
+    processRequest();
 }
 
-void AreaSelectDialog::reload(const QJsonObject &config) const {
+void AreaSelectDialog::reload(const QJsonObject &config) {
+    // load dpr
+    m_dpr = config["dpr"].toDouble();
     // load charset string (WIP)
     QStringList charsetList = config["charset"].toString().split('+');
     // load area list
@@ -891,15 +899,15 @@ void AreaSelectDialog::reload(const QJsonObject &config) const {
         const auto physicalRect = QRectF(x, y, width, height);
         const auto logicalRect = QRectF(physicalRect.x() / m_dpr, physicalRect.y() / m_dpr, physicalRect.width() / m_dpr, physicalRect.height() / m_dpr);
         auto *item = new QStandardItem();
-        const QPixmap cropped = m_shot.copy(physicalRect.toRect());
-        const QString recognizedText = ocr(cropped, m_charsetString);
-        item->setText(recognizedText);
         item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
         item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
         item->setFlags(item->flags() &= ~Qt::ItemIsDropEnabled);
         m_selectionModel->appendRow(item);
     }
-    selectionRefresh();
+}
+
+double AreaSelectDialog::dprExport() const {
+    return m_dpr;
 }
 
 QString AreaSelectDialog::charsetExport() const {
@@ -934,15 +942,73 @@ bool AreaSelectDialog::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // AreaSelectDialog private
-void AreaSelectDialog::select(const bool status) const {
-    if (status) {
-        m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+void AreaSelectDialog::processRequest() {
+    if (m_process == RAW) {
+        m_pshot = m_shot;
     } else {
-        m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+        QImage image = m_shot.toImage();
+        image.setDevicePixelRatio(1.0);
+        cv::Mat cvImg(image.height(), image.width(),
+                      image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                      image.bits(),
+                      image.bytesPerLine());
+        cv::Mat processed;
+        switch (m_process) {
+            case THRESHOLD: {
+                cv::Mat gray;
+                cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
+                cv::threshold(gray, processed, 128, 255, cv::THRESH_BINARY);
+                cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
+                break;
+            }
+            break;
+            default: break;
+        }
+        QImage result(
+            processed.data,
+            processed.cols,
+            processed.rows,
+            processed.step,
+            image.format()
+        );
+        m_pshot = QPixmap::fromImage(result.copy());
+    }
+    selectionRequest();
+}
+
+void AreaSelectDialog::selectionRequest() const {
+    m_graphicsScene->clear();
+    // item->setTransformationMode(Qt::FastTransformation);
+
+    m_graphicsScene->addPixmap(m_pshot);
+    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
+        const QStandardItem *item = m_selectionModel->item(row);
+        const auto logicalRect = item->data(Qt::UserRole + 1).value<QRectF>().toRect();
+        // gui
+        auto *graphicsRectItem = new QGraphicsRectItem(logicalRect);
+        m_graphicsScene->addItem(graphicsRectItem);
+        graphicsRectItem->setPen(QPen(Qt::red, 2));
+        auto *graphicsTextItem = new QGraphicsSimpleTextItem(QString::number(row + 1));
+        m_graphicsScene->addItem(graphicsTextItem);
+        graphicsTextItem->setPos(logicalRect.center() - graphicsTextItem->boundingRect().center());
+        graphicsTextItem->setBrush(Qt::red);
+        graphicsTextItem->setFont(QFont("consolas", 12));
+    }
+    ocrRequest();
+}
+
+void AreaSelectDialog::ocrRequest() const {
+    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
+        QStandardItem *item = m_selectionModel->item(row);
+        const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
+        // update ocr result
+        const QPixmap cropped = m_pshot.copy(physicalRect);
+        const QString recognizedText = ocr(cropped, m_charsetString);
+        item->setText(recognizedText);
     }
 }
 
-void AreaSelectDialog::charsetRefresh() {
+void AreaSelectDialog::charsetRequest() {
     QStringList charsetList;
     for (int row = 0; row < m_charsetModel->rowCount(); ++row) {
         const QStandardItem *item = m_charsetModel->item(row);
@@ -952,57 +1018,7 @@ void AreaSelectDialog::charsetRefresh() {
         }
     }
     m_charsetString = charsetList.join("+");
-    ocrRefresh();
-}
-
-void AreaSelectDialog::selectionHandle(const QRectF &viewportRect, const QPointF &fromScenePoint, const QPointF &toScenePoint) {
-    const bool rubberBandEnded = viewportRect.isNull();
-    auto sceneRect = QRectF(fromScenePoint, toScenePoint);
-    if (!sceneRect.isNull() && sceneRect.isValid()) {
-        m_rectF = sceneRect;
-    }
-    if (rubberBandEnded) {
-        const auto logicalRect = m_rectF;
-        const auto physicalRect = QRectF(m_rectF.x() * m_dpr, m_rectF.y() * m_dpr, m_rectF.width() * m_dpr, m_rectF.height() * m_dpr);
-        auto *item = new QStandardItem();
-        const QPixmap cropped = m_shot.copy(physicalRect.toRect());
-        const QString recognizedText = ocr(cropped, m_charsetString);
-        item->setText(recognizedText);
-        item->setData(QVariant::fromValue(logicalRect), Qt::UserRole + 1);
-        item->setData(QVariant::fromValue(physicalRect), Qt::UserRole + 2);
-        item->setFlags(item->flags() &= ~Qt::ItemIsDropEnabled);
-        m_selectionModel->appendRow(item);
-        selectionRefresh();
-    }
-}
-
-void AreaSelectDialog::selectionRefresh() const {
-    m_graphicsView->scene()->clear();
-    m_graphicsView->scene()->addPixmap(m_shot);
-    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
-        const QStandardItem *item = m_selectionModel->item(row);
-        const auto logicalRect = item->data(Qt::UserRole + 1).value<QRectF>().toRect();
-        // gui
-        auto *graphicsRectItem = new QGraphicsRectItem(logicalRect);
-        m_graphicsView->scene()->addItem(graphicsRectItem);
-        graphicsRectItem->setPen(QPen(Qt::red, 2));
-        auto *graphicsTextItem = new QGraphicsSimpleTextItem(QString::number(row + 1));
-        m_graphicsView->scene()->addItem(graphicsTextItem);
-        graphicsTextItem->setPos(logicalRect.center() - graphicsTextItem->boundingRect().center());
-        graphicsTextItem->setBrush(Qt::red);
-        graphicsTextItem->setFont(QFont("consolas", 12));
-    }
-}
-
-void AreaSelectDialog::ocrRefresh() const {
-    for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
-        QStandardItem *item = m_selectionModel->item(row);
-        const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
-        // update ocr result
-        const QPixmap cropped = m_shot.copy(physicalRect);
-        const QString recognizedText = ocr(cropped, m_charsetString);
-        item->setText(recognizedText);
-    }
+    ocrRequest();
 }
 
 // PageWidget public
