@@ -17,6 +17,6 @@ QString ocr(const QPixmap &pixmap, const QString &charset);
 
 QPixmap processGaussianBlur(const QPixmap &pixmap, int size);
 
-QPixmap processThreshold(const QPixmap &pixmap, int thresh);
+QPixmap processThreshold(const QPixmap &pixmap, int thresh, int type);
 
 #endif //UTILS_H

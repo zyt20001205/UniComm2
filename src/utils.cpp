@@ -89,7 +89,7 @@ QPixmap processGaussianBlur(const QPixmap &pixmap, const int size) {
     return QPixmap::fromImage(result.copy());
 }
 
-QPixmap processThreshold(const QPixmap &pixmap, const int thresh) {
+QPixmap processThreshold(const QPixmap &pixmap, const int thresh, const int type) {
     QImage image = pixmap.toImage();
     const cv::Mat cvImg(image.height(), image.width(),
                   image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
@@ -98,7 +98,7 @@ QPixmap processThreshold(const QPixmap &pixmap, const int thresh) {
     cv::Mat processed;
     cv::Mat gray;
     cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
-    cv::threshold(gray, processed, thresh, 255, cv::THRESH_BINARY);
+    cv::threshold(gray, processed, thresh, 255, type);
     cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
     const QImage result(
         processed.data,

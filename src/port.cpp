@@ -773,7 +773,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
             processStackedWidget->addWidget(gaussianblurWidget);
             auto *gaussianblurLayout = new QHBoxLayout(gaussianblurWidget);
             gaussianblurLayout->setContentsMargins(0, 0, 0, 0);
-            auto* gaussianblurLabel = new QLabel(tr("Kernal Size"));
+            auto *gaussianblurLabel = new QLabel(tr("Kernal Size"));
             gaussianblurLayout->addWidget(gaussianblurLabel);
             m_gaussianblurSlider = new QSlider(Qt::Horizontal);
             gaussianblurLayout->addWidget(m_gaussianblurSlider);
@@ -791,21 +791,54 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         {
             auto *thresholdWidget = new QWidget();
             processStackedWidget->addWidget(thresholdWidget);
-            auto *thresholdLayout = new QHBoxLayout(thresholdWidget);
+            auto *thresholdLayout = new QVBoxLayout(thresholdWidget);
             thresholdLayout->setContentsMargins(0, 0, 0, 0);
-            auto* thresholdLabel = new QLabel(tr("Thresh"));
-            thresholdLayout->addWidget(thresholdLabel);
+
+            auto *thresholdValueWidget = new QWidget();
+            thresholdLayout->addWidget(thresholdValueWidget);
+            auto *thresholdValueLayout = new QHBoxLayout(thresholdValueWidget);
+            thresholdValueLayout->setContentsMargins(0, 0, 0, 0);
+            auto *label = new QLabel(tr("Thresh"));
+            thresholdValueLayout->addWidget(label);
             m_thresholdSlider = new QSlider(Qt::Horizontal);
-            thresholdLayout->addWidget(m_thresholdSlider);
+            thresholdValueLayout->addWidget(m_thresholdSlider);
             m_thresholdSlider->setRange(0, 255);
-            m_thresholdSlider->setValue(m_thresh);
+            m_thresholdSlider->setValue(m_thresholdValue);
             connect(m_thresholdSlider, &QSlider::sliderReleased, [this] {
-                m_thresh = m_thresholdSlider->value();
-                m_thresholdValueLabel->setText(QString::number(m_thresh));
+                m_thresholdValue = m_thresholdSlider->value();
+                m_thresholdValueLabel->setText(QString::number(m_thresholdValue));
                 processRequest();
             });
-            m_thresholdValueLabel = new QLabel(QString::number(m_thresh));
-            thresholdLayout->addWidget(m_thresholdValueLabel);
+            m_thresholdValueLabel = new QLabel(QString::number(m_thresholdValue));
+            thresholdValueLayout->addWidget(m_thresholdValueLabel);
+
+            auto *thresholdTypeWidget = new QWidget();
+            thresholdLayout->addWidget(thresholdTypeWidget);
+            auto *thresholdTypeLayout = new QVBoxLayout(thresholdTypeWidget);
+            thresholdTypeLayout->setContentsMargins(0, 0, 0, 0);
+            auto* buttonGroup = new QButtonGroup();
+            m_thresholdNone = new QRadioButton(tr("None"));
+            thresholdTypeLayout->addWidget(m_thresholdNone);
+            buttonGroup->addButton(m_thresholdNone);
+            connect(m_thresholdNone,&QRadioButton::toggled, [this] {
+                m_thresholdType = 0;
+                processRequest();
+            });
+            m_thresholdOtsu = new QRadioButton(tr("Otsu"));
+            thresholdTypeLayout->addWidget(m_thresholdOtsu);
+            buttonGroup->addButton(m_thresholdOtsu);
+            connect(m_thresholdNone,&QRadioButton::toggled, [this] {
+                m_thresholdType = 8;
+                processRequest();
+            });
+            m_thresholdTriangle = new QRadioButton(tr("Triangle"));
+            thresholdTypeLayout->addWidget(m_thresholdTriangle);
+            buttonGroup->addButton(m_thresholdTriangle);
+            m_thresholdNone->setChecked(true);
+            connect(m_thresholdNone,&QRadioButton::toggled, [this] {
+                m_thresholdType = 16;
+                processRequest();
+            });
         }
     }
 
@@ -1004,7 +1037,7 @@ void AreaSelectDialog::processRequest() {
                 break;
             }
             case THRESHOLD: {
-                m_pshot = processThreshold(m_shot, m_thresh);
+                m_pshot = processThreshold(m_shot, m_thresholdValue, m_thresholdType);
                 break;
             }
             default: break;

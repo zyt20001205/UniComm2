@@ -2,6 +2,7 @@
 #define PORT_H
 
 #include <QApplication>
+#include <QButtonGroup>
 #include <QCamera>
 #include <QCameraDevice>
 #include <QComboBox>
@@ -25,6 +26,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScreen>
 #include <QSerialPort>
 #include <QSerialPortInfo>
@@ -185,9 +187,15 @@ private:
     QSlider *m_gaussianblurSlider = nullptr;
     QLabel *m_gaussianblurValueLabel = nullptr;
     int m_kernalSize = 0;
+
     QSlider *m_thresholdSlider = nullptr;
     QLabel *m_thresholdValueLabel = nullptr;
-    int m_thresh = 128;
+    int m_thresholdValue = 128;
+    QRadioButton *m_thresholdNone = nullptr;
+    QRadioButton *m_thresholdOtsu = nullptr;
+    QRadioButton *m_thresholdTriangle = nullptr;
+    int m_thresholdType = 0;
+
     QString m_charsetString = "eng";
     QListView *m_charsetListView = nullptr;
     QStandardItemModel *m_charsetModel = nullptr;
