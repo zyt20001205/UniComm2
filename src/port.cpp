@@ -630,6 +630,7 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "screen";
         portConfig["portName"] = m_screenNameCombobox->currentText();
+        portConfig["charset"] = m_areaChooseDialog->charsetExport();
         portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
@@ -649,6 +650,7 @@ void Port::portSettingSave(const int type) {
         QJsonObject portConfig;
         portConfig["portType"] = "camera";
         portConfig["portName"] = m_cameraNameCombobox->currentText();
+        portConfig["charset"] = m_areaChooseDialog->charsetExport();
         portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
@@ -875,8 +877,8 @@ void AreaSelectDialog::capture(const QString &type, const QString &target) {
 }
 
 void AreaSelectDialog::reload(const QJsonObject &config) const {
-    // load charset string
-
+    // load charset string (WIP)
+    QStringList charsetList = config["charset"].toString().split('+');
     // load area list
     m_selectionModel->clear();
     const QJsonArray areaList = config["areaList"].toArray();
@@ -898,6 +900,10 @@ void AreaSelectDialog::reload(const QJsonObject &config) const {
         m_selectionModel->appendRow(item);
     }
     selectionRefresh();
+}
+
+QString AreaSelectDialog::charsetExport() const {
+    return m_charsetString;
 }
 
 QJsonArray AreaSelectDialog::areaExport() const {
@@ -937,15 +943,15 @@ void AreaSelectDialog::select(const bool status) const {
 }
 
 void AreaSelectDialog::charsetRefresh() {
-    QStringList characterStringList;
+    QStringList charsetList;
     for (int row = 0; row < m_charsetModel->rowCount(); ++row) {
         const QStandardItem *item = m_charsetModel->item(row);
         if (item->checkState() == Qt::Checked) {
             const auto lang = item->data(Qt::UserRole + 1).value<QString>();
-            characterStringList.append(lang);
+            charsetList.append(lang);
         }
     }
-    m_charsetString = characterStringList.join("+");
+    m_charsetString = charsetList.join("+");
     ocrRefresh();
 }
 
@@ -2009,6 +2015,7 @@ QByteArray UdpSocket::handleRead(const int timeout, const int length) {
 Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
     // port config
     m_portName = portConfig["portName"].toString();
+    m_charset = portConfig["charset"].toString();
     m_areaList = portConfig["areaList"].toArray();
 }
 
@@ -2048,7 +2055,7 @@ QString Screen::readText(const int timeout, const int length) {
         const int height = areaArray[3].toInt();
         const auto rect = QRect(x, y, width, height);
         const QPixmap cropped = shot.copy(rect);
-        const QString text = ocr(cropped, "eng");
+        const QString text = ocr(cropped, m_charset);
         resultList.append(text);
     }
     return resultList.join("\x1E");
@@ -2058,6 +2065,7 @@ QString Screen::readText(const int timeout, const int length) {
 Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
     // port config
     m_portName = portConfig["portName"].toString();
+    m_charset = portConfig["charset"].toString();
     m_areaList = portConfig["areaList"].toArray();
 }
 
@@ -2115,7 +2123,7 @@ QString Camera::readText(const int timeout, const int length) {
         const int height = areaArray[3].toInt();
         const auto rect = QRect(x, y, width, height);
         const QPixmap cropped = shot.copy(rect);
-        const QString text = ocr(cropped, "eng");
+        const QString text = ocr(cropped, m_charset);
         resultList.append(text);
     }
     return resultList.join("\x1E");

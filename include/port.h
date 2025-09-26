@@ -161,6 +161,8 @@ public:
 
     void capture(const QString &type, const QString &target);
 
+    QString charsetExport() const;
+
     QJsonArray areaExport() const;
 
 protected:
@@ -517,6 +519,7 @@ private:
     QScreen *m_screen = nullptr;
     // port config
     QString m_portName;
+    QString m_charset;
     QJsonArray m_areaList;
 };
 
@@ -540,6 +543,7 @@ private:
     QCameraDevice m_camera;
     // port config
     QString m_portName;
+    QString m_charset;
     QJsonArray m_areaList;
 };
 
