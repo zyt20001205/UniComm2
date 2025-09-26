@@ -45,6 +45,7 @@
 #include <QMutex>
 #include <allheaders.h>
 #include <baseapi.h>
+#include <qstackedwidget.h>
 #include <QStandardItemModel>
 #include "config.h"
 #include "suffix.h"
@@ -164,6 +165,8 @@ public:
 
     QString charsetExport() const;
 
+    QJsonObject processExport() const;
+
     QJsonArray areaExport() const;
 
 protected:
@@ -184,6 +187,9 @@ private:
     QGraphicsScene *m_graphicsScene = nullptr;
     double m_dpr{};
 
+    QStackedWidget* m_processStackedWidget = nullptr;
+    int m_processType = 0;
+
     QSlider *m_gaussianblurSlider = nullptr;
     QLabel *m_gaussianblurValueLabel = nullptr;
     int m_kernalSize = 0;
@@ -202,7 +208,7 @@ private:
     QStandardItemModel *m_charsetModel = nullptr;
     QListView *m_selectionListView = nullptr;
     QStandardItemModel *m_selectionModel = nullptr;
-    int m_process = 0;
+
     QPixmap m_shot{};
     QPixmap m_pshot{};
     QRectF m_rectF;

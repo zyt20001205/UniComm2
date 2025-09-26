@@ -634,6 +634,7 @@ void Port::portSettingSave(const int type) {
         portConfig["portName"] = m_screenNameCombobox->currentText();
         portConfig["dpr"] = m_areaChooseDialog->dprExport();
         portConfig["charset"] = m_areaChooseDialog->charsetExport();
+        portConfig["process"] = m_areaChooseDialog->processExport();
         portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
@@ -655,6 +656,7 @@ void Port::portSettingSave(const int type) {
         portConfig["portName"] = m_cameraNameCombobox->currentText();
         portConfig["dpr"] = m_areaChooseDialog->dprExport();
         portConfig["charset"] = m_areaChooseDialog->charsetExport();
+        portConfig["process"] = m_areaChooseDialog->processExport();
         portConfig["areaList"] = m_areaChooseDialog->areaExport();
         if (m_currentIndex == -1) {
             if (m_portConfig.empty()) {
@@ -733,6 +735,49 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         }
     });
 
+    // charset widget
+    {
+        auto *charsetWidget = new QWidget();
+        ctrlLayout->addWidget(charsetWidget);
+        auto *charsetLayout = new QVBoxLayout(charsetWidget);
+        charsetLayout->setContentsMargins(0, 0, 0, 0);
+
+        auto *charsetLabel = new QLabel(tr("Charset"));
+        charsetLayout->addWidget(charsetLabel);
+        charsetLabel->setFont(QFont("consolas", 16));
+
+        auto *seperator = new QFrame();
+        seperator->setFrameShape(QFrame::HLine);
+        seperator->setLineWidth(1);
+        charsetLayout->addWidget(seperator);
+
+        m_charsetListView = new QListView();
+        charsetLayout->addWidget(m_charsetListView);
+        m_charsetListView->setStyleSheet("QListView::item { min-height: 30px; }");
+        m_charsetListView->setDragDropMode(QAbstractItemView::InternalMove);
+        m_charsetListView->setDefaultDropAction(Qt::MoveAction);
+        m_charsetListView->setDragEnabled(true);
+        m_charsetListView->setAcceptDrops(true);
+        m_charsetListView->setDropIndicatorShown(true);
+        m_charsetModel = new QStandardItemModel();
+        m_charsetListView->setModel(m_charsetModel);
+        auto *engItem = new QStandardItem();
+        m_charsetModel->appendRow(engItem);
+        engItem->setText(tr("English"));
+        engItem->setData("eng", Qt::UserRole + 1);
+        engItem->setCheckable(true);
+        engItem->setCheckState(Qt::Checked);
+        engItem->setFlags(engItem->flags() &= ~Qt::ItemIsDropEnabled);
+        auto *ssegItem = new QStandardItem();
+        m_charsetModel->appendRow(ssegItem);
+        ssegItem->setText(tr("Seven Segment"));
+        ssegItem->setData("7seg", Qt::UserRole + 1);
+        ssegItem->setCheckable(true);
+        ssegItem->setFlags(ssegItem->flags() &= ~Qt::ItemIsDropEnabled);
+        connect(m_charsetModel, &QStandardItemModel::rowsRemoved, this, [this] { charsetRequest(); });
+        connect(m_charsetModel, &QStandardItemModel::itemChanged, this, [this] { charsetRequest(); });
+    }
+
     // process widget
     {
         auto *processWidget = new QWidget();
@@ -749,28 +794,28 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         seperator->setLineWidth(1);
         processLayout->addWidget(seperator);
 
-        auto *processStackedWidget = new QStackedWidget();
+        m_processStackedWidget = new QStackedWidget();
         auto *processComboBox = new QComboBox();
         ctrlLayout->addWidget(processComboBox);
         processComboBox->addItem(tr("Raw"));
         processComboBox->addItem(tr("Gaussian Blur"));
         processComboBox->addItem(tr("Threshold"));
-        connect(processComboBox, &QComboBox::currentIndexChanged, this, [this, processComboBox, processStackedWidget] {
-            m_process = processComboBox->currentIndex();
-            processStackedWidget->setCurrentIndex(m_process);
+        connect(processComboBox, &QComboBox::currentIndexChanged, this, [this, processComboBox] {
+            m_processType = processComboBox->currentIndex();
+            m_processStackedWidget->setCurrentIndex(m_processType);
             processRequest();
         });
 
-        ctrlLayout->addWidget(processStackedWidget);
+        ctrlLayout->addWidget(m_processStackedWidget);
         // raw
         {
             auto *rawWidget = new QWidget();
-            processStackedWidget->addWidget(rawWidget);
+            m_processStackedWidget->addWidget(rawWidget);
         }
         // gaussianblur
         {
             auto *gaussianblurWidget = new QWidget();
-            processStackedWidget->addWidget(gaussianblurWidget);
+            m_processStackedWidget->addWidget(gaussianblurWidget);
             auto *gaussianblurLayout = new QHBoxLayout(gaussianblurWidget);
             gaussianblurLayout->setContentsMargins(0, 0, 0, 0);
             auto *gaussianblurLabel = new QLabel(tr("Kernal Size"));
@@ -790,7 +835,7 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
         // threshold
         {
             auto *thresholdWidget = new QWidget();
-            processStackedWidget->addWidget(thresholdWidget);
+            m_processStackedWidget->addWidget(thresholdWidget);
             auto *thresholdLayout = new QVBoxLayout(thresholdWidget);
             thresholdLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -844,49 +889,6 @@ AreaSelectDialog::AreaSelectDialog(QWidget *parent)
                 processRequest();
             });
         }
-    }
-
-    // charset widget
-    {
-        auto *charsetWidget = new QWidget();
-        ctrlLayout->addWidget(charsetWidget);
-        auto *charsetLayout = new QVBoxLayout(charsetWidget);
-        charsetLayout->setContentsMargins(0, 0, 0, 0);
-
-        auto *charsetLabel = new QLabel(tr("Charset"));
-        charsetLayout->addWidget(charsetLabel);
-        charsetLabel->setFont(QFont("consolas", 16));
-
-        auto *seperator = new QFrame();
-        seperator->setFrameShape(QFrame::HLine);
-        seperator->setLineWidth(1);
-        charsetLayout->addWidget(seperator);
-
-        m_charsetListView = new QListView();
-        charsetLayout->addWidget(m_charsetListView);
-        m_charsetListView->setStyleSheet("QListView::item { min-height: 30px; }");
-        m_charsetListView->setDragDropMode(QAbstractItemView::InternalMove);
-        m_charsetListView->setDefaultDropAction(Qt::MoveAction);
-        m_charsetListView->setDragEnabled(true);
-        m_charsetListView->setAcceptDrops(true);
-        m_charsetListView->setDropIndicatorShown(true);
-        m_charsetModel = new QStandardItemModel();
-        m_charsetListView->setModel(m_charsetModel);
-        auto *engItem = new QStandardItem();
-        m_charsetModel->appendRow(engItem);
-        engItem->setText(tr("English"));
-        engItem->setData("eng", Qt::UserRole + 1);
-        engItem->setCheckable(true);
-        engItem->setCheckState(Qt::Checked);
-        engItem->setFlags(engItem->flags() &= ~Qt::ItemIsDropEnabled);
-        auto *ssegItem = new QStandardItem();
-        m_charsetModel->appendRow(ssegItem);
-        ssegItem->setText(tr("Seven Segment"));
-        ssegItem->setData("7seg", Qt::UserRole + 1);
-        ssegItem->setCheckable(true);
-        ssegItem->setFlags(ssegItem->flags() &= ~Qt::ItemIsDropEnabled);
-        connect(m_charsetModel, &QStandardItemModel::rowsRemoved, this, [this] { charsetRequest(); });
-        connect(m_charsetModel, &QStandardItemModel::itemChanged, this, [this] { charsetRequest(); });
     }
 
     // selection widget
@@ -976,6 +978,28 @@ void AreaSelectDialog::reload(const QJsonObject &config) {
     m_dpr = config["dpr"].toDouble();
     // load charset string (WIP)
     QStringList charsetList = config["charset"].toString().split('+');
+    // load process
+    QJsonObject process = config["process"].toObject();
+    const int type = process["type"].toInt();
+    m_processStackedWidget->setCurrentIndex(type);
+    switch (type) {
+        case 0: break;
+        case 2: {
+            const int thresholdValue = process["value"].toInt();
+            m_thresholdSlider->setValue(thresholdValue);
+            switch (process["type"].toInt()) {
+                case 0: m_thresholdNone->setChecked(true);
+                    break;
+                case 8: m_thresholdOtsu->setChecked(true);
+                    break;
+                case 16: m_thresholdTriangle->setChecked(true);
+                    break;
+                default: break;
+            }
+        }
+        break;
+        default: break;
+    }
     // load area list
     m_selectionModel->clear();
     const QJsonArray areaList = config["areaList"].toArray();
@@ -1001,6 +1025,25 @@ double AreaSelectDialog::dprExport() const {
 
 QString AreaSelectDialog::charsetExport() const {
     return m_charsetString;
+}
+
+QJsonObject AreaSelectDialog::processExport() const {
+    QJsonObject process;
+    process["type"] = m_processType;
+    switch (m_processType) {
+        case 0:
+            break;
+        case 1:
+            process["kernalSize"] = m_kernalSize;
+            break;
+        case 2:
+            process["value"] = m_thresholdValue;
+            process["type"] = m_thresholdType;
+            break;
+        default:
+            break;
+    }
+    return process;
 }
 
 QJsonArray AreaSelectDialog::areaExport() const {
@@ -1032,10 +1075,10 @@ bool AreaSelectDialog::eventFilter(QObject *obj, QEvent *event) {
 
 // AreaSelectDialog private
 void AreaSelectDialog::processRequest() {
-    if (m_process == RAW) {
+    if (m_processType == RAW) {
         m_pshot = m_shot;
     } else {
-        switch (m_process) {
+        switch (m_processType) {
             case GAUSSIANBLUR: {
                 m_pshot = processGaussianBlur(m_shot, m_kernalSize);
                 break;
