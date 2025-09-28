@@ -188,20 +188,22 @@ private:
     double m_dpr{};
 
     QComboBox *m_processComboBox = nullptr;
+    QStackedWidget *m_processStackedWidget = nullptr;
     int m_processType = 0;
 
     QSlider *m_gaussianblurSlider = nullptr;
     QLabel *m_gaussianblurValueLabel = nullptr;
-    int m_kernalSize = 0;
+    int m_kernalSize = 1;
 
     QWidget *m_thresholdValueWidget = nullptr;
     QSlider *m_thresholdSlider = nullptr;
     QLabel *m_thresholdValueLabel = nullptr;
     int m_thresholdValue = 128;
-    QRadioButton *m_thresholdNone = nullptr;
+    QComboBox *m_thresholdTypeComboBox = nullptr;
+    QRadioButton *m_thresholdManual = nullptr;
     QRadioButton *m_thresholdOtsu = nullptr;
     QRadioButton *m_thresholdTriangle = nullptr;
-    int m_thresholdType = 0;
+    int m_thresholdType = 1;
 
     QString m_charsetString = "eng";
     QListView *m_charsetListView = nullptr;

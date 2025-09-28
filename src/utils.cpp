@@ -72,11 +72,12 @@ QString ocr(const QPixmap &pixmap, const QString &charset) {
 }
 
 QPixmap processGaussianBlur(const QPixmap &pixmap, const int size) {
+    qDebug() << "gaussian blur" << size;
     QImage image = pixmap.toImage();
     const cv::Mat cvImg(image.height(), image.width(),
-                  image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-                  image.bits(),
-                  image.bytesPerLine());
+                        image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                        image.bits(),
+                        image.bytesPerLine());
     cv::Mat processed;
     cv::GaussianBlur(cvImg, processed, cv::Size(2 * size + 1, 2 * size + 1), 0);
     const QImage result(
@@ -90,11 +91,12 @@ QPixmap processGaussianBlur(const QPixmap &pixmap, const int size) {
 }
 
 QPixmap processThreshold(const QPixmap &pixmap, const int thresh, const int type) {
+    qDebug() << "threshold" << thresh << type;
     QImage image = pixmap.toImage();
     const cv::Mat cvImg(image.height(), image.width(),
-                  image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-                  image.bits(),
-                  image.bytesPerLine());
+                        image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                        image.bits(),
+                        image.bytesPerLine());
     cv::Mat processed;
     cv::Mat gray;
     cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
