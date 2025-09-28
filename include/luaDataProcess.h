@@ -18,6 +18,8 @@ int lua_datatableWrite(lua_State *L);
 
 int lua_datatableClear(lua_State *L);
 
+int lua_datatableExport(lua_State *L);
+
 int lua_dataplotAppend(lua_State *L);
 
 #endif //LUADATAPROCESS_H

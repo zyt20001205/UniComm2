@@ -241,6 +241,11 @@ function datatable.write(key, value) end
 --- @return nil
 function datatable.clear(key) end
 
+--- Exports the datatable to a CSV file.
+--- @param nil
+--- @return nil
+function datatable.export() end
+
 dataplot = {}
 --- Appends a column from the datatable to dataplot using a key identifier
 --- @param key string The named key of the column to append from the datatable.

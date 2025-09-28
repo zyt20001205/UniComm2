@@ -1352,6 +1352,8 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_setfield(L, -2, "write");
     lua_pushcfunction(L, lua_datatableClear);
     lua_setfield(L, -2, "clear");
+    lua_pushcfunction(L, lua_datatableExport);
+    lua_setfield(L, -2, "export");
     lua_setglobal(L, "datatable");
     // register dataplot class
     lua_newtable(L);

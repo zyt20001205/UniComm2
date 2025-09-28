@@ -3,6 +3,7 @@
 
 #include <QDockWidget>
 #include <QEvent>
+#include <QFile>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QJsonArray>
@@ -26,6 +27,8 @@ public:
     void datatableClear(const QString &key);
 
     void datatableAddGraph(const QString &key, int position);
+
+    void datatableExport();
 
 signals:
     void addGraphDataPlot(const QString &key, const QList<double> &x, const QList<double> &y, int position);

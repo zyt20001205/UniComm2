@@ -57,6 +57,18 @@ int lua_datatableClear(lua_State *L) {
     return 0;
 }
 
+int lua_datatableExport(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) > 0)
+        luaL_error(L, "unexpected number of arguments");
+    // check arguments
+    // start operation
+    QMetaObject::invokeMethod(g_database, [] {
+        g_datatable->datatableExport();
+    }, Qt::QueuedConnection);
+    return 0;
+}
+
 int lua_dataplotAppend(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 2)

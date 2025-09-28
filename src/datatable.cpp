@@ -58,7 +58,7 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
 
     const int row = m_data[key].x.size() - 1;
     const int column = m_data.find(key).value().index;
-    m_tableWidget->setRowCount(row + 1);
+    m_tableWidget->setRowCount(qMax(m_tableWidget->rowCount(), row + 1));
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
     m_tableWidget->scrollToBottom();
 }
@@ -99,6 +99,38 @@ void Datatable::datatableAddGraph(const QString &key, const int position) {
     }
     m_data[key].enable = true;
     emit addGraphDataPlot(key, m_data[key].x, m_data[key].y, position);
+}
+
+void Datatable::datatableExport() {
+    const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+    QFile file(defaultName);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    // write header
+    const QList<QString> keyList = m_data.keys();
+    const QString header = keyList.join(", ") + "\n";
+    out << header;
+    // calc length
+    int rowCount = 0;
+    foreach(const QString &key, keyList) {
+        rowCount = qMax(rowCount, m_data[key].y.size());
+    }
+    // write data(y)
+    for (int row = 0; row < rowCount; ++row) {
+        QStringList rowData;
+        foreach(const QString &key, keyList) {
+            if (row < m_data[key].y.size()) {
+                rowData << QString::number(m_data[key].y[row]);
+            } else {
+                rowData << "";
+            }
+        }
+        out << rowData.join(",") << "\n";
+    }
+    file.close();
+    // logging
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
 // Datatable protected
