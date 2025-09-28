@@ -31,16 +31,14 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void databaseRename(int visualRow);
+    void databaseRename(int visualIndex);
 
-    void databaseInsert(int visualRow);
+    void databaseInsert(int visualIndex);
 
-    void databaseRemove(int visualRow);
+    void databaseRemove(int visualIndex);
 
     QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
     QTableWidget *m_tableWidget = nullptr;
-    int m_srcIndex{};
-    int m_dstIndex{};
 };
 
 #endif //DATABASE_H
