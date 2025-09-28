@@ -31,6 +31,7 @@
 #include <QPointer>
 #include <lua.hpp>
 #include "config.h"
+#include "luaControl.h"
 #include "luaDataProcess.h"
 #include "luaPort.h"
 #include "luaMiscellaneous.h"
@@ -211,6 +212,8 @@ class TooltipCompletion;
 
 class TooltipHover;
 
+class TooltipPosition;
+
 class TooltipSignatureHelp;
 
 class ScriptPageWidget final : public QWidget {
@@ -241,6 +244,7 @@ public:
     bool m_scriptModify = false;
     TooltipCompletion *m_tooltipCompletion = nullptr;
     TooltipHover *m_tooltipHover = nullptr;
+    TooltipPosition *m_tooltipPosition = nullptr;
     TooltipSignatureHelp *m_tooltipSignatureHelp = nullptr;
 
 signals:
@@ -269,6 +273,8 @@ private:
     void textReplace(QString &text, const QString &kind) const;
 
     void textInsert(QString &text, const QString &kind) const;
+
+    void positionFill(int x, int y) const;
 
     QTimer *m_editTimer = nullptr;
 };
@@ -326,6 +332,29 @@ protected:
 private:
     QTextBrowser *m_textBrowser = nullptr;
     QPointer<QWidget> m_previousFocus = nullptr;
+};
+
+class TooltipPosition final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit TooltipPosition(QWidget *parent = nullptr);
+
+    ~TooltipPosition() override = default;
+
+    void showTooltip() const;
+
+    void hideTooltip() const;
+
+signals:
+    void fillPosition(int x, int y);
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+private:
+    QTimer *m_timer = nullptr;
+    QLabel *m_label = nullptr;
 };
 
 class TooltipSignatureHelp final : public QWidget {

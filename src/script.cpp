@@ -595,6 +595,7 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
 ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent),
                                                                                                                  m_tooltipCompletion(new TooltipCompletion(this)),
                                                                                                                  m_tooltipHover(new TooltipHover(this)),
+                                                                                                                 m_tooltipPosition(new TooltipPosition(this)),
                                                                                                                  m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
@@ -626,6 +627,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPageWidget::textReplace);
     connect(m_tooltipCompletion, &TooltipCompletion::insertText, this, &ScriptPageWidget::textInsert);
     connect(m_tooltipHover, &TooltipHover::switchDwell, this, &ScriptPageWidget::dwellSwitch);
+    connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPageWidget::positionFill);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
@@ -661,8 +663,14 @@ void ScriptPageWidget::scriptEditFinish() {
         completionRequest();
         m_tooltipSignatureHelp->hideTooltip();
     } else if (currentChar == '(' || currentChar == ',' || prevChar == ',') {
-        signatureHelpRequest();
-        m_tooltipCompletion->hideTooltip();
+        QByteArray prevChars(5, 0);
+        m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETTEXTRANGE, qMax(0L, currentPos - 6), currentPos - 1, prevChars.data());
+        if (prevChars == "Click") {
+            m_tooltipPosition->showTooltip();
+        } else {
+            signatureHelpRequest();
+            m_tooltipCompletion->hideTooltip();
+        }
     } else {
         m_tooltipCompletion->hideTooltip();
         m_tooltipSignatureHelp->hideTooltip();
@@ -883,6 +891,16 @@ void ScriptPageWidget::textInsert(QString &text, const QString &kind) const {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }
 
+void ScriptPageWidget::positionFill(const int x, const int y) const {
+    const QString text = QString("%1, %2").arg(QString::number(x), QString::number(y));
+    m_scriptEditor->insert(text);
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long cursorPos = currentPos + text.length();
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
+}
+
 // TooltipCompletion public
 TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_tableWidget(new QTableWidget(this)) {
     setWindowFlags(Qt::ToolTip);
@@ -1028,6 +1046,45 @@ void TooltipHover::showTooltip(const QString &message) {
 void TooltipHover::hideTooltip() {
     emit switchDwell(true);
     this->hide();
+}
+
+// TooltipPosition public
+TooltipPosition::TooltipPosition(QWidget *parent) : QWidget(parent) {
+    qApp->installEventFilter(this);
+    m_timer = new QTimer(this);
+    m_timer->setInterval(30);
+    m_label = new QLabel(this);
+    m_label->setWindowFlags(Qt::ToolTip);
+    m_label->hide();
+    connect(m_timer, &QTimer::timeout, [this] {
+        const QPoint pos = QCursor::pos();
+        m_label->setText(QString("X: %1, Y: %2").arg(QString::number(pos.x()), QString::number(pos.y())));
+        m_label->adjustSize();
+        m_label->move(pos + QPoint(15, 15));
+    });
+}
+
+void TooltipPosition::showTooltip() const {
+    m_label->show();
+    m_timer->start();
+}
+
+void TooltipPosition::hideTooltip() const {
+    m_label->hide();
+    m_timer->stop();
+}
+
+// TooltipPosition protected
+bool TooltipPosition::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::MouseButtonPress && m_label->isVisible()) {
+        const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        if (mouseEvent->button() == Qt::LeftButton) {
+            hideTooltip();
+            const QPoint pos = QCursor::pos();
+            emit fillPosition(pos.x(), pos.y());
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 // TooltipSignatureHelp public
@@ -1239,6 +1296,11 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_register(L, "print", lua_print);
     lua_register(L, "sleep", lua_sleep);
     lua_register(L, "speak", lua_speak);
+    // register control class
+    lua_newtable(L);
+    lua_pushcfunction(L, lua_leftClick);
+    lua_setfield(L, -2, "leftClick");
+    lua_setglobal(L, "control");
     // register port class
     lua_newtable(L);
     lua_pushcfunction(L, lua_portOpen);

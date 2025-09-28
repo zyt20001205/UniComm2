@@ -26,8 +26,14 @@ function sleep(ms) end
 --- @param text string The text content to be spoken (use "help" to list available voices/languages).
 function speak(text) end
 
-port = {}
+control = {}
+--- Simulates a left mouse button click at specified coordinates.
+--- @param x integer The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.leftClick(x, y) end
 
+port = {}
 --- Opens a port connection for communication.
 --- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
 --- @return boolean status The status of the open operation.

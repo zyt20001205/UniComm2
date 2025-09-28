@@ -1,0 +1,21 @@
+#include "../include/luaControl.h"
+
+int lua_leftClick(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 2)
+        luaL_error(L, "unexpected number of arguments");
+    // extract arguments
+    const int param1 = static_cast<int>(luaL_checkinteger(L, 1));
+    const int param2 = static_cast<int>(luaL_checkinteger(L, 2));
+    // start operation
+    const int x = param1;
+    const int y = param2;
+    SetCursorPos(x, y);
+    INPUT inputs[2] = {};
+    inputs[0].type = INPUT_MOUSE;
+    inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+    inputs[1].type = INPUT_MOUSE;
+    inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    SendInput(2, inputs, sizeof(INPUT));
+    return 0;
+}
