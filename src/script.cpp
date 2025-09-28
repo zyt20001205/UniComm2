@@ -1049,39 +1049,42 @@ void TooltipHover::hideTooltip() {
 }
 
 // TooltipPosition public
-TooltipPosition::TooltipPosition(QWidget *parent) : QWidget(parent) {
+TooltipPosition::TooltipPosition(QWidget *parent) : QWidget(parent), m_label(new QLabel(this)), m_timer(new QTimer(this)) {
     qApp->installEventFilter(this);
-    m_timer = new QTimer(this);
+    setWindowFlags(Qt::Popup);
+    auto *layout = new QVBoxLayout(this); //NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_label);
+    m_label->setFont(QFont("consolas", 12));
     m_timer->setInterval(30);
-    m_label = new QLabel(this);
-    m_label->setWindowFlags(Qt::ToolTip);
-    m_label->hide();
     connect(m_timer, &QTimer::timeout, [this] {
-        const QPoint pos = QCursor::pos();
-        m_label->setText(QString("X: %1, Y: %2").arg(QString::number(pos.x()), QString::number(pos.y())));
-        m_label->adjustSize();
-        m_label->move(pos + QPoint(15, 15));
+        const QPoint logicalPos = QCursor::pos();
+        this->move(logicalPos + QPoint(15, 15));
+        POINT physicalPos;
+        GetCursorPos(&physicalPos);
+        m_label->setText(QString("X: %1, Y: %2").arg(QString::number(physicalPos.x), QString::number(physicalPos.y)));
     });
 }
 
-void TooltipPosition::showTooltip() const {
-    m_label->show();
+void TooltipPosition::showTooltip() {
+    this->show();
     m_timer->start();
 }
 
-void TooltipPosition::hideTooltip() const {
-    m_label->hide();
+void TooltipPosition::hideTooltip() {
+    this->hide();
     m_timer->stop();
 }
 
 // TooltipPosition protected
 bool TooltipPosition::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::MouseButtonPress && m_label->isVisible()) {
+    if (event->type() == QEvent::MouseButtonPress && this->isVisible()) {
         const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
         if (mouseEvent->button() == Qt::LeftButton) {
+            POINT physicalPos;
+            GetCursorPos(&physicalPos);
+            emit fillPosition(physicalPos.x, physicalPos.y);
             hideTooltip();
-            const QPoint pos = QCursor::pos();
-            emit fillPosition(pos.x(), pos.y());
         }
     }
     return QWidget::eventFilter(obj, event);
@@ -1300,6 +1303,12 @@ LuaInterpreter::LuaInterpreter(QObject *parent) {
     lua_newtable(L);
     lua_pushcfunction(L, lua_leftClick);
     lua_setfield(L, -2, "leftClick");
+    lua_pushcfunction(L, lua_leftDoubleClick);
+    lua_setfield(L, -2, "leftDoubleClick");
+    lua_pushcfunction(L, lua_rightClick);
+    lua_setfield(L, -2, "rightClick");
+    lua_pushcfunction(L, lua_rightDoubleClick);
+    lua_setfield(L, -2, "rightDoubleClick");
     lua_setglobal(L, "control");
     // register port class
     lua_newtable(L);

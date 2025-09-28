@@ -33,6 +33,24 @@ control = {}
 --- @return nil
 function control.leftClick(x, y) end
 
+--- Simulates a left mouse button double click at specified coordinates.
+--- @param x integer The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.leftDoubleClick(x, y) end
+
+--- Simulates a right mouse button click at specified coordinates.
+--- @param x integer The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.rightClick(x, y) end
+
+--- Simulates a right mouse button double click at specified coordinates.
+--- @param x integer The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.rightDoubleClick(x, y) end
+
 port = {}
 --- Opens a port connection for communication.
 --- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.

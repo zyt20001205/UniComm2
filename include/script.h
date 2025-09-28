@@ -342,9 +342,9 @@ public:
 
     ~TooltipPosition() override = default;
 
-    void showTooltip() const;
+    void showTooltip();
 
-    void hideTooltip() const;
+    void hideTooltip();
 
 signals:
     void fillPosition(int x, int y);
