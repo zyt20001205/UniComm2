@@ -58,8 +58,6 @@ private:
     QJsonArray m_datatableConfig = g_config["datatableConfig"].toArray();
     QTableWidget *m_tableWidget = nullptr;
     QHash<QString, DataMap> m_data{};
-    int m_srcIndex;
-    int m_dstIndex;
 };
 
 #endif //DATATABLE_H
