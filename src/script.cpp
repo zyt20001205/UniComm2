@@ -1286,7 +1286,7 @@ void ScriptEditor::duplicateHandle() {
 }
 
 // LuaInterpreter public
-LuaInterpreter::LuaInterpreter(QObject *parent) {
+LuaInterpreter::LuaInterpreter(QObject *parent) : QObject(parent) {
     // init lua interpreter
     L = luaL_newstate();
     luaL_openlibs(L);
