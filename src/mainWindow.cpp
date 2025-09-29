@@ -150,6 +150,15 @@ void MainWindow::workspaceInit(const QUrl &rootUrl) {
     }
     // check if workspace is valid
     if (url.isLocalFile()) {
+        // generate lua config files
+        const QString rootPath = url.toLocalFile();
+        if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
+            QFile::copy(":/config/.luarc.json", luarcPath);
+        }
+        if (const QString libdPath = QDir(rootPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+            QFile::copy(":/config/lib.d.lua", libdPath);
+        }
+        // load workspace
         m_mainConfig["workspace"] = url.toString();
         emit loadWorkspace(url);
         // logging

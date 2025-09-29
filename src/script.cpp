@@ -1798,7 +1798,7 @@ void ScriptExplorer::scriptNew() {
         return;
     }
     fileName += ".lua";
-    const QString filePath = QDir::current().filePath("script/" + fileName);
+    const QString filePath = QDir::current().filePath(m_model->rootPath() + "/" + fileName);
 
     if (QFile::exists(filePath)) {
         const QMessageBox::StandardButton reply =

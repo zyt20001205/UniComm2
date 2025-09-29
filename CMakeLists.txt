@@ -8,7 +8,6 @@ set(CMAKE_AUTOUIC ON)
 
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
-set(LUA_SCRIPT_DIR "${LUA_DIR}/script")
 set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
 set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
@@ -98,6 +97,14 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/save.svg"
         "resources/icon/send.svg"
         "resources/icon/stop.svg"
+)
+
+qt_add_resources(UniComm "config_resources"
+        PREFIX "/config"
+        BASE "resources/config"
+        FILES
+        "resources/config/.luarc.json"
+        "resources/config/lib.d.lua"
 )
 
 target_link_libraries(UniComm PRIVATE
@@ -199,13 +206,6 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                     "${DLL}"
                     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/texttospeech/")
         endforeach ()
-    endif ()
-
-    if (EXISTS "${LUA_SCRIPT_DIR}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${LUA_SCRIPT_DIR}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/script")
     endif ()
 
     if (EXISTS "${LUA_DLL}")
