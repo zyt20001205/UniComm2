@@ -1689,11 +1689,12 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
 }
 
 // ScriptExplorer public
-ScriptExplorer::ScriptExplorer(QWidget *parent) : QTreeView(parent) {
+ScriptExplorer::ScriptExplorer(QWidget *parent)
+    : QTreeView(parent),
+      m_model(new QFileSystemModel()) {
     this->installEventFilter(this);
     connect(this, &QTreeView::doubleClicked, this, &ScriptExplorer::scriptOpen);
 
-    m_model = new QFileSystemModel();
     this->QTreeView::setModel(m_model);
     this->setHeaderHidden(true);
     this->setColumnHidden(1, true);
@@ -1701,14 +1702,12 @@ ScriptExplorer::ScriptExplorer(QWidget *parent) : QTreeView(parent) {
     this->setColumnHidden(3, true);
     this->setColumnHidden(4, true);
     m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
+}
 
-    const QString rootPath = g_config["mainConfig"].toObject()["workspace"].toString();
-
+void ScriptExplorer::workspaceLoad(const QUrl &rootUrl) {
+    const QString rootPath = rootUrl.toLocalFile();
     m_model->setRootPath(rootPath);
     this->QTreeView::setRootIndex(m_model->index(rootPath));
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "script directory loaded");
 }
 
 // ScriptExplorer protected

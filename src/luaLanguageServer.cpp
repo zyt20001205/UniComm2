@@ -1,28 +1,22 @@
 #include "../include/luaLanguageServer.h"
 
 // LuaLanguageServer public
-LuaLanguageServer::LuaLanguageServer(QWidget *parent) : QWidget(parent) {
-    m_process = new QProcess();
+LuaLanguageServer::LuaLanguageServer(QWidget *parent)
+    : QWidget(parent),
+      m_process(new QProcess(this)) {
     m_process->start(QCoreApplication::applicationDirPath() + "/lua-language-server/bin/lua-language-server.exe", {});
     connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonReturn);
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
-    const QString rootUri = g_config["mainConfig"].toObject()["workspace"].toString();
-    const QJsonObject initializeParams{
-        {"processId", QCoreApplication::applicationPid()},
-        {"rootUri", rootUri},
-        {"capabilities", QJsonObject{}}
-    };
-    jsonRequest("initialize", initializeParams);
-    // wait until lls initialized
-    QEventLoop loop;
-    connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
-    loop.exec();
-    jsonNotification("initialized", QJsonObject{});
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
+}
+
+void LuaLanguageServer::workspaceLoad(const QUrl &rootUrl) {
+    if (!m_initialized) {
+        initializeNotification(rootUrl);
+    } else {
+        didChangeWorkspaceFoldersNotification(rootUrl);
+    }
 }
 
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
@@ -56,6 +50,58 @@ void LuaLanguageServer::jsonNotification(const QString &method, const QJsonObjec
 }
 
 // LuaLanguageServer private
+void LuaLanguageServer::initializeNotification(const QUrl &rootUrl) {
+    const QString rootUriStr = rootUrl.toString();
+    const QJsonObject initializeParams{
+        {"processId", QCoreApplication::applicationPid()},
+        {"rootUri", rootUriStr},
+        {"capabilities", QJsonObject{}}
+    };
+    jsonRequest("initialize", initializeParams);
+    // wait until lls initialized
+    QEventLoop loop;
+    connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
+    loop.exec();
+    jsonNotification("initialized", QJsonObject{});
+    // record workspace
+    m_initialized = true;
+    m_currentWorkspace = rootUriStr;
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
+}
+
+void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) {
+    const QString rootUriStr = rootUrl.toString();
+    if (rootUriStr == m_currentWorkspace) return;
+    const QJsonObject didChangeWorkspaceFoldersParams{
+        {
+            "event", QJsonObject{
+                {
+                    "added", QJsonArray{
+                        QJsonObject{
+                            {"uri", rootUriStr}
+                        }
+                    }
+                },
+                {
+                    "removed", QJsonArray{
+                        QJsonObject{
+                            {"uri", m_currentWorkspace}
+                        }
+                    }
+                }
+            }
+        }
+    };
+    jsonNotification("workspace/didChangeWorkspaceFolders", didChangeWorkspaceFoldersParams);
+    // update workspace
+    m_currentWorkspace = rootUriStr;
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
+}
+
 void LuaLanguageServer::jsonReturn() {
     while (true) {
         // append to buffer
@@ -133,6 +179,7 @@ void LuaLanguageServer::jsonReturn() {
                 emit returnSignatureHelp(signature);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
+            // qDebug() << json;
             // return from notification
             const QJsonObject params = json["params"].toObject();
             const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
@@ -142,6 +189,8 @@ void LuaLanguageServer::jsonReturn() {
                 drive = drive.toUpper();
             }
             emit returnPublishDiagnostics(scriptUri, diagnosticsArray);
+        } else {
+            // qDebug() << json;
         }
         if (m_buffer.size() == 0) break;
     }

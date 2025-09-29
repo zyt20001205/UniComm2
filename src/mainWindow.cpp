@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     configInit();
     moduleInit();
+    const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString());
+    workspaceInit(rootUrl);
     menuInit();
     shortcutInit();
     layoutInit();
@@ -48,6 +50,9 @@ void MainWindow::moduleInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
     m_llsModule = new LuaLanguageServer(this);
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
 
     m_scriptModule = new Script();
     this->setCentralWidget(m_scriptModule);
@@ -105,6 +110,8 @@ void MainWindow::moduleInit() {
     });
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
+    connect(this, &MainWindow::loadWorkspace, m_llsModule, &LuaLanguageServer::workspaceLoad);
+    connect(this, &MainWindow::loadWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceLoad);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &Script::foldingRangeReturn);
@@ -129,66 +136,79 @@ void MainWindow::moduleInit() {
     g_port = m_portModule;
 }
 
+void MainWindow::workspaceInit(const QUrl &rootUrl) {
+    QUrl url = rootUrl;
+    if (url.isEmpty()) {
+        const QString rootDir = QFileDialog::getExistingDirectory(
+                this,
+                tr("Select Workspace"),
+                QDir::homePath(),
+                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+            );
+        url = QUrl::fromLocalFile(rootDir);
+    }
+    // check if workspace is valid
+    if (url.isLocalFile()) {
+        m_mainConfig["workspace"] = url.toString();
+        emit loadWorkspace(url);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
+    } else {
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "workspace not found");
+    }
+}
+
 void MainWindow::menuInit() {
     auto *menuBar = new QMenuBar(); // NOLINT
     setMenuBar(menuBar);
-
-    auto *viewMenu = new QMenu(tr("view")); // NOLINT
-    menuBar->addMenu(viewMenu);
-    m_viewPort = new QAction(tr("port")); // NOLINT
-    viewMenu->addAction(m_viewPort);
-    m_viewPort->setCheckable(true);
-    QTimer::singleShot(0, this, [this] {
-        m_viewPort->setChecked(m_portModule->isVisible());
-    });
-    connect(m_viewPort, &QAction::triggered, this, [this](const bool visible) {
-        m_portModule->setVisible(visible);
-    });
-    m_viewSend = new QAction(tr("send")); // NOLINT
-    viewMenu->addAction(m_viewSend);
-    m_viewSend->setCheckable(true);
-    QTimer::singleShot(0, this, [this] {
-        m_viewSend->setChecked(m_sendModule->isVisible());
-    });
-    connect(m_viewSend, &QAction::triggered, this, [this](const bool visible) {
-        m_sendModule->setVisible(visible);
-    });
-    m_viewDatabase = new QAction(tr("database")); // NOLINT
-    viewMenu->addAction(m_viewDatabase);
-    m_viewDatabase->setCheckable(true);
-    QTimer::singleShot(0, this, [this] {
-        m_viewDatabase->setChecked(m_databaseModule->isVisible());
-    });
-    connect(m_viewDatabase, &QAction::triggered, this, [this](const bool visible) {
-        m_databaseModule->setVisible(visible);
-    });
-    m_viewDatatable = new QAction(tr("data table")); // NOLINT
-    viewMenu->addAction(m_viewDatatable);
-    m_viewDatatable->setCheckable(true);
-    QTimer::singleShot(0, this, [this] {
-        m_viewDatatable->setChecked(m_datatableModule->isVisible());
-    });
-    connect(m_viewDatatable, &QAction::triggered, this, [this](const bool visible) {
-        m_datatableModule->setVisible(visible);
-    });
-    m_viewDataplot = new QAction(tr("data plot")); // NOLINT
-    viewMenu->addAction(m_viewDataplot);
-    m_viewDataplot->setCheckable(true);
-    QTimer::singleShot(0, this, [this] {
-        m_viewDataplot->setChecked(m_dataplotModule->isVisible());
-    });
-    connect(m_viewDataplot, &QAction::triggered, this, [this](const bool visible) {
-        m_dataplotModule->setVisible(visible);
-    });
-    m_viewLog = new QAction(tr("log")); // NOLINT
-    viewMenu->addAction(m_viewLog);
-    m_viewLog->setCheckable(true);
-    QTimer::singleShot(0, this, [this] {
-        m_viewLog->setChecked(m_logModule->isVisible());
-    });
-    connect(m_viewLog, &QAction::triggered, this, [this](const bool visible) {
-        m_logModule->setVisible(visible);
-    });
+    // file menu
+    {
+        auto *fileMenu = new QMenu(tr("File")); // NOLINT
+        menuBar->addMenu(fileMenu);
+        auto *loadWorkspaceAction = new QAction(tr("Load Workspace")); // NOLINT
+        fileMenu->addAction(loadWorkspaceAction);
+        connect(loadWorkspaceAction, &QAction::triggered, this, [this] {
+            workspaceInit(QUrl());
+        });
+    }
+    // view menu
+    {
+        auto *viewMenu = new QMenu(tr("View")); // NOLINT
+        menuBar->addMenu(viewMenu);
+        m_viewPort = new QAction(tr("port"));
+        viewMenu->addAction(m_viewPort);
+        m_viewPort->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewPort->setChecked(m_portModule->isVisible()); });
+        connect(m_viewPort, &QAction::triggered, this, [this](const bool visible) { m_portModule->setVisible(visible); });
+        m_viewSend = new QAction(tr("send"));
+        viewMenu->addAction(m_viewSend);
+        m_viewSend->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewSend->setChecked(m_sendModule->isVisible()); });
+        connect(m_viewSend, &QAction::triggered, this, [this](const bool visible) { m_sendModule->setVisible(visible); });
+        m_viewDatabase = new QAction(tr("database"));
+        viewMenu->addAction(m_viewDatabase);
+        m_viewDatabase->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewDatabase->setChecked(m_databaseModule->isVisible()); });
+        connect(m_viewDatabase, &QAction::triggered, this, [this](const bool visible) { m_databaseModule->setVisible(visible); });
+        m_viewDatatable = new QAction(tr("data table"));
+        viewMenu->addAction(m_viewDatatable);
+        m_viewDatatable->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewDatatable->setChecked(m_datatableModule->isVisible()); });
+        connect(m_viewDatatable, &QAction::triggered, this, [this](const bool visible) { m_datatableModule->setVisible(visible); });
+        m_viewDataplot = new QAction(tr("data plot"));
+        viewMenu->addAction(m_viewDataplot);
+        m_viewDataplot->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewDataplot->setChecked(m_dataplotModule->isVisible()); });
+        connect(m_viewDataplot, &QAction::triggered, this, [this](const bool visible) { m_dataplotModule->setVisible(visible); });
+        m_viewLog = new QAction(tr("log"));
+        viewMenu->addAction(m_viewLog);
+        m_viewLog->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewLog->setChecked(m_logModule->isVisible()); });
+        connect(m_viewLog, &QAction::triggered, this, [this](const bool visible) { m_logModule->setVisible(visible); });
+    }
 }
 
 void MainWindow::shortcutInit() {
@@ -209,7 +229,7 @@ void MainWindow::layoutInit() {
     restoreState(state);
 }
 
-void MainWindow::layoutSave() {
+void MainWindow::mainConfigSave() {
     m_mainConfig["geometry"] = QString(saveGeometry().toBase64());
     m_mainConfig["state"] = QString(saveState().toBase64());
     g_config["mainConfig"] = m_mainConfig;
@@ -222,6 +242,6 @@ void MainWindow::saveConfig() {
     m_databaseModule->databaseConfigSave();
     m_datatableModule->datatableConfigSave();
     m_logModule->logConfigSave();
-    layoutSave();
+    mainConfigSave();
     m_configModule->configSave();
 }

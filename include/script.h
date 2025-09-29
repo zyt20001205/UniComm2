@@ -115,6 +115,7 @@ public:
 
     void signatureHelpReturn(const QJsonObject &signature) const;
 
+    ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -151,7 +152,6 @@ private:
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
-    ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 
     enum {
         TOKENTYPE_NAMESPACE,
@@ -434,6 +434,8 @@ public:
     explicit ScriptExplorer(QWidget *parent = nullptr);
 
     ~ScriptExplorer() override = default;
+
+    void workspaceLoad(const QUrl &rootUrl);
 
 signals:
     void appendLog(const QString &message, const QString &level);

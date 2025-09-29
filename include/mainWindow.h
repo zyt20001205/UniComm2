@@ -36,21 +36,25 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void loadWorkspace(const QUrl &rootUrl);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
     void configInit();
 
-    void menuInit();
-
     void moduleInit();
+
+    void workspaceInit(const QUrl &rootUrl);
+
+    void menuInit();
 
     void shortcutInit();
 
     void layoutInit();
 
-    void layoutSave();
+    void mainConfigSave();
 
     void saveConfig();
 
