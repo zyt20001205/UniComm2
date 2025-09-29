@@ -22,7 +22,7 @@ void Config::configGenerate() {
             {
                 "mainConfig", QJsonObject{
                     {"version", "1.0.0"},
-                    {"workspace", "file:///D:/Workspace/CLionProjects/UniComm/cmake-build-debug/script"},
+                    {"workspace", ""},
                     {"geometry", ""},
                     {"state", ""}
                 },

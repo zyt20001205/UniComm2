@@ -11,7 +11,7 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     }
 }
 
-void LuaLanguageServer::workspaceLoad(const QUrl &rootUrl) {
+void LuaLanguageServer::workspaceOpen(const QUrl &rootUrl) {
     if (!m_initialized) {
         initializeNotification(rootUrl);
     } else {

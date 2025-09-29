@@ -25,11 +25,14 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     if (const int scriptCount = m_scriptConfig["scriptList"].toArray().size(); scriptCount == 0) {
         m_scriptTabWidget->addTab(welcomePage, "welcome");
         auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-        auto *welcomeBrowser = new QTextBrowser(); // NOLINT
-        welcomeLayout->addWidget(welcomeBrowser);
+        auto *workspaceOpenButton = new QPushButton(tr("Open Workspace"));
+        welcomeLayout->addWidget(workspaceOpenButton);
+        connect(workspaceOpenButton, &QPushButton::clicked,this,[this] {
+            emit openWorkspace(QUrl());
+        });
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, create a welcome page");
+        qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, welcome page created");
     } else {
         for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
             const QString scriptUrl = value.toString();
@@ -204,7 +207,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     });
 }
 
-void Script::workspaceLoad(const QUrl &rootUrl) {
+void Script::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
     m_diagnosticsHash.clear();
 }
@@ -1714,7 +1717,7 @@ ScriptExplorer::ScriptExplorer(QWidget *parent)
     m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
 }
 
-void ScriptExplorer::workspaceLoad(const QUrl &rootUrl) {
+void ScriptExplorer::workspaceOpen(const QUrl &rootUrl) {
     const QString rootPath = rootUrl.toLocalFile();
     m_model->setRootPath(rootPath);
     this->QTreeView::setRootIndex(m_model->index(rootPath));

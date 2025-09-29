@@ -15,8 +15,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     configInit();
     moduleInit();
-    const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString());
-    workspaceInit(rootUrl);
+    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
+        workspaceInit(rootUrl);
+    }
     menuInit();
     shortcutInit();
     layoutInit();
@@ -110,9 +111,9 @@ void MainWindow::moduleInit() {
     });
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
-    connect(this, &MainWindow::loadWorkspace, m_llsModule, &LuaLanguageServer::workspaceLoad);
-    connect(this, &MainWindow::loadWorkspace, m_scriptModule, &Script::workspaceLoad);
-    connect(this, &MainWindow::loadWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceLoad);
+    connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_scriptModule, &Script::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceOpen);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &Script::foldingRangeReturn);
@@ -122,6 +123,7 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &Script::signatureHelpReturn);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
+    connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
@@ -160,7 +162,7 @@ void MainWindow::workspaceInit(const QUrl &rootUrl) {
         }
         // load workspace
         m_mainConfig["workspace"] = url.toString();
-        emit loadWorkspace(url);
+        emit openWorkspace(url);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
@@ -178,9 +180,9 @@ void MainWindow::menuInit() {
     {
         auto *fileMenu = new QMenu(tr("File")); // NOLINT
         menuBar->addMenu(fileMenu);
-        auto *loadWorkspaceAction = new QAction(tr("Load Workspace")); // NOLINT
-        fileMenu->addAction(loadWorkspaceAction);
-        connect(loadWorkspaceAction, &QAction::triggered, this, [this] {
+        auto *openWorkspaceAction = new QAction(tr("Open Workspace")); // NOLINT
+        fileMenu->addAction(openWorkspaceAction);
+        connect(openWorkspaceAction, &QAction::triggered, this, [this] {
             workspaceInit(QUrl());
         });
     }

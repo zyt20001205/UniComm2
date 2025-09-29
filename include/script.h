@@ -89,7 +89,7 @@ public:
 
     ~Script() override = default;
 
-    void workspaceLoad(const QUrl &rootUrl);
+    void workspaceOpen(const QUrl &rootUrl);
 
     void scriptConfigSave() const;
 
@@ -120,6 +120,8 @@ public:
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
+
+    void openWorkspace(const QUrl &rootUrl);
 
     void debugResume();
 
@@ -438,7 +440,7 @@ public:
 
     ~ScriptExplorer() override = default;
 
-    void workspaceLoad(const QUrl &rootUrl);
+    void workspaceOpen(const QUrl &rootUrl);
 
 signals:
     void appendLog(const QString &message, const QString &level);

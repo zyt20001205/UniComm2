@@ -17,7 +17,7 @@ public:
 
     ~LuaLanguageServer() override = default;
 
-    void workspaceLoad(const QUrl &rootUrl);
+    void workspaceOpen(const QUrl &rootUrl);
 
     void jsonRequest(const QString &method, const QJsonObject &params);
 

@@ -36,7 +36,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void loadWorkspace(const QUrl &rootUrl);
+    void openWorkspace(const QUrl &rootUrl);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
