@@ -65,15 +65,15 @@ void LuaLanguageServer::initializeNotification(const QUrl &rootUrl) {
     jsonNotification("initialized", QJsonObject{});
     // record workspace
     m_initialized = true;
-    m_currentWorkspace = rootUriStr;
+    m_currentWorkspace = rootUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
 }
 
 void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) {
+    if (rootUrl == m_currentWorkspace) return;
     const QString rootUriStr = rootUrl.toString();
-    if (rootUriStr == m_currentWorkspace) return;
     const QJsonObject didChangeWorkspaceFoldersParams{
         {
             "event", QJsonObject{
@@ -87,7 +87,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUr
                 {
                     "removed", QJsonArray{
                         QJsonObject{
-                            {"uri", m_currentWorkspace}
+                            {"uri", m_currentWorkspace.toString()}
                         }
                     }
                 }
@@ -96,7 +96,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUr
     };
     jsonNotification("workspace/didChangeWorkspaceFolders", didChangeWorkspaceFoldersParams);
     // update workspace
-    m_currentWorkspace = rootUriStr;
+    m_currentWorkspace = rootUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");

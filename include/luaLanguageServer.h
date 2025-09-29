@@ -49,7 +49,7 @@ private:
 
     QProcess *m_process = nullptr;
     bool m_initialized = false;
-    QString m_currentWorkspace{};
+    QUrl m_currentWorkspace{};
     QByteArray m_buffer{};
     int m_id = 0;
     QHash<int, QString> m_methods{};

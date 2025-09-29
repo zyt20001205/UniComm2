@@ -111,6 +111,7 @@ void MainWindow::moduleInit() {
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(this, &MainWindow::loadWorkspace, m_llsModule, &LuaLanguageServer::workspaceLoad);
+    connect(this, &MainWindow::loadWorkspace, m_scriptModule, &Script::workspaceLoad);
     connect(this, &MainWindow::loadWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceLoad);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
@@ -140,11 +141,11 @@ void MainWindow::workspaceInit(const QUrl &rootUrl) {
     QUrl url = rootUrl;
     if (url.isEmpty()) {
         const QString rootDir = QFileDialog::getExistingDirectory(
-                this,
-                tr("Select Workspace"),
-                QDir::homePath(),
-                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
-            );
+            this,
+            tr("Select Workspace"),
+            QDir::homePath(),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+        );
         url = QUrl::fromLocalFile(rootDir);
     }
     // check if workspace is valid

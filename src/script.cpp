@@ -204,6 +204,11 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     });
 }
 
+void Script::workspaceLoad(const QUrl &rootUrl) {
+    m_rootUrl = rootUrl;
+    m_diagnosticsHash.clear();
+}
+
 void Script::scriptConfigSave() const {
     if (!m_currentScriptWidget) return;
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
@@ -254,7 +259,7 @@ void Script::scriptOpen(const QString &scriptUrl) {
 }
 
 void Script::scriptExec(const QString &scriptPath) {
-    QFile file(QDir::current().filePath("script/" + scriptPath));
+    QFile file(QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath));
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
@@ -491,7 +496,7 @@ void Script::signatureHelpReturn(const QJsonObject &signature) const {
 void Script::scriptRun(const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(); // NOLINT
+    auto *interpreter = new LuaInterpreter(m_rootUrl); // NOLINT
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -533,7 +538,7 @@ void Script::scriptDebug() {
     QSet<int> *breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    m_debugInterpreter = new LuaInterpreter(); // NOLINT
+    m_debugInterpreter = new LuaInterpreter(m_rootUrl); // NOLINT
     m_debugInterpreter->moveToThread(worker);
     connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -1286,12 +1291,14 @@ void ScriptEditor::duplicateHandle() {
 }
 
 // LuaInterpreter public
-LuaInterpreter::LuaInterpreter(QObject *parent) : QObject(parent) {
+LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, QObject *parent) : QObject(parent) {
     // init lua interpreter
     L = luaL_newstate();
     luaL_openlibs(L);
     lua_getglobal(L, "package");
-    lua_pushstring(L, "script/?.lua");
+    // set workspace
+    const QString rootPath = QString("%1/?.lua").arg(rootUrl.toLocalFile());
+    lua_pushstring(L, rootPath.toUtf8().constData());
     lua_setfield(L, -2, "path");
     // register C++ functions
     lua_register(L, "exec", lua_exec);

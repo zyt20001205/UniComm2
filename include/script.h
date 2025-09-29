@@ -89,6 +89,8 @@ public:
 
     ~Script() override = default;
 
+    void workspaceLoad(const QUrl &rootUrl);
+
     void scriptConfigSave() const;
 
     void scriptOpen(const QString &scriptUrl);
@@ -143,6 +145,7 @@ private:
     void scriptSwap(int srcIndex, int dstIndex);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
+    QUrl m_rootUrl{};
     QTabWidget *m_scriptTabWidget = nullptr;
     ScriptPageWidget *m_currentScriptWidget = nullptr;
     QHash<QString, QJsonArray> m_diagnosticsHash = {};
@@ -408,7 +411,7 @@ class LuaInterpreter final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaInterpreter(QObject *parent = nullptr);
+    explicit LuaInterpreter(const QUrl &rootUrl, QObject *parent = nullptr);
 
     ~LuaInterpreter() override = default;
 
