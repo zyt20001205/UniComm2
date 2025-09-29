@@ -13,4 +13,6 @@ int lua_rightClick(lua_State *L);
 
 int lua_rightDoubleClick(lua_State *L);
 
+int lua_keyPress(lua_State *L);
+
 #endif //LUACONTROL_H

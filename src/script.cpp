@@ -673,8 +673,9 @@ void ScriptPageWidget::scriptEditFinish() {
         if (prevChars == "Click") {
             m_tooltipPosition->showTooltip();
         } else {
+            completionRequest();
             signatureHelpRequest();
-            m_tooltipCompletion->hideTooltip();
+            // m_tooltipCompletion->hideTooltip();
         }
     } else {
         m_tooltipCompletion->hideTooltip();
@@ -1316,6 +1317,8 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, QObject *parent) : QObject(p
     lua_setfield(L, -2, "rightClick");
     lua_pushcfunction(L, lua_rightDoubleClick);
     lua_setfield(L, -2, "rightDoubleClick");
+    lua_pushcfunction(L, lua_keyPress);
+    lua_setfield(L, -2, "keyPress");
     lua_setglobal(L, "control");
     // register port class
     lua_newtable(L);

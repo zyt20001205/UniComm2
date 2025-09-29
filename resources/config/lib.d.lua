@@ -2,6 +2,35 @@
 
 --- @alias bytes string
 
+--- @alias key
+--- | '"A"'
+--- | '"B"'
+--- | '"C"'
+--- | '"D"'
+--- | '"E"'
+--- | '"F"'
+--- | '"G"'
+--- | '"H"'
+--- | '"I"'
+--- | '"J"'
+--- | '"K"'
+--- | '"L"'
+--- | '"M"'
+--- | '"N"'
+--- | '"O"'
+--- | '"P"'
+--- | '"Q"'
+--- | '"R"'
+--- | '"S"'
+--- | '"T"'
+--- | '"U"'
+--- | '"V"'
+--- | '"W"'
+--- | '"X"'
+--- | '"Y"'
+--- | '"Z"'
+
+
 --- Shows an input dialog for variable assignment.
 --- @return string
 ---
@@ -50,6 +79,11 @@ function control.rightClick(x, y) end
 --- @param y integer The vertical screen position.
 --- @return nil
 function control.rightDoubleClick(x, y) end
+
+--- Simulates pressing a keyboard key.
+--- @param key key Key name.
+--- @return nil
+function control.keyPress(key) end
 
 port = {}
 --- Opens a port connection for communication.

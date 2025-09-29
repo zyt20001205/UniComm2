@@ -83,3 +83,20 @@ int lua_rightDoubleClick(lua_State *L) {
     SendInput(2, inputs, sizeof(INPUT));
     return 0;
 }
+
+int lua_keyPress(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 1)
+        luaL_error(L, "unexpected number of arguments");
+    // extract arguments
+    const char* param1 = lua_tostring(L, 1);
+    // start operation
+    const WORD vk = static_cast<unsigned char>(param1[0]);
+    INPUT inputs[2] = {};
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = vk;
+    inputs[1] = inputs[0];
+    inputs[1].ki.dwFlags |= KEYEVENTF_KEYUP;
+    SendInput(2, inputs, sizeof(INPUT));
+    return 0;
+}
