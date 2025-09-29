@@ -1702,10 +1702,10 @@ ScriptExplorer::ScriptExplorer(QWidget *parent) : QTreeView(parent) {
     this->setColumnHidden(4, true);
     m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
 
-    const QString scriptPath = QDir::current().filePath("script");
+    const QString rootPath = g_config["mainConfig"].toObject()["workspace"].toString();
 
-    m_model->setRootPath(scriptPath);
-    this->QTreeView::setRootIndex(m_model->index(scriptPath));
+    m_model->setRootPath(rootPath);
+    this->QTreeView::setRootIndex(m_model->index(rootPath));
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script directory loaded");
