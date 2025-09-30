@@ -50,6 +50,11 @@ enum {
     STATE_STEPOUT,
 };
 
+struct DebugData {
+    QString urlStr;
+    const QSet<int>* breakpoints;
+};
+
 // editor marker/annotate
 enum {
     MARKER_BREAKPOINT,
@@ -151,11 +156,6 @@ private:
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
 
-    // debug related
-    struct DebugData {
-        const QSet<int>* breakpoints;
-    };
-
     // ui related
     enum {
         DIAGNOSTICS_TAB,
@@ -251,7 +251,7 @@ public:
 
     int m_version = 1;
     ScriptEditor *m_scriptEditor = nullptr;
-    QString m_scriptUrl;
+    QString m_scriptUrlStr;
     bool m_scriptModify = false;
     TooltipCompletion *m_tooltipCompletion = nullptr;
     TooltipHover *m_tooltipHover = nullptr;
@@ -425,7 +425,7 @@ public:
 
     void run(const QString &script) const;
 
-    void debug(const QString &script, const QSet<int> *breakpoints) const;
+    void debug(const QString &script, const DebugData &debugData) const;
 
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 

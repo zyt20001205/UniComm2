@@ -307,7 +307,7 @@ void Script::diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagn
 
 void Script::diagnosticsPublish() const {
     if (!m_currentScriptWidget) return;
-    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrl];
+    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrlStr];
     // diagnostics annotate
     const int lastLine = m_currentScriptWidget->m_scriptEditor->lines() - 1;
     const int lastIndex = m_currentScriptWidget->m_scriptEditor->lineLength(lastLine);
@@ -538,15 +538,17 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
 void Script::scriptDebug() {
     if (!m_currentScriptWidget) return;
     QString script = m_currentScriptWidget->m_scriptEditor->text();
-    QSet<int> *breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
+    DebugData debugData;
+    debugData.urlStr = m_currentScriptWidget->m_scriptUrlStr;
+    debugData.breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     m_debugInterpreter = new LuaInterpreter(m_rootUrl); // NOLINT
     m_debugInterpreter->moveToThread(worker);
     connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [this, script, breakpoints] {
-        m_debugInterpreter->debug(script, breakpoints);
+    connect(worker, &QThread::started, [this, script, debugData] {
+        m_debugInterpreter->debug(script, debugData);
         QThread::currentThread()->quit();
     });
     m_scriptMonitorTabWidget->setCurrentIndex(DEBUG_TAB); // switch to debug tab
@@ -616,7 +618,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-    m_scriptUrl = scriptUrl;
+    m_scriptUrlStr = scriptUrl;
     const QUrl url(scriptUrl);
     const QString scriptPath = url.toLocalFile();
     QFile file(scriptPath);
@@ -648,7 +650,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
 void ScriptPageWidget::scriptSave() {
     if (!m_scriptModify) return;
     // save file
-    const QUrl url(m_scriptUrl);
+    const QUrl url(m_scriptUrlStr);
     const QString scriptPath = url.toLocalFile();
     QFile file(scriptPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -659,7 +661,7 @@ void ScriptPageWidget::scriptSave() {
     m_scriptEditor->setModified(false);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "saved");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "saved");
 }
 
 void ScriptPageWidget::scriptEditFinish() {
@@ -688,7 +690,7 @@ void ScriptPageWidget::scriptEditFinish() {
     semanticTokensRequest();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "edited");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "edited");
 }
 
 void ScriptPageWidget::completionRequest() {
@@ -698,7 +700,7 @@ void ScriptPageWidget::completionRequest() {
     const QJsonObject completionParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl}
+                {"uri", m_scriptUrlStr}
             }
         },
         {
@@ -716,7 +718,7 @@ void ScriptPageWidget::foldingRangeRequest() {
     const QJsonObject foldingRangeParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl}
+                {"uri", m_scriptUrlStr}
             }
         }
     };
@@ -728,7 +730,7 @@ void ScriptPageWidget::formattingRequest() {
     const QJsonObject formattingParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl}
+                {"uri", m_scriptUrlStr}
             }
         },
         {
@@ -748,7 +750,7 @@ void ScriptPageWidget::semanticTokensRequest() {
     const QJsonObject semanticTokensParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl}
+                {"uri", m_scriptUrlStr}
             }
         }
     };
@@ -762,7 +764,7 @@ void ScriptPageWidget::signatureHelpRequest() {
     const QJsonObject signatureHelpParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl}
+                {"uri", m_scriptUrlStr}
             }
         },
         {
@@ -782,7 +784,7 @@ void ScriptPageWidget::scriptModify(const bool status) {
         emit modifyScript();
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "modified");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "modified");
     }
 }
 
@@ -798,7 +800,7 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
     hoverRequest(line, character);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl, "hovered");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "hovered");
 }
 
 void ScriptPageWidget::dwellSwitch(const bool status) const {
@@ -812,7 +814,7 @@ void ScriptPageWidget::didChangeNotification() {
     const QJsonObject didChangeParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl},
+                {"uri", m_scriptUrlStr},
                 {"version", m_version++}
             }
         },
@@ -832,7 +834,7 @@ void ScriptPageWidget::didOpenNotification() {
     const QJsonObject didOpenParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl},
+                {"uri", m_scriptUrlStr},
                 {"languageId", "lua"},
                 {"version", m_version++},
                 {"text", m_scriptEditor->text()}
@@ -847,7 +849,7 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
     const QJsonObject hoverParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl}
+                {"uri", m_scriptUrlStr}
             }
         },
         {
@@ -1397,15 +1399,17 @@ void LuaInterpreter::run(const QString &script) const {
     lua_close(L);
 }
 
-void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) const {
+void LuaInterpreter::debug(const QString &script, const DebugData &debugData) const {
     // set debug hook
     lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
-    // pass breakpoints
+    // pass debug data
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
-    *ptrHolder = const_cast<QSet<int> *>(breakpoints);
+    const auto data = new DebugData{debugData};
+    *ptrHolder = data;
     // lua debug
     g_script->scriptHighlight(-1);
     g_stateMachine = STATE_RUN;
+    g_depth = 0;
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result == LUA_OK) {
         QMetaObject::invokeMethod(g_script, [] {
             g_script->scriptHighlight(-1);
@@ -1540,7 +1544,7 @@ void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
-    const auto breakpoints = static_cast<QSet<int> *>(*ptrHolder);
+    const auto debugData = static_cast<DebugData *>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
         g_depth += 1;
     } else if (ar->event == LUA_HOOKRET) {
@@ -1552,7 +1556,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             lua_error(L);
             return;
         }
-        if (breakpoints->contains(row)) g_stateMachine = STATE_PAUSE;
+        if (g_stateMachine == STATE_RUN && debugData->breakpoints->contains(row)) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPOVER && g_depth == g_baseDepth) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPINTO) g_stateMachine = STATE_PAUSE;
