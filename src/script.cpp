@@ -1386,9 +1386,10 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, QObject *parent) : QObject(p
 LuaInterpreter::~LuaInterpreter() {
     if (L) {
         // delete extra space
-        const auto ptrHolder = static_cast<void**>(lua_getextraspace(L));
-        delete static_cast<DebugData*>(*ptrHolder);
-        *ptrHolder = nullptr;
+        if (const auto ptrHolder = static_cast<void **>(lua_getextraspace(L)); *ptrHolder) {
+            delete static_cast<DebugData *>(*ptrHolder);
+            *ptrHolder = nullptr;
+        }
         // close interpreter
         lua_close(L);
         L = nullptr;
