@@ -35,11 +35,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, welcome page created");
     } else {
         for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
-            const QString scriptUrl = value.toString();
+            const auto scriptUrl = QUrl(value.toString());
             auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
             m_currentScriptWidget = newTab;
-            const QFileInfo scriptInfo(scriptUrl);
-            const QString scriptName = scriptInfo.fileName();
+            const QString scriptName = scriptUrl.fileName();
             m_scriptTabWidget->addTab(newTab, scriptName);
             m_scriptTabWidget->setCurrentWidget(newTab);
             connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
@@ -230,7 +229,7 @@ void Script::scriptConfigSave() const {
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
-void Script::scriptOpen(const QString &scriptUrl) {
+void Script::scriptOpen(const QUrl &scriptUrl) {
     // gui
     // switch to existing page if already opened
     QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
@@ -246,17 +245,16 @@ void Script::scriptOpen(const QString &scriptUrl) {
     }
     // open new tab
     auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
-    const QFileInfo scriptInfo(scriptUrl);
-    const QString scriptName = scriptInfo.fileName();
+    const QString scriptName = scriptUrl.fileName();
     m_scriptTabWidget->addTab(newTab, scriptName);
-    m_scriptTabWidget->setCurrentWidget(newTab);
     connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] {
         scriptModify(m_scriptTabWidget->indexOf(newTab));
     });
     connect(newTab, &ScriptPageWidget::requestJson, this, &Script::requestJson);
     connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
+    m_scriptTabWidget->setCurrentWidget(newTab);
     // config
-    scriptList.append(scriptUrl);
+    scriptList.append(scriptUrl.toString());
     m_scriptConfig["scriptList"] = scriptList;
     // qDebug() << m_scriptConfig;
 }
@@ -300,14 +298,14 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
     m_scriptDebugTreeView->resizeColumnToContents(1);
 }
 
-void Script::diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagnosticsArray) {
-    m_diagnosticsHash.insert(scriptUri, diagnosticsArray);
+void Script::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
+    m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
     diagnosticsPublish();
 }
 
 void Script::diagnosticsPublish() const {
     if (!m_currentScriptWidget) return;
-    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrlStr];
+    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrl];
     // diagnostics annotate
     const int lastLine = m_currentScriptWidget->m_scriptEditor->lines() - 1;
     const int lastIndex = m_currentScriptWidget->m_scriptEditor->lineLength(lastLine);
@@ -539,7 +537,7 @@ void Script::scriptDebug() {
     if (!m_currentScriptWidget) return;
     QString script = m_currentScriptWidget->m_scriptEditor->text();
     DebugData debugData;
-    debugData.currentUrlStr = m_currentScriptWidget->m_scriptUrlStr;
+    debugData.currentUrl = m_currentScriptWidget->m_scriptUrl;
     debugData.breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
@@ -588,6 +586,7 @@ void Script::scriptSelected(const int index) {
     if (!scriptPageWidget) return;
     m_currentScriptWidget = scriptPageWidget;
     diagnosticsPublish();
+    m_currentScriptWidget->didChangeNotification();
     m_currentScriptWidget->foldingRangeRequest();
     m_currentScriptWidget->semanticTokensRequest();
 }
@@ -602,11 +601,11 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
 }
 
 // ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QString &scriptUrl, QWidget *parent) : QWidget(parent),
-                                                                                                                 m_tooltipCompletion(new TooltipCompletion(this)),
-                                                                                                                 m_tooltipHover(new TooltipHover(this)),
-                                                                                                                 m_tooltipPosition(new TooltipPosition(this)),
-                                                                                                                 m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
+ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QUrl &scriptUrl, QWidget *parent) : QWidget(parent),
+                                                                                                              m_tooltipCompletion(new TooltipCompletion(this)),
+                                                                                                              m_tooltipHover(new TooltipHover(this)),
+                                                                                                              m_tooltipPosition(new TooltipPosition(this)),
+                                                                                                              m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_editTimer = new QTimer(this);
@@ -618,7 +617,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-    m_scriptUrlStr = scriptUrl;
+    m_scriptUrl = scriptUrl;
     const QUrl url(scriptUrl);
     const QString scriptPath = url.toLocalFile();
     QFile file(scriptPath);
@@ -647,11 +646,10 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QStrin
     });
 }
 
-void ScriptPageWidget::scriptSave() {
+void ScriptPageWidget::scriptSave() const {
     if (!m_scriptModify) return;
     // save file
-    const QUrl url(m_scriptUrlStr);
-    const QString scriptPath = url.toLocalFile();
+    const QString scriptPath = m_scriptUrl.toLocalFile();
     QFile file(scriptPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
@@ -661,7 +659,7 @@ void ScriptPageWidget::scriptSave() {
     m_scriptEditor->setModified(false);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "saved");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
 }
 
 void ScriptPageWidget::scriptEditFinish() {
@@ -690,7 +688,7 @@ void ScriptPageWidget::scriptEditFinish() {
     semanticTokensRequest();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "edited");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "edited");
 }
 
 void ScriptPageWidget::completionRequest() {
@@ -700,7 +698,7 @@ void ScriptPageWidget::completionRequest() {
     const QJsonObject completionParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr}
+                {"uri", m_scriptUrl.toString()}
             }
         },
         {
@@ -713,12 +711,33 @@ void ScriptPageWidget::completionRequest() {
     emit requestJson("textDocument/completion", completionParams);
 }
 
+void ScriptPageWidget::didChangeNotification() {
+    // didChange notification to lua language server
+    const QString content = m_scriptEditor->text();
+    const QJsonObject didChangeParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()},
+                {"version", m_version++}
+            }
+        },
+        {
+            "contentChanges", QJsonArray{
+                QJsonObject{
+                    {"text", content}
+                }
+            }
+        }
+    };
+    emit notificationJson("textDocument/didChange", didChangeParams);
+}
+
 void ScriptPageWidget::foldingRangeRequest() {
     // folding range request to lua language server
     const QJsonObject foldingRangeParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr}
+                {"uri", m_scriptUrl.toString()}
             }
         }
     };
@@ -730,7 +749,7 @@ void ScriptPageWidget::formattingRequest() {
     const QJsonObject formattingParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr}
+                {"uri", m_scriptUrl.toString()}
             }
         },
         {
@@ -750,7 +769,7 @@ void ScriptPageWidget::semanticTokensRequest() {
     const QJsonObject semanticTokensParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr}
+                {"uri", m_scriptUrl.toString()}
             }
         }
     };
@@ -764,7 +783,7 @@ void ScriptPageWidget::signatureHelpRequest() {
     const QJsonObject signatureHelpParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr}
+                {"uri", m_scriptUrl.toString()}
             }
         },
         {
@@ -784,7 +803,7 @@ void ScriptPageWidget::scriptModify(const bool status) {
         emit modifyScript();
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "modified");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "modified");
     }
 }
 
@@ -800,7 +819,7 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
     hoverRequest(line, character);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrlStr, "hovered");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "hovered");
 }
 
 void ScriptPageWidget::dwellSwitch(const bool status) const {
@@ -808,33 +827,12 @@ void ScriptPageWidget::dwellSwitch(const bool status) const {
     else m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, QsciScintilla::SC_TIME_FOREVER); // NOLINT
 }
 
-void ScriptPageWidget::didChangeNotification() {
-    // didChange notification to lua language server
-    const QString content = m_scriptEditor->text();
-    const QJsonObject didChangeParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr},
-                {"version", m_version++}
-            }
-        },
-        {
-            "contentChanges", QJsonArray{
-                QJsonObject{
-                    {"text", content}
-                }
-            }
-        }
-    };
-    emit notificationJson("textDocument/didChange", didChangeParams);
-}
-
 void ScriptPageWidget::didOpenNotification() {
     // didOpen notification to lua language server
     const QJsonObject didOpenParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr},
+                {"uri", m_scriptUrl.toString()},
                 {"languageId", "lua"},
                 {"version", m_version++},
                 {"text", m_scriptEditor->text()}
@@ -849,7 +847,7 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
     const QJsonObject hoverParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrlStr}
+                {"uri", m_scriptUrl.toString()}
             }
         },
         {
@@ -1552,12 +1550,12 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         lua_getinfo(L, "Sl", ar);
         const char *src = ar->source;
         if (src[0] == '@' && src[1] != '\0') {
-            const QString nextUrlStr = QUrl::fromLocalFile(QString::fromUtf8(src + 1)).toString();
-            if (nextUrlStr != debugData->currentUrlStr) {
-                QMetaObject::invokeMethod(g_script, [nextUrlStr] {
-                    g_script->scriptOpen(nextUrlStr);
+            const QUrl nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
+            if (nextUrl != debugData->currentUrl) {
+                QMetaObject::invokeMethod(g_script, [nextUrl] {
+                    g_script->scriptOpen(nextUrl);
                 }, Qt::QueuedConnection);
-                debugData->currentUrlStr = nextUrlStr;
+                debugData->currentUrl = nextUrl;
             }
         }
     } else if (ar->event == LUA_HOOKRET) {
@@ -1567,13 +1565,12 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         lua_getinfo(L, "S", ar);
         const char *src = ar->source;
         if (src[0] == '@' && src[1] != '\0') {
-            const QString nextUrlStr = QUrl::fromLocalFile(QString::fromUtf8(src + 1)).toString();
-            qDebug() << nextUrlStr;
-            if (nextUrlStr != debugData->currentUrlStr) {
-                QMetaObject::invokeMethod(g_script, [nextUrlStr] {
-                    g_script->scriptOpen(nextUrlStr);
+            const QUrl nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
+            if (nextUrl != debugData->currentUrl) {
+                QMetaObject::invokeMethod(g_script, [nextUrl] {
+                    g_script->scriptOpen(nextUrl);
                 }, Qt::QueuedConnection);
-                debugData->currentUrlStr = nextUrlStr;
+                debugData->currentUrl = nextUrl;
             }
         }
         const int row = ar->currentline;

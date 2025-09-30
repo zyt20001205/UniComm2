@@ -183,12 +183,13 @@ void LuaLanguageServer::jsonReturn() {
             // return from notification
             const QJsonObject params = json["params"].toObject();
             const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
-            const QString uri = params["uri"].toString();
-            QString scriptUri = QUrl::fromPercentEncoding(uri.toUtf8());
-            if (QChar &drive = scriptUri[8]; drive.isLetter() && drive.isLower()) {
+            QString uri = params["uri"].toString();
+            uri = QUrl::fromPercentEncoding(uri.toUtf8());
+            if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
                 drive = drive.toUpper();
             }
-            emit returnPublishDiagnostics(scriptUri, diagnosticsArray);
+            const QUrl scriptUrl(uri);
+            emit returnPublishDiagnostics(scriptUrl, diagnosticsArray);
         } else {
             // qDebug() << json;
         }

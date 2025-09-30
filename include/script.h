@@ -51,7 +51,7 @@ enum {
 };
 
 struct DebugData {
-    QString currentUrlStr;
+    QUrl currentUrl;
     const QSet<int>* breakpoints;
 };
 
@@ -91,7 +91,7 @@ public:
 
     void scriptConfigSave() const;
 
-    void scriptOpen(const QString &scriptUrl);
+    void scriptOpen(const QUrl &scriptUrl);
 
     void scriptExec(const QString &scriptPath);
 
@@ -99,7 +99,7 @@ public:
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
-    void diagnosticsReturn(const QString &scriptUri, const QJsonArray &diagnosticsArray);
+    void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
     void diagnosticsPublish() const;
 
@@ -148,7 +148,7 @@ private:
     QUrl m_rootUrl{};
     QTabWidget *m_scriptTabWidget = nullptr;
     ScriptPageWidget *m_currentScriptWidget = nullptr;
-    QHash<QString, QJsonArray> m_diagnosticsHash = {};
+    QHash<QUrl, QJsonArray> m_diagnosticsHash = {};
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
@@ -231,15 +231,17 @@ class ScriptPageWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QString &scriptUrl = QString(), QWidget *parent = nullptr);
+    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl(), QWidget *parent = nullptr);
 
     ~ScriptPageWidget() override = default;
 
-    void scriptSave();
+    void scriptSave() const;
 
     void scriptEditFinish();
 
     void completionRequest();
+
+    void didChangeNotification();
 
     void foldingRangeRequest();
 
@@ -251,7 +253,7 @@ public:
 
     int m_version = 1;
     ScriptEditor *m_scriptEditor = nullptr;
-    QString m_scriptUrlStr;
+    QUrl m_scriptUrl;
     bool m_scriptModify = false;
     TooltipCompletion *m_tooltipCompletion = nullptr;
     TooltipHover *m_tooltipHover = nullptr;
@@ -274,8 +276,6 @@ private slots:
 
 private:
     void dwellSwitch(bool status) const;
-
-    void didChangeNotification();
 
     void didOpenNotification();
 

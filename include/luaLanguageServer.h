@@ -26,7 +26,7 @@ public:
 signals:
     void initialized();
 
-    void returnPublishDiagnostics(const QString &scriptUri, const QJsonArray &diagnosticsArray);
+    void returnPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
     void returnCompletion(const QJsonArray &items);
 
