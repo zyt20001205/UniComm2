@@ -51,7 +51,7 @@ enum {
 };
 
 struct DebugData {
-    QString urlStr;
+    QString currentUrlStr;
     const QSet<int>* breakpoints;
 };
 

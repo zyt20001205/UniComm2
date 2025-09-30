@@ -539,7 +539,7 @@ void Script::scriptDebug() {
     if (!m_currentScriptWidget) return;
     QString script = m_currentScriptWidget->m_scriptEditor->text();
     DebugData debugData;
-    debugData.urlStr = m_currentScriptWidget->m_scriptUrlStr;
+    debugData.currentUrlStr = m_currentScriptWidget->m_scriptUrlStr;
     debugData.breakpoints = &m_currentScriptWidget->m_scriptEditor->m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
@@ -1547,9 +1547,34 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     const auto debugData = static_cast<DebugData *>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
         g_depth += 1;
+        // get file currentUrlStr
+        lua_getinfo(L, "Sl", ar);
+        const char *src = ar->source;
+        if (src[0] == '@' && src[1] != '\0') {
+            const QString nextUrlStr = QUrl::fromLocalFile(QString::fromUtf8(src + 1)).toString();
+            if (nextUrlStr != debugData->currentUrlStr) {
+                QMetaObject::invokeMethod(g_script, [nextUrlStr] {
+                    g_script->scriptOpen(nextUrlStr);
+                }, Qt::QueuedConnection);
+                debugData->currentUrlStr = nextUrlStr;
+            }
+        }
     } else if (ar->event == LUA_HOOKRET) {
         g_depth -= 1;
     } else if (ar->event == LUA_HOOKLINE) {
+        // get file currentUrlStr
+        lua_getinfo(L, "S", ar);
+        const char *src = ar->source;
+        if (src[0] == '@' && src[1] != '\0') {
+            const QString nextUrlStr = QUrl::fromLocalFile(QString::fromUtf8(src + 1)).toString();
+            qDebug() << nextUrlStr;
+            if (nextUrlStr != debugData->currentUrlStr) {
+                QMetaObject::invokeMethod(g_script, [nextUrlStr] {
+                    g_script->scriptOpen(nextUrlStr);
+                }, Qt::QueuedConnection);
+                debugData->currentUrlStr = nextUrlStr;
+            }
+        }
         const int row = ar->currentline;
         if (g_stateMachine == STATE_TERMINATE) {
             lua_pushstring(L, "terminated");
