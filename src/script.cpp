@@ -234,7 +234,7 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
     // switch to existing page if already opened
     QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
     for (int i = 0; i < scriptList.size(); i++) {
-        if (scriptList[i].toString() == scriptUrl) {
+        if (scriptList[i].toString() == scriptUrl.toString()) {
             m_scriptTabWidget->setCurrentIndex(i);
             return;
         }
@@ -1383,21 +1383,14 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, QObject *parent) : QObject(p
     lua_setglobal(L, "dataplot");
 }
 
-void LuaInterpreter::run(const QString &script) const {
+void LuaInterpreter::run(const QString &script) {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
-    // lua exec
+    // lua exec preparation
     g_script->scriptHighlight(-1);
+    // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
-        const QString error = lua_tostring(L, -1);
-        int row = -1;
-        static const QRegularExpression re(R"(\]:(\d+):)");
-        if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
-        QMetaObject::invokeMethod(g_script, [row, error] {
-            g_script->scriptHighlight(row);
-            g_script->appendLog(error, "error");
-        }, Qt::QueuedConnection);
-        lua_pop(L, 1);
+        handleError();
     }
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
@@ -1412,25 +1405,24 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
     const auto data = new DebugData{debugData};
     *ptrHolder = data;
-    // lua debug
+    // lua debug preparation
     g_script->scriptHighlight(-1);
     g_stateMachine = STATE_RUN;
     g_depth = 0;
-
-    if (const int result = luaL_dostring(L, script.toUtf8().constData()); result == LUA_OK) {
-        QMetaObject::invokeMethod(g_script, [] {
-            g_script->scriptHighlight(-1);
-        }, Qt::QueuedConnection);
+    // lua debug
+    const QString filePath = "@" + debugData.currentUrl.toLocalFile();
+    const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
+    if (load_result == LUA_OK) {
+        const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
+        if (pcall_result == LUA_OK) {
+            QMetaObject::invokeMethod(g_script, [] {
+                g_script->scriptHighlight(-1);
+            }, Qt::QueuedConnection);
+        } else {
+            handleError();
+        }
     } else {
-        const QString error = lua_tostring(L, -1);
-        int row = -1;
-        static const QRegularExpression re(R"(\]:(\d+):)");
-        if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
-        QMetaObject::invokeMethod(g_script, [row, error] {
-            g_script->scriptHighlight(row);
-            g_script->appendLog(error, "error");
-        }, Qt::QueuedConnection);
-        lua_pop(L, 1);
+        handleError();
     }
     // remove debug hook
     lua_sethook(L, nullptr, 0, 0);
@@ -1554,33 +1546,12 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     const auto debugData = static_cast<DebugData *>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
         g_depth += 1;
-        // get file currentUrlStr
-        lua_getinfo(L, "Sl", ar);
-        const char *src = ar->source;
-        if (src[0] == '@' && src[1] != '\0') {
-            const QUrl nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
-            if (nextUrl != debugData->currentUrl) {
-                QMetaObject::invokeMethod(g_script, [nextUrl] {
-                    g_script->scriptOpen(nextUrl);
-                }, Qt::QueuedConnection);
-                debugData->currentUrl = nextUrl;
-            }
-        }
     } else if (ar->event == LUA_HOOKRET) {
         g_depth -= 1;
     } else if (ar->event == LUA_HOOKLINE) {
-        // get file currentUrlStr
-        lua_getinfo(L, "S", ar);
+        // get file info
+        lua_getinfo(L, "Sl", ar);
         const char *src = ar->source;
-        if (src[0] == '@' && src[1] != '\0') {
-            const QUrl nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
-            if (nextUrl != debugData->currentUrl) {
-                QMetaObject::invokeMethod(g_script, [nextUrl] {
-                    g_script->scriptOpen(nextUrl);
-                }, Qt::QueuedConnection);
-                debugData->currentUrl = nextUrl;
-            }
-        }
         const int row = ar->currentline;
         if (g_stateMachine == STATE_TERMINATE) {
             lua_pushstring(L, "terminated");
@@ -1592,6 +1563,15 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         if (g_stateMachine == STATE_STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_STEPINTO) g_stateMachine = STATE_PAUSE;
         if (g_stateMachine == STATE_PAUSE) {
+            if (src[0] == '@' && src[1] != '\0') {
+                const QUrl nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
+                if (nextUrl != debugData->currentUrl) {
+                    QMetaObject::invokeMethod(g_script, [nextUrl] {
+                        g_script->scriptOpen(nextUrl);
+                    }, Qt::BlockingQueuedConnection);
+                    debugData->currentUrl = nextUrl;
+                }
+            }
             // highlight
             QMetaObject::invokeMethod(g_script, [row] {
                 g_script->scriptHighlight(row);
@@ -1705,6 +1685,18 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             loop.exec();
         }
     }
+}
+
+void LuaInterpreter::handleError() const {
+    const QString error = lua_tostring(L, -1);
+    int row = -1;
+    static const QRegularExpression re(R"(\]:(\d+):)");
+    if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
+    QMetaObject::invokeMethod(g_script, [row, error] {
+        g_script->scriptHighlight(row);
+        g_script->appendLog(error, "error");
+    }, Qt::QueuedConnection);
+    lua_pop(L, 1);
 }
 
 // ScriptExplorer public

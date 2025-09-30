@@ -425,7 +425,7 @@ public:
 
     ~LuaInterpreter() override = default;
 
-    void run(const QString &script) const;
+    void run(const QString &script);
 
     void debug(const QString &script, const DebugData &debugData) const;
 
@@ -435,6 +435,8 @@ private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);
 
     static void luaDebugHook(lua_State *L, lua_Debug *ar);
+
+    void handleError() const;
 
     lua_State *L = nullptr;
     lua_State *co = nullptr;
