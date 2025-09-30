@@ -1383,7 +1383,19 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, QObject *parent) : QObject(p
     lua_setglobal(L, "dataplot");
 }
 
-void LuaInterpreter::run(const QString &script) {
+LuaInterpreter::~LuaInterpreter() {
+    if (L) {
+        // delete extra space
+        const auto ptrHolder = static_cast<void**>(lua_getextraspace(L));
+        delete static_cast<DebugData*>(*ptrHolder);
+        *ptrHolder = nullptr;
+        // close interpreter
+        lua_close(L);
+        L = nullptr;
+    }
+}
+
+void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
@@ -1394,8 +1406,6 @@ void LuaInterpreter::run(const QString &script) {
     }
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
-    // close interpreter
-    lua_close(L);
 }
 
 void LuaInterpreter::debug(const QString &script, const DebugData &debugData) const {
@@ -1426,8 +1436,6 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     }
     // remove debug hook
     lua_sethook(L, nullptr, 0, 0);
-    // close interpreter
-    lua_close(L);
 }
 
 void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const {

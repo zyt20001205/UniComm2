@@ -423,9 +423,9 @@ class LuaInterpreter final : public QObject {
 public:
     explicit LuaInterpreter(const QUrl &rootUrl, QObject *parent = nullptr);
 
-    ~LuaInterpreter() override = default;
+    ~LuaInterpreter() override;
 
-    void run(const QString &script);
+    void run(const QString &script) const;
 
     void debug(const QString &script, const DebugData &debugData) const;
 
