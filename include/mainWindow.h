@@ -17,6 +17,7 @@
 #include "port.h"
 #include "script.h"
 #include "send.h"
+#include "utils.h"
 
 inline Script *g_script = nullptr;
 inline Database *g_database = nullptr;

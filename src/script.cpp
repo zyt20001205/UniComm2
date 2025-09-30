@@ -1410,6 +1410,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     g_script->scriptHighlight(-1);
     g_stateMachine = STATE_RUN;
     g_depth = 0;
+
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result == LUA_OK) {
         QMetaObject::invokeMethod(g_script, [] {
             g_script->scriptHighlight(-1);
@@ -1825,8 +1826,8 @@ void ScriptExplorer::scriptNew() {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "created");
 }
 
-void ScriptExplorer::scriptOpenInExplorer() {
-    const QDir folderPath = QDir::current().filePath("script");
+void ScriptExplorer::scriptOpenInExplorer() const {
+    const QDir folderPath = m_model->rootPath();
     const QString folderAbsolutePath = folderPath.absolutePath();
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
@@ -1834,7 +1835,6 @@ void ScriptExplorer::scriptOpenInExplorer() {
     args << QDir::toNativeSeparators(folderAbsolutePath);
     QProcess::startDetached(command, args);
 #endif
-
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "opened in explorer");

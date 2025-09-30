@@ -1,5 +1,16 @@
 #include "../include/utils.h"
 
+QByteArray filehashCalc(const QString &filePath) {
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return QByteArray();
+    }
+    if (QCryptographicHash hash(QCryptographicHash::Sha256); hash.addData(&file)) {
+        return hash.result();
+    }
+    return QByteArray();
+}
+
 QString lua_toqstring(lua_State *L, const int idx) {
     switch (lua_type(L, idx)) {
         case LUA_TNIL:

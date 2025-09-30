@@ -469,7 +469,7 @@ private:
 
     void scriptNew();
 
-    static void scriptOpenInExplorer();
+    void scriptOpenInExplorer() const;
 
     QFileSystemModel *m_model = nullptr;
 };
