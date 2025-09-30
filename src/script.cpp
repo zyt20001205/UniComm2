@@ -667,7 +667,7 @@ void ScriptPageWidget::scriptEditFinish() {
     const QChar currentChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1));
     const QChar prevChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 2));
     didChangeNotification();
-    if (currentChar.isLetter() || currentChar == '.' || currentChar == ':') {
+    if (currentChar.isLetter() || currentChar == '.' || currentChar == ':' || currentChar == '"') {
         completionRequest();
         m_tooltipSignatureHelp->hideTooltip();
     } else if (currentChar == '(' || currentChar == ',' || prevChar == ',') {
