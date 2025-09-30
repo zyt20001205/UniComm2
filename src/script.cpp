@@ -1397,7 +1397,7 @@ void LuaInterpreter::run(const QString &script) const {
     lua_close(L);
 }
 
-void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) {
+void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) const {
     // set debug hook
     lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     // pass breakpoints

@@ -40,13 +40,6 @@
 #include "suffix.h"
 #include "utils.h"
 
-// tab index
-enum {
-    DIAGNOSTICS_TAB,
-    THREADPOOL_TAB,
-    DEBUG_TAB,
-};
-
 // debug state
 enum {
     STATE_RUN,
@@ -158,6 +151,19 @@ private:
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
 
+    // debug related
+    struct DebugData {
+        const QSet<int>* breakpoints;
+    };
+
+    // ui related
+    enum {
+        DIAGNOSTICS_TAB,
+        THREADPOOL_TAB,
+        DEBUG_TAB,
+    };
+
+    // semantic related
     enum {
         TOKENTYPE_NAMESPACE,
         TOKENTYPE_TYPE,
@@ -419,7 +425,7 @@ public:
 
     void run(const QString &script) const;
 
-    void debug(const QString &script, const QSet<int> *breakpoints);
+    void debug(const QString &script, const QSet<int> *breakpoints) const;
 
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 
