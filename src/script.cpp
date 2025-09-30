@@ -27,7 +27,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
         auto *workspaceOpenButton = new QPushButton(tr("Open Workspace"));
         welcomeLayout->addWidget(workspaceOpenButton);
-        connect(workspaceOpenButton, &QPushButton::clicked,this,[this] {
+        connect(workspaceOpenButton, &QPushButton::clicked, this, [this] {
             emit openWorkspace(QUrl());
         });
         // logging
@@ -1398,14 +1398,20 @@ void LuaInterpreter::run(const QString &script) const {
 }
 
 void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) {
-    co = lua_newthread(L);
-    const auto ptrHolder = static_cast<void **>(lua_getextraspace(co));
-    *ptrHolder = const_cast<QSet<int> *>(breakpoints);
     // set debug hook
-    lua_sethook(co, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
-    // lua load
-    if (luaL_loadstring(co, script.toUtf8().constData()) != LUA_OK) {
-        const QString error = lua_tostring(co, -1);
+    lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
+    // pass breakpoints
+    const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
+    *ptrHolder = const_cast<QSet<int> *>(breakpoints);
+    // lua debug
+    g_script->scriptHighlight(-1);
+    g_stateMachine = STATE_RUN;
+    if (const int result = luaL_dostring(L, script.toUtf8().constData()); result == LUA_OK) {
+        QMetaObject::invokeMethod(g_script, [] {
+            g_script->scriptHighlight(-1);
+        }, Qt::QueuedConnection);
+    } else {
+        const QString error = lua_tostring(L, -1);
         int row = -1;
         static const QRegularExpression re(R"(\]:(\d+):)");
         if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
@@ -1413,47 +1419,10 @@ void LuaInterpreter::debug(const QString &script, const QSet<int> *breakpoints) 
             g_script->scriptHighlight(row);
             g_script->appendLog(error, "error");
         }, Qt::QueuedConnection);
-        lua_pop(co, 1);
-        lua_close(L);
-        return;
+        lua_pop(L, 1);
     }
-    g_script->scriptHighlight(-1);
-    g_stateMachine = STATE_RUN;
-    g_depth = 0;
-    // lua exec
-    while (true) {
-        int nresults = 0;
-        int status = lua_resume(co, L, 0, &nresults);
-        if (status == LUA_OK) {
-            QMetaObject::invokeMethod(g_script, [] {
-                g_script->scriptTreeViewLoad({});
-            }, Qt::QueuedConnection);
-            break;
-        } else if (status == LUA_YIELD) {
-            QEventLoop loop;
-            connect(g_script, &Script::debugResume, &loop, &QEventLoop::quit);
-            loop.exec();
-            QMetaObject::invokeMethod(g_script, [] {
-                g_script->scriptHighlight(-1);
-            }, Qt::QueuedConnection);
-        } else {
-            const QString error = lua_tostring(co, -1);
-            int row = -1;
-            static const QRegularExpression re(R"(\]:(\d+):)");
-            if (const auto match = re.match(error); match.hasMatch()) row = match.captured(1).toInt();
-            QMetaObject::invokeMethod(g_script, [row, error] {
-                g_script->scriptHighlight(row);
-                g_script->appendLog(error, "error");
-                // clear if manually terminated
-                if (g_stateMachine == STATE_TERMINATE) {
-                    g_script->scriptHighlight(-1);
-                    g_script->scriptTreeViewLoad({});
-                }
-            }, Qt::QueuedConnection);
-            lua_pop(co, 1);
-            break;
-        }
-    }
+    // remove debug hook
+    lua_sethook(L, nullptr, 0, 0);
     // close interpreter
     lua_close(L);
 }
@@ -1696,7 +1665,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 g_script->scriptTreeViewLoad(varMap);
             }, Qt::BlockingQueuedConnection);
             // hold thread
-            lua_yield(L, 0);
+            QEventLoop loop;
+            connect(g_script, &Script::debugResume, &loop, &QEventLoop::quit);
+            loop.exec();
         }
     }
 }
