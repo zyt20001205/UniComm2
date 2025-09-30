@@ -402,12 +402,15 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
     editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0, 0xFF); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, editor->length(), static_cast<long>(0));
     // color format is BGR!!! DO NOT FORGET!!!
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
+    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUATOKEN_MACRO, 1); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
     editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
@@ -432,10 +435,12 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
             qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
             continue;
         }
-        // qDebug() << currentLine << currentChar << length << tokenType << tokenModifiers;
         // start styling
         editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
         switch (tokenType) {
+            case TOKENTYPE_TYPE:
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_TYPE); // NOLINT
+                break;
             case TOKENTYPE_PARAMETER:
                 editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
                 break;
@@ -455,6 +460,9 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
             case TOKENTYPE_METHOD:
                 editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
                 break;
+            case TOKENTYPE_MACRO:
+                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_MACRO); // NOLINT
+                break;
             case TOKENTYPE_KEYWORD:
                 editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
                 break;
@@ -471,7 +479,7 @@ void Script::semanticTokensReturn(const QJsonArray &data) const {
                 editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
                 break;
             default:
-                qDebug() << tokenType;
+                qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
                 break;
         }
     }
