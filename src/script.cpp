@@ -190,8 +190,6 @@ Script::Script(QWidget *parent) : QWidget(parent) {
 
     scriptSplitter->setStretchFactor(0, 3);
     scriptSplitter->setStretchFactor(1, 1);
-    // diagnosticsPublish
-    diagnosticsPublish();
 
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
