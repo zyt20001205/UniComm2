@@ -52,7 +52,7 @@ enum {
 
 struct DebugData {
     QUrl currentUrl;
-    const QSet<int>* breakpoints;
+    QHash<QUrl, QSet<int> > *breakpoints;
 };
 
 // editor marker/annotate
@@ -146,9 +146,10 @@ private:
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QUrl m_rootUrl{};
+    QHash<QUrl, QSet<int> > m_breakpoints;
+    QHash<QUrl, QJsonArray> m_diagnosticsHash = {};
     QTabWidget *m_scriptTabWidget = nullptr;
     ScriptPageWidget *m_currentScriptWidget = nullptr;
-    QHash<QUrl, QJsonArray> m_diagnosticsHash = {};
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
@@ -265,6 +266,10 @@ public:
 signals:
     void modifyScript();
 
+    void insertBreakpoint(const QUrl &scriptUrl, int line);
+
+    void removeBreakpoint(const QUrl &scriptUrl, int line);
+
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
@@ -275,6 +280,8 @@ private slots:
     void scriptEdit() const;
 
     void dwellStart(int pos, int x, int y);
+
+    void marginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
     void dwellSwitch(bool status) const;
@@ -397,19 +404,13 @@ public:
 
     ~ScriptEditor() override = default;
 
-    QSet<int> m_breakpoints{};
-
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     void autoPairHandle(int ascii);
 
-    void marginClickHandle(int margin, int line, Qt::KeyboardModifiers state);
-
 private:
-    void breakpointHandle();
-
     void commentHandle();
 
     void duplicateHandle();
