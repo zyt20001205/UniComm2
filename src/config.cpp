@@ -51,9 +51,10 @@ void Config::configGenerate() {
             {
                 "scriptConfig", QJsonObject{
                     {
-                        "scriptList", QJsonArray{
+                        "scriptOpened", QJsonArray{
                         },
                     },
+                    {"scriptFocused", 0},
                     {"formatting", "Ctrl+Alt+L"},
                     {"fontFamily", "consolas"},
                     {"fontSize", "12"}

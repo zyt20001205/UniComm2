@@ -22,7 +22,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     m_scriptTabWidget->setTabsClosable(true);
     m_scriptTabWidget->setMovable(true);
     auto *welcomePage = new QWidget(); // NOLINT
-    if (const int scriptCount = m_scriptConfig["scriptList"].toArray().size(); scriptCount == 0) {
+    if (const int scriptCount = m_scriptConfig["scriptOpened"].toArray().size(); scriptCount == 0) {
         m_scriptTabWidget->addTab(welcomePage, "welcome");
         auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
         auto *workspaceOpenButton = new QPushButton(tr("Open Workspace"));
@@ -34,13 +34,12 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, welcome page created");
     } else {
-        for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
+        for (const QJsonValue &value: m_scriptConfig["scriptOpened"].toArray()) {
             const auto scriptUrl = QUrl(value.toString());
             auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
             m_currentScriptWidget = newTab;
             const QString scriptName = scriptUrl.fileName();
             m_scriptTabWidget->addTab(newTab, scriptName);
-            m_scriptTabWidget->setCurrentWidget(newTab);
             connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] { scriptModify(m_scriptTabWidget->indexOf(newTab)); });
             connect(newTab, &ScriptPageWidget::insertBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].insert(line); });
             connect(newTab, &ScriptPageWidget::removeBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].remove(line); });
@@ -199,10 +198,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
     QTimer::singleShot(0, [this] {
-        if (m_currentScriptWidget) {
-            m_currentScriptWidget->foldingRangeRequest();
-            m_currentScriptWidget->semanticTokensRequest();
-        }
+        m_scriptTabWidget->blockSignals(true);
+        m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
+        m_scriptTabWidget->blockSignals(false);
+        scriptSelected(m_scriptConfig["scriptFocused"].toInt());
     });
 }
 
@@ -213,6 +212,7 @@ void Script::workspaceOpen(const QUrl &rootUrl) {
 
 void Script::scriptConfigSave() const {
     if (!m_currentScriptWidget) return;
+    // save script
     for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
         auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
         if (scriptPageWidget) {
@@ -226,15 +226,16 @@ void Script::scriptConfigSave() const {
             scriptPageWidget->scriptSave();
         }
     }
+    // save config
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
 void Script::scriptOpen(const QUrl &scriptUrl) {
     // gui
     // switch to existing page if already opened
-    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
-    for (int i = 0; i < scriptList.size(); i++) {
-        if (scriptList[i].toString() == scriptUrl.toString()) {
+    QJsonArray scriptOpened = m_scriptConfig["scriptOpened"].toArray();
+    for (int i = 0; i < scriptOpened.size(); i++) {
+        if (scriptOpened[i].toString() == scriptUrl.toString()) {
             m_scriptTabWidget->setCurrentIndex(i);
             return;
         }
@@ -254,8 +255,8 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
     connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
     m_scriptTabWidget->setCurrentWidget(newTab);
     // config
-    scriptList.append(scriptUrl.toString());
-    m_scriptConfig["scriptList"] = scriptList;
+    scriptOpened.append(scriptUrl.toString());
+    m_scriptConfig["scriptOpened"] = scriptOpened;
     // qDebug() << m_scriptConfig;
 }
 
@@ -583,9 +584,9 @@ void Script::scriptClose(const int index) {
     m_scriptTabWidget->removeTab(index);
     delete tabToClose;
     // config
-    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
-    scriptList.removeAt(index);
-    m_scriptConfig["scriptList"] = scriptList;
+    QJsonArray scriptOpened = m_scriptConfig["scriptOpened"].toArray();
+    scriptOpened.removeAt(index);
+    m_scriptConfig["scriptOpened"] = scriptOpened;
     // qDebug() << m_scriptConfig;
 }
 
@@ -593,6 +594,7 @@ void Script::scriptSelected(const int index) {
     const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
     if (!scriptPageWidget) return;
     m_currentScriptWidget = scriptPageWidget;
+    m_scriptConfig["scriptFocused"] = index;
     diagnosticsPublish();
     m_currentScriptWidget->didChangeNotification();
     m_currentScriptWidget->foldingRangeRequest();
@@ -601,10 +603,10 @@ void Script::scriptSelected(const int index) {
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
     // config
-    QJsonArray scriptList = m_scriptConfig["scriptList"].toArray();
-    const QJsonValue tmp = scriptList.takeAt(srcIndex);
-    scriptList.insert(dstIndex, tmp);
-    m_scriptConfig["scriptList"] = scriptList;
+    QJsonArray scriptOpened = m_scriptConfig["scriptOpened"].toArray();
+    const QJsonValue tmp = scriptOpened.takeAt(srcIndex);
+    scriptOpened.insert(dstIndex, tmp);
+    m_scriptConfig["scriptOpened"] = scriptOpened;
     // qDebug() << m_scriptConfig;
 }
 

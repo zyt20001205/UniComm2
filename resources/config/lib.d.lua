@@ -276,7 +276,6 @@ function datatable.write(key, value) end
 function datatable.clear(key) end
 
 --- Exports the datatable to a CSV file.
---- @param nil
 --- @return nil
 function datatable.export() end
 
