@@ -85,29 +85,6 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     // script monitor widget -> script monitor tab widget
     m_scriptMonitorTabWidget = new QTabWidget();
     scriptMonitorSplitter->addWidget(m_scriptMonitorTabWidget);
-    // script monitor widget -> script monitor tab widget -> script diagnostics widget
-    m_scriptDiagnosticsTableWidget = new QTableWidget();
-    m_scriptMonitorTabWidget->addTab(m_scriptDiagnosticsTableWidget, "diagnostics");
-    m_scriptDiagnosticsTableWidget->setColumnCount(2);
-    m_scriptDiagnosticsTableWidget->setHorizontalHeaderLabels({"code", "message"});
-    m_scriptDiagnosticsTableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_scriptDiagnosticsTableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    m_scriptDiagnosticsTableWidget->verticalHeader()->setVisible(false);
-    m_scriptDiagnosticsTableWidget->verticalHeader()->setDefaultSectionSize(20);
-    m_scriptDiagnosticsTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_scriptDiagnosticsTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    connect(m_scriptDiagnosticsTableWidget, &QTableWidget::cellDoubleClicked, this, [this](const int row, const int col) {
-        QVariantList pos = m_scriptDiagnosticsTableWidget->item(row, 0)->data(Qt::UserRole + 1).toList();
-        const int startLine = pos[0].toInt();
-        const int startCharacter = pos[1].toInt();
-        const int endLine = pos[2].toInt();
-        const int endCharacter = pos[3].toInt();
-        m_currentScriptWidget->m_scriptEditor->setCursorPosition(startLine, startCharacter);
-        m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-        QTimer::singleShot(1000, [this, startLine, startCharacter, endLine, endCharacter] {
-            m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-        });
-    });
     // script monitor widget -> script monitor tab widget -> script thread pool widget
     m_scriptThreadPoolListWidget = new QListWidget();
     m_scriptMonitorTabWidget->addTab(m_scriptThreadPoolListWidget, "threadpool");
@@ -269,7 +246,11 @@ void Script::scriptExec(const QString &scriptPath) {
     scriptRun(script);
 }
 
-void Script::scriptHighlight(const int row) const {
+void Script::scriptAnnotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    qDebug() << scriptUrl << startLine << startCharacter << endLine << endCharacter;
+}
+
+void Script::scriptMarkerHighlight(const int row) const {
     if (!m_currentScriptWidget) return;
     m_currentScriptWidget->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
     if (row == -1) return;
@@ -312,8 +293,7 @@ void Script::diagnosticsPublish() {
     m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
     m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_INFO);
     m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HINT);
-    // diagnostics table
-    m_scriptDiagnosticsTableWidget->setRowCount(0);
+    // publish diagnostics
     int row = 0;
     for (const auto &diagnostic: diagnosticsArray) {
         const QJsonObject diagnosticObject = diagnostic.toObject();
@@ -326,35 +306,6 @@ void Script::diagnosticsPublish() {
         const int endLine = diagnosticEndPos["line"].toInt();
         const int endCharacter = diagnosticEndPos["character"].toInt();
         m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, severity);
-
-        const QString code = diagnosticObject["code"].toString();
-        const QString message = diagnosticObject["message"].toString();
-        m_scriptDiagnosticsTableWidget->insertRow(row);
-        auto *codeItem = new QTableWidgetItem(code); // NOLINT
-        codeItem->setData(Qt::UserRole + 1, QVariantList({startLine, startCharacter, endLine, endCharacter}));
-        auto *messageItem = new QTableWidgetItem(message); // NOLINT
-        switch (severity) {
-            case INDICATOR_ERROR:
-                codeItem->setBackground(QColor(255, 230, 230));
-                messageItem->setBackground(QColor(255, 230, 230));
-                break;
-            case INDICATOR_WARNING:
-                codeItem->setBackground(QColor(255, 245, 230));
-                messageItem->setBackground(QColor(255, 245, 230));
-                break;
-            case INDICATOR_INFO:
-                codeItem->setBackground(QColor(230, 240, 250));
-                messageItem->setBackground(QColor(230, 240, 250));
-                break;
-            case INDICATOR_HINT:
-                codeItem->setBackground(QColor(245, 245, 245));
-                messageItem->setBackground(QColor(245, 245, 245));
-                break;
-            default: break;
-        }
-        m_scriptDiagnosticsTableWidget->setItem(row, 0, codeItem);
-        m_scriptDiagnosticsTableWidget->setItem(row, 1, messageItem);
-
         row++;
     }
 }
@@ -1388,7 +1339,7 @@ void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
-    g_script->scriptHighlight(-1);
+    g_script->scriptMarkerHighlight(-1);
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         handleError();
@@ -1405,7 +1356,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     const auto data = new DebugData{debugData};
     *ptrHolder = data;
     // lua debug preparation
-    g_script->scriptHighlight(-1);
+    g_script->scriptMarkerHighlight(-1);
     g_stateMachine = STATE_RUN;
     g_depth = 0;
     // lua debug
@@ -1415,7 +1366,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_script, [] {
-                g_script->scriptHighlight(-1);
+                g_script->scriptMarkerHighlight(-1);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -1573,7 +1524,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // line handle
             QMetaObject::invokeMethod(g_script, [line] {
-                g_script->scriptHighlight(line);
+                g_script->scriptMarkerHighlight(line);
             }, Qt::BlockingQueuedConnection);
             // var handle
             {
@@ -1695,7 +1646,7 @@ void LuaInterpreter::handleError() const {
     static const QRegularExpression re(R"(\]:(\d+):)");
     if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
     QMetaObject::invokeMethod(g_script, [line, error] {
-        g_script->scriptHighlight(line);
+        g_script->scriptMarkerHighlight(line);
         g_script->appendLog(error, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);

@@ -95,7 +95,9 @@ public:
 
     void scriptExec(const QString &scriptPath);
 
-    void scriptHighlight(int row) const;
+    void scriptAnnotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+
+    void scriptMarkerHighlight(int row) const;
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
@@ -145,11 +147,11 @@ private:
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QUrl m_rootUrl{};
     QHash<QUrl, QSet<int> > m_breakpoints;
-    QHash<QUrl, QJsonArray> m_diagnosticsHash = {};
+    QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QTabWidget *m_scriptTabWidget = nullptr;
+    QHash<QUrl, ScriptPageWidget> m_scriptPageHash{};
     ScriptPageWidget *m_currentScriptWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
-    QTableWidget *m_scriptDiagnosticsTableWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
@@ -157,7 +159,6 @@ private:
 
     // ui related
     enum {
-        DIAGNOSTICS_TAB,
         THREADPOOL_TAB,
         DEBUG_TAB,
     };
