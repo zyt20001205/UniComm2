@@ -103,37 +103,13 @@ void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &di
         viewItem->setData(Qt::UserRole + 3, startCharacter);
         viewItem->setData(Qt::UserRole + 4, endLine);
         viewItem->setData(Qt::UserRole + 5, endCharacter);
-        switch (severity) {
-            case SEVERITY_ERROR:
-                sourceItem->setBackground(m_diagnosticsColor[severity]);
-                codeItem->setBackground(m_diagnosticsColor[severity]);
-                dataItem->setBackground(m_diagnosticsColor[severity]);
-                messageItem->setBackground(m_diagnosticsColor[severity]);
-                viewItem->setBackground(m_diagnosticsColor[severity]);
-                break;
-            case SEVERITY_WARNING:
-                sourceItem->setBackground(m_diagnosticsColor[severity]);
-                codeItem->setBackground(m_diagnosticsColor[severity]);
-                dataItem->setBackground(m_diagnosticsColor[severity]);
-                messageItem->setBackground(m_diagnosticsColor[severity]);
-                viewItem->setBackground(m_diagnosticsColor[severity]);
-                break;
-            case SEVERITY_INFO:
-                sourceItem->setBackground(m_diagnosticsColor[severity]);
-                codeItem->setBackground(m_diagnosticsColor[severity]);
-                dataItem->setBackground(m_diagnosticsColor[severity]);
-                messageItem->setBackground(m_diagnosticsColor[severity]);
-                viewItem->setBackground(m_diagnosticsColor[severity]);
-                break;
-            case SEVERITY_HINT:
-                sourceItem->setBackground(m_diagnosticsColor[severity]);
-                codeItem->setBackground(m_diagnosticsColor[severity]);
-                dataItem->setBackground(m_diagnosticsColor[severity]);
-                messageItem->setBackground(m_diagnosticsColor[severity]);
-                viewItem->setBackground(m_diagnosticsColor[severity]);
-                break;
-            default: break;
-        }
+
+        sourceItem->setBackground(m_diagnosticsColor[severity]);
+        codeItem->setBackground(m_diagnosticsColor[severity]);
+        dataItem->setBackground(m_diagnosticsColor[severity]);
+        messageItem->setBackground(m_diagnosticsColor[severity]);
+        viewItem->setBackground(m_diagnosticsColor[severity]);
+
         diagnosticsTable->setItem(row, 0, sourceItem);
         diagnosticsTable->setItem(row, 1, codeItem);
         diagnosticsTable->setItem(row, 2, dataItem);

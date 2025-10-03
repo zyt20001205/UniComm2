@@ -93,7 +93,7 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
-    void scriptExec(const QString &scriptPath);
+    QString scriptExec(const QString &scriptPath);
 
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
 
@@ -123,6 +123,8 @@ signals:
 
     void openWorkspace(const QUrl &rootUrl);
 
+    void spawnThread(int type, const QString &name, const QString &threadId, QThread *worker);
+
     void debugResume();
 
     void requestJson(const QString &method, const QJsonObject &params);
@@ -130,9 +132,7 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
-    void scriptRun(const QUrl &scriptUrl,const QString &script);
-
-    void scriptRunning(const QString &name, QThread *worker);
+    QString scriptRun(const QUrl &scriptUrl,const QString &script);
 
     void scriptDebug(const QUrl &scriptUrl,const QString &script);
 
@@ -151,15 +151,18 @@ private:
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     ScriptPage *m_currentScriptWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
-    QListWidget *m_scriptThreadPoolListWidget = nullptr;
     LuaInterpreter *m_debugInterpreter = nullptr;
     QWidget *m_scriptDebugWidget = nullptr;
     QTreeView *m_scriptDebugTreeView = nullptr;
 
     // ui related
     enum {
-        THREADPOOL_TAB,
         DEBUG_TAB,
+    };
+
+    enum {
+        THREAD_RUN,
+        THREAD_DEBUG
     };
 };
 

@@ -18,6 +18,7 @@
 #include "port.h"
 #include "script.h"
 #include "send.h"
+#include "threadpool.h"
 #include "utils.h"
 
 inline Script *g_script = nullptr;
@@ -46,9 +47,9 @@ protected:
 private:
     void configInit();
 
-    void moduleInit();
+    void workspaceInit();
 
-    void workspaceInit(const QUrl &rootUrl);
+    void moduleInit();
 
     void menuInit();
 
@@ -71,6 +72,7 @@ private:
     Dataplot *m_dataplotModule = nullptr;
     Log *m_logModule = nullptr;
     Diagnostics *m_diagnosticsModule = nullptr;
+    Threadpool *m_threadpoolModule = nullptr;
     Script *m_scriptModule = nullptr;
 
     QAction *m_viewPort = nullptr;
@@ -80,6 +82,7 @@ private:
     QAction *m_viewDataplot = nullptr;
     QAction *m_viewLog = nullptr;
     QAction *m_viewDiagnostics = nullptr;
+    QAction *m_viewThreadpool = nullptr;
 };
 
 #endif //MAINWINDOW_H

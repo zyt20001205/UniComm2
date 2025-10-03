@@ -8,10 +8,12 @@ int lua_exec(lua_State *L) {
     const char *param1 = luaL_checkstring(L, 1);
     // start operation
     const QString scriptPath = QString::fromUtf8(param1);
-    QMetaObject::invokeMethod(g_script, [scriptPath] {
-        g_script->scriptExec(scriptPath);
-    }, Qt::QueuedConnection);
-    return 0;
+    QString threadId = "null";
+    QMetaObject::invokeMethod(g_script, [scriptPath, &threadId] {
+        threadId = g_script->scriptExec(scriptPath);
+    }, Qt::BlockingQueuedConnection);
+    lua_pushstring(L, threadId.toUtf8().constData());
+    return 1;
 }
 
 int lua_terminate(lua_State *L);

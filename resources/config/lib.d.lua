@@ -30,6 +30,11 @@
 --- | '"Y"'
 --- | '"Z"'
 
+--- Executes a Lua script file in a new dedicated thread.
+--- @param filename string Path to the Lua script.
+--- @return string threadId Unique identifier for the spawned thread.
+---
+function exec(filename) end
 
 --- Shows an input dialog for variable assignment.
 --- @return string

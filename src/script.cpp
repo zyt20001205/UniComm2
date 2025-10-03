@@ -75,10 +75,6 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     // script monitor widget -> script monitor tab widget
     m_scriptMonitorTabWidget = new QTabWidget();
     scriptMonitorSplitter->addWidget(m_scriptMonitorTabWidget);
-    // script monitor widget -> script monitor tab widget -> script thread pool widget
-    m_scriptThreadPoolListWidget = new QListWidget();
-    m_scriptMonitorTabWidget->addTab(m_scriptThreadPoolListWidget, "threadpool");
-    m_scriptThreadPoolListWidget->setStyleSheet("QListWidget::item { min-height: 40px; }");
     // script monitor widget -> script monitor tab widget -> script debug widget
     m_scriptDebugWidget = new QWidget();
     m_scriptMonitorTabWidget->addTab(m_scriptDebugWidget, "debug");
@@ -229,7 +225,7 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptUrl.toString(), "opened");
 }
 
-void Script::scriptExec(const QString &scriptPath) {
+QString Script::scriptExec(const QString &scriptPath) {
     const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
     QFile file(fullPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -239,7 +235,7 @@ void Script::scriptExec(const QString &scriptPath) {
     file.close();
     // call script run
     const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
-    scriptRun(scriptUrl, script);
+    return scriptRun(scriptUrl, script);
 }
 
 void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
@@ -315,7 +311,7 @@ void Script::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signa
 }
 
 // Script private
-void Script::scriptRun(const QUrl &scriptUrl, const QString &script) {
+QString Script::scriptRun(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
@@ -326,32 +322,10 @@ void Script::scriptRun(const QUrl &scriptUrl, const QString &script) {
         interpreter->run(script);
         QThread::currentThread()->quit();
     });
-    scriptRunning(scriptUrl.fileName(), worker);
-    m_scriptMonitorTabWidget->setCurrentIndex(THREADPOOL_TAB); // switch to threadpool tab
     worker->start();
-}
-
-void Script::scriptRunning(const QString &name, QThread *worker) {
-    auto *scriptListWidgetItem = new QListWidgetItem(); // NOLINT
-    m_scriptThreadPoolListWidget->addItem(scriptListWidgetItem);
-    connect(worker, &QThread::finished, this, [this, scriptListWidgetItem] {
-        const int row = m_scriptThreadPoolListWidget->row(scriptListWidgetItem);
-        m_scriptThreadPoolListWidget->takeItem(row);
-        delete scriptListWidgetItem;
-    });
-    auto *scriptInfoWidget = new QWidget(); // NOLINT
-    m_scriptThreadPoolListWidget->setItemWidget(scriptListWidgetItem, scriptInfoWidget);
-    auto *scriptInfoLayout = new QHBoxLayout(scriptInfoWidget); // NOLINT
-    scriptInfoLayout->setContentsMargins(5, 0, 5, 0);
-    auto *scriptLabel = new QLabel(QDateTime::currentDateTime().toString("HH:mm:ss") + " " + name); // NOLINT
-    scriptInfoLayout->addWidget(scriptLabel);
-    auto *abortButton = new QPushButton(); // NOLINT
-    scriptInfoLayout->addWidget(abortButton);
-    abortButton->setFixedSize(24, 24);
-    abortButton->setIcon(QIcon(":/icon/stop.svg"));
-    connect(abortButton, &QPushButton::clicked, this, [worker] {
-        worker->requestInterruption();
-    });
+    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    emit spawnThread(THREAD_RUN, scriptUrl.fileName(), threadId, worker);
+    return threadId;
 }
 
 void Script::scriptDebug(const QUrl &scriptUrl, const QString &script) {
@@ -368,8 +342,9 @@ void Script::scriptDebug(const QUrl &scriptUrl, const QString &script) {
         m_debugInterpreter->debug(script, debugData);
         QThread::currentThread()->quit();
     });
-    m_scriptMonitorTabWidget->setCurrentIndex(DEBUG_TAB); // switch to debug tab
     worker->start();
+    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    emit spawnThread(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
 }
 
 void Script::scriptModify(const int index) const {
@@ -1365,7 +1340,9 @@ void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
-    g_script->markerHighlight(m_scriptUrl, -1);
+    QMetaObject::invokeMethod(g_script, [this] {
+        g_script->markerHighlight(m_scriptUrl, -1);
+    }, Qt::QueuedConnection);
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         handleError();
@@ -1382,7 +1359,9 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     const auto data = new DebugData{debugData};
     *ptrHolder = data;
     // lua debug preparation
-    g_script->markerHighlight(m_scriptUrl, -1);
+    QMetaObject::invokeMethod(g_script, [this] {
+        g_script->markerHighlight(m_scriptUrl, -1);
+    }, Qt::QueuedConnection);
     g_stateMachine = STATE_RUN;
     g_depth = 0;
     // lua debug
@@ -1674,7 +1653,7 @@ void LuaInterpreter::handleError() const {
     QMetaObject::invokeMethod(g_script, [this, line, error] {
         g_script->markerHighlight(m_scriptUrl, line);
         g_script->appendLog(error, "error");
-    }, Qt::QueuedConnection);
+    }, Qt::BlockingQueuedConnection);
     lua_pop(L, 1);
 }
 
