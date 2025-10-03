@@ -3,6 +3,7 @@
 
 #include <QDockWidget>
 #include <QHeaderView>
+#include <QMessageBox>
 #include <QTableWidget>
 #include <QThread>
 

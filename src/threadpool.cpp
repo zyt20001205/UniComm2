@@ -22,6 +22,10 @@ Threadpool::Threadpool(QWidget *parent)
     m_threadpoolTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(m_threadpoolTableWidget, &QTableWidget::cellClicked, this, [this](const int row, const int column) {
         if (column == 3) {
+            if (m_threadpoolTableWidget->item(row, 0)->text() == "stop") {
+                QMessageBox::warning(this, tr("Please Wait"), tr("Stop request has already been sent."));
+                return;
+            }
             m_threadpoolTableWidget->item(row, 0)->setText("stop");
             m_threadpoolTableWidget->item(row, 0)->setBackground(m_threadpoolColor[THREAD_STOP]);
             m_threadpoolTableWidget->item(row, 1)->setBackground(m_threadpoolColor[THREAD_STOP]);
@@ -30,7 +34,6 @@ Threadpool::Threadpool(QWidget *parent)
 
             const QString id = m_threadpoolTableWidget->item(row, 2)->text();
             m_threadHash[id]->requestInterruption();
-            m_threadHash.remove(id);
             // qDebug() << m_threadHash;
         }
     });
