@@ -130,7 +130,9 @@ void MainWindow::moduleInit() {
     connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
     connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
     connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
-    connect(m_diagnosticsModule, &Diagnostics::highlightScriptAnnotate, m_scriptModule, &Script::scriptAnnotateHighlight);
+    connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &Script::scriptOpen);
+    connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &Script::cursorPositionSet);
+    connect(m_diagnosticsModule, &Diagnostics::highlightAnnotate, m_scriptModule, &Script::annotateHighlight);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);

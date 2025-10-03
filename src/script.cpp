@@ -22,7 +22,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     m_scriptTabWidget->setTabsClosable(true);
     m_scriptTabWidget->setMovable(true);
     auto *welcomePage = new QWidget(); // NOLINT
-    if (const int scriptCount = m_scriptConfig["scriptOpened"].toArray().size(); scriptCount == 0) {
+    if (m_scriptConfig["scriptList"].toArray().isEmpty()) {
         m_scriptTabWidget->addTab(welcomePage, "welcome");
         auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
         auto *workspaceOpenButton = new QPushButton(tr("Open Workspace"));
@@ -32,23 +32,12 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         });
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "no script config found, welcome page created");
+        qDebug() << QString("[%1] %2").arg(timestamp, "script list is empty, welcome page created");
     } else {
-        for (const QJsonValue &value: m_scriptConfig["scriptOpened"].toArray()) {
+        for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
             const auto scriptUrl = QUrl(value.toString());
-            auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
-            m_currentScriptWidget = newTab;
-            const QString scriptName = scriptUrl.fileName();
-            m_scriptTabWidget->addTab(newTab, scriptName);
-            connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] { scriptModify(m_scriptTabWidget->indexOf(newTab)); });
-            connect(newTab, &ScriptPageWidget::insertBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].insert(line); });
-            connect(newTab, &ScriptPageWidget::removeBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].remove(line); });
-            connect(newTab, &ScriptPageWidget::requestJson, this, &Script::requestJson);
-            connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
+            scriptOpen(scriptUrl);
         }
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(scriptCount), "script config found");
     }
     connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, &Script::scriptSelected);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
@@ -185,54 +174,59 @@ void Script::workspaceOpen(const QUrl &rootUrl) {
     m_diagnosticsHash.clear();
 }
 
-void Script::scriptConfigSave() const {
+void Script::scriptConfigSave() {
     if (!m_currentScriptWidget) return;
     // save script
-    for (int i = 0; i < m_scriptTabWidget->count(); ++i) {
-        auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(i));
-        if (scriptPageWidget) {
-            if (scriptPageWidget->m_scriptModify) {
+    for (const ScriptPage *scriptPage: m_scriptPageHash) {
+        if (scriptPage) {
+            if (scriptPage->m_scriptModify) {
                 // update tab name
-                QString tabName = m_scriptTabWidget->tabText(i);
-                tabName.chop(1);
-                m_scriptTabWidget->setTabText(i, tabName);
+                if (const int index = m_scriptTabWidget->indexOf(scriptPage); index != -1) {
+                    QString tabName = m_scriptTabWidget->tabText(index);
+                    tabName.chop(1);
+                    m_scriptTabWidget->setTabText(index, tabName);
+                }
             }
             // save script
-            scriptPageWidget->scriptSave();
+            scriptPage->scriptSave();
         }
     }
     // save config
+    auto scriptList = QJsonArray();
+    for (const QUrl &url: m_scriptList) {
+        scriptList.append(url.toString());
+    }
+    m_scriptConfig["scriptList"] = scriptList;
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
 void Script::scriptOpen(const QUrl &scriptUrl) {
-    // gui
-    // switch to existing page if already opened
-    QJsonArray scriptOpened = m_scriptConfig["scriptOpened"].toArray();
-    for (int i = 0; i < scriptOpened.size(); i++) {
-        if (scriptOpened[i].toString() == scriptUrl.toString()) {
-            m_scriptTabWidget->setCurrentIndex(i);
-            return;
-        }
-    }
-    // remove welcome page if exist
+    // remove welcome page if exists
     if (m_scriptTabWidget->tabText(0) == "welcome") {
         m_scriptTabWidget->removeTab(0);
     }
-    // open new tab
-    auto *newTab = new ScriptPageWidget(m_scriptConfig, scriptUrl); // NOLINT
-    const QString scriptName = scriptUrl.fileName();
-    m_scriptTabWidget->addTab(newTab, scriptName);
-    connect(newTab, &ScriptPageWidget::modifyScript, this, [this, newTab] { scriptModify(m_scriptTabWidget->indexOf(newTab)); });
-    connect(newTab, &ScriptPageWidget::insertBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].insert(line); });
-    connect(newTab, &ScriptPageWidget::removeBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].remove(line); });
-    connect(newTab, &ScriptPageWidget::requestJson, this, &Script::requestJson);
-    connect(newTab, &ScriptPageWidget::notificationJson, this, &Script::notificationJson);
-    m_scriptTabWidget->setCurrentWidget(newTab);
-    // config
-    scriptOpened.append(scriptUrl.toString());
-    m_scriptConfig["scriptOpened"] = scriptOpened;
-    // qDebug() << m_scriptConfig;
+    // check if tab exists
+    auto *scriptPage = m_scriptPageHash[scriptUrl];
+    if (scriptPage == nullptr) {
+        // create script page
+        scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
+        m_scriptPageHash[scriptUrl] = scriptPage;
+        connect(scriptPage, &ScriptPage::modifyScript, this, [this, scriptPage] { scriptModify(m_scriptTabWidget->indexOf(scriptPage)); });
+        connect(scriptPage, &ScriptPage::insertBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].insert(line); });
+        connect(scriptPage, &ScriptPage::removeBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].remove(line); });
+        connect(scriptPage, &ScriptPage::requestJson, this, &Script::requestJson);
+        connect(scriptPage, &ScriptPage::notificationJson, this, &Script::notificationJson);
+        m_scriptTabWidget->addTab(scriptPage, scriptUrl.fileName());
+        // append to list
+        m_scriptList.append(scriptUrl);
+    }
+    m_scriptTabWidget->setCurrentWidget(scriptPage);
+
+    m_currentScriptWidget = scriptPage;
+    // qDebug() << m_scriptList;
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptUrl.toString(), "opened");
 }
 
 void Script::scriptExec(const QString &scriptPath) {
@@ -246,11 +240,20 @@ void Script::scriptExec(const QString &scriptPath) {
     scriptRun(script);
 }
 
-void Script::scriptAnnotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
-    qDebug() << scriptUrl << startLine << startCharacter << endLine << endCharacter;
+void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
 }
 
-void Script::scriptMarkerHighlight(const int row) const {
+void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
+    QTimer::singleShot(1000, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
+        scriptPage->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
+    });
+}
+
+void Script::markerHighlight(const int row) const {
     if (!m_currentScriptWidget) return;
     m_currentScriptWidget->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
     if (row == -1) return;
@@ -521,30 +524,38 @@ void Script::scriptModify(const int index) const {
 }
 
 void Script::scriptClose(const int index) {
-    // gui
-    auto *scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
-    if (scriptPageWidget && scriptPageWidget->m_scriptModify) {
+    // find page
+    auto *scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
+    // remove hash & list
+    QUrl scriptUrl;
+    foreach(const QUrl &url, m_scriptPageHash.keys()) {
+        if (m_scriptPageHash.value(url) == scriptPage) {
+            scriptUrl = url;
+            break;
+        }
+    }
+    m_scriptPageHash.remove(scriptUrl);
+    m_scriptList.removeAt(index);
+    // qDebug() << m_scriptList;
+    // ask for saving
+    if (scriptPage && scriptPage->m_scriptModify) {
         const QMessageBox::StandardButton reply =
                 QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            scriptPageWidget->scriptSave();
+            scriptPage->scriptSave();
         }
     }
-    const QWidget *tabToClose = m_scriptTabWidget->widget(index);
+    // remove tab
     m_scriptTabWidget->removeTab(index);
-    delete tabToClose;
-    // config
-    QJsonArray scriptOpened = m_scriptConfig["scriptOpened"].toArray();
-    scriptOpened.removeAt(index);
-    m_scriptConfig["scriptOpened"] = scriptOpened;
-    // qDebug() << m_scriptConfig;
+    // delete page
+    scriptPage->deleteLater();
 }
 
 void Script::scriptSelected(const int index) {
-    const auto scriptPageWidget = qobject_cast<ScriptPageWidget *>(m_scriptTabWidget->widget(index));
-    if (!scriptPageWidget) return;
-    m_currentScriptWidget = scriptPageWidget;
+    const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
+    if (!scriptPage) return;
+    m_currentScriptWidget = scriptPage;
     m_scriptConfig["scriptFocused"] = index;
     diagnosticsPublish();
     m_currentScriptWidget->didChangeNotification();
@@ -553,16 +564,13 @@ void Script::scriptSelected(const int index) {
 }
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
-    // config
-    QJsonArray scriptOpened = m_scriptConfig["scriptOpened"].toArray();
-    const QJsonValue tmp = scriptOpened.takeAt(srcIndex);
-    scriptOpened.insert(dstIndex, tmp);
-    m_scriptConfig["scriptOpened"] = scriptOpened;
-    // qDebug() << m_scriptConfig;
+    const QUrl tmp = m_scriptList.takeAt(srcIndex);
+    m_scriptList.insert(dstIndex, tmp);
+    // qDebug() << m_scriptList;
 }
 
-// ScriptPageWidget public
-ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QUrl &scriptUrl, QWidget *parent)
+// ScriptPage public
+ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, QWidget *parent)
     : QWidget(parent),
       m_tooltipCompletion(new TooltipCompletion(this)),
       m_tooltipHover(new TooltipHover(this)),
@@ -596,10 +604,10 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QUrl &
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
-    connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPageWidget::textReplace);
-    connect(m_tooltipCompletion, &TooltipCompletion::insertText, this, &ScriptPageWidget::textInsert);
-    connect(m_tooltipHover, &TooltipHover::switchDwell, this, &ScriptPageWidget::dwellSwitch);
-    connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPageWidget::positionFill);
+    connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPage::textReplace);
+    connect(m_tooltipCompletion, &TooltipCompletion::insertText, this, &ScriptPage::textInsert);
+    connect(m_tooltipHover, &TooltipHover::switchDwell, this, &ScriptPage::dwellSwitch);
+    connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPage::positionFill);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
@@ -609,7 +617,7 @@ ScriptPageWidget::ScriptPageWidget(const QJsonObject &scriptConfig, const QUrl &
     });
 }
 
-void ScriptPageWidget::scriptSave() const {
+void ScriptPage::scriptSave() const {
     if (!m_scriptModify) return;
     // save file
     const QString scriptPath = m_scriptUrl.toLocalFile();
@@ -625,7 +633,7 @@ void ScriptPageWidget::scriptSave() const {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
 }
 
-void ScriptPageWidget::scriptEditFinish() {
+void ScriptPage::scriptEditFinish() {
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const QChar currentChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1));
     const QChar prevChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 2));
@@ -654,7 +662,7 @@ void ScriptPageWidget::scriptEditFinish() {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "edited");
 }
 
-void ScriptPageWidget::completionRequest() {
+void ScriptPage::completionRequest() {
     // completion request to lua language server
     int line, character;
     m_scriptEditor->getCursorPosition(&line, &character);
@@ -674,7 +682,7 @@ void ScriptPageWidget::completionRequest() {
     emit requestJson("textDocument/completion", completionParams);
 }
 
-void ScriptPageWidget::didChangeNotification() {
+void ScriptPage::didChangeNotification() {
     // didChange notification to lua language server
     const QString content = m_scriptEditor->text();
     const QJsonObject didChangeParams{
@@ -695,7 +703,7 @@ void ScriptPageWidget::didChangeNotification() {
     emit notificationJson("textDocument/didChange", didChangeParams);
 }
 
-void ScriptPageWidget::foldingRangeRequest() {
+void ScriptPage::foldingRangeRequest() {
     // folding range request to lua language server
     const QJsonObject foldingRangeParams{
         {
@@ -707,7 +715,7 @@ void ScriptPageWidget::foldingRangeRequest() {
     emit requestJson("textDocument/foldingRange", foldingRangeParams);
 }
 
-void ScriptPageWidget::formattingRequest() {
+void ScriptPage::formattingRequest() {
     // formatting request to lua language server
     const QJsonObject formattingParams{
         {
@@ -727,7 +735,7 @@ void ScriptPageWidget::formattingRequest() {
     emit requestJson("textDocument/formatting", formattingParams);
 }
 
-void ScriptPageWidget::semanticTokensRequest() {
+void ScriptPage::semanticTokensRequest() {
     // semanticTokens request to lua language server
     const QJsonObject semanticTokensParams{
         {
@@ -739,7 +747,7 @@ void ScriptPageWidget::semanticTokensRequest() {
     emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
 }
 
-void ScriptPageWidget::signatureHelpRequest() {
+void ScriptPage::signatureHelpRequest() {
     // signatureHelp request to lua language server
     int line, character;
     m_scriptEditor->getCursorPosition(&line, &character);
@@ -759,8 +767,8 @@ void ScriptPageWidget::signatureHelpRequest() {
     emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
 
-// ScriptPageWidget private
-void ScriptPageWidget::scriptModify(const bool status) {
+// ScriptPage private
+void ScriptPage::scriptModify(const bool status) {
     m_scriptModify = status;
     if (m_scriptModify) {
         emit modifyScript();
@@ -770,12 +778,12 @@ void ScriptPageWidget::scriptModify(const bool status) {
     }
 }
 
-void ScriptPageWidget::scriptEdit() const {
+void ScriptPage::scriptEdit() const {
     m_editTimer->stop();
     m_editTimer->start();
 }
 
-void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
+void ScriptPage::dwellStart(const int pos, const int x, const int y) {
     int line, character;
     m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
     if (line == 0 && character == 0) return;
@@ -785,7 +793,7 @@ void ScriptPageWidget::dwellStart(const int pos, const int x, const int y) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "hovered");
 }
 
-void ScriptPageWidget::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
+void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
         if (m_scriptEditor->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             m_scriptEditor->markerDelete(line, MARKER_BREAKPOINT);
@@ -797,12 +805,12 @@ void ScriptPageWidget::marginClick(const int margin, const int line, Qt::Keyboar
     }
 }
 
-void ScriptPageWidget::dwellSwitch(const bool status) const {
+void ScriptPage::dwellSwitch(const bool status) const {
     if (status) m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, 500); // NOLINT
     else m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, QsciScintilla::SC_TIME_FOREVER); // NOLINT
 }
 
-void ScriptPageWidget::didOpenNotification() {
+void ScriptPage::didOpenNotification() {
     // didOpen notification to lua language server
     const QJsonObject didOpenParams{
         {
@@ -817,7 +825,7 @@ void ScriptPageWidget::didOpenNotification() {
     emit notificationJson("textDocument/didOpen", didOpenParams);
 }
 
-void ScriptPageWidget::hoverRequest(const int line, const int character) {
+void ScriptPage::hoverRequest(const int line, const int character) {
     // hover request to lua language server
     const QJsonObject hoverParams{
         {
@@ -835,7 +843,7 @@ void ScriptPageWidget::hoverRequest(const int line, const int character) {
     emit requestJson("textDocument/hover", hoverParams);
 }
 
-void ScriptPageWidget::textReplace(QString &text, const QString &kind) const {
+void ScriptPage::textReplace(QString &text, const QString &kind) const {
     if (kind == "Function") {
         text += "()";
     } else if (kind == "Field") {
@@ -856,7 +864,7 @@ void ScriptPageWidget::textReplace(QString &text, const QString &kind) const {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }
 
-void ScriptPageWidget::textInsert(QString &text, const QString &kind) const {
+void ScriptPage::textInsert(QString &text, const QString &kind) const {
     if (kind == "Function") {
         text += "()";
     } else if (kind == "Field") {
@@ -875,7 +883,7 @@ void ScriptPageWidget::textInsert(QString &text, const QString &kind) const {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }
 
-void ScriptPageWidget::positionFill(const int x, const int y) const {
+void ScriptPage::positionFill(const int x, const int y) const {
     const QString text = QString("%1, %2").arg(QString::number(x), QString::number(y));
     m_scriptEditor->insert(text);
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
@@ -1339,7 +1347,7 @@ void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
-    g_script->scriptMarkerHighlight(-1);
+    g_script->markerHighlight(-1);
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         handleError();
@@ -1356,7 +1364,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     const auto data = new DebugData{debugData};
     *ptrHolder = data;
     // lua debug preparation
-    g_script->scriptMarkerHighlight(-1);
+    g_script->markerHighlight(-1);
     g_stateMachine = STATE_RUN;
     g_depth = 0;
     // lua debug
@@ -1366,7 +1374,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_script, [] {
-                g_script->scriptMarkerHighlight(-1);
+                g_script->markerHighlight(-1);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -1524,7 +1532,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // line handle
             QMetaObject::invokeMethod(g_script, [line] {
-                g_script->scriptMarkerHighlight(line);
+                g_script->markerHighlight(line);
             }, Qt::BlockingQueuedConnection);
             // var handle
             {
@@ -1646,7 +1654,7 @@ void LuaInterpreter::handleError() const {
     static const QRegularExpression re(R"(\]:(\d+):)");
     if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
     QMetaObject::invokeMethod(g_script, [line, error] {
-        g_script->scriptMarkerHighlight(line);
+        g_script->markerHighlight(line);
         g_script->appendLog(error, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);

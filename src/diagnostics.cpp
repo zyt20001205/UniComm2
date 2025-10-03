@@ -13,14 +13,40 @@ Diagnostics::Diagnostics(QWidget *parent)
     setWidget(m_diagnosticsTabWidget);
     m_diagnosticsTabWidget->setMovable(true);
     m_diagnosticsTabWidget->setTabsClosable(true);
-    connect(m_diagnosticsTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { m_diagnosticsTabWidget->removeTab(index); });
+    connect(m_diagnosticsTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { diagnosticsClose(index); });
 }
 
 void Diagnostics::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
-    if (!m_diagnosticsTableHash.contains(scriptUrl)) {
-        // create new table
-        QTableWidget *diagnosticsTable;
-        diagnosticsTable = new QTableWidget(); // NOLINT
+    if (diagnosticsArray.isEmpty()) {
+        diagnosticsRemove(scriptUrl);
+    } else {
+        diagnosticsPublish(scriptUrl, diagnosticsArray);
+    }
+}
+
+// Diagnostics private
+void Diagnostics::diagnosticsClose(const int index) {
+    // find diagnostics table
+    const auto *diagnosticsTable = qobject_cast<QTableWidget *>(m_diagnosticsTabWidget->widget(index));
+    // find script url
+    QUrl scriptUrl;
+    foreach(const QUrl &url, m_diagnosticsTableHash.keys()) {
+        if (m_diagnosticsTableHash.value(url) == diagnosticsTable) {
+            scriptUrl = url;
+            break;
+        }
+    }
+    diagnosticsRemove(scriptUrl);
+}
+
+void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
+    // qDebug() << diagnosticsArray;
+    QTableWidget *diagnosticsTable = m_diagnosticsTableHash[scriptUrl];
+    // check if tab exists
+    if (diagnosticsTable == nullptr) {
+        // create diagnostics table
+        diagnosticsTable = new QTableWidget();
+        m_diagnosticsTableHash[scriptUrl] = diagnosticsTable;
         diagnosticsTable->setColumnCount(5);
         diagnosticsTable->setHorizontalHeaderLabels({"source", "code", "data", "message", "view"});
         diagnosticsTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
@@ -39,24 +65,11 @@ void Diagnostics::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &dia
                 const int startCharacter = diagnosticsTable->item(row, column)->data(Qt::UserRole + 3).toInt();
                 const int endLine = diagnosticsTable->item(row, column)->data(Qt::UserRole + 4).toInt();
                 const int endCharacter = diagnosticsTable->item(row, column)->data(Qt::UserRole + 5).toInt();
-                emit highlightScriptAnnotate(url, startLine, startCharacter, endLine, endCharacter);
+                emit openScript(url);
+                emit setCursorPosition(url, startLine, startCharacter);
+                emit highlightAnnotate(url, startLine, startCharacter, endLine, endCharacter);
             }
         });
-        m_diagnosticsTableHash.insert(scriptUrl, diagnosticsTable);
-    }
-    // publish diagnostics
-    if (diagnosticsArray.isEmpty()) {
-        diagnosticsRemove(scriptUrl);
-    } else {
-        diagnosticsPublish(scriptUrl, diagnosticsArray);
-    }
-}
-
-// Diagnostics private
-void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
-    QTableWidget *diagnosticsTable = m_diagnosticsTableHash[scriptUrl];
-    // check if tab exists
-    if (const int index = m_diagnosticsTabWidget->indexOf(diagnosticsTable); index == -1) {
         m_diagnosticsTabWidget->addTab(diagnosticsTable, scriptUrl.fileName());
     }
     m_diagnosticsTabWidget->setCurrentWidget(diagnosticsTable);
@@ -127,23 +140,7 @@ void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &di
         diagnosticsTable->setItem(row, 3, messageItem);
         diagnosticsTable->setItem(row, 4, viewItem);
         row++;
-
-
-        // connect(m_scriptDiagnosticsTableWidget, &QTableWidget::cellDoubleClicked, this, [this](const int row, const int col) {
-        //     QVariantList pos = m_scriptDiagnosticsTableWidget->item(row, 0)->data(Qt::UserRole + 1).toList();
-        //     const int startLine = pos[0].toInt();
-        //     const int startCharacter = pos[1].toInt();
-        //     const int endLine = pos[2].toInt();
-        //     const int endCharacter = pos[3].toInt();
-        //     m_currentScriptWidget->m_scriptEditor->setCursorPosition(startLine, startCharacter);
-        //     m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-        //     QTimer::singleShot(1000, [this, startLine, startCharacter, endLine, endCharacter] {
-        //         m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-        //     });
-        // });
-        // codeItem->setData(Qt::UserRole + 1, QVariantList({startLine, startCharacter, endLine, endCharacter}));
     }
-
     // qDebug() << m_diagnosticsTableHash;
 }
 
@@ -157,6 +154,5 @@ void Diagnostics::diagnosticsRemove(const QUrl &scriptUrl) {
     m_diagnosticsTabWidget->removeTab(index);
     // delete table
     diagnosticsTable->deleteLater();
-
-    qDebug() << m_diagnosticsTableHash;
+    // qDebug() << m_diagnosticsTableHash;
 }

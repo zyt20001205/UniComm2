@@ -71,7 +71,7 @@ enum {
 
 class Port;
 
-class ScriptPageWidget;
+class ScriptPage;
 
 class ScriptEditor;
 
@@ -89,15 +89,17 @@ public:
 
     void workspaceOpen(const QUrl &rootUrl);
 
-    void scriptConfigSave() const;
+    void scriptConfigSave();
 
     void scriptOpen(const QUrl &scriptUrl);
 
     void scriptExec(const QString &scriptPath);
 
-    void scriptAnnotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
 
-    void scriptMarkerHighlight(int row) const;
+    void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+
+    void markerHighlight(int row) const;
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
@@ -149,8 +151,9 @@ private:
     QHash<QUrl, QSet<int> > m_breakpoints;
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QTabWidget *m_scriptTabWidget = nullptr;
-    QHash<QUrl, ScriptPageWidget> m_scriptPageHash{};
-    ScriptPageWidget *m_currentScriptWidget = nullptr;
+    QList<QUrl> m_scriptList{};
+    QHash<QUrl, ScriptPage *> m_scriptPageHash{};
+    ScriptPage *m_currentScriptWidget = nullptr;
     QTabWidget *m_scriptMonitorTabWidget = nullptr;
     QListWidget *m_scriptThreadPoolListWidget = nullptr;
     LuaInterpreter *m_debugInterpreter = nullptr;
@@ -229,13 +232,13 @@ class TooltipPosition;
 
 class TooltipSignatureHelp;
 
-class ScriptPageWidget final : public QWidget {
+class ScriptPage final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ScriptPageWidget(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl(), QWidget *parent = nullptr);
+    explicit ScriptPage(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl(), QWidget *parent = nullptr);
 
-    ~ScriptPageWidget() override = default;
+    ~ScriptPage() override = default;
 
     void scriptSave() const;
 

@@ -51,7 +51,7 @@ void Config::configGenerate() {
             {
                 "scriptConfig", QJsonObject{
                     {
-                        "scriptOpened", QJsonArray{
+                        "scriptList", QJsonArray{
                         },
                     },
                     {"scriptFocused", 0},

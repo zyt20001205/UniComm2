@@ -19,17 +19,23 @@ public:
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    signals:
-    void highlightScriptAnnotate(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+signals:
+    void openScript(const QUrl &scriptUrl);
+
+    void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
+
+    void highlightAnnotate(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
+    void diagnosticsClose(int index);
+
     void diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
     void diagnosticsRemove(const QUrl &scriptUrl);
 
     QTabWidget *m_diagnosticsTabWidget = nullptr;
     QHash<int, QColor> m_diagnosticsColor;
-    QHash<QUrl, QTableWidget*> m_diagnosticsTableHash{};
+    QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 
     enum {
         SEVERITY_ERROR = 1,
