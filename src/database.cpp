@@ -1,8 +1,8 @@
 #include "../include/database.h"
 
 // Database public
-Database::Database(QObject *parent)
-    : QDockWidget("database", qobject_cast<QWidget *>(parent)) {
+Database::Database(QWidget *parent)
+    : QDockWidget("database", parent) {
     m_tableWidget = new QTableWidget(); // NOLINT
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

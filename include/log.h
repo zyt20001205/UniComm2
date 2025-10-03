@@ -19,7 +19,7 @@ class Log final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Log(QObject *parent = nullptr);
+    explicit Log(QWidget *parent = nullptr);
 
     ~Log() override = default;
 

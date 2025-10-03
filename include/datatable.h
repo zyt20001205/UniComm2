@@ -16,7 +16,7 @@ class Datatable final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Datatable(QObject *parent = nullptr);
+    explicit Datatable(QWidget *parent = nullptr);
 
     ~Datatable() override = default;
 

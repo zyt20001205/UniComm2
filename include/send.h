@@ -21,7 +21,7 @@ class Send final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Send(QObject *parent = nullptr);
+    explicit Send(QWidget *parent = nullptr);
 
     ~Send() override = default;
 

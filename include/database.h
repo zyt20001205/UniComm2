@@ -15,7 +15,7 @@ class Database final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Database(QObject *parent = nullptr);
+    explicit Database(QWidget *parent = nullptr);
 
     ~Database() override = default;
 

@@ -101,7 +101,7 @@ public:
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    void diagnosticsPublish() const;
+    void diagnosticsPublish();
 
     void completionReturn(const QJsonArray &items) const;
 
@@ -122,8 +122,6 @@ signals:
     void openWorkspace(const QUrl &rootUrl);
 
     void debugResume();
-
-    void showManual(const QString &func);
 
     void requestJson(const QString &method, const QJsonObject &params);
 

@@ -3,8 +3,8 @@
 #include <qstackedwidget.h>
 
 // Port public
-Port::Port(QObject *parent)
-    : QDockWidget("port", qobject_cast<QWidget *>(parent)) {
+Port::Port(QWidget *parent)
+    : QDockWidget("port", parent) {
     // port widget gui init
     {
         m_tabWidget = new QTabWidget();

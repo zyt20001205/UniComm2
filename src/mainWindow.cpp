@@ -55,15 +55,10 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
 
-    m_scriptModule = new Script();
-    this->setCentralWidget(m_scriptModule);
-
     m_portModule = new Port();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
     m_portModule->setObjectName("portModule");
-    connect(m_portModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
-        m_viewPort->setChecked(visible);
-    });
+    connect(m_portModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewPort->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
@@ -71,9 +66,7 @@ void MainWindow::moduleInit() {
     m_sendModule = new Send();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_sendModule);
     m_sendModule->setObjectName("sendModule");
-    connect(m_sendModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
-        m_viewSend->setChecked(visible);
-    });
+    connect(m_sendModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewSend->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
@@ -81,9 +74,7 @@ void MainWindow::moduleInit() {
     m_databaseModule = new Database();
     this->addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
     m_databaseModule->setObjectName("databaseModule");
-    connect(m_databaseModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
-        m_viewDatabase->setChecked(visible);
-    });
+    connect(m_databaseModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDatabase->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
@@ -91,9 +82,7 @@ void MainWindow::moduleInit() {
     m_datatableModule = new Datatable();
     this->addDockWidget(Qt::RightDockWidgetArea, m_datatableModule);
     m_datatableModule->setObjectName("datatableModule");
-    connect(m_datatableModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
-        m_viewDatatable->setChecked(visible);
-    });
+    connect(m_datatableModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDatatable->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
@@ -106,15 +95,31 @@ void MainWindow::moduleInit() {
     m_logModule = new Log();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
     m_logModule->setObjectName("logModule");
-    connect(m_logModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) {
-        m_viewLog->setChecked(visible);
-    });
+    connect(m_logModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewLog->setChecked(visible); });
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "log module initialized");
+
+    m_diagnosticsModule = new Diagnostics();
+    this->addDockWidget(Qt::BottomDockWidgetArea, m_diagnosticsModule);
+    m_diagnosticsModule->setObjectName("diagnosticsModule");
+    connect(m_diagnosticsModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDiagnostics->setChecked(visible); });
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "diagnostics module initialized");
+
+    this->tabifyDockWidget(m_logModule, m_diagnosticsModule);
+    m_logModule->raise();
+
+    m_scriptModule = new Script();
+    this->setCentralWidget(m_scriptModule);
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule, &Script::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceOpen);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &Diagnostics::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &Script::foldingRangeReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFormatting, m_scriptModule, &Script::formattingReturn);
@@ -122,13 +127,13 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &Script::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &Script::signatureHelpReturn);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
+    connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
+    connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
+    connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
-    connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
-    connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
-    connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
 
     m_sendModule->setPort(m_portModule);
     g_script = m_scriptModule;
@@ -250,6 +255,11 @@ void MainWindow::menuInit() {
         m_viewLog->setCheckable(true);
         QTimer::singleShot(0, this, [this] { m_viewLog->setChecked(m_logModule->isVisible()); });
         connect(m_viewLog, &QAction::triggered, this, [this](const bool visible) { m_logModule->setVisible(visible); });
+        m_viewDiagnostics = new QAction(tr("diagnostics"));
+        viewMenu->addAction(m_viewDiagnostics);
+        m_viewDiagnostics->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewDiagnostics->setChecked(m_diagnosticsModule->isVisible()); });
+        connect(m_viewDiagnostics, &QAction::triggered, this, [this](const bool visible) { m_diagnosticsModule->setVisible(visible); });
     }
 }
 

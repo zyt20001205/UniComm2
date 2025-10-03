@@ -1,8 +1,8 @@
 #include "../include/send.h"
 
 // Send public
-Send::Send(QObject *parent)
-    : QDockWidget("send", qobject_cast<QWidget *>(parent)) {
+Send::Send(QWidget *parent)
+    : QDockWidget("send", parent) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
     auto *layout = new QVBoxLayout(widget); // NOLINT

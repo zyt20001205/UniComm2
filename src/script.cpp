@@ -302,10 +302,10 @@ void Script::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnost
     diagnosticsPublish();
 }
 
-void Script::diagnosticsPublish() const {
+void Script::diagnosticsPublish() {
     if (!m_currentScriptWidget) return;
     const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrl];
-    // diagnostics annotate
+    // clear previous diagnostics
     const int lastLine = m_currentScriptWidget->m_scriptEditor->lines() - 1;
     const int lastIndex = m_currentScriptWidget->m_scriptEditor->lineLength(lastLine);
     m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
@@ -326,6 +326,7 @@ void Script::diagnosticsPublish() const {
         const int endLine = diagnosticEndPos["line"].toInt();
         const int endCharacter = diagnosticEndPos["character"].toInt();
         m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, severity);
+
         const QString code = diagnosticObject["code"].toString();
         const QString message = diagnosticObject["message"].toString();
         m_scriptDiagnosticsTableWidget->insertRow(row);
@@ -353,6 +354,7 @@ void Script::diagnosticsPublish() const {
         }
         m_scriptDiagnosticsTableWidget->setItem(row, 0, codeItem);
         m_scriptDiagnosticsTableWidget->setItem(row, 1, messageItem);
+
         row++;
     }
 }

@@ -59,7 +59,7 @@ class Port final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Port(QObject *parent = nullptr);
+    explicit Port(QWidget *parent = nullptr);
 
     ~Port() override = default;
 

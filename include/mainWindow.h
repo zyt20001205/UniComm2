@@ -12,6 +12,7 @@
 #include "database.h"
 #include "dataplot.h"
 #include "datatable.h"
+#include "diagnostics.h"
 #include "log.h"
 #include "luaLanguageServer.h"
 #include "port.h"
@@ -63,13 +64,14 @@ private:
 
     Config *m_configModule = nullptr;
     LuaLanguageServer *m_llsModule = nullptr;
-    Script *m_scriptModule = nullptr;
     Port *m_portModule = nullptr;
     Send *m_sendModule = nullptr;
     Database *m_databaseModule = nullptr;
     Datatable *m_datatableModule = nullptr;
     Dataplot *m_dataplotModule = nullptr;
     Log *m_logModule = nullptr;
+    Diagnostics *m_diagnosticsModule = nullptr;
+    Script *m_scriptModule = nullptr;
 
     QAction *m_viewPort = nullptr;
     QAction *m_viewSend = nullptr;
@@ -77,6 +79,7 @@ private:
     QAction *m_viewDatatable = nullptr;
     QAction *m_viewDataplot = nullptr;
     QAction *m_viewLog = nullptr;
+    QAction *m_viewDiagnostics = nullptr;
 };
 
 #endif //MAINWINDOW_H
