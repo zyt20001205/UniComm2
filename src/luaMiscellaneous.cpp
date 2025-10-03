@@ -8,7 +8,7 @@ int lua_exec(lua_State *L) {
     const char *param1 = luaL_checkstring(L, 1);
     // start operation
     const QString scriptPath = QString::fromUtf8(param1);
-    QMetaObject::invokeMethod(g_log, [scriptPath] {
+    QMetaObject::invokeMethod(g_script, [scriptPath] {
         g_script->scriptExec(scriptPath);
     }, Qt::QueuedConnection);
     return 0;

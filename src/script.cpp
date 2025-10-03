@@ -48,16 +48,23 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     runButton->setFixedSize(24, 24);
     runButton->setIcon(QIcon(":/icon/play.svg"));
     connect(runButton, &QPushButton::clicked, this, [this] {
-        if (!m_currentScriptWidget) return;
-        const QString script = m_currentScriptWidget->m_scriptEditor->text();
-        scriptRun(script);
+        if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
+            const QUrl scriptUrl = scriptPage->m_scriptUrl;
+            const QString script = scriptPage->m_scriptEditor->text();
+            scriptRun(scriptUrl, script);
+        }
     });
     auto *debugButton = new QPushButton(); // NOLINT
     ctrlLayout->addWidget(debugButton);
     debugButton->setFixedSize(24, 24);
     debugButton->setIcon(QIcon(":/icon/bug.svg"));
-    connect(debugButton, &QPushButton::clicked, this, &Script::scriptDebug);
-
+    connect(debugButton, &QPushButton::clicked, this, [this] {
+        if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
+            const QUrl scriptUrl = scriptPage->m_scriptUrl;
+            const QString script = scriptPage->m_scriptEditor->text();
+            scriptDebug(scriptUrl, script);
+        }
+    });
     // script monitor widget
     auto *scriptMonitorWidget = new QWidget(); // NOLINT
     scriptSplitter->addWidget(scriptMonitorWidget);
@@ -223,14 +230,16 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
 }
 
 void Script::scriptExec(const QString &scriptPath) {
-    QFile file(QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath));
+    const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
+    QFile file(fullPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
     const QString script = in.readAll();
     file.close();
     // call script run
-    scriptRun(script);
+    const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
+    scriptRun(scriptUrl, script);
 }
 
 void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
@@ -246,11 +255,11 @@ void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const
     });
 }
 
-void Script::markerHighlight(const int row) const {
-    if (!m_currentScriptWidget) return;
-    m_currentScriptWidget->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
-    if (row == -1) return;
-    m_currentScriptWidget->m_scriptEditor->markerAdd(row - 1, MARKER_HIGHLIGHT);
+void Script::markerHighlight(const QUrl &scriptUrl, const int line) const {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
+    if (line == -1) return;
+    scriptPage->m_scriptEditor->markerAdd(line - 1, MARKER_HIGHLIGHT);
 }
 
 void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
@@ -306,10 +315,10 @@ void Script::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signa
 }
 
 // Script private
-void Script::scriptRun(const QString &script) {
+void Script::scriptRun(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(m_rootUrl); // NOLINT
+    auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -317,7 +326,7 @@ void Script::scriptRun(const QString &script) {
         interpreter->run(script);
         QThread::currentThread()->quit();
     });
-    scriptRunning("name", worker);
+    scriptRunning(scriptUrl.fileName(), worker);
     m_scriptMonitorTabWidget->setCurrentIndex(THREADPOOL_TAB); // switch to threadpool tab
     worker->start();
 }
@@ -345,15 +354,13 @@ void Script::scriptRunning(const QString &name, QThread *worker) {
     });
 }
 
-void Script::scriptDebug() {
-    if (!m_currentScriptWidget) return;
-    QString script = m_currentScriptWidget->m_scriptEditor->text();
+void Script::scriptDebug(const QUrl &scriptUrl, const QString &script) {
     DebugData debugData;
-    debugData.currentUrl = m_currentScriptWidget->m_scriptUrl;
+    debugData.currentUrl = scriptUrl;
     debugData.breakpoints = &m_breakpoints;
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    m_debugInterpreter = new LuaInterpreter(m_rootUrl); // NOLINT
+    m_debugInterpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     m_debugInterpreter->moveToThread(worker);
     connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -374,31 +381,26 @@ void Script::scriptModify(const int index) const {
 
 void Script::scriptClose(const int index) {
     // find page
-    auto *scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
-    // remove hash & list
-    QUrl scriptUrl;
-    foreach(const QUrl &url, m_scriptPageHash.keys()) {
-        if (m_scriptPageHash.value(url) == scriptPage) {
-            scriptUrl = url;
-            break;
+    if (auto *scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index))) {
+        // remove hash & list
+        const QUrl scriptUrl = scriptPage->m_scriptUrl;
+        m_scriptPageHash.remove(scriptUrl);
+        m_scriptList.removeAt(index);
+        // qDebug() << m_scriptList;
+        // ask for saving
+        if (scriptPage && scriptPage->m_scriptModify) {
+            const QMessageBox::StandardButton reply =
+                    QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
+                                          QMessageBox::No);
+            if (reply == QMessageBox::Yes) {
+                scriptPage->scriptSave();
+            }
         }
-    }
-    m_scriptPageHash.remove(scriptUrl);
-    m_scriptList.removeAt(index);
-    // qDebug() << m_scriptList;
-    // ask for saving
-    if (scriptPage && scriptPage->m_scriptModify) {
-        const QMessageBox::StandardButton reply =
-                QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
-                                      QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
-            scriptPage->scriptSave();
-        }
+        // delete page
+        scriptPage->deleteLater();
     }
     // remove tab
     m_scriptTabWidget->removeTab(index);
-    // delete page
-    scriptPage->deleteLater();
 }
 
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
@@ -415,7 +417,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, Q
       m_tooltipPosition(new TooltipPosition(this)),
       m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
-    connect(shortcutFormatting, &QShortcut::activated, this, [this] {formattingRequest();});
+    connect(shortcutFormatting, &QShortcut::activated, this, [this] { formattingRequest(); });
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_editTimer = new QTimer(this);
@@ -1260,9 +1262,15 @@ void ScriptEditor::duplicateHandle() {
 }
 
 // LuaInterpreter public
-LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, QObject *parent) : QObject(parent) {
+LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)
+    : QObject(parent) {
+    m_scriptUrl = scriptUrl;
     // init lua interpreter
     L = luaL_newstate();
+    if (L) {
+        auto *ptrHolder = static_cast<void **>(lua_getextraspace(L));
+        *ptrHolder = nullptr;
+    }
     luaL_openlibs(L);
     lua_getglobal(L, "package");
     // set workspace
@@ -1357,7 +1365,7 @@ void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
-    g_script->markerHighlight(-1);
+    g_script->markerHighlight(m_scriptUrl, -1);
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         handleError();
@@ -1374,7 +1382,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     const auto data = new DebugData{debugData};
     *ptrHolder = data;
     // lua debug preparation
-    g_script->markerHighlight(-1);
+    g_script->markerHighlight(m_scriptUrl, -1);
     g_stateMachine = STATE_RUN;
     g_depth = 0;
     // lua debug
@@ -1383,8 +1391,8 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) co
     if (load_result == LUA_OK) {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
-            QMetaObject::invokeMethod(g_script, [] {
-                g_script->markerHighlight(-1);
+            QMetaObject::invokeMethod(g_script, [this] {
+                g_script->markerHighlight(m_scriptUrl, -1);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -1541,8 +1549,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 debugData->currentUrl = nextUrl;
             }
             // line handle
-            QMetaObject::invokeMethod(g_script, [line] {
-                g_script->markerHighlight(line);
+            QMetaObject::invokeMethod(g_script, [debugData, line] {
+                g_script->markerHighlight(debugData->currentUrl, line);
             }, Qt::BlockingQueuedConnection);
             // var handle
             {
@@ -1663,8 +1671,8 @@ void LuaInterpreter::handleError() const {
     int line = -1;
     static const QRegularExpression re(R"(\]:(\d+):)");
     if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
-    QMetaObject::invokeMethod(g_script, [line, error] {
-        g_script->markerHighlight(line);
+    QMetaObject::invokeMethod(g_script, [this, line, error] {
+        g_script->markerHighlight(m_scriptUrl, line);
         g_script->appendLog(error, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);

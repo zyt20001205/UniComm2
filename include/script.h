@@ -99,23 +99,23 @@ public:
 
     void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void markerHighlight(int row) const;
+    void markerHighlight(const QUrl &scriptUrl, int line) const;
 
     void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    void completionReturn(const QUrl &scriptUrl,const QJsonArray &items) const;
+    void completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const;
 
-    void foldingRangeReturn(const QUrl &scriptUrl,const QJsonArray &result) const;
+    void foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const;
 
-    void formattingReturn(const QUrl &scriptUrl,const QString &newText) const;
+    void formattingReturn(const QUrl &scriptUrl, const QString &newText) const;
 
-    void hoverReturn(const QUrl &scriptUrl,const QString &message) const;
+    void hoverReturn(const QUrl &scriptUrl, const QString &message) const;
 
     void semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const;
 
-    void signatureHelpReturn(const QUrl &scriptUrl,const QJsonObject &signature) const;
+    void signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 signals:
@@ -130,11 +130,11 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
-    void scriptRun(const QString &script);
+    void scriptRun(const QUrl &scriptUrl,const QString &script);
 
     void scriptRunning(const QString &name, QThread *worker);
 
-    void scriptDebug();
+    void scriptDebug(const QUrl &scriptUrl,const QString &script);
 
     void scriptModify(int index) const;
 
@@ -434,7 +434,7 @@ class LuaInterpreter final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaInterpreter(const QUrl &rootUrl, QObject *parent = nullptr);
+    explicit LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent = nullptr);
 
     ~LuaInterpreter() override;
 
@@ -453,6 +453,7 @@ private:
 
     lua_State *L = nullptr;
     lua_State *co = nullptr;
+    QUrl m_scriptUrl;
 };
 
 class ScriptExplorer final : public QTreeView {
