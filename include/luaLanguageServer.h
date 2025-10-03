@@ -28,17 +28,17 @@ signals:
 
     void returnPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    void returnCompletion(const QJsonArray &items);
+    void returnCompletion(const QUrl &scriptUrl, const QJsonArray &items);
 
-    void returnFoldingRange(const QJsonArray &result);
+    void returnFoldingRange(const QUrl &scriptUrl, const QJsonArray &result);
 
-    void returnFormatting(const QString &newText);
+    void returnFormatting(const QUrl &scriptUrl, const QString &newText);
 
-    void returnHover(const QString &message);
+    void returnHover(const QUrl &scriptUrl, const QString &message);
 
-    void returnSemanticTokens(const QJsonArray &data);
+    void returnSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);
 
-    void returnSignatureHelp(const QJsonObject &signature);
+    void returnSignatureHelp(const QUrl &scriptUrl, const QJsonObject &signature);
 
 private:
     void initializeNotification(const QUrl &rootUrl);
@@ -53,6 +53,7 @@ private:
     QByteArray m_buffer{};
     int m_id = 0;
     QHash<int, QString> m_methods{};
+    QHash<int, QUrl> m_urls{};
 };
 
 #endif //LUALANGUAGESERVER_H

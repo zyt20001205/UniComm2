@@ -15,9 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     configInit();
     moduleInit();
-    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
-        workspaceInit(rootUrl);
-    }
     menuInit();
     shortcutInit();
     layoutInit();

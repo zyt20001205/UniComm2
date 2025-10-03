@@ -105,19 +105,17 @@ public:
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    void diagnosticsPublish();
+    void completionReturn(const QUrl &scriptUrl,const QJsonArray &items) const;
 
-    void completionReturn(const QJsonArray &items) const;
+    void foldingRangeReturn(const QUrl &scriptUrl,const QJsonArray &result) const;
 
-    void foldingRangeReturn(const QJsonArray &result) const;
+    void formattingReturn(const QUrl &scriptUrl,const QString &newText) const;
 
-    void formattingReturn(const QString &newText) const;
+    void hoverReturn(const QUrl &scriptUrl,const QString &message) const;
 
-    void hoverReturn(const QString &message) const;
+    void semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const;
 
-    void semanticTokensReturn(const QJsonArray &data) const;
-
-    void signatureHelpReturn(const QJsonObject &signature) const;
+    void signatureHelpReturn(const QUrl &scriptUrl,const QJsonObject &signature) const;
 
     ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 signals:
@@ -142,8 +140,6 @@ private:
 
     void scriptClose(int index);
 
-    void scriptSelected(int index);
-
     void scriptSwap(int srcIndex, int dstIndex);
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
@@ -165,6 +161,97 @@ private:
         THREADPOOL_TAB,
         DEBUG_TAB,
     };
+};
+
+class TooltipCompletion;
+
+class TooltipHover;
+
+class TooltipPosition;
+
+class TooltipSignatureHelp;
+
+class ScriptPage final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit ScriptPage(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl(), QWidget *parent = nullptr);
+
+    ~ScriptPage() override = default;
+
+    void scriptSave() const;
+
+    void completionReturn(const QJsonArray &items) const;
+
+    void diagnosticsReturn(const QJsonArray &diagnosticsArray) const;
+
+    void foldingRangeReturn(const QJsonArray &result) const;
+
+    void formattingReturn(const QString &newText) const;
+
+    void hoverReturn(const QString &message) const;
+
+    void semanticTokensReturn(const QJsonArray &data) const;
+
+    void signatureHelpReturn(const QJsonObject &signature) const;
+
+    ScriptEditor *m_scriptEditor = nullptr;
+    QUrl m_scriptUrl;
+    bool m_scriptModify = false;
+    TooltipCompletion *m_tooltipCompletion = nullptr;
+    TooltipHover *m_tooltipHover = nullptr;
+    TooltipPosition *m_tooltipPosition = nullptr;
+    TooltipSignatureHelp *m_tooltipSignatureHelp = nullptr;
+
+signals:
+    void modifyScript();
+
+    void insertBreakpoint(const QUrl &scriptUrl, int line);
+
+    void removeBreakpoint(const QUrl &scriptUrl, int line);
+
+    void requestJson(const QString &method, const QJsonObject &params);
+
+    void notificationJson(const QString &method, const QJsonObject &params);
+
+private slots:
+    void scriptModify(bool status);
+
+    void scriptEdit() const;
+
+    void dwellStart(int pos, int x, int y);
+
+    void marginClick(int margin, int line, Qt::KeyboardModifiers state);
+
+private:
+    void scriptEditFinish();
+
+    void completionRequest();
+
+    void didChangeNotification();
+
+    void didOpenNotification();
+
+    void foldingRangeRequest();
+
+    void formattingRequest();
+
+    void semanticTokensRequest();
+
+    void signatureHelpRequest();
+
+    void dwellSwitch(bool status) const;
+
+    void hoverRequest(int line, int character);
+
+    void textReplace(QString &text, const QString &kind) const;
+
+    void textInsert(QString &text, const QString &kind) const;
+
+    void positionFill(int x, int y) const;
+
+    int m_version = 1;
+    QTimer *m_editTimer = nullptr;
 
     // semantic related
     enum {
@@ -222,83 +309,6 @@ private:
         LUATOKEN_NUMBER,
         LUATOKEN_OPERATOR,
     };
-};
-
-class TooltipCompletion;
-
-class TooltipHover;
-
-class TooltipPosition;
-
-class TooltipSignatureHelp;
-
-class ScriptPage final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit ScriptPage(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl(), QWidget *parent = nullptr);
-
-    ~ScriptPage() override = default;
-
-    void scriptSave() const;
-
-    void scriptEditFinish();
-
-    void completionRequest();
-
-    void didChangeNotification();
-
-    void foldingRangeRequest();
-
-    void formattingRequest();
-
-    void semanticTokensRequest();
-
-    void signatureHelpRequest();
-
-    int m_version = 1;
-    ScriptEditor *m_scriptEditor = nullptr;
-    QUrl m_scriptUrl;
-    bool m_scriptModify = false;
-    TooltipCompletion *m_tooltipCompletion = nullptr;
-    TooltipHover *m_tooltipHover = nullptr;
-    TooltipPosition *m_tooltipPosition = nullptr;
-    TooltipSignatureHelp *m_tooltipSignatureHelp = nullptr;
-
-signals:
-    void modifyScript();
-
-    void insertBreakpoint(const QUrl &scriptUrl, int line);
-
-    void removeBreakpoint(const QUrl &scriptUrl, int line);
-
-    void requestJson(const QString &method, const QJsonObject &params);
-
-    void notificationJson(const QString &method, const QJsonObject &params);
-
-private slots:
-    void scriptModify(bool status);
-
-    void scriptEdit() const;
-
-    void dwellStart(int pos, int x, int y);
-
-    void marginClick(int margin, int line, Qt::KeyboardModifiers state);
-
-private:
-    void dwellSwitch(bool status) const;
-
-    void didOpenNotification();
-
-    void hoverRequest(int line, int character);
-
-    void textReplace(QString &text, const QString &kind) const;
-
-    void textInsert(QString &text, const QString &kind) const;
-
-    void positionFill(int x, int y) const;
-
-    QTimer *m_editTimer = nullptr;
 };
 
 class TooltipCompletion final : public QWidget {

@@ -6,12 +6,6 @@ int g_baseDepth = 0;
 
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
-    auto shortcutFormatting = new QShortcut(QKeySequence(m_scriptConfig["formatting"].toString()), this); // NOLINT
-    connect(shortcutFormatting, &QShortcut::activated, this, [this] {
-        if (!m_currentScriptWidget) return;
-        m_currentScriptWidget->formattingRequest();
-        emit appendLog("script formatted", "info");
-    });
     // script module init
     auto *layout = new QHBoxLayout(this); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
@@ -39,9 +33,9 @@ Script::Script(QWidget *parent) : QWidget(parent) {
             scriptOpen(scriptUrl);
         }
     }
-    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, &Script::scriptSelected);
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
     connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &Script::scriptSwap);
+    m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
 
     // script widget -> ctrl widget
     auto *ctrlWidget = new QWidget(); // NOLINT
@@ -55,7 +49,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     runButton->setIcon(QIcon(":/icon/play.svg"));
     connect(runButton, &QPushButton::clicked, this, [this] {
         if (!m_currentScriptWidget) return;
-        QString script = m_currentScriptWidget->m_scriptEditor->text();
+        const QString script = m_currentScriptWidget->m_scriptEditor->text();
         scriptRun(script);
     });
     auto *debugButton = new QPushButton(); // NOLINT
@@ -161,12 +155,10 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
-    QTimer::singleShot(0, [this] {
-        m_scriptTabWidget->blockSignals(true);
-        m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
-        m_scriptTabWidget->blockSignals(false);
-        scriptSelected(m_scriptConfig["scriptFocused"].toInt());
-    });
+    // open workspace
+    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
+        workspaceOpen(rootUrl);
+    }
 }
 
 void Script::workspaceOpen(const QUrl &rootUrl) {
@@ -175,7 +167,6 @@ void Script::workspaceOpen(const QUrl &rootUrl) {
 }
 
 void Script::scriptConfigSave() {
-    if (!m_currentScriptWidget) return;
     // save script
     for (const ScriptPage *scriptPage: m_scriptPageHash) {
         if (scriptPage) {
@@ -197,6 +188,7 @@ void Script::scriptConfigSave() {
         scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
+    m_scriptConfig["scriptFocused"] = m_scriptTabWidget->currentIndex();
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
@@ -217,13 +209,14 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestJson, this, &Script::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &Script::notificationJson);
         m_scriptTabWidget->addTab(scriptPage, scriptUrl.fileName());
+        scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
         // append to list
         m_scriptList.append(scriptUrl);
+        // qDebug() << m_scriptList;
     }
     m_scriptTabWidget->setCurrentWidget(scriptPage);
 
     m_currentScriptWidget = scriptPage;
-    // qDebug() << m_scriptList;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptUrl.toString(), "opened");
@@ -283,177 +276,33 @@ void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
 
 void Script::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
-    diagnosticsPublish();
-}
-
-void Script::diagnosticsPublish() {
-    if (!m_currentScriptWidget) return;
-    const QJsonArray &diagnosticsArray = m_diagnosticsHash[m_currentScriptWidget->m_scriptUrl];
-    // clear previous diagnostics
-    const int lastLine = m_currentScriptWidget->m_scriptEditor->lines() - 1;
-    const int lastIndex = m_currentScriptWidget->m_scriptEditor->lineLength(lastLine);
-    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
-    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
-    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_INFO);
-    m_currentScriptWidget->m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HINT);
-    // publish diagnostics
-    int row = 0;
-    for (const auto &diagnostic: diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const int severity = diagnosticObject["severity"].toInt();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        const int startLine = diagnosticStartPos["line"].toInt();
-        const int startCharacter = diagnosticStartPos["character"].toInt();
-        const int endLine = diagnosticEndPos["line"].toInt();
-        const int endCharacter = diagnosticEndPos["character"].toInt();
-        m_currentScriptWidget->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, severity);
-        row++;
+    if (m_scriptPageHash.contains(scriptUrl)) {
+        m_scriptPageHash[scriptUrl]->diagnosticsReturn(diagnosticsArray);
     }
 }
 
-void Script::completionReturn(const QJsonArray &items) const {
-    m_currentScriptWidget->m_tooltipCompletion->showTooltip(items);
-    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptWidget->m_scriptEditor);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptWidget->m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+void Script::completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const {
+    m_scriptPageHash[scriptUrl]->completionReturn(items);
 }
 
-void Script::foldingRangeReturn(const QJsonArray &result) const {
-    QMap<int, int> deltaDepthMap;
-    for (const QJsonValue &value: result) {
-        const int startLine = value["startLine"].toInt();
-        const int endLine = value["endLine"].toInt();
-        deltaDepthMap.insert(startLine + 1, deltaDepthMap.value(startLine + 1, 0) + 1);
-        deltaDepthMap.insert(endLine + 1, deltaDepthMap.value(endLine + 1, 0) - 1);
-    }
-    int currentDepth = 0;
-    for (int line = 0; line < m_currentScriptWidget->m_scriptEditor->lines(); line++) {
-        const int deltaDepth = deltaDepthMap.value(line, 0);
-        currentDepth += deltaDepth;
-        int level = QsciScintilla::SC_FOLDLEVELBASE + currentDepth;
-        if (deltaDepthMap.value(line + 1, 0) > 0) level |= QsciScintilla::SC_FOLDLEVELHEADERFLAG;
-        m_currentScriptWidget->m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETFOLDLEVEL, line, level); // NOLINT
-    }
+void Script::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {
+    m_scriptPageHash[scriptUrl]->foldingRangeReturn(result);
 }
 
-void Script::formattingReturn(const QString &newText) const {
-    m_currentScriptWidget->m_scriptEditor->setText(newText);
+void Script::formattingReturn(const QUrl &scriptUrl, const QString &newText) const {
+    m_scriptPageHash[scriptUrl]->formattingReturn(newText);
 }
 
-void Script::hoverReturn(const QString &message) const {
-    m_currentScriptWidget->m_tooltipHover->showTooltip(message);
+void Script::hoverReturn(const QUrl &scriptUrl, const QString &message) const {
+    m_scriptPageHash[scriptUrl]->hoverReturn(message);
 }
 
-void Script::semanticTokensReturn(const QJsonArray &data) const {
-    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptWidget->m_scriptEditor);
-    // clear
-    editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0, 0xFF); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, editor->length(), static_cast<long>(0));
-    // color format is BGR!!! DO NOT FORGET!!!
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUATOKEN_MACRO, 1); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
-    editor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
-
-    int currentLine = 0;
-    int currentChar = 0;
-    for (int i = 0; i < data.size(); i += 5) {
-        // semantic tokens response extract
-        const int deltaLine = data[i].toInt();
-        const int deltaStartChar = data[i + 1].toInt();
-        const int length = data[i + 2].toInt();
-        const int tokenType = data[i + 3].toInt();
-        const int tokenModifiers = data[i + 4].toInt();
-        // calculate start position
-        currentLine += deltaLine;
-        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
-        const int startPos = editor->positionFromLineIndex(currentLine, currentChar);
-        const int endPos = startPos + length;
-        if (startPos < 0 || endPos > editor->length() || length <= 0) {
-            qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
-            continue;
-        }
-        // start styling
-        editor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
-        switch (tokenType) {
-            case TOKENTYPE_TYPE:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_TYPE); // NOLINT
-                break;
-            case TOKENTYPE_PARAMETER:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
-                break;
-            case TOKENTYPE_VARIABLE:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_VARIABLE); // NOLINT
-                break;
-            case TOKENTYPE_PROPERTY:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PROPERTY); // NOLINT
-                break;
-            case TOKENTYPE_FUNCTION:
-                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
-                    editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
-                } else {
-                    editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
-                }
-                break;
-            case TOKENTYPE_METHOD:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
-                break;
-            case TOKENTYPE_MACRO:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_MACRO); // NOLINT
-                break;
-            case TOKENTYPE_KEYWORD:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
-                break;
-            case TOKENTYPE_COMMENT:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_COMMENT); // NOLINT
-                break;
-            case TOKENTYPE_STRING:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_STRING); // NOLINT
-                break;
-            case TOKENTYPE_NUMBER:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NUMBER); // NOLINT
-                break;
-            case TOKENTYPE_OPERATOR:
-                editor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
-                break;
-            default:
-                qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
-                break;
-        }
-    }
+void Script::semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const {
+    m_scriptPageHash[scriptUrl]->semanticTokensReturn(data);
 }
 
-void Script::signatureHelpReturn(const QJsonObject &signature) const {
-    m_currentScriptWidget->m_tooltipSignatureHelp->showTooltip(signature);
-    const auto *editor = qobject_cast<QsciScintilla *>(m_currentScriptWidget->m_scriptEditor);
-    long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    while (true) {
-        const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
-        if (prevChar == '(') break;
-        currentPos--;
-    }
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, currentPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_currentScriptWidget->m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
+void Script::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const {
+    m_scriptPageHash[scriptUrl]->signatureHelpReturn(signature);
 }
 
 // Script private
@@ -552,17 +401,6 @@ void Script::scriptClose(const int index) {
     scriptPage->deleteLater();
 }
 
-void Script::scriptSelected(const int index) {
-    const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
-    if (!scriptPage) return;
-    m_currentScriptWidget = scriptPage;
-    m_scriptConfig["scriptFocused"] = index;
-    diagnosticsPublish();
-    m_currentScriptWidget->didChangeNotification();
-    m_currentScriptWidget->foldingRangeRequest();
-    m_currentScriptWidget->semanticTokensRequest();
-}
-
 void Script::scriptSwap(const int srcIndex, const int dstIndex) {
     const QUrl tmp = m_scriptList.takeAt(srcIndex);
     m_scriptList.insert(dstIndex, tmp);
@@ -576,6 +414,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, Q
       m_tooltipHover(new TooltipHover(this)),
       m_tooltipPosition(new TooltipPosition(this)),
       m_tooltipSignatureHelp(new TooltipSignatureHelp(this)) {
+    auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
+    connect(shortcutFormatting, &QShortcut::activated, this, [this] {formattingRequest();});
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     m_editTimer = new QTimer(this);
@@ -614,6 +454,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, Q
     // didOpen notification to lua language server
     QTimer::singleShot(0, this, [this] {
         didOpenNotification();
+        foldingRangeRequest();
+        semanticTokensRequest();
     });
 }
 
@@ -633,35 +475,212 @@ void ScriptPage::scriptSave() const {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
 }
 
-void ScriptPage::scriptEditFinish() {
-    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const QChar currentChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1));
-    const QChar prevChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 2));
-    didChangeNotification();
-    if (currentChar.isLetter() || currentChar == '.' || currentChar == ':' || currentChar == '"') {
-        completionRequest();
-        m_tooltipSignatureHelp->hideTooltip();
-    } else if (currentChar == '(' || currentChar == ',' || prevChar == ',') {
-        QByteArray prevChars(5, 0);
-        m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETTEXTRANGE, qMax(0L, currentPos - 6), currentPos - 1, prevChars.data());
-        if (prevChars == "Click") {
-            m_tooltipPosition->showTooltip();
-        } else {
-            completionRequest();
-            signatureHelpRequest();
-            // m_tooltipCompletion->hideTooltip();
-        }
-    } else {
-        m_tooltipCompletion->hideTooltip();
-        m_tooltipSignatureHelp->hideTooltip();
-    }
-    foldingRangeRequest();
-    semanticTokensRequest();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "edited");
+void ScriptPage::completionReturn(const QJsonArray &items) const {
+    m_tooltipCompletion->showTooltip(items);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
+void ScriptPage::diagnosticsReturn(const QJsonArray &diagnosticsArray) const {
+    // clear previous diagnostics
+    const int lastLine = m_scriptEditor->lines() - 1;
+    const int lastIndex = m_scriptEditor->lineLength(lastLine);
+    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
+    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
+    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_INFO);
+    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HINT);
+    // publish diagnostics
+    int row = 0;
+    for (const auto &diagnostic: diagnosticsArray) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const int severity = diagnosticObject["severity"].toInt();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        const int startLine = diagnosticStartPos["line"].toInt();
+        const int startCharacter = diagnosticStartPos["character"].toInt();
+        const int endLine = diagnosticEndPos["line"].toInt();
+        const int endCharacter = diagnosticEndPos["character"].toInt();
+        m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, severity);
+        row++;
+    }
+}
+
+void ScriptPage::foldingRangeReturn(const QJsonArray &result) const {
+    QMap<int, int> deltaDepthMap;
+    for (const QJsonValue &value: result) {
+        const int startLine = value["startLine"].toInt();
+        const int endLine = value["endLine"].toInt();
+        deltaDepthMap.insert(startLine + 1, deltaDepthMap.value(startLine + 1, 0) + 1);
+        deltaDepthMap.insert(endLine + 1, deltaDepthMap.value(endLine + 1, 0) - 1);
+    }
+    int currentDepth = 0;
+    for (int line = 0; line < m_scriptEditor->lines(); line++) {
+        const int deltaDepth = deltaDepthMap.value(line, 0);
+        currentDepth += deltaDepth;
+        int level = QsciScintilla::SC_FOLDLEVELBASE + currentDepth;
+        if (deltaDepthMap.value(line + 1, 0) > 0) level |= QsciScintilla::SC_FOLDLEVELHEADERFLAG;
+        m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETFOLDLEVEL, line, level); // NOLINT
+    }
+}
+
+void ScriptPage::formattingReturn(const QString &newText) const {
+    m_scriptEditor->setText(newText);
+}
+
+void ScriptPage::hoverReturn(const QString &message) const {
+    m_tooltipHover->showTooltip(message);
+}
+
+void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
+    // clear
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0, 0xFF); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, m_scriptEditor->length(), static_cast<long>(0));
+    // color format is BGR!!! DO NOT FORGET!!!
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUATOKEN_MACRO, 1); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
+
+    int currentLine = 0;
+    int currentChar = 0;
+    for (int i = 0; i < data.size(); i += 5) {
+        // semantic tokens response extract
+        const int deltaLine = data[i].toInt();
+        const int deltaStartChar = data[i + 1].toInt();
+        const int length = data[i + 2].toInt();
+        const int tokenType = data[i + 3].toInt();
+        const int tokenModifiers = data[i + 4].toInt();
+        // calculate start position
+        currentLine += deltaLine;
+        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
+        const int startPos = m_scriptEditor->positionFromLineIndex(currentLine, currentChar);
+        const int endPos = startPos + length;
+        if (startPos < 0 || endPos > m_scriptEditor->length() || length <= 0) {
+            qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
+            continue;
+        }
+        // start styling
+        m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
+        switch (tokenType) {
+            case TOKENTYPE_TYPE:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_TYPE); // NOLINT
+                break;
+            case TOKENTYPE_PARAMETER:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
+                break;
+            case TOKENTYPE_VARIABLE:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_VARIABLE); // NOLINT
+                break;
+            case TOKENTYPE_PROPERTY:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PROPERTY); // NOLINT
+                break;
+            case TOKENTYPE_FUNCTION:
+                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
+                    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
+                } else {
+                    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
+                }
+                break;
+            case TOKENTYPE_METHOD:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
+                break;
+            case TOKENTYPE_MACRO:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_MACRO); // NOLINT
+                break;
+            case TOKENTYPE_KEYWORD:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
+                break;
+            case TOKENTYPE_COMMENT:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_COMMENT); // NOLINT
+                break;
+            case TOKENTYPE_STRING:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_STRING); // NOLINT
+                break;
+            case TOKENTYPE_NUMBER:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NUMBER); // NOLINT
+                break;
+            case TOKENTYPE_OPERATOR:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
+                break;
+            default:
+                qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
+                break;
+        }
+    }
+}
+
+void ScriptPage::signatureHelpReturn(const QJsonObject &signature) const {
+    m_tooltipSignatureHelp->showTooltip(signature);
+    const auto *editor = qobject_cast<QsciScintilla *>(m_scriptEditor);
+    long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    while (true) {
+        const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
+        if (prevChar == '(') break;
+        currentPos--;
+    }
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, currentPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
+}
+
+// ScriptPage private slots
+void ScriptPage::scriptModify(const bool status) {
+    m_scriptModify = status;
+    if (m_scriptModify) {
+        emit modifyScript();
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "modified");
+    }
+}
+
+void ScriptPage::scriptEdit() const {
+    m_editTimer->stop();
+    m_editTimer->start();
+}
+
+void ScriptPage::dwellStart(const int pos, const int x, const int y) {
+    int line, character;
+    m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
+    if (line == 0 && character == 0) return;
+    hoverRequest(line, character);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "hovered");
+}
+
+void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
+    if (margin == 1 && line >= 0) {
+        if (m_scriptEditor->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
+            m_scriptEditor->markerDelete(line, MARKER_BREAKPOINT);
+            emit removeBreakpoint(m_scriptUrl, line + 1);
+        } else {
+            m_scriptEditor->markerAdd(line, MARKER_BREAKPOINT);
+            emit insertBreakpoint(m_scriptUrl, line + 1);
+        }
+    }
+}
+
+// ScriptPage private
 void ScriptPage::completionRequest() {
     // completion request to lua language server
     int line, character;
@@ -767,42 +786,33 @@ void ScriptPage::signatureHelpRequest() {
     emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
 
-// ScriptPage private
-void ScriptPage::scriptModify(const bool status) {
-    m_scriptModify = status;
-    if (m_scriptModify) {
-        emit modifyScript();
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "modified");
+void ScriptPage::scriptEditFinish() {
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const QChar currentChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1));
+    const QChar prevChar = static_cast<char>(m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 2));
+    didChangeNotification();
+    if (currentChar.isLetter() || currentChar == '.' || currentChar == ':' || currentChar == '"') {
+        completionRequest();
+        m_tooltipSignatureHelp->hideTooltip();
+    } else if (currentChar == '(' || currentChar == ',' || prevChar == ',') {
+        QByteArray prevChars(5, 0);
+        m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETTEXTRANGE, qMax(0L, currentPos - 6), currentPos - 1, prevChars.data());
+        if (prevChars == "Click") {
+            m_tooltipPosition->showTooltip();
+        } else {
+            completionRequest();
+            signatureHelpRequest();
+            // m_tooltipCompletion->hideTooltip();
+        }
+    } else {
+        m_tooltipCompletion->hideTooltip();
+        m_tooltipSignatureHelp->hideTooltip();
     }
-}
-
-void ScriptPage::scriptEdit() const {
-    m_editTimer->stop();
-    m_editTimer->start();
-}
-
-void ScriptPage::dwellStart(const int pos, const int x, const int y) {
-    int line, character;
-    m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
-    if (line == 0 && character == 0) return;
-    hoverRequest(line, character);
+    foldingRangeRequest();
+    semanticTokensRequest();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "hovered");
-}
-
-void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
-    if (margin == 1 && line >= 0) {
-        if (m_scriptEditor->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
-            m_scriptEditor->markerDelete(line, MARKER_BREAKPOINT);
-            emit removeBreakpoint(m_scriptUrl, line + 1);
-        } else {
-            m_scriptEditor->markerAdd(line, MARKER_BREAKPOINT);
-            emit insertBreakpoint(m_scriptUrl, line + 1);
-        }
-    }
+    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "edited");
 }
 
 void ScriptPage::dwellSwitch(const bool status) const {
@@ -1674,6 +1684,10 @@ ScriptExplorer::ScriptExplorer(QWidget *parent)
     this->setColumnHidden(3, true);
     this->setColumnHidden(4, true);
     m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
+    // open workspace
+    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
+        workspaceOpen(rootUrl);
+    }
 }
 
 void ScriptExplorer::workspaceOpen(const QUrl &rootUrl) {
