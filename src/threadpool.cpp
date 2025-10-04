@@ -33,8 +33,7 @@ Threadpool::Threadpool(QWidget *parent)
             m_threadpoolTableWidget->item(row, 3)->setBackground(m_threadpoolColor[THREAD_STOP]);
 
             const QString id = m_threadpoolTableWidget->item(row, 2)->text();
-            m_threadHash[id]->requestInterruption();
-            // qDebug() << m_threadHash;
+            threadStop(id);
         }
     });
 }
@@ -72,4 +71,12 @@ void Threadpool::threadSpawn(const int status, const QString &name, const QStrin
         m_threadHash.remove(id);
         // qDebug() << m_threadHash;
     });
+}
+
+bool Threadpool::threadStop(const QString &threadId) {
+    if (m_threadHash.contains(threadId)) {
+        m_threadHash[threadId]->requestInterruption();
+        return true;
+    }
+    return false;
 }

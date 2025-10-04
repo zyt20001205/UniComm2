@@ -8,15 +8,17 @@
 #include <lua.hpp>
 #include "script.h"
 #include "log.h"
+#include "threadpool.h"
 
 class Script;
 
 extern Script *g_script;
 extern Log *g_log;
+extern Threadpool *g_threadpool;
 
 int lua_exec(lua_State *L);
 
-int lua_terminate(lua_State *L);
+int lua_stop(lua_State *L);
 
 int lua_input(lua_State *L);
 

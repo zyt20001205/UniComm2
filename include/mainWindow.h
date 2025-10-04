@@ -27,6 +27,7 @@ inline Datatable *g_datatable = nullptr;
 inline Dataplot *g_dataplot = nullptr;
 inline Log *g_log = nullptr;
 inline Port *g_port = nullptr;
+inline Threadpool *g_threadpool = nullptr;
 
 class MainWindow final : public QMainWindow {
     Q_OBJECT

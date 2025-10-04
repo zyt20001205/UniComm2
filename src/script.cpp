@@ -1254,6 +1254,7 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     lua_setfield(L, -2, "path");
     // register C++ functions
     lua_register(L, "exec", lua_exec);
+    lua_register(L, "stop", lua_stop);
     lua_register(L, "input", lua_input);
     lua_register(L, "print", lua_print);
     lua_register(L, "sleep", lua_sleep);

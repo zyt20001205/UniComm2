@@ -203,6 +203,7 @@ void MainWindow::moduleInit() {
     g_dataplot = m_dataplotModule;
     g_log = m_logModule;
     g_port = m_portModule;
+    g_threadpool = m_threadpoolModule;
 }
 
 void MainWindow::menuInit() {

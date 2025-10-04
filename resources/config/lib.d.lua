@@ -36,6 +36,12 @@
 ---
 function exec(filename) end
 
+--- Stops the specified thread by sending a termination **request**.
+--- @param threadId string The identifier of the thread to stop.
+--- @return boolean success If the thread exists and stop request was sent.
+---
+function stop(threadId) end
+
 --- Shows an input dialog for variable assignment.
 --- @return string
 ---

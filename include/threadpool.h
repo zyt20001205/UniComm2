@@ -17,6 +17,8 @@ public:
 
     void threadSpawn(int status, const QString &name, const QString &threadId, QThread *worker);
 
+    bool threadStop(const QString &threadId);
+
 private:
     QTableWidget *m_threadpoolTableWidget = nullptr;
     QHash<int, QColor> m_threadpoolColor;
