@@ -1,5 +1,10 @@
 #include "../include/script.h"
 
+#include "../include/config.h"
+#include "../include/port.h"
+#include "../include/suffix.h"
+#include "../include/utils.h"
+
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
     // script module init
@@ -58,7 +63,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
             const QUrl scriptUrl = scriptPage->m_scriptUrl;
             const QString script = scriptPage->m_scriptEditor->text();
-            emit debugThread(scriptUrl, script);
+            emit debugThread(scriptUrl, script, &m_breakpoints);
         }
     });
     // script monitor widget
@@ -77,19 +82,19 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     auto *scriptDebugLayout = new QVBoxLayout(m_scriptDebugWidget); // NOLINT
     scriptDebugLayout->setContentsMargins(0, 0, 0, 0);
     scriptDebugLayout->setSpacing(0);
-    
+
     // m_scriptDebugTreeView = new QTreeView();
     // scriptDebugLayout->addWidget(m_scriptDebugTreeView);
     // scriptTreeViewLoad({});
-    // // script monitor widget -> script explorer treeview
-    // m_scriptExplorerTreeView = new ScriptExplorer();
-    // scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
-    // connect(m_scriptExplorerTreeView, &ScriptExplorer::appendLog, this, &Script::appendLog);
-    // connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
+    // script monitor widget -> script explorer treeview
+    m_scriptExplorerTreeView = new ScriptExplorer();
+    scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
+    connect(m_scriptExplorerTreeView, &ScriptExplorer::appendLog, this, &Script::appendLog);
+    connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
     // connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
-    //
-    // scriptSplitter->setStretchFactor(0, 3);
-    // scriptSplitter->setStretchFactor(1, 1);
+
+    scriptSplitter->setStretchFactor(0, 3);
+    scriptSplitter->setStretchFactor(1, 1);
 
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

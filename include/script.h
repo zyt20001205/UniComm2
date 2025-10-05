@@ -30,10 +30,10 @@
 #include <QWidget>
 #include <QPointer>
 #include <windows.h>
-#include "config.h"
-#include "port.h"
-#include "suffix.h"
-#include "utils.h"
+
+extern QJsonObject g_config;
+
+class Port;
 
 // editor marker/annotate
 enum {
@@ -103,13 +103,13 @@ signals:
 
     void runThread(const QUrl &scriptUrl, const QString &script);
 
-    void debugThread(const QUrl &scriptUrl, const QString &script);
+    void debugThread(const QUrl &scriptUrl, const QString &script, QHash<QUrl, QSet<int> > *breakpoints);
 
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
-private:
 
+private:
     void scriptModify(int index) const;
 
     void scriptClose(int index);

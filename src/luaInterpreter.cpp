@@ -1,8 +1,6 @@
 #include "../include/luaInterpreter.h"
+#include "../include/debug.h"
 #include "../include/script.h"
-
-int g_depth = 0;
-int g_baseDepth = 0;
 
 // LuaInterpreter public
 LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)
@@ -97,10 +95,10 @@ LuaInterpreter::~LuaInterpreter() {
     if (L) {
         // delete extra space
         if (const auto ptrHolder = static_cast<void **>(lua_getextraspace(L)); *ptrHolder) {
-            delete static_cast<DebugData *>(*ptrHolder);
             *ptrHolder = nullptr;
         }
         // close interpreter
+        m_debugData.reset();
         lua_close(L);
         L = nullptr;
     }
@@ -112,7 +110,7 @@ void LuaInterpreter::run(const QString &script) const {
     // lua exec preparation
     QMetaObject::invokeMethod(g_script, [this] {
         g_script->markerHighlight(m_scriptUrl, -1);
-    }, Qt::QueuedConnection);
+    }, Qt::BlockingQueuedConnection);
     // lua exec
     if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
         handleError();
@@ -131,8 +129,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
     // lua debug preparation
     QMetaObject::invokeMethod(g_script, [this] {
         g_script->markerHighlight(m_scriptUrl, -1);
-    }, Qt::QueuedConnection);
-    g_depth = 0;
+    }, Qt::BlockingQueuedConnection);
     // lua debug
     const QString filePath = "@" + debugData.currentUrl.toLocalFile();
     const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
@@ -271,9 +268,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
     auto debugData = static_cast<DebugData *>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
-        g_depth += 1;
+        debugData->depth += 1;
     } else if (ar->event == LUA_HOOKRET) {
-        g_depth -= 1;
+        debugData->depth -= 1;
     } else if (ar->event == LUA_HOOKLINE) {
         // get file info
         lua_getinfo(L, "Sl", ar);
@@ -289,8 +286,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             return;
         }
         if (debugData->state == DEBUG_RUN && debugData->breakpoints->value(nextUrl).contains(line)) debugData->state = DEBUG_PAUSE;
-        if (debugData->state == DEBUG_STEPOVER && g_depth == g_baseDepth) debugData->state = DEBUG_PAUSE;
-        if (debugData->state == DEBUG_STEPOUT && g_depth < g_baseDepth) debugData->state = DEBUG_PAUSE;
+         if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
+         if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_STEPINTO) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_PAUSE) {
             // src handle
@@ -412,7 +409,11 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // hold thread
             QEventLoop loop;
-            // connect(g_debug, &Script::debugResume, &loop, &QEventLoop::quit);
+            connect(g_debug, &Debug::resume, &loop, [debugData, &loop](const QString &threadId) {
+                if (threadId == debugData->threadId) {
+                    loop.quit();
+                }
+            });
             loop.exec();
         }
     }

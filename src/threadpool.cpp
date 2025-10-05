@@ -78,13 +78,18 @@ QString Threadpool::threadRun(const QUrl &scriptUrl, const QString &script) {
     return threadId;
 }
 
-void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script) {
-    DebugData debugData;
-    debugData.currentUrl = scriptUrl;
-    debugData.state = 0;
-    // debugData.breakpoints = &m_breakpoints;
+void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script, QHash<QUrl, QSet<int> > *breakpoints) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
+    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    DebugData debugData{
+        scriptUrl,
+        threadId,
+        0,
+        0,
+        DEBUG_RUN,
+        breakpoints
+    };
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
@@ -94,7 +99,6 @@ void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script) {
         QThread::currentThread()->quit();
     });
     worker->start();
-    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
     threadAppend(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
     emit startDebug(threadId, interpreter);
 }

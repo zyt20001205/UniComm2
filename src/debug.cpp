@@ -1,4 +1,5 @@
 #include "../include/debug.h"
+#include "../include/luaInterpreter.h"
 
 // Debug public
 Debug::Debug(QWidget *parent)
@@ -28,7 +29,8 @@ Debug::Debug(QWidget *parent)
         debugContinueButton->setToolTip(tr("resume"));
         connect(debugContinueButton, &QPushButton::clicked, this, [this] {
             const QString threadId = m_debugThreadCombobox->currentText();
-            m_interpreterHash[threadId]->debugStateSet(STATE_RUN);
+            m_interpreterHash[threadId]->debugStateSet(DEBUG_RUN);
+            emit resume(threadId);
         });
         auto *debugPauseButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugPauseButton);
@@ -37,7 +39,8 @@ Debug::Debug(QWidget *parent)
         debugPauseButton->setToolTip(tr("pause"));
         connect(debugPauseButton, &QPushButton::clicked, this, [this] {
             const QString threadId = m_debugThreadCombobox->currentText();
-            m_interpreterHash[threadId]->debugStateSet(STATE_PAUSE);
+            m_interpreterHash[threadId]->debugStateSet(DEBUG_PAUSE);
+            emit resume(threadId);
         });
         auto *debugStepOverButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugStepOverButton);
@@ -45,9 +48,9 @@ Debug::Debug(QWidget *parent)
         debugStepOverButton->setIcon(QIcon(":/icon/debugStepOver.svg"));
         debugStepOverButton->setToolTip(tr("step over"));
         connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
-            // g_baseDepth = g_depth;
             const QString threadId = m_debugThreadCombobox->currentText();
-            m_interpreterHash[threadId]->debugStateSet(STATE_STEPOVER);
+            m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOVER);
+            emit resume(threadId);
         });
         auto *debugStepIntoButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugStepIntoButton);
@@ -56,7 +59,8 @@ Debug::Debug(QWidget *parent)
         debugStepIntoButton->setToolTip(tr("step into"));
         connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
             const QString threadId = m_debugThreadCombobox->currentText();
-            m_interpreterHash[threadId]->debugStateSet(STATE_STEPINTO);
+            m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPINTO);
+            emit resume(threadId);
         });
         auto *debugStepOutButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugStepOutButton);
@@ -64,19 +68,20 @@ Debug::Debug(QWidget *parent)
         debugStepOutButton->setIcon(QIcon(":/icon/debugStepOut.svg"));
         debugStepOutButton->setToolTip(tr("step out"));
         connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
-            // g_baseDepth = g_depth;
             const QString threadId = m_debugThreadCombobox->currentText();
-            m_interpreterHash[threadId]->debugStateSet(STATE_STEPOUT);
+            m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOUT);
+            emit resume(threadId);
         });
         auto *debugTerminateButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugTerminateButton);
         debugTerminateButton->setFixedSize(24, 24);
         debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
         debugTerminateButton->setToolTip(tr("terminate"));
-        // connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
-        //     g_stateMachine = STATE_TERMINATE;
-        //     emit resumeDebug();
-        // });
+        connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
+            const QString threadId = m_debugThreadCombobox->currentText();
+            m_interpreterHash[threadId]->debugStateSet(DEBUG_TERMINATE);
+            emit resume(threadId);
+        });
 
         debugMasterCtrlLayout->addWidget(m_debugThreadCombobox);
     }

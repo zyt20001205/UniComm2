@@ -11,11 +11,17 @@
 #include "luaMiscellaneous.h"
 #include "luaModbus.h"
 
+class Debug;
+extern Debug *g_debug;
+
 class Script;
 extern Script *g_script;
 
 struct DebugData {
     QUrl currentUrl;
+    QString threadId;
+    int depth = 0;
+    int baseDepth = 0;
     int state;
     QHash<QUrl, QSet<int> > *breakpoints;
 };

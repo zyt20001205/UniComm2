@@ -25,7 +25,7 @@ public:
 
     QString threadRun(const QUrl &scriptUrl, const QString &script);
 
-    void threadDebug(const QUrl &scriptUrl, const QString &script);
+    void threadDebug(const QUrl &scriptUrl, const QString &script, QHash<QUrl, QSet<int> > *breakpoints);
 
     bool threadStop(const QString &threadId);
 
@@ -48,6 +48,15 @@ private:
         THREAD_RUN,
         THREAD_DEBUG,
         THREAD_STOP
+    };
+
+    enum {
+        DEBUG_RUN,
+        DEBUG_PAUSE,
+        DEBUG_TERMINATE,
+        DEBUG_STEPOVER,
+        DEBUG_STEPINTO,
+        DEBUG_STEPOUT
     };
 };
 
