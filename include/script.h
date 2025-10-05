@@ -3,29 +3,23 @@
 
 #include <QDockWidget>
 #include <QDialog>
-#include <QFileSystemModel>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QJsonObject>
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
-#include <QProcess>
 #include <QProgressBar>
 #include <QPushButton>
-#include <Qsci/qsciapis.h>
-#include <Qsci/qscilexerlua.h>
 #include <Qsci/qsciscintilla.h>
 #include <QShortcut>
 #include <QSplitter>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-#include <QSyntaxHighlighter>
 #include <QTableWidget>
 #include <QTextBrowser>
 #include <QThread>
-#include <QTreeView>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QPointer>
@@ -95,7 +89,6 @@ public:
 
     void signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
-    ScriptExplorer *m_scriptExplorerTreeView = nullptr;
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -123,12 +116,6 @@ private:
     QTabWidget *m_scriptTabWidget = nullptr;
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
-    ScriptPage *m_currentScriptWidget = nullptr;
-    QTabWidget *m_scriptMonitorTabWidget = nullptr;
-    LuaInterpreter *m_debugInterpreter = nullptr;
-    QWidget *m_scriptDebugWidget = nullptr;
-    QTreeView *m_scriptDebugTreeView = nullptr;
-
     // ui related
     enum {
         DEBUG_TAB,
@@ -405,42 +392,6 @@ private:
     void duplicateHandle();
 
     QHash<QChar, QChar> m_autoPairHash{};
-};
-
-class ScriptExplorer final : public QTreeView {
-    Q_OBJECT
-
-public:
-    explicit ScriptExplorer(QWidget *parent = nullptr);
-
-    ~ScriptExplorer() override = default;
-
-    void workspaceOpen(const QUrl &rootUrl);
-
-signals:
-    void appendLog(const QString &message, const QString &level);
-
-    void openScript(const QString &scriptPath);
-
-    void runScript(const QString &name, const QString &script);
-
-protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private:
-    void scriptRun(const QModelIndex &index);
-
-    void scriptOpen(const QModelIndex &index);
-
-    void scriptDelete(const QModelIndex &index);
-
-    void scriptNew();
-
-    void scriptOpenInExplorer() const;
-
-    QFileSystemModel *m_model = nullptr;
 };
 
 #endif //SCRIPT_H

@@ -112,6 +112,14 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
 
+    m_explorerModule = new Explorer();
+    this->addDockWidget(Qt::LeftDockWidgetArea, m_explorerModule);
+    m_explorerModule->setObjectName("explorerModule");
+    connect(m_explorerModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewExplorer->setChecked(visible); });
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "explorer module initialized");
+
     m_sendModule = new Send();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_sendModule);
     m_sendModule->setObjectName("sendModule");
@@ -119,6 +127,9 @@ void MainWindow::moduleInit() {
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
+
+    this->tabifyDockWidget(m_explorerModule, m_sendModule);
+    m_explorerModule->raise();
 
     m_databaseModule = new Database();
     this->addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
@@ -183,7 +194,7 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule, &Script::workspaceOpen);
-    connect(this, &MainWindow::openWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_explorerModule, &Explorer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &Threadpool::workspaceOpen);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &Diagnostics::diagnosticsReturn);
@@ -194,6 +205,9 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &Script::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &Script::signatureHelpReturn);
     connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
+    connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
+    connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &Script::scriptOpen);
+    connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
     connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
     connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
@@ -250,6 +264,11 @@ void MainWindow::menuInit() {
         m_viewPort->setCheckable(true);
         QTimer::singleShot(0, this, [this] { m_viewPort->setChecked(m_portModule->isVisible()); });
         connect(m_viewPort, &QAction::triggered, this, [this](const bool visible) { m_portModule->setVisible(visible); });
+        m_viewExplorer = new QAction(tr("explorer"));
+        viewMenu->addAction(m_viewExplorer);
+        m_viewExplorer->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewExplorer->setChecked(m_explorerModule->isVisible()); });
+        connect(m_viewExplorer, &QAction::triggered, this, [this](const bool visible) { m_explorerModule->setVisible(visible); });
         m_viewSend = new QAction(tr("send"));
         viewMenu->addAction(m_viewSend);
         m_viewSend->setCheckable(true);

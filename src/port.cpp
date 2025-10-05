@@ -21,9 +21,7 @@ Port::Port(QWidget *parent)
         m_addButton = new QPushButton(m_tabWidget);
         m_addButton->setIcon(QIcon(":/icon/add.svg"));
         m_tabWidget->setCornerWidget(m_addButton, Qt::TopRightCorner);
-        connect(m_addButton, &QPushButton::clicked, this, [this]() {
-            portSettingLoad(-1);
-        });
+        connect(m_addButton, &QPushButton::clicked, this, [this] { portSettingLoad(-1); });
         // init port tab
         if (const auto portCount = m_portConfig.size(); portCount == 0) {
             auto welcomePage = new QWidget(); // NOLINT
@@ -293,19 +291,12 @@ BasePort *Port::portObject(const int index) const {
 
 // Port private
 void Port::portMenu(const int index, const QPoint &pos) {
-    if (m_portConfig.empty())
-        return;
+    if (m_portConfig.empty()) return;
     m_tabWidget->setCurrentIndex(index);
     QMenu menu;
-    menu.addAction("edit", [this, index]() {
-        portSettingLoad(index);
-    });
-    menu.addAction("duplicate", [this, index]() {
-        portDuplicate(index);
-    });
-    menu.addAction("remove", [this, index]() {
-        portRemove(index);
-    });
+    menu.addAction("edit", [this, index] { portSettingLoad(index); });
+    menu.addAction("duplicate", [this, index] { portDuplicate(index); });
+    menu.addAction("remove", [this, index] { portRemove(index); });
     menu.exec(m_tabWidget->tabBar()->mapToGlobal(pos));
 }
 
