@@ -1,5 +1,7 @@
 #include "../include/threadpool.h"
 
+#include <qeventloop.h>
+
 // Threadpool public
 Threadpool::Threadpool(QWidget *parent)
     : QDockWidget("threadpool", parent),
@@ -69,6 +71,7 @@ void Threadpool::threadSpawn(const int status, const QString &name, const QStrin
             }
         }
         m_threadHash.remove(id);
+        emit threadStopped(id);
         // qDebug() << m_threadHash;
     });
 }
@@ -76,6 +79,20 @@ void Threadpool::threadSpawn(const int status, const QString &name, const QStrin
 bool Threadpool::threadStop(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
         m_threadHash[threadId]->requestInterruption();
+        return true;
+    }
+    return false;
+}
+
+bool Threadpool::threadWait(const QString &threadId) {
+    if (m_threadHash.contains(threadId)) {
+        QEventLoop loop;
+        connect(this, &Threadpool::threadStopped, &loop, [&loop, threadId](const QString &id) {
+            if (threadId == id) {
+                loop.quit();
+            }
+        });
+        loop.exec();
         return true;
     }
     return false;

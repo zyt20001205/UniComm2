@@ -19,6 +19,11 @@ public:
 
     bool threadStop(const QString &threadId);
 
+    bool threadWait(const QString &threadId);
+
+signals:
+    void threadStopped(const QString &threadId);
+
 private:
     QTableWidget *m_threadpoolTableWidget = nullptr;
     QHash<int, QColor> m_threadpoolColor;

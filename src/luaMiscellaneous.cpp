@@ -32,6 +32,22 @@ int lua_stop(lua_State *L) {
     return 1;
 }
 
+int lua_wait(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 1)
+        luaL_error(L, "unexpected number of arguments");
+    // extract arguments
+    const char *param1 = luaL_checkstring(L, 1);
+    // start operation
+    const QString threadId = QString::fromUtf8(param1);
+    bool status = false;
+    QMetaObject::invokeMethod(g_threadpool, [threadId, &status] {
+        status = g_threadpool->threadWait(threadId);
+    }, Qt::BlockingQueuedConnection);
+    lua_pushboolean(L, status);
+    return 1;
+}
+
 int lua_input(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 0)

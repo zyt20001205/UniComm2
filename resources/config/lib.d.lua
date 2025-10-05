@@ -42,6 +42,12 @@ function exec(filename) end
 ---
 function stop(threadId) end
 
+--- Blocks the current thread until the specified thread terminates.
+--- @param threadId string The identifier of the thread to wait for.
+--- @return boolean success If the thread exists and terminated successfully.
+---
+function wait(threadId) end
+
 --- Shows an input dialog for variable assignment.
 --- @return string
 ---
