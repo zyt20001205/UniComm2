@@ -1,5 +1,8 @@
 #include "../include/luaModbus.h"
 
+#include "../include/port.h"
+#include "../include/suffix.h"
+
 int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 5)

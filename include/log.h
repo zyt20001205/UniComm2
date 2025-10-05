@@ -13,7 +13,8 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
-#include "config.h"
+
+extern QJsonObject g_config;
 
 class Log final : public QDockWidget {
     Q_OBJECT

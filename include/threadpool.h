@@ -2,12 +2,17 @@
 #define THREADPOOL_H
 
 #include <QDockWidget>
+#include <QDir>
 #include <QEventLoop>
+#include <QFile>
 #include <QHeaderView>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QThread>
 #include <QUrl>
+
+extern QJsonObject g_config;
 
 class LuaInterpreter;
 

@@ -2,12 +2,14 @@
 #define LUADATAPROCESS_H
 
 #include <lua.hpp>
-#include "database.h"
-#include "datatable.h"
-#include "dataplot.h"
 
+class Database;
 extern Database *g_database;
+
+class Datatable;
 extern Datatable *g_datatable;
+
+class Dataplot;
 extern Dataplot *g_dataplot;
 
 int lua_databaseWrite(lua_State *L);

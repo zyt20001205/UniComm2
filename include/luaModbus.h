@@ -2,8 +2,8 @@
 #define LUAMODBUS_H
 
 #include <lua.hpp>
-#include "port.h"
 
+class Port;
 extern Port *g_port;
 
 int lua_modbusRtuReadHoldingRegisters(lua_State *L);

@@ -7,10 +7,12 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QTableWidget>
-#include "config.h"
+
+extern QJsonObject g_config;
 
 class Datatable final : public QDockWidget {
     Q_OBJECT

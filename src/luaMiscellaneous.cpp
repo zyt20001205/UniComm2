@@ -1,5 +1,8 @@
 #include "../include/luaMiscellaneous.h"
 
+#include "../include/log.h"
+#include "../include/threadpool.h"
+
 int lua_exec(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 1)

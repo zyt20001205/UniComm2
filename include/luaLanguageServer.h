@@ -7,7 +7,8 @@
 #include <QJsonObject>
 #include <QProcess>
 #include <QWidget>
-#include "config.h"
+
+extern QJsonObject g_config;
 
 class LuaLanguageServer final : public QWidget {
     Q_OBJECT

@@ -2,10 +2,11 @@
 #define LUAPORT_H
 
 #include <lua.hpp>
-#include "log.h"
-#include "port.h"
 
+class Log;
 extern Log *g_log;
+
+class Port;
 extern Port *g_port;
 
 int lua_portOpen(lua_State *L);

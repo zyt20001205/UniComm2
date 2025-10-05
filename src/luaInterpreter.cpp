@@ -1,6 +1,7 @@
 #include "../include/luaInterpreter.h"
 #include "../include/debug.h"
 #include "../include/script.h"
+#include "../include/utils.h"
 
 // LuaInterpreter public
 LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)

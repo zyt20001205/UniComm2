@@ -6,10 +6,11 @@
 #include <QtTextToSpeech/QTextToSpeech>
 #include <QThread>
 #include <lua.hpp>
-#include "log.h"
-#include "threadpool.h"
 
+class Log;
 extern Log *g_log;
+
+class Threadpool;
 extern Threadpool *g_threadpool;
 
 int lua_exec(lua_State *L);

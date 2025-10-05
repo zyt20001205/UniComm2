@@ -6,6 +6,8 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QInputDialog>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <QLineEdit>
@@ -14,8 +16,10 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 #include <QWidget>
-#include "config.h"
-#include "port.h"
+
+extern QJsonObject g_config;
+
+class Port;
 
 class Send final : public QDockWidget {
     Q_OBJECT

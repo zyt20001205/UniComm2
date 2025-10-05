@@ -1,6 +1,7 @@
 #include "../include/port.h"
 
-#include <qstackedwidget.h>
+#include "../include/suffix.h"
+#include "../include/utils.h"
 
 // Port public
 Port::Port(QWidget *parent)

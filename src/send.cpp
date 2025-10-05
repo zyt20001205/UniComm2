@@ -1,5 +1,7 @@
 #include "../include/send.h"
 
+#include "../include/port.h"
+
 // Send public
 Send::Send(QWidget *parent)
     : QDockWidget("send", parent) {

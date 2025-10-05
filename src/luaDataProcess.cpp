@@ -1,4 +1,7 @@
 #include "../include/luaDataProcess.h"
+#include "../include/database.h"
+#include "../include/datatable.h"
+#include "../include/dataplot.h"
 
 int lua_databaseWrite(lua_State *L) {
     // check arguments

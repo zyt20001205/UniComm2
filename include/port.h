@@ -16,6 +16,8 @@
 #include <QHeaderView>
 #include <QImage>
 #include <QImageCapture>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
@@ -45,11 +47,10 @@
 #include <QMutex>
 #include <allheaders.h>
 #include <baseapi.h>
-#include <qstackedwidget.h>
+#include <QStackedWidget>
 #include <QStandardItemModel>
-#include "config.h"
-#include "suffix.h"
-#include "utils.h"
+
+extern QJsonObject g_config;
 
 class AreaSelectDialog;
 
