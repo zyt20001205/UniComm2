@@ -184,6 +184,7 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule, &Script::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule->m_scriptExplorerTreeView, &ScriptExplorer::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &Threadpool::workspaceOpen);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &Diagnostics::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
@@ -199,18 +200,20 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &Script::cursorPositionSet);
     connect(m_diagnosticsModule, &Diagnostics::highlightAnnotate, m_scriptModule, &Script::annotateHighlight);
-    connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
+    connect(m_threadpoolModule, &Threadpool::startDebug, m_debugModule, &Debug::debugStart);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
-    connect(m_scriptModule, &Script::spawnThread, m_threadpoolModule, &Threadpool::threadSpawn);
-    connect(m_scriptModule, &Script::startDebug, m_debugModule, &Debug::debugStart);
+    connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
+    connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
+    connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);
+    connect(m_scriptModule, &Script::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
 
     m_sendModule->setPort(m_portModule);
     g_script = m_scriptModule;
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
     g_dataplot = m_dataplotModule;
+    g_debug = m_debugModule;
     g_log = m_logModule;
     g_port = m_portModule;
     g_threadpool = m_threadpoolModule;

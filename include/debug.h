@@ -7,9 +7,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include "threadpool.h"
-
-extern Threadpool *g_threadpool;
+#include "luaInterpreter.h"
 
 class Debug final : public QDockWidget {
     Q_OBJECT
@@ -19,15 +17,23 @@ public:
 
     ~Debug() override = default;
 
-    void debugStart();
+    void debugStart(const QString &threadId, LuaInterpreter *interpreter);
 
 signals:
-    void resumeDebug();
+    void resume(const QString &threadId);
 
 private:
-    void debugThreadGet() const;
-
+    QHash<QString, LuaInterpreter *> m_interpreterHash;
     QComboBox *m_debugThreadCombobox{};
+
+    enum {
+        STATE_RUN,
+        STATE_PAUSE,
+        STATE_TERMINATE,
+        STATE_STEPOVER,
+        STATE_STEPINTO,
+        STATE_STEPOUT,
+    };
 };
 
 #endif //DEBUG_H

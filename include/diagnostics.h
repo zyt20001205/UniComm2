@@ -38,10 +38,10 @@ private:
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 
     enum {
-        SEVERITY_ERROR = 1,
-        SEVERITY_WARNING,
-        SEVERITY_INFO,
-        SEVERITY_HINT
+        LEVEL_ERROR = 1,
+        LEVEL_WARNING,
+        LEVEL_INFO,
+        LEVEL_HINT
     };
 };
 

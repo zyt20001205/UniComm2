@@ -1,4 +1,5 @@
 #include "../include/threadpool.h"
+#include "../include/luaInterpreter.h"
 
 // Threadpool public
 Threadpool::Threadpool(QWidget *parent)
@@ -36,13 +37,92 @@ Threadpool::Threadpool(QWidget *parent)
             threadStop(id);
         }
     });
+
+    // open workspace
+    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
+        workspaceOpen(rootUrl);
+    }
 }
 
-QHash<QString, QThread *> Threadpool::threadGet() {
-    return m_threadHash;
+void Threadpool::workspaceOpen(const QUrl &rootUrl) {
+    m_rootUrl = rootUrl;
 }
 
-void Threadpool::threadSpawn(const int status, const QString &name, const QString &threadId, QThread *worker) {
+QString Threadpool::threadExec(const QString &scriptPath) {
+    const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
+    QFile file(fullPath);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+    const QString script = in.readAll();
+    file.close();
+    // call script run
+    const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
+    return threadRun(scriptUrl, script);
+}
+
+QString Threadpool::threadRun(const QUrl &scriptUrl, const QString &script) {
+    // launch lua interpreter thread
+    auto *worker = new QThread(); // NOLINT
+    auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
+    interpreter->moveToThread(worker);
+    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
+    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker, &QThread::started, [interpreter, script] {
+        interpreter->run(script);
+        QThread::currentThread()->quit();
+    });
+    worker->start();
+    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    threadAppend(THREAD_RUN, scriptUrl.fileName(), threadId, worker);
+    return threadId;
+}
+
+void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script) {
+    DebugData debugData;
+    debugData.currentUrl = scriptUrl;
+    debugData.state = 0;
+    // debugData.breakpoints = &m_breakpoints;
+    // launch lua interpreter thread
+    auto *worker = new QThread(); // NOLINT
+    auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
+    interpreter->moveToThread(worker);
+    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
+    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
+    connect(worker, &QThread::started, [interpreter, script, debugData] {
+        interpreter->debug(script, debugData);
+        QThread::currentThread()->quit();
+    });
+    worker->start();
+    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    threadAppend(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
+    emit startDebug(threadId, interpreter);
+}
+
+bool Threadpool::threadStop(const QString &threadId) {
+    if (m_threadHash.contains(threadId)) {
+        m_threadHash[threadId]->requestInterruption();
+        return true;
+    }
+    return false;
+}
+
+bool Threadpool::threadWait(const QString &threadId) {
+    if (m_threadHash.contains(threadId)) {
+        QEventLoop loop;
+        connect(this, &Threadpool::threadStopped, &loop, [&loop, threadId](const QString &id) {
+            if (threadId == id) {
+                loop.quit();
+            }
+        });
+        loop.exec();
+        return true;
+    }
+    return false;
+}
+
+// Threadpool private
+void Threadpool::threadAppend(const int status, const QString &name, const QString &threadId, QThread *worker) {
     m_threadHash.insert(threadId, worker);
     // qDebug() << m_threadHash;
     m_threadpoolTableWidget->insertRow(0);
@@ -76,26 +156,4 @@ void Threadpool::threadSpawn(const int status, const QString &name, const QStrin
         emit threadStopped(id);
         // qDebug() << m_threadHash;
     });
-}
-
-bool Threadpool::threadStop(const QString &threadId) {
-    if (m_threadHash.contains(threadId)) {
-        m_threadHash[threadId]->requestInterruption();
-        return true;
-    }
-    return false;
-}
-
-bool Threadpool::threadWait(const QString &threadId) {
-    if (m_threadHash.contains(threadId)) {
-        QEventLoop loop;
-        connect(this, &Threadpool::threadStopped, &loop, [&loop, threadId](const QString &id) {
-            if (threadId == id) {
-                loop.quit();
-            }
-        });
-        loop.exec();
-        return true;
-    }
-    return false;
 }

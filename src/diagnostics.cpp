@@ -5,10 +5,10 @@ Diagnostics::Diagnostics(QWidget *parent)
     : QDockWidget("diagnostics", parent),
       m_diagnosticsTabWidget(new QTabWidget()),
       m_diagnosticsColor{
-          {SEVERITY_ERROR, QColor(255, 230, 230)},
-          {SEVERITY_WARNING, QColor(255, 245, 230)},
-          {SEVERITY_INFO, QColor(230, 240, 250)},
-          {SEVERITY_HINT, QColor(245, 245, 245)}
+          {LEVEL_ERROR, QColor(255, 230, 230)},
+          {LEVEL_WARNING, QColor(255, 245, 230)},
+          {LEVEL_INFO, QColor(230, 240, 250)},
+          {LEVEL_HINT, QColor(245, 245, 245)}
       } {
     setWidget(m_diagnosticsTabWidget);
     m_diagnosticsTabWidget->setMovable(true);

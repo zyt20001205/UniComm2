@@ -29,31 +29,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QPointer>
-#include <lua.hpp>
+#include <windows.h>
 #include "config.h"
-#include "luaControl.h"
-#include "luaDataProcess.h"
-#include "luaPort.h"
-#include "luaMiscellaneous.h"
-#include "luaModbus.h"
 #include "port.h"
 #include "suffix.h"
 #include "utils.h"
-
-// debug state
-enum {
-    STATE_RUN,
-    STATE_PAUSE,
-    STATE_TERMINATE,
-    STATE_STEPOVER,
-    STATE_STEPINTO,
-    STATE_STEPOUT,
-};
-
-struct DebugData {
-    QUrl currentUrl;
-    QHash<QUrl, QSet<int> > *breakpoints;
-};
 
 // editor marker/annotate
 enum {
@@ -93,15 +73,13 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
-    QString scriptExec(const QString &scriptPath);
-
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
 
     void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void markerHighlight(const QUrl &scriptUrl, int line) const;
 
-    void scriptTreeViewLoad(QStandardItemModel *varMap) const;
+    // void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
@@ -123,20 +101,14 @@ signals:
 
     void openWorkspace(const QUrl &rootUrl);
 
-    void debugResume();
+    void runThread(const QUrl &scriptUrl, const QString &script);
+
+    void debugThread(const QUrl &scriptUrl, const QString &script);
 
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
-
-    void spawnThread(int type, const QString &name, const QString &threadId, QThread *worker);
-
-    void startDebug();
-
 private:
-    QString scriptRun(const QUrl &scriptUrl,const QString &script);
-
-    void scriptDebug(const QUrl &scriptUrl,const QString &script);
 
     void scriptModify(int index) const;
 
@@ -433,32 +405,6 @@ private:
     void duplicateHandle();
 
     QHash<QChar, QChar> m_autoPairHash{};
-};
-
-class LuaInterpreter final : public QObject {
-    Q_OBJECT
-
-public:
-    explicit LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent = nullptr);
-
-    ~LuaInterpreter() override;
-
-    void run(const QString &script) const;
-
-    void debug(const QString &script, const DebugData &debugData) const;
-
-    void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
-
-private:
-    static void luaTerminateHook(lua_State *L, lua_Debug *ar);
-
-    static void luaDebugHook(lua_State *L, lua_Debug *ar);
-
-    void handleError() const;
-
-    lua_State *L = nullptr;
-    lua_State *co = nullptr;
-    QUrl m_scriptUrl;
 };
 
 class ScriptExplorer final : public QTreeView {

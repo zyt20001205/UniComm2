@@ -1,9 +1,5 @@
 #include "../include/script.h"
 
-auto g_stateMachine = STATE_RUN;
-int g_depth = 0;
-int g_baseDepth = 0;
-
 // Script public
 Script::Script(QWidget *parent) : QWidget(parent) {
     // script module init
@@ -19,7 +15,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     if (m_scriptConfig["scriptList"].toArray().isEmpty()) {
         m_scriptTabWidget->addTab(welcomePage, "welcome");
         auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-        auto *workspaceOpenButton = new QPushButton(tr("Open Workspace"));
+        auto *workspaceOpenButton = new QPushButton(tr("Open Workspace")); // NOLINT
         welcomeLayout->addWidget(workspaceOpenButton);
         connect(workspaceOpenButton, &QPushButton::clicked, this, [this] {
             emit openWorkspace(QUrl());
@@ -51,7 +47,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
             const QUrl scriptUrl = scriptPage->m_scriptUrl;
             const QString script = scriptPage->m_scriptEditor->text();
-            scriptRun(scriptUrl, script);
+            emit runThread(scriptUrl, script);
         }
     });
     auto *debugButton = new QPushButton(); // NOLINT
@@ -62,7 +58,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
             const QUrl scriptUrl = scriptPage->m_scriptUrl;
             const QString script = scriptPage->m_scriptEditor->text();
-            scriptDebug(scriptUrl, script);
+            emit debugThread(scriptUrl, script);
         }
     });
     // script monitor widget
@@ -81,78 +77,19 @@ Script::Script(QWidget *parent) : QWidget(parent) {
     auto *scriptDebugLayout = new QVBoxLayout(m_scriptDebugWidget); // NOLINT
     scriptDebugLayout->setContentsMargins(0, 0, 0, 0);
     scriptDebugLayout->setSpacing(0);
-    auto *debugCtrlWidget = new QWidget(); // NOLINT
-    scriptDebugLayout->addWidget(debugCtrlWidget);
-    auto *debugCtrlLayout = new QHBoxLayout(debugCtrlWidget); // NOLINT
-    debugCtrlLayout->setContentsMargins(0, 0, 0, 0);
-    debugCtrlLayout->setAlignment(Qt::AlignLeft);
-    auto *debugContinueButton = new QPushButton(); // NOLINT
-    debugCtrlLayout->addWidget(debugContinueButton);
-    debugContinueButton->setFixedSize(24, 24);
-    debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
-    debugContinueButton->setToolTip(tr("resume"));
-    connect(debugContinueButton, &QPushButton::clicked, this, [this] {
-        g_stateMachine = STATE_RUN;
-        emit debugResume();
-    });
-    auto *debugPauseButton = new QPushButton(); // NOLINT
-    debugCtrlLayout->addWidget(debugPauseButton);
-    debugPauseButton->setFixedSize(24, 24);
-    debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
-    debugPauseButton->setToolTip(tr("pause"));
-    connect(debugPauseButton, &QPushButton::clicked, this, [] {
-        g_stateMachine = STATE_PAUSE;
-    });
-    auto *debugStepOverButton = new QPushButton(); // NOLINT
-    debugCtrlLayout->addWidget(debugStepOverButton);
-    debugStepOverButton->setFixedSize(24, 24);
-    debugStepOverButton->setIcon(QIcon(":/icon/debugStepOver.svg"));
-    debugStepOverButton->setToolTip(tr("step over"));
-    connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
-        g_baseDepth = g_depth;
-        g_stateMachine = STATE_STEPOVER;
-        emit debugResume();
-    });
-    auto *debugStepIntoButton = new QPushButton(); // NOLINT
-    debugCtrlLayout->addWidget(debugStepIntoButton);
-    debugStepIntoButton->setFixedSize(24, 24);
-    debugStepIntoButton->setIcon(QIcon(":/icon/debugStepInto.svg"));
-    debugStepIntoButton->setToolTip(tr("step into"));
-    connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
-        g_stateMachine = STATE_STEPINTO;
-        emit debugResume();
-    });
-    auto *debugStepOutButton = new QPushButton(); // NOLINT
-    debugCtrlLayout->addWidget(debugStepOutButton);
-    debugStepOutButton->setFixedSize(24, 24);
-    debugStepOutButton->setIcon(QIcon(":/icon/debugStepOut.svg"));
-    debugStepOutButton->setToolTip(tr("step out"));
-    connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
-        g_baseDepth = g_depth;
-        g_stateMachine = STATE_STEPOUT;
-        emit debugResume();
-    });
-    auto *debugTerminateButton = new QPushButton(); // NOLINT
-    debugCtrlLayout->addWidget(debugTerminateButton);
-    debugTerminateButton->setFixedSize(24, 24);
-    debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
-    debugTerminateButton->setToolTip(tr("terminate"));
-    connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
-        g_stateMachine = STATE_TERMINATE;
-        emit debugResume();
-    });
-    m_scriptDebugTreeView = new QTreeView();
-    scriptDebugLayout->addWidget(m_scriptDebugTreeView);
-    scriptTreeViewLoad({});
-    // script monitor widget -> script explorer treeview
-    m_scriptExplorerTreeView = new ScriptExplorer();
-    scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
-    connect(m_scriptExplorerTreeView, &ScriptExplorer::appendLog, this, &Script::appendLog);
-    connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
-    connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
-
-    scriptSplitter->setStretchFactor(0, 3);
-    scriptSplitter->setStretchFactor(1, 1);
+    
+    // m_scriptDebugTreeView = new QTreeView();
+    // scriptDebugLayout->addWidget(m_scriptDebugTreeView);
+    // scriptTreeViewLoad({});
+    // // script monitor widget -> script explorer treeview
+    // m_scriptExplorerTreeView = new ScriptExplorer();
+    // scriptMonitorSplitter->addWidget(m_scriptExplorerTreeView);
+    // connect(m_scriptExplorerTreeView, &ScriptExplorer::appendLog, this, &Script::appendLog);
+    // connect(m_scriptExplorerTreeView, &ScriptExplorer::openScript, this, &Script::scriptOpen);
+    // connect(m_scriptExplorerTreeView, &ScriptExplorer::runScript, this, &Script::scriptRun);
+    //
+    // scriptSplitter->setStretchFactor(0, 3);
+    // scriptSplitter->setStretchFactor(1, 1);
 
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -225,19 +162,6 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptUrl.toString(), "opened");
 }
 
-QString Script::scriptExec(const QString &scriptPath) {
-    const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
-    QFile file(fullPath);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    QTextStream in(&file);
-    in.setEncoding(QStringConverter::Utf8);
-    const QString script = in.readAll();
-    file.close();
-    // call script run
-    const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
-    return scriptRun(scriptUrl, script);
-}
-
 void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
@@ -258,26 +182,26 @@ void Script::markerHighlight(const QUrl &scriptUrl, const int line) const {
     scriptPage->m_scriptEditor->markerAdd(line - 1, MARKER_HIGHLIGHT);
 }
 
-void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
-    if (!varMap) {
-        varMap = new QStandardItemModel(); // NOLINT
-        varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
-    }
-    m_scriptDebugTreeView->setModel(varMap);
-    connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
-        if (item->column() == 2) {
-            const QString varScope = item->data(Qt::UserRole + 1).toString();
-            const QString varName = item->data(Qt::UserRole + 2).toString();
-            const QString varValue = item->text();
-            QMetaObject::invokeMethod(m_debugInterpreter, [this, varScope, varName, varValue] {
-                m_debugInterpreter->hotUpdate(varScope, varName, varValue);
-            }, Qt::QueuedConnection);
-        }
-    });
-    m_scriptDebugTreeView->expandAll();
-    m_scriptDebugTreeView->resizeColumnToContents(0);
-    m_scriptDebugTreeView->resizeColumnToContents(1);
-}
+// void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
+//     if (!varMap) {
+//         varMap = new QStandardItemModel(); // NOLINT
+//         varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
+//     }
+//     m_scriptDebugTreeView->setModel(varMap);
+//     connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
+//         if (item->column() == 2) {
+//             const QString varScope = item->data(Qt::UserRole + 1).toString();
+//             const QString varName = item->data(Qt::UserRole + 2).toString();
+//             const QString varValue = item->text();
+//             QMetaObject::invokeMethod(m_debugInterpreter, [this, varScope, varName, varValue] {
+//                 m_debugInterpreter->hotUpdate(varScope, varName, varValue);
+//             }, Qt::QueuedConnection);
+//         }
+//     });
+//     m_scriptDebugTreeView->expandAll();
+//     m_scriptDebugTreeView->resizeColumnToContents(0);
+//     m_scriptDebugTreeView->resizeColumnToContents(1);
+// }
 
 void Script::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
@@ -311,42 +235,6 @@ void Script::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signa
 }
 
 // Script private
-QString Script::scriptRun(const QUrl &scriptUrl, const QString &script) {
-    // launch lua interpreter thread
-    auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
-    interpreter->moveToThread(worker);
-    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
-    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [interpreter, script] {
-        interpreter->run(script);
-        QThread::currentThread()->quit();
-    });
-    worker->start();
-    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    emit spawnThread(THREAD_RUN, scriptUrl.fileName(), threadId, worker);
-    return threadId;
-}
-
-void Script::scriptDebug(const QUrl &scriptUrl, const QString &script) {
-    DebugData debugData;
-    debugData.currentUrl = scriptUrl;
-    debugData.breakpoints = &m_breakpoints;
-    // launch lua interpreter thread
-    auto *worker = new QThread(); // NOLINT
-    m_debugInterpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
-    m_debugInterpreter->moveToThread(worker);
-    connect(worker, &QThread::finished, m_debugInterpreter, &LuaInterpreter::deleteLater);
-    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [this, script, debugData] {
-        m_debugInterpreter->debug(script, debugData);
-        QThread::currentThread()->quit();
-    });
-    worker->start();
-    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    emit spawnThread(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
-    emit startDebug();
-}
 
 void Script::scriptModify(const int index) const {
     QString tabName = m_scriptTabWidget->tabText(index);
@@ -1235,429 +1123,6 @@ void ScriptEditor::duplicateHandle() {
     insertAt(lineText, currentLine + 1, 0);
     setCursorPosition(currentLine + 1, currentCharacter);
     endUndoAction();
-}
-
-// LuaInterpreter public
-LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)
-    : QObject(parent) {
-    m_scriptUrl = scriptUrl;
-    // init lua interpreter
-    L = luaL_newstate();
-    if (L) {
-        auto *ptrHolder = static_cast<void **>(lua_getextraspace(L));
-        *ptrHolder = nullptr;
-    }
-    luaL_openlibs(L);
-    lua_getglobal(L, "package");
-    // set workspace
-    const QString rootPath = QString("%1/?.lua").arg(rootUrl.toLocalFile());
-    lua_pushstring(L, rootPath.toUtf8().constData());
-    lua_setfield(L, -2, "path");
-    // register C++ functions
-    lua_register(L, "exec", lua_exec);
-    lua_register(L, "stop", lua_stop);
-    lua_register(L, "wait", lua_wait);
-    lua_register(L, "input", lua_input);
-    lua_register(L, "print", lua_print);
-    lua_register(L, "sleep", lua_sleep);
-    lua_register(L, "speak", lua_speak);
-    // register control class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_leftClick);
-    lua_setfield(L, -2, "leftClick");
-    lua_pushcfunction(L, lua_leftDoubleClick);
-    lua_setfield(L, -2, "leftDoubleClick");
-    lua_pushcfunction(L, lua_rightClick);
-    lua_setfield(L, -2, "rightClick");
-    lua_pushcfunction(L, lua_rightDoubleClick);
-    lua_setfield(L, -2, "rightDoubleClick");
-    lua_pushcfunction(L, lua_keyPress);
-    lua_setfield(L, -2, "keyPress");
-    lua_setglobal(L, "control");
-    // register port class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_portOpen);
-    lua_setfield(L, -2, "open");
-    lua_pushcfunction(L, lua_portClose);
-    lua_setfield(L, -2, "close");
-    lua_pushcfunction(L, lua_portInfo);
-    lua_setfield(L, -2, "info");
-    lua_pushcfunction(L, lua_portWriteText);
-    lua_setfield(L, -2, "writeText");
-    lua_pushcfunction(L, lua_portWriteData);
-    lua_setfield(L, -2, "writeData");
-    lua_pushcfunction(L, lua_portReadText);
-    lua_setfield(L, -2, "readText");
-    lua_pushcfunction(L, lua_portReadData);
-    lua_setfield(L, -2, "readData");
-    lua_setglobal(L, "port");
-    // register modbus rtu class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_modbusRtuReadHoldingRegisters);
-    lua_setfield(L, -2, "readHoldingRegisters");
-    lua_pushcfunction(L, lua_modbusRtuWriteMultipleRegisters);
-    lua_setfield(L, -2, "writeMultipleRegisters");
-    lua_setglobal(L, "modbusRtu");
-    // register modbus ascii class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_modbusAsciiReadHoldingRegisters);
-    lua_setfield(L, -2, "readHoldingRegisters");
-    lua_setglobal(L, "modbusAscii");
-    // register database class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_databaseWrite);
-    lua_setfield(L, -2, "write");
-    lua_pushcfunction(L, lua_databaseClear);
-    lua_setfield(L, -2, "clear");
-    lua_setglobal(L, "database");
-    // register datatable class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_datatableWrite);
-    lua_setfield(L, -2, "write");
-    lua_pushcfunction(L, lua_datatableClear);
-    lua_setfield(L, -2, "clear");
-    lua_pushcfunction(L, lua_datatableExport);
-    lua_setfield(L, -2, "export");
-    lua_setglobal(L, "datatable");
-    // register dataplot class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_dataplotAppend);
-    lua_setfield(L, -2, "append");
-    lua_setglobal(L, "dataplot");
-}
-
-LuaInterpreter::~LuaInterpreter() {
-    if (L) {
-        // delete extra space
-        if (const auto ptrHolder = static_cast<void **>(lua_getextraspace(L)); *ptrHolder) {
-            delete static_cast<DebugData *>(*ptrHolder);
-            *ptrHolder = nullptr;
-        }
-        // close interpreter
-        lua_close(L);
-        L = nullptr;
-    }
-}
-
-void LuaInterpreter::run(const QString &script) const {
-    // set terminate hook
-    lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
-    // lua exec preparation
-    QMetaObject::invokeMethod(g_script, [this] {
-        g_script->markerHighlight(m_scriptUrl, -1);
-    }, Qt::QueuedConnection);
-    // lua exec
-    if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
-        handleError();
-    }
-    // remove terminate hook
-    lua_sethook(L, nullptr, 0, 0);
-}
-
-void LuaInterpreter::debug(const QString &script, const DebugData &debugData) const {
-    // set debug hook
-    lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
-    // pass debug data
-    const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
-    const auto data = new DebugData{debugData};
-    *ptrHolder = data;
-    // lua debug preparation
-    QMetaObject::invokeMethod(g_script, [this] {
-        g_script->markerHighlight(m_scriptUrl, -1);
-    }, Qt::QueuedConnection);
-    g_stateMachine = STATE_RUN;
-    g_depth = 0;
-    // lua debug
-    const QString filePath = "@" + debugData.currentUrl.toLocalFile();
-    const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
-    if (load_result == LUA_OK) {
-        const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
-        if (pcall_result == LUA_OK) {
-            QMetaObject::invokeMethod(g_script, [this] {
-                g_script->markerHighlight(m_scriptUrl, -1);
-            }, Qt::QueuedConnection);
-        } else {
-            handleError();
-        }
-    } else {
-        handleError();
-    }
-    // remove debug hook
-    lua_sethook(L, nullptr, 0, 0);
-}
-
-void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const {
-    lua_Debug ar;
-    if (varScope == "local") {
-        // local table
-        if (varName.contains(".")) {
-            QStringList path = varName.split('.');
-
-            if (lua_getstack(co, 0, &ar)) {
-                int i = 1;
-                QString firstname;
-                while ((firstname = lua_getlocal(co, &ar, i)) != nullptr) {
-                    if (path.first() == firstname) {
-                        break;
-                    }
-                    lua_pop(co, 1);
-                    i++;
-                }
-
-                for (int j = 1; j + 1 < path.size(); ++j) {
-                    const QString &part = path[j];
-                    lua_pushstring(co, part.toUtf8().constData());
-                    lua_gettable(co, -2);
-                    lua_remove(co, -2);
-                }
-
-                const QByteArray lastname = path.last().toUtf8();
-                lua_pushstring(co, lastname.constData());
-                lua_gettable(co, -2);
-                lua_pushqstring(co, -1, varValue);
-                lua_remove(co, -2);
-                lua_setfield(co, -2, lastname.constData());
-                lua_pop(co, 1);
-
-                qDebug() << "local table" << varName << "updated to" << varValue;
-            }
-        } else {
-            // local boolean/number/string
-            if (lua_getstack(co, 0, &ar)) {
-                int i = 1;
-                QString name;
-                while ((name = lua_getlocal(co, &ar, i)) != nullptr) {
-                    if (varName == name) {
-                        lua_pushqstring(co, -1, varValue);
-                        lua_setlocal(co, &ar, i);
-                        lua_pop(co, 1);
-                        qDebug() << "local variable" << varName << "updated to" << varValue;
-                        break;
-                    }
-                    lua_pop(co, 1);
-                    i++;
-                }
-            }
-        }
-    } else {
-        if (lua_getstack(co, 0, &ar)) {
-            lua_getinfo(co, "f", &ar);
-            int i = 1;
-            // up table
-            if (varName.contains('.')) {
-                QStringList path = varName.split('.');
-                QString firstname;
-                while ((firstname = lua_getupvalue(co, -1, i)) != nullptr) {
-                    if (path.first() == firstname) {
-                        break;
-                    }
-                    lua_pop(co, 1);
-                    i++;
-                }
-                for (int j = 1; j + 1 < path.size(); ++j) {
-                    const QString &part = path[j];
-                    lua_pushstring(co, part.toUtf8().constData());
-                    lua_gettable(co, -2);
-                    lua_remove(co, -2);
-                }
-                const QByteArray lastname = path.last().toUtf8();
-                lua_pushstring(co, lastname.constData());
-                lua_gettable(co, -2);
-                lua_pushqstring(co, -1, varValue);
-                lua_remove(co, -2);
-                lua_setfield(co, -2, lastname.constData());
-                lua_pop(co, 1);
-                qDebug() << "up table" << varName << "updated to" << varValue;
-                lua_pop(co, 1);
-            } else {
-                // up boolean/number/string
-                QString name;
-                while ((name = lua_getupvalue(co, -1, i)) != nullptr) {
-                    if (varName == name) {
-                        lua_pushqstring(co, -1, varValue);
-                        lua_setupvalue(co, -3, i);
-                        qDebug() << "up variable" << varName << "updated to" << varValue;
-                        break;
-                    }
-                    lua_pop(co, 1);
-                    i++;
-                }
-                lua_pop(co, 1);
-            }
-        }
-    }
-}
-
-// LuaInterpreter private
-void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
-    (void) ar;
-    // check if thread interruption is requested
-    if (QThread::currentThread()->isInterruptionRequested()) {
-        luaL_error(L, "terminated");
-    }
-}
-
-void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
-    const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
-    const auto debugData = static_cast<DebugData *>(*ptrHolder);
-    if (ar->event == LUA_HOOKCALL) {
-        g_depth += 1;
-    } else if (ar->event == LUA_HOOKRET) {
-        g_depth -= 1;
-    } else if (ar->event == LUA_HOOKLINE) {
-        // get file info
-        lua_getinfo(L, "Sl", ar);
-        const char *src = ar->source;
-        QUrl nextUrl;
-        if (src[0] == '@' && src[1] != '\0') {
-            nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
-        }
-        const int line = ar->currentline;
-        if (g_stateMachine == STATE_TERMINATE) {
-            lua_pushstring(L, "terminated");
-            lua_error(L);
-            return;
-        }
-        if (g_stateMachine == STATE_RUN && debugData->breakpoints->value(nextUrl).contains(line)) g_stateMachine = STATE_PAUSE;
-        if (g_stateMachine == STATE_STEPOVER && g_depth == g_baseDepth) g_stateMachine = STATE_PAUSE;
-        if (g_stateMachine == STATE_STEPOUT && g_depth < g_baseDepth) g_stateMachine = STATE_PAUSE;
-        if (g_stateMachine == STATE_STEPINTO) g_stateMachine = STATE_PAUSE;
-        if (g_stateMachine == STATE_PAUSE) {
-            // src handle
-            if (nextUrl != debugData->currentUrl) {
-                QMetaObject::invokeMethod(g_script, [nextUrl] {
-                    g_script->scriptOpen(nextUrl);
-                }, Qt::BlockingQueuedConnection);
-                debugData->currentUrl = nextUrl;
-            }
-            // line handle
-            QMetaObject::invokeMethod(g_script, [debugData, line] {
-                g_script->markerHighlight(debugData->currentUrl, line);
-            }, Qt::BlockingQueuedConnection);
-            // var handle
-            {
-                // init var map
-                auto *varMap = new QStandardItemModel(); // NOLINT
-                varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
-                // table recursion lambda
-                auto appendTable = [](lua_State *L, QStandardItem *parentNameItem, const QString &parentVarname, const QString &parentVarScope, const int tableIndex,
-                                      auto &&self) -> void {
-                    lua_pushnil(L);
-                    while (lua_next(L, tableIndex) != 0) {
-                        lua_pushvalue(L, -2);
-                        QString varName = lua_tostring(L, -1);
-                        lua_pop(L, 1);
-                        QString varType = lua_typename(L, lua_type(L, -1));
-                        lua_pushvalue(L, -1);
-                        QString varValue = lua_toqstring(L, -1);
-                        lua_pop(L, 1);
-
-                        auto *localNameItem = new QStandardItem(varName); // NOLINT
-                        localNameItem->setEditable(false);
-                        auto *localTypeItem = new QStandardItem(varType); // NOLINT
-                        localTypeItem->setEditable(false);
-                        QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
-
-                        if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-                            valueItem->setData(parentVarScope, Qt::UserRole + 1);
-                            valueItem->setData(parentVarname + "." + varName, Qt::UserRole + 2);
-                        } else if (lua_type(L, -1) == LUA_TTABLE) {
-                            valueItem->setEditable(false);
-                            self(L, localNameItem, parentVarname + "." + varName, parentVarScope, lua_gettop(L), self);
-                        } else {
-                            valueItem->setEditable(false);
-                        }
-                        parentNameItem->appendRow({localNameItem, localTypeItem, valueItem});
-                        lua_pop(L, 1);
-                    }
-                };
-                // local var
-                auto *localVar = new QStandardItem("local"); // NOLINT
-                localVar->setEditable(false);
-                varMap->appendRow(localVar);
-                int i = 1;
-                QString localVarName;
-                while ((localVarName = lua_getlocal(L, ar, i)) != nullptr) {
-                    if (localVarName[0] != '(') {
-                        QString localVarType = lua_typename(L, lua_type(L, -1));
-                        QString localVarValue = lua_toqstring(L, -1);
-
-                        QStandardItem *localNameItem = new QStandardItem(localVarName); // NOLINT
-                        localNameItem->setEditable(false);
-                        QStandardItem *localTypeItem = new QStandardItem(localVarType); // NOLINT
-                        localTypeItem->setEditable(false);
-                        QStandardItem *localValueItem = new QStandardItem(localVarValue); // NOLINT
-
-                        if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-                            localValueItem->setData("local", Qt::UserRole + 1);
-                            localValueItem->setData(localVarName, Qt::UserRole + 2);
-                        } else if (lua_type(L, -1) == LUA_TTABLE) {
-                            localValueItem->setEditable(false);
-                            appendTable(L, localNameItem, localVarName, "local", lua_gettop(L), appendTable);
-                        } else {
-                            localValueItem->setEditable(false);
-                        }
-                        localVar->appendRow({localNameItem, localTypeItem, localValueItem});
-                    }
-                    lua_pop(L, 1);
-                    i++;
-                }
-                // up var
-                auto *upVar = new QStandardItem("up"); // NOLINT
-                upVar->setEditable(false);
-                varMap->appendRow(upVar);
-                lua_getinfo(L, "f", ar);
-                i = 1;
-                QString upVarName;
-                while ((upVarName = lua_getupvalue(L, -1, i)) != nullptr) {
-                    if (upVarName[0] != '(' && upVarName[0] != '_') {
-                        QString upVarType = lua_typename(L, lua_type(L, -1));
-                        QString upVarValue = lua_toqstring(L, -1);
-
-                        QStandardItem *upNameItem = new QStandardItem(upVarName); // NOLINT
-                        upNameItem->setEditable(false);
-                        QStandardItem *upTypeItem = new QStandardItem(upVarType); // NOLINT
-                        upTypeItem->setEditable(false);
-                        QStandardItem *upValueItem = new QStandardItem(upVarValue); // NOLINT
-
-                        if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-                            upValueItem->setData("up", Qt::UserRole + 1);
-                            upValueItem->setData(upVarName, Qt::UserRole + 2);
-                        } else if (lua_type(L, -1) == LUA_TTABLE) {
-                            upValueItem->setEditable(false);
-                            appendTable(L, upNameItem, upVarName, "up", lua_gettop(L), appendTable);
-                        } else {
-                            upValueItem->setEditable(false);
-                        }
-                        upVar->appendRow({upNameItem, upTypeItem, upValueItem});
-                    }
-                    lua_pop(L, 1);
-                    i++;
-                }
-                lua_pop(L, 1);
-                // sync to gui
-                QMetaObject::invokeMethod(g_script, [varMap] {
-                    g_script->scriptTreeViewLoad(varMap);
-                }, Qt::BlockingQueuedConnection);
-            }
-            // hold thread
-            QEventLoop loop;
-            connect(g_script, &Script::debugResume, &loop, &QEventLoop::quit);
-            loop.exec();
-        }
-    }
-}
-
-void LuaInterpreter::handleError() const {
-    const QString error = lua_tostring(L, -1);
-    int line = -1;
-    static const QRegularExpression re(R"(\]:(\d+):)");
-    if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
-    QMetaObject::invokeMethod(g_script, [this, line, error] {
-        g_script->markerHighlight(m_scriptUrl, line);
-        g_script->appendLog(error, "error");
-    }, Qt::BlockingQueuedConnection);
-    lua_pop(L, 1);
 }
 
 // ScriptExplorer public

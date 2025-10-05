@@ -26,47 +26,48 @@ Debug::Debug(QWidget *parent)
         debugContinueButton->setFixedSize(24, 24);
         debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
         debugContinueButton->setToolTip(tr("resume"));
-        // connect(debugContinueButton, &QPushButton::clicked, this, [this] {
-        //     g_stateMachine = STATE_RUN;
-        //     emit resumeDebug();
-        // });
+        connect(debugContinueButton, &QPushButton::clicked, this, [this] {
+            const QString threadId = m_debugThreadCombobox->currentText();
+            m_interpreterHash[threadId]->debugStateSet(STATE_RUN);
+        });
         auto *debugPauseButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugPauseButton);
         debugPauseButton->setFixedSize(24, 24);
         debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
         debugPauseButton->setToolTip(tr("pause"));
-        // connect(debugPauseButton, &QPushButton::clicked, this, [] {
-        //     g_stateMachine = STATE_PAUSE;
-        // });
+        connect(debugPauseButton, &QPushButton::clicked, this, [this] {
+            const QString threadId = m_debugThreadCombobox->currentText();
+            m_interpreterHash[threadId]->debugStateSet(STATE_PAUSE);
+        });
         auto *debugStepOverButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugStepOverButton);
         debugStepOverButton->setFixedSize(24, 24);
         debugStepOverButton->setIcon(QIcon(":/icon/debugStepOver.svg"));
         debugStepOverButton->setToolTip(tr("step over"));
-        // connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
-        //     g_baseDepth = g_depth;
-        //     g_stateMachine = STATE_STEPOVER;
-        //     emit resumeDebug();
-        // });
+        connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
+            // g_baseDepth = g_depth;
+            const QString threadId = m_debugThreadCombobox->currentText();
+            m_interpreterHash[threadId]->debugStateSet(STATE_STEPOVER);
+        });
         auto *debugStepIntoButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugStepIntoButton);
         debugStepIntoButton->setFixedSize(24, 24);
         debugStepIntoButton->setIcon(QIcon(":/icon/debugStepInto.svg"));
         debugStepIntoButton->setToolTip(tr("step into"));
-        // connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
-        //     g_stateMachine = STATE_STEPINTO;
-        //     emit resumeDebug();
-        // });
+        connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
+            const QString threadId = m_debugThreadCombobox->currentText();
+            m_interpreterHash[threadId]->debugStateSet(STATE_STEPINTO);
+        });
         auto *debugStepOutButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugStepOutButton);
         debugStepOutButton->setFixedSize(24, 24);
         debugStepOutButton->setIcon(QIcon(":/icon/debugStepOut.svg"));
         debugStepOutButton->setToolTip(tr("step out"));
-        // connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
-        //     g_baseDepth = g_depth;
-        //     g_stateMachine = STATE_STEPOUT;
-        //     emit resumeDebug();
-        // });
+        connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
+            // g_baseDepth = g_depth;
+            const QString threadId = m_debugThreadCombobox->currentText();
+            m_interpreterHash[threadId]->debugStateSet(STATE_STEPOUT);
+        });
         auto *debugTerminateButton = new QPushButton(); // NOLINT
         debugCtrlLayout->addWidget(debugTerminateButton);
         debugTerminateButton->setFixedSize(24, 24);
@@ -83,16 +84,7 @@ Debug::Debug(QWidget *parent)
     // debug variable treeview
 }
 
-void Debug::debugStart() {
-    debugThreadGet();
-}
-
-// Debug private
-void Debug::debugThreadGet() const {
-    m_debugThreadCombobox->clear();
-    const QHash<QString, QThread *> threadHash = g_threadpool->threadGet();
-    QStringList keyList = threadHash.keys();
-    foreach (const QString &key, keyList) {
-        m_debugThreadCombobox->addItem(key);
-    }
+void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
+    m_debugThreadCombobox->addItem(threadId);
+    m_interpreterHash.insert(threadId, interpreter);
 }

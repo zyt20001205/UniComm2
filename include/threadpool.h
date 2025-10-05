@@ -7,6 +7,9 @@
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QThread>
+#include <QUrl>
+
+class LuaInterpreter;
 
 class Threadpool final : public QDockWidget {
     Q_OBJECT
@@ -16,18 +19,27 @@ public:
 
     ~Threadpool() override = default;
 
-    QHash<QString, QThread *> threadGet();
+    void workspaceOpen(const QUrl &rootUrl);
 
-    void threadSpawn(int status, const QString &name, const QString &threadId, QThread *worker);
+    QString threadExec(const QString &scriptPath);
+
+    QString threadRun(const QUrl &scriptUrl, const QString &script);
+
+    void threadDebug(const QUrl &scriptUrl, const QString &script);
 
     bool threadStop(const QString &threadId);
 
     bool threadWait(const QString &threadId);
 
 signals:
+    void startDebug(const QString &threadId, LuaInterpreter *interpreter);
+
     void threadStopped(const QString &threadId);
 
 private:
+    void threadAppend(int status, const QString &name, const QString &threadId, QThread *worker);
+
+    QUrl m_rootUrl{};
     QTableWidget *m_threadpoolTableWidget{};
     QHash<int, QColor> m_threadpoolColor{};
     QHash<QString, QThread *> m_threadHash{};

@@ -26,6 +26,7 @@ inline Script *g_script = nullptr;
 inline Database *g_database = nullptr;
 inline Datatable *g_datatable = nullptr;
 inline Dataplot *g_dataplot = nullptr;
+inline Debug *g_debug = nullptr;
 inline Log *g_log = nullptr;
 inline Port *g_port = nullptr;
 inline Threadpool *g_threadpool = nullptr;

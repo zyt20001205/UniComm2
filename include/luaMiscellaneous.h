@@ -6,13 +6,9 @@
 #include <QtTextToSpeech/QTextToSpeech>
 #include <QThread>
 #include <lua.hpp>
-#include "script.h"
 #include "log.h"
 #include "threadpool.h"
 
-class Script;
-
-extern Script *g_script;
 extern Log *g_log;
 extern Threadpool *g_threadpool;
 
