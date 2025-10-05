@@ -1,7 +1,5 @@
 #include "../include/threadpool.h"
 
-#include <qeventloop.h>
-
 // Threadpool public
 Threadpool::Threadpool(QWidget *parent)
     : QDockWidget("threadpool", parent),
@@ -38,6 +36,10 @@ Threadpool::Threadpool(QWidget *parent)
             threadStop(id);
         }
     });
+}
+
+QHash<QString, QThread *> Threadpool::threadGet() {
+    return m_threadHash;
 }
 
 void Threadpool::threadSpawn(const int status, const QString &name, const QString &threadId, QThread *worker) {

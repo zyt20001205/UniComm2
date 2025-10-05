@@ -40,6 +40,7 @@ qt_add_executable(UniComm src/main.cpp
         include/database.h
         include/dataplot.h
         include/datatable.h
+        include/debug.h
         include/diagnostics.h
         include/log.h
         include/luaControl.h
@@ -59,6 +60,7 @@ qt_add_executable(UniComm src/main.cpp
         src/database.cpp
         src/dataplot.cpp
         src/datatable.cpp
+        src/debug.cpp
         src/diagnostics.cpp
         src/log.cpp
         src/luaControl.cpp

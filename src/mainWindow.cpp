@@ -157,7 +157,16 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "diagnostics module initialized");
 
+    m_debugModule = new Debug();
+    this->addDockWidget(Qt::BottomDockWidgetArea, m_debugModule);
+    m_debugModule->setObjectName("debugModule");
+    connect(m_debugModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDebug->setChecked(visible); });
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "debug module initialized");
+
     this->tabifyDockWidget(m_logModule, m_diagnosticsModule);
+    this->tabifyDockWidget(m_logModule, m_debugModule);
     m_logModule->raise();
 
     m_threadpoolModule = new Threadpool();
@@ -192,9 +201,10 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &Diagnostics::highlightAnnotate, m_scriptModule, &Script::annotateHighlight);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
-    connect(m_scriptModule, &Script::spawnThread, m_threadpoolModule, &Threadpool::threadSpawn);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
+    connect(m_scriptModule, &Script::spawnThread, m_threadpoolModule, &Threadpool::threadSpawn);
+    connect(m_scriptModule, &Script::startDebug, m_debugModule, &Debug::debugStart);
 
     m_sendModule->setPort(m_portModule);
     g_script = m_scriptModule;
@@ -267,6 +277,11 @@ void MainWindow::menuInit() {
         m_viewDiagnostics->setCheckable(true);
         QTimer::singleShot(0, this, [this] { m_viewDiagnostics->setChecked(m_diagnosticsModule->isVisible()); });
         connect(m_viewDiagnostics, &QAction::triggered, this, [this](const bool visible) { m_diagnosticsModule->setVisible(visible); });
+        m_viewDebug = new QAction(tr("debug"));
+        viewMenu->addAction(m_viewDebug);
+        m_viewDebug->setCheckable(true);
+        QTimer::singleShot(0, this, [this] { m_viewDebug->setChecked(m_debugModule->isVisible()); });
+        connect(m_viewDebug, &QAction::triggered, this, [this](const bool visible) { m_debugModule->setVisible(visible); });
         m_viewThreadpool = new QAction(tr("threadpool"));
         viewMenu->addAction(m_viewThreadpool);
         m_viewThreadpool->setCheckable(true);

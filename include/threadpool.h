@@ -2,6 +2,7 @@
 #define THREADPOOL_H
 
 #include <QDockWidget>
+#include <QEventLoop>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QTableWidget>
@@ -15,6 +16,8 @@ public:
 
     ~Threadpool() override = default;
 
+    QHash<QString, QThread *> threadGet();
+
     void threadSpawn(int status, const QString &name, const QString &threadId, QThread *worker);
 
     bool threadStop(const QString &threadId);
@@ -25,9 +28,9 @@ signals:
     void threadStopped(const QString &threadId);
 
 private:
-    QTableWidget *m_threadpoolTableWidget = nullptr;
-    QHash<int, QColor> m_threadpoolColor;
-    QHash<QString, QThread *> m_threadHash;
+    QTableWidget *m_threadpoolTableWidget{};
+    QHash<int, QColor> m_threadpoolColor{};
+    QHash<QString, QThread *> m_threadHash{};
 
     enum {
         THREAD_RUN,

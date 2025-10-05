@@ -123,13 +123,15 @@ signals:
 
     void openWorkspace(const QUrl &rootUrl);
 
-    void spawnThread(int type, const QString &name, const QString &threadId, QThread *worker);
-
     void debugResume();
 
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
+
+    void spawnThread(int type, const QString &name, const QString &threadId, QThread *worker);
+
+    void startDebug();
 
 private:
     QString scriptRun(const QUrl &scriptUrl,const QString &script);

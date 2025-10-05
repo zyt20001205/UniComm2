@@ -12,6 +12,7 @@
 #include "database.h"
 #include "dataplot.h"
 #include "datatable.h"
+#include "debug.h"
 #include "diagnostics.h"
 #include "log.h"
 #include "luaLanguageServer.h"
@@ -73,6 +74,7 @@ private:
     Dataplot *m_dataplotModule = nullptr;
     Log *m_logModule = nullptr;
     Diagnostics *m_diagnosticsModule = nullptr;
+    Debug *m_debugModule = nullptr;
     Threadpool *m_threadpoolModule = nullptr;
     Script *m_scriptModule = nullptr;
 
@@ -83,6 +85,7 @@ private:
     QAction *m_viewDataplot = nullptr;
     QAction *m_viewLog = nullptr;
     QAction *m_viewDiagnostics = nullptr;
+    QAction *m_viewDebug = nullptr;
     QAction *m_viewThreadpool = nullptr;
 };
 

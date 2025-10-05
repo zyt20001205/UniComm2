@@ -345,6 +345,7 @@ void Script::scriptDebug(const QUrl &scriptUrl, const QString &script) {
     worker->start();
     const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
     emit spawnThread(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
+    emit startDebug();
 }
 
 void Script::scriptModify(const int index) const {
