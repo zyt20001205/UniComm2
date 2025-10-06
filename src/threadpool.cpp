@@ -50,12 +50,15 @@ void Threadpool::workspaceOpen(const QUrl &rootUrl) {
 
 void Threadpool::breakpointInsert(const QUrl &scriptUrl, const int line) {
     m_breakpoints[scriptUrl].insert(line);
-    qDebug() << m_breakpoints;
+    // qDebug() << m_breakpoints;
 }
 
 void Threadpool::breakpointRemove(const QUrl &scriptUrl, const int line) {
     m_breakpoints[scriptUrl].remove(line);
-    qDebug() << m_breakpoints;
+    if (m_breakpoints[scriptUrl].empty()) {
+        m_breakpoints.remove(scriptUrl);
+    }
+    // qDebug() << m_breakpoints;
 }
 
 QString Threadpool::threadExec(const QString &scriptPath) {
