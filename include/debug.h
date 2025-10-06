@@ -5,6 +5,7 @@
 #include <QDockWidget>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <qtableview.h>
 #include <QVBoxLayout>
 
 class LuaInterpreter;
@@ -17,6 +18,10 @@ public:
 
     ~Debug() override = default;
 
+    void breakpointInsert(const QUrl &scriptUrl, int line);
+
+    void breakpointRemove(const QUrl &scriptUrl, int line);
+
     void debugStart(const QString &threadId, LuaInterpreter *interpreter);
 
     void debugEnd(const QString &threadId);
@@ -27,6 +32,7 @@ signals:
 private:
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QComboBox *m_debugThreadCombobox{};
+    QTableView *m_debugThreadTableView{};
 
     enum {
         DEBUG_RUN,

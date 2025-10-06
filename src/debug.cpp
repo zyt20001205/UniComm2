@@ -1,10 +1,14 @@
 #include "../include/debug.h"
+
+#include <QLabel>
+
 #include "../include/luaInterpreter.h"
 
 // Debug public
 Debug::Debug(QWidget *parent)
     : QDockWidget("debug", parent),
-      m_debugThreadCombobox(new QComboBox()) {
+      m_debugThreadCombobox(new QComboBox()),
+      m_debugThreadTableView(new QTableView()) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
     auto *layout = new QVBoxLayout(widget); // NOLINT
@@ -15,8 +19,13 @@ Debug::Debug(QWidget *parent)
         auto *debugMasterCtrlWidget = new QWidget(); // NOLINT
         layout->addWidget(debugMasterCtrlWidget);
         auto *debugMasterCtrlLayout = new QVBoxLayout(debugMasterCtrlWidget); // NOLINT
+        debugMasterCtrlLayout->setAlignment(Qt::AlignTop);
         debugMasterCtrlLayout->setContentsMargins(0, 0, 0, 0);
+        debugMasterCtrlLayout->setSpacing(0);
 
+        // debug ctrl
+        auto *debugCtrlLabel = new QLabel(tr("Command Bar")); // NOLINT
+        debugMasterCtrlLayout->addWidget(debugCtrlLabel);
         auto *debugCtrlWidget = new QWidget(); // NOLINT
         debugMasterCtrlLayout->addWidget(debugCtrlWidget);
         auto *debugCtrlLayout = new QHBoxLayout(debugCtrlWidget); // NOLINT
@@ -83,15 +92,32 @@ Debug::Debug(QWidget *parent)
             interpreter->thread()->requestInterruption();
         });
 
+        // debug thread
+        auto *debugThreadLabel = new QLabel(tr("Thread Control")); // NOLINT
+        debugMasterCtrlLayout->addWidget(debugThreadLabel);
         debugMasterCtrlLayout->addWidget(m_debugThreadCombobox);
+
+        // debug breakpoints
+        auto *debugBreakpointsLabel = new QLabel(tr("Breakpoints")); // NOLINT
+        debugMasterCtrlLayout->addWidget(debugBreakpointsLabel);
+        debugMasterCtrlLayout->addWidget(m_debugThreadTableView);
     }
 
     // debug variable treeview
 }
 
+void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) {
+
+}
+
+void Debug::breakpointRemove(const QUrl &scriptUrl, const int line) {
+
+}
+
 void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
     m_debugThreadCombobox->addItem(threadId);
     m_interpreterHash.insert(threadId, interpreter);
+    connect(interpreter->thread(), &QThread::finished, this, [this, threadId] { debugEnd(threadId); });
 }
 
 void Debug::debugEnd(const QString &threadId) {
