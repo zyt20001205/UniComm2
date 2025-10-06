@@ -175,96 +175,96 @@ void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, 
         if (varName.contains(".")) {
             QStringList path = varName.split('.');
 
-            if (lua_getstack(co, 0, &ar)) {
+            if (lua_getstack(L, 0, &ar)) {
                 int i = 1;
                 QString firstname;
-                while ((firstname = lua_getlocal(co, &ar, i)) != nullptr) {
+                while ((firstname = lua_getlocal(L, &ar, i)) != nullptr) {
                     if (path.first() == firstname) {
                         break;
                     }
-                    lua_pop(co, 1);
+                    lua_pop(L, 1);
                     i++;
                 }
 
                 for (int j = 1; j + 1 < path.size(); ++j) {
                     const QString &part = path[j];
-                    lua_pushstring(co, part.toUtf8().constData());
-                    lua_gettable(co, -2);
-                    lua_remove(co, -2);
+                    lua_pushstring(L, part.toUtf8().constData());
+                    lua_gettable(L, -2);
+                    lua_remove(L, -2);
                 }
 
                 const QByteArray lastname = path.last().toUtf8();
-                lua_pushstring(co, lastname.constData());
-                lua_gettable(co, -2);
-                lua_pushqstring(co, -1, varValue);
-                lua_remove(co, -2);
-                lua_setfield(co, -2, lastname.constData());
-                lua_pop(co, 1);
+                lua_pushstring(L, lastname.constData());
+                lua_gettable(L, -2);
+                lua_pushqstring(L, -1, varValue);
+                lua_remove(L, -2);
+                lua_setfield(L, -2, lastname.constData());
+                lua_pop(L, 1);
 
                 qDebug() << "local table" << varName << "updated to" << varValue;
             }
         } else {
             // local boolean/number/string
-            if (lua_getstack(co, 0, &ar)) {
+            if (lua_getstack(L, 0, &ar)) {
                 int i = 1;
                 QString name;
-                while ((name = lua_getlocal(co, &ar, i)) != nullptr) {
+                while ((name = lua_getlocal(L, &ar, i)) != nullptr) {
                     if (varName == name) {
-                        lua_pushqstring(co, -1, varValue);
-                        lua_setlocal(co, &ar, i);
-                        lua_pop(co, 1);
+                        lua_pushqstring(L, -1, varValue);
+                        lua_setlocal(L, &ar, i);
+                        lua_pop(L, 1);
                         qDebug() << "local variable" << varName << "updated to" << varValue;
                         break;
                     }
-                    lua_pop(co, 1);
+                    lua_pop(L, 1);
                     i++;
                 }
             }
         }
     } else {
-        if (lua_getstack(co, 0, &ar)) {
-            lua_getinfo(co, "f", &ar);
+        if (lua_getstack(L, 0, &ar)) {
+            lua_getinfo(L, "f", &ar);
             int i = 1;
             // up table
             if (varName.contains('.')) {
                 QStringList path = varName.split('.');
                 QString firstname;
-                while ((firstname = lua_getupvalue(co, -1, i)) != nullptr) {
+                while ((firstname = lua_getupvalue(L, -1, i)) != nullptr) {
                     if (path.first() == firstname) {
                         break;
                     }
-                    lua_pop(co, 1);
+                    lua_pop(L, 1);
                     i++;
                 }
                 for (int j = 1; j + 1 < path.size(); ++j) {
                     const QString &part = path[j];
-                    lua_pushstring(co, part.toUtf8().constData());
-                    lua_gettable(co, -2);
-                    lua_remove(co, -2);
+                    lua_pushstring(L, part.toUtf8().constData());
+                    lua_gettable(L, -2);
+                    lua_remove(L, -2);
                 }
                 const QByteArray lastname = path.last().toUtf8();
-                lua_pushstring(co, lastname.constData());
-                lua_gettable(co, -2);
-                lua_pushqstring(co, -1, varValue);
-                lua_remove(co, -2);
-                lua_setfield(co, -2, lastname.constData());
-                lua_pop(co, 1);
+                lua_pushstring(L, lastname.constData());
+                lua_gettable(L, -2);
+                lua_pushqstring(L, -1, varValue);
+                lua_remove(L, -2);
+                lua_setfield(L, -2, lastname.constData());
+                lua_pop(L, 1);
                 qDebug() << "up table" << varName << "updated to" << varValue;
-                lua_pop(co, 1);
+                lua_pop(L, 1);
             } else {
                 // up boolean/number/string
                 QString name;
-                while ((name = lua_getupvalue(co, -1, i)) != nullptr) {
+                while ((name = lua_getupvalue(L, -1, i)) != nullptr) {
                     if (varName == name) {
-                        lua_pushqstring(co, -1, varValue);
-                        lua_setupvalue(co, -3, i);
+                        lua_pushqstring(L, -1, varValue);
+                        lua_setupvalue(L, -3, i);
                         qDebug() << "up variable" << varName << "updated to" << varValue;
                         break;
                     }
-                    lua_pop(co, 1);
+                    lua_pop(L, 1);
                     i++;
                 }
-                lua_pop(co, 1);
+                lua_pop(L, 1);
             }
         }
     }

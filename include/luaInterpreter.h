@@ -50,7 +50,6 @@ private:
     void handleError() const;
 
     lua_State *L{};
-    lua_State *co{};
     QUrl m_scriptUrl{};
     QSharedPointer<DebugData> m_debugData{};
 
