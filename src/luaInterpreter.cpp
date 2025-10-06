@@ -286,6 +286,10 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     }
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
     auto debugData = static_cast<DebugData *>(*ptrHolder);
+    // clear highlight
+    QMetaObject::invokeMethod(g_script, [debugData] {
+        g_script->markerHighlight(debugData->currentUrl);
+    }, Qt::BlockingQueuedConnection);
     if (ar->event == LUA_HOOKCALL) {
         debugData->depth += 1;
     } else if (ar->event == LUA_HOOKRET) {
@@ -293,13 +297,12 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     } else if (ar->event == LUA_HOOKLINE) {
         // get file info
         lua_getinfo(L, "Sl", ar);
-        const char *src = ar->source;
         QUrl nextUrl;
-        if (src[0] == '@' && src[1] != '\0') {
-            nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
+        if (ar->source[0] == '@' && ar->source[1] != '\0') {
+            nextUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
-        const int line = ar->currentline;
-        if (debugData->state == DEBUG_RUN && debugData->breakpoints->value(nextUrl).contains(line)) debugData->state = DEBUG_PAUSE;
+        // debug state machine
+        if (debugData->state == DEBUG_RUN && debugData->breakpoints->value(nextUrl).contains(ar->currentline)) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_STEPINTO) debugData->state = DEBUG_PAUSE;
@@ -312,14 +315,14 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 debugData->currentUrl = nextUrl;
             }
             // line handle
-            QMetaObject::invokeMethod(g_script, [debugData, line] {
-                g_script->markerHighlight(debugData->currentUrl, line);
+            QMetaObject::invokeMethod(g_script, [debugData, ar] {
+                g_script->markerHighlight(debugData->currentUrl, ar->currentline);
             }, Qt::BlockingQueuedConnection);
-            // var handle
+            // var tree
             {
-                // init var map
-                auto *varMap = new QStandardItemModel(); // NOLINT
-                varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
+                // init var tree
+                auto *varTree = new QStandardItemModel(); // NOLINT
+                varTree->setHorizontalHeaderLabels({tr("Name"), tr("Type"), tr("Value")});
                 // table recursion lambda
                 auto appendTable = [](lua_State *L, QStandardItem *parentNameItem, const QString &parentVarname, const QString &parentVarScope, const int tableIndex,
                                       auto &&self) -> void {
@@ -355,7 +358,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 // local var
                 auto *localVar = new QStandardItem("local"); // NOLINT
                 localVar->setEditable(false);
-                varMap->appendRow(localVar);
+                varTree->appendRow(localVar);
                 int i = 1;
                 QString localVarName;
                 while ((localVarName = lua_getlocal(L, ar, i)) != nullptr) {
@@ -386,7 +389,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 // up var
                 auto *upVar = new QStandardItem("up"); // NOLINT
                 upVar->setEditable(false);
-                varMap->appendRow(upVar);
+                varTree->appendRow(upVar);
                 lua_getinfo(L, "f", ar);
                 i = 1;
                 QString upVarName;
@@ -416,9 +419,34 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     i++;
                 }
                 lua_pop(L, 1);
-                // sync to debug module
-                QMetaObject::invokeMethod(g_debug, [debugData, varMap] {
-                    g_debug->varReturn(debugData->threadId, varMap);
+                // send to debug module
+                QMetaObject::invokeMethod(g_debug, [debugData, varTree] {
+                    g_debug->varReturn(debugData->threadId, varTree);
+                }, Qt::BlockingQueuedConnection);
+            }
+            // call table
+            {
+                // init call table
+                auto *callTable = new QStandardItemModel(); // NOLINT
+                callTable->setHorizontalHeaderLabels({tr("Script"), tr("Line"), tr("Name"), tr("View")});
+                // get call stack
+                int level = 0;
+                while (lua_getstack(L, level, ar)) {
+                    lua_getinfo(L, "nSl", ar);
+                    const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
+                    callTable->insertRow(0);
+                    callTable->setItem(0, 0, new QStandardItem(scriptUrl.fileName()));
+                    callTable->setItem(0, 1, new QStandardItem(QString::number(ar->currentline)));
+                    callTable->setItem(0, 2, new QStandardItem(ar->name ? ar->name : "?"));
+                    auto *viewItem = new QStandardItem(QIcon(":/icon/arrowRight.svg"), ""); // NOLINT
+                    viewItem->setData(QVariant(scriptUrl), Qt::UserRole + 1);
+                    viewItem->setData(QVariant(ar->currentline), Qt::UserRole + 2);
+                    callTable->setItem(0, 3, viewItem);
+                    level++;
+                }
+                // send to debug module
+                QMetaObject::invokeMethod(g_debug, [debugData, callTable] {
+                    g_debug->callReturn(debugData->threadId, callTable);
                 }, Qt::BlockingQueuedConnection);
             }
             // hold thread

@@ -73,7 +73,7 @@ public:
 
     void markerHighlight(const QUrl &scriptUrl, int line = -1, int time = -1) const;
 
-    // void scriptTreeViewLoad(QStandardItemModel *varMap) const;
+    // void scriptTreeViewLoad(QStandardItemModel *varTree) const;
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 

@@ -10,11 +10,11 @@ Debug::Debug(QWidget *parent)
       m_debugBreakpointsTableModel(new QStandardItemModel()),
       m_debugBreakpointsProxyModel(new BreakpointsProxyModel()),
       m_debugBreakpointsTableView(new QTableView()),
-      m_debugTabWidget(new QTabWidget()) {
+      m_debugTabWidget(new QTabWidget()),
+      m_debugTabOverlay(new QWidget(m_debugTabWidget)) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
     auto *layout = new QHBoxLayout(widget); // NOLINT
-
     // debug master control
     {
         auto *debugMasterCtrlWidget = new QWidget(); // NOLINT
@@ -38,8 +38,8 @@ Debug::Debug(QWidget *parent)
             debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
             debugContinueButton->setToolTip(tr("resume"));
             connect(debugContinueButton, &QPushButton::clicked, this, [this] {
-                if (m_debugTabWidget->count() == 0) {
-                    QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
                 const int index = m_debugTabWidget->currentIndex();
@@ -53,8 +53,8 @@ Debug::Debug(QWidget *parent)
             debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
             debugPauseButton->setToolTip(tr("pause"));
             connect(debugPauseButton, &QPushButton::clicked, this, [this] {
-                if (m_debugTabWidget->count() == 0) {
-                    QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
                 const int index = m_debugTabWidget->currentIndex();
@@ -68,8 +68,8 @@ Debug::Debug(QWidget *parent)
             debugStepOverButton->setIcon(QIcon(":/icon/debugStepOver.svg"));
             debugStepOverButton->setToolTip(tr("step over"));
             connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
-                if (m_debugTabWidget->count() == 0) {
-                    QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
                 const int index = m_debugTabWidget->currentIndex();
@@ -83,8 +83,8 @@ Debug::Debug(QWidget *parent)
             debugStepIntoButton->setIcon(QIcon(":/icon/debugStepInto.svg"));
             debugStepIntoButton->setToolTip(tr("step into"));
             connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
-                if (m_debugTabWidget->count() == 0) {
-                    QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
                 const int index = m_debugTabWidget->currentIndex();
@@ -98,8 +98,8 @@ Debug::Debug(QWidget *parent)
             debugStepOutButton->setIcon(QIcon(":/icon/debugStepOut.svg"));
             debugStepOutButton->setToolTip(tr("step out"));
             connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
-                if (m_debugTabWidget->count() == 0) {
-                    QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
                 const int index = m_debugTabWidget->currentIndex();
@@ -113,8 +113,8 @@ Debug::Debug(QWidget *parent)
             debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
             debugTerminateButton->setToolTip(tr("terminate"));
             connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
-                if (m_debugTabWidget->count() == 0) {
-                    QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
                 const int index = m_debugTabWidget->currentIndex();
@@ -129,9 +129,7 @@ Debug::Debug(QWidget *parent)
             debugMasterCtrlLayout->addWidget(debugBreakpointsLabel);
             debugMasterCtrlLayout->addWidget(m_debugBreakpointsTableView);
             m_debugBreakpointsTableModel->setColumnCount(3);
-            m_debugBreakpointsTableModel->setHeaderData(0, Qt::Horizontal, tr("Script"));
-            m_debugBreakpointsTableModel->setHeaderData(1, Qt::Horizontal, tr("Line"));
-            m_debugBreakpointsTableModel->setHeaderData(2, Qt::Horizontal, "");
+            m_debugBreakpointsTableModel->setHorizontalHeaderLabels({tr("Script"), tr("Line"), tr("View")});
             m_debugBreakpointsProxyModel->setSourceModel(m_debugBreakpointsTableModel);
             m_debugBreakpointsTableView->setModel(m_debugBreakpointsProxyModel);
             m_debugBreakpointsTableView->sortByColumn(0, Qt::AscendingOrder);
@@ -157,7 +155,20 @@ Debug::Debug(QWidget *parent)
     // debug tabview
     {
         layout->addWidget(m_debugTabWidget);
+
+        m_debugTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
+        auto *overlayLayout = new QVBoxLayout(m_debugTabOverlay); // NOLINT
+        overlayLayout->setAlignment(Qt::AlignCenter);
+        overlayLayout->setContentsMargins(0, 0, 0, 0);
+        auto *overlayLabel = new QLabel(tr("No Active Debug Session")); // NOLINT
+        overlayLayout->addWidget(overlayLabel);
+        overlayLabel->setFont(QFont("Consolas", 12, QFont::Bold));
+        overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
+        overlayShow();
     }
+    layout->setStretch(0, 0);
+    layout->setStretch(1, 1);
+    QTimer::singleShot(0, this, [this] { overlayResize(); });
 }
 
 void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) const {
@@ -188,6 +199,9 @@ void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
     m_debugPageHash[threadId] = debugPage;
     m_debugTabWidget->addTab(debugPage, threadId);
     connect(interpreter->thread(), &QThread::finished, this, [this, threadId, debugPage] { debugEnd(threadId, debugPage); });
+    connect(debugPage, &DebugPage::openScript, this, &Debug::openScript);
+    connect(debugPage, &DebugPage::highlightMarker, this, &Debug::highlightMarker);
+    overlayHide();
 }
 
 void Debug::debugEnd(const QString &threadId, const DebugPage *debugPage) {
@@ -196,11 +210,37 @@ void Debug::debugEnd(const QString &threadId, const DebugPage *debugPage) {
     delete debugPage;
     m_interpreterHash.remove(threadId);
     m_debugPageHash.remove(threadId);
+    if (m_debugPageHash.isEmpty()) overlayShow();
 }
 
-void Debug::varReturn(const QString &threadId, QStandardItemModel *varMap) {
+void Debug::varReturn(const QString &threadId, QStandardItemModel *varTree) {
     if (!m_debugPageHash.contains(threadId)) return;
-    m_debugPageHash[threadId]->varLoad(varMap);
+    m_debugPageHash[threadId]->varLoad(varTree);
+}
+
+void Debug::callReturn(const QString &threadId, QStandardItemModel *callTable) {
+    if (!m_debugPageHash.contains(threadId)) return;
+    m_debugPageHash[threadId]->callLoad(callTable);
+}
+
+// Debug protected
+void Debug::resizeEvent(QResizeEvent *event) {
+    QDockWidget::resizeEvent(event);
+    if (m_debugTabOverlay->isVisible()) overlayResize();
+}
+
+// Debug private
+void Debug::overlayShow() const {
+    m_debugTabOverlay->raise();
+    m_debugTabOverlay->show();
+}
+
+void Debug::overlayHide() const {
+    m_debugTabOverlay->hide();
+}
+
+void Debug::overlayResize() const {
+    m_debugTabOverlay->setGeometry(m_debugTabWidget->rect());
 }
 
 BreakpointsProxyModel::BreakpointsProxyModel(QObject *parent)
@@ -226,15 +266,49 @@ bool BreakpointsProxyModel::lessThan(const QModelIndex &source_left, const QMode
 DebugPage::DebugPage(LuaInterpreter *interpreter, QWidget *parent)
     : QWidget(parent),
       m_interpreter(interpreter),
-      m_varTreeView(new QTreeView()) {
-    auto *layout = new QVBoxLayout(this); // NOLINT
+      m_varTreeView(new QTreeView()),
+      m_callTableView(new QTableView()) {
+    auto *layout = new QHBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_varTreeView);
+    layout->setSpacing(0);
+
+    auto *varWidget = new QWidget(); // NOLINT
+    layout->addWidget(varWidget);
+    auto *varLayout = new QVBoxLayout(varWidget); // NOLINT
+    varLayout->setAlignment(Qt::AlignTop);
+    varLayout->setContentsMargins(0, 0, 0, 0);
+    varLayout->setSpacing(0);
+    auto *varLabel = new QLabel(tr("Variable Monitor")); // NOLINT
+    varLayout->addWidget(varLabel);
+    varLayout->addWidget(m_varTreeView);
+
+    auto *callWidget = new QWidget(); // NOLINT
+    layout->addWidget(callWidget);
+    auto *callLayout = new QVBoxLayout(callWidget); // NOLINT
+    callLayout->setAlignment(Qt::AlignTop);
+    callLayout->setContentsMargins(0, 0, 0, 0);
+    callLayout->setSpacing(0);
+    auto *callLabel = new QLabel(tr("Call Stack")); // NOLINT
+    callLayout->addWidget(callLabel);
+    callLayout->addWidget(m_callTableView);
+    m_callTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_callTableView->setAlternatingRowColors(true);
+    m_callTableView->setShowGrid(false);
+    m_callTableView->verticalHeader()->setVisible(false);
+    m_callTableView->verticalHeader()->setDefaultSectionSize(24);
+    connect(m_callTableView, &QTableView::clicked, this, [this](const QModelIndex &index) {
+        if (index.column() == 3) {
+            const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
+            emit openScript(scriptUrl);
+            const int line = index.data(Qt::UserRole + 2).toInt();
+            emit highlightMarker(scriptUrl, line, 1000);
+        }
+    });
 }
 
-void DebugPage::varLoad(QStandardItemModel *varMap) const {
-    m_varTreeView->setModel(varMap);
-    connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
+void DebugPage::varLoad(QStandardItemModel *varTree) const {
+    m_varTreeView->setModel(varTree);
+    connect(varTree, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
         if (item->column() == 2) {
             const QString varScope = item->data(Qt::UserRole + 1).toString();
             const QString varName = item->data(Qt::UserRole + 2).toString();
@@ -247,4 +321,12 @@ void DebugPage::varLoad(QStandardItemModel *varMap) const {
     m_varTreeView->expandAll();
     m_varTreeView->resizeColumnToContents(0);
     m_varTreeView->resizeColumnToContents(1);
+}
+
+void DebugPage::callLoad(QStandardItemModel *callTable) const {
+    m_callTableView->setModel(callTable);
+    m_callTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    m_callTableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_callTableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    m_callTableView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
 }
