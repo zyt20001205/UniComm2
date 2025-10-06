@@ -48,7 +48,7 @@ void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &di
         diagnosticsTable = new QTableWidget();
         m_diagnosticsTableHash[scriptUrl] = diagnosticsTable;
         diagnosticsTable->setColumnCount(5);
-        diagnosticsTable->setHorizontalHeaderLabels({"source", "code", "data", "message", "view"});
+        diagnosticsTable->setHorizontalHeaderLabels({"Source", "Code", "Data", "Message", "View"});
         diagnosticsTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
         diagnosticsTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         diagnosticsTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
@@ -67,7 +67,7 @@ void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &di
                 const int endCharacter = diagnosticsTable->item(row, column)->data(Qt::UserRole + 5).toInt();
                 emit openScript(url);
                 emit setCursorPosition(url, startLine, startCharacter);
-                emit highlightAnnotate(url, startLine, startCharacter, endLine, endCharacter);
+                emit highlightAnnotate(url, startLine, startCharacter, endLine, endCharacter, 1000);
             }
         });
         m_diagnosticsTabWidget->addTab(diagnosticsTable, scriptUrl.fileName());
@@ -96,8 +96,7 @@ void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &di
         auto *codeItem = new QTableWidgetItem(code); // NOLINT
         auto *dataItem = new QTableWidgetItem(data); // NOLINT
         auto *messageItem = new QTableWidgetItem(message); // NOLINT
-        auto *viewItem = new QTableWidgetItem(); // NOLINT
-        viewItem->setIcon(QIcon(":/icon/arrowRight.svg"));
+        auto *viewItem = new QTableWidgetItem(QIcon(":/icon/arrowRight.svg"), ""); // NOLINT
         viewItem->setData(Qt::UserRole + 1, scriptUrl);
         viewItem->setData(Qt::UserRole + 2, startLine);
         viewItem->setData(Qt::UserRole + 3, startCharacter);

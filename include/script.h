@@ -69,9 +69,9 @@ public:
 
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
 
-    void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-    void markerHighlight(const QUrl &scriptUrl, int line) const;
+    void markerHighlight(const QUrl &scriptUrl, int line = -1, int time = -1) const;
 
     // void scriptTreeViewLoad(QStandardItemModel *varMap) const;
 

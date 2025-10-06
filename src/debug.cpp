@@ -129,18 +129,29 @@ Debug::Debug(QWidget *parent)
             auto *debugBreakpointsLabel = new QLabel(tr("Breakpoints")); // NOLINT
             debugMasterCtrlLayout->addWidget(debugBreakpointsLabel);
             debugMasterCtrlLayout->addWidget(m_debugBreakpointsTableView);
-            m_debugBreakpointsTableModel->setColumnCount(2);
+            m_debugBreakpointsTableModel->setColumnCount(3);
             m_debugBreakpointsTableModel->setHeaderData(0, Qt::Horizontal, tr("Script"));
             m_debugBreakpointsTableModel->setHeaderData(1, Qt::Horizontal, tr("Line"));
+            m_debugBreakpointsTableModel->setHeaderData(2, Qt::Horizontal, "");
             m_debugBreakpointsProxyModel->setSourceModel(m_debugBreakpointsTableModel);
             m_debugBreakpointsTableView->setModel(m_debugBreakpointsProxyModel);
             m_debugBreakpointsTableView->sortByColumn(0, Qt::AscendingOrder);
-            m_debugBreakpointsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
             m_debugBreakpointsTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+            m_debugBreakpointsTableView->setAlternatingRowColors(true);
+            m_debugBreakpointsTableView->setShowGrid(false);
             m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
             m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+            m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
             m_debugBreakpointsTableView->verticalHeader()->setVisible(false);
             m_debugBreakpointsTableView->verticalHeader()->setDefaultSectionSize(24);
+            connect(m_debugBreakpointsTableView, &QTableView::clicked, this, [this](const QModelIndex &index) {
+                if (index.column() == 2) {
+                    const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
+                    emit openScript(scriptUrl);
+                    const int line = index.data(Qt::UserRole + 2).toInt();
+                    emit highlightMarker(scriptUrl, line, 1000);
+                }
+            });
         }
     }
 
@@ -152,6 +163,10 @@ void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) const {
     m_debugBreakpointsTableModel->insertRow(row);
     m_debugBreakpointsTableModel->setItem(row, 0, new QStandardItem(scriptUrl.fileName()));
     m_debugBreakpointsTableModel->setItem(row, 1, new QStandardItem(QString::number(line)));
+    auto *viewItem = new QStandardItem(QIcon(":/icon/arrowRight.svg"), ""); // NOLINT
+    viewItem->setData(QVariant(scriptUrl), Qt::UserRole + 1);
+    viewItem->setData(QVariant(line), Qt::UserRole + 2);
+    m_debugBreakpointsTableModel->setItem(row, 2, viewItem);
 }
 
 void Debug::breakpointRemove(const QUrl &scriptUrl, const int line) const {

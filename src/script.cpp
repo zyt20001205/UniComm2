@@ -141,19 +141,25 @@ void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const
     scriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
 }
 
-void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-    QTimer::singleShot(1000, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
+    QTimer::singleShot(time, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
         scriptPage->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
     });
 }
 
-void Script::markerHighlight(const QUrl &scriptUrl, const int line) const {
+void Script::markerHighlight(const QUrl &scriptUrl, const int line, const int time) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
-    if (line == -1) return;
+    if (line == -1) {
+        scriptPage->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
+        return;
+    }
     scriptPage->m_scriptEditor->markerAdd(line - 1, MARKER_HIGHLIGHT);
+    if (time == -1) return;
+    QTimer::singleShot(time, [scriptPage, line] {
+        scriptPage->m_scriptEditor->markerDelete(line - 1, MARKER_HIGHLIGHT);
+    });
 }
 
 // void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {

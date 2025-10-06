@@ -110,7 +110,7 @@ void LuaInterpreter::run(const QString &script) const {
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
     QMetaObject::invokeMethod(g_script, [this] {
-        g_script->markerHighlight(m_scriptUrl, -1);
+        g_script->markerHighlight(m_scriptUrl);
     }, Qt::BlockingQueuedConnection);
     // lua exec
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
@@ -119,7 +119,7 @@ void LuaInterpreter::run(const QString &script) const {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_script, [this] {
-                g_script->markerHighlight(m_scriptUrl, -1);
+                g_script->markerHighlight(m_scriptUrl);
             }, Qt::BlockingQueuedConnection);
         } else {
             handleError();
@@ -140,7 +140,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
     *ptrHolder = m_debugData.data();
     // lua debug preparation
     QMetaObject::invokeMethod(g_script, [this] {
-        g_script->markerHighlight(m_scriptUrl, -1);
+        g_script->markerHighlight(m_scriptUrl);
     }, Qt::BlockingQueuedConnection);
     // lua debug
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
@@ -149,7 +149,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_script, [this] {
-                g_script->markerHighlight(m_scriptUrl, -1);
+                g_script->markerHighlight(m_scriptUrl);
             }, Qt::BlockingQueuedConnection);
         } else {
             handleError();

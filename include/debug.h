@@ -35,6 +35,10 @@ public:
 signals:
     void resume(const QString &threadId);
 
+    void openScript(const QUrl &scriptUrl);
+
+    void highlightMarker(const QUrl &scriptUrl, int line, int time);
+
 private:
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QComboBox *m_debugThreadCombobox{};

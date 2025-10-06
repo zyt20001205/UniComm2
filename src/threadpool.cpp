@@ -148,8 +148,7 @@ void Threadpool::threadAppend(const int status, const QString &name, const QStri
     else statusItem->setText("debug");
     auto *nameItem = new QTableWidgetItem(name); // NOLINT
     auto *threadIdItem = new QTableWidgetItem(threadId); // NOLINT
-    auto *stopItem = new QTableWidgetItem(); // NOLINT
-    stopItem->setIcon(QIcon(":/icon/stop.svg"));
+    auto *stopItem = new QTableWidgetItem(QIcon(":/icon/stop.svg"), ""); // NOLINT
 
     statusItem->setBackground(m_threadpoolColor[status]);
     nameItem->setBackground(m_threadpoolColor[status]);

@@ -215,6 +215,8 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &Script::cursorPositionSet);
     connect(m_diagnosticsModule, &Diagnostics::highlightAnnotate, m_scriptModule, &Script::annotateHighlight);
+    connect(m_debugModule, &Debug::openScript, m_scriptModule, &Script::scriptOpen);
+    connect(m_debugModule, &Debug::highlightMarker, m_scriptModule, &Script::markerHighlight);
     connect(m_threadpoolModule, &Threadpool::startDebug, m_debugModule, &Debug::debugStart);
     connect(m_threadpoolModule, &Threadpool::threadStopped, m_debugModule, &Debug::debugEnd);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
