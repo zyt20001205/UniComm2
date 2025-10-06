@@ -9,12 +9,15 @@
 #include <QPushButton>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
-#include <qtableview.h>
+#include <QTableView>
+#include <QTreeView>
 #include <QVBoxLayout>
 
 class LuaInterpreter;
 
 class BreakpointsProxyModel;
+
+class DebugPage;
 
 class Debug final : public QDockWidget {
     Q_OBJECT
@@ -30,8 +33,9 @@ public:
 
     void debugStart(const QString &threadId, LuaInterpreter *interpreter);
 
-    void debugEnd(const QString &threadId);
+    void debugEnd(const QString &threadId, const DebugPage *debugPage);
 
+    void varReturn(const QString &threadId, QStandardItemModel *varMap);
 signals:
     void resume(const QString &threadId);
 
@@ -41,10 +45,11 @@ signals:
 
 private:
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
-    QComboBox *m_debugThreadCombobox{};
     QStandardItemModel *m_debugBreakpointsTableModel{};
     BreakpointsProxyModel *m_debugBreakpointsProxyModel{};
     QTableView *m_debugBreakpointsTableView{};
+    QTabWidget *m_debugTabWidget{};
+    QHash<QString, DebugPage *> m_debugPageHash{};
 
     enum {
         DEBUG_RUN,
@@ -65,6 +70,21 @@ public:
 
 protected:
     bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const override;
+};
+
+class DebugPage final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit DebugPage(LuaInterpreter* interpreter, QWidget *parent = nullptr);
+
+    ~DebugPage() override = default;
+
+    void varLoad(QStandardItemModel *varMap) const;
+
+private:
+    LuaInterpreter *m_interpreter{};
+    QTreeView *m_varTreeView{};
 };
 
 #endif //DEBUG_H

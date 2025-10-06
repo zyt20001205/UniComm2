@@ -218,7 +218,6 @@ void MainWindow::moduleInit() {
     connect(m_debugModule, &Debug::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_debugModule, &Debug::highlightMarker, m_scriptModule, &Script::markerHighlight);
     connect(m_threadpoolModule, &Threadpool::startDebug, m_debugModule, &Debug::debugStart);
-    connect(m_threadpoolModule, &Threadpool::threadStopped, m_debugModule, &Debug::debugEnd);
     connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);

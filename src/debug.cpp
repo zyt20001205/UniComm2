@@ -7,14 +7,13 @@
 // Debug public
 Debug::Debug(QWidget *parent)
     : QDockWidget("debug", parent),
-      m_debugThreadCombobox(new QComboBox()),
       m_debugBreakpointsTableModel(new QStandardItemModel()),
       m_debugBreakpointsProxyModel(new BreakpointsProxyModel()),
-      m_debugBreakpointsTableView(new QTableView()) {
+      m_debugBreakpointsTableView(new QTableView()),
+      m_debugTabWidget(new QTabWidget()) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
-    auto *layout = new QVBoxLayout(widget); // NOLINT
-    layout->setContentsMargins(0, 0, 0, 0);
+    auto *layout = new QHBoxLayout(widget); // NOLINT
 
     // debug master control
     {
@@ -39,11 +38,12 @@ Debug::Debug(QWidget *parent)
             debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
             debugContinueButton->setToolTip(tr("resume"));
             connect(debugContinueButton, &QPushButton::clicked, this, [this] {
-                if (m_debugThreadCombobox->count() == 0) {
+                if (m_debugTabWidget->count() == 0) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
                     return;
                 }
-                const QString threadId = m_debugThreadCombobox->currentText();
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
                 m_interpreterHash[threadId]->debugStateSet(DEBUG_RUN);
                 emit resume(threadId);
             });
@@ -53,11 +53,12 @@ Debug::Debug(QWidget *parent)
             debugPauseButton->setIcon(QIcon(":/icon/pause.svg"));
             debugPauseButton->setToolTip(tr("pause"));
             connect(debugPauseButton, &QPushButton::clicked, this, [this] {
-                if (m_debugThreadCombobox->count() == 0) {
+                if (m_debugTabWidget->count() == 0) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
                     return;
                 }
-                const QString threadId = m_debugThreadCombobox->currentText();
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
                 m_interpreterHash[threadId]->debugStateSet(DEBUG_PAUSE);
                 emit resume(threadId);
             });
@@ -67,11 +68,12 @@ Debug::Debug(QWidget *parent)
             debugStepOverButton->setIcon(QIcon(":/icon/debugStepOver.svg"));
             debugStepOverButton->setToolTip(tr("step over"));
             connect(debugStepOverButton, &QPushButton::clicked, this, [this] {
-                if (m_debugThreadCombobox->count() == 0) {
+                if (m_debugTabWidget->count() == 0) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
                     return;
                 }
-                const QString threadId = m_debugThreadCombobox->currentText();
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
                 m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOVER);
                 emit resume(threadId);
             });
@@ -81,11 +83,12 @@ Debug::Debug(QWidget *parent)
             debugStepIntoButton->setIcon(QIcon(":/icon/debugStepInto.svg"));
             debugStepIntoButton->setToolTip(tr("step into"));
             connect(debugStepIntoButton, &QPushButton::clicked, this, [this] {
-                if (m_debugThreadCombobox->count() == 0) {
+                if (m_debugTabWidget->count() == 0) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
                     return;
                 }
-                const QString threadId = m_debugThreadCombobox->currentText();
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
                 m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPINTO);
                 emit resume(threadId);
             });
@@ -95,11 +98,12 @@ Debug::Debug(QWidget *parent)
             debugStepOutButton->setIcon(QIcon(":/icon/debugStepOut.svg"));
             debugStepOutButton->setToolTip(tr("step out"));
             connect(debugStepOutButton, &QPushButton::clicked, this, [this] {
-                if (m_debugThreadCombobox->count() == 0) {
+                if (m_debugTabWidget->count() == 0) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
                     return;
                 }
-                const QString threadId = m_debugThreadCombobox->currentText();
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
                 m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOUT);
                 emit resume(threadId);
             });
@@ -109,20 +113,15 @@ Debug::Debug(QWidget *parent)
             debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
             debugTerminateButton->setToolTip(tr("terminate"));
             connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
-                if (m_debugThreadCombobox->count() == 0) {
+                if (m_debugTabWidget->count() == 0) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug threads available."));
                     return;
                 }
-                const QString threadId = m_debugThreadCombobox->currentText();
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
                 const LuaInterpreter *interpreter = m_interpreterHash[threadId];
                 interpreter->thread()->requestInterruption();
             });
-        }
-        // debug thread
-        {
-            auto *debugThreadLabel = new QLabel(tr("Thread Control")); // NOLINT
-            debugMasterCtrlLayout->addWidget(debugThreadLabel);
-            debugMasterCtrlLayout->addWidget(m_debugThreadCombobox);
         }
         // debug breakpoints
         {
@@ -155,7 +154,10 @@ Debug::Debug(QWidget *parent)
         }
     }
 
-    // debug variable treeview
+    // debug tabview
+    {
+        layout->addWidget(m_debugTabWidget);
+    }
 }
 
 void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) const {
@@ -181,15 +183,24 @@ void Debug::breakpointRemove(const QUrl &scriptUrl, const int line) const {
 }
 
 void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
-    m_debugThreadCombobox->addItem(threadId);
     m_interpreterHash.insert(threadId, interpreter);
-    connect(interpreter->thread(), &QThread::finished, this, [this, threadId] { debugEnd(threadId); });
+    auto *debugPage = new DebugPage(interpreter); // NOLINT
+    m_debugPageHash[threadId] = debugPage;
+    m_debugTabWidget->addTab(debugPage, threadId);
+    connect(interpreter->thread(), &QThread::finished, this, [this, threadId, debugPage] { debugEnd(threadId, debugPage); });
 }
 
-void Debug::debugEnd(const QString &threadId) {
-    const int index = m_debugThreadCombobox->findText(threadId);
-    if (index != -1) m_debugThreadCombobox->removeItem(index);
+void Debug::debugEnd(const QString &threadId, const DebugPage *debugPage) {
+    const int index = m_debugTabWidget->indexOf(debugPage);
+    if (index != -1) m_debugTabWidget->removeTab(index);
+    delete debugPage;
     m_interpreterHash.remove(threadId);
+    m_debugPageHash.remove(threadId);
+}
+
+void Debug::varReturn(const QString &threadId, QStandardItemModel *varMap) {
+    if (!m_debugPageHash.contains(threadId)) return;
+    m_debugPageHash[threadId]->varLoad(varMap);
 }
 
 BreakpointsProxyModel::BreakpointsProxyModel(QObject *parent)
@@ -209,4 +220,31 @@ bool BreakpointsProxyModel::lessThan(const QModelIndex &source_left, const QMode
     const int leftLineData = sourceModel()->data(leftLineIndex, sortRole()).toInt();
     const int rightLineData = sourceModel()->data(rightLineIndex, sortRole()).toInt();
     return leftLineData < rightLineData;
+}
+
+// DebugPage public
+DebugPage::DebugPage(LuaInterpreter *interpreter, QWidget *parent)
+    : QWidget(parent),
+      m_interpreter(interpreter),
+      m_varTreeView(new QTreeView()) {
+    auto *layout = new QVBoxLayout(this); // NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_varTreeView);
+}
+
+void DebugPage::varLoad(QStandardItemModel *varMap) const {
+    m_varTreeView->setModel(varMap);
+    connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
+        if (item->column() == 2) {
+            const QString varScope = item->data(Qt::UserRole + 1).toString();
+            const QString varName = item->data(Qt::UserRole + 2).toString();
+            const QString varValue = item->text();
+            QMetaObject::invokeMethod(m_interpreter, [this, varScope, varName, varValue] {
+                m_interpreter->hotUpdate(varScope, varName, varValue);
+            }, Qt::QueuedConnection);
+        }
+    });
+    m_varTreeView->expandAll();
+    m_varTreeView->resizeColumnToContents(0);
+    m_varTreeView->resizeColumnToContents(1);
 }

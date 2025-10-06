@@ -416,10 +416,10 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     i++;
                 }
                 lua_pop(L, 1);
-                // sync to gui
-                // QMetaObject::invokeMethod(g_script, [varMap] {
-                //     g_script->scriptTreeViewLoad(varMap);
-                // }, Qt::BlockingQueuedConnection);
+                // sync to debug module
+                QMetaObject::invokeMethod(g_debug, [debugData, varMap] {
+                    g_debug->varReturn(debugData->threadId, varMap);
+                }, Qt::BlockingQueuedConnection);
             }
             // hold thread
             QEventLoop loop;

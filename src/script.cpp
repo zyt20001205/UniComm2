@@ -162,27 +162,6 @@ void Script::markerHighlight(const QUrl &scriptUrl, const int line, const int ti
     });
 }
 
-// void Script::scriptTreeViewLoad(QStandardItemModel *varMap) const {
-//     if (!varMap) {
-//         varMap = new QStandardItemModel(); // NOLINT
-//         varMap->setHorizontalHeaderLabels({"Name", "Type", "Value"});
-//     }
-//     m_scriptDebugTreeView->setModel(varMap);
-//     connect(varMap, &QStandardItemModel::itemChanged, this, [this](const QStandardItem *item) {
-//         if (item->column() == 2) {
-//             const QString varScope = item->data(Qt::UserRole + 1).toString();
-//             const QString varName = item->data(Qt::UserRole + 2).toString();
-//             const QString varValue = item->text();
-//             QMetaObject::invokeMethod(m_debugInterpreter, [this, varScope, varName, varValue] {
-//                 m_debugInterpreter->hotUpdate(varScope, varName, varValue);
-//             }, Qt::QueuedConnection);
-//         }
-//     });
-//     m_scriptDebugTreeView->expandAll();
-//     m_scriptDebugTreeView->resizeColumnToContents(0);
-//     m_scriptDebugTreeView->resizeColumnToContents(1);
-// }
-
 void Script::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
     if (m_scriptPageHash.contains(scriptUrl)) {
@@ -215,7 +194,6 @@ void Script::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signa
 }
 
 // Script private
-
 void Script::scriptModify(const int index) const {
     QString tabName = m_scriptTabWidget->tabText(index);
     if (!tabName.endsWith("*")) {
