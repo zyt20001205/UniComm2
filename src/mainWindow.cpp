@@ -208,6 +208,7 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
     connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
+    connect(m_explorerModule, &Explorer::debugScript, m_threadpoolModule, &Threadpool::threadDebug);
     connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
     connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
     connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
@@ -220,6 +221,8 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
+    connect(m_scriptModule, &Script::insertBreakpoint, m_threadpoolModule, &Threadpool::breakpointInsert);
+    connect(m_scriptModule, &Script::removeBreakpoint, m_threadpoolModule, &Threadpool::breakpointRemove);
     connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_scriptModule, &Script::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
 

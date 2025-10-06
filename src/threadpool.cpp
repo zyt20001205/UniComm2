@@ -48,6 +48,16 @@ void Threadpool::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
 }
 
+void Threadpool::breakpointInsert(const QUrl &scriptUrl, const int line) {
+    m_breakpoints[scriptUrl].insert(line);
+    qDebug() << m_breakpoints;
+}
+
+void Threadpool::breakpointRemove(const QUrl &scriptUrl, const int line) {
+    m_breakpoints[scriptUrl].remove(line);
+    qDebug() << m_breakpoints;
+}
+
 QString Threadpool::threadExec(const QString &scriptPath) {
     const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
     QFile file(fullPath);
@@ -78,7 +88,7 @@ QString Threadpool::threadRun(const QUrl &scriptUrl, const QString &script) {
     return threadId;
 }
 
-void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script, QHash<QUrl, QSet<int> > *breakpoints) {
+void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
@@ -88,7 +98,7 @@ void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script, QHash
         0,
         0,
         DEBUG_RUN,
-        breakpoints
+        &m_breakpoints
     };
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);

@@ -26,11 +26,15 @@ public:
 
     void workspaceOpen(const QUrl &rootUrl);
 
+    void breakpointInsert(const QUrl &scriptUrl, int line);
+
+    void breakpointRemove(const QUrl &scriptUrl, int line);
+
     QString threadExec(const QString &scriptPath);
 
     QString threadRun(const QUrl &scriptUrl, const QString &script);
 
-    void threadDebug(const QUrl &scriptUrl, const QString &script, QHash<QUrl, QSet<int> > *breakpoints);
+    void threadDebug(const QUrl &scriptUrl, const QString &script);
 
     bool threadStop(const QString &threadId);
 
@@ -45,6 +49,7 @@ private:
     void threadAppend(int status, const QString &name, const QString &threadId, QThread *worker);
 
     QUrl m_rootUrl{};
+    QHash<QUrl, QSet<int> > m_breakpoints;
     QTableWidget *m_threadpoolTableWidget{};
     QHash<int, QColor> m_threadpoolColor{};
     QHash<QString, QThread *> m_threadHash{};

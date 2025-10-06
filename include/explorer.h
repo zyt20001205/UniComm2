@@ -31,6 +31,8 @@ signals:
 
     void runScript(const QUrl &scriptUrl, const QString &script);
 
+    void debugScript(const QUrl &scriptUrl, const QString &script);
+
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
@@ -38,6 +40,8 @@ protected:
 
 private:
     void scriptRun(const QModelIndex &index);
+
+    void scriptDebug(const QModelIndex &index);
 
     void scriptOpen(const QModelIndex &index);
 

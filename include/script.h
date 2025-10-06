@@ -96,7 +96,11 @@ signals:
 
     void runThread(const QUrl &scriptUrl, const QString &script);
 
-    void debugThread(const QUrl &scriptUrl, const QString &script, QHash<QUrl, QSet<int> > *breakpoints);
+    void debugThread(const QUrl &scriptUrl, const QString &script);
+
+    void insertBreakpoint(const QUrl &scriptUrl, int line);
+
+    void removeBreakpoint(const QUrl &scriptUrl, int line);
 
     void requestJson(const QString &method, const QJsonObject &params);
 
@@ -111,16 +115,11 @@ private:
 
     QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
     QUrl m_rootUrl{};
-    QHash<QUrl, QSet<int> > m_breakpoints;
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QTabWidget *m_scriptTabWidget = nullptr;
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     // ui related
-    enum {
-        DEBUG_TAB,
-    };
-
     enum {
         THREAD_RUN,
         THREAD_DEBUG

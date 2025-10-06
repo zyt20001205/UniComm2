@@ -63,7 +63,7 @@ Script::Script(QWidget *parent) : QWidget(parent) {
         if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
             const QUrl scriptUrl = scriptPage->m_scriptUrl;
             const QString script = scriptPage->m_scriptEditor->text();
-            emit debugThread(scriptUrl, script, &m_breakpoints);
+            emit debugThread(scriptUrl, script);
         }
     });
 
@@ -120,8 +120,8 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
         scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         m_scriptPageHash[scriptUrl] = scriptPage;
         connect(scriptPage, &ScriptPage::modifyScript, this, [this, scriptPage] { scriptModify(m_scriptTabWidget->indexOf(scriptPage)); });
-        connect(scriptPage, &ScriptPage::insertBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].insert(line); });
-        connect(scriptPage, &ScriptPage::removeBreakpoint, this, [this](const QUrl &url, const int line) { m_breakpoints[url].remove(line); });
+        connect(scriptPage, &ScriptPage::insertBreakpoint, this, &Script::insertBreakpoint);
+        connect(scriptPage, &ScriptPage::removeBreakpoint, this, &Script::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &Script::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &Script::notificationJson);
         m_scriptTabWidget->addTab(scriptPage, scriptUrl.fileName());

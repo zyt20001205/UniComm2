@@ -39,6 +39,7 @@ void Explorer::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(tr("open in explorer"), this, &Explorer::scriptOpenInExplorer);
     } else {
         menu.addAction(tr("run"), [this, index] { scriptRun(index); });
+        menu.addAction(tr("debug"), [this, index] { scriptDebug(index); });
         menu.addAction(tr("open"), [this, index] { scriptOpen(index); });
         menu.addAction(tr("delete"), [this, index] { scriptDelete(index); });
     }
@@ -69,6 +70,18 @@ void Explorer::scriptRun(const QModelIndex &index) {
     const QString script = in.readAll();
     file.close();
     emit runScript(scriptUrl, script);
+}
+
+void Explorer::scriptDebug(const QModelIndex &index) {
+    const QString scriptPath = m_model->filePath(index);
+    const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
+    QFile file(scriptPath);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
+    const QString script = in.readAll();
+    file.close();
+    emit debugScript(scriptUrl, script);
 }
 
 void Explorer::scriptOpen(const QModelIndex &index) {
