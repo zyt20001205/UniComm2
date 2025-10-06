@@ -221,6 +221,8 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
+    connect(m_scriptModule, &Script::insertBreakpoint, m_debugModule, &Debug::breakpointInsert);
+    connect(m_scriptModule, &Script::removeBreakpoint, m_debugModule, &Debug::breakpointRemove);
     connect(m_scriptModule, &Script::insertBreakpoint, m_threadpoolModule, &Threadpool::breakpointInsert);
     connect(m_scriptModule, &Script::removeBreakpoint, m_threadpoolModule, &Threadpool::breakpointRemove);
     connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);

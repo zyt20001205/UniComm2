@@ -4,11 +4,17 @@
 #include <QComboBox>
 #include <QDockWidget>
 #include <QHBoxLayout>
+#include <QHeaderView>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QSortFilterProxyModel>
+#include <QStandardItemModel>
 #include <qtableview.h>
 #include <QVBoxLayout>
 
 class LuaInterpreter;
+
+class BreakpointsProxyModel;
 
 class Debug final : public QDockWidget {
     Q_OBJECT
@@ -18,9 +24,9 @@ public:
 
     ~Debug() override = default;
 
-    void breakpointInsert(const QUrl &scriptUrl, int line);
+    void breakpointInsert(const QUrl &scriptUrl, int line) const;
 
-    void breakpointRemove(const QUrl &scriptUrl, int line);
+    void breakpointRemove(const QUrl &scriptUrl, int line) const;
 
     void debugStart(const QString &threadId, LuaInterpreter *interpreter);
 
@@ -32,7 +38,9 @@ signals:
 private:
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QComboBox *m_debugThreadCombobox{};
-    QTableView *m_debugThreadTableView{};
+    QStandardItemModel *m_debugBreakpointsTableModel{};
+    BreakpointsProxyModel *m_debugBreakpointsProxyModel{};
+    QTableView *m_debugBreakpointsTableView{};
 
     enum {
         DEBUG_RUN,
@@ -41,6 +49,18 @@ private:
         DEBUG_STEPINTO,
         DEBUG_STEPOUT
     };
+};
+
+class BreakpointsProxyModel final : public QSortFilterProxyModel {
+    Q_OBJECT
+
+public:
+    explicit BreakpointsProxyModel(QObject *parent = nullptr);
+
+    ~BreakpointsProxyModel() override = default;
+
+protected:
+    bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const override;
 };
 
 #endif //DEBUG_H
