@@ -79,8 +79,8 @@ Debug::Debug(QWidget *parent)
         debugTerminateButton->setToolTip(tr("terminate"));
         connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
             const QString threadId = m_debugThreadCombobox->currentText();
-            m_interpreterHash[threadId]->debugStateSet(DEBUG_TERMINATE);
-            emit resume(threadId);
+            const LuaInterpreter *interpreter = m_interpreterHash[threadId];
+            interpreter->thread()->requestInterruption();
         });
 
         debugMasterCtrlLayout->addWidget(m_debugThreadCombobox);

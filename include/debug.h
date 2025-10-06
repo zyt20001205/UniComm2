@@ -31,10 +31,9 @@ private:
     enum {
         DEBUG_RUN,
         DEBUG_PAUSE,
-        DEBUG_TERMINATE,
         DEBUG_STEPOVER,
         DEBUG_STEPINTO,
-        DEBUG_STEPOUT,
+        DEBUG_STEPOUT
     };
 };
 

@@ -113,7 +113,18 @@ void LuaInterpreter::run(const QString &script) const {
         g_script->markerHighlight(m_scriptUrl, -1);
     }, Qt::BlockingQueuedConnection);
     // lua exec
-    if (const int result = luaL_dostring(L, script.toUtf8().constData()); result != LUA_OK) {
+    const QString filePath = "@" + m_scriptUrl.toLocalFile();
+    const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
+    if (load_result == LUA_OK) {
+        const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
+        if (pcall_result == LUA_OK) {
+            QMetaObject::invokeMethod(g_script, [this] {
+                g_script->markerHighlight(m_scriptUrl, -1);
+            }, Qt::BlockingQueuedConnection);
+        } else {
+            handleError();
+        }
+    } else {
         handleError();
     }
     // remove terminate hook
@@ -132,14 +143,14 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
         g_script->markerHighlight(m_scriptUrl, -1);
     }, Qt::BlockingQueuedConnection);
     // lua debug
-    const QString filePath = "@" + debugData.currentUrl.toLocalFile();
+    const QString filePath = "@" + m_scriptUrl.toLocalFile();
     const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
     if (load_result == LUA_OK) {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_script, [this] {
                 g_script->markerHighlight(m_scriptUrl, -1);
-            }, Qt::QueuedConnection);
+            }, Qt::BlockingQueuedConnection);
         } else {
             handleError();
         }
@@ -152,6 +163,9 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
 
 void LuaInterpreter::debugStateSet(const int state) const {
     m_debugData->state = state;
+    if (state == DEBUG_STEPOVER || state == DEBUG_STEPOUT) {
+        m_debugData->baseDepth = m_debugData->depth;
+    }
 }
 
 void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const {
@@ -266,6 +280,10 @@ void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
 }
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
+    // check if thread interruption is requested
+    if (QThread::currentThread()->isInterruptionRequested()) {
+        luaL_error(L, "terminated");
+    }
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
     auto debugData = static_cast<DebugData *>(*ptrHolder);
     if (ar->event == LUA_HOOKCALL) {
@@ -281,14 +299,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             nextUrl = QUrl::fromLocalFile(QString::fromUtf8(src + 1));
         }
         const int line = ar->currentline;
-        if (debugData->state == DEBUG_TERMINATE) {
-            lua_pushstring(L, "terminated");
-            lua_error(L);
-            return;
-        }
         if (debugData->state == DEBUG_RUN && debugData->breakpoints->value(nextUrl).contains(line)) debugData->state = DEBUG_PAUSE;
-         if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
-         if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
+        if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
+        if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_STEPINTO) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_PAUSE) {
             // src handle
@@ -410,10 +423,16 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // hold thread
             QEventLoop loop;
+            // interruption check
+            QTimer timer;
+            timer.setInterval(100);
+            connect(&timer, &QTimer::timeout, [&loop] {
+                if (QThread::currentThread()->isInterruptionRequested()) loop.quit();
+            });
+            timer.start();
+            // debug state check
             connect(g_debug, &Debug::resume, &loop, [debugData, &loop](const QString &threadId) {
-                if (threadId == debugData->threadId) {
-                    loop.quit();
-                }
+                if (threadId == debugData->threadId) loop.quit();
             });
             loop.exec();
         }
@@ -423,8 +442,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
 void LuaInterpreter::handleError() const {
     const QString error = lua_tostring(L, -1);
     int line = -1;
-    static const QRegularExpression re(R"(\]:(\d+):)");
+    static const QRegularExpression re(R"(:(\d+):)");
     if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
+    qDebug() << line;
     QMetaObject::invokeMethod(g_script, [this, line, error] {
         g_script->markerHighlight(m_scriptUrl, line);
         g_script->appendLog(error, "error");
