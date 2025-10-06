@@ -19,6 +19,8 @@ public:
 
     void debugStart(const QString &threadId, LuaInterpreter *interpreter);
 
+    void debugEnd(const QString &threadId);
+
 signals:
     void resume(const QString &threadId);
 

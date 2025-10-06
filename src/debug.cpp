@@ -93,3 +93,9 @@ void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
     m_debugThreadCombobox->addItem(threadId);
     m_interpreterHash.insert(threadId, interpreter);
 }
+
+void Debug::debugEnd(const QString &threadId) {
+    const int index = m_debugThreadCombobox->findText(threadId);
+    if (index != -1) m_debugThreadCombobox->removeItem(index);
+    m_interpreterHash.remove(threadId);
+}

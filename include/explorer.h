@@ -39,8 +39,6 @@ protected:
 private:
     void scriptRun(const QModelIndex &index);
 
-    void scriptDebug(const QModelIndex &index);
-
     void scriptOpen(const QModelIndex &index);
 
     void scriptDelete(const QModelIndex &index);
