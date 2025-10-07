@@ -12,6 +12,7 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QTableView>
+#include <QThread>
 #include <QTimer>
 #include <QTreeView>
 #include <QVBoxLayout>

@@ -1,8 +1,10 @@
 #include "../include/datatable.h"
 
+#include "../include/globals.h"
 // Datatable public
 Datatable::Datatable(QWidget *parent)
-    : QDockWidget("data table", parent) {
+    : QDockWidget("data table", parent),
+      m_datatableConfig(g_config["datatableConfig"].toArray()) {
     m_tableWidget = new QTableWidget(); // NOLINT
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

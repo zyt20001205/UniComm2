@@ -55,8 +55,8 @@ private:
         QList<double> y;
     };
 
-    QJsonArray m_datatableConfig = g_config["datatableConfig"].toArray();
-    QTableWidget *m_tableWidget = nullptr;
+    QJsonArray m_datatableConfig{};
+    QTableWidget *m_tableWidget{};
     QHash<QString, DataMap> m_data{};
 };
 

@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QApplication>
 #include <QDateTime>
 #include <QDockWidget>
 #include <QJsonObject>
@@ -8,6 +9,7 @@
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QShortcut>
+#include <QStyleFactory>
 #include <QWidget>
 
 class Config;
