@@ -65,6 +65,8 @@ public:
 
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
 
+    void cursorPositionGet() const;
+
     void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
     void markerHighlight(const QUrl &scriptUrl, int line = -1, int time = -1) const;
@@ -113,6 +115,7 @@ private:
     QTabWidget *m_scriptTabWidget{};
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
+
     // ui related
     enum {
         THREAD_RUN,

@@ -12,4 +12,10 @@ Threadpool *g_threadpool = nullptr;
 
 QJsonObject g_config = {};
 
+QVariantMap g_cursorPosition = {
+    {"url", QUrl()},
+    {"line", -1},
+    {"character", -1}
+};
+
 QHash<QUrl, QHash<int, QVariantMap> > g_breakpoints = {};

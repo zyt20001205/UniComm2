@@ -144,6 +144,19 @@ void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const
     scriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
 }
 
+void Script::cursorPositionGet() const {
+    if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
+        const QUrl scriptUrl = scriptPage->m_scriptUrl;
+        int line, index;
+        scriptPage->m_scriptEditor->getCursorPosition(&line, &index);
+        g_cursorPosition = {
+            {"url", scriptUrl},
+            {"line", line + 1},
+            {"character", index}
+        };
+    }
+}
+
 void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);

@@ -40,14 +40,6 @@ private:
     lua_State *L{};
     QUrl m_scriptUrl{};
     QSharedPointer<DebugData> m_debugData{};
-
-    enum {
-        DEBUG_RUN,
-        DEBUG_PAUSE,
-        DEBUG_STEPOVER,
-        DEBUG_STEPINTO,
-        DEBUG_STEPOUT
-    };
 };
 
 #endif //LUAINTERPRETER_H

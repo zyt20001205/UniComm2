@@ -310,33 +310,41 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
         // debug state machine
-        if (debugData->state == DEBUG_RUN && g_breakpoints[currentUrl].contains(ar->currentline)) {
-            QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
-            const int base = lua_gettop(L);
-            if (expression.isEmpty()) {
-                debugData->state = DEBUG_PAUSE;
-            } else {
-                if (!expression.trimmed().startsWith("return ")) expression = "return " + expression;
-                // create env table
-                lua_newtable(L);
-                const int env = lua_gettop(L);
-                // load locals into env table
-                const char *name = nullptr;
-                int i = 1;
-                while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
-                    lua_setfield(L, env, name);
-                }
-                // load expression
-                if (const int load_result = luaL_loadstring(L, expression.toUtf8().constData()); load_result == LUA_OK) {
-                    // overwrite _ENV with env table
-                    lua_pushvalue(L, env);
-                    lua_setupvalue(L, -2, 1);
-                    // judge expression
-                    const int pcall_result = lua_pcall(L, 0, 1, 0);
-                    if (pcall_result == LUA_OK) {
-                        const bool result = lua_toboolean(L, -1);
-                        lua_pop(L, 1);
-                        if (result) debugData->state = DEBUG_PAUSE;
+        if (debugData->state == DEBUG_RUN && g_breakpoints.contains(currentUrl)) {
+            if (g_breakpoints[currentUrl].contains(ar->currentline)) {
+                QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
+                const int base = lua_gettop(L);
+                if (expression.isEmpty()) {
+                    debugData->state = DEBUG_PAUSE;
+                } else {
+                    if (!expression.trimmed().startsWith("return ")) expression = "return " + expression;
+                    // create env table
+                    lua_newtable(L);
+                    const int env = lua_gettop(L);
+                    // load locals into env table
+                    const char *name = nullptr;
+                    int i = 1;
+                    while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
+                        lua_setfield(L, env, name);
+                    }
+                    // load expression
+                    if (const int load_result = luaL_loadstring(L, expression.toUtf8().constData()); load_result == LUA_OK) {
+                        // overwrite _ENV with env table
+                        lua_pushvalue(L, env);
+                        lua_setupvalue(L, -2, 1);
+                        // judge expression
+                        const int pcall_result = lua_pcall(L, 0, 1, 0);
+                        if (pcall_result == LUA_OK) {
+                            const bool result = lua_toboolean(L, -1);
+                            lua_pop(L, 1);
+                            if (result) debugData->state = DEBUG_PAUSE;
+                        } else {
+                            const QString error = lua_tostring(L, -1);
+                            QMetaObject::invokeMethod(g_mainWindow, [error] {
+                                g_log->logAppend(error, "error");
+                            }, Qt::BlockingQueuedConnection);
+                            lua_pop(L, 1);
+                        }
                     } else {
                         const QString error = lua_tostring(L, -1);
                         QMetaObject::invokeMethod(g_mainWindow, [error] {
@@ -344,19 +352,14 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         }, Qt::BlockingQueuedConnection);
                         lua_pop(L, 1);
                     }
-                } else {
-                    const QString error = lua_tostring(L, -1);
-                    QMetaObject::invokeMethod(g_mainWindow, [error] {
-                        g_log->logAppend(error, "error");
-                    }, Qt::BlockingQueuedConnection);
-                    lua_pop(L, 1);
+                    lua_settop(L, base);
                 }
-                lua_settop(L, base);
             }
-        }
-        if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
-        if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
-        if (debugData->state == DEBUG_STEPINTO) debugData->state = DEBUG_PAUSE;
+        } else if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
+        else if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
+        else if (debugData->state == DEBUG_STEPINTO) debugData->state = DEBUG_PAUSE;
+        else if (debugData->state == DEBUG_RUNTOCURSOR && g_cursorPosition["url"].toUrl() == currentUrl && g_cursorPosition["line"].toInt() == ar->currentline)
+            debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_PAUSE) {
             // src handle
             if (currentUrl != debugData->currentUrl) {

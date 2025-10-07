@@ -27,6 +27,8 @@ extern Threadpool *g_threadpool;
 
 extern QJsonObject g_config;
 
+extern QVariantMap g_cursorPosition;
+
 extern QHash<QUrl, QHash<int, QVariantMap> > g_breakpoints;
 
 enum {
@@ -34,7 +36,8 @@ enum {
     DEBUG_PAUSE,
     DEBUG_STEPOVER,
     DEBUG_STEPINTO,
-    DEBUG_STEPOUT
+    DEBUG_STEPOUT,
+    DEBUG_RUNTOCURSOR
 };
 
 #endif //GLOBALS_H

@@ -2,6 +2,7 @@
 
 #include "../include/globals.h"
 #include "../include/luaInterpreter.h"
+#include "../include/script.h"
 
 // Debug public
 Debug::Debug(QWidget *parent)
@@ -31,12 +32,27 @@ Debug::Debug(QWidget *parent)
             auto *debugCtrlLayout = new QHBoxLayout(debugCtrlWidget); // NOLINT
             debugCtrlLayout->setContentsMargins(0, 0, 0, 0);
             debugCtrlLayout->setAlignment(Qt::AlignLeft);
-            auto *debugContinueButton = new QPushButton(); // NOLINT
-            debugCtrlLayout->addWidget(debugContinueButton);
-            debugContinueButton->setFixedSize(24, 24);
-            debugContinueButton->setIcon(QIcon(":/icon/debugContinue.svg"));
-            debugContinueButton->setToolTip(tr("resume"));
-            connect(debugContinueButton, &QPushButton::clicked, this, [this] {
+            auto *debugTerminateButton = new QPushButton(); // NOLINT
+            debugCtrlLayout->addWidget(debugTerminateButton);
+            debugTerminateButton->setFixedSize(24, 24);
+            debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
+            debugTerminateButton->setToolTip(tr("terminate"));
+            connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
+                    return;
+                }
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
+                const LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                interpreter->thread()->requestInterruption();
+            });
+            auto *debugRunButton = new QPushButton(); // NOLINT
+            debugCtrlLayout->addWidget(debugRunButton);
+            debugRunButton->setFixedSize(24, 24);
+            debugRunButton->setIcon(QIcon(":/icon/play.svg"));
+            debugRunButton->setToolTip(tr("run"));
+            connect(debugRunButton, &QPushButton::clicked, this, [this] {
                 if (m_debugPageHash.isEmpty()) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
@@ -106,20 +122,21 @@ Debug::Debug(QWidget *parent)
                 m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOUT);
                 emit resume(threadId);
             });
-            auto *debugTerminateButton = new QPushButton(); // NOLINT
-            debugCtrlLayout->addWidget(debugTerminateButton);
-            debugTerminateButton->setFixedSize(24, 24);
-            debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
-            debugTerminateButton->setToolTip(tr("terminate"));
-            connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
+            auto *debugRunToCursorButton = new QPushButton(); // NOLINT
+            debugCtrlLayout->addWidget(debugRunToCursorButton);
+            debugRunToCursorButton->setFixedSize(24, 24);
+            debugRunToCursorButton->setIcon(QIcon(":/icon/debugContinue.svg"));
+            debugRunToCursorButton->setToolTip(tr("run to cursor"));
+            connect(debugRunToCursorButton, &QPushButton::clicked, this, [this] {
                 if (m_debugPageHash.isEmpty()) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
+                g_script->cursorPositionGet();
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                const LuaInterpreter *interpreter = m_interpreterHash[threadId];
-                interpreter->thread()->requestInterruption();
+                m_interpreterHash[threadId]->debugStateSet(DEBUG_RUNTOCURSOR);
+                emit resume(threadId);
             });
         }
         // debug breakpoints
