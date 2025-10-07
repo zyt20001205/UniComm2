@@ -59,7 +59,10 @@ Debug::Debug(QWidget *parent)
                 }
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                m_interpreterHash[threadId]->debugStateSet(DEBUG_RUN);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
+                    interpreter->debugStateSet(DEBUG_RUN);
+                }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
             auto *debugPauseButton = new QPushButton(); // NOLINT
@@ -74,7 +77,10 @@ Debug::Debug(QWidget *parent)
                 }
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                m_interpreterHash[threadId]->debugStateSet(DEBUG_PAUSE);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
+                    interpreter->debugStateSet(DEBUG_PAUSE);
+                }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
             auto *debugStepOverButton = new QPushButton(); // NOLINT
@@ -89,7 +95,10 @@ Debug::Debug(QWidget *parent)
                 }
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOVER);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
+                    interpreter->debugStateSet(DEBUG_STEPOVER);
+                }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
             auto *debugStepIntoButton = new QPushButton(); // NOLINT
@@ -104,7 +113,10 @@ Debug::Debug(QWidget *parent)
                 }
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPINTO);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
+                    interpreter->debugStateSet(DEBUG_STEPINTO);
+                }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
             auto *debugStepOutButton = new QPushButton(); // NOLINT
@@ -119,7 +131,10 @@ Debug::Debug(QWidget *parent)
                 }
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                m_interpreterHash[threadId]->debugStateSet(DEBUG_STEPOUT);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
+                    interpreter->debugStateSet(DEBUG_STEPOUT);
+                }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
             auto *debugRunToCursorButton = new QPushButton(); // NOLINT
@@ -135,7 +150,10 @@ Debug::Debug(QWidget *parent)
                 g_script->cursorPositionGet();
                 const int index = m_debugTabWidget->currentIndex();
                 const QString threadId = m_debugTabWidget->tabText(index);
-                m_interpreterHash[threadId]->debugStateSet(DEBUG_RUNTOCURSOR);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
+                    interpreter->debugStateSet(DEBUG_RUNTOCURSOR);
+                }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
         }

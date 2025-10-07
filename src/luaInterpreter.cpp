@@ -119,7 +119,7 @@ void LuaInterpreter::run(const QString &script) const {
     // lua exec preparation
     QMetaObject::invokeMethod(g_mainWindow, [this] {
         g_script->markerHighlight(m_scriptUrl);
-    }, Qt::BlockingQueuedConnection);
+    }, Qt::QueuedConnection);
     // lua exec
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
     const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
@@ -128,7 +128,7 @@ void LuaInterpreter::run(const QString &script) const {
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_mainWindow, [this] {
                 g_script->markerHighlight(m_scriptUrl);
-            }, Qt::BlockingQueuedConnection);
+            }, Qt::QueuedConnection);
         } else {
             handleError();
         }
@@ -142,14 +142,14 @@ void LuaInterpreter::run(const QString &script) const {
 void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
     // set debug hook
     lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
-    // pass debug data
+    // save debug session
     const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
     m_debugData.reset(new DebugData(debugData));
     *ptrHolder = m_debugData.data();
     // lua debug preparation
     QMetaObject::invokeMethod(g_mainWindow, [this] {
         g_script->markerHighlight(m_scriptUrl);
-    }, Qt::BlockingQueuedConnection);
+    }, Qt::QueuedConnection);
     // lua debug
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
     const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
@@ -158,7 +158,7 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_mainWindow, [this] {
                 g_script->markerHighlight(m_scriptUrl);
-            }, Qt::BlockingQueuedConnection);
+            }, Qt::QueuedConnection);
         } else {
             handleError();
         }
@@ -529,6 +529,6 @@ void LuaInterpreter::handleError() const {
     QMetaObject::invokeMethod(g_mainWindow, [this, line, error] {
         g_script->markerHighlight(m_scriptUrl, line);
         g_log->logAppend(error, "error");
-    }, Qt::BlockingQueuedConnection);
+    }, Qt::QueuedConnection);
     lua_pop(L, 1);
 }
