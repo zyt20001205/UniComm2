@@ -27,20 +27,6 @@
 
 class Port;
 
-// editor marker/annotate
-enum {
-    MARKER_BREAKPOINT,
-    MARKER_HIGHLIGHT,
-};
-
-enum {
-    INDICATOR_ERROR = 1,
-    INDICATOR_WARNING,
-    INDICATOR_INFO,
-    INDICATOR_HINT,
-    INDICATOR_HIGHLIGHT,
-};
-
 class ScriptPage;
 
 class ScriptEditor;
@@ -67,9 +53,9 @@ public:
 
     void cursorPositionGet() const;
 
-    void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void indicatorShow(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-    void markerHighlight(const QUrl &scriptUrl, int line = -1, int time = -1) const;
+    void markerShow(const QUrl &scriptUrl,int type, int line = -1, int time = -1) const;
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 

@@ -67,7 +67,7 @@ void Diagnostics::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &di
                 const int endCharacter = diagnosticsTable->item(row, column)->data(Qt::UserRole + 5).toInt();
                 emit openScript(url);
                 emit setCursorPosition(url, startLine, startCharacter);
-                emit highlightAnnotate(url, startLine, startCharacter, endLine, endCharacter, 1000);
+                emit showIndicator(url, startLine, startCharacter, endLine, endCharacter, 1000);
             }
         });
         m_diagnosticsTabWidget->addTab(diagnosticsTable, scriptUrl.fileName());

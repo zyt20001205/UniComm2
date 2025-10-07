@@ -195,7 +195,7 @@ Debug::Debug(QWidget *parent)
                     const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
                     emit openScript(scriptUrl);
                     const int line = index.data(Qt::UserRole + 2).toInt();
-                    emit highlightMarker(scriptUrl, line, 1000);
+                    emit showMarker(scriptUrl,MARKER_HINT, line, 1000);
                 }
             });
         }
@@ -253,7 +253,7 @@ void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
     m_debugTabWidget->addTab(debugPage, threadId);
     connect(interpreter->thread(), &QThread::finished, this, [this, threadId, debugPage] { debugEnd(threadId, debugPage); });
     connect(debugPage, &DebugPage::openScript, this, &Debug::openScript);
-    connect(debugPage, &DebugPage::highlightMarker, this, &Debug::highlightMarker);
+    connect(debugPage, &DebugPage::showMarker, this, &Debug::showMarker);
     overlayHide();
 }
 
@@ -354,7 +354,7 @@ DebugPage::DebugPage(LuaInterpreter *interpreter, QWidget *parent)
             const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
             emit openScript(scriptUrl);
             const int line = index.data(Qt::UserRole + 2).toInt();
-            emit highlightMarker(scriptUrl, line, 1000);
+            emit showMarker(scriptUrl,MARKER_HINT, line, 1000);
         }
     });
 }

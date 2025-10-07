@@ -157,7 +157,7 @@ void Script::cursorPositionGet() const {
     }
 }
 
-void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
+void Script::indicatorShow(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
     QTimer::singleShot(time, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
@@ -165,16 +165,16 @@ void Script::annotateHighlight(const QUrl &scriptUrl, const int startLine, const
     });
 }
 
-void Script::markerHighlight(const QUrl &scriptUrl, const int line, const int time) const {
+void Script::markerShow(const QUrl &scriptUrl, const int type, const int line, const int time) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     if (line == -1) {
-        scriptPage->m_scriptEditor->markerDeleteAll(MARKER_HIGHLIGHT);
+        scriptPage->m_scriptEditor->markerDeleteAll(type);
         return;
     }
-    scriptPage->m_scriptEditor->markerAdd(line - 1, MARKER_HIGHLIGHT);
+    scriptPage->m_scriptEditor->markerAdd(line - 1, type);
     if (time == -1) return;
-    QTimer::singleShot(time, [scriptPage, line] {
-        scriptPage->m_scriptEditor->markerDelete(line - 1, MARKER_HIGHLIGHT);
+    QTimer::singleShot(time, [scriptPage, line, type] {
+        scriptPage->m_scriptEditor->markerDelete(line - 1, type);
     });
 }
 
@@ -997,8 +997,15 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     this->setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
     this->setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
 
-    this->markerDefine(Background, MARKER_HIGHLIGHT);
-    this->setMarkerBackgroundColor(QColor(255, 255, 0), MARKER_HIGHLIGHT);
+    this->markerDefine(RightTriangle, MARKER_ARROW);
+    this->setMarkerBackgroundColor(QColor(255, 165, 0), MARKER_ARROW);
+    this->setMarkerForegroundColor(QColor(255, 165, 0), MARKER_ARROW);
+
+    this->markerDefine(Background, MARKER_ERROR);
+    this->setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
+
+    this->markerDefine(Background, MARKER_HINT);
+    this->setMarkerBackgroundColor(Qt::cyan, MARKER_HINT);
     // define indicators
     this->indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
     this->setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);

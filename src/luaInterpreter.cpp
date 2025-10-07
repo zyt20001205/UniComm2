@@ -118,7 +118,8 @@ void LuaInterpreter::run(const QString &script) const {
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
     // lua exec preparation
     QMetaObject::invokeMethod(g_mainWindow, [this] {
-        g_script->markerHighlight(m_scriptUrl);
+        g_script->markerShow(m_scriptUrl, MARKER_ARROW);
+        g_script->markerShow(m_scriptUrl, MARKER_ERROR);
     }, Qt::QueuedConnection);
     // lua exec
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
@@ -127,7 +128,8 @@ void LuaInterpreter::run(const QString &script) const {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_mainWindow, [this] {
-                g_script->markerHighlight(m_scriptUrl);
+                g_script->markerShow(m_scriptUrl, MARKER_ARROW);
+                g_script->markerShow(m_scriptUrl, MARKER_ERROR);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -148,7 +150,8 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
     *ptrHolder = m_debugData.data();
     // lua debug preparation
     QMetaObject::invokeMethod(g_mainWindow, [this] {
-        g_script->markerHighlight(m_scriptUrl);
+        g_script->markerShow(m_scriptUrl, MARKER_ARROW);
+        g_script->markerShow(m_scriptUrl, MARKER_ERROR);
     }, Qt::QueuedConnection);
     // lua debug
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
@@ -157,7 +160,8 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_mainWindow, [this] {
-                g_script->markerHighlight(m_scriptUrl);
+                g_script->markerShow(m_scriptUrl, MARKER_ARROW);
+                g_script->markerShow(m_scriptUrl, MARKER_ERROR);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -296,7 +300,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     auto debugData = static_cast<DebugData *>(*ptrHolder);
     // clear highlight
     QMetaObject::invokeMethod(g_mainWindow, [debugData] {
-        g_script->markerHighlight(debugData->currentUrl);
+        g_script->markerShow(debugData->currentUrl, MARKER_ARROW);
     }, Qt::BlockingQueuedConnection);
     if (ar->event == LUA_HOOKCALL) {
         debugData->depth += 1;
@@ -370,7 +374,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // line handle
             QMetaObject::invokeMethod(g_mainWindow, [debugData, ar] {
-                g_script->markerHighlight(debugData->currentUrl, ar->currentline);
+                g_script->markerShow(debugData->currentUrl, MARKER_ARROW, ar->currentline);
             }, Qt::BlockingQueuedConnection);
             // var tree
             {
@@ -527,7 +531,7 @@ void LuaInterpreter::handleError() const {
     static const QRegularExpression re(R"(:(\d+):)");
     if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
     QMetaObject::invokeMethod(g_mainWindow, [this, line, error] {
-        g_script->markerHighlight(m_scriptUrl, line);
+        g_script->markerShow(m_scriptUrl, MARKER_ERROR, line);
         g_log->logAppend(error, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);

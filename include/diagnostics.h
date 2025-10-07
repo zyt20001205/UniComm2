@@ -24,7 +24,7 @@ signals:
 
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
 
-    void highlightAnnotate(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void showIndicator(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
     void diagnosticsClose(int index);
