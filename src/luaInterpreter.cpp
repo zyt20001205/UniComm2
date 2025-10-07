@@ -312,10 +312,11 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         // debug state machine
         if (debugData->state == DEBUG_RUN && g_breakpoints[currentUrl].contains(ar->currentline)) {
             QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
+            const int base = lua_gettop(L);
             if (expression.isEmpty()) {
                 debugData->state = DEBUG_PAUSE;
             } else {
-                if (!expression.startsWith("return")) expression = "return " + expression;
+                if (!expression.trimmed().startsWith("return ")) expression = "return " + expression;
                 // create env table
                 lua_newtable(L);
                 const int env = lua_gettop(L);
@@ -342,7 +343,6 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                             g_log->logAppend(error, "error");
                         }, Qt::BlockingQueuedConnection);
                         lua_pop(L, 1);
-                        luaL_error(L, "breakpoint expression runtime error");
                     }
                 } else {
                     const QString error = lua_tostring(L, -1);
@@ -350,9 +350,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         g_log->logAppend(error, "error");
                     }, Qt::BlockingQueuedConnection);
                     lua_pop(L, 1);
-                    luaL_error(L, "breakpoint expression load error");
                 }
-                lua_settop(L, env);
+                lua_settop(L, base);
             }
         }
         if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
