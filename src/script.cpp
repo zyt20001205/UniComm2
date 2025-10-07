@@ -499,17 +499,13 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
     if (margin == 1 && line >= 0) {
         if (m_scriptEditor->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             m_scriptEditor->markerDelete(line, MARKER_BREAKPOINT);
-            emit removeBreakpoint(m_scriptUrl, line + 1);
-
             g_breakpoints[m_scriptUrl].remove(line + 1);
             if (g_breakpoints[m_scriptUrl].isEmpty()) g_breakpoints.remove(m_scriptUrl);
-            qDebug() << g_breakpoints;
+            emit removeBreakpoint(m_scriptUrl, line + 1);
         } else {
+            g_breakpoints[m_scriptUrl][line + 1]["expr"] = "";
             m_scriptEditor->markerAdd(line, MARKER_BREAKPOINT);
             emit insertBreakpoint(m_scriptUrl, line + 1);
-
-            g_breakpoints[m_scriptUrl][line + 1]["condition"] = true;
-            qDebug() << g_breakpoints;
         }
     }
 }

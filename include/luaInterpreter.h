@@ -12,7 +12,6 @@ struct DebugData {
     int depth = 0;
     int baseDepth = 0;
     int state;
-    QHash<QUrl, QSet<int> > *breakpoints;
 };
 
 class LuaInterpreter final : public QObject {

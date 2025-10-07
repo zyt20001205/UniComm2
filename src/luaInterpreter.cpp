@@ -310,41 +310,48 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
         // debug state machine
-        // if (debugData->state == DEBUG_RUN && debugData->breakpoints->value(nextUrl).contains(ar->currentline)) debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_RUN && g_breakpoints[currentUrl].contains(ar->currentline)) {
-            if (lua_getstack(L, 0, ar)) {
-                // get local var
+            const QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
+            if (expression.isEmpty()) {
+                debugData->state = DEBUG_PAUSE;
+            } else {
+                // create env table
                 lua_newtable(L);
-                const int top = lua_gettop(L);
-                const char* name = nullptr;
+                const int env = lua_gettop(L);
+                // load locals into env table
+                const char *name = nullptr;
                 int i = 1;
                 while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
-                    lua_setfield(L, top, name);
+                    lua_setfield(L, env, name);
                 }
-
-                // push to _ENV
-                if (lua_getupvalue(L, -1, 1) && strcmp(lua_tostring(L, -1), "_ENV") == 0) {
-                    lua_pop(L, 1);
-                    lua_pushvalue(L, top);
+                // load expression
+                if (const int load_result = luaL_loadstring(L, expression.toUtf8().constData()); load_result == LUA_OK) {
+                    // overwrite _ENV with env table
+                    lua_pushvalue(L, env);
                     lua_setupvalue(L, -2, 1);
-                } else {
-                    lua_pop(L, 1);
-                }
-                // judge condition
-                const QString condition = g_breakpoints[currentUrl][ar->currentline]["condition"].toString();
-                const int pcall_result = luaL_dostring(L, condition.toUtf8().constData());
-                if (pcall_result == LUA_OK) {
-                    const bool result = lua_toboolean(L, -1);
-                    lua_pop(L, 1);
-                    if (result) debugData->state = DEBUG_PAUSE;
+                    // judge expression
+                    const int pcall_result = lua_pcall(L, 0, 1, 0);
+                    if (pcall_result == LUA_OK) {
+                        const bool result = lua_toboolean(L, -1);
+                        lua_pop(L, 1);
+                        if (result) debugData->state = DEBUG_PAUSE;
+                    } else {
+                        const QString error = lua_tostring(L, -1);
+                        QMetaObject::invokeMethod(g_mainWindow, [error] {
+                            g_log->logAppend(error, "error");
+                        }, Qt::BlockingQueuedConnection);
+                        lua_pop(L, 1);
+                        luaL_error(L, "breakpoint expression runtime error");
+                    }
                 } else {
                     const QString error = lua_tostring(L, -1);
                     QMetaObject::invokeMethod(g_mainWindow, [error] {
                         g_log->logAppend(error, "error");
                     }, Qt::BlockingQueuedConnection);
                     lua_pop(L, 1);
+                    luaL_error(L, "breakpoint expression load error");
                 }
-                lua_settop(L, top);
+                lua_settop(L, env);
             }
         }
         if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;

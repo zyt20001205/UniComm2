@@ -5,6 +5,7 @@
 #include <QDockWidget>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QLabel>
 #include <QListView>
 #include <QMessageBox>

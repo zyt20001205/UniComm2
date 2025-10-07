@@ -240,8 +240,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
     connect(m_scriptModule, &Script::insertBreakpoint, m_debugModule, &Debug::breakpointInsert);
     connect(m_scriptModule, &Script::removeBreakpoint, m_debugModule, &Debug::breakpointRemove);
-    connect(m_scriptModule, &Script::insertBreakpoint, m_threadpoolModule, &Threadpool::breakpointInsert);
-    connect(m_scriptModule, &Script::removeBreakpoint, m_threadpoolModule, &Threadpool::breakpointRemove);
     connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_scriptModule, &Script::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
 

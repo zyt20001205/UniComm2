@@ -127,8 +127,8 @@ Debug::Debug(QWidget *parent)
             auto *debugBreakpointsLabel = new QLabel(tr("Breakpoints")); // NOLINT
             debugMasterCtrlLayout->addWidget(debugBreakpointsLabel);
             debugMasterCtrlLayout->addWidget(m_debugBreakpointsTableView);
-            m_debugBreakpointsTableModel->setColumnCount(3);
-            m_debugBreakpointsTableModel->setHorizontalHeaderLabels({tr("Script"), tr("Line"), tr("View")});
+            m_debugBreakpointsTableModel->setColumnCount(4);
+            m_debugBreakpointsTableModel->setHorizontalHeaderLabels({tr("Script"), tr("Line"), tr("Expr"), tr("View")});
             m_debugBreakpointsProxyModel->setSourceModel(m_debugBreakpointsTableModel);
             m_debugBreakpointsTableView->setModel(m_debugBreakpointsProxyModel);
             m_debugBreakpointsTableView->sortByColumn(0, Qt::AscendingOrder);
@@ -138,10 +138,25 @@ Debug::Debug(QWidget *parent)
             m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
             m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
             m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+            m_debugBreakpointsTableView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
             m_debugBreakpointsTableView->verticalHeader()->setVisible(false);
             m_debugBreakpointsTableView->verticalHeader()->setDefaultSectionSize(24);
             connect(m_debugBreakpointsTableView, &QTableView::clicked, this, [this](const QModelIndex &index) {
                 if (index.column() == 2) {
+                    const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
+                    const int line = index.data(Qt::UserRole + 2).toInt();
+                    const QString currentCondition = g_breakpoints[scriptUrl][line]["expr"].toString();
+                    bool ok;
+                    QString newCondition = QInputDialog::getText(
+                        this,
+                        tr("Edit Breakpoint Condition"),
+                        tr("Enter condition expression:"),
+                        QLineEdit::Normal,
+                        currentCondition,
+                        &ok
+                    );
+                    if (ok) g_breakpoints[scriptUrl][line]["expr"] = newCondition;
+                } else if (index.column() == 3) {
                     const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
                     emit openScript(scriptUrl);
                     const int line = index.data(Qt::UserRole + 2).toInt();
@@ -175,10 +190,14 @@ void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) const {
     m_debugBreakpointsTableModel->insertRow(row);
     m_debugBreakpointsTableModel->setItem(row, 0, new QStandardItem(scriptUrl.fileName()));
     m_debugBreakpointsTableModel->setItem(row, 1, new QStandardItem(QString::number(line)));
+    auto *exprItem = new QStandardItem(QIcon(":/icon/function.svg"), ""); // NOLINT
+    exprItem->setData(QVariant(scriptUrl), Qt::UserRole + 1);
+    exprItem->setData(QVariant(line), Qt::UserRole + 2);
+    m_debugBreakpointsTableModel->setItem(row, 2, exprItem);
     auto *viewItem = new QStandardItem(QIcon(":/icon/arrowRight.svg"), ""); // NOLINT
     viewItem->setData(QVariant(scriptUrl), Qt::UserRole + 1);
     viewItem->setData(QVariant(line), Qt::UserRole + 2);
-    m_debugBreakpointsTableModel->setItem(row, 2, viewItem);
+    m_debugBreakpointsTableModel->setItem(row, 3, viewItem);
 }
 
 void Debug::breakpointRemove(const QUrl &scriptUrl, const int line) const {
