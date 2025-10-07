@@ -311,10 +311,11 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         }
         // debug state machine
         if (debugData->state == DEBUG_RUN && g_breakpoints[currentUrl].contains(ar->currentline)) {
-            const QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
+            QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
             if (expression.isEmpty()) {
                 debugData->state = DEBUG_PAUSE;
             } else {
+                if (!expression.startsWith("return")) expression = "return " + expression;
                 // create env table
                 lua_newtable(L);
                 const int env = lua_gettop(L);
