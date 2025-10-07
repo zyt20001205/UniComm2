@@ -17,8 +17,6 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-extern QJsonObject g_config;
-
 class Port;
 
 class Send final : public QDockWidget {
@@ -47,10 +45,10 @@ private:
 
     void shortcutRemove(int visualIndex);
 
-    QJsonArray m_sendConfig = g_config["sendConfig"].toArray();
-    Port *m_port = nullptr;
-    QLineEdit *m_lineEdit = nullptr;
-    QTableWidget *m_tableWidget = nullptr;
+    QJsonArray m_sendConfig{};
+    Port *m_port{};
+    QLineEdit *m_lineEdit{};
+    QTableWidget *m_tableWidget{};
 };
 
 #endif //SEND_H

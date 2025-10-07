@@ -22,13 +22,13 @@ signals:
     void addGraphDatatable(const QString &key, int position);
 
 private:
-    QCustomPlot *m_plot = nullptr;
+    QCustomPlot *m_plot{};
 
-    QCPLegend *m_leftLegend = nullptr;
-    QCPLegend *m_rightLegend = nullptr;
+    QCPLegend *m_leftLegend{};
+    QCPLegend *m_rightLegend{};
     QHash<QString, int> m_indexHash{};
     QSet<int> m_indexSet{};
-    QList<QColor> m_colors={QColor("#544559"),QColor("#b5aabd"),QColor("#aabdc4"),QColor("#d1c7ae"),QColor("#e5d9da")};
+    QList<QColor> m_plotColor={};
 };
 
 #endif //DATAPLOT_H

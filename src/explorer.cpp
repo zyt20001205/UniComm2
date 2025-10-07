@@ -1,5 +1,7 @@
 #include "../include/explorer.h"
 
+#include "../include/globals.h"
+
 // Explorer public
 Explorer::Explorer(QWidget *parent)
     : QDockWidget("explorer", parent),

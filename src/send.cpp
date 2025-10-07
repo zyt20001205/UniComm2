@@ -1,10 +1,14 @@
 #include "../include/send.h"
 
+#include "../include/globals.h"
 #include "../include/port.h"
 
 // Send public
 Send::Send(QWidget *parent)
-    : QDockWidget("send", parent) {
+    : QDockWidget("send", parent),
+      m_sendConfig(g_config["sendConfig"].toArray()),
+      m_lineEdit(new QLineEdit()),
+      m_tableWidget(new QTableWidget()) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
     auto *layout = new QVBoxLayout(widget); // NOLINT
@@ -13,7 +17,7 @@ Send::Send(QWidget *parent)
     layout->addWidget(sendWidget);
     auto *sendLayout = new QHBoxLayout(sendWidget); // NOLINT
     sendLayout->setContentsMargins(0, 0, 0, 0);
-    m_lineEdit = new QLineEdit();
+
     sendLayout->addWidget(m_lineEdit);
     auto *sendButton = new QPushButton(); // NOLINT
     sendLayout->addWidget(sendButton);
@@ -27,7 +31,6 @@ Send::Send(QWidget *parent)
         }, Qt::BlockingQueuedConnection);
     });
 
-    m_tableWidget = new QTableWidget(); // NOLINT
     layout->addWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->setColumnCount(2);

@@ -25,8 +25,6 @@
 #include <QPointer>
 #include <windows.h>
 
-extern QJsonObject g_config;
-
 class Port;
 
 // editor marker/annotate
@@ -42,8 +40,6 @@ enum {
     INDICATOR_HINT,
     INDICATOR_HIGHLIGHT,
 };
-
-class Port;
 
 class ScriptPage;
 
@@ -72,8 +68,6 @@ public:
     void annotateHighlight(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
     void markerHighlight(const QUrl &scriptUrl, int line = -1, int time = -1) const;
-
-    // void scriptTreeViewLoad(QStandardItemModel *varTree) const;
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
@@ -113,10 +107,10 @@ private:
 
     void scriptSwap(int srcIndex, int dstIndex);
 
-    QJsonObject m_scriptConfig = g_config["scriptConfig"].toObject();
+    QJsonObject m_scriptConfig{};
     QUrl m_rootUrl{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
-    QTabWidget *m_scriptTabWidget = nullptr;
+    QTabWidget *m_scriptTabWidget{};
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     // ui related
@@ -158,13 +152,13 @@ public:
 
     void signatureHelpReturn(const QJsonObject &signature) const;
 
-    ScriptEditor *m_scriptEditor = nullptr;
-    QUrl m_scriptUrl;
+    ScriptEditor *m_scriptEditor{};
+    QUrl m_scriptUrl{};
     bool m_scriptModify = false;
-    TooltipCompletion *m_tooltipCompletion = nullptr;
-    TooltipHover *m_tooltipHover = nullptr;
-    TooltipPosition *m_tooltipPosition = nullptr;
-    TooltipSignatureHelp *m_tooltipSignatureHelp = nullptr;
+    TooltipCompletion *m_tooltipCompletion{};
+    TooltipHover *m_tooltipHover{};
+    TooltipPosition *m_tooltipPosition{};
+    TooltipSignatureHelp *m_tooltipSignatureHelp{};
 
 signals:
     void modifyScript();

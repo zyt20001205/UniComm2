@@ -5,17 +5,6 @@
 #include <QSharedPointer>
 #include <QUrl>
 #include <lua.hpp>
-#include "luaControl.h"
-#include "luaDataProcess.h"
-#include "luaPort.h"
-#include "luaMiscellaneous.h"
-#include "luaModbus.h"
-
-class Debug;
-extern Debug *g_debug;
-
-class Script;
-extern Script *g_script;
 
 struct DebugData {
     QUrl currentUrl;

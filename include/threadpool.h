@@ -12,8 +12,6 @@
 #include <QThread>
 #include <QUrl>
 
-extern QJsonObject g_config;
-
 class LuaInterpreter;
 
 class Threadpool final : public QDockWidget {
@@ -49,7 +47,7 @@ private:
     void threadAppend(int status, const QString &name, const QString &threadId, QThread *worker);
 
     QUrl m_rootUrl{};
-    QHash<QUrl, QSet<int> > m_breakpoints;
+    QHash<QUrl, QSet<int> > m_breakpoints{};
     QTableWidget *m_threadpoolTableWidget{};
     QHash<int, QColor> m_threadpoolColor{};
     QHash<QString, QThread *> m_threadHash{};
@@ -58,15 +56,6 @@ private:
         THREAD_RUN,
         THREAD_DEBUG,
         THREAD_STOP
-    };
-
-    enum {
-        DEBUG_RUN,
-        DEBUG_PAUSE,
-        DEBUG_TERMINATE,
-        DEBUG_STEPOVER,
-        DEBUG_STEPINTO,
-        DEBUG_STEPOUT
     };
 };
 

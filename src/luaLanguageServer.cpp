@@ -1,5 +1,7 @@
 #include "../include/luaLanguageServer.h"
 
+#include "../include/globals.h"
+
 // LuaLanguageServer public
 LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     : QWidget(parent),

@@ -12,8 +12,6 @@
 #include <QTreeView>
 #include <QUrl>
 
-extern QJsonObject g_config;
-
 class Explorer final : public QDockWidget {
     Q_OBJECT
 
@@ -52,7 +50,7 @@ private:
     void scriptOpenInExplorer() const;
 
     QTreeView *m_explorerTreeView{};
-    QFileSystemModel *m_model = nullptr;
+    QFileSystemModel *m_model{};
 };
 
 #endif //EXPLORER_H

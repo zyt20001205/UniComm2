@@ -1,5 +1,21 @@
 #include "../include/mainWindow.h"
 
+#include "../include/config.h"
+#include "../include/database.h"
+#include "../include/dataplot.h"
+#include "../include/datatable.h"
+#include "../include/debug.h"
+#include "../include/diagnostics.h"
+#include "../include/explorer.h"
+#include "../include/globals.h"
+#include "../include/log.h"
+#include "../include/luaLanguageServer.h"
+#include "../include/port.h"
+#include "../include/script.h"
+#include "../include/send.h"
+#include "../include/threadpool.h"
+#include "../include/utils.h"
+
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {

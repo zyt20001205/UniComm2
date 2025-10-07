@@ -1,4 +1,6 @@
 #include "../include/threadpool.h"
+
+#include "../include/globals.h"
 #include "../include/luaInterpreter.h"
 
 // Threadpool public

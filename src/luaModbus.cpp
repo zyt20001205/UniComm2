@@ -1,5 +1,6 @@
 #include "../include/luaModbus.h"
 
+#include "../include/globals.h"
 #include "../include/port.h"
 #include "../include/suffix.h"
 

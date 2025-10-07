@@ -1,9 +1,12 @@
 #include "../include/database.h"
 
+#include "../include/globals.h"
+
 // Database public
 Database::Database(QWidget *parent)
-    : QDockWidget("database", parent) {
-    m_tableWidget = new QTableWidget(); // NOLINT
+    : QDockWidget("database", parent),
+      m_databaseConfig(g_config["databaseConfig"].toArray()),
+      m_tableWidget(new QTableWidget()) {
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->setColumnCount(1);

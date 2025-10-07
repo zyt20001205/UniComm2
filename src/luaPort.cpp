@@ -1,5 +1,6 @@
 #include "../include/luaPort.h"
 
+#include "../include/globals.h"
 #include "../include/log.h"
 #include "../include/port.h"
 

@@ -1,7 +1,18 @@
 #include "../include/dataplot.h"
 
 // Dataplot public
-Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(parent)) {
+Dataplot::Dataplot(QWidget *parent)
+    : QWidget(parent),
+      m_plot(new QCustomPlot()),
+      m_leftLegend(new QCPLegend()),
+      m_rightLegend(new QCPLegend()),
+      m_plotColor{
+          QColor("#544559"),
+          QColor("#b5aabd"),
+          QColor("#aabdc4"),
+          QColor("#d1c7ae"),
+          QColor("#e5d9da")
+      } {
     setWindowFlags(Qt::Dialog);
     setWindowTitle(tr("Data Plot"));
     resize(1200, 600);
@@ -17,8 +28,7 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent), m_plot(new QCustomPlot(pa
     axisRect->setRangeDragAxes(QList<QCPAxis *>() << m_plot->xAxis,
                                QList<QCPAxis *>() << m_plot->yAxis << m_plot->yAxis2);
 
-    m_leftLegend = new QCPLegend();
-    m_rightLegend = new QCPLegend();
+
     auto *insetLayout = axisRect->insetLayout();
     insetLayout->addElement(m_leftLegend, Qt::AlignTop | Qt::AlignLeft);
     insetLayout->addElement(m_rightLegend, Qt::AlignTop | Qt::AlignRight);
@@ -45,7 +55,7 @@ void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, cons
                     m_rightLegend->addItem(new QCPPlottableLegendItem(m_rightLegend, m_plot->graph(i)));
                 }
                 m_plot->graph(i)->setName(key);
-                m_plot->graph(i)->setPen(QPen(m_colors[i], 2));
+                m_plot->graph(i)->setPen(QPen(m_plotColor[i], 2));
                 break;
             }
             i++;

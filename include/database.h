@@ -11,8 +11,6 @@
 #include <QMenu>
 #include <QTableWidget>
 
-extern QJsonObject g_config;
-
 class Database final : public QDockWidget {
     Q_OBJECT
 
@@ -39,8 +37,8 @@ private:
 
     void databaseRemove(int visualIndex);
 
-    QJsonArray m_databaseConfig = g_config["databaseConfig"].toArray();
-    QTableWidget *m_tableWidget = nullptr;
+    QJsonArray m_databaseConfig{};
+    QTableWidget *m_tableWidget{};
 };
 
 #endif //DATABASE_H

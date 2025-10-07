@@ -50,8 +50,6 @@
 #include <QStackedWidget>
 #include <QStandardItemModel>
 
-extern QJsonObject g_config;
-
 class AreaSelectDialog;
 
 class BasePort;
@@ -81,12 +79,11 @@ private:
 
     void portRemove(int index);
 
-    void portSwap(const int srcIndex, const int dstIndex);
+    void portSwap(int srcIndex, int dstIndex);
 
-    QJsonArray m_portConfig = g_config["portConfig"].toArray();
-    QTabWidget *m_tabWidget = nullptr;
+    QJsonArray m_portConfig{};
+    QTabWidget *m_tabWidget{};
     int m_currentIndex = 0;
-    QPushButton *m_addButton = nullptr;
 
     // port setting dialog
     void portSettingLoad(int index);

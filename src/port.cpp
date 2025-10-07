@@ -1,14 +1,16 @@
 #include "../include/port.h"
 
+#include "../include/globals.h"
 #include "../include/suffix.h"
 #include "../include/utils.h"
 
 // Port public
 Port::Port(QWidget *parent)
-    : QDockWidget("port", parent) {
+    : QDockWidget("port", parent),
+      m_portConfig(g_config["portConfig"].toArray()),
+      m_tabWidget(new QTabWidget()) {
     // port widget gui init
     {
-        m_tabWidget = new QTabWidget();
         setWidget(m_tabWidget);
         connect(m_tabWidget, &QTabWidget::currentChanged, this, &Port::portSelected);
         m_tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -18,10 +20,10 @@ Port::Port(QWidget *parent)
         });
         m_tabWidget->setMovable(true);
         connect(m_tabWidget->tabBar(), &QTabBar::tabMoved, this, &Port::portSwap);
-        m_addButton = new QPushButton(m_tabWidget);
-        m_addButton->setIcon(QIcon(":/icon/add.svg"));
-        m_tabWidget->setCornerWidget(m_addButton, Qt::TopRightCorner);
-        connect(m_addButton, &QPushButton::clicked, this, [this] { portSettingLoad(-1); });
+        auto* addButton = new QPushButton(m_tabWidget);
+        addButton->setIcon(QIcon(":/icon/add.svg"));
+        m_tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
+        connect(addButton, &QPushButton::clicked, this, [this] { portSettingLoad(-1); });
         // init port tab
         if (const auto portCount = m_portConfig.size(); portCount == 0) {
             auto welcomePage = new QWidget(); // NOLINT

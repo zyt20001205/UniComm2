@@ -33,8 +33,8 @@ private:
 
     void diagnosticsRemove(const QUrl &scriptUrl);
 
-    QTabWidget *m_diagnosticsTabWidget = nullptr;
-    QHash<int, QColor> m_diagnosticsColor;
+    QTabWidget *m_diagnosticsTabWidget{};
+    QHash<int, QColor> m_diagnosticsColor{};
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 
     enum {

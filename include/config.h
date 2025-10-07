@@ -7,12 +7,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-extern QJsonObject g_config;
-
 class Config {
 public:
-    Config() : m_configFile(QDir::current().filePath("config.json")) {
-    }
+    Config();
 
     void configInit();
 
@@ -23,7 +20,7 @@ private:
 
     void configLoad();
 
-    QFile m_configFile;
+    QFile m_configFile{};
 };
 
 #endif //CONFIG_H

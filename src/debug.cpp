@@ -1,7 +1,6 @@
 #include "../include/debug.h"
 
-#include <QLabel>
-
+#include "../include/globals.h"
 #include "../include/luaInterpreter.h"
 
 // Debug public

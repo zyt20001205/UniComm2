@@ -1,5 +1,6 @@
 #include "../include/luaMiscellaneous.h"
 
+#include "../include/globals.h"
 #include "../include/log.h"
 #include "../include/threadpool.h"
 
@@ -12,7 +13,7 @@ int lua_exec(lua_State *L) {
     // start operation
     const QString scriptPath = QString::fromUtf8(param1);
     QString threadId = "null";
-    QMetaObject::invokeMethod(g_threadpool, [scriptPath, &threadId] {
+    QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
         threadId = g_threadpool->threadExec(scriptPath);
     }, Qt::BlockingQueuedConnection);
     lua_pushstring(L, threadId.toUtf8().constData());
@@ -28,7 +29,7 @@ int lua_stop(lua_State *L) {
     // start operation
     const QString threadId = QString::fromUtf8(param1);
     bool status = false;
-    QMetaObject::invokeMethod(g_threadpool, [threadId, &status] {
+    QMetaObject::invokeMethod(g_mainWindow, [threadId, &status] {
         status = g_threadpool->threadStop(threadId);
     }, Qt::BlockingQueuedConnection);
     lua_pushboolean(L, status);
@@ -44,7 +45,7 @@ int lua_wait(lua_State *L) {
     // start operation
     const QString threadId = QString::fromUtf8(param1);
     bool status = false;
-    QMetaObject::invokeMethod(g_threadpool, [threadId, &status] {
+    QMetaObject::invokeMethod(g_mainWindow, [threadId, &status] {
         status = g_threadpool->threadWait(threadId);
     }, Qt::BlockingQueuedConnection);
     lua_pushboolean(L, status);
@@ -79,7 +80,7 @@ int lua_print(lua_State *L) {
         lua_pop(L, 1);
     }
     if (!message.isEmpty()) {
-        QMetaObject::invokeMethod(g_log, [message] {
+        QMetaObject::invokeMethod(g_mainWindow, [message] {
             g_log->logAppend(message, "info");
         }, Qt::QueuedConnection);
     }
@@ -109,14 +110,14 @@ int lua_speak(lua_State *L) {
     QTextToSpeech tts;
     if (text == "help") {
         if (tts.engine().isEmpty()) {
-            QMetaObject::invokeMethod(g_log, [] {
+            QMetaObject::invokeMethod(g_mainWindow, [] {
                 g_log->logAppend("no tts engine found", "info");
             }, Qt::QueuedConnection);
             return 0;
         }
         for (const QVoice &voice: tts.availableVoices()) {
             QString voiceInfo = "[" + voice.locale().name() + "] " + voice.name();
-            QMetaObject::invokeMethod(g_log, [voiceInfo] {
+            QMetaObject::invokeMethod(g_mainWindow, [voiceInfo] {
                 g_log->logAppend(voiceInfo, "info");
             }, Qt::QueuedConnection);
         }

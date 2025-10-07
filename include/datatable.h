@@ -12,8 +12,6 @@
 #include <QMenu>
 #include <QTableWidget>
 
-extern QJsonObject g_config;
-
 class Datatable final : public QDockWidget {
     Q_OBJECT
 

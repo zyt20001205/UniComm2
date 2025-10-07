@@ -1,6 +1,11 @@
 #include "../include/config.h"
 
-QJsonObject g_config;
+#include "../include/globals.h"
+
+// Config public
+Config::Config()
+    : m_configFile(QDir::current().filePath("config.json")) {
+}
 
 void Config::configInit() {
     if (m_configFile.exists()) {

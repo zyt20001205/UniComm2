@@ -8,8 +8,6 @@
 #include <QProcess>
 #include <QWidget>
 
-extern QJsonObject g_config;
-
 class LuaLanguageServer final : public QWidget {
     Q_OBJECT
 
@@ -48,7 +46,7 @@ private:
 
     void jsonReturn();
 
-    QProcess *m_process = nullptr;
+    QProcess *m_process{};
     bool m_initialized = false;
     QUrl m_currentWorkspace{};
     QByteArray m_buffer{};

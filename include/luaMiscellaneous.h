@@ -7,12 +7,6 @@
 #include <QThread>
 #include <lua.hpp>
 
-class Log;
-extern Log *g_log;
-
-class Threadpool;
-extern Threadpool *g_threadpool;
-
 int lua_exec(lua_State *L);
 
 int lua_stop(lua_State *L);

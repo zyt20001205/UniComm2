@@ -8,13 +8,12 @@
 #include <QJsonObject>
 #include <QMessageBox>
 #include <QPrinter>
+#include <QPushButton>
 #include <QStandardPaths>
 #include <QTextDocumentWriter>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
-
-extern QJsonObject g_config;
 
 class Log final : public QDockWidget {
     Q_OBJECT
@@ -33,8 +32,8 @@ private:
 
     void logClear() const;
 
-    QJsonObject m_logConfig = g_config["logConfig"].toObject();
-    QTextEdit *m_textEdit = nullptr;
+    QJsonObject m_logConfig{};
+    QTextEdit *m_textEdit{};
 };
 
 #endif //LOG_H

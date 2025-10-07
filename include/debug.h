@@ -5,6 +5,7 @@
 #include <QDockWidget>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
 #include <QListView>
 #include <QMessageBox>
 #include <QPushButton>
@@ -65,14 +66,6 @@ private:
     QTabWidget *m_debugTabWidget{};
     QWidget *m_debugTabOverlay{};
     QHash<QString, DebugPage *> m_debugPageHash{};
-
-    enum {
-        DEBUG_RUN,
-        DEBUG_PAUSE,
-        DEBUG_STEPOVER,
-        DEBUG_STEPINTO,
-        DEBUG_STEPOUT
-    };
 };
 
 class BreakpointsProxyModel final : public QSortFilterProxyModel {

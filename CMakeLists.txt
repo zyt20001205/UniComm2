@@ -43,6 +43,7 @@ qt_add_executable(UniComm src/main.cpp
         include/debug.h
         include/diagnostics.h
         include/explorer.h
+        include/globals.h
         include/log.h
         include/luaControl.h
         include/luaDataProcess.h
@@ -65,6 +66,7 @@ qt_add_executable(UniComm src/main.cpp
         src/debug.cpp
         src/diagnostics.cpp
         src/explorer.cpp
+        src/globals.cpp
         src/log.cpp
         src/luaControl.cpp
         src/luaDataProcess.cpp

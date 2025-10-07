@@ -1,7 +1,9 @@
 #include "../include/luaDataProcess.h"
+
 #include "../include/database.h"
 #include "../include/datatable.h"
 #include "../include/dataplot.h"
+#include "../include/globals.h"
 
 int lua_databaseWrite(lua_State *L) {
     // check arguments
@@ -13,7 +15,7 @@ int lua_databaseWrite(lua_State *L) {
     // start operation
     const QString key = param1;
     const QString value = param2;
-    QMetaObject::invokeMethod(g_database, [key, value] {
+    QMetaObject::invokeMethod(g_mainWindow, [key, value] {
         g_database->databaseWrite(key, value);
     }, Qt::QueuedConnection);
     return 0;
@@ -24,7 +26,7 @@ int lua_databaseClear(lua_State *L) {
     if (lua_gettop(L) > 0)
         luaL_error(L, "unexpected number of arguments");
     // start operation
-    QMetaObject::invokeMethod(g_database, [] {
+    QMetaObject::invokeMethod(g_mainWindow, [] {
         g_database->databaseClear();
     }, Qt::QueuedConnection);
     return 0;
@@ -40,7 +42,7 @@ int lua_datatableWrite(lua_State *L) {
     // start operation
     const QString key = param1;
     const QString value = param2;
-    QMetaObject::invokeMethod(g_datatable, [key, value] {
+    QMetaObject::invokeMethod(g_mainWindow, [key, value] {
         g_datatable->datatableWrite(key, value);
     }, Qt::QueuedConnection);
     return 0;
@@ -54,7 +56,7 @@ int lua_datatableClear(lua_State *L) {
     const char *param1 = luaL_optstring(L, 1, "all");
     // start operation
     const QString key = param1;
-    QMetaObject::invokeMethod(g_database, [key] {
+    QMetaObject::invokeMethod(g_mainWindow, [key] {
         g_datatable->datatableClear(key);
     }, Qt::QueuedConnection);
     return 0;
@@ -66,7 +68,7 @@ int lua_datatableExport(lua_State *L) {
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     // start operation
-    QMetaObject::invokeMethod(g_database, [] {
+    QMetaObject::invokeMethod(g_mainWindow, [] {
         g_datatable->datatableExport();
     }, Qt::QueuedConnection);
     return 0;
@@ -82,7 +84,7 @@ int lua_dataplotAppend(lua_State *L) {
     // start operation
     const QString key = param1;
     const int position = param2;
-    QMetaObject::invokeMethod(g_dataplot, [key, position] {
+    QMetaObject::invokeMethod(g_mainWindow, [key, position] {
         g_dataplot->dataplotAppend(key, position);
     }, Qt::QueuedConnection);
     return 0;

@@ -3,12 +3,6 @@
 
 #include <lua.hpp>
 
-class Log;
-extern Log *g_log;
-
-class Port;
-extern Port *g_port;
-
 int lua_portOpen(lua_State *L);
 
 int lua_portClose(lua_State *L);

@@ -1,18 +1,21 @@
 #include "../include/script.h"
 
 #include "../include/config.h"
+#include "../include/globals.h"
 #include "../include/port.h"
 #include "../include/suffix.h"
 #include "../include/utils.h"
 
 // Script public
-Script::Script(QWidget *parent) : QWidget(parent) {
+Script::Script(QWidget *parent)
+    : QWidget(parent),
+      m_scriptConfig(g_config["scriptConfig"].toObject()),
+      m_scriptTabWidget(new QTabWidget()) {
     // script module init
     auto *layout = new QHBoxLayout(this); // NOLINT
     auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
     layout->addWidget(scriptSplitter);
     // script widget -> script editor
-    m_scriptTabWidget = new QTabWidget();
     scriptSplitter->addWidget(m_scriptTabWidget);
     m_scriptTabWidget->setTabsClosable(true);
     m_scriptTabWidget->setMovable(true);
@@ -210,7 +213,7 @@ void Script::scriptClose(const int index) {
         m_scriptList.removeAt(index);
         // qDebug() << m_scriptList;
         // ask for saving
-        if (scriptPage && scriptPage->m_scriptModify) {
+        if (scriptPage->m_scriptModify) {
             const QMessageBox::StandardButton reply =
                     QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
                                           QMessageBox::No);
@@ -234,6 +237,7 @@ void Script::scriptSwap(const int srcIndex, const int dstIndex) {
 // ScriptPage public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, QWidget *parent)
     : QWidget(parent),
+      m_scriptEditor(new ScriptEditor()),
       m_tooltipCompletion(new TooltipCompletion(this)),
       m_tooltipHover(new TooltipHover(this)),
       m_tooltipPosition(new TooltipPosition(this)),
@@ -248,7 +252,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, Q
     connect(m_editTimer, &QTimer::timeout, [this] {
         scriptEditFinish();
     });
-    m_scriptEditor = new ScriptEditor();
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     m_scriptUrl = scriptUrl;
@@ -497,9 +500,16 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
         if (m_scriptEditor->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             m_scriptEditor->markerDelete(line, MARKER_BREAKPOINT);
             emit removeBreakpoint(m_scriptUrl, line + 1);
+
+            g_breakpoints[m_scriptUrl].remove(line + 1);
+            if (g_breakpoints[m_scriptUrl].isEmpty()) g_breakpoints.remove(m_scriptUrl);
+            qDebug() << g_breakpoints;
         } else {
             m_scriptEditor->markerAdd(line, MARKER_BREAKPOINT);
             emit insertBreakpoint(m_scriptUrl, line + 1);
+
+            g_breakpoints[m_scriptUrl][line + 1]["condition"] = true;
+            qDebug() << g_breakpoints;
         }
     }
 }

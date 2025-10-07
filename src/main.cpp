@@ -1,11 +1,14 @@
 #include "../include/mainWindow.h"
 
+#include "../include/globals.h"
+
 int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
-    a.setStyle(QStyleFactory::create("Fusion"));
+    QApplication app(argc, argv);
+    app.setStyle(QStyleFactory::create("Fusion"));
 
-    MainWindow mainWindow;
-    mainWindow.show();
+    auto *mainWindow = new MainWindow();
+    mainWindow->show();
+    g_mainWindow = mainWindow;
 
-    return QApplication::exec();
+    return app.exec();
 }

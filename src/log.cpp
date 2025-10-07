@@ -1,10 +1,11 @@
 #include "../include/log.h"
 
-#include <QPushButton>
-
+#include "../include/globals.h"
 // Log public
 Log::Log(QWidget *parent)
-    : QDockWidget("log", parent) {
+    : QDockWidget("log", parent),
+      m_logConfig(g_config["logConfig"].toObject()),
+      m_textEdit(new QTextEdit()) {
     auto *widget = new QWidget(); // NOLINT
     auto *layout = new QHBoxLayout(widget); // NOLINT
     setWidget(widget);
@@ -50,7 +51,6 @@ Log::Log(QWidget *parent)
     clearButton->setToolTip(tr("clear log"));
     connect(clearButton, &QPushButton::clicked, this, &Log::logClear);
 
-    m_textEdit = new QTextEdit();
     layout->addWidget(m_textEdit);
     m_textEdit->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
 }
