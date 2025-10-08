@@ -64,12 +64,7 @@ void lua_pushqstring(lua_State *L, const int idx, const QString &value) {
 
 QString ocr(const QPixmap &pixmap, const QString &charset) {
     QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888);
-    const char *tessCharset;
-    if (charset.isEmpty()) {
-        tessCharset = "eng";
-    } else {
-        tessCharset = charset.toUtf8().data();
-    }
+    const char *tessCharset = charset.isEmpty() ? "eng" : charset.toUtf8().constData();
     auto *ocr = new tesseract::TessBaseAPI();
     ocr->Init(nullptr, tessCharset);
     ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());

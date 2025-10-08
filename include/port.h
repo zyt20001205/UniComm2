@@ -50,6 +50,12 @@
 #include <QStackedWidget>
 #include <QStandardItemModel>
 
+enum {
+    RAW,
+    GAUSSIANBLUR,
+    THRESHOLD,
+};
+
 class AreaSelectDialog;
 
 class BasePort;
@@ -81,8 +87,12 @@ private:
 
     void portSwap(int srcIndex, int dstIndex);
 
+    void previewShow(const QList<QPixmap>& pixmapList) const;
+
     QJsonArray m_portConfig{};
     QTabWidget *m_tabWidget{};
+    QDialog *m_previewDialog{};
+    QVBoxLayout *m_previewLayout{};
     int m_currentIndex = 0;
 
     // port setting dialog
@@ -213,11 +223,7 @@ private:
     QPixmap m_pshot{};
     QRectF m_rectF;
 
-    enum {
-        RAW,
-        GAUSSIANBLUR,
-        THRESHOLD,
-    };
+
 };
 
 class PageWidget final : public QWidget {
@@ -286,6 +292,8 @@ public:
 
 signals:
     void appendLog(const QString &message, const QString &level);
+
+    void showPreview(QList<QPixmap> pixmapList);
 };
 
 class SerialPort final : public BasePort {
@@ -538,11 +546,14 @@ public:
     QString readText(int timeout, int length) override;
 
 private:
-    QScreen *m_screen = nullptr;
+    QScreen *m_screen{};
     // port config
-    QString m_portName;
-    QString m_charset;
-    QJsonArray m_areaList;
+    QString m_portName{};
+    QString m_charset{};
+    QJsonObject m_process{};
+    QJsonArray m_areaList{};
+    //
+    bool m_showPreview = false;
 };
 
 class Camera final : public BasePort {

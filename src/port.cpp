@@ -8,7 +8,9 @@
 Port::Port(QWidget *parent)
     : QDockWidget("port", parent),
       m_portConfig(g_config["portConfig"].toArray()),
-      m_tabWidget(new QTabWidget()) {
+      m_tabWidget(new QTabWidget()),
+      m_previewDialog(new QDialog(this)),
+      m_previewLayout(new QVBoxLayout(m_previewDialog)) {
     // port widget gui init
     {
         setWidget(m_tabWidget);
@@ -20,7 +22,7 @@ Port::Port(QWidget *parent)
         });
         m_tabWidget->setMovable(true);
         connect(m_tabWidget->tabBar(), &QTabBar::tabMoved, this, &Port::portSwap);
-        auto* addButton = new QPushButton(m_tabWidget);
+        auto *addButton = new QPushButton(m_tabWidget);
         addButton->setIcon(QIcon(":/icon/add.svg"));
         m_tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
         connect(addButton, &QPushButton::clicked, this, [this] { portSettingLoad(-1); });
@@ -41,6 +43,7 @@ Port::Port(QWidget *parent)
                 QString portName = portConfig["portName"].toString();
                 m_tabWidget->addTab(pageWidget, portName);
                 connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+                connect(pageWidget->m_port, &BasePort::showPreview, this, &Port::previewShow);
                 // logging
                 QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
                 qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
@@ -278,6 +281,7 @@ Port::Port(QWidget *parent)
             portSettingSave(m_portTypeCombobox->currentIndex());
         });
     }
+    // preview dialog
 }
 
 void Port::portConfigSave() const {
@@ -341,6 +345,24 @@ void Port::portSwap(const int srcIndex, const int dstIndex) {
     const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
     m_portConfig.insert(dstIndex, tmp);
     // qDebug() << m_portConfig;
+}
+
+void Port::previewShow(const QList<QPixmap> &pixmapList) const {
+    // clear previous preview
+    QLayoutItem *item;
+    while ((item = m_previewLayout->takeAt(0)) != nullptr) {
+        if (item->widget()) {
+            delete item->widget();
+        }
+        delete item;
+    }
+
+    foreach(QPixmap pixmap, pixmapList) {
+        auto *label = new QLabel();
+        m_previewLayout->addWidget(label);
+        label->setPixmap(pixmap);
+    }
+    m_previewDialog->setVisible(true);
 }
 
 void Port::portSettingLoad(const int index) {
@@ -1092,6 +1114,9 @@ bool AreaSelectDialog::eventFilter(QObject *obj, QEvent *event) {
 
 // AreaSelectDialog private
 void AreaSelectDialog::processRequest() {
+    if (m_shot.isNull()) {
+        return;
+    }
     if (m_processType == RAW) {
         m_pshot = m_shot;
     } else {
@@ -2161,24 +2186,29 @@ QByteArray UdpSocket::handleRead(const int timeout, const int length) {
 }
 
 // Screen public
-Screen::Screen(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_charset = portConfig["charset"].toString();
-    m_areaList = portConfig["areaList"].toArray();
+Screen::Screen(const QJsonObject &portConfig, QObject *parent)
+    : BasePort(parent),
+      m_portName(portConfig["portName"].toString()),
+      m_charset(portConfig["charset"].toString()),
+      m_process(portConfig["process"].toObject()),
+      m_areaList(portConfig["areaList"].toArray()) {
 }
 
 void Screen::reload(const QJsonObject &portConfig) {
     // port config
     m_portName = portConfig["portName"].toString();
+    m_charset = portConfig["charset"].toString();
+    m_process = portConfig["process"].toObject();
     m_areaList = portConfig["areaList"].toArray();
 }
 
 bool Screen::open() {
+    m_showPreview = true;
     return true;
 }
 
 void Screen::close() {
+    m_showPreview = false;
 }
 
 QHash<QString, QVariant> Screen::info() {
@@ -2195,6 +2225,7 @@ QString Screen::readText(const int timeout, const int length) {
     }
     if (!m_screen) return "screen not found";
     const auto shot = m_screen->grabWindow(0);
+    QList<QPixmap> pixmapList{};
     QStringList resultList;
     for (const QJsonValue &value: m_areaList) {
         QJsonArray areaArray = value.toArray();
@@ -2204,9 +2235,31 @@ QString Screen::readText(const int timeout, const int length) {
         const int height = areaArray[3].toInt();
         const auto rect = QRect(x, y, width, height);
         const QPixmap cropped = shot.copy(rect);
-        const QString text = ocr(cropped, m_charset);
+        QPixmap processed{};
+        const int processType = m_process["processType"].toInt();
+        if (processType == RAW) {
+            processed = cropped;
+        } else {
+            switch (processType) {
+                case GAUSSIANBLUR: {
+                    const int kernalSize = m_process["thresholdValue"].toInt();
+                    processed = processGaussianBlur(cropped, kernalSize);
+                    break;
+                }
+                case THRESHOLD: {
+                    const int thresholdValue = m_process["thresholdValue"].toInt();
+                    const int thresholdType = m_process["thresholdType"].toInt();
+                    processed = processThreshold(cropped, thresholdValue, thresholdType);
+                    break;
+                }
+                default: break;
+            }
+        }
+        if (m_showPreview) pixmapList.append(processed);
+        const QString text = ocr(processed, m_charset);
         resultList.append(text);
     }
+    emit showPreview(pixmapList);
     return resultList.join("\x1E");
 }
 
