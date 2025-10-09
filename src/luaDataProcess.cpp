@@ -1,7 +1,7 @@
 #include "luaDataProcess.h"
 
 #include "database.h"
-#include "datatable.h"
+#include "datatableModule.h"
 #include "dataplot.h"
 #include "globals.h"
 

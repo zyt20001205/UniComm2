@@ -1,22 +1,35 @@
-#include "datatable.h"
+#include "datatableModule.h"
+
+#include <QContextMenuEvent>
+#include <QFile>
+#include <QHeaderView>
+#include <QInputDialog>
+#include <QMenu>
+#include <QPushButton>
+#include <QTableWidget>
 
 #include "globals.h"
-// Datatable public
-Datatable::Datatable(QWidget *parent)
+
+// DatatableModule public
+DatatableModule::DatatableModule(QWidget *parent)
     : QDockWidget("data table", parent),
-      m_datatableConfig(g_config["datatableConfig"].toArray()) {
-    m_tableWidget = new QTableWidget(); // NOLINT
+      m_datatableConfig(g_config["datatableConfig"].toArray()),
+      m_tableWidget(new QTableWidget()) {
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    m_tableWidget->verticalHeader()->setVisible(false);
-    // m_tableWidget->setRowCount(1);
-    m_tableWidget->horizontalHeader()->setMinimumHeight(30);
+    m_tableWidget->horizontalHeader()->setMinimumWidth(30);
     m_tableWidget->horizontalHeader()->setSectionsMovable(true);
     connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionMoved, this, [this](int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
         // config
         const QJsonValue tmp = m_datatableConfig.takeAt(oldVisualIndex);
         m_datatableConfig.insert(newVisualIndex, tmp);
         qDebug() << m_datatableConfig;
+    });
+    auto *clearButton = new QPushButton(); // NOLINT
+    clearButton->setIcon(QIcon(":/icon/delete.svg"));
+    m_tableWidget->setCornerWidget(clearButton);
+    connect(clearButton, &QPushButton::clicked, this, [this] {
+        datatableClear("all");
     });
 
     for (const QJsonValue &value: m_datatableConfig) {
@@ -38,11 +51,11 @@ Datatable::Datatable(QWidget *parent)
     m_tableWidget->installEventFilter(this);
 }
 
-void Datatable::datatableConfigSave() const {
+void DatatableModule::datatableConfigSave() const {
     g_config["datatableConfig"] = m_datatableConfig;
 }
 
-void Datatable::datatableWrite(const QString &key, const QString &value) {
+void DatatableModule::datatableWrite(const QString &key, const QString &value) {
     if (!m_data.contains(key)) {
         qDebug() << "key not found in datatable";
         return;
@@ -65,7 +78,7 @@ void Datatable::datatableWrite(const QString &key, const QString &value) {
     m_tableWidget->scrollToBottom();
 }
 
-void Datatable::datatableClear(const QString &key) {
+void DatatableModule::datatableClear(const QString &key) {
     if (key == "all") {
         for (auto &data: m_data) {
             data.enable = false;
@@ -94,7 +107,7 @@ void Datatable::datatableClear(const QString &key) {
     }
 }
 
-void Datatable::datatableAddGraph(const QString &key, const int position) {
+void DatatableModule::datatableAddGraph(const QString &key, const int position) {
     if (!m_data.contains(key)) {
         qDebug() << "key not found in datatable";
         return;
@@ -103,7 +116,7 @@ void Datatable::datatableAddGraph(const QString &key, const int position) {
     emit addGraphDataPlot(key, m_data[key].x, m_data[key].y, position);
 }
 
-void Datatable::datatableExport() {
+void DatatableModule::datatableExport() {
     const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
     QFile file(defaultName);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -135,8 +148,8 @@ void Datatable::datatableExport() {
     qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
-// Datatable protected
-void Datatable::contextMenuEvent(QContextMenuEvent *event) {
+// DatatableModule protected
+void DatatableModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint globalPos = event->globalPos();
     const auto *header = m_tableWidget->horizontalHeader();
     const QPoint headerPos = header->mapFromGlobal(globalPos);
@@ -170,7 +183,7 @@ void Datatable::contextMenuEvent(QContextMenuEvent *event) {
     }
 }
 
-bool Datatable::eventFilter(QObject *obj, QEvent *event) {
+bool DatatableModule::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
@@ -202,8 +215,8 @@ bool Datatable::eventFilter(QObject *obj, QEvent *event) {
     return QDockWidget::eventFilter(obj, event);
 }
 
-// Datatable private
-void Datatable::datatableRename(const int visualIndex) {
+// DatatableModule private
+void DatatableModule::datatableRename(const int visualIndex) {
     const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
     const QString oldKey = m_tableWidget->horizontalHeaderItem(logicalIndex)->text();
     // gui
@@ -221,7 +234,7 @@ void Datatable::datatableRename(const int visualIndex) {
     }
 }
 
-void Datatable::datatableInsert(const int visualIndex) {
+void DatatableModule::datatableInsert(const int visualIndex) {
     const QString newKey = "";
     // gui
     m_tableWidget->insertColumn(visualIndex);
@@ -248,7 +261,7 @@ void Datatable::datatableInsert(const int visualIndex) {
     }
 }
 
-void Datatable::datatableRemove(const int visualIndex) {
+void DatatableModule::datatableRemove(const int visualIndex) {
     const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
     const QString oldKey = m_datatableConfig[visualIndex].toString();
     // gui

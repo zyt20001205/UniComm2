@@ -18,7 +18,7 @@ class Port;
 class Explorer;
 class Send;
 class Database;
-class Datatable;
+class DatatableModule;
 class Dataplot;
 class Log;
 class Diagnostics;
@@ -67,7 +67,7 @@ private:
     Explorer *m_explorerModule{};
     Send *m_sendModule{};
     Database *m_databaseModule{};
-    Datatable *m_datatableModule{};
+    DatatableModule *m_datatableModule{};
     Dataplot *m_dataplotModule{};
     Log *m_logModule{};
     Diagnostics *m_diagnosticsModule{};

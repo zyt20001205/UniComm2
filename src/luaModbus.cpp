@@ -41,11 +41,11 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
         qDebug() << rxData;
         return 0;
     }
-    if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
+    if (const uint8_t rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu read holding registers slave address inconsistent");
         return 0;
     }
-    if (const int rxFuncCode = rxData.at(1); rxFuncCode != txFuncCode) {
+    if (const uint8_t rxFuncCode = rxData.at(1); rxFuncCode != txFuncCode) {
         luaL_error(L, "modbus rtu read holding registers function code inconsistent");
         return 0;
     }
@@ -83,13 +83,13 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
     constexpr int rxLength = 8;
 
     QByteArray txData;
-    txData.append(static_cast<char>(txSlaveAddr));
+    txData.append(static_cast<uint8_t>(txSlaveAddr));
     txData.append(txFuncCode);
-    txData.append(static_cast<char>(txStartAddr >> 8 & 0xFF));
-    txData.append(static_cast<char>(txStartAddr & 0xFF));
-    txData.append(static_cast<char>(txRegCount >> 8 & 0xFF));
-    txData.append(static_cast<char>(txRegCount & 0xFF));
-    txData.append(static_cast<char>(txByteCount));
+    txData.append(static_cast<uint8_t>(txStartAddr >> 8 & 0xFF));
+    txData.append(static_cast<uint8_t>(txStartAddr & 0xFF));
+    txData.append(static_cast<uint8_t>(txRegCount >> 8 & 0xFF));
+    txData.append(static_cast<uint8_t>(txRegCount & 0xFF));
+    txData.append(static_cast<uint8_t>(txByteCount));
     txData += txRegData;
     txData += modbusCRC(txData);
     QByteArray rxData;
@@ -102,16 +102,16 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
         luaL_error(L, "modbus rtu write multiple registers wrong length");
         return 0;
     }
-    if (const int rxSlaveAddr = rxData.at(0); rxSlaveAddr != txSlaveAddr) {
+    if (const uint8_t rxSlaveAddr = static_cast<uint8_t>(rxData.at(0)); rxSlaveAddr != txSlaveAddr) {
         luaL_error(L, "modbus rtu write multiple registers slave address inconsistent");
     }
-    if (const int rxFuncCode = rxData.at(1); rxFuncCode != txFuncCode) {
+    if (const uint8_t rxFuncCode = static_cast<uint8_t>(rxData.at(1)); rxFuncCode != txFuncCode) {
         luaL_error(L, "modbus rtu write multiple registers function code inconsistent");
     }
-    if (const int rxStartAddr = rxData.at(2) << 8 | rxData.at(3); rxStartAddr != txStartAddr) {
+    if (const uint16_t rxStartAddr = static_cast<uint8_t>(rxData.at(2)) << 8 | static_cast<uint8_t>(rxData.at(3)); rxStartAddr != txStartAddr) {
         luaL_error(L, "modbus rtu write multiple registers start address inconsistent");
     }
-    if (const int rxRegCount = rxData.at(4) << 8 | rxData.at(5); rxRegCount != txRegCount) {
+    if (const uint16_t rxRegCount = static_cast<uint8_t>(rxData.at(4)) << 8 | static_cast<uint8_t>(rxData.at(5)); rxRegCount != txRegCount) {
         luaL_error(L, "modbus rtu write multiple registers register count inconsistent");
     }
     const QByteArray rxChecksum = rxData.right(2);

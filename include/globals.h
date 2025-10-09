@@ -7,7 +7,7 @@
 #include <QVariantMap>
 
 class Database;
-class Datatable;
+class DatatableModule;
 class Dataplot;
 class Debug;
 class Log;
@@ -17,7 +17,7 @@ class Threadpool;
 
 extern QMainWindow *g_mainWindow;
 extern Database *g_database;
-extern Datatable *g_datatable;
+extern DatatableModule *g_datatable;
 extern Dataplot *g_dataplot;
 extern Debug *g_debug;
 extern Log *g_log;

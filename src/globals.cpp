@@ -2,7 +2,7 @@
 
 QMainWindow *g_mainWindow = nullptr;
 Database *g_database = nullptr;
-Datatable *g_datatable = nullptr;
+DatatableModule *g_datatable = nullptr;
 Dataplot *g_dataplot = nullptr;
 Debug *g_debug = nullptr;
 Log *g_log = nullptr;

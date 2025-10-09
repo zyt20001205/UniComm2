@@ -3,7 +3,7 @@
 #include "config.h"
 #include "database.h"
 #include "dataplot.h"
-#include "datatable.h"
+#include "datatableModule.h"
 #include "debug.h"
 #include "diagnostics.h"
 #include "explorer.h"
@@ -155,7 +155,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
 
-    m_datatableModule = new Datatable();
+    m_datatableModule = new DatatableModule();
     this->addDockWidget(Qt::RightDockWidgetArea, m_datatableModule);
     m_datatableModule->setObjectName("datatableModule");
     connect(m_datatableModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDatatable->setChecked(visible); });
@@ -225,9 +225,9 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_explorerModule, &Explorer::debugScript, m_threadpoolModule, &Threadpool::threadDebug);
-    connect(m_datatableModule, &Datatable::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
-    connect(m_datatableModule, &Datatable::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
-    connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &Datatable::datatableAddGraph);
+    connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
+    connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
+    connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
     connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &Script::cursorPositionSet);
     connect(m_diagnosticsModule, &Diagnostics::showIndicator, m_scriptModule, &Script::indicatorShow);

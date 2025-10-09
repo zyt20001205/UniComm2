@@ -25,7 +25,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void openScript(const QString &scriptPath);
+    void openScript(const QUrl &scriptUrl);
 
     void runScript(const QUrl &scriptUrl, const QString &script);
 

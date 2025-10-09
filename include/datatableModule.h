@@ -2,23 +2,17 @@
 #define DATATABLE_H
 
 #include <QDockWidget>
-#include <QEvent>
-#include <QFile>
-#include <QHeaderView>
-#include <QInputDialog>
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QKeyEvent>
-#include <QMenu>
-#include <QTableWidget>
 
-class Datatable final : public QDockWidget {
+class QTableWidget;
+
+class DatatableModule final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Datatable(QWidget *parent = nullptr);
+    explicit DatatableModule(QWidget *parent = nullptr);
 
-    ~Datatable() override = default;
+    ~DatatableModule() override = default;
 
     void datatableConfigSave() const;
 

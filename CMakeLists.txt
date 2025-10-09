@@ -41,7 +41,7 @@ qt_add_executable(UniComm src/main.cpp
         include/config.h
         include/database.h
         include/dataplot.h
-        include/datatable.h
+        include/datatableModule.h
         include/debug.h
         include/diagnostics.h
         include/explorer.h
@@ -64,7 +64,7 @@ qt_add_executable(UniComm src/main.cpp
         src/config.cpp
         src/database.cpp
         src/dataplot.cpp
-        src/datatable.cpp
+        src/datatableModule.cpp
         src/debug.cpp
         src/diagnostics.cpp
         src/explorer.cpp

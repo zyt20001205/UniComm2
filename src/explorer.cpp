@@ -88,7 +88,7 @@ void Explorer::scriptDebug(const QModelIndex &index) {
 
 void Explorer::scriptOpen(const QModelIndex &index) {
     const QString scriptPath = m_model->filePath(index);
-    const QString scriptUrl = QUrl::fromLocalFile(scriptPath).toString();
+    const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath).toString();
     emit openScript(scriptUrl);
 }
 
