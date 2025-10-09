@@ -1,10 +1,10 @@
-#include "../include/script.h"
+#include "script.h"
 
-#include "../include/config.h"
-#include "../include/globals.h"
-#include "../include/port.h"
-#include "../include/suffix.h"
-#include "../include/utils.h"
+#include "config.h"
+#include "globals.h"
+#include "port.h"
+#include "suffix.h"
+#include "utils.h"
 
 // Script public
 Script::Script(QWidget *parent)

@@ -1,4 +1,4 @@
-#include "../include/globals.h"
+#include "globals.h"
 
 QMainWindow *g_mainWindow = nullptr;
 Database *g_database = nullptr;

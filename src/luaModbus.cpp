@@ -1,8 +1,8 @@
-#include "../include/luaModbus.h"
+#include "luaModbus.h"
 
-#include "../include/globals.h"
-#include "../include/port.h"
-#include "../include/suffix.h"
+#include "globals.h"
+#include "port.h"
+#include "suffix.h"
 
 int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     // check arguments

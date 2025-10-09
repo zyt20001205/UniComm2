@@ -35,6 +35,46 @@
 
 # Port Module
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Polymorphism
+        serialPort[SerialPort]
+        tcpClient[TcpClient]
+        tcpServer[TcpServer]
+        udpSocket[UdpSocket]
+        screen[screen]
+        camera[camera]
+    end
+
+    basePort[BasePort]
+
+    subgraph Lua Basic API
+        portOpen[port.open]
+        portClose[port.close]
+        portInfo[port.info]
+        portReadData[port.readData]
+        portWriteData[port.writeData]
+        portReadText[port.readText]
+        portWriteText[port.writeText]
+    end
+
+    subgraph Lua Service API
+        modbusRtuReadHoldingRegisters[modbusRtu.readHoldingRegisters]
+        modbusRtuWriteHoldingRegisters[modbusRtu.writeHoldingRegisters]
+        modbusAsciiReadHoldingRegisters[modbusAscii.readHoldingRegisters]
+    end
+
+    serialPort & tcpClient & tcpServer & udpSocket & screen & camera --> basePort
+    basePort --> portOpen & portClose & portInfo & portReadData & portReadText & portWriteData & portWriteText
+    portReadData & portWriteData --> modbusRtuReadHoldingRegisters
+    portReadData & portWriteData --> modbusRtuWriteHoldingRegisters
+    portReadText & portWriteText --> modbusAsciiReadHoldingRegisters
+```
+
+## Support
+
 <style>
     .osi-table td {
         text-align: center;

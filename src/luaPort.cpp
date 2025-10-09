@@ -1,8 +1,8 @@
-#include "../include/luaPort.h"
+#include "luaPort.h"
 
-#include "../include/globals.h"
-#include "../include/log.h"
-#include "../include/port.h"
+#include "globals.h"
+#include "log.h"
+#include "port.h"
 
 int lua_portOpen(lua_State *L) {
     // check arguments

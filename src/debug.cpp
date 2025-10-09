@@ -1,8 +1,8 @@
-#include "../include/debug.h"
+#include "debug.h"
 
-#include "../include/globals.h"
-#include "../include/luaInterpreter.h"
-#include "../include/script.h"
+#include "globals.h"
+#include "luaInterpreter.h"
+#include "script.h"
 
 // Debug public
 Debug::Debug(QWidget *parent)

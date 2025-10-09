@@ -1,6 +1,6 @@
-#include "../include/database.h"
+#include "database.h"
 
-#include "../include/globals.h"
+#include "globals.h"
 
 // Database public
 Database::Database(QWidget *parent)

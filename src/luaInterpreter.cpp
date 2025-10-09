@@ -1,15 +1,15 @@
-#include "../include/luaInterpreter.h"
+#include "luaInterpreter.h"
 
-#include "../include/debug.h"
-#include "../include/luaControl.h"
-#include "../include/luaDataProcess.h"
-#include "../include/luaPort.h"
-#include "../include/luaMiscellaneous.h"
-#include "../include/luaModbus.h"
-#include "../include/globals.h"
-#include "../include/log.h"
-#include "../include/script.h"
-#include "../include/utils.h"
+#include "debug.h"
+#include "luaControl.h"
+#include "luaDataProcess.h"
+#include "luaPort.h"
+#include "luaMiscellaneous.h"
+#include "luaModbus.h"
+#include "globals.h"
+#include "log.h"
+#include "script.h"
+#include "utils.h"
 
 // LuaInterpreter public
 LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)

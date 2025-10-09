@@ -1,4 +1,4 @@
-#include "../include/utils.h"
+#include "utils.h"
 
 QByteArray filehashCalc(const QString &filePath) {
     QFile file(filePath);

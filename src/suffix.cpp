@@ -1,4 +1,4 @@
-#include "../include/suffix.h"
+#include "suffix.h"
 
 QByteArray crc8Maxim(const QByteArray &data) {
     return "";

@@ -1,6 +1,6 @@
-#include "../include/datatable.h"
+#include "datatable.h"
 
-#include "../include/globals.h"
+#include "globals.h"
 // Datatable public
 Datatable::Datatable(QWidget *parent)
     : QDockWidget("data table", parent),

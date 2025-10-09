@@ -1,11 +1,13 @@
-#include "port.h"
+#include "portModule/portModule.h"
 
 #include "globals.h"
 #include "suffix.h"
 #include "utils.h"
+#include "portModule/basePort.h"
+#include "portModule/serialPort.h"
 
-// Port public
-Port::Port(QWidget *parent)
+// PortModule public
+PortModule::PortModule(QWidget *parent)
     : QDockWidget("port", parent),
       m_portConfig(g_config["portConfig"].toArray()),
       m_tabWidget(new QTabWidget()),
@@ -14,14 +16,14 @@ Port::Port(QWidget *parent)
     // port widget gui init
     {
         setWidget(m_tabWidget);
-        connect(m_tabWidget, &QTabWidget::currentChanged, this, &Port::portSelected);
+        connect(m_tabWidget, &QTabWidget::currentChanged, this, &PortModule::portSelected);
         m_tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(m_tabWidget->tabBar(), &QTabBar::customContextMenuRequested, this, [this](const QPoint &pos) {
             const int index = m_tabWidget->tabBar()->tabAt(pos);
             portMenu(index, pos);
         });
         m_tabWidget->setMovable(true);
-        connect(m_tabWidget->tabBar(), &QTabBar::tabMoved, this, &Port::portSwap);
+        connect(m_tabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
         auto *addButton = new QPushButton(m_tabWidget);
         addButton->setIcon(QIcon(":/icon/add.svg"));
         m_tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
@@ -42,8 +44,8 @@ Port::Port(QWidget *parent)
                 auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
                 QString portName = portConfig["portName"].toString();
                 m_tabWidget->addTab(pageWidget, portName);
-                connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
-                connect(pageWidget->m_port, &BasePort::showPreview, this, &Port::previewShow);
+                connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
+                connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
                 // logging
                 QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
                 qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
@@ -67,7 +69,7 @@ Port::Port(QWidget *parent)
             m_portTypeCombobox = new QComboBox();
             portTypeLayout->addWidget(m_portTypeCombobox);
             m_portTypeCombobox->addItems(QStringList{"choose port type", "serial port", "tcp client", "tcp server", "udp socket", "screen", "camera"});
-            connect(m_portTypeCombobox, &QComboBox::currentIndexChanged, this, &Port::portSettingTypeSwitch);
+            connect(m_portTypeCombobox, &QComboBox::currentIndexChanged, this, &PortModule::portSettingTypeSwitch);
         }
         // init serial port settings
         {
@@ -284,19 +286,19 @@ Port::Port(QWidget *parent)
     // preview dialog
 }
 
-void Port::portConfigSave() const {
+void PortModule::portConfigSave() const {
     g_config["portConfig"] = m_portConfig;
 }
 
-BasePort *Port::portObject(const int index) const {
+BasePort *PortModule::portObject(const int index) const {
     BasePort *portObject = nullptr;
     if (index == -1) portObject = qobject_cast<PageWidget *>(m_tabWidget->currentWidget())->m_port;
     else portObject = qobject_cast<PageWidget *>(m_tabWidget->widget(index))->m_port;
     return portObject;
 }
 
-// Port private
-void Port::portMenu(const int index, const QPoint &pos) {
+// PortModule private
+void PortModule::portMenu(const int index, const QPoint &pos) {
     if (m_portConfig.empty()) return;
     m_tabWidget->setCurrentIndex(index);
     QMenu menu;
@@ -306,7 +308,7 @@ void Port::portMenu(const int index, const QPoint &pos) {
     menu.exec(m_tabWidget->tabBar()->mapToGlobal(pos));
 }
 
-void Port::portSelected(const int index) {
+void PortModule::portSelected(const int index) {
     if (m_portConfig.empty())
         return;
     m_currentIndex = index;
@@ -318,16 +320,16 @@ void Port::portSelected(const int index) {
     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "selected");
 }
 
-void Port::portDuplicate(const int index) {
+void PortModule::portDuplicate(const int index) {
     QJsonObject portConfig = m_portConfig[index].toObject();
     m_portConfig.insert(index + 1, portConfig);
     auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
     const QString portName = portConfig["portName"].toString();
     m_tabWidget->insertTab(index + 1, pageWidget, portName);
-    connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+    connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
 }
 
-void Port::portRemove(const int index) {
+void PortModule::portRemove(const int index) {
     QJsonObject portInfo = m_portConfig[index].toObject();
     QString portType = portInfo["portType"].toString();
     QString portName = portInfo["portName"].toString();
@@ -340,14 +342,14 @@ void Port::portRemove(const int index) {
     if (w) w->deleteLater();
 }
 
-void Port::portSwap(const int srcIndex, const int dstIndex) {
+void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // config
     const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
     m_portConfig.insert(dstIndex, tmp);
     // qDebug() << m_portConfig;
 }
 
-void Port::previewShow(const QList<QPixmap> &pixmapList) const {
+void PortModule::previewShow(const QList<QPixmap> &pixmapList) const {
     // clear previous preview
     QLayoutItem *item;
     while ((item = m_previewLayout->takeAt(0)) != nullptr) {
@@ -365,7 +367,7 @@ void Port::previewShow(const QList<QPixmap> &pixmapList) const {
     m_previewDialog->setVisible(true);
 }
 
-void Port::portSettingLoad(const int index) {
+void PortModule::portSettingLoad(const int index) {
     m_portSettingDialog->show();
     if (index == -1) {
         m_currentIndex = -1;
@@ -432,7 +434,7 @@ void Port::portSettingLoad(const int index) {
     }
 }
 
-void Port::portSettingWidgetReset() const {
+void PortModule::portSettingWidgetReset() const {
     // enable port type combobox
     m_portTypeCombobox->setEnabled(true);
     // serial port setting widget
@@ -476,7 +478,7 @@ void Port::portSettingWidgetReset() const {
     m_portSettingSavePushButton->hide();
 };
 
-void Port::portSettingTypeSwitch(const int type) {
+void PortModule::portSettingTypeSwitch(const int type) {
     if (type == 0) {
         portSettingWidgetReset();
     } else if (type == 1) {
@@ -546,7 +548,7 @@ void Port::portSettingTypeSwitch(const int type) {
     m_portSettingDialog->adjustSize();
 }
 
-void Port::portSettingSave(const int type) {
+void PortModule::portSettingSave(const int type) {
     if (type == 1) {
         QJsonObject portConfig;
         portConfig["portType"] = "serial port";
@@ -566,7 +568,7 @@ void Port::portSettingSave(const int type) {
             auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
             const QString portName = portConfig["portName"].toString();
             m_tabWidget->addTab(pageWidget, portName);
-            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+            connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -590,7 +592,7 @@ void Port::portSettingSave(const int type) {
             auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
             const QString portName = portConfig["portName"].toString();
             m_tabWidget->addTab(pageWidget, portName);
-            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+            connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -613,7 +615,7 @@ void Port::portSettingSave(const int type) {
             auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
             const QString portName = portConfig["portName"].toString();
             m_tabWidget->addTab(pageWidget, portName);
-            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+            connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -638,7 +640,7 @@ void Port::portSettingSave(const int type) {
             auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
             const QString portName = portConfig["portName"].toString();
             m_tabWidget->addTab(pageWidget, portName);
-            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+            connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -660,7 +662,7 @@ void Port::portSettingSave(const int type) {
             auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
             const QString portName = portConfig["portName"].toString();
             m_tabWidget->addTab(pageWidget, portName);
-            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+            connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -682,7 +684,7 @@ void Port::portSettingSave(const int type) {
             auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
             const QString portName = portConfig["portName"].toString();
             m_tabWidget->addTab(pageWidget, portName);
-            connect(pageWidget, &PageWidget::appendLog, this, &Port::appendLog);
+            connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
         } else {
             m_portConfig[m_currentIndex] = portConfig;
             const auto pageWidget = qobject_cast<PageWidget *>(m_tabWidget->widget(m_currentIndex));
@@ -1325,1008 +1327,8 @@ void PageWidget::portToggle(const bool status) const {
     }
 }
 
-// SerialPort public
-SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_serialPort(new QSerialPort(this)) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_baudRate = portConfig["baudRate"].toInt();
-    m_dataBits = portConfig["dataBits"].toInt();
-    m_parity = portConfig["parity"].toInt();
-    m_stopBits = portConfig["stopBits"].toInt();
-    // port init
-    m_serialPort->setPortName(m_portName);
-    m_serialPort->setBaudRate(m_baudRate);
-    m_serialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_dataBits));
-    m_serialPort->setParity(static_cast<QSerialPort::Parity>(m_parity));
-    m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_stopBits));
-    // tx/rx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    m_rxFormat = portConfig["rxFormat"].toString();
-    // connect slot
-    connect(m_serialPort, &QSerialPort::readyRead, this, [this] {
-        handleRead(0, 0);
-    });
-    connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
-}
 
-void SerialPort::reload(const QJsonObject &portConfig) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_baudRate = portConfig["baudRate"].toInt();
-    m_dataBits = portConfig["dataBits"].toInt();
-    m_parity = portConfig["parity"].toInt();
-    m_stopBits = portConfig["stopBits"].toInt();
-    // port init
-    m_serialPort->setPortName(m_portName);
-    m_serialPort->setBaudRate(m_baudRate);
-    m_serialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_dataBits));
-    m_serialPort->setParity(static_cast<QSerialPort::Parity>(m_parity));
-    m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_stopBits));
-    // tx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    // rx config
-    m_rxFormat = portConfig["rxFormat"].toString();
-}
 
-QHash<QString, QVariant> SerialPort::info() {
-    const bool status = m_serialPort->isOpen();
-    const QString portName = m_portName;
-    const QString baudRate = QString::number(m_baudRate);
-    const QString dataBits = QString::number(m_dataBits);
-    QString parity;
-    switch (m_parity) {
-        case 0: parity = "no";
-            break;
-        case 2: parity = "even";
-            break;
-        case 3: parity = "odd";
-            break;
-        case 4: parity = "space";
-            break;
-        case 5: parity = "mark";
-            break;
-        default: parity = "unknown";
-    }
-    QString stopBits;
-    switch (m_stopBits) {
-        case 1: stopBits = "1";
-            break;
-        case 3: stopBits = "1.5";
-            break;
-        case 2: stopBits = "2";
-            break;
-        default: stopBits = "unknown";
-    }
 
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["portName"] = portName;
-    infoHash["baudRate"] = baudRate;
-    infoHash["dataBits"] = dataBits;
-    infoHash["parity"] = parity;
-    infoHash["stopBits"] = stopBits;
-    return infoHash;
-}
 
-bool SerialPort::open() {
-    if (m_serialPort->open(QSerialPort::ReadWrite)) {
-        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "opened"), "info");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "opened");
-        return true;
-    }
-    emit appendLog(QString("%1 %2 %3: %4").arg("serial port", m_portName, "open failed", m_serialPort->errorString()), "error");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4: %5").arg(timestamp, "serial port", m_portName, "open failed", m_serialPort->errorString());
-    return false;
-}
 
-void SerialPort::close() {
-    m_serialPort->close();
-    emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "closed"), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "closed");
-}
-
-void SerialPort::writeText(const QString &txText) {
-    // tx text reformat
-    QString f_txText = txText;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
-}
-
-void SerialPort::writeData(const QByteArray &txData) {
-    // check port status
-    if (!m_serialPort->isOpen()) {
-        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
-        return;
-    }
-    // tx data reformat
-    QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
-    // call handle write
-    handleWrite(f_txData);
-}
-
-QString SerialPort::readText(const int timeout, const int length) {
-    const QByteArray rxData = readData(timeout, length);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
-}
-
-QByteArray SerialPort::readData(const int timeout, const int length) {
-    QByteArray rxData;
-    // async mode
-    if (timeout == 0) {
-        rxData = m_rxBuffer;
-    }
-    // sync mode
-    else {
-        disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
-        rxData = handleRead(timeout, length);
-        connect(m_serialPort, &QSerialPort::readyRead, this, [this] { handleRead(0, 0); });
-    }
-    return rxData;
-}
-
-// SerialPort private
-void SerialPort::handleWrite(const QByteArray &f_txData) {
-    m_serialPort->write(f_txData);
-    // tx message reformat
-    QString txMessage;
-    // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-    // 2: add port info
-    txMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), txMessage);
-    emit appendLog(txMessage, "tx");
-}
-
-QByteArray SerialPort::handleRead(const int timeout, const int length) {
-    QByteArray rxData = m_serialPort->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (m_serialPort->waitForReadyRead(10)) {
-                rxData += m_serialPort->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
-        }
-    }
-    m_rxBuffer = rxData;
-    // rx message reformat
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
-}
-
-void SerialPort::handleError() {
-}
-
-// TcpClient public
-TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_tcpClient(new QTcpSocket(this)) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_tcpClientRemoteAddress = portConfig["tcpClientRemoteAddress"].toString();
-    m_tcpClientRemotePort = portConfig["tcpClientRemotePort"].toInt();
-    // port init
-    m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
-    // tx/rx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    m_rxFormat = portConfig["rxFormat"].toString();
-    // connect slot
-    connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
-    connect(m_tcpClient, &QTcpSocket::disconnected, this, &TcpClient::handleDisconnected);
-    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] { handleRead(0, 0); });
-    connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
-}
-
-void TcpClient::reload(const QJsonObject &portConfig) {
-    // port config
-    m_tcpClientRemoteAddress = portConfig["tcpClientRemoteAddress"].toString();
-    m_tcpClientRemotePort = portConfig["tcpClientRemotePort"].toInt();
-    // tx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    // rx config
-    m_rxFormat = portConfig["rxFormat"].toString();
-}
-
-QHash<QString, QVariant> TcpClient::info() {
-    QString status;
-    switch (m_tcpClient->state()) {
-        case QAbstractSocket::UnconnectedState: status = "unconnected";
-            break;
-        case QAbstractSocket::HostLookupState: status = "looking up host";
-            break;
-        case QAbstractSocket::ConnectingState: status = "connecting";
-            break;
-        case QAbstractSocket::ConnectedState: status = "connected";
-            break;
-        case QAbstractSocket::ClosingState: status = "closing";
-            break;
-        case QAbstractSocket::BoundState: status = "bound to local address";
-            break;
-        default: status = "unknown";
-    }
-    const QString localAddress = m_tcpClient->localAddress().toString();
-    const QString localPort = QString::number(m_tcpClient->localPort());
-    const QString remoteAddress = m_tcpClientRemoteAddress;
-    const QString remotePort = QString::number(m_tcpClientRemotePort);
-
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["localAddress"] = localAddress;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteAddress"] = remoteAddress;
-    infoHash["remotePort"] = remotePort;
-    return infoHash;
-}
-
-bool TcpClient::open() {
-    m_tcpClient->connectToHost(m_tcpClientRemoteAddress, m_tcpClientRemotePort);
-    return true;
-}
-
-void TcpClient::close() {
-    m_tcpClient->disconnectFromHost();
-}
-
-void TcpClient::writeText(const QString &txText) {
-    // tx text reformat
-    QString f_txText = txText;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
-}
-
-void TcpClient::writeData(const QByteArray &txData) {
-    // check port status
-    if (!m_tcpClient->isOpen()) {
-        emit appendLog("tcp client is not opened", "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] tcp client is not opened").arg(timestamp);
-        return;
-    }
-    // tx data reformat
-    QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
-    // call handle write
-    handleWrite(f_txData);
-}
-
-QString TcpClient::readText(const int timeout, const int length) {
-    const QByteArray rxData = readData(timeout, length);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
-}
-
-QByteArray TcpClient::readData(const int timeout, const int length) {
-    QByteArray rxData;
-    // async mode
-    if (timeout == 0) {
-        rxData = m_rxBuffer;
-    }
-    // sync mode
-    else {
-        disconnect(m_tcpClient, &QTcpSocket::readyRead, this, nullptr);
-        rxData = handleRead(timeout, length);
-        connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] { handleRead(0, 0); });
-    }
-    return rxData;
-}
-
-// TcpClient private
-void TcpClient::handleConnected() {
-    m_tcpClientLocalAddress = m_tcpClient->localAddress().toString();
-    m_tcpClientLocalPort = m_tcpClient->localPort();
-    emit appendLog(QString("%1 %2:%3").arg("tcp client connected to", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort)), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client connected to", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort));
-}
-
-void TcpClient::handleDisconnected() {
-    emit appendLog(QString("%1 %2:%3").arg("tcp client disconnected from", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort)), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_tcpClientRemoteAddress, QString::number(m_tcpClientRemotePort));
-}
-
-void TcpClient::handleError() {
-}
-
-void TcpClient::handleWrite(const QByteArray &f_txData) {
-    m_tcpClient->write(f_txData);
-    // tx message reformat
-    QString txMessage;
-    // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-    // 2: add port info
-    txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
-                                                      QString::number(m_tcpClientRemotePort), txMessage);
-    emit appendLog(txMessage, "tx");
-}
-
-QByteArray TcpClient::handleRead(const int timeout, const int length) {
-    QByteArray rxData = m_tcpClient->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (!m_tcpClient->waitForReadyRead(10)) {
-                rxData += m_tcpClient->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
-        }
-    }
-    m_rxBuffer = rxData;
-    // rx message reformat
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
-                                                      QString::number(m_tcpClientRemotePort), rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
-}
-
-// TcpServer public
-TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_tcpServer(new QTcpServer(this)) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_tcpServerLocalAddress = portConfig["tcpServerLocalAddress"].toString();
-    m_tcpServerLocalPort = portConfig["tcpServerLocalPort"].toInt();
-    // port init
-    // m_tcpServer->setMaxPendingConnections();
-    // tx/rx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    m_rxFormat = portConfig["rxFormat"].toString();
-    // connect slot
-    connect(m_tcpServer, &QTcpServer::newConnection, this, &TcpServer::handleNewConnection);
-    connect(m_tcpServer, &QTcpServer::acceptError, this, &TcpServer::handleServerError);
-}
-
-void TcpServer::reload(const QJsonObject &portConfig) {
-    // port config
-    m_tcpServerLocalAddress = portConfig["tcpServerLocalAddress"].toString();
-    m_tcpServerLocalPort = portConfig["tcpServerLocalPort"].toInt();
-    // tx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    // rx config
-    m_rxFormat = portConfig["rxFormat"].toString();
-}
-
-QHash<QString, QVariant> TcpServer::info() {
-    QString status;
-    if (m_tcpServer->isListening())
-        status = "listening";
-    else
-        status = "idle";
-    QString localAddress = m_tcpServerLocalAddress;
-    QString localPort = QString::number(m_tcpServerLocalPort);
-    QString message = QString("(%1) local ip: %2:%3 remote ip: [").arg(status, localAddress, localPort);
-    for (QTcpSocket *tcpServerPeer: m_tcpServerPeerList) {
-        QString peerIp = QString("%1:%2 ").arg(tcpServerPeer->peerAddress().toString(), QString::number(tcpServerPeer->peerPort()));
-        message.append(peerIp);
-    }
-    message.append("]");
-    return {};
-    // return message;
-}
-
-bool TcpServer::open() {
-    if (m_tcpServer->listen(QHostAddress(m_tcpServerLocalAddress), m_tcpServerLocalPort)) {
-        emit appendLog(QString("%1 %2:%3").arg("tcp server started on", m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort)), "info");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp server started on", m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort));
-        return true;
-    }
-    emit appendLog(QString("%1: %2").arg("tcp server open failed", m_tcpServer->errorString()), "error");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2: %3").arg(timestamp, "tcp server open failed", m_tcpServer->errorString());
-    return false;
-}
-
-void TcpServer::close() {
-    m_tcpServer->close();
-    for (QTcpSocket *tcpServerPeer: m_tcpServerPeerList) {
-        if (tcpServerPeer) {
-            tcpServerPeer->disconnectFromHost();
-            if (tcpServerPeer->state() != QAbstractSocket::UnconnectedState) {
-                tcpServerPeer->waitForDisconnected(1000);
-            }
-            tcpServerPeer->deleteLater();
-        }
-    }
-    m_tcpServerPeerList.clear();
-    emit appendLog("tcp server closed", "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "tcp server closed");
-}
-
-void TcpServer::writeText(const QString &txText) {
-    // tx text reformat
-    QString f_txText = txText;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
-}
-
-void TcpServer::writeText(const QString &txText, const QString &peerIp) {
-    // tx text reformat
-    QString f_txText = txText;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData, peerIp);
-}
-
-void TcpServer::writeData(const QByteArray &txData) {
-    // check port status
-    if (!m_tcpServer->isListening()) {
-        emit appendLog("tcp server is not opened", "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "tcp server is not opened");
-        return;
-    }
-    // tx data reformat
-    QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
-    // call handle write
-    handleWrite(f_txData);
-}
-
-void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
-    // check port status
-    if (!m_tcpServer->isListening()) {
-        emit appendLog("tcp server is not opened", "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "tcp server is not opened");
-        return;
-    }
-    // tx data reformat
-    QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
-    // call handle write
-    handleWrite(f_txData, peerIp);
-}
-
-QString TcpServer::readText(const int timeout, const int length, const QString &peerIp) {
-    const QByteArray rxData = readData(timeout, length, peerIp);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
-}
-
-QByteArray TcpServer::readData(const int timeout, const int length, const QString &peerIp) {
-    QByteArray rxData;
-    // async mode
-    if (timeout == 0) {
-        rxData = m_rxBuffer;
-    }
-    // sync mode
-    else {
-        foreach(QTcpSocket* tcpServerPeer, m_tcpServerPeerList) {
-            disconnect(tcpServerPeer, &QTcpSocket::readyRead, this, nullptr);
-            rxData = handleRead(timeout, length, tcpServerPeer);
-            connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
-        }
-    }
-    return rxData;
-}
-
-// TcpServer private
-void TcpServer::handleNewConnection() {
-    while (m_tcpServer->hasPendingConnections()) {
-        QTcpSocket *tcpServerPeer = m_tcpServer->nextPendingConnection();
-        handleConnected(tcpServerPeer);
-        connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
-        connect(tcpServerPeer, &QTcpSocket::disconnected, this, [this, tcpServerPeer] { handleDisconnected(tcpServerPeer); });
-        connect(tcpServerPeer, &QTcpSocket::errorOccurred, this, [this, tcpServerPeer](QAbstractSocket::SocketError error) { handleError(tcpServerPeer); });
-    }
-}
-
-void TcpServer::handleServerError() {
-};
-
-void TcpServer::handleConnected(QTcpSocket *tcpServerPeer) {
-    m_tcpServerPeerList.append(tcpServerPeer);
-    QString peerAddress = tcpServerPeer->peerAddress().toString();
-    QString peerPort = QString::number(tcpServerPeer->peerPort());
-    emit appendLog(QString("%1 %2:%3").arg("new client connected", peerAddress, peerPort), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "new client connected", peerAddress, peerPort);
-}
-
-void TcpServer::handleDisconnected(QTcpSocket *tcpServerPeer) {
-    m_tcpServerPeerList.removeOne(tcpServerPeer);
-    QString peerAddress = tcpServerPeer->peerAddress().toString();
-    QString peerPort = QString::number(tcpServerPeer->peerPort());
-    emit appendLog(QString("%1 %2:%3").arg("client disconnected", peerAddress, peerPort), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "client disconnected", peerAddress, peerPort);
-}
-
-void TcpServer::handleError(QTcpSocket *tcpServerPeer) {
-}
-
-void TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
-    if (peerIp == "") {
-        foreach(QTcpSocket* tcpServerPeer, m_tcpServerPeerList) {
-            tcpServerPeer->write(f_txData);
-        }
-        // tx message reformat
-        QString txMessage;
-        // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-        // 2: add port info
-        txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), "broadcast", txMessage);
-        emit appendLog(txMessage, "tx");
-    } else {
-        QTcpSocket *tcpServerPeer = nullptr;
-        foreach(QTcpSocket* peer, m_tcpServerPeerList) {
-            if (peerIp == QString("%1:%2").arg(peer->peerAddress().toString(), QString::number(peer->peerPort()))) {
-                tcpServerPeer = peer;
-                break;
-            }
-        }
-        if (tcpServerPeer == nullptr) {
-            emit appendLog("peer not found", "error");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "peer not found");
-            return;
-        }
-        tcpServerPeer->write(f_txData);
-        // tx message reformat
-        QString txMessage;
-        // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-        // 2: add port info
-        QString peerAddress = tcpServerPeer->peerAddress().toString();
-        QString peerPort = QString::number(tcpServerPeer->peerPort());
-        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress, peerPort, txMessage);
-        emit appendLog(txMessage, "tx");
-    }
-}
-
-QByteArray TcpServer::handleRead(const int timeout, const int length, QTcpSocket *tcpServerPeer) {
-    QByteArray rxData = tcpServerPeer->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (!tcpServerPeer->waitForReadyRead(10)) {
-                rxData += tcpServerPeer->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
-        }
-    }
-    m_rxBuffer = rxData;
-    // rx message reformat
-    QString peerAddress = tcpServerPeer->peerAddress().toString();
-    QString peerPort = QString::number(tcpServerPeer->peerPort());
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress,
-                                                      peerPort, rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
-}
-
-// UdpSocket public
-UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent) : BasePort(parent), m_udpSocket(new QUdpSocket(this)) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_udpSocketLocalAddress = portConfig["udpSocketLocalAddress"].toString();
-    m_udpSocketLocalPort = portConfig["udpSocketLocalPort"].toInt();
-    m_udpSocketRemoteAddress = portConfig["udpSocketRemoteAddress"].toString();
-    m_udpSocketRemotePort = portConfig["udpSocketRemotePort"].toInt();
-    // tx/rx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    m_rxFormat = portConfig["rxFormat"].toString();
-    // connect slot
-    connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
-    connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
-}
-
-void UdpSocket::reload(const QJsonObject &portConfig) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_udpSocketLocalAddress = portConfig["udpSocketLocalAddress"].toString();
-    m_udpSocketLocalPort = portConfig["udpSocketLocalPort"].toInt();
-    m_udpSocketRemoteAddress = portConfig["udpSocketRemoteAddress"].toString();
-    m_udpSocketRemotePort = portConfig["udpSocketRemotePort"].toInt();
-    // tx/rx config
-    m_txFormat = portConfig["txFormat"].toString();
-    m_txSuffix = portConfig["txSuffix"].toString();
-    m_rxFormat = portConfig["rxFormat"].toString();
-}
-
-QHash<QString, QVariant> UdpSocket::info() {
-    bool status;
-    if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
-        status = true;
-    else
-        status = false;
-    const QString localAddress = m_udpSocketLocalAddress;
-    const QString localPort = QString::number(m_udpSocketLocalPort);
-    const QString remoteAddress = m_udpSocketRemoteAddress;
-    const QString remotePort = QString::number(m_udpSocketRemotePort);
-
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["localAddress"] = localAddress;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteAddress"] = remoteAddress;
-    infoHash["remotePort"] = remotePort;
-    return infoHash;
-}
-
-bool UdpSocket::open() {
-    if (!m_udpSocket->bind(QHostAddress(m_udpSocketLocalAddress), m_udpSocketLocalPort)) {
-        emit appendLog(QString("udp socket open failed: %1").arg(m_udpSocket->errorString()), "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] udp socket open failed: %2").arg(timestamp, m_udpSocket->errorString());
-        return false;
-    }
-    m_udpSocket->connectToHost(m_udpSocketRemoteAddress, m_udpSocketRemotePort);
-    emit appendLog(QString("udp socket opened: %1:%2->%3:%4").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                                  QString::number(m_udpSocketRemotePort)), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] udp socket opened: %2:%3->%4:%5").arg(timestamp, m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                                    QString::number(m_udpSocketRemotePort));
-    return true;
-}
-
-void UdpSocket::close() {
-    m_udpSocket->close();
-}
-
-void UdpSocket::writeText(const QString &txText) {
-    // tx text reformat
-    QString f_txText = txText;
-    // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
-}
-
-void UdpSocket::writeData(const QByteArray &txData) {
-    // check port status
-    if (!m_udpSocket->isOpen()) {
-        emit appendLog("udp socket is not opened", "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
-        return;
-    }
-    // tx data reformat
-    QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
-    // call handle write
-    handleWrite(f_txData);
-}
-
-QString UdpSocket::readText(const int timeout, const int length) {
-    const QByteArray rxData = readData(timeout, length);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
-}
-
-QByteArray UdpSocket::readData(const int timeout, const int length) {
-    QByteArray rxData;
-    // async mode
-    if (timeout == 0) {
-        rxData = m_rxBuffer;
-    }
-    // sync mode
-    else {
-        disconnect(m_udpSocket, &QUdpSocket::readyRead, this, nullptr);
-        rxData = handleRead(timeout, length);
-        connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
-    }
-    return rxData;
-}
-
-// UdpSocket private
-void UdpSocket::handleError() {
-}
-
-void UdpSocket::handleWrite(const QByteArray &f_txData) {
-    m_udpSocket->write(f_txData);
-    // tx message reformat
-    QString txMessage;
-    // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-    // 2: add port info
-    txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                      QString::number(m_udpSocketRemotePort), txMessage);
-    emit appendLog(txMessage, "tx");
-}
-
-QByteArray UdpSocket::handleRead(const int timeout, const int length) {
-    QByteArray rxData = m_udpSocket->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (!m_udpSocket->waitForReadyRead(10)) {
-                rxData += m_udpSocket->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
-        }
-    }
-    m_rxBuffer = rxData;
-    // rx message reformat
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                      QString::number(m_udpSocketRemotePort), rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
-}
-
-// Screen public
-Screen::Screen(const QJsonObject &portConfig, QObject *parent)
-    : BasePort(parent),
-      m_portName(portConfig["portName"].toString()),
-      m_charset(portConfig["charset"].toString()),
-      m_process(portConfig["process"].toObject()),
-      m_areaList(portConfig["areaList"].toArray()) {
-}
-
-void Screen::reload(const QJsonObject &portConfig) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_charset = portConfig["charset"].toString();
-    m_process = portConfig["process"].toObject();
-    m_areaList = portConfig["areaList"].toArray();
-}
-
-bool Screen::open() {
-    m_showPreview = true;
-    return true;
-}
-
-void Screen::close() {
-    m_showPreview = false;
-}
-
-QHash<QString, QVariant> Screen::info() {
-    return {};
-}
-
-QString Screen::readText(const int timeout, const int length) {
-    // find screen
-    for (QScreen *s: QGuiApplication::screens()) {
-        if (s->name() == m_portName) {
-            m_screen = s;
-            break;
-        }
-    }
-    if (!m_screen) return "screen not found";
-    const auto shot = m_screen->grabWindow(0);
-    QList<QPixmap> pixmapList{};
-    QStringList resultList;
-    for (const QJsonValue &value: m_areaList) {
-        QJsonArray areaArray = value.toArray();
-        const int x = areaArray[0].toInt();
-        const int y = areaArray[1].toInt();
-        const int width = areaArray[2].toInt();
-        const int height = areaArray[3].toInt();
-        const auto rect = QRect(x, y, width, height);
-        const QPixmap cropped = shot.copy(rect);
-        QPixmap processed{};
-        const int processType = m_process["processType"].toInt();
-        if (processType == RAW) {
-            processed = cropped;
-        } else {
-            switch (processType) {
-                case GAUSSIANBLUR: {
-                    const int kernalSize = m_process["thresholdValue"].toInt();
-                    processed = processGaussianBlur(cropped, kernalSize);
-                    break;
-                }
-                case THRESHOLD: {
-                    const int thresholdValue = m_process["thresholdValue"].toInt();
-                    const int thresholdType = m_process["thresholdType"].toInt();
-                    processed = processThreshold(cropped, thresholdValue, thresholdType);
-                    break;
-                }
-                default: break;
-            }
-        }
-        if (m_showPreview) pixmapList.append(processed);
-        const QString text = ocr(processed, m_charset);
-        resultList.append(text);
-    }
-    emit showPreview(pixmapList);
-    return resultList.join("\x1E");
-}
-
-// Camera public
-Camera::Camera(const QJsonObject &portConfig, QObject *parent) : BasePort(parent) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_charset = portConfig["charset"].toString();
-    m_areaList = portConfig["areaList"].toArray();
-}
-
-void Camera::reload(const QJsonObject &portConfig) {
-    // port config
-    m_portName = portConfig["portName"].toString();
-    m_areaList = portConfig["areaList"].toArray();
-}
-
-bool Camera::open() {
-    return true;
-}
-
-void Camera::close() {
-}
-
-QHash<QString, QVariant> Camera::info() {
-    return {};
-}
-
-QString Camera::readText(const int timeout, const int length) {
-    // find camera
-    m_camera = QCameraDevice();
-    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
-        if (camera.description() == m_portName) {
-            m_camera = camera;
-            break;
-        }
-    }
-    if (m_camera.isNull())
-        return "camera not found";;
-    // take picture
-    QPixmap shot;
-    const auto camera = new QCamera(m_camera, this);
-    QMediaCaptureSession captureSession;
-    captureSession.setCamera(camera);
-    QImageCapture imageCapture;
-    captureSession.setImageCapture(&imageCapture);
-    QEventLoop loop;
-    connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](int, const QImage &img) {
-        shot = QPixmap::fromImage(img);
-        loop.quit();
-    });
-    camera->start();
-    imageCapture.capture();
-    loop.exec();
-    camera->stop();
-    delete camera;
-    QStringList resultList;
-    for (const QJsonValue &value: m_areaList) {
-        QJsonArray areaArray = value.toArray();
-        const int x = areaArray[0].toInt();
-        const int y = areaArray[1].toInt();
-        const int width = areaArray[2].toInt();
-        const int height = areaArray[3].toInt();
-        const auto rect = QRect(x, y, width, height);
-        const QPixmap cropped = shot.copy(rect);
-        const QString text = ocr(cropped, m_charset);
-        resultList.append(text);
-    }
-    return resultList.join("\x1E");
-}

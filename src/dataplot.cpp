@@ -1,4 +1,4 @@
-#include "../include/dataplot.h"
+#include "dataplot.h"
 
 // Dataplot public
 Dataplot::Dataplot(QWidget *parent)

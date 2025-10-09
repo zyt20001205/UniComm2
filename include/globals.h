@@ -55,4 +55,10 @@ enum {
     INDICATOR_HIGHLIGHT,
 };
 
+enum {
+    RAW,
+    GAUSSIANBLUR,
+    THRESHOLD,
+};
+
 #endif //GLOBALS_H

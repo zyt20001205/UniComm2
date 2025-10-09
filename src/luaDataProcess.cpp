@@ -1,9 +1,9 @@
-#include "../include/luaDataProcess.h"
+#include "luaDataProcess.h"
 
-#include "../include/database.h"
-#include "../include/datatable.h"
-#include "../include/dataplot.h"
-#include "../include/globals.h"
+#include "database.h"
+#include "datatable.h"
+#include "dataplot.h"
+#include "globals.h"
 
 int lua_databaseWrite(lua_State *L) {
     // check arguments

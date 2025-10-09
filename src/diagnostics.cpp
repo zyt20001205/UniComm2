@@ -1,4 +1,4 @@
-#include "../include/diagnostics.h"
+#include "diagnostics.h"
 
 // Diagnostics public
 Diagnostics::Diagnostics(QWidget *parent)

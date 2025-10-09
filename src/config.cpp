@@ -1,6 +1,6 @@
-#include "../include/config.h"
+#include "config.h"
 
-#include "../include/globals.h"
+#include "globals.h"
 
 // Config public
 Config::Config()

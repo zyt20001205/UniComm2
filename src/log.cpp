@@ -1,6 +1,6 @@
-#include "../include/log.h"
+#include "log.h"
 
-#include "../include/globals.h"
+#include "globals.h"
 // Log public
 Log::Log(QWidget *parent)
     : QDockWidget("log", parent),

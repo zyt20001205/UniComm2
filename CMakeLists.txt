@@ -6,6 +6,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(UNICOMM_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
 set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
@@ -140,6 +142,7 @@ target_link_libraries(UniComm PRIVATE
 )
 
 target_include_directories(UniComm PRIVATE
+        ${UNICOMM_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
         ${QSCINTILLA_INCLUDE_DIR}
         ${QCUSTOMPLOT_INCLUDE_DIR}

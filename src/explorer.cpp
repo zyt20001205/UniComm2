@@ -1,6 +1,6 @@
-#include "../include/explorer.h"
+#include "explorer.h"
 
-#include "../include/globals.h"
+#include "globals.h"
 
 // Explorer public
 Explorer::Explorer(QWidget *parent)

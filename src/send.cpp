@@ -1,7 +1,7 @@
-#include "../include/send.h"
+#include "send.h"
 
-#include "../include/globals.h"
-#include "../include/port.h"
+#include "globals.h"
+#include "port.h"
 
 // Send public
 Send::Send(QWidget *parent)

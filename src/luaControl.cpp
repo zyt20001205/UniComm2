@@ -1,4 +1,4 @@
-#include "../include/luaControl.h"
+#include "luaControl.h"
 
 int lua_leftClick(lua_State *L) {
     // check arguments

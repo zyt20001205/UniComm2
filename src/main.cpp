@@ -1,6 +1,6 @@
-#include "../include/mainWindow.h"
+#include "mainWindow.h"
 
-#include "../include/globals.h"
+#include "globals.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);

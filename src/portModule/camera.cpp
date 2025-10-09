@@ -1,0 +1,99 @@
+#include "portModule/camera.h"
+
+#include "globals.h"
+#include "utils.h"
+
+// Camera public
+Camera::Camera(const QJsonObject &portConfig, QObject *parent)
+    : BasePort(parent),
+      m_portName(portConfig["portName"].toString()),
+      m_charset(portConfig["charset"].toString()),
+      m_process(portConfig["process"].toObject()),
+      m_areaList(portConfig["areaList"].toArray()) {
+}
+
+void Camera::reload(const QJsonObject &portConfig) {
+    m_portName = portConfig["portName"].toString();
+    m_charset = portConfig["charset"].toString();
+    m_process = portConfig["process"].toObject();
+    m_areaList = portConfig["areaList"].toArray();
+}
+
+bool Camera::open() {
+    m_showPreview = true;
+    return true;
+}
+
+void Camera::close() {
+    m_showPreview = false;
+}
+
+QHash<QString, QVariant> Camera::info() {
+    return {};
+}
+
+QString Camera::readText(const int timeout, const int length) {
+    // find camera
+    m_camera = QCameraDevice();
+    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
+        if (camera.description() == m_portName) {
+            m_camera = camera;
+            break;
+        }
+    }
+    if (m_camera.isNull())
+        return "camera not found";;
+    // take picture
+    QPixmap shot;
+    const auto camera = new QCamera(m_camera, this);
+    QMediaCaptureSession captureSession;
+    captureSession.setCamera(camera);
+    QImageCapture imageCapture;
+    captureSession.setImageCapture(&imageCapture);
+    QEventLoop loop;
+    connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](int, const QImage &img) {
+        shot = QPixmap::fromImage(img);
+        loop.quit();
+    });
+    camera->start();
+    imageCapture.capture();
+    loop.exec();
+    camera->stop();
+    delete camera;
+    QList<QPixmap> pixmapList{};
+    QStringList resultList;
+    for (const QJsonValue &value: m_areaList) {
+        QJsonArray areaArray = value.toArray();
+        const int x = areaArray[0].toInt();
+        const int y = areaArray[1].toInt();
+        const int width = areaArray[2].toInt();
+        const int height = areaArray[3].toInt();
+        const auto rect = QRect(x, y, width, height);
+        const QPixmap cropped = shot.copy(rect);
+        QPixmap processed{};
+        const int processType = m_process["processType"].toInt();
+        if (processType == RAW) {
+            processed = cropped;
+        } else {
+            switch (processType) {
+                case GAUSSIANBLUR: {
+                    const int kernalSize = m_process["thresholdValue"].toInt();
+                    processed = processGaussianBlur(cropped, kernalSize);
+                    break;
+                }
+                case THRESHOLD: {
+                    const int thresholdValue = m_process["thresholdValue"].toInt();
+                    const int thresholdType = m_process["thresholdType"].toInt();
+                    processed = processThreshold(cropped, thresholdValue, thresholdType);
+                    break;
+                }
+                default: break;
+            }
+        }
+        if (m_showPreview) pixmapList.append(processed);
+        const QString text = ocr(processed, m_charset);
+        resultList.append(text);
+    }
+    emit showPreview(pixmapList);
+    return resultList.join("\x1E");
+}

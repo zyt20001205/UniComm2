@@ -50,12 +50,6 @@
 #include <QStackedWidget>
 #include <QStandardItemModel>
 
-enum {
-    RAW,
-    GAUSSIANBLUR,
-    THRESHOLD,
-};
-
 class AreaSelectDialog;
 
 class BasePort;
@@ -87,7 +81,7 @@ private:
 
     void portSwap(int srcIndex, int dstIndex);
 
-    void previewShow(const QList<QPixmap>& pixmapList) const;
+    void previewShow(const QList<QPixmap> &pixmapList) const;
 
     QJsonArray m_portConfig{};
     QTabWidget *m_tabWidget{};
@@ -222,8 +216,6 @@ private:
     QPixmap m_shot{};
     QPixmap m_pshot{};
     QRectF m_rectF;
-
-
 };
 
 class PageWidget final : public QWidget {

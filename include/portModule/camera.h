@@ -1,0 +1,43 @@
+#ifndef CAMERA_H
+#define CAMERA_H
+
+#include <QCamera>
+#include <QCameraDevice>
+#include <QEventLoop>
+#include <QImageCapture>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
+
+
+#include "portModule/basePort.h"
+
+class Camera final : public BasePort {
+    Q_OBJECT
+
+public:
+    explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
+
+    void reload(const QJsonObject &portConfig) override;
+
+    bool open() override;
+
+    void close() override;
+
+    QHash<QString, QVariant> info() override;
+
+    QString readText(int timeout, int length) override;
+
+private:
+    QCameraDevice m_camera{};
+    // port config
+    QString m_portName{};
+    QString m_charset{};
+    QJsonObject m_process{};
+    QJsonArray m_areaList{};
+    //
+    bool m_showPreview = false;
+};
+
+#endif //CAMERA_H

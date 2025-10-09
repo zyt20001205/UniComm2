@@ -1,8 +1,8 @@
-#include "../include/luaMiscellaneous.h"
+#include "luaMiscellaneous.h"
 
-#include "../include/globals.h"
-#include "../include/log.h"
-#include "../include/threadpool.h"
+#include "globals.h"
+#include "log.h"
+#include "threadpool.h"
 
 int lua_exec(lua_State *L) {
     // check arguments
