@@ -2,9 +2,10 @@
 #define UDPSOCKET_H
 
 #include <QJsonObject>
-#include <QUdpSocket>
 
 #include "basePort.h"
+
+class QUdpSocket;
 
 class UdpSocket final : public BasePort {
     Q_OBJECT

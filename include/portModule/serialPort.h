@@ -2,9 +2,10 @@
 #define SERIALPORT_H
 
 #include <QJsonObject>
-#include <QSerialPort>
 
 #include "basePort.h"
+
+class QSerialPort;
 
 class SerialPort final : public BasePort {
     Q_OBJECT

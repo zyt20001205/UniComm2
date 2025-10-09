@@ -3,10 +3,10 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QPixmap>
-#include <QScreen>
 
 #include "portModule/basePort.h"
+
+class QScreen;
 
 class Screen final : public BasePort {
     Q_OBJECT

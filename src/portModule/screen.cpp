@@ -1,5 +1,7 @@
 #include "portModule/screen.h"
 
+#include <QScreen>
+
 #include "globals.h"
 #include "utils.h"
 

@@ -1,5 +1,7 @@
 #include "portModule/udpSocket.h"
 
+#include <QUdpSocket>
+
 #include "suffix.h"
 
 // UdpSocket public

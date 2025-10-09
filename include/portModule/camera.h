@@ -1,15 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <QCamera>
 #include <QCameraDevice>
-#include <QEventLoop>
-#include <QImageCapture>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QMediaCaptureSession>
-#include <QMediaDevices>
-
 
 #include "portModule/basePort.h"
 

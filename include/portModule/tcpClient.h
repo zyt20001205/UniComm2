@@ -2,9 +2,10 @@
 #define TCPCLIENT_H
 
 #include <QJsonObject>
-#include <QTcpSocket>
 
 #include "basePort.h"
+
+class QTcpSocket;
 
 class TcpClient final : public BasePort {
     Q_OBJECT

@@ -1,5 +1,7 @@
 #include "portModule/serialPort.h"
 
+#include <QSerialPort>
+
 #include "suffix.h"
 
 // SerialPort public

@@ -1,5 +1,7 @@
 #include "portModule/tcpClient.h"
 
+#include <QTcpSocket>
+
 #include "suffix.h"
 
 // TcpClient public

@@ -1,5 +1,11 @@
 #include "portModule/camera.h"
 
+#include <QCamera>
+#include <QEventLoop>
+#include <QImageCapture>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
+
 #include "globals.h"
 #include "utils.h"
 
