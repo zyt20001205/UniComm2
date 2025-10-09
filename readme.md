@@ -44,8 +44,8 @@ flowchart LR
         tcpClient[TcpClient]
         tcpServer[TcpServer]
         udpSocket[UdpSocket]
-        screen[screen]
-        camera[camera]
+        screen[Screen]
+        camera[Camera]
     end
 
     basePort[BasePort]
