@@ -51,13 +51,17 @@ flowchart LR
     basePort[BasePort]
 
     subgraph Lua Basic API
-        portOpen[port.open]
-        portClose[port.close]
-        portInfo[port.info]
-        portReadData[port.readData]
-        portWriteData[port.writeData]
-        portReadText[port.readText]
-        portWriteText[port.writeText]
+        subgraph Control
+            portOpen[port.open]
+            portClose[port.close]
+            portInfo[port.info]
+        end
+        subgraph IO
+            portReadData[port.readData]
+            portWriteData[port.writeData]
+            portReadText[port.readText]
+            portWriteText[port.writeText]
+        end
     end
 
     subgraph Lua Service API
