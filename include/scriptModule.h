@@ -33,7 +33,7 @@ public:
 
     void indicatorShow(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-    void markerShow(const QUrl &scriptUrl,int type, int line = -1, int time = -1) const;
+    void markerShow(const QUrl &scriptUrl, int type, int line = -1, int time = -1) const;
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
@@ -82,11 +82,8 @@ private:
 };
 
 class TooltipCompletion;
-
 class TooltipHover;
-
 class TooltipPosition;
-
 class TooltipSignatureHelp;
 
 class ScriptPage final : public QWidget {
