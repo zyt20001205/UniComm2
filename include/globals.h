@@ -12,7 +12,7 @@ class Dataplot;
 class Debug;
 class Log;
 class PortModule;
-class Script;
+class ScriptModule;
 class Threadpool;
 class UndoModule;
 
@@ -23,7 +23,7 @@ extern Dataplot *g_dataplot;
 extern Debug *g_debug;
 extern Log *g_log;
 extern PortModule *g_port;
-extern Script *g_script;
+extern ScriptModule *g_script;
 extern Threadpool *g_threadpool;
 extern UndoModule *g_undo;
 
@@ -40,6 +40,12 @@ enum {
     UDPSOCKET,
     SCREEN,
     CAMERA
+};
+
+enum {
+    THREAD_RUN,
+    THREAD_DEBUG,
+    THREAD_STOP
 };
 
 enum {

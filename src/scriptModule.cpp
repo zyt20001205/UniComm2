@@ -1,17 +1,24 @@
-#include "script.h"
+#include "scriptModule.h"
 
-#include <QEvent>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QShortcut>
+#include <QSplitter>
+#include <QTableWidget>
+#include <QTextBrowser>
 
 #include "config.h"
 #include "globals.h"
-#include "suffix.h"
+#include "luaControl.h"
 #include "utils.h"
 #include "portModule/portModule.h"
 
-// Script public
-Script::Script(QWidget *parent)
+// ScriptModule public
+ScriptModule::ScriptModule(QWidget *parent)
     : QWidget(parent),
       m_scriptConfig(g_config["scriptConfig"].toObject()),
       m_scriptTabWidget(new QTabWidget()) {
@@ -41,8 +48,8 @@ Script::Script(QWidget *parent)
             scriptOpen(scriptUrl);
         }
     }
-    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &Script::scriptClose);
-    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &Script::scriptSwap);
+    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &ScriptModule::scriptClose);
+    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &ScriptModule::scriptSwap);
     m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
 
     // script widget -> ctrl widget
@@ -84,12 +91,12 @@ Script::Script(QWidget *parent)
     }
 }
 
-void Script::workspaceOpen(const QUrl &rootUrl) {
+void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
     m_diagnosticsHash.clear();
 }
 
-void Script::scriptConfigSave() {
+void ScriptModule::scriptConfigSave() {
     // save script
     for (const ScriptPage *scriptPage: m_scriptPageHash) {
         if (scriptPage) {
@@ -115,7 +122,7 @@ void Script::scriptConfigSave() {
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
-void Script::scriptOpen(const QUrl &scriptUrl) {
+void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     // remove welcome page if exists
     if (m_scriptTabWidget->tabText(0) == "welcome") {
         m_scriptTabWidget->removeTab(0);
@@ -127,10 +134,10 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
         scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         m_scriptPageHash[scriptUrl] = scriptPage;
         connect(scriptPage, &ScriptPage::modifyScript, this, [this, scriptPage] { scriptModify(m_scriptTabWidget->indexOf(scriptPage)); });
-        connect(scriptPage, &ScriptPage::insertBreakpoint, this, &Script::insertBreakpoint);
-        connect(scriptPage, &ScriptPage::removeBreakpoint, this, &Script::removeBreakpoint);
-        connect(scriptPage, &ScriptPage::requestJson, this, &Script::requestJson);
-        connect(scriptPage, &ScriptPage::notificationJson, this, &Script::notificationJson);
+        connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
+        connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
+        connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
+        connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         m_scriptTabWidget->addTab(scriptPage, scriptUrl.fileName());
         scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
         // append to list
@@ -143,12 +150,12 @@ void Script::scriptOpen(const QUrl &scriptUrl) {
     qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptUrl.toString(), "opened");
 }
 
-void Script::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
+void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
 }
 
-void Script::cursorPositionGet() const {
+void ScriptModule::cursorPositionGet() const {
     if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
         const QUrl scriptUrl = scriptPage->m_scriptUrl;
         int line, index;
@@ -161,7 +168,7 @@ void Script::cursorPositionGet() const {
     }
 }
 
-void Script::indicatorShow(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
+void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
     QTimer::singleShot(time, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
@@ -169,7 +176,7 @@ void Script::indicatorShow(const QUrl &scriptUrl, const int startLine, const int
     });
 }
 
-void Script::markerShow(const QUrl &scriptUrl, const int type, const int line, const int time) const {
+void ScriptModule::markerShow(const QUrl &scriptUrl, const int type, const int line, const int time) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     if (line == -1) {
         scriptPage->m_scriptEditor->markerDeleteAll(type);
@@ -182,46 +189,46 @@ void Script::markerShow(const QUrl &scriptUrl, const int type, const int line, c
     });
 }
 
-void Script::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
+void ScriptModule::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
     if (m_scriptPageHash.contains(scriptUrl)) {
         m_scriptPageHash[scriptUrl]->diagnosticsReturn(diagnosticsArray);
     }
 }
 
-void Script::completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const {
+void ScriptModule::completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const {
     m_scriptPageHash[scriptUrl]->completionReturn(items);
 }
 
-void Script::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {
+void ScriptModule::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {
     m_scriptPageHash[scriptUrl]->foldingRangeReturn(result);
 }
 
-void Script::formattingReturn(const QUrl &scriptUrl, const QString &newText) const {
+void ScriptModule::formattingReturn(const QUrl &scriptUrl, const QString &newText) const {
     m_scriptPageHash[scriptUrl]->formattingReturn(newText);
 }
 
-void Script::hoverReturn(const QUrl &scriptUrl, const QString &message) const {
+void ScriptModule::hoverReturn(const QUrl &scriptUrl, const QString &message) const {
     m_scriptPageHash[scriptUrl]->hoverReturn(message);
 }
 
-void Script::semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const {
+void ScriptModule::semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const {
     m_scriptPageHash[scriptUrl]->semanticTokensReturn(data);
 }
 
-void Script::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const {
+void ScriptModule::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const {
     m_scriptPageHash[scriptUrl]->signatureHelpReturn(signature);
 }
 
-// Script private
-void Script::scriptModify(const int index) const {
+// ScriptModule private
+void ScriptModule::scriptModify(const int index) const {
     QString tabName = m_scriptTabWidget->tabText(index);
     if (!tabName.endsWith("*")) {
         m_scriptTabWidget->setTabText(index, tabName + "*");
     }
 }
 
-void Script::scriptClose(const int index) {
+void ScriptModule::scriptClose(const int index) {
     // find page
     if (auto *scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index))) {
         // remove hash & list
@@ -245,7 +252,7 @@ void Script::scriptClose(const int index) {
     m_scriptTabWidget->removeTab(index);
 }
 
-void Script::scriptSwap(const int srcIndex, const int dstIndex) {
+void ScriptModule::scriptSwap(const int srcIndex, const int dstIndex) {
     const QUrl tmp = m_scriptList.takeAt(srcIndex);
     m_scriptList.insert(dstIndex, tmp);
     // qDebug() << m_scriptList;
@@ -863,7 +870,9 @@ void TooltipCompletion::moveDown() {
 }
 
 // TooltipHover public
-TooltipHover::TooltipHover(QWidget *parent) : QWidget(parent), m_textBrowser(new QTextBrowser(this)) {
+TooltipHover::TooltipHover(QWidget *parent)
+    : QWidget(parent),
+      m_textBrowser(new QTextBrowser(this)) {
     setWindowFlags(Qt::ToolTip);
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
@@ -898,7 +907,10 @@ void TooltipHover::hideTooltip() {
 }
 
 // TooltipPosition public
-TooltipPosition::TooltipPosition(QWidget *parent) : QWidget(parent), m_label(new QLabel(this)), m_timer(new QTimer(this)) {
+TooltipPosition::TooltipPosition(QWidget *parent)
+    : QWidget(parent),
+      m_timer(new QTimer(this)),
+      m_label(new QLabel(this)) {
     qApp->installEventFilter(this);
     setWindowFlags(Qt::Popup);
     auto *layout = new QVBoxLayout(this); //NOLINT

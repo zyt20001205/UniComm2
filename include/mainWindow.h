@@ -25,7 +25,7 @@ class Log;
 class Diagnostics;
 class Debug;
 class Threadpool;
-class Script;
+class ScriptModule;
 
 class MainWindow final : public QMainWindow {
     Q_OBJECT
@@ -75,7 +75,7 @@ private:
     Diagnostics *m_diagnosticsModule{};
     Debug *m_debugModule{};
     Threadpool *m_threadpoolModule{};
-    Script *m_scriptModule{};
+    ScriptModule *m_scriptModule{};
 
     QAction *m_viewPort{};
     QAction *m_viewExplorer{};

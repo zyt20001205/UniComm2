@@ -46,12 +46,6 @@ private:
     QTableWidget *m_threadpoolTableWidget{};
     QHash<int, QColor> m_threadpoolColor{};
     QHash<QString, QThread *> m_threadHash{};
-
-    enum {
-        THREAD_RUN,
-        THREAD_DEBUG,
-        THREAD_STOP
-    };
 };
 
 #endif //UNICOMM_THREADPOOL_H

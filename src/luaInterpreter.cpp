@@ -8,7 +8,7 @@
 #include "luaModbus.h"
 #include "globals.h"
 #include "log.h"
-#include "script.h"
+#include "scriptModule.h"
 #include "utils.h"
 
 // LuaInterpreter public

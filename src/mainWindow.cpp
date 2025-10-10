@@ -11,7 +11,7 @@
 #include "log.h"
 #include "luaLanguageServer.h"
 #include "portModule/portModule.h"
-#include "script.h"
+#include "scriptModule.h"
 #include "SendModule.h"
 #include "threadpool.h"
 #include "undoModule.h"
@@ -210,44 +210,44 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "threadpool module initialized");
 
-    m_scriptModule = new Script();
+    m_scriptModule = new ScriptModule();
     this->setCentralWidget(m_scriptModule);
 
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
-    connect(this, &MainWindow::openWorkspace, m_scriptModule, &Script::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_scriptModule, &ScriptModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_explorerModule, &Explorer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &Threadpool::workspaceOpen);
-    connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &Script::diagnosticsReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &Diagnostics::diagnosticsReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &Script::completionReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &Script::foldingRangeReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnFormatting, m_scriptModule, &Script::formattingReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnHover, m_scriptModule, &Script::hoverReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &Script::semanticTokensReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &Script::signatureHelpReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &ScriptModule::completionReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &ScriptModule::foldingRangeReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnFormatting, m_scriptModule, &ScriptModule::formattingReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnHover, m_scriptModule, &ScriptModule::hoverReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpReturn);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &Log::logAppend);
     connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
-    connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &Script::scriptOpen);
+    connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_explorerModule, &Explorer::debugScript, m_threadpoolModule, &Threadpool::threadDebug);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
     connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
     connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
-    connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &Script::scriptOpen);
-    connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &Script::cursorPositionSet);
-    connect(m_diagnosticsModule, &Diagnostics::showIndicator, m_scriptModule, &Script::indicatorShow);
-    connect(m_debugModule, &Debug::openScript, m_scriptModule, &Script::scriptOpen);
-    connect(m_debugModule, &Debug::showMarker, m_scriptModule, &Script::markerShow);
+    connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &ScriptModule::cursorPositionSet);
+    connect(m_diagnosticsModule, &Diagnostics::showIndicator, m_scriptModule, &ScriptModule::indicatorShow);
+    connect(m_debugModule, &Debug::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_debugModule, &Debug::showMarker, m_scriptModule, &ScriptModule::markerShow);
     connect(m_threadpoolModule, &Threadpool::startDebug, m_debugModule, &Debug::debugStart);
-    connect(m_scriptModule, &Script::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
-    connect(m_scriptModule, &Script::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
-    connect(m_scriptModule, &Script::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &Script::openWorkspace, this, &MainWindow::workspaceInit);
-    connect(m_scriptModule, &Script::insertBreakpoint, m_debugModule, &Debug::breakpointInsert);
-    connect(m_scriptModule, &Script::removeBreakpoint, m_debugModule, &Debug::breakpointRemove);
-    connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);
-    connect(m_scriptModule, &Script::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
+    connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
+    connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
+    connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &Log::logAppend);
+    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceInit);
+    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &Debug::breakpointInsert);
+    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &Debug::breakpointRemove);
+    connect(m_scriptModule, &ScriptModule::runThread, m_threadpoolModule, &Threadpool::threadRun);
+    connect(m_scriptModule, &ScriptModule::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
 
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;

@@ -7,7 +7,7 @@ Dataplot *g_dataplot = nullptr;
 Debug *g_debug = nullptr;
 Log *g_log = nullptr;
 PortModule *g_port = nullptr;
-Script *g_script = nullptr;
+ScriptModule *g_script = nullptr;
 Threadpool *g_threadpool = nullptr;
 UndoModule *g_undo = nullptr;
 

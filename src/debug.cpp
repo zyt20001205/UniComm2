@@ -2,7 +2,7 @@
 
 #include "globals.h"
 #include "luaInterpreter.h"
-#include "script.h"
+#include "scriptModule.h"
 
 // Debug public
 Debug::Debug(QWidget *parent)

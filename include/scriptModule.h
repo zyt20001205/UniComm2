@@ -1,47 +1,25 @@
 #ifndef UNICOMM_SCRIPT_H
 #define UNICOMM_SCRIPT_H
 
-#include <QDockWidget>
-#include <QDialog>
-#include <QHBoxLayout>
-#include <QInputDialog>
 #include <QJsonObject>
-#include <QLabel>
-#include <QListWidget>
-#include <QMessageBox>
-#include <QProgressBar>
-#include <QPushButton>
-#include <Qsci/qsciscintilla.h>
-#include <QShortcut>
-#include <QSplitter>
-#include <QStandardItem>
-#include <QStandardItemModel>
-#include <QStyledItemDelegate>
-#include <QTableWidget>
-#include <QTextBrowser>
-#include <QThread>
-#include <QVBoxLayout>
-#include <QWidget>
-#include <QPointer>
-#include <windows.h>
 
-class PortModule;
+#include "Qsci/qsciscintilla.h"
+
+class QLabel;
+class QTableWidget;
+class QTabWidget;
+class QTextBrowser;
 
 class ScriptPage;
-
 class ScriptEditor;
 
-class LuaInterpreter;
-
-class ScriptExplorer;
-
-class Script final : public QWidget {
+class ScriptModule final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Script(QWidget *parent = nullptr);
+    explicit ScriptModule(QWidget *parent = nullptr);
 
-    ~Script() override = default;
+    ~ScriptModule() override = default;
 
     void workspaceOpen(const QUrl &rootUrl);
 
@@ -101,12 +79,6 @@ private:
     QTabWidget *m_scriptTabWidget{};
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
-
-    // ui related
-    enum {
-        THREAD_RUN,
-        THREAD_DEBUG
-    };
 };
 
 class TooltipCompletion;
