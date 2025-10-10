@@ -11,7 +11,7 @@
 #include "log.h"
 #include "luaRelated/luaLanguageServer.h"
 #include "portModule/portModule.h"
-#include "scriptModule.h"
+#include "../include/scriptModule/scriptModule.h"
 #include "SendModule.h"
 #include "threadpool.h"
 #include "undoModule.h"

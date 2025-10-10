@@ -66,7 +66,7 @@ qt_add_executable(UniComm src/main.cpp
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
         include/sendModule.h
-        include/scriptModule.h
+        include/scriptModule/scriptModule.h
         include/suffix.h
         include/threadpool.h
         include/undoModule.h
@@ -100,7 +100,7 @@ qt_add_executable(UniComm src/main.cpp
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
         src/sendModule.cpp
-        src/scriptModule.cpp
+        src/scriptModule/scriptModule.cpp
         src/suffix.cpp
         src/threadpool.cpp
         src/undoModule.cpp
