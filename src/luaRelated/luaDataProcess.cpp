@@ -1,8 +1,8 @@
 #include "luaRelated/luaDataProcess.h"
 
-#include "database.h"
-#include "datatableModule.h"
-#include "dataplot.h"
+#include "dataModule/databaseModule.h"
+#include "dataModule/datatableModule.h"
+#include "dataModule/dataplotModule.h"
 #include "globals.h"
 
 int lua_databaseWrite(lua_State *L) {

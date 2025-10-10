@@ -2,22 +2,17 @@
 #define UNICOMM_DATABASE_H
 
 #include <QDockWidget>
-#include <QEvent>
-#include <QHeaderView>
-#include <QInputDialog>
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QKeyEvent>
-#include <QMenu>
-#include <QTableWidget>
 
-class Database final : public QDockWidget {
+class QTableWidget;
+
+class DatabaseModule final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Database(QWidget *parent = nullptr);
+    explicit DatabaseModule(QWidget *parent = nullptr);
 
-    ~Database() override = default;
+    ~DatabaseModule() override = default;
 
     void databaseConfigSave() const;
 

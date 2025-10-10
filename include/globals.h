@@ -6,9 +6,9 @@
 #include <QUrl>
 #include <QVariantMap>
 
-class Database;
+class DatabaseModule;
 class DatatableModule;
-class Dataplot;
+class DataplotModule;
 class Debug;
 class Log;
 class PortModule;
@@ -17,9 +17,9 @@ class Threadpool;
 class UndoModule;
 
 extern QMainWindow *g_mainWindow;
-extern Database *g_database;
+extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
-extern Dataplot *g_dataplot;
+extern DataplotModule *g_dataplot;
 extern Debug *g_debug;
 extern Log *g_log;
 extern PortModule *g_port;

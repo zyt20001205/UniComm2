@@ -1,7 +1,9 @@
-#include "dataplot.h"
+#include "dataModule/dataplotModule.h"
 
-// Dataplot public
-Dataplot::Dataplot(QWidget *parent)
+#include "qcustomplot.h"
+
+// DataplotModule public
+DataplotModule::DataplotModule(QWidget *parent)
     : QWidget(parent),
       m_plot(new QCustomPlot()),
       m_leftLegend(new QCPLegend()),
@@ -34,12 +36,12 @@ Dataplot::Dataplot(QWidget *parent)
     insetLayout->addElement(m_rightLegend, Qt::AlignTop | Qt::AlignRight);
 }
 
-void Dataplot::dataplotAppend(const QString &key, const int position) {
+void DataplotModule::dataplotAppend(const QString &key, const int position) {
     this->show();
     emit addGraphDatatable(key, position);
 }
 
-void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y, const int position) {
+void DataplotModule::dataplotAddGraph(const QString &key, const QList<double> &x, const QList<double> &y, const int position) {
     if (!m_indexHash.contains(key)) {
         // find available index
         int i = 0;
@@ -69,10 +71,10 @@ void Dataplot::dataplotAddGraph(const QString &key, const QList<double> &x, cons
     qDebug() << m_indexHash;
 }
 
-void Dataplot::dataplotAddPoint(const QString &key, const double x, const double y) {
+void DataplotModule::dataplotAddPoint(const QString &key, const double x, const double y) {
     m_plot->graph(m_indexHash[key])->addData(x, y);
     m_plot->rescaleAxes();
     m_plot->replot();
 }
 
-// Dataplot private
+// DataplotModule private

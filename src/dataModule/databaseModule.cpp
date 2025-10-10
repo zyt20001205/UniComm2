@@ -1,9 +1,15 @@
-#include "database.h"
+#include "dataModule/databaseModule.h"
+
+#include <QContextMenuEvent>
+#include <QHeaderView>
+#include <QInputDialog>
+#include <QMenu>
+#include <QTableWidget>
 
 #include "globals.h"
 
-// Database public
-Database::Database(QWidget *parent)
+// DatabaseModule public
+DatabaseModule::DatabaseModule(QWidget *parent)
     : QDockWidget("database", parent),
       m_databaseConfig(g_config["databaseConfig"].toArray()),
       m_tableWidget(new QTableWidget()) {
@@ -30,11 +36,11 @@ Database::Database(QWidget *parent)
     m_tableWidget->installEventFilter(this);
 }
 
-void Database::databaseConfigSave() const {
+void DatabaseModule::databaseConfigSave() const {
     g_config["databaseConfig"] = m_databaseConfig;
 }
 
-void Database::databaseWrite(const QString &key, const QString &value) const {
+void DatabaseModule::databaseWrite(const QString &key, const QString &value) const {
     for (int index = 0; index < m_tableWidget->rowCount(); index++) {
         if (m_tableWidget->verticalHeaderItem(index)->text() == key) {
             m_tableWidget->item(index, 0)->setText(value);
@@ -44,14 +50,14 @@ void Database::databaseWrite(const QString &key, const QString &value) const {
     qDebug() << "key not found in database";
 }
 
-void Database::databaseClear() const {
+void DatabaseModule::databaseClear() const {
     for (int index = 0; index < m_tableWidget->rowCount(); index++) {
         m_tableWidget->item(index, 0)->setText("");
     }
 }
 
-// Database protected
-void Database::contextMenuEvent(QContextMenuEvent *event) {
+// DatabaseModule protected
+void DatabaseModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint globalPos = event->globalPos();
     const auto *header = m_tableWidget->verticalHeader();
     const QPoint headerPos = header->mapFromGlobal(globalPos);
@@ -85,7 +91,7 @@ void Database::contextMenuEvent(QContextMenuEvent *event) {
     }
 }
 
-bool Database::eventFilter(QObject *obj, QEvent *event) {
+bool DatabaseModule::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Insert: {
@@ -117,8 +123,8 @@ bool Database::eventFilter(QObject *obj, QEvent *event) {
     return QDockWidget::eventFilter(obj, event);
 }
 
-// Database private
-void Database::databaseRename(const int visualIndex) {
+// DatabaseModule private
+void DatabaseModule::databaseRename(const int visualIndex) {
     const int logicalIndex = m_tableWidget->verticalHeader()->logicalIndex(visualIndex);
     const QString oldKey = m_tableWidget->verticalHeaderItem(logicalIndex)->text();
     // gui
@@ -131,7 +137,7 @@ void Database::databaseRename(const int visualIndex) {
     qDebug() << m_databaseConfig;
 }
 
-void Database::databaseInsert(const int visualIndex) {
+void DatabaseModule::databaseInsert(const int visualIndex) {
     m_databaseConfig.insert(visualIndex, "");
     m_tableWidget->insertRow(visualIndex);
     m_tableWidget->setVerticalHeaderItem(visualIndex, new QTableWidgetItem(""));
@@ -139,7 +145,7 @@ void Database::databaseInsert(const int visualIndex) {
     qDebug() << m_databaseConfig;
 }
 
-void Database::databaseRemove(const int visualIndex) {
+void DatabaseModule::databaseRemove(const int visualIndex) {
     const int logicalIndex = m_tableWidget->verticalHeader()->logicalIndex(visualIndex);
     m_tableWidget->removeRow(logicalIndex);
     m_databaseConfig.removeAt(visualIndex);

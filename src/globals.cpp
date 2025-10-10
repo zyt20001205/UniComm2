@@ -1,9 +1,9 @@
 #include "globals.h"
 
 QMainWindow *g_mainWindow = nullptr;
-Database *g_database = nullptr;
+DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
-Dataplot *g_dataplot = nullptr;
+DataplotModule *g_dataplot = nullptr;
 Debug *g_debug = nullptr;
 Log *g_log = nullptr;
 PortModule *g_port = nullptr;

@@ -39,9 +39,9 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg PrintSupport SerialPor
 qt_add_executable(UniComm src/main.cpp
         include/mainWindow.h
         include/config.h
-        include/database.h
-        include/dataplot.h
-        include/datatableModule.h
+        include/dataModule/databaseModule.h
+        include/dataModule/dataplotModule.h
+        include/dataModule/datatableModule.h
         include/debug.h
         include/diagnostics.h
         include/explorer.h
@@ -73,9 +73,9 @@ qt_add_executable(UniComm src/main.cpp
         include/utils.h
         src/mainWindow.cpp
         src/config.cpp
-        src/database.cpp
-        src/dataplot.cpp
-        src/datatableModule.cpp
+        src/dataModule/databaseModule.cpp
+        src/dataModule/dataplotModule.cpp
+        src/dataModule/datatableModule.cpp
         src/debug.cpp
         src/diagnostics.cpp
         src/explorer.cpp

@@ -1,9 +1,9 @@
 #include "mainWindow.h"
 
 #include "config.h"
-#include "database.h"
-#include "dataplot.h"
-#include "datatableModule.h"
+#include "../include/dataModule/databaseModule.h"
+#include "../include/dataModule/dataplotModule.h"
+#include "../include/dataModule/datatableModule.h"
 #include "debug.h"
 #include "diagnostics.h"
 #include "explorer.h"
@@ -153,7 +153,7 @@ void MainWindow::moduleInit() {
     this->tabifyDockWidget(m_explorerModule, m_sendModule);
     m_explorerModule->raise();
 
-    m_databaseModule = new Database();
+    m_databaseModule = new DatabaseModule();
     this->addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
     m_databaseModule->setObjectName("databaseModule");
     connect(m_databaseModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDatabase->setChecked(visible); });
@@ -169,7 +169,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
 
-    m_dataplotModule = new Dataplot(this);
+    m_dataplotModule = new DataplotModule(this);
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
@@ -231,9 +231,9 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_explorerModule, &Explorer::debugScript, m_threadpoolModule, &Threadpool::threadDebug);
-    connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &Dataplot::dataplotAddGraph);
-    connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &Dataplot::dataplotAddPoint);
-    connect(m_dataplotModule, &Dataplot::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
+    connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
+    connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
+    connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
     connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &ScriptModule::cursorPositionSet);
     connect(m_diagnosticsModule, &Diagnostics::showIndicator, m_scriptModule, &ScriptModule::indicatorShow);

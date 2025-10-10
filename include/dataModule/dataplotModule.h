@@ -1,17 +1,18 @@
 #ifndef UNICOMM_DATAPLOT_H
 #define UNICOMM_DATAPLOT_H
 
-#include "qcustomplot.h"
-#include <QHBoxLayout>
 #include <QWidget>
 
-class Dataplot final : public QWidget {
+class QCPLegend;
+class QCustomPlot;
+
+class DataplotModule final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Dataplot(QWidget *parent = nullptr);
+    explicit DataplotModule(QWidget *parent = nullptr);
 
-    ~Dataplot() override = default;
+    ~DataplotModule() override = default;
 
     void dataplotAppend(const QString &key, int position);
 
