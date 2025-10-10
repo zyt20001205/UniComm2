@@ -1,4 +1,4 @@
-#include "luaModbus.h"
+#include "luaRelated/luaModbus.h"
 
 #include "globals.h"
 #include "suffix.h"

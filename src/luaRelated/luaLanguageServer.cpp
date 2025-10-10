@@ -1,4 +1,4 @@
-#include "luaLanguageServer.h"
+#include "luaRelated/luaLanguageServer.h"
 
 #include "globals.h"
 

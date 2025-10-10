@@ -47,13 +47,13 @@ qt_add_executable(UniComm src/main.cpp
         include/explorer.h
         include/globals.h
         include/log.h
-        include/luaControl.h
-        include/luaDataProcess.h
-        include/luaInterpreter.h
-        include/luaLanguageServer.h
-        include/luaPort.h
-        include/luaMiscellaneous.h
-        include/luaModbus.h
+        include/luaRelated/luaControl.h
+        include/luaRelated/luaDataProcess.h
+        include/luaRelated/luaInterpreter.h
+        include/luaRelated/luaLanguageServer.h
+        include/luaRelated/luaPort.h
+        include/luaRelated/luaMiscellaneous.h
+        include/luaRelated/luaModbus.h
         include/portModule/areaSelection.h
         include/portModule/basePort.h
         include/portModule/camera.h
@@ -81,13 +81,13 @@ qt_add_executable(UniComm src/main.cpp
         src/explorer.cpp
         src/globals.cpp
         src/log.cpp
-        src/luaControl.cpp
-        src/luaDataProcess.cpp
-        src/luaInterpreter.cpp
-        src/luaLanguageServer.cpp
-        src/luaPort.cpp
-        src/luaMiscellaneous.cpp
-        src/luaModbus.cpp
+        src/luaRelated/luaControl.cpp
+        src/luaRelated/luaDataProcess.cpp
+        src/luaRelated/luaInterpreter.cpp
+        src/luaRelated/luaLanguageServer.cpp
+        src/luaRelated/luaPort.cpp
+        src/luaRelated/luaMiscellaneous.cpp
+        src/luaRelated/luaModbus.cpp
         src/portModule/areaSelection.cpp
         src/portModule/basePort.cpp
         src/portModule/camera.cpp

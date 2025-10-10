@@ -1,7 +1,7 @@
 #include "threadpool.h"
 
 #include "globals.h"
-#include "luaInterpreter.h"
+#include "luaRelated/luaInterpreter.h"
 
 // Threadpool public
 Threadpool::Threadpool(QWidget *parent)

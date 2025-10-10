@@ -1,7 +1,7 @@
 #include "debug.h"
 
 #include "globals.h"
-#include "luaInterpreter.h"
+#include "luaRelated/luaInterpreter.h"
 #include "scriptModule.h"
 
 // Debug public

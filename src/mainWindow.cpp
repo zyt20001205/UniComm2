@@ -9,7 +9,7 @@
 #include "explorer.h"
 #include "globals.h"
 #include "log.h"
-#include "luaLanguageServer.h"
+#include "luaRelated/luaLanguageServer.h"
 #include "portModule/portModule.h"
 #include "scriptModule.h"
 #include "SendModule.h"
