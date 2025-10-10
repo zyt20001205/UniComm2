@@ -1,10 +1,14 @@
 #include "script.h"
 
+#include <QEvent>
+#include <QHeaderView>
+#include <QKeyEvent>
+
 #include "config.h"
 #include "globals.h"
-#include "port.h"
 #include "suffix.h"
 #include "utils.h"
+#include "portModule/portModule.h"
 
 // Script public
 Script::Script(QWidget *parent)

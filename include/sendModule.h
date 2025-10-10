@@ -1,5 +1,5 @@
-#ifndef UNICOMM_SEND_H
-#define UNICOMM_SEND_H
+#ifndef UNICOMM_SENDMODULE_H
+#define UNICOMM_SENDMODULE_H
 
 #include <QDockWidget>
 #include <QEvent>
@@ -17,17 +17,15 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-class Port;
+class PortModule;
 
-class Send final : public QDockWidget {
+class SendModule final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Send(QWidget *parent = nullptr);
+    explicit SendModule(QWidget *parent = nullptr);
 
-    ~Send() override = default;
-
-    void setPort(Port *port) { m_port = port; }
+    ~SendModule() override = default;
 
     void sendConfigSave() const;
 
@@ -46,9 +44,9 @@ private:
     void shortcutRemove(int visualIndex);
 
     QJsonArray m_sendConfig{};
-    Port *m_port{};
+    PortModule *m_port{};
     QLineEdit *m_lineEdit{};
     QTableWidget *m_tableWidget{};
 };
 
-#endif //UNICOMM_SEND_H
+#endif //UNICOMM_SENDMODULE_H

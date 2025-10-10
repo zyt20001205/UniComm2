@@ -10,9 +10,9 @@
 #include "globals.h"
 #include "log.h"
 #include "luaLanguageServer.h"
-#include "port.h"
+#include "portModule/portModule.h"
 #include "script.h"
-#include "send.h"
+#include "SendModule.h"
 #include "threadpool.h"
 #include "utils.h"
 
@@ -120,7 +120,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
 
-    m_portModule = new Port();
+    m_portModule = new PortModule();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
     m_portModule->setObjectName("portModule");
     connect(m_portModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewPort->setChecked(visible); });
@@ -136,7 +136,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "explorer module initialized");
 
-    m_sendModule = new Send();
+    m_sendModule = new SendModule();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_sendModule);
     m_sendModule->setObjectName("sendModule");
     connect(m_sendModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewSend->setChecked(visible); });
@@ -220,7 +220,7 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnHover, m_scriptModule, &Script::hoverReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &Script::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &Script::signatureHelpReturn);
-    connect(m_portModule, &Port::appendLog, m_logModule, &Log::logAppend);
+    connect(m_portModule, &PortModule::appendLog, m_logModule, &Log::logAppend);
     connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
     connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &Script::scriptOpen);
     connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
@@ -243,7 +243,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_scriptModule, &Script::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
 
-    m_sendModule->setPort(m_portModule);
     g_script = m_scriptModule;
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;

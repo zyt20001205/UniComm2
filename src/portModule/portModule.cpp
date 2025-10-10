@@ -51,11 +51,11 @@ PortModule::PortModule(QWidget *parent)
     auto *overlayLayout = new QVBoxLayout(m_portTabOverlay); // NOLINT
     overlayLayout->setAlignment(Qt::AlignCenter);
     overlayLayout->setContentsMargins(0, 0, 0, 0);
-    auto *overlayLabel = new QLabel(tr("No Active Debug Session")); // NOLINT
+    auto *overlayLabel = new QLabel(tr("WIP")); // NOLINT
     overlayLayout->addWidget(overlayLabel);
     overlayLabel->setFont(QFont("Consolas", 12, QFont::Bold));
     overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
-    overlayShow();
+    if (m_portTabWidget->count() == 0) overlayShow();
 
     QTimer::singleShot(0, this, [this] { overlayResize(); });
 }
@@ -167,7 +167,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            qDebug() << QString("[%1] tcp client loaded").arg(timestamp);
             break;
         }
         case TCPSERVER: {
@@ -175,7 +175,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            qDebug() << QString("[%1] tcp server loaded").arg(timestamp);
             break;
         }
         case UDPSOCKET: {
@@ -183,7 +183,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            qDebug() << QString("[%1] udp socket loaded").arg(timestamp);
             break;
         }
         case SCREEN: {
@@ -191,7 +191,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
             // connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            qDebug() << QString("[%1] screen loaded").arg(timestamp);
             break;
         }
         case CAMERA: {
@@ -199,7 +199,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
             // connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            qDebug() << QString("[%1] camera loaded").arg(timestamp);
             break;
         }
         default: {

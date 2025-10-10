@@ -7,8 +7,7 @@
 
 // TcpServer public
 TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent)
-    : BasePort(parent)
-      , m_tcpServer(new QTcpServer(this)),
+    : BasePort(parent),
       m_portName(portConfig["portName"].toString()),
       m_tcpServerLocalAddress(portConfig["tcpServerLocalAddress"].toString()),
       m_tcpServerLocalPort(portConfig["tcpServerLocalPort"].toInt()),
@@ -47,6 +46,7 @@ QHash<QString, QVariant> TcpServer::info() {
 
 bool TcpServer::open() {
     // port init
+    if (m_tcpServer == nullptr) m_tcpServer = new QTcpServer(this);
     // m_tcpServer->setMaxPendingConnections();
     // open port
     if (m_tcpServer->listen(QHostAddress(m_tcpServerLocalAddress), m_tcpServerLocalPort)) {

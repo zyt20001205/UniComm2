@@ -6,8 +6,7 @@
 
 // UdpSocket public
 UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)
-    : BasePort(parent)
-      , m_udpSocket(new QUdpSocket(this)),
+    : BasePort(parent),
       m_portName(portConfig["portName"].toString()),
       m_udpSocketLocalAddress(portConfig["udpSocketLocalAddress"].toString()),
       m_udpSocketLocalPort(portConfig["udpSocketLocalPort"].toInt()),
@@ -52,6 +51,9 @@ QHash<QString, QVariant> UdpSocket::info() {
 }
 
 bool UdpSocket::open() {
+    // port init
+    if (m_udpSocket == nullptr) m_udpSocket = new QUdpSocket(this);
+    // open port
     if (!m_udpSocket->bind(QHostAddress(m_udpSocketLocalAddress), m_udpSocketLocalPort)) {
         emit appendLog(QString("udp socket open failed: %1").arg(m_udpSocket->errorString()), "error");
         // logging

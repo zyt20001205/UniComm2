@@ -6,7 +6,7 @@ DatatableModule *g_datatable = nullptr;
 Dataplot *g_dataplot = nullptr;
 Debug *g_debug = nullptr;
 Log *g_log = nullptr;
-Port *g_port = nullptr;
+PortModule *g_port = nullptr;
 Script *g_script = nullptr;
 Threadpool *g_threadpool = nullptr;
 

@@ -7,7 +7,6 @@
 // SerialPort public
 SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_serialPort(new QSerialPort(this)),
       m_portName(portConfig["portName"].toString()),
       m_baudRate(portConfig["baudRate"].toInt()),
       m_dataBits(portConfig["dataBits"].toInt()),
@@ -73,6 +72,7 @@ QHash<QString, QVariant> SerialPort::info() {
 
 bool SerialPort::open() {
     // port init
+    if (m_serialPort == nullptr) m_serialPort = new QSerialPort(this);
     m_serialPort->setPortName(m_portName);
     m_serialPort->setBaudRate(m_baudRate);
     m_serialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_dataBits));

@@ -14,9 +14,9 @@
 
 class Config;
 class LuaLanguageServer;
-class Port;
+class PortModule;
 class Explorer;
-class Send;
+class SendModule;
 class Database;
 class DatatableModule;
 class Dataplot;
@@ -63,9 +63,9 @@ private:
 
     Config *m_configModule{};
     LuaLanguageServer *m_llsModule{};
-    Port *m_portModule{};
+    PortModule *m_portModule{};
     Explorer *m_explorerModule{};
-    Send *m_sendModule{};
+    SendModule *m_sendModule{};
     Database *m_databaseModule{};
     DatatableModule *m_datatableModule{};
     Dataplot *m_dataplotModule{};

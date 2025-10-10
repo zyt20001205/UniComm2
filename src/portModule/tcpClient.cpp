@@ -7,7 +7,6 @@
 // TcpClient public
 TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_tcpClient(new QTcpSocket(this)),
       m_portName(portConfig["portName"].toString()),
       m_tcpClientRemoteAddress(portConfig["tcpClientRemoteAddress"].toString()),
       m_tcpClientRemotePort(portConfig["tcpClientRemotePort"].toInt()),
@@ -61,6 +60,7 @@ QHash<QString, QVariant> TcpClient::info() {
 
 bool TcpClient::open() {
     // port init
+    if (m_tcpClient == nullptr) m_tcpClient = new QTcpSocket(this);
     m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     // open port

@@ -25,7 +25,7 @@
 #include <QPointer>
 #include <windows.h>
 
-class Port;
+class PortModule;
 
 class ScriptPage;
 

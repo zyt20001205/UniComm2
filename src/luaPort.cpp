@@ -2,7 +2,8 @@
 
 #include "globals.h"
 #include "log.h"
-#include "port.h"
+#include "portModule/basePort.h"
+#include "portModule/portModule.h"
 
 int lua_portOpen(lua_State *L) {
     // check arguments

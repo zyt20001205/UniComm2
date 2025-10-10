@@ -11,7 +11,7 @@ class DatatableModule;
 class Dataplot;
 class Debug;
 class Log;
-class Port;
+class PortModule;
 class Script;
 class Threadpool;
 
@@ -21,7 +21,7 @@ extern DatatableModule *g_datatable;
 extern Dataplot *g_dataplot;
 extern Debug *g_debug;
 extern Log *g_log;
-extern Port *g_port;
+extern PortModule *g_port;
 extern Script *g_script;
 extern Threadpool *g_threadpool;
 
