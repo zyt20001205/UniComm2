@@ -1,5 +1,5 @@
-#ifndef LUACONTROL_H
-#define LUACONTROL_H
+#ifndef UNICOMM_LUACONTROL_H
+#define UNICOMM_LUACONTROL_H
 
 #include <QThread>
 #include <lua.hpp>
@@ -15,4 +15,4 @@ int lua_rightDoubleClick(lua_State *L);
 
 int lua_keyPress(lua_State *L);
 
-#endif //LUACONTROL_H
+#endif //UNICOMM_LUACONTROL_H

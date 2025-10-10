@@ -1,5 +1,5 @@
-#ifndef SCRIPT_H
-#define SCRIPT_H
+#ifndef UNICOMM_SCRIPT_H
+#define UNICOMM_SCRIPT_H
 
 #include <QDockWidget>
 #include <QDialog>
@@ -376,4 +376,4 @@ private:
     QHash<QChar, QChar> m_autoPairHash{};
 };
 
-#endif //SCRIPT_H
+#endif //UNICOMM_SCRIPT_H

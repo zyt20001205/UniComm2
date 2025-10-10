@@ -1,5 +1,5 @@
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef UNICOMM_DEBUG_H
+#define UNICOMM_DEBUG_H
 
 #include <QComboBox>
 #include <QDockWidget>
@@ -105,4 +105,4 @@ private:
     QTableView *m_callTableView{};
 };
 
-#endif //DEBUG_H
+#endif //UNICOMM_DEBUG_H

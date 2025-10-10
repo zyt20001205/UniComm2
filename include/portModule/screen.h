@@ -1,5 +1,5 @@
-#ifndef SCREEN_H
-#define SCREEN_H
+#ifndef UNICOMM_SCREEN_H
+#define UNICOMM_SCREEN_H
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -35,4 +35,4 @@ private:
     bool m_showPreview = false;
 };
 
-#endif //SCREEN_H
+#endif //UNICOMM_SCREEN_H

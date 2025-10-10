@@ -1,5 +1,5 @@
-#ifndef EXPLORER_H
-#define EXPLORER_H
+#ifndef UNICOMM_EXPLORER_H
+#define UNICOMM_EXPLORER_H
 
 #include <QContextMenuEvent>
 #include <QDockWidget>
@@ -53,4 +53,4 @@ private:
     QFileSystemModel *m_model{};
 };
 
-#endif //EXPLORER_H
+#endif //UNICOMM_EXPLORER_H

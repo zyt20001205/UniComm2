@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef UNICOMM_UTILS_H
+#define UNICOMM_UTILS_H
 
 #include <QCryptographicHash>
 #include <QDebug>
@@ -23,4 +23,4 @@ QPixmap processGaussianBlur(const QPixmap &pixmap, int size);
 
 QPixmap processThreshold(const QPixmap &pixmap, int thresh, int type);
 
-#endif //UTILS_H
+#endif //UNICOMM_UTILS_H

@@ -1,5 +1,5 @@
-#ifndef LUAMISCELLANEOUS_H
-#define LUAMISCELLANEOUS_H
+#ifndef UNICOMM_LUAMISCELLANEOUS_H
+#define UNICOMM_LUAMISCELLANEOUS_H
 
 #include <QApplication>
 #include <QString>
@@ -21,4 +21,4 @@ int lua_sleep(lua_State *L);
 
 int lua_speak(lua_State *L);
 
-#endif //LUAMISCELLANEOUS_H
+#endif //UNICOMM_LUAMISCELLANEOUS_H

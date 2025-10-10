@@ -1,5 +1,5 @@
-#ifndef DATABASE_H
-#define DATABASE_H
+#ifndef UNICOMM_DATABASE_H
+#define UNICOMM_DATABASE_H
 
 #include <QDockWidget>
 #include <QEvent>
@@ -41,4 +41,4 @@ private:
     QTableWidget *m_tableWidget{};
 };
 
-#endif //DATABASE_H
+#endif //UNICOMM_DATABASE_H

@@ -1,5 +1,5 @@
-#ifndef UDPSOCKET_H
-#define UDPSOCKET_H
+#ifndef UNICOMM_UDPSOCKET_H
+#define UNICOMM_UDPSOCKET_H
 
 #include <QJsonObject>
 
@@ -59,4 +59,4 @@ private:
     QByteArray m_rxBuffer{};
 };
 
-#endif //UDPSOCKET_H
+#endif //UNICOMM_UDPSOCKET_H

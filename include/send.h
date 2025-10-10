@@ -1,5 +1,5 @@
-#ifndef SEND_H
-#define SEND_H
+#ifndef UNICOMM_SEND_H
+#define UNICOMM_SEND_H
 
 #include <QDockWidget>
 #include <QEvent>
@@ -51,4 +51,4 @@ private:
     QTableWidget *m_tableWidget{};
 };
 
-#endif //SEND_H
+#endif //UNICOMM_SEND_H

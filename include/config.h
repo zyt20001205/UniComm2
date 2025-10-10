@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef UNICOMM_CONFIG_H
+#define UNICOMM_CONFIG_H
 
 #include <QDebug>
 #include <QDir>
@@ -23,4 +23,4 @@ private:
     QFile m_configFile{};
 };
 
-#endif //CONFIG_H
+#endif //UNICOMM_CONFIG_H

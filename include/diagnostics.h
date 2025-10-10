@@ -1,5 +1,5 @@
-#ifndef DIAGNOSTICS_H
-#define DIAGNOSTICS_H
+#ifndef UNICOMM_DIAGNOSTICS_H
+#define UNICOMM_DIAGNOSTICS_H
 
 #include <QDockWidget>
 #include <QHeaderView>
@@ -45,4 +45,4 @@ private:
     };
 };
 
-#endif //DIAGNOSTICS_H
+#endif //UNICOMM_DIAGNOSTICS_H

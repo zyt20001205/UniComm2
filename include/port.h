@@ -1,5 +1,5 @@
-#ifndef PORT_H
-#define PORT_H
+#ifndef UNICOMM_PORT_H
+#define UNICOMM_PORT_H
 
 #include <QApplication>
 #include <QButtonGroup>
@@ -572,4 +572,4 @@ private:
     QJsonArray m_areaList;
 };
 
-#endif //PORT_H
+#endif //UNICOMM_PORT_H

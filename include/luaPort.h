@@ -1,5 +1,5 @@
-#ifndef LUAPORT_H
-#define LUAPORT_H
+#ifndef UNICOMM_LUAPORT_H
+#define UNICOMM_LUAPORT_H
 
 #include <lua.hpp>
 
@@ -17,4 +17,4 @@ int lua_portReadText(lua_State *L);
 
 int lua_portReadData(lua_State *L);
 
-#endif //LUAPORT_H
+#endif //UNICOMM_LUAPORT_H

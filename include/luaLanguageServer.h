@@ -1,5 +1,5 @@
-#ifndef LUALANGUAGESERVER_H
-#define LUALANGUAGESERVER_H
+#ifndef UNICOMM_LUALANGUAGESERVER_H
+#define UNICOMM_LUALANGUAGESERVER_H
 
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -55,4 +55,4 @@ private:
     QHash<int, QUrl> m_urls{};
 };
 
-#endif //LUALANGUAGESERVER_H
+#endif //UNICOMM_LUALANGUAGESERVER_H

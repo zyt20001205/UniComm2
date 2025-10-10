@@ -1,5 +1,5 @@
-#ifndef LUADATAPROCESS_H
-#define LUADATAPROCESS_H
+#ifndef UNICOMM_LUADATAPROCESS_H
+#define UNICOMM_LUADATAPROCESS_H
 
 #include <lua.hpp>
 
@@ -15,4 +15,4 @@ int lua_datatableExport(lua_State *L);
 
 int lua_dataplotAppend(lua_State *L);
 
-#endif //LUADATAPROCESS_H
+#endif //UNICOMM_LUADATAPROCESS_H

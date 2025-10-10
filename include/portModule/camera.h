@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef UNICOMM_CAMERA_H
+#define UNICOMM_CAMERA_H
 
 #include <QCameraDevice>
 #include <QJsonArray>
@@ -34,4 +34,4 @@ private:
     bool m_showPreview = false;
 };
 
-#endif //CAMERA_H
+#endif //UNICOMM_CAMERA_H

@@ -1,5 +1,5 @@
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#ifndef UNICOMM_GLOBALS_H
+#define UNICOMM_GLOBALS_H
 
 #include <QJsonObject>
 #include <QMainWindow>
@@ -61,4 +61,4 @@ enum {
     THRESHOLD,
 };
 
-#endif //GLOBALS_H
+#endif //UNICOMM_GLOBALS_H

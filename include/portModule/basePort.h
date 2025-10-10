@@ -1,5 +1,5 @@
-#ifndef BASEPORT_H
-#define BASEPORT_H
+#ifndef UNICOMM_BASEPORT_H
+#define UNICOMM_BASEPORT_H
 
 #include <QObject>
 
@@ -52,4 +52,4 @@ signals:
     void showPreview(QList<QPixmap> pixmapList);
 };
 
-#endif //BASEPORT_H
+#endif //UNICOMM_BASEPORT_H

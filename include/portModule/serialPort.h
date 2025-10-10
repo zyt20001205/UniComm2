@@ -1,5 +1,5 @@
-#ifndef SERIALPORT_H
-#define SERIALPORT_H
+#ifndef UNICOMM_SERIALPORT_H
+#define UNICOMM_SERIALPORT_H
 
 #include <QJsonObject>
 
@@ -59,4 +59,4 @@ private:
     QByteArray m_rxBuffer{};
 };
 
-#endif //SERIALPORT_H
+#endif //UNICOMM_SERIALPORT_H

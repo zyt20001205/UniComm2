@@ -1,5 +1,5 @@
-#ifndef DATAPLOT_H
-#define DATAPLOT_H
+#ifndef UNICOMM_DATAPLOT_H
+#define UNICOMM_DATAPLOT_H
 
 #include "qcustomplot.h"
 #include <QHBoxLayout>
@@ -31,4 +31,4 @@ private:
     QList<QColor> m_plotColor={};
 };
 
-#endif //DATAPLOT_H
+#endif //UNICOMM_DATAPLOT_H

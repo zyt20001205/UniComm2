@@ -1,5 +1,5 @@
-#ifndef THREADPOOL_H
-#define THREADPOOL_H
+#ifndef UNICOMM_THREADPOOL_H
+#define UNICOMM_THREADPOOL_H
 
 #include <QDockWidget>
 #include <QDir>
@@ -54,4 +54,4 @@ private:
     };
 };
 
-#endif //THREADPOOL_H
+#endif //UNICOMM_THREADPOOL_H

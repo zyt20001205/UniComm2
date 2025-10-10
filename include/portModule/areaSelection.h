@@ -1,5 +1,5 @@
-#ifndef AREASELECTION_H
-#define AREASELECTION_H
+#ifndef UNICOMM_AREASELECTION_H
+#define UNICOMM_AREASELECTION_H
 
 #include <QDialog>
 
@@ -13,13 +13,13 @@ class QSlider;
 class QStackedWidget;
 class QStandardItemModel;
 
-class AreaSelect final : public QDialog {
+class AreaSelection final : public QDialog {
     Q_OBJECT
 
 public:
-    explicit AreaSelect(QWidget *parent = nullptr);
+    explicit AreaSelection(QWidget *parent = nullptr);
 
-    ~AreaSelect() override = default;
+    ~AreaSelection() override = default;
 
     void reload(const QJsonObject &config);
 
@@ -80,4 +80,4 @@ private:
     QRectF m_rectF{};
 };
 
-#endif //AREASELECTION_H
+#endif //UNICOMM_AREASELECTION_H

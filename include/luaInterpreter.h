@@ -1,5 +1,5 @@
-#ifndef LUAINTERPRETER_H
-#define LUAINTERPRETER_H
+#ifndef UNICOMM_LUAINTERPRETER_H
+#define UNICOMM_LUAINTERPRETER_H
 
 #include <QObject>
 #include <QSharedPointer>
@@ -42,4 +42,4 @@ private:
     QSharedPointer<DebugData> m_debugData{};
 };
 
-#endif //LUAINTERPRETER_H
+#endif //UNICOMM_LUAINTERPRETER_H

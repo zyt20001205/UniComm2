@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef UNICOMM_MAINWINDOW_H
+#define UNICOMM_MAINWINDOW_H
 
 #include <QApplication>
 #include <QDateTime>
@@ -87,4 +87,4 @@ private:
     QAction *m_viewThreadpool{};
 };
 
-#endif //MAINWINDOW_H
+#endif //UNICOMM_MAINWINDOW_H

@@ -1,5 +1,5 @@
-#ifndef DATATABLE_H
-#define DATATABLE_H
+#ifndef UNICOMM_DATATABLE_H
+#define UNICOMM_DATATABLE_H
 
 #include <QDockWidget>
 #include <QJsonArray>
@@ -54,4 +54,4 @@ private:
     QHash<QString, DataMap> m_data{};
 };
 
-#endif //DATATABLE_H
+#endif //UNICOMM_DATATABLE_H

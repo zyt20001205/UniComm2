@@ -1,5 +1,5 @@
-#ifndef TCPCLIENT_H
-#define TCPCLIENT_H
+#ifndef UNICOMM_TCPCLIENT_H
+#define UNICOMM_TCPCLIENT_H
 
 #include <QJsonObject>
 
@@ -63,4 +63,4 @@ private:
     QByteArray m_rxBuffer{};
 };
 
-#endif //TCPCLIENT_H
+#endif //UNICOMM_TCPCLIENT_H

@@ -1,5 +1,5 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef UNICOMM_LOG_H
+#define UNICOMM_LOG_H
 
 #include <QDockWidget>
 #include <QFileDialog>
@@ -36,4 +36,4 @@ private:
     QTextEdit *m_textEdit{};
 };
 
-#endif //LOG_H
+#endif //UNICOMM_LOG_H

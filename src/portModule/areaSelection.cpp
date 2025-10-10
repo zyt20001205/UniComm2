@@ -23,8 +23,8 @@
 #include "globals.h"
 #include "utils.h"
 
-// AreaSelect public
-AreaSelect::AreaSelect(QWidget *parent)
+// AreaSelection public
+AreaSelection::AreaSelection(QWidget *parent)
     : QDialog(parent) {
     this->setFixedSize(1280, 720);
     auto *layout = new QHBoxLayout(this); // NOLINT
@@ -293,7 +293,7 @@ AreaSelect::AreaSelect(QWidget *parent)
     splitter->setStretchFactor(1, 1);
 }
 
-void AreaSelect::captureRequest(const QString &type, const QString &target) {
+void AreaSelection::captureRequest(const QString &type, const QString &target) {
     m_type = type;
     m_target = target;
     if (m_type == "screen") {
@@ -340,7 +340,7 @@ void AreaSelect::captureRequest(const QString &type, const QString &target) {
     processRequest();
 }
 
-void AreaSelect::reload(const QJsonObject &config) {
+void AreaSelection::reload(const QJsonObject &config) {
     // load dpr
     m_dpr = config["dpr"].toDouble();
     // load charset string (WIP)
@@ -389,15 +389,15 @@ void AreaSelect::reload(const QJsonObject &config) {
     }
 }
 
-double AreaSelect::dprExport() const {
+double AreaSelection::dprExport() const {
     return m_dpr;
 }
 
-QString AreaSelect::charsetExport() const {
+QString AreaSelection::charsetExport() const {
     return m_charsetString;
 }
 
-QJsonObject AreaSelect::processExport() const {
+QJsonObject AreaSelection::processExport() const {
     QJsonObject process;
     process["processType"] = m_processType;
     switch (m_processType) {
@@ -416,7 +416,7 @@ QJsonObject AreaSelect::processExport() const {
     return process;
 }
 
-QJsonArray AreaSelect::areaExport() const {
+QJsonArray AreaSelection::areaExport() const {
     QJsonArray areaList;
     for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
         const QStandardItem *item = m_selectionModel->item(row);
@@ -427,8 +427,8 @@ QJsonArray AreaSelect::areaExport() const {
     return areaList;
 }
 
-// AreaSelect protected
-bool AreaSelect::eventFilter(QObject *obj, QEvent *event) {
+// AreaSelection protected
+bool AreaSelection::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_selectionListView && event->type() == QEvent::KeyPress) {
         switch (static_cast<QKeyEvent *>(event)->key()) {
             case Qt::Key_Delete: {
@@ -443,8 +443,8 @@ bool AreaSelect::eventFilter(QObject *obj, QEvent *event) {
     return QDialog::eventFilter(obj, event);
 }
 
-// AreaSelect private
-void AreaSelect::processRequest() {
+// AreaSelection private
+void AreaSelection::processRequest() {
     if (m_shot.isNull()) {
         return;
     }
@@ -467,7 +467,7 @@ void AreaSelect::processRequest() {
     selectionRequest();
 }
 
-void AreaSelect::selectionRequest() const {
+void AreaSelection::selectionRequest() const {
     m_graphicsScene->clear();
     m_graphicsScene->addPixmap(m_pshot);
     for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
@@ -486,7 +486,7 @@ void AreaSelect::selectionRequest() const {
     ocrRequest();
 }
 
-void AreaSelect::ocrRequest() const {
+void AreaSelection::ocrRequest() const {
     for (int row = 0; row < m_selectionModel->rowCount(); ++row) {
         QStandardItem *item = m_selectionModel->item(row);
         const auto physicalRect = item->data(Qt::UserRole + 2).value<QRectF>().toRect();
@@ -497,7 +497,7 @@ void AreaSelect::ocrRequest() const {
     }
 }
 
-void AreaSelect::charsetRequest() {
+void AreaSelection::charsetRequest() {
     QStringList charsetList;
     for (int row = 0; row < m_charsetModel->rowCount(); ++row) {
         const QStandardItem *item = m_charsetModel->item(row);

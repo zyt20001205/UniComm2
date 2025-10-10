@@ -1,5 +1,5 @@
-#ifndef SUFFIX_H
-#define SUFFIX_H
+#ifndef UNICOMM_SUFFIX_H
+#define UNICOMM_SUFFIX_H
 
 #include <QByteArray>
 #include <QString>
@@ -10,4 +10,4 @@ QByteArray modbusCRC(const QByteArray& data);
 
 QString modbusLRC(const QString& text);
 
-#endif //SUFFIX_H
+#endif //UNICOMM_SUFFIX_H

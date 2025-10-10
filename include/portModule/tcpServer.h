@@ -1,5 +1,5 @@
-#ifndef TCPSERVER_H
-#define TCPSERVER_H
+#ifndef UNICOMM_TCPSERVER_H
+#define UNICOMM_TCPSERVER_H
 
 #include <QJsonObject>
 
@@ -73,4 +73,4 @@ private:
     QByteArray m_rxBuffer;
 };
 
-#endif //TCPSERVER_H
+#endif //UNICOMM_TCPSERVER_H
