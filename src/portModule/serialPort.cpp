@@ -15,8 +15,6 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
       m_txFormat(portConfig["txFormat"].toString()),
       m_txSuffix(portConfig["txSuffix"].toString()),
       m_rxFormat(portConfig["rxFormat"].toString()) {
-    connect(m_serialPort, &QSerialPort::readyRead, this, [this] { handleRead(0, 0); });
-    connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
 }
 
 void SerialPort::reload(const QJsonObject &portConfig) {
@@ -72,7 +70,11 @@ QHash<QString, QVariant> SerialPort::info() {
 
 bool SerialPort::open() {
     // port init
-    if (m_serialPort == nullptr) m_serialPort = new QSerialPort(this);
+    if (m_serialPort == nullptr) {
+        m_serialPort = new QSerialPort(this);
+        connect(m_serialPort, &QSerialPort::readyRead, this, [this] { handleRead(0, 0); });
+        connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
+    }
     m_serialPort->setPortName(m_portName);
     m_serialPort->setBaudRate(m_baudRate);
     m_serialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_dataBits));
@@ -95,6 +97,7 @@ bool SerialPort::open() {
 
 void SerialPort::close() {
     // close port
+    if (m_serialPort == nullptr) return;
     m_serialPort->close();
     emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "closed"), "info");
     // logging
@@ -117,7 +120,7 @@ void SerialPort::writeText(const QString &txText) {
 
 void SerialPort::writeData(const QByteArray &txData) {
     // check port status
-    if (!m_serialPort->isOpen()) {
+    if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
         emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

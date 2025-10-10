@@ -14,8 +14,6 @@ TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent)
       m_txFormat(portConfig["txFormat"].toString()),
       m_txSuffix(portConfig["txSuffix"].toString()),
       m_rxFormat(portConfig["rxFormat"].toString()) {
-    connect(m_tcpServer, &QTcpServer::newConnection, this, &TcpServer::handleNewConnection);
-    connect(m_tcpServer, &QTcpServer::acceptError, this, &TcpServer::handleServerError);
 }
 
 void TcpServer::reload(const QJsonObject &portConfig) {
@@ -46,7 +44,11 @@ QHash<QString, QVariant> TcpServer::info() {
 
 bool TcpServer::open() {
     // port init
-    if (m_tcpServer == nullptr) m_tcpServer = new QTcpServer(this);
+    if (m_tcpServer == nullptr) {
+        m_tcpServer = new QTcpServer(this);
+        connect(m_tcpServer, &QTcpServer::newConnection, this, &TcpServer::handleNewConnection);
+        connect(m_tcpServer, &QTcpServer::acceptError, this, &TcpServer::handleServerError);
+    }
     // m_tcpServer->setMaxPendingConnections();
     // open port
     if (m_tcpServer->listen(QHostAddress(m_tcpServerLocalAddress), m_tcpServerLocalPort)) {
@@ -64,6 +66,7 @@ bool TcpServer::open() {
 }
 
 void TcpServer::close() {
+    if (m_tcpServer == nullptr) return;
     m_tcpServer->close();
     for (QTcpSocket *tcpServerPeer: m_tcpServerPeerList) {
         if (tcpServerPeer) {
@@ -109,7 +112,7 @@ void TcpServer::writeText(const QString &txText, const QString &peerIp) {
 
 void TcpServer::writeData(const QByteArray &txData) {
     // check port status
-    if (!m_tcpServer->isListening()) {
+    if (m_tcpServer == nullptr || !m_tcpServer->isListening()) {
         emit appendLog("tcp server is not opened", "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -129,7 +132,7 @@ void TcpServer::writeData(const QByteArray &txData) {
 
 void TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
     // check port status
-    if (!m_tcpServer->isListening()) {
+    if (m_tcpServer == nullptr || !m_tcpServer->isListening()) {
         emit appendLog("tcp server is not opened", "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

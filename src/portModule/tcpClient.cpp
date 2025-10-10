@@ -13,10 +13,6 @@ TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)
       m_txFormat(portConfig["txFormat"].toString()),
       m_txSuffix(portConfig["txSuffix"].toString()),
       m_rxFormat(portConfig["rxFormat"].toString()) {
-    connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
-    connect(m_tcpClient, &QTcpSocket::disconnected, this, &TcpClient::handleDisconnected);
-    connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] { handleRead(0, 0); });
-    connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
 }
 
 void TcpClient::reload(const QJsonObject &portConfig) {
@@ -60,7 +56,13 @@ QHash<QString, QVariant> TcpClient::info() {
 
 bool TcpClient::open() {
     // port init
-    if (m_tcpClient == nullptr) m_tcpClient = new QTcpSocket(this);
+    if (m_tcpClient == nullptr) {
+        m_tcpClient = new QTcpSocket(this);
+        connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
+        connect(m_tcpClient, &QTcpSocket::disconnected, this, &TcpClient::handleDisconnected);
+        connect(m_tcpClient, &QTcpSocket::readyRead, this, [this] { handleRead(0, 0); });
+        connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
+    }
     m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     // open port
@@ -69,6 +71,7 @@ bool TcpClient::open() {
 }
 
 void TcpClient::close() {
+    if (m_tcpClient == nullptr) return;
     m_tcpClient->disconnectFromHost();
 }
 
@@ -87,7 +90,7 @@ void TcpClient::writeText(const QString &txText) {
 
 void TcpClient::writeData(const QByteArray &txData) {
     // check port status
-    if (!m_tcpClient->isOpen()) {
+    if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
         emit appendLog("tcp client is not opened", "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

@@ -15,8 +15,6 @@ UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)
       m_txFormat(portConfig["txFormat"].toString()),
       m_txSuffix(portConfig["txSuffix"].toString()),
       m_rxFormat(portConfig["rxFormat"].toString()) {
-    connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
-    connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
 }
 
 void UdpSocket::reload(const QJsonObject &portConfig) {
@@ -52,7 +50,11 @@ QHash<QString, QVariant> UdpSocket::info() {
 
 bool UdpSocket::open() {
     // port init
-    if (m_udpSocket == nullptr) m_udpSocket = new QUdpSocket(this);
+    if (m_udpSocket == nullptr) {
+        m_udpSocket = new QUdpSocket(this);
+        connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
+        connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
+    }
     // open port
     if (!m_udpSocket->bind(QHostAddress(m_udpSocketLocalAddress), m_udpSocketLocalPort)) {
         emit appendLog(QString("udp socket open failed: %1").arg(m_udpSocket->errorString()), "error");
@@ -72,6 +74,7 @@ bool UdpSocket::open() {
 }
 
 void UdpSocket::close() {
+    if (m_udpSocket == nullptr) return;
     m_udpSocket->close();
 }
 
@@ -90,7 +93,7 @@ void UdpSocket::writeText(const QString &txText) {
 
 void UdpSocket::writeData(const QByteArray &txData) {
     // check port status
-    if (!m_udpSocket->isOpen()) {
+    if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
         emit appendLog("udp socket is not opened", "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

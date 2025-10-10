@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QLabel>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QTabBar>
 #include <QTimer>
@@ -29,15 +30,18 @@ PortModule::PortModule(QWidget *parent)
     setWidget(m_portTabWidget);
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
-    m_portTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    // m_portTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { portRemove(index); });
     connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
     auto *addButton = new QPushButton(); // NOLINT
     addButton->setIcon(QIcon(":/icon/add.svg"));
     m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
-    connect(addButton, &QPushButton::clicked, this, [] {
-        PortSetting portSettingDialog;
-        portSettingDialog.exec();
+    connect(addButton, &QPushButton::clicked, this, [this] {
+        if (PortSetting portSettingDialog; portSettingDialog.exec() == QDialog::Accepted) {
+            const QJsonObject portConfig = portSettingDialog.portSettingExport();
+            m_portConfig.append(portConfig);
+            portInsert(m_portTabWidget->count(), portConfig);
+        }
     });
     // load ports
     int index = 0;
@@ -78,12 +82,18 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint tabBarPos = tabBar->mapFromGlobal(globalPos);
     if (tabBar->rect().contains(tabBarPos)) {
         const int index = tabBar->tabAt(tabBarPos);
+        auto *portPage = qobject_cast<PortPage *>(m_portTabWidget->widget(index));
+        m_portTabWidget->setCurrentWidget(portPage);
         QMenu menu(this);
-        menu.addAction("edit", [this, index] {
+        menu.addAction("edit", [this, index, portPage] {
             PortSetting portSettingDialog;
-            const QJsonObject portConfig = m_portConfig[index].toObject();
-            portSettingDialog.portSettingLoad(portConfig);
-            portSettingDialog.exec();
+            QJsonObject portConfig = m_portConfig[index].toObject();
+            portSettingDialog.portSettingImport(portConfig);
+            if (portSettingDialog.exec() == QDialog::Accepted) {
+                portConfig = portSettingDialog.portSettingExport();
+                m_portConfig[index] = portConfig;
+                portPage->portReload(portConfig);
+            }
         });
         menu.addAction("duplicate", [this, index] { portDuplicate(index); });
         menu.exec(event->globalPos());
@@ -97,7 +107,7 @@ void PortModule::resizeEvent(QResizeEvent *event) {
 
 // PortModule private
 void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
-    auto* portPage = new PortPage(portConfig); // NOLINT
+    auto *portPage = new PortPage(portConfig); // NOLINT
     connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
     // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
     m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
@@ -111,17 +121,24 @@ void PortModule::portDuplicate(const int index) {
 }
 
 void PortModule::portRemove(const int index) {
-    QJsonObject portInfo = m_portConfig[index].toObject();
-    QString portType = portInfo["portType"].toString();
-    QString portName = portInfo["portName"].toString();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "re");
+    QJsonObject portConfig = m_portConfig[index].toObject();
+    QString portName = portConfig["portName"].toString();
+    const QMessageBox::StandardButton reply =
+            QMessageBox::question(
+                nullptr,
+                tr("Remove Port"),
+                QString(tr("Are you sure to remove port %1?")).arg(portName),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No);
+    if (reply != QMessageBox::Yes) return;
     m_portConfig.removeAt(index);
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
     if (w) w->deleteLater();
     if (m_portTabWidget->count() == 0) overlayShow();
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
 }
 
 void PortModule::portSwap(const int srcIndex, const int dstIndex) {

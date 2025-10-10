@@ -2,6 +2,7 @@
 #define UNICOMM_PORTSETTING_H
 
 #include <QDialog>
+#include <QJsonObject>
 
 class QComboBox;
 class QLineEdit;
@@ -18,11 +19,9 @@ public:
 
     ~PortSetting() override = default;
 
-    void portSettingLoad(const QJsonObject &portConfig);
+    void portSettingImport(const QJsonObject &portConfig);
 
-signals:
-    void savePortSetting(const QJsonObject &portConfig);
-
+    QJsonObject portSettingExport();
 private:
     void portSettingHideAll() const;
 
@@ -30,6 +29,7 @@ private:
 
     void portSettingSave(int portType);
 
+    QJsonObject m_portConfig{};
     QVBoxLayout *m_portSettingLayout{};
     QWidget *m_portTypeWidget{};
     QComboBox *m_portTypeCombobox{};

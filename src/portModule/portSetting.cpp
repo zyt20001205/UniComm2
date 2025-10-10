@@ -19,7 +19,7 @@
 // PortSetting public
 PortSetting::PortSetting(QWidget *parent)
     : QDialog(parent),
-      m_portSettingLayout(new QVBoxLayout()),
+      m_portSettingLayout(new QVBoxLayout(this)),
       m_portTypeWidget(new QWidget()),
       m_portTypeCombobox(new QComboBox()),
       m_serialPortNameWidget(new QWidget()),
@@ -252,11 +252,12 @@ PortSetting::PortSetting(QWidget *parent)
             portSettingSave(m_portTypeCombobox->currentIndex());
         });
     }
+    this->portSettingHideAll();
     this->adjustSize();
 }
 
-void PortSetting::portSettingLoad(const QJsonObject &portConfig) {
-    const int portType = portConfig["type"].toInt();
+void PortSetting::portSettingImport(const QJsonObject &portConfig) {
+    const int portType = portConfig["portType"].toInt();
     m_portTypeCombobox->setCurrentIndex(portType);
     switch (portType) {
         case SERIALPORT: {
@@ -371,7 +372,9 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
     switch (portType) {
         case SERIALPORT: {
             m_serialPortNameWidget->show();
+            m_serialPortBaudRateSpinBox->setValue(115200);
             m_serialPortBaudRateWidget->show();
+            m_serialPortDataBitsCombobox->setCurrentText("8");
             m_serialPortDataBitsWidget->show();
             m_serialPortParityWidget->show();
             m_serialPortStopBitsWidget->show();
@@ -441,69 +444,68 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
 }
 
 void PortSetting::portSettingSave(const int portType) {
-    this->hide();
-    QJsonObject portConfig{};
+    m_portConfig = {};
     switch (portType) {
         case SERIALPORT: {
-            portConfig["portType"] = portType;
-            portConfig["portName"] = m_serialPortNameCombobox->currentData().toString();
-            portConfig["baudRate"] = m_serialPortBaudRateSpinBox->value();
-            portConfig["dataBits"] = m_serialPortDataBitsCombobox->currentData().toInt();
-            portConfig["parity"] = m_serialPortParityCombobox->currentData().toInt();
-            portConfig["stopBits"] = m_serialPortStopBitsCombobox->currentData().toInt();
-            portConfig["txFormat"] = m_txFormatCombobox->currentText();
-            portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-            portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+            m_portConfig["portType"] = portType;
+            m_portConfig["portName"] = m_serialPortNameCombobox->currentData().toString();
+            m_portConfig["baudRate"] = m_serialPortBaudRateSpinBox->value();
+            m_portConfig["dataBits"] = m_serialPortDataBitsCombobox->currentData().toInt();
+            m_portConfig["parity"] = m_serialPortParityCombobox->currentData().toInt();
+            m_portConfig["stopBits"] = m_serialPortStopBitsCombobox->currentData().toInt();
+            m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
+            m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+            m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
             break;
         }
         case TCPCLIENT: {
-            portConfig["portType"] = portType;
-            portConfig["portName"] = "tcp client";
-            portConfig["tcpClientRemoteAddress"] = m_tcpClientRemoteAddressLineEdit->text();
-            portConfig["tcpClientRemotePort"] = m_tcpClientRemotePortSpinBox->value();
-            portConfig["txFormat"] = m_txFormatCombobox->currentText();
-            portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-            portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+            m_portConfig["portType"] = portType;
+            m_portConfig["portName"] = "tcp client";
+            m_portConfig["tcpClientRemoteAddress"] = m_tcpClientRemoteAddressLineEdit->text();
+            m_portConfig["tcpClientRemotePort"] = m_tcpClientRemotePortSpinBox->value();
+            m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
+            m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+            m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
             break;
         }
         case TCPSERVER: {
-            portConfig["portType"] = portType;
-            portConfig["portName"] = "tcp server";
-            portConfig["tcpServerLocalAddress"] = m_tcpServerLocalAddressLineEdit->text();
-            portConfig["tcpServerLocalPort"] = m_tcpServerLocalPortSpinBox->value();
-            portConfig["txFormat"] = m_txFormatCombobox->currentText();
-            portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-            portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+            m_portConfig["portType"] = portType;
+            m_portConfig["portName"] = "tcp server";
+            m_portConfig["tcpServerLocalAddress"] = m_tcpServerLocalAddressLineEdit->text();
+            m_portConfig["tcpServerLocalPort"] = m_tcpServerLocalPortSpinBox->value();
+            m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
+            m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+            m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
             break;
         }
         case UDPSOCKET: {
-            portConfig["portType"] = portType;
-            portConfig["portName"] = "udp socket";
-            portConfig["udpSocketLocalAddress"] = m_udpSocketLocalAddressLineEdit->text();
-            portConfig["udpSocketLocalPort"] = m_udpSocketLocalPortSpinBox->value();
-            portConfig["udpSocketRemoteAddress"] = m_udpSocketRemoteAddressLineEdit->text();
-            portConfig["udpSocketRemotePort"] = m_udpSocketRemotePortSpinBox->value();
-            portConfig["txFormat"] = m_txFormatCombobox->currentText();
-            portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
-            portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+            m_portConfig["portType"] = portType;
+            m_portConfig["portName"] = "udp socket";
+            m_portConfig["udpSocketLocalAddress"] = m_udpSocketLocalAddressLineEdit->text();
+            m_portConfig["udpSocketLocalPort"] = m_udpSocketLocalPortSpinBox->value();
+            m_portConfig["udpSocketRemoteAddress"] = m_udpSocketRemoteAddressLineEdit->text();
+            m_portConfig["udpSocketRemotePort"] = m_udpSocketRemotePortSpinBox->value();
+            m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
+            m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+            m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
             break;
         }
         case SCREEN: {
-            portConfig["portType"] = portType;
-            portConfig["portName"] = m_screenNameCombobox->currentText();
-            portConfig["dpr"] = m_areaSelectionDialog->dprExport();
-            portConfig["charset"] = m_areaSelectionDialog->charsetExport();
-            portConfig["process"] = m_areaSelectionDialog->processExport();
-            portConfig["areaList"] = m_areaSelectionDialog->areaExport();
+            m_portConfig["portType"] = portType;
+            m_portConfig["portName"] = m_screenNameCombobox->currentText();
+            m_portConfig["dpr"] = m_areaSelectionDialog->dprExport();
+            m_portConfig["charset"] = m_areaSelectionDialog->charsetExport();
+            m_portConfig["process"] = m_areaSelectionDialog->processExport();
+            m_portConfig["areaList"] = m_areaSelectionDialog->areaExport();
             break;
         }
         case CAMERA: {
-            portConfig["portType"] = "camera";
-            portConfig["portName"] = m_cameraNameCombobox->currentText();
-            portConfig["dpr"] = m_areaSelectionDialog->dprExport();
-            portConfig["charset"] = m_areaSelectionDialog->charsetExport();
-            portConfig["process"] = m_areaSelectionDialog->processExport();
-            portConfig["areaList"] = m_areaSelectionDialog->areaExport();
+            m_portConfig["portType"] = "camera";
+            m_portConfig["portName"] = m_cameraNameCombobox->currentText();
+            m_portConfig["dpr"] = m_areaSelectionDialog->dprExport();
+            m_portConfig["charset"] = m_areaSelectionDialog->charsetExport();
+            m_portConfig["process"] = m_areaSelectionDialog->processExport();
+            m_portConfig["areaList"] = m_areaSelectionDialog->areaExport();
             break;
         }
         default: {
@@ -511,5 +513,9 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
     }
-    emit savePortSetting(portConfig);
+    this->accept();
+}
+
+QJsonObject PortSetting::portSettingExport() {
+    return m_portConfig;
 }

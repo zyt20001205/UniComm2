@@ -44,7 +44,6 @@ private:
     void shortcutRemove(int visualIndex);
 
     QJsonArray m_sendConfig{};
-    PortModule *m_port{};
     QLineEdit *m_lineEdit{};
     QTableWidget *m_tableWidget{};
 };
