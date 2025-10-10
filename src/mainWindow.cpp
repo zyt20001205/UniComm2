@@ -14,6 +14,7 @@
 #include "script.h"
 #include "SendModule.h"
 #include "threadpool.h"
+#include "undoModule.h"
 #include "utils.h"
 
 // MainWindow public
@@ -119,6 +120,11 @@ void MainWindow::moduleInit() {
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
+
+    m_undoModule = new UndoModule(this);
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "undo module initialized");
 
     m_portModule = new PortModule();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
@@ -243,14 +249,15 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &Script::runThread, m_threadpoolModule, &Threadpool::threadRun);
     connect(m_scriptModule, &Script::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
 
-    g_script = m_scriptModule;
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
     g_dataplot = m_dataplotModule;
     g_debug = m_debugModule;
     g_log = m_logModule;
     g_port = m_portModule;
+    g_script = m_scriptModule;
     g_threadpool = m_threadpoolModule;
+    g_undo = m_undoModule;
 }
 
 void MainWindow::menuInit() {
@@ -275,6 +282,15 @@ void MainWindow::menuInit() {
             emit openWorkspace(url);
         });
     }
+    // edit menu
+    // {
+    //     auto *fileMenu = new QMenu(tr("Edit")); // NOLINT
+    //     menuBar->addMenu(fileMenu);
+    //     auto *undoAction = new QAction(tr("Undo")); // NOLINT
+    //     fileMenu->addAction(undoAction);
+    //     auto *redoAction = new QAction(tr("Redo")); // NOLINT
+    //     fileMenu->addAction(redoAction);
+    // }
     // view menu
     {
         auto *viewMenu = new QMenu(tr("View")); // NOLINT

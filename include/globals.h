@@ -14,6 +14,7 @@ class Log;
 class PortModule;
 class Script;
 class Threadpool;
+class UndoModule;
 
 extern QMainWindow *g_mainWindow;
 extern Database *g_database;
@@ -24,6 +25,7 @@ extern Log *g_log;
 extern PortModule *g_port;
 extern Script *g_script;
 extern Threadpool *g_threadpool;
+extern UndoModule *g_undo;
 
 extern QJsonObject g_config;
 

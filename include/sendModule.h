@@ -2,20 +2,10 @@
 #define UNICOMM_SENDMODULE_H
 
 #include <QDockWidget>
-#include <QEvent>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QInputDialog>
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QKeyEvent>
-#include <QKeySequence>
-#include <QLineEdit>
-#include <QMenu>
-#include <QPushButton>
-#include <QTableWidget>
-#include <QVBoxLayout>
-#include <QWidget>
+
+class QLineEdit;
+class QTableWidget;
 
 class PortModule;
 

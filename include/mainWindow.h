@@ -14,6 +14,7 @@
 
 class Config;
 class LuaLanguageServer;
+class UndoModule;
 class PortModule;
 class Explorer;
 class SendModule;
@@ -63,6 +64,7 @@ private:
 
     Config *m_configModule{};
     LuaLanguageServer *m_llsModule{};
+    UndoModule *m_undoModule{};
     PortModule *m_portModule{};
     Explorer *m_explorerModule{};
     SendModule *m_sendModule{};

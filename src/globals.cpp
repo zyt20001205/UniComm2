@@ -9,6 +9,7 @@ Log *g_log = nullptr;
 PortModule *g_port = nullptr;
 Script *g_script = nullptr;
 Threadpool *g_threadpool = nullptr;
+UndoModule *g_undo = nullptr;
 
 QJsonObject g_config = {};
 
