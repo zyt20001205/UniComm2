@@ -195,7 +195,7 @@ Debug::Debug(QWidget *parent)
                     const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
                     emit openScript(scriptUrl);
                     const int line = index.data(Qt::UserRole + 2).toInt();
-                    emit showMarker(scriptUrl,MARKER_HINT, line, 1000);
+                    emit showMarker(scriptUrl, MARKER_HINT, line, 1000);
                 }
             });
         }
@@ -354,7 +354,7 @@ DebugPage::DebugPage(LuaInterpreter *interpreter, QWidget *parent)
             const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
             emit openScript(scriptUrl);
             const int line = index.data(Qt::UserRole + 2).toInt();
-            emit showMarker(scriptUrl,MARKER_HINT, line, 1000);
+            emit showMarker(scriptUrl, MARKER_HINT, line, 1000);
         }
     });
 }
