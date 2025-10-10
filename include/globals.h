@@ -32,6 +32,15 @@ extern QVariantMap g_cursorPosition;
 extern QHash<QUrl, QHash<int, QVariantMap> > g_breakpoints;
 
 enum {
+    SERIALPORT = 1,
+    TCPCLIENT,
+    TCPSERVER,
+    UDPSOCKET,
+    SCREEN,
+    CAMERA
+};
+
+enum {
     DEBUG_RUN,
     DEBUG_PAUSE,
     DEBUG_STEPOVER,

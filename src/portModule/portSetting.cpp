@@ -13,6 +13,7 @@
 #include <QSerialPortInfo>
 #include <QSpinBox>
 
+#include "globals.h"
 #include "portModule/areaSelection.h"
 
 // PortSetting public
@@ -251,11 +252,13 @@ PortSetting::PortSetting(QWidget *parent)
             portSettingSave(m_portTypeCombobox->currentIndex());
         });
     }
+    this->adjustSize();
 }
 
 void PortSetting::portSettingLoad(const QJsonObject &portConfig) {
-    this->show();
-    switch (portConfig["type"].toInt()) {
+    const int portType = portConfig["type"].toInt();
+    m_portTypeCombobox->setCurrentIndex(portType);
+    switch (portType) {
         case SERIALPORT: {
             int i = m_serialPortNameCombobox->findData(portConfig["portName"].toString());
             m_serialPortNameCombobox->setCurrentIndex(i);
@@ -364,6 +367,7 @@ void PortSetting::portSettingHideAll() const {
 
 void PortSetting::portSettingTypeSwitch(const int portType) {
     portSettingHideAll();
+    m_portTypeCombobox->setEnabled(false);
     switch (portType) {
         case SERIALPORT: {
             m_serialPortNameWidget->show();
@@ -429,6 +433,7 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
             break;
         }
         default: {
+            m_portTypeCombobox->setEnabled(true);
             break;
         }
     }

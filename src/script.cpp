@@ -32,7 +32,7 @@ Script::Script(QWidget *parent)
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "script list is empty, welcome page created");
     } else {
-        for (const QJsonValue &value: m_scriptConfig["scriptList"].toArray()) {
+        for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
             const auto scriptUrl = QUrl(value.toString());
             scriptOpen(scriptUrl);
         }
@@ -268,7 +268,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, Q
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     m_scriptUrl = scriptUrl;
-    const QUrl url(scriptUrl);
+    const QUrl &url(scriptUrl);
     const QString scriptPath = url.toLocalFile();
     QFile file(scriptPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);

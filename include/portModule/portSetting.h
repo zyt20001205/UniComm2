@@ -20,7 +20,6 @@ public:
 
     void portSettingLoad(const QJsonObject &portConfig);
 
-
 signals:
     void savePortSetting(const QJsonObject &portConfig);
 
@@ -81,15 +80,6 @@ private:
     QComboBox *m_rxFormatCombobox{};
     // save button
     QPushButton *m_portSettingSavePushButton{};
-
-    enum {
-        SERIALPORT = 1,
-        TCPCLIENT,
-        TCPSERVER,
-        UDPSOCKET,
-        SCREEN,
-        CAMERA
-    };
 };
 
 #endif //UNICOMM_PORTSETTING_H

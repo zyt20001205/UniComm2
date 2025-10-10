@@ -1,56 +1,12 @@
 #ifndef UNICOMM_PORT_H
 #define UNICOMM_PORT_H
 
-#include <QApplication>
-#include <QButtonGroup>
-#include <QCamera>
-#include <QCameraDevice>
-#include <QComboBox>
-#include <QCoreApplication>
-#include <QDialog>
 #include <QDockWidget>
-#include <QFile>
-#include <QGraphicsPixmapItem>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QHeaderView>
-#include <QImage>
-#include <QImageCapture>
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QKeyEvent>
-#include <QLabel>
-#include <QLineEdit>
-#include <QListView>
-#include <QMediaCaptureSession>
-#include <QMediaDevices>
-#include <QMenu>
-#include <QPainter>
-#include <QPixmap>
-#include <QPushButton>
-#include <QRadioButton>
-#include <QScreen>
-#include <QSerialPort>
-#include <QSerialPortInfo>
-#include <QSpinbox>
-#include <QSplitter>
-#include <QStackedLayout>
-#include <QTabWidget>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QThread>
-#include <QTimer>
-#include <QToolBar>
-#include <QUdpSocket>
-#include <QVBoxLayout>
-#include <QWidget>
-#include <QMutex>
-#include <allheaders.h>
-#include <baseapi.h>
-#include <QStackedWidget>
-#include <QStandardItemModel>
 
-class AreaSelectDialog;
+class QPushButton;
+class QVBoxLayout;
+class QTabWidget;
 
 class BasePort;
 
@@ -69,11 +25,13 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-private:
-    // port widget
-    void portMenu(int index, const QPoint &pos);
+protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
-    void portSelected(int index);
+    void resizeEvent(QResizeEvent *event) override;
+
+private:
+    void portInsert(int index, const QJsonObject &portConfig);
 
     void portDuplicate(int index);
 
@@ -81,34 +39,35 @@ private:
 
     void portSwap(int srcIndex, int dstIndex);
 
-    void previewShow(const QList<QPixmap>& pixmapList) const;
+    void overlayShow() const;
+
+    void overlayHide() const;
+
+    void overlayResize() const;
 
     QJsonArray m_portConfig{};
-    QTabWidget *m_tabWidget{};
-    QDialog *m_previewDialog{};
-    QVBoxLayout *m_previewLayout{};
-    int m_currentIndex = 0;
+    QTabWidget *m_portTabWidget{};
+    QWidget *m_portTabOverlay{};
 };
 
-class PageWidget final : public QWidget {
+class PortPage final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit PageWidget(const QJsonObject &portConfig, QObject *parent = nullptr);
+    explicit PortPage(const QJsonObject &portConfig, QWidget *parent = nullptr);
 
-    ~PageWidget() override;
+    ~PortPage() override;
 
     void portReload(const QJsonObject &portConfig) const;
 
-    BasePort *m_port = nullptr;
+    BasePort *m_port{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
 private:
     void portToggle(bool status) const;
 
-    QPushButton *m_pushButton = nullptr;
-    QThread *m_thread = nullptr;
+    QPushButton *m_portToggleButton{};
 };
 
 #endif //UNICOMM_PORT_H

@@ -1,57 +1,63 @@
 #include "portModule/portModule.h"
 
+#include <QContextMenuEvent>
+#include <QDialog>
+#include <QLabel>
+#include <QMenu>
+#include <QPushButton>
+#include <QTabBar>
+#include <QTimer>
+#include <QVBoxLayout>
+
 #include "globals.h"
-#include "suffix.h"
 #include "utils.h"
 #include "portModule/basePort.h"
+#include "portModule/camera.h"
+#include "portModule/portSetting.h"
+#include "portModule/screen.h"
 #include "portModule/serialPort.h"
+#include "portModule/tcpClient.h"
+#include "portModule/tcpServer.h"
+#include "portModule/udpSocket.h"
 
 // PortModule public
 PortModule::PortModule(QWidget *parent)
     : QDockWidget("port", parent),
       m_portConfig(g_config["portConfig"].toArray()),
-      m_tabWidget(new QTabWidget()),
-      m_previewDialog(new QDialog(this)),
-      m_previewLayout(new QVBoxLayout(m_previewDialog)) {
-    // port widget gui init
-    {
-        setWidget(m_tabWidget);
-        connect(m_tabWidget, &QTabWidget::currentChanged, this, &PortModule::portSelected);
-        m_tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(m_tabWidget->tabBar(), &QTabBar::customContextMenuRequested, this, [this](const QPoint &pos) {
-            const int index = m_tabWidget->tabBar()->tabAt(pos);
-            portMenu(index, pos);
-        });
-        m_tabWidget->setMovable(true);
-        connect(m_tabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
-        auto *addButton = new QPushButton(m_tabWidget);
-        addButton->setIcon(QIcon(":/icon/add.svg"));
-        m_tabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
-        connect(addButton, &QPushButton::clicked, this, [this] { portSettingLoad(-1); });
-        // init port tab
-        if (const auto portCount = m_portConfig.size(); portCount == 0) {
-            auto welcomePage = new QWidget(); // NOLINT
-            auto welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-            auto welcomeLabel = new QLabel("welcome"); // NOLINT
-            welcomeLayout->addWidget(welcomeLabel);
-            m_tabWidget->addTab(welcomePage, "welcome");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "no port config found, create a welcome page");
-        } else {
-            for (const QJsonValue &value: m_portConfig) {
-                QJsonObject portConfig = value.toObject();
-                auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
-                QString portName = portConfig["portName"].toString();
-                m_tabWidget->addTab(pageWidget, portName);
-                connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
-                connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2 %3").arg(timestamp, QString::number(portCount), "port config found");
-            }
-        }
+      m_portTabWidget(new QTabWidget()),
+      m_portTabOverlay(new QWidget(m_portTabWidget)) {
+    setWidget(m_portTabWidget);
+    m_portTabWidget->setTabsClosable(true);
+    m_portTabWidget->setMovable(true);
+    m_portTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { portRemove(index); });
+    connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
+    auto *addButton = new QPushButton(); // NOLINT
+    addButton->setIcon(QIcon(":/icon/add.svg"));
+    m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
+    connect(addButton, &QPushButton::clicked, this, [] {
+        PortSetting portSettingDialog;
+        portSettingDialog.exec();
+    });
+    // load ports
+    int index = 0;
+    for (const auto &value: m_portConfig) {
+        QJsonObject portConfig = value.toObject();
+        portInsert(index, portConfig);
+        index++;
     }
+
+    m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
+    auto *overlayLayout = new QVBoxLayout(m_portTabOverlay); // NOLINT
+    overlayLayout->setAlignment(Qt::AlignCenter);
+    overlayLayout->setContentsMargins(0, 0, 0, 0);
+    auto *overlayLabel = new QLabel(tr("No Active Debug Session")); // NOLINT
+    overlayLayout->addWidget(overlayLabel);
+    overlayLabel->setFont(QFont("Consolas", 12, QFont::Bold));
+    overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
+    overlayShow();
+
+    QTimer::singleShot(0, this, [this] { overlayResize(); });
 }
 
 void PortModule::portConfigSave() const {
@@ -60,41 +66,48 @@ void PortModule::portConfigSave() const {
 
 BasePort *PortModule::portObject(const int index) const {
     BasePort *portObject = nullptr;
-    if (index == -1) portObject = qobject_cast<PageWidget *>(m_tabWidget->currentWidget())->m_port;
-    else portObject = qobject_cast<PageWidget *>(m_tabWidget->widget(index))->m_port;
+    if (index == -1) portObject = qobject_cast<PortPage *>(m_portTabWidget->currentWidget())->m_port;
+    else portObject = qobject_cast<PortPage *>(m_portTabWidget->widget(index))->m_port;
     return portObject;
 }
 
-// PortModule private
-void PortModule::portMenu(const int index, const QPoint &pos) {
-    if (m_portConfig.empty()) return;
-    m_tabWidget->setCurrentIndex(index);
-    QMenu menu;
-    menu.addAction("edit", [this, index] { portSettingLoad(index); });
-    menu.addAction("duplicate", [this, index] { portDuplicate(index); });
-    menu.addAction("remove", [this, index] { portRemove(index); });
-    menu.exec(m_tabWidget->tabBar()->mapToGlobal(pos));
+// PortModule protected
+void PortModule::contextMenuEvent(QContextMenuEvent *event) {
+    const QPoint globalPos = event->globalPos();
+    const auto *tabBar = m_portTabWidget->tabBar();
+    const QPoint tabBarPos = tabBar->mapFromGlobal(globalPos);
+    if (tabBar->rect().contains(tabBarPos)) {
+        const int index = tabBar->tabAt(tabBarPos);
+        QMenu menu(this);
+        menu.addAction("edit", [this, index] {
+            PortSetting portSettingDialog;
+            const QJsonObject portConfig = m_portConfig[index].toObject();
+            portSettingDialog.portSettingLoad(portConfig);
+            portSettingDialog.exec();
+        });
+        menu.addAction("duplicate", [this, index] { portDuplicate(index); });
+        menu.exec(event->globalPos());
+    }
 }
 
-void PortModule::portSelected(const int index) {
-    if (m_portConfig.empty())
-        return;
-    m_currentIndex = index;
-    QJsonObject portInfo = m_portConfig[index].toObject();
-    QString portType = portInfo["portType"].toString();
-    QString portName = portInfo["portName"].toString();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "selected");
+void PortModule::resizeEvent(QResizeEvent *event) {
+    QDockWidget::resizeEvent(event);
+    if (m_portTabOverlay->isVisible()) overlayResize();
+}
+
+// PortModule private
+void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
+    auto* portPage = new PortPage(portConfig); // NOLINT
+    connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
+    // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
+    m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
+    overlayHide();
 }
 
 void PortModule::portDuplicate(const int index) {
-    QJsonObject portConfig = m_portConfig[index].toObject();
+    const QJsonObject portConfig = m_portConfig[index].toObject();
     m_portConfig.insert(index + 1, portConfig);
-    auto *pageWidget = new PageWidget(portConfig, m_tabWidget); // NOLINT
-    const QString portName = portConfig["portName"].toString();
-    m_tabWidget->insertTab(index + 1, pageWidget, portName);
-    connect(pageWidget, &PageWidget::appendLog, this, &PortModule::appendLog);
+    portInsert(index + 1, portConfig);
 }
 
 void PortModule::portRemove(const int index) {
@@ -105,9 +118,10 @@ void PortModule::portRemove(const int index) {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, portType, portName, "re");
     m_portConfig.removeAt(index);
-    QWidget *w = m_tabWidget->widget(index);
-    m_tabWidget->removeTab(index);
+    QWidget *w = m_portTabWidget->widget(index);
+    m_portTabWidget->removeTab(index);
     if (w) w->deleteLater();
+    if (m_portTabWidget->count() == 0) overlayShow();
 }
 
 void PortModule::portSwap(const int srcIndex, const int dstIndex) {
@@ -117,178 +131,113 @@ void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // qDebug() << m_portConfig;
 }
 
-void PortModule::previewShow(const QList<QPixmap> &pixmapList) const {
-    // clear previous preview
-    QLayoutItem *item;
-    while ((item = m_previewLayout->takeAt(0)) != nullptr) {
-        if (item->widget()) {
-            delete item->widget();
-        }
-        delete item;
-    }
-
-    foreach(QPixmap pixmap, pixmapList) {
-        auto *label = new QLabel();
-        m_previewLayout->addWidget(label);
-        label->setPixmap(pixmap);
-    }
-    m_previewDialog->setVisible(true);
+void PortModule::overlayShow() const {
+    m_portTabOverlay->raise();
+    m_portTabOverlay->show();
 }
 
+void PortModule::overlayHide() const {
+    m_portTabOverlay->hide();
+}
 
+void PortModule::overlayResize() const {
+    m_portTabOverlay->setGeometry(m_portTabWidget->rect());
+}
 
-
-
-
-
-// PageWidget public
-PageWidget::PageWidget(const QJsonObject &portConfig, QObject *parent) {
-    QString timestamp;
+// PortPage public
+PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
+    : QWidget(parent),
+      m_portToggleButton(new QPushButton(tr("Open"))) {
     auto *pageLayout = new QVBoxLayout(this); // NOLINT
-    const QString portType = portConfig["portType"].toString();
-    QString portName = portConfig["portName"].toString();
-    if (portType == "serial port") {
-        // ui init
-        m_pushButton = new QPushButton("open"); // NOLINT
-        m_pushButton->setCheckable(true);
-        pageLayout->addWidget(m_pushButton);
-        // port init
-        m_thread = new QThread(this);
-        m_port = new SerialPort(portConfig);
-        m_port->moveToThread(m_thread);
-        // start thread
-        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
-        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
-        m_thread->start();
-        // logging
-        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", portName, "loaded");
-    } else if (portType == "tcp client") {
-        // ui init
-        m_pushButton = new QPushButton("open"); // NOLINT
-        m_pushButton->setCheckable(true);
-        pageLayout->addWidget(m_pushButton);
-        // port init
-        m_thread = new QThread(this);
-        m_port = new TcpClient(portConfig);
-        m_port->moveToThread(m_thread);
-        // start thread
-        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
-        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
-        m_thread->start();
-        // logging
-        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp client", portName, "loaded");
-    } else if (portType == "tcp server") {
-        // ui init
-        m_pushButton = new QPushButton("open"); // NOLINT
-        m_pushButton->setCheckable(true);
-        pageLayout->addWidget(m_pushButton);
-        // port init
-        m_thread = new QThread(this);
-        m_port = new TcpServer(portConfig);
-        m_port->moveToThread(m_thread);
-        // start thread
-        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
-        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
-        m_thread->start();
-        // logging
-        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "tcp server", portName, "loaded");
-    } else if (portType == "udp socket") {
-        // ui init
-        m_pushButton = new QPushButton("open"); // NOLINT
-        m_pushButton->setCheckable(true);
-        pageLayout->addWidget(m_pushButton);
-        // port init
-        m_thread = new QThread(this);
-        m_port = new UdpSocket(portConfig);
-        m_port->moveToThread(m_thread);
-        // start thread
-        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
-        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
-        m_thread->start();
-        // logging
-        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "udp socket", portName, "loaded");
-    } else if (portType == "screen") {
-        // ui init
-        m_pushButton = new QPushButton("open"); // NOLINT
-        m_pushButton->setCheckable(true);
-        pageLayout->addWidget(m_pushButton);
-        // port init
-        m_thread = new QThread(this);
-        m_port = new Screen(portConfig);
-        m_port->moveToThread(m_thread);
-        // start thread
-        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        // connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
-        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
-        m_thread->start();
-        // logging
-        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "screen", portName, "loaded");
-    } else /* portType == "camera" */
-    {
-        // ui init
-        m_pushButton = new QPushButton("open"); // NOLINT
-        m_pushButton->setCheckable(true);
-        pageLayout->addWidget(m_pushButton);
-        // port init
-        m_thread = new QThread(this);
-        m_port = new Camera(portConfig);
-        m_port->moveToThread(m_thread);
-        // start thread
-        connect(m_pushButton, &QPushButton::clicked, this, &PageWidget::portToggle);
-        // connect(m_port, &BasePort::appendLog, this, &PageWidget::appendLog);
-        connect(m_thread, &QThread::finished, m_port, &QObject::deleteLater);
-        m_thread->start();
-        // logging
-        timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "camera", portName, "loaded");
+    m_portToggleButton->setCheckable(true);
+    pageLayout->addWidget(m_portToggleButton);
+
+    QString timestamp;
+    switch (portConfig["portType"].toInt()) {
+        case SERIALPORT: {
+            m_port = new SerialPort(portConfig);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+            connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            break;
+        }
+        case TCPCLIENT: {
+            m_port = new TcpClient(portConfig);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+            connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            break;
+        }
+        case TCPSERVER: {
+            m_port = new TcpServer(portConfig);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+            connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            break;
+        }
+        case UDPSOCKET: {
+            m_port = new UdpSocket(portConfig);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+            connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            break;
+        }
+        case SCREEN: {
+            m_port = new Screen(portConfig);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+            // connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            break;
+        }
+        case CAMERA: {
+            m_port = new Camera(portConfig);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+            // connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
+            break;
+        }
+        default: {
+            qDebug() << "unknown port type";
+            break;
+        }
     }
 }
 
-PageWidget::~PageWidget() {
+PortPage::~PortPage() {
     QMetaObject::invokeMethod(m_port, [this] {
         m_port->close();
     }, Qt::BlockingQueuedConnection);
-    m_thread->quit();
-    m_thread->wait();
+    delete m_port;
 }
 
-void PageWidget::portReload(const QJsonObject &portConfig) const {
+void PortPage::portReload(const QJsonObject &portConfig) const {
     QMetaObject::invokeMethod(m_port, [this] {
         m_port->close();
     }, Qt::BlockingQueuedConnection);
-    m_pushButton->setChecked(false);
+    m_portToggleButton->setChecked(false);
     QMetaObject::invokeMethod(m_port, [this, portConfig] {
         m_port->reload(portConfig);
     }, Qt::BlockingQueuedConnection);
 }
 
-// PageWidget private
-void PageWidget::portToggle(const bool status) const {
+// PortPage private
+void PortPage::portToggle(const bool status) const {
     if (status) {
         bool ok = false;
         QMetaObject::invokeMethod(m_port, [&ok, this] {
             ok = m_port->open();
         }, Qt::BlockingQueuedConnection);
-        m_pushButton->setChecked(ok);
+        m_portToggleButton->setChecked(ok);
     } else {
         QMetaObject::invokeMethod(m_port, [this] {
             m_port->close();
         }, Qt::BlockingQueuedConnection);
-        m_pushButton->setChecked(false);
+        m_portToggleButton->setChecked(false);
     }
 }
-
-
-
-
-
-

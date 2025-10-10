@@ -7,8 +7,9 @@ class BasePort : public QObject {
     Q_OBJECT
 
 public:
-    explicit BasePort(QObject *parent = nullptr) : QObject(parent) {
-    }
+    explicit BasePort(QObject *parent = nullptr);
+
+    ~BasePort() override;
 
     virtual void reload(const QJsonObject &portConfig) =0;
 
@@ -50,6 +51,9 @@ signals:
     void appendLog(const QString &message, const QString &level);
 
     void showPreview(QList<QPixmap> pixmapList);
+
+private:
+    QThread *m_thread{};
 };
 
 #endif //UNICOMM_BASEPORT_H
