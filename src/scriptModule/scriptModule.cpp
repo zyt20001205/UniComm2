@@ -1,5 +1,6 @@
 #include "scriptModule/scriptModule.h"
 
+#include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
@@ -43,10 +44,15 @@ ScriptModule::ScriptModule(QWidget *parent)
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "script list is empty, welcome page created");
     } else {
+        // clear invalid script url
+        QJsonArray validScriptList;
         for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-            const auto scriptUrl = QUrl(value.toString());
-            scriptOpen(scriptUrl);
+            if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+                scriptOpen(scriptUrl);
+                validScriptList.append(value);
+            }
         }
+        m_scriptConfig["scriptList"] = validScriptList;
     }
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &ScriptModule::scriptClose);
     connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &ScriptModule::scriptSwap);

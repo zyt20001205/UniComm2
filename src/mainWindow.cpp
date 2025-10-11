@@ -277,7 +277,7 @@ void MainWindow::moduleInit() {
 void MainWindow::workspaceInit() {
     QUrl rootUrl{};
     // check if workspace is valid
-    if (rootUrl = QUrl(m_mainConfig["workspace"].toString()); !rootUrl.isEmpty() && rootUrl.isLocalFile()) {
+    if (rootUrl = QUrl(m_mainConfig["workspace"].toString()); QFileInfo::exists(rootUrl.toLocalFile())) {
         // check if lua config files exist
         const QString rootPath = rootUrl.toLocalFile();
         if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
