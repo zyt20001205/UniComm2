@@ -26,6 +26,7 @@ PortModule::PortModule(QWidget *parent)
       m_portConfig(g_config["portConfig"].toArray()),
       m_portTabWidget(new QTabWidget()),
       m_portTabOverlay(new QWidget(m_portTabWidget)) {
+    setMinimumHeight(100);
     setWidget(m_portTabWidget);
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
@@ -111,7 +112,7 @@ bool PortModule::eventFilter(QObject *obj, QEvent *event) {
 
 void PortModule::resizeEvent(QResizeEvent *event) {
     QDockWidget::resizeEvent(event);
-    if (m_portTabOverlay->isVisible()) overlayResize();
+    if (!m_portTabOverlay->isHidden()) overlayResize();
 }
 
 // PortModule private

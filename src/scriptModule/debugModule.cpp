@@ -288,7 +288,7 @@ void DebugModule::callReturn(const QString &threadId, QStandardItemModel *callTa
 // DebugModule protected
 void DebugModule::resizeEvent(QResizeEvent *event) {
     QDockWidget::resizeEvent(event);
-    if (m_debugTabOverlay->isVisible()) overlayResize();
+    if (!m_debugTabOverlay->isHidden()) overlayResize();
 }
 
 // DebugModule private
