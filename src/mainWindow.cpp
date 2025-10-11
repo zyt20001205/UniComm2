@@ -287,7 +287,7 @@ void MainWindow::shortcutInit() {
         const QString filePath = QFileDialog::getSaveFileName(
             nullptr,
             tr("Save Workspace As"),
-            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/config",
             "JSON File (*.json)"
         );
         if (filePath.endsWith(".json", Qt::CaseInsensitive)) {
