@@ -130,18 +130,23 @@ void LuaLanguageServer::jsonReturn() {
                 // initialize request
                 emit initialized();
             } else if (method == "textDocument/completion") {
-                // hover request
+                // completion request
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray items = result["items"].toArray();
                 emit returnCompletion(scriptUrl, items);
+            } else if (method == "textDocument/documentSymbol") {
+                // document symbol request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                emit returnDocumentSymbol(scriptUrl, result);
             } else if (method == "textDocument/foldingRange") {
-                // hover request
+                // folding range request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
                 emit returnFoldingRange(scriptUrl, result);
             } else if (method == "textDocument/formatting") {
-                // hover request
+                // formatting request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
                 const QString newText = result[0]["newText"].toString();

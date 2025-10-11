@@ -12,6 +12,7 @@
 #include <QStyleFactory>
 #include <QWidget>
 
+class StructureModule;
 class ConfigModule;
 class LuaLanguageServer;
 class UndoModule;
@@ -68,6 +69,7 @@ private:
     UndoModule *m_undoModule{};
     PortModule *m_portModule{};
     ExplorerModule *m_explorerModule{};
+    StructureModule *m_structureModule{};
     SendModule *m_sendModule{};
     DatabaseModule *m_databaseModule{};
     DatatableModule *m_datatableModule{};
@@ -84,6 +86,7 @@ private:
 
     QAction *m_portModuleView{};
     QAction *m_explorerModuleView{};
+    QAction *m_structureModuleView{};
     QAction *m_sendModuleView{};
     QAction *m_databaseModuleView{};
     QAction *m_datatableModuleView{};

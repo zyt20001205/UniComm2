@@ -13,6 +13,7 @@ class DebugModule;
 class Log;
 class PortModule;
 class ScriptModule;
+class StructureModule;
 class ThreadpoolModule;
 class UndoModule;
 
@@ -24,6 +25,7 @@ extern DebugModule *g_debug;
 extern Log *g_log;
 extern PortModule *g_port;
 extern ScriptModule *g_script;
+extern StructureModule *g_structure;
 extern ThreadpoolModule *g_threadpool;
 extern UndoModule *g_undo;
 

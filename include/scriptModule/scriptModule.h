@@ -54,6 +54,8 @@ signals:
 
     void openWorkspace();
 
+    void switchScript(const QUrl &scriptUrl);
+
     void runThread(const QUrl &scriptUrl, const QString &script);
 
     void debugThread(const QUrl &scriptUrl, const QString &script);
@@ -66,17 +68,31 @@ signals:
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
+    void scriptSwitch(int index);
+
     void scriptModify(int index) const;
 
     void scriptClose(int index);
 
     void scriptSwap(int srcIndex, int dstIndex);
 
+    void overlayShow() const;
+
+    void overlayHide() const;
+
+    void overlayResize() const;
+
     QJsonObject m_scriptConfig{};
     QUrl m_rootUrl{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QTabWidget *m_scriptTabWidget{};
+    QWidget *m_scriptTabOverlay{};
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
 };
@@ -141,11 +157,13 @@ private slots:
 private:
     void scriptEditFinish();
 
-    void completionRequest();
+    void didOpenNotification();
 
     void didChangeNotification();
 
-    void didOpenNotification();
+    void completionRequest();
+
+    void documentSymbolRequest();
 
     void foldingRangeRequest();
 

@@ -29,6 +29,8 @@ signals:
 
     void returnCompletion(const QUrl &scriptUrl, const QJsonArray &items);
 
+    void returnDocumentSymbol(const QUrl &scriptUrl, const QJsonArray &result);
+
     void returnFoldingRange(const QUrl &scriptUrl, const QJsonArray &result);
 
     void returnFormatting(const QUrl &scriptUrl, const QString &newText);

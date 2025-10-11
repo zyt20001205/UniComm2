@@ -67,6 +67,7 @@ qt_add_executable(UniComm src/main.cpp
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
         include/scriptModule/scriptModule.h
+        include/scriptModule/structureModule.h
         include/scriptModule/threadpoolModule.h
         include/suffix.h
         include/undoModule.h
@@ -101,6 +102,7 @@ qt_add_executable(UniComm src/main.cpp
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp
         src/scriptModule/scriptModule.cpp
+        src/scriptModule/structureModule.cpp
         src/scriptModule/threadpoolModule.cpp
         src/suffix.cpp
         src/undoModule.cpp

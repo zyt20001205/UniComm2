@@ -22,43 +22,30 @@
 ScriptModule::ScriptModule(QWidget *parent)
     : QWidget(parent),
       m_scriptConfig(g_config["scriptConfig"].toObject()),
-      m_scriptTabWidget(new QTabWidget()) {
+      m_scriptTabWidget(new QTabWidget()),
+      m_scriptTabOverlay(new QWidget(m_scriptTabWidget)) {
     // script module init
     auto *layout = new QHBoxLayout(this); // NOLINT
-    auto *scriptSplitter = new QSplitter(Qt::Horizontal); // NOLINT
-    layout->addWidget(scriptSplitter);
-    // script widget -> script editor
-    scriptSplitter->addWidget(m_scriptTabWidget);
-    m_scriptTabWidget->setTabsClosable(true);
+    layout->addWidget(m_scriptTabWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
     m_scriptTabWidget->setMovable(true);
-    auto *welcomePage = new QWidget(); // NOLINT
-    if (m_scriptConfig["scriptList"].toArray().isEmpty()) {
-        m_scriptTabWidget->addTab(welcomePage, "welcome");
-        auto *welcomeLayout = new QVBoxLayout(welcomePage); // NOLINT
-        auto *workspaceOpenButton = new QPushButton(tr("Open Workspace")); // NOLINT
-        welcomeLayout->addWidget(workspaceOpenButton);
-        connect(workspaceOpenButton, &QPushButton::clicked, this, [this] {
-            emit openWorkspace();
-        });
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "script list is empty, welcome page created");
-    } else {
-        // clear invalid script url
-        QJsonArray validScriptList;
-        for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-            if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
-                scriptOpen(scriptUrl);
-                validScriptList.append(value);
-            }
+    m_scriptTabWidget->setTabsClosable(true);
+    // clear invalid script url
+    QJsonArray validScriptList;
+    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
+        if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+            scriptOpen(scriptUrl);
+            validScriptList.append(value);
         }
-        m_scriptConfig["scriptList"] = validScriptList;
     }
-    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &ScriptModule::scriptClose);
-    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &ScriptModule::scriptSwap);
+    m_scriptConfig["scriptList"] = validScriptList;
     m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
+    connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &ScriptModule::scriptClose);
+    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, [this](const int index) {
+        scriptSwitch(index);
+    });
+    connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &ScriptModule::scriptSwap);
 
-    // script widget -> ctrl widget
     auto *ctrlWidget = new QWidget(); // NOLINT
     m_scriptTabWidget->setCornerWidget(ctrlWidget);
     auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
@@ -69,7 +56,7 @@ ScriptModule::ScriptModule(QWidget *parent)
     runButton->setFixedSize(24, 24);
     runButton->setIcon(QIcon(":/icon/play.svg"));
     connect(runButton, &QPushButton::clicked, this, [this] {
-        if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
+        if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
             const QUrl scriptUrl = scriptPage->m_scriptUrl;
             const QString script = scriptPage->m_scriptEditor->text();
             emit runThread(scriptUrl, script);
@@ -80,21 +67,38 @@ ScriptModule::ScriptModule(QWidget *parent)
     debugButton->setFixedSize(24, 24);
     debugButton->setIcon(QIcon(":/icon/bug.svg"));
     connect(debugButton, &QPushButton::clicked, this, [this] {
-        if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
+        if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
             const QUrl scriptUrl = scriptPage->m_scriptUrl;
             const QString script = scriptPage->m_scriptEditor->text();
             emit debugThread(scriptUrl, script);
         }
     });
 
+    m_scriptTabOverlay->installEventFilter(this);
+    m_scriptTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
+    auto *overlayLayout = new QVBoxLayout(m_scriptTabOverlay); // NOLINT
+    overlayLayout->setAlignment(Qt::AlignCenter);
+    overlayLayout->setContentsMargins(0, 0, 0, 0);
+    auto *overlayLabel = new QLabel(tr("Open Workspace")); // NOLINT
+    overlayLayout->addWidget(overlayLabel);
+    overlayLabel->setFont(QFont("Consolas", 12, QFont::Bold));
+    overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
+    const QJsonObject mainConfig = g_config["mainConfig"].toObject();
+    overlayShow();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
+
+    // emit switchScript to ensure receive structure analysis(currentChanged won't trigger if index is not changed)
+    if (m_scriptTabWidget->count() > 0) {
+        QTimer::singleShot(0, this, [this] { scriptSwitch(m_scriptTabWidget->currentIndex()); });
+    }
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
     m_diagnosticsHash.clear();
+    overlayHide();
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -124,10 +128,6 @@ void ScriptModule::scriptConfigSave() {
 }
 
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
-    // remove welcome page if exists
-    if (m_scriptTabWidget->tabText(0) == "welcome") {
-        m_scriptTabWidget->removeTab(0);
-    }
     // check if tab exists
     auto *scriptPage = m_scriptPageHash[scriptUrl];
     if (scriptPage == nullptr) {
@@ -157,7 +157,7 @@ void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine,
 }
 
 void ScriptModule::cursorPositionGet() const {
-    if (const auto scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
+    if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
         const QUrl scriptUrl = scriptPage->m_scriptUrl;
         int line, index;
         scriptPage->m_scriptEditor->getCursorPosition(&line, &index);
@@ -221,7 +221,27 @@ void ScriptModule::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject 
     m_scriptPageHash[scriptUrl]->signatureHelpReturn(signature);
 }
 
+// ScriptModule protected
+bool ScriptModule::eventFilter(QObject *obj, QEvent *event) {
+    if (obj == m_scriptTabOverlay && event->type() == QEvent::MouseButtonPress) {
+        emit openWorkspace();
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+void ScriptModule::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
+    if (!m_scriptTabOverlay->isHidden()) overlayResize();
+}
+
+
 // ScriptModule private
+void ScriptModule::scriptSwitch(const int index) {
+    const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
+    emit switchScript(scriptPage->m_scriptUrl);
+}
+
 void ScriptModule::scriptModify(const int index) const {
     QString tabName = m_scriptTabWidget->tabText(index);
     if (!tabName.endsWith("*")) {
@@ -231,7 +251,7 @@ void ScriptModule::scriptModify(const int index) const {
 
 void ScriptModule::scriptClose(const int index) {
     // find page
-    if (auto *scriptPage = qobject_cast<ScriptPage *>(m_scriptTabWidget->widget(index))) {
+    if (auto *scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->widget(index))) {
         // remove hash & list
         const QUrl scriptUrl = scriptPage->m_scriptUrl;
         m_scriptPageHash.remove(scriptUrl);
@@ -257,6 +277,21 @@ void ScriptModule::scriptSwap(const int srcIndex, const int dstIndex) {
     const QUrl tmp = m_scriptList.takeAt(srcIndex);
     m_scriptList.insert(dstIndex, tmp);
     // qDebug() << m_scriptList;
+}
+
+void ScriptModule::overlayShow() const {
+    overlayResize();
+    m_scriptTabOverlay->raise();
+    m_scriptTabOverlay->show();
+}
+
+void ScriptModule::overlayHide() const {
+    m_scriptTabOverlay->hide();
+}
+
+void ScriptModule::overlayResize() const {
+    m_scriptTabOverlay->resize(m_scriptTabWidget->size());
+    m_scriptTabOverlay->move(0, 0);
 }
 
 // ScriptPage public
@@ -306,6 +341,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl, Q
     // didOpen notification to lua language server
     QTimer::singleShot(0, this, [this] {
         didOpenNotification();
+        documentSymbolRequest();
         foldingRangeRequest();
         semanticTokensRequest();
     });
@@ -329,7 +365,7 @@ void ScriptPage::scriptSave() const {
 
 void ScriptPage::completionReturn(const QJsonArray &items) const {
     m_tooltipCompletion->showTooltip(items);
-    const auto *editor = qobject_cast<QsciScintilla *>(m_scriptEditor);
+    const auto *editor = static_cast<QsciScintilla *>(m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
@@ -480,7 +516,7 @@ void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
 
 void ScriptPage::signatureHelpReturn(const QJsonObject &signature) const {
     m_tooltipSignatureHelp->showTooltip(signature);
-    const auto *editor = qobject_cast<QsciScintilla *>(m_scriptEditor);
+    const auto *editor = static_cast<QsciScintilla *>(m_scriptEditor);
     long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     while (true) {
         const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
@@ -536,24 +572,19 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
 }
 
 // ScriptPage private
-void ScriptPage::completionRequest() {
-    // completion request to lua language server
-    int line, character;
-    m_scriptEditor->getCursorPosition(&line, &character);
-    const QJsonObject completionParams{
+void ScriptPage::didOpenNotification() {
+    // didOpen notification to lua language server
+    const QJsonObject didOpenParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "position", QJsonObject{
-                {"line", line},
-                {"character", character}
+                {"uri", m_scriptUrl.toString()},
+                {"languageId", "lua"},
+                {"version", m_version++},
+                {"text", m_scriptEditor->text()}
             }
         }
     };
-    emit requestJson("textDocument/completion", completionParams);
+    emit notificationJson("textDocument/didOpen", didOpenParams);
 }
 
 void ScriptPage::didChangeNotification() {
@@ -575,6 +606,38 @@ void ScriptPage::didChangeNotification() {
         }
     };
     emit notificationJson("textDocument/didChange", didChangeParams);
+}
+
+void ScriptPage::completionRequest() {
+    // completion request to lua language server
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    const QJsonObject completionParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/completion", completionParams);
+}
+
+void ScriptPage::documentSymbolRequest() {
+    // document symbol request to lua language server
+    const QJsonObject documentSymbolParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()}
+            }
+        }
+    };
+    emit requestJson("textDocument/documentSymbol", documentSymbolParams);
 }
 
 void ScriptPage::foldingRangeRequest() {
@@ -663,6 +726,7 @@ void ScriptPage::scriptEditFinish() {
         m_tooltipCompletion->hideTooltip();
         m_tooltipSignatureHelp->hideTooltip();
     }
+    documentSymbolRequest();
     foldingRangeRequest();
     semanticTokensRequest();
     // logging
@@ -673,21 +737,6 @@ void ScriptPage::scriptEditFinish() {
 void ScriptPage::dwellSwitch(const bool status) const {
     if (status) m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
     else m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, QsciScintilla::SC_TIME_FOREVER); // NOLINT
-}
-
-void ScriptPage::didOpenNotification() {
-    // didOpen notification to lua language server
-    const QJsonObject didOpenParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()},
-                {"languageId", "lua"},
-                {"version", m_version++},
-                {"text", m_scriptEditor->text()}
-            }
-        }
-    };
-    emit notificationJson("textDocument/didOpen", didOpenParams);
 }
 
 void ScriptPage::hoverRequest(const int line, const int character) {

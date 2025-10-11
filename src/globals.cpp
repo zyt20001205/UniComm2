@@ -8,6 +8,7 @@ DebugModule *g_debug = nullptr;
 Log *g_log = nullptr;
 PortModule *g_port = nullptr;
 ScriptModule *g_script = nullptr;
+StructureModule *g_structure = nullptr;
 ThreadpoolModule *g_threadpool = nullptr;
 UndoModule *g_undo = nullptr;
 
