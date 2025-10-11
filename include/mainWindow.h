@@ -35,6 +35,7 @@ public:
 
     ~MainWindow() override = default;
 
+    void workspaceOpen();
 signals:
     void appendLog(const QString &message, const QString &level);
 

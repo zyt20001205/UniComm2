@@ -52,7 +52,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void openWorkspace(const QUrl &rootUrl);
+    void openWorkspace();
 
     void runThread(const QUrl &scriptUrl, const QString &script);
 

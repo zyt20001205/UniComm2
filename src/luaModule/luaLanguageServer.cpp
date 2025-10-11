@@ -11,10 +11,6 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
-    // open workspace
-    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
-        workspaceOpen(rootUrl);
-    }
 }
 
 void LuaLanguageServer::workspaceOpen(const QUrl &rootUrl) {

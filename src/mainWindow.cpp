@@ -33,11 +33,66 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
 
     configInit();
-    workspaceInit();
     moduleInit();
+    workspaceInit();
     shortcutInit();
     menuInit();
     layoutInit();
+}
+
+void MainWindow::workspaceOpen() {
+    QUrl rootUrl{};
+    // select new root directory
+    const QString rootDir = QFileDialog::getExistingDirectory(
+        this,
+        tr("Open Workspace"),
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+    rootUrl = QUrl::fromLocalFile(rootDir);
+    m_mainConfig["workspace"] = rootUrl.toString();
+    // check if lua config files exist
+    const QString rootPath = rootUrl.toLocalFile();
+    if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
+        QFile::copy(":/config/.luarc.json", luarcPath);
+        QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                         | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                         | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
+    } else if (filehashCalc(":/config/.luarc.json") != filehashCalc(luarcPath)) {
+        QFile::remove(luarcPath);
+        QFile::copy(":/config/.luarc.json", luarcPath);
+        QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                         | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                         | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+    }
+    if (const QString libdPath = QDir(rootPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+        QFile::copy(":/config/lib.d.lua", libdPath);
+        QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                        | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                        | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
+    } else if (filehashCalc(":/config/lib.d.lua") != filehashCalc(libdPath)) {
+        QFile::remove(libdPath);
+        QFile::copy(":/config/lib.d.lua", libdPath);
+        QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                        | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                        | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+    }
+    emit openWorkspace(rootUrl);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "workspace opened");
 }
 
 // MainWindow protected
@@ -60,57 +115,6 @@ void MainWindow::configInit() {
     m_configModule = new ConfigModule;
     m_configModule->configInit();
     m_mainConfig = g_config["mainConfig"].toObject();
-}
-
-void MainWindow::workspaceInit() {
-    // check if workspace is valid
-    if (const QUrl rootUrl(m_mainConfig["workspace"].toString()); !rootUrl.isEmpty() && rootUrl.isLocalFile()) {
-        // examine lua config files
-        const QString rootPath = rootUrl.toLocalFile();
-        if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
-            QFile::copy(":/config/.luarc.json", luarcPath);
-            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
-        } else if (filehashCalc(":/config/.luarc.json") != filehashCalc(luarcPath)) {
-            QFile::remove(luarcPath);
-            QFile::copy(":/config/.luarc.json", luarcPath);
-            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
-        }
-        if (const QString libdPath = QDir(rootPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
-            QFile::copy(":/config/lib.d.lua", libdPath);
-            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-        } else if (filehashCalc(":/config/lib.d.lua") != filehashCalc(libdPath)) {
-            QFile::remove(libdPath);
-            QFile::copy(":/config/lib.d.lua", libdPath);
-            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
-        }
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
-    } else {
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "workspace not found");
-    }
 }
 
 void MainWindow::moduleInit() {
@@ -246,7 +250,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &Log::logAppend);
-    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceInit);
+    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
     connect(m_scriptModule, &ScriptModule::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
@@ -263,20 +267,60 @@ void MainWindow::moduleInit() {
     g_undo = m_undoModule;
 }
 
+void MainWindow::workspaceInit() {
+    QUrl rootUrl{};
+    // check if workspace is valid
+    if (rootUrl = QUrl(m_mainConfig["workspace"].toString()); !rootUrl.isEmpty() && rootUrl.isLocalFile()) {
+        // check if lua config files exist
+        const QString rootPath = rootUrl.toLocalFile();
+        if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
+        } else if (filehashCalc(":/config/.luarc.json") != filehashCalc(luarcPath)) {
+            QFile::remove(luarcPath);
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+        }
+        if (const QString libdPath = QDir(rootPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
+        } else if (filehashCalc(":/config/lib.d.lua") != filehashCalc(libdPath)) {
+            QFile::remove(libdPath);
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+        }
+    }
+    emit openWorkspace(rootUrl);
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
+}
+
 void MainWindow::shortcutInit() {
     auto shortcutConfig = g_config["shortcutConfig"].toObject();
     m_openWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["openWorkspace"].toString()), this); // NOLINT
     connect(m_openWorkspaceShortcut, &QShortcut::activated, this, [this] {
-        const QString rootDir = QFileDialog::getExistingDirectory(
-            this,
-            tr("Select Workspace"),
-            QDir::homePath(),
-            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
-        );
-        const QUrl url = QUrl::fromLocalFile(rootDir);
-        m_mainConfig["workspace"] = url.toString();
-        workspaceInit();
-        emit openWorkspace(url);
+        workspaceOpen();
     });
     m_saveWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspace"].toString()), this); // NOLINT
     connect(m_saveWorkspaceShortcut, &QShortcut::activated, this, [this] {

@@ -47,11 +47,6 @@ ThreadpoolModule::ThreadpoolModule(QWidget *parent)
             threadStop(id);
         }
     });
-
-    // open workspace
-    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
-        workspaceOpen(rootUrl);
-    }
 }
 
 void ThreadpoolModule::workspaceOpen(const QUrl &rootUrl) {

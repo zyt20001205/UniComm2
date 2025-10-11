@@ -27,10 +27,6 @@ ExplorerModule::ExplorerModule(QWidget *parent)
     m_explorerTreeView->setColumnHidden(3, true);
     m_explorerTreeView->setColumnHidden(4, true);
     m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
-    // open workspace
-    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
-        workspaceOpen(rootUrl);
-    }
 }
 
 void ExplorerModule::workspaceOpen(const QUrl &rootUrl) const {

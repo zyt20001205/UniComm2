@@ -37,7 +37,7 @@ ScriptModule::ScriptModule(QWidget *parent)
         auto *workspaceOpenButton = new QPushButton(tr("Open Workspace")); // NOLINT
         welcomeLayout->addWidget(workspaceOpenButton);
         connect(workspaceOpenButton, &QPushButton::clicked, this, [this] {
-            emit openWorkspace(QUrl());
+            emit openWorkspace();
         });
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -84,11 +84,6 @@ ScriptModule::ScriptModule(QWidget *parent)
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
-
-    // open workspace
-    if (const QUrl rootUrl(g_config["mainConfig"].toObject()["workspace"].toString()); !rootUrl.isEmpty()) {
-        workspaceOpen(rootUrl);
-    }
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
