@@ -1,13 +1,19 @@
-#include "config.h"
+#include "configModule.h"
+
+#include <QDir>
+#include <QFileDialog>
+#include <QJsonArray>
+#include <QStandardPaths>
 
 #include "globals.h"
 
-// Config public
-Config::Config()
-    : m_configFile(QDir::current().filePath("config.json")) {
+// ConfigModule public
+ConfigModule::ConfigModule(QWidget *parent)
+    : QObject(parent),
+      m_configFile(QDir::current().filePath("config.json")) {
 }
 
-void Config::configInit() {
+void ConfigModule::configInit() {
     if (m_configFile.exists()) {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -21,7 +27,36 @@ void Config::configInit() {
     }
 }
 
-void Config::configGenerate() {
+void ConfigModule::configSave(const QString &filePath) {
+    if (filePath.isEmpty()) {
+        m_configFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+        const QJsonDocument doc(g_config);
+        m_configFile.write(doc.toJson());
+        m_configFile.close();
+        emit appendLog("workspace saved", "info");
+        // logging
+        const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] workspace saved").arg(timestamp);
+    } else {
+        if (QFile file(filePath); file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            const QJsonDocument doc(g_config);
+            file.write(doc.toJson());
+            file.close();
+            emit appendLog(QString("workspace saved to %1").arg(filePath), "info");
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] workspace saved to %2").arg(timestamp, filePath);
+        } else {
+            emit appendLog("workspace save failed", "info");
+            // logging
+            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] workspace save failed").arg(timestamp);
+        }
+    }
+}
+
+// ConfigModule private
+void ConfigModule::configGenerate() {
     if (m_configFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
             {
@@ -34,7 +69,9 @@ void Config::configGenerate() {
             },
             {
                 "shortcutConfig", QJsonObject{
-                    {"save", "Ctrl+S"}
+                    {"openWorkspace", "Ctrl+O"},
+                    {"saveWorkspace", "Ctrl+S"},
+                    {"saveWorkspaceAs", "Ctrl+Shift+S"}
                 },
             },
             {
@@ -87,7 +124,7 @@ void Config::configGenerate() {
     qDebug() << QString("[%1] %2").arg(timestamp, "config generated");
 }
 
-void Config::configLoad() {
+void ConfigModule::configLoad() {
     m_configFile.open(QIODevice::ReadOnly | QIODevice::Text);
     const QByteArray jsonData = m_configFile.readAll();
     if (const QJsonDocument doc = QJsonDocument::fromJson(jsonData); doc.isObject()) {
@@ -97,14 +134,4 @@ void Config::configLoad() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "config loaded");
-}
-
-void Config::configSave() {
-    m_configFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-    const QJsonDocument doc(g_config);
-    m_configFile.write(doc.toJson());
-    m_configFile.close();
-    // logging
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "config saved");
 }

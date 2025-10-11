@@ -166,16 +166,16 @@ void DatatableModule::contextMenuEvent(QContextMenuEvent *event) {
                 }
             });
         } else {
-            menu.addAction(tr("rename"), [this, visualIndex] {
+            menu.addAction(tr("Rename"), [this, visualIndex] {
                 datatableRename(visualIndex);
             });
-            menu.addAction(tr("insert left (Ins)"), [this, visualIndex] {
+            menu.addAction(tr("Insert Left \t Ins"), [this, visualIndex] {
                 datatableInsert(visualIndex);
             });
-            menu.addAction(tr("insert right (Ctrl+Ins)"), [this, visualIndex] {
+            menu.addAction(tr("Insert Right \t Ctrl+Ins"), [this, visualIndex] {
                 datatableInsert(visualIndex + 1);
             });
-            menu.addAction(tr("remove (Del)"), [this, visualIndex] {
+            menu.addAction(tr("Remove \t Del"), [this, visualIndex] {
                 datatableRemove(visualIndex);
             });
         }

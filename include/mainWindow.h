@@ -12,7 +12,7 @@
 #include <QStyleFactory>
 #include <QWidget>
 
-class Config;
+class ConfigModule;
 class LuaLanguageServer;
 class UndoModule;
 class PortModule;
@@ -58,11 +58,11 @@ private:
 
     void mainConfigSave();
 
-    void saveConfig();
+    void workspaceSave(const QString &filePath = QString());
 
     QJsonObject m_mainConfig{};
 
-    Config *m_configModule{};
+    ConfigModule *m_configModule{};
     LuaLanguageServer *m_llsModule{};
     UndoModule *m_undoModule{};
     PortModule *m_portModule{};
@@ -77,16 +77,20 @@ private:
     ThreadpoolModule *m_threadpoolModule{};
     ScriptModule *m_scriptModule{};
 
-    QAction *m_viewPort{};
-    QAction *m_viewExplorer{};
-    QAction *m_viewSend{};
-    QAction *m_viewDatabase{};
-    QAction *m_viewDatatable{};
-    QAction *m_viewDataplot{};
-    QAction *m_viewLog{};
-    QAction *m_viewDiagnostics{};
-    QAction *m_viewDebug{};
-    QAction *m_viewThreadpool{};
+    QShortcut *m_openWorkspaceShortcut{};
+    QShortcut *m_saveWorkspaceShortcut{};
+    QShortcut *m_saveWorkspaceAsShortcut{};
+
+    QAction *m_portModuleView{};
+    QAction *m_explorerModuleView{};
+    QAction *m_sendModuleView{};
+    QAction *m_databaseModuleView{};
+    QAction *m_datatableModuleView{};
+    QAction *m_dataplotModuleView{};
+    QAction *m_logModuleView{};
+    QAction *m_diagnosticsModuleView{};
+    QAction *m_debugModuleView{};
+    QAction *m_threadpoolModuleView{};
 };
 
 #endif //UNICOMM_MAINWINDOW_H

@@ -74,16 +74,16 @@ void DatabaseModule::contextMenuEvent(QContextMenuEvent *event) {
                 }
             });
         } else {
-            menu.addAction(tr("rename"), [this, visualIndex] {
+            menu.addAction(tr("Rename"), [this, visualIndex] {
                 databaseRename(visualIndex);
             });
-            menu.addAction(tr("insert above (Ins)"), [this, visualIndex] {
+            menu.addAction(tr("Insert Above \t Ins"), [this, visualIndex] {
                 databaseInsert(visualIndex);
             });
-            menu.addAction(tr("insert below (Ctrl+Ins)"), [this, visualIndex] {
+            menu.addAction(tr("Insert Below \t Ctrl+Ins"), [this, visualIndex] {
                 databaseInsert(visualIndex + 1);
             });
-            menu.addAction(tr("remove (Del)"), [this, visualIndex] {
+            menu.addAction(tr("Remove \t Del"), [this, visualIndex] {
                 databaseRemove(visualIndex);
             });
         }

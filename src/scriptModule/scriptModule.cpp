@@ -11,7 +11,7 @@
 #include <QTableWidget>
 #include <QTextBrowser>
 
-#include "config.h"
+#include "configModule.h"
 #include "globals.h"
 #include "luaModule/luaControl.h"
 #include "utils.h"
