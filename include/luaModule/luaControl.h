@@ -1,0 +1,18 @@
+#ifndef UNICOMM_LUACONTROL_H
+#define UNICOMM_LUACONTROL_H
+
+#include <QThread>
+#include <lua.hpp>
+#include <windows.h>
+
+int lua_leftClick(lua_State *L);
+
+int lua_leftDoubleClick(lua_State *L);
+
+int lua_rightClick(lua_State *L);
+
+int lua_rightDoubleClick(lua_State *L);
+
+int lua_keyPress(lua_State *L);
+
+#endif //UNICOMM_LUACONTROL_H
