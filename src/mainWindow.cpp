@@ -3,6 +3,8 @@
 #include <QCameraDevice>
 #include <QCloseEvent>
 #include <QMediaDevices>
+#include <QMenuBar>
+#include <QShortcut>
 
 #include "configModule.h"
 #include "globals.h"

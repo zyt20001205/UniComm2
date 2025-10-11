@@ -1,5 +1,7 @@
-#include "mainWindow.h"
+#include <QApplication>
+#include <QStyleFactory>
 
+#include "mainWindow.h"
 #include "globals.h"
 
 int main(int argc, char *argv[]) {

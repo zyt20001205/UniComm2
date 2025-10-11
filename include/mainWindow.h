@@ -1,16 +1,10 @@
 #ifndef UNICOMM_MAINWINDOW_H
 #define UNICOMM_MAINWINDOW_H
 
-#include <QApplication>
-#include <QDateTime>
-#include <QDockWidget>
 #include <QJsonObject>
-#include <QKeySequence>
 #include <QMainWindow>
-#include <QMenuBar>
-#include <QShortcut>
-#include <QStyleFactory>
-#include <QWidget>
+
+class QShortcut;
 
 class StructureModule;
 class ConfigModule;
