@@ -13,7 +13,7 @@
 
 #include "config.h"
 #include "globals.h"
-#include "luaRelated/luaControl.h"
+#include "luaModule/luaControl.h"
 #include "utils.h"
 #include "portModule/portModule.h"
 

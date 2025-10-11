@@ -2,25 +2,19 @@
 #define UNICOMM_THREADPOOL_H
 
 #include <QDockWidget>
-#include <QDir>
-#include <QEventLoop>
-#include <QFile>
-#include <QHeaderView>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QTableWidget>
-#include <QThread>
 #include <QUrl>
+
+class QTableWidget;
 
 class LuaInterpreter;
 
-class Threadpool final : public QDockWidget {
+class ThreadpoolModule final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Threadpool(QWidget *parent = nullptr);
+    explicit ThreadpoolModule(QWidget *parent = nullptr);
 
-    ~Threadpool() override = default;
+    ~ThreadpoolModule() override = default;
 
     void workspaceOpen(const QUrl &rootUrl);
 

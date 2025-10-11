@@ -1,11 +1,22 @@
-#include "debug.h"
+#include "scriptModule/debugModule.h"
+
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QInputDialog>
+#include <QLabel>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QStandardItemModel>
+#include <QTableView>
+#include <QThread>
+#include <QTreeView>
 
 #include "globals.h"
-#include "luaRelated/luaInterpreter.h"
-#include "../include/scriptModule/scriptModule.h"
+#include "luaModule/luaInterpreter.h"
+#include "scriptModule/scriptModule.h"
 
-// Debug public
-Debug::Debug(QWidget *parent)
+// DebugModule public
+DebugModule::DebugModule(QWidget *parent)
     : QDockWidget("debug", parent),
       m_debugBreakpointsTableModel(new QStandardItemModel()),
       m_debugBreakpointsProxyModel(new BreakpointsProxyModel()),
@@ -182,7 +193,7 @@ Debug::Debug(QWidget *parent)
                     const int line = index.data(Qt::UserRole + 2).toInt();
                     const QString currentCondition = g_breakpoints[scriptUrl][line]["expr"].toString();
                     bool ok;
-                    QString newCondition = QInputDialog::getText(
+                    const QString newCondition = QInputDialog::getText(
                         this,
                         tr("Edit Breakpoint Condition"),
                         tr("Enter condition expression:"),
@@ -200,7 +211,6 @@ Debug::Debug(QWidget *parent)
             });
         }
     }
-
     // debug tabview
     {
         layout->addWidget(m_debugTabWidget);
@@ -220,7 +230,7 @@ Debug::Debug(QWidget *parent)
     QTimer::singleShot(0, this, [this] { overlayResize(); });
 }
 
-void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) const {
+void DebugModule::breakpointInsert(const QUrl &scriptUrl, const int line) const {
     const int row = m_debugBreakpointsTableModel->rowCount();
     m_debugBreakpointsTableModel->insertRow(row);
     m_debugBreakpointsTableModel->setItem(row, 0, new QStandardItem(scriptUrl.fileName()));
@@ -235,7 +245,7 @@ void Debug::breakpointInsert(const QUrl &scriptUrl, const int line) const {
     m_debugBreakpointsTableModel->setItem(row, 3, viewItem);
 }
 
-void Debug::breakpointRemove(const QUrl &scriptUrl, const int line) const {
+void DebugModule::breakpointRemove(const QUrl &scriptUrl, const int line) const {
     for (int row = 0; row < m_debugBreakpointsTableModel->rowCount(); ++row) {
         const QStandardItem *fileItem = m_debugBreakpointsTableModel->item(row, 0);
         const QStandardItem *lineItem = m_debugBreakpointsTableModel->item(row, 1);
@@ -246,18 +256,18 @@ void Debug::breakpointRemove(const QUrl &scriptUrl, const int line) const {
     }
 }
 
-void Debug::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
+void DebugModule::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
     m_interpreterHash.insert(threadId, interpreter);
     auto *debugPage = new DebugPage(interpreter); // NOLINT
     m_debugPageHash[threadId] = debugPage;
     m_debugTabWidget->addTab(debugPage, threadId);
     connect(interpreter->thread(), &QThread::finished, this, [this, threadId, debugPage] { debugEnd(threadId, debugPage); });
-    connect(debugPage, &DebugPage::openScript, this, &Debug::openScript);
-    connect(debugPage, &DebugPage::showMarker, this, &Debug::showMarker);
+    connect(debugPage, &DebugPage::openScript, this, &DebugModule::openScript);
+    connect(debugPage, &DebugPage::showMarker, this, &DebugModule::showMarker);
     overlayHide();
 }
 
-void Debug::debugEnd(const QString &threadId, const DebugPage *debugPage) {
+void DebugModule::debugEnd(const QString &threadId, const DebugPage *debugPage) {
     const int index = m_debugTabWidget->indexOf(debugPage);
     if (index != -1) m_debugTabWidget->removeTab(index);
     delete debugPage;
@@ -266,33 +276,33 @@ void Debug::debugEnd(const QString &threadId, const DebugPage *debugPage) {
     if (m_debugPageHash.isEmpty()) overlayShow();
 }
 
-void Debug::varReturn(const QString &threadId, QStandardItemModel *varTree) {
+void DebugModule::varReturn(const QString &threadId, QStandardItemModel *varTree) {
     if (!m_debugPageHash.contains(threadId)) return;
     m_debugPageHash[threadId]->varLoad(varTree);
 }
 
-void Debug::callReturn(const QString &threadId, QStandardItemModel *callTable) {
+void DebugModule::callReturn(const QString &threadId, QStandardItemModel *callTable) {
     if (!m_debugPageHash.contains(threadId)) return;
     m_debugPageHash[threadId]->callLoad(callTable);
 }
 
-// Debug protected
-void Debug::resizeEvent(QResizeEvent *event) {
+// DebugModule protected
+void DebugModule::resizeEvent(QResizeEvent *event) {
     QDockWidget::resizeEvent(event);
     if (m_debugTabOverlay->isVisible()) overlayResize();
 }
 
-// Debug private
-void Debug::overlayShow() const {
+// DebugModule private
+void DebugModule::overlayShow() const {
     m_debugTabOverlay->raise();
     m_debugTabOverlay->show();
 }
 
-void Debug::overlayHide() const {
+void DebugModule::overlayHide() const {
     m_debugTabOverlay->hide();
 }
 
-void Debug::overlayResize() const {
+void DebugModule::overlayResize() const {
     m_debugTabOverlay->setGeometry(m_debugTabWidget->rect());
 }
 

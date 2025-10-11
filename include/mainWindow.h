@@ -16,15 +16,15 @@ class Config;
 class LuaLanguageServer;
 class UndoModule;
 class PortModule;
-class Explorer;
+class ExplorerModule;
 class SendModule;
 class DatabaseModule;
 class DatatableModule;
 class DataplotModule;
 class Log;
-class Diagnostics;
-class Debug;
-class Threadpool;
+class DiagnosticsModule;
+class DebugModule;
+class ThreadpoolModule;
 class ScriptModule;
 
 class MainWindow final : public QMainWindow {
@@ -66,15 +66,15 @@ private:
     LuaLanguageServer *m_llsModule{};
     UndoModule *m_undoModule{};
     PortModule *m_portModule{};
-    Explorer *m_explorerModule{};
+    ExplorerModule *m_explorerModule{};
     SendModule *m_sendModule{};
     DatabaseModule *m_databaseModule{};
     DatatableModule *m_datatableModule{};
     DataplotModule *m_dataplotModule{};
     Log *m_logModule{};
-    Diagnostics *m_diagnosticsModule{};
-    Debug *m_debugModule{};
-    Threadpool *m_threadpoolModule{};
+    DiagnosticsModule *m_diagnosticsModule{};
+    DebugModule *m_debugModule{};
+    ThreadpoolModule *m_threadpoolModule{};
     ScriptModule *m_scriptModule{};
 
     QAction *m_viewPort{};

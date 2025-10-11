@@ -9,22 +9,22 @@
 class DatabaseModule;
 class DatatableModule;
 class DataplotModule;
-class Debug;
+class DebugModule;
 class Log;
 class PortModule;
 class ScriptModule;
-class Threadpool;
+class ThreadpoolModule;
 class UndoModule;
 
 extern QMainWindow *g_mainWindow;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
-extern Debug *g_debug;
+extern DebugModule *g_debug;
 extern Log *g_log;
 extern PortModule *g_port;
 extern ScriptModule *g_script;
-extern Threadpool *g_threadpool;
+extern ThreadpoolModule *g_threadpool;
 extern UndoModule *g_undo;
 
 extern QJsonObject g_config;

@@ -42,18 +42,15 @@ qt_add_executable(UniComm src/main.cpp
         include/dataModule/databaseModule.h
         include/dataModule/dataplotModule.h
         include/dataModule/datatableModule.h
-        include/debug.h
-        include/diagnostics.h
-        include/explorer.h
         include/globals.h
         include/log.h
-        include/luaRelated/luaControl.h
-        include/luaRelated/luaDataProcess.h
-        include/luaRelated/luaInterpreter.h
-        include/luaRelated/luaLanguageServer.h
-        include/luaRelated/luaPort.h
-        include/luaRelated/luaMiscellaneous.h
-        include/luaRelated/luaModbus.h
+        include/luaModule/luaControl.h
+        include/luaModule/luaDataProcess.h
+        include/luaModule/luaInterpreter.h
+        include/luaModule/luaLanguageServer.h
+        include/luaModule/luaPort.h
+        include/luaModule/luaMiscellaneous.h
+        include/luaModule/luaModbus.h
         include/portModule/areaSelection.h
         include/portModule/basePort.h
         include/portModule/camera.h
@@ -61,14 +58,17 @@ qt_add_executable(UniComm src/main.cpp
         include/portModule/portModule.h
         include/portModule/portSetting.h
         include/portModule/screen.h
+        include/portModule/sendModule.h
         include/portModule/serialPort.h
         include/portModule/tcpClient.h
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
-        include/sendModule.h
+        include/scriptModule/debugModule.h
+        include/scriptModule/diagnosticsModule.h
+        include/scriptModule/explorerModule.h
         include/scriptModule/scriptModule.h
+        include/scriptModule/threadpoolModule.h
         include/suffix.h
-        include/threadpool.h
         include/undoModule.h
         include/utils.h
         src/mainWindow.cpp
@@ -76,18 +76,15 @@ qt_add_executable(UniComm src/main.cpp
         src/dataModule/databaseModule.cpp
         src/dataModule/dataplotModule.cpp
         src/dataModule/datatableModule.cpp
-        src/debug.cpp
-        src/diagnostics.cpp
-        src/explorer.cpp
         src/globals.cpp
         src/log.cpp
-        src/luaRelated/luaControl.cpp
-        src/luaRelated/luaDataProcess.cpp
-        src/luaRelated/luaInterpreter.cpp
-        src/luaRelated/luaLanguageServer.cpp
-        src/luaRelated/luaPort.cpp
-        src/luaRelated/luaMiscellaneous.cpp
-        src/luaRelated/luaModbus.cpp
+        src/luaModule/luaControl.cpp
+        src/luaModule/luaDataProcess.cpp
+        src/luaModule/luaInterpreter.cpp
+        src/luaModule/luaLanguageServer.cpp
+        src/luaModule/luaPort.cpp
+        src/luaModule/luaMiscellaneous.cpp
+        src/luaModule/luaModbus.cpp
         src/portModule/areaSelection.cpp
         src/portModule/basePort.cpp
         src/portModule/camera.cpp
@@ -95,14 +92,17 @@ qt_add_executable(UniComm src/main.cpp
         src/portModule/portModule.cpp
         src/portModule/portSetting.cpp
         src/portModule/screen.cpp
+        src/portModule/sendModule.cpp
         src/portModule/serialPort.cpp
         src/portModule/tcpClient.cpp
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
-        src/sendModule.cpp
+        src/scriptModule/debugModule.cpp
+        src/scriptModule/diagnosticsModule.cpp
+        src/scriptModule/explorerModule.cpp
         src/scriptModule/scriptModule.cpp
+        src/scriptModule/threadpoolModule.cpp
         src/suffix.cpp
-        src/threadpool.cpp
         src/undoModule.cpp
         src/utils.cpp
 )

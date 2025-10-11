@@ -1,10 +1,18 @@
-#include "threadpool.h"
+#include "scriptModule/threadpoolModule.h"
+
+#include <QDir>
+#include <QEventLoop>
+#include <QFile>
+#include <QHeaderView>
+#include <QMessageBox>
+#include <QTableWidget>
+#include <QThread>
 
 #include "globals.h"
-#include "luaRelated/luaInterpreter.h"
+#include "luaModule/luaInterpreter.h"
 
-// Threadpool public
-Threadpool::Threadpool(QWidget *parent)
+// ThreadpoolModule public
+ThreadpoolModule::ThreadpoolModule(QWidget *parent)
     : QDockWidget("threadpool", parent),
       m_threadpoolTableWidget(new QTableWidget()),
       m_threadpoolColor{
@@ -46,11 +54,11 @@ Threadpool::Threadpool(QWidget *parent)
     }
 }
 
-void Threadpool::workspaceOpen(const QUrl &rootUrl) {
+void ThreadpoolModule::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
 }
 
-QString Threadpool::threadExec(const QString &scriptPath) {
+QString ThreadpoolModule::threadExec(const QString &scriptPath) {
     const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
     QFile file(fullPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -63,7 +71,7 @@ QString Threadpool::threadExec(const QString &scriptPath) {
     return threadRun(scriptUrl, script);
 }
 
-QString Threadpool::threadRun(const QUrl &scriptUrl, const QString &script) {
+QString ThreadpoolModule::threadRun(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
@@ -80,7 +88,7 @@ QString Threadpool::threadRun(const QUrl &scriptUrl, const QString &script) {
     return threadId;
 }
 
-void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script) {
+void ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
@@ -104,7 +112,7 @@ void Threadpool::threadDebug(const QUrl &scriptUrl, const QString &script) {
     emit startDebug(threadId, interpreter);
 }
 
-bool Threadpool::threadStop(const QString &threadId) {
+bool ThreadpoolModule::threadStop(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
         m_threadHash[threadId]->requestInterruption();
         return true;
@@ -112,10 +120,10 @@ bool Threadpool::threadStop(const QString &threadId) {
     return false;
 }
 
-bool Threadpool::threadWait(const QString &threadId) {
+bool ThreadpoolModule::threadWait(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
         QEventLoop loop;
-        connect(this, &Threadpool::threadStopped, &loop, [&loop, threadId](const QString &id) {
+        connect(this, &ThreadpoolModule::threadStopped, &loop, [&loop, threadId](const QString &id) {
             if (threadId == id) {
                 loop.quit();
             }
@@ -126,8 +134,8 @@ bool Threadpool::threadWait(const QString &threadId) {
     return false;
 }
 
-// Threadpool private
-void Threadpool::threadAppend(const int status, const QString &name, const QString &threadId, QThread *worker) {
+// ThreadpoolModule private
+void ThreadpoolModule::threadAppend(const int status, const QString &name, const QString &threadId, QThread *worker) {
     m_threadHash.insert(threadId, worker);
     // qDebug() << m_threadHash;
     m_threadpoolTableWidget->insertRow(0);

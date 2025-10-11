@@ -1,36 +1,25 @@
 #ifndef UNICOMM_DEBUG_H
 #define UNICOMM_DEBUG_H
 
-#include <QComboBox>
 #include <QDockWidget>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QInputDialog>
-#include <QLabel>
-#include <QListView>
-#include <QMessageBox>
-#include <QPushButton>
 #include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QTableView>
-#include <QThread>
-#include <QTimer>
-#include <QTreeView>
-#include <QVBoxLayout>
 
-class LuaInterpreter;
+class QStandardItemModel;
+class QTableView;
+class QTabWidget;
+class QTreeView;
 
 class BreakpointsProxyModel;
-
 class DebugPage;
+class LuaInterpreter;
 
-class Debug final : public QDockWidget {
+class DebugModule final : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit Debug(QWidget *parent = nullptr);
+    explicit DebugModule(QWidget *parent = nullptr);
 
-    ~Debug() override = default;
+    ~DebugModule() override = default;
 
     void breakpointInsert(const QUrl &scriptUrl, int line) const;
 

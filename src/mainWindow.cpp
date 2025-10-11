@@ -1,21 +1,23 @@
 #include "mainWindow.h"
 
+#include <QCloseEvent>
+
 #include "config.h"
-#include "../include/dataModule/databaseModule.h"
-#include "../include/dataModule/dataplotModule.h"
-#include "../include/dataModule/datatableModule.h"
-#include "debug.h"
-#include "diagnostics.h"
-#include "explorer.h"
 #include "globals.h"
 #include "log.h"
-#include "luaRelated/luaLanguageServer.h"
-#include "portModule/portModule.h"
-#include "../include/scriptModule/scriptModule.h"
-#include "SendModule.h"
-#include "threadpool.h"
 #include "undoModule.h"
 #include "utils.h"
+#include "dataModule/databaseModule.h"
+#include "dataModule/dataplotModule.h"
+#include "dataModule/datatableModule.h"
+#include "luaModule/luaLanguageServer.h"
+#include "portModule/portModule.h"
+#include "portModule/sendModule.h"
+#include "scriptModule/debugModule.h"
+#include "scriptModule/diagnosticsModule.h"
+#include "scriptModule/explorerModule.h"
+#include "scriptModule/scriptModule.h"
+#include "scriptModule/threadpoolModule.h"
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent)
@@ -134,7 +136,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
 
-    m_explorerModule = new Explorer();
+    m_explorerModule = new ExplorerModule();
     this->addDockWidget(Qt::LeftDockWidgetArea, m_explorerModule);
     m_explorerModule->setObjectName("explorerModule");
     connect(m_explorerModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewExplorer->setChecked(visible); });
@@ -182,7 +184,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "log module initialized");
 
-    m_diagnosticsModule = new Diagnostics();
+    m_diagnosticsModule = new DiagnosticsModule();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_diagnosticsModule);
     m_diagnosticsModule->setObjectName("diagnosticsModule");
     connect(m_diagnosticsModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDiagnostics->setChecked(visible); });
@@ -190,7 +192,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "diagnostics module initialized");
 
-    m_debugModule = new Debug();
+    m_debugModule = new DebugModule();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_debugModule);
     m_debugModule->setObjectName("debugModule");
     connect(m_debugModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewDebug->setChecked(visible); });
@@ -202,7 +204,7 @@ void MainWindow::moduleInit() {
     this->tabifyDockWidget(m_logModule, m_debugModule);
     m_logModule->raise();
 
-    m_threadpoolModule = new Threadpool();
+    m_threadpoolModule = new ThreadpoolModule();
     this->addDockWidget(Qt::BottomDockWidgetArea, m_threadpoolModule);
     m_threadpoolModule->setObjectName("threadpoolModule");
     connect(m_threadpoolModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_viewThreadpool->setChecked(visible); });
@@ -216,10 +218,10 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule, &ScriptModule::workspaceOpen);
-    connect(this, &MainWindow::openWorkspace, m_explorerModule, &Explorer::workspaceOpen);
-    connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &Threadpool::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_explorerModule, &ExplorerModule::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &ThreadpoolModule::workspaceOpen);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsReturn);
-    connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &Diagnostics::diagnosticsReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &ScriptModule::completionReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &ScriptModule::foldingRangeReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFormatting, m_scriptModule, &ScriptModule::formattingReturn);
@@ -227,27 +229,27 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpReturn);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &Log::logAppend);
-    connect(m_explorerModule, &Explorer::appendLog, m_logModule, &Log::logAppend);
-    connect(m_explorerModule, &Explorer::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_explorerModule, &Explorer::runScript, m_threadpoolModule, &Threadpool::threadRun);
-    connect(m_explorerModule, &Explorer::debugScript, m_threadpoolModule, &Threadpool::threadDebug);
+    connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &Log::logAppend);
+    connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_explorerModule, &ExplorerModule::runScript, m_threadpoolModule, &ThreadpoolModule::threadRun);
+    connect(m_explorerModule, &ExplorerModule::debugScript, m_threadpoolModule, &ThreadpoolModule::threadDebug);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
     connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
     connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
-    connect(m_diagnosticsModule, &Diagnostics::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_diagnosticsModule, &Diagnostics::setCursorPosition, m_scriptModule, &ScriptModule::cursorPositionSet);
-    connect(m_diagnosticsModule, &Diagnostics::showIndicator, m_scriptModule, &ScriptModule::indicatorShow);
-    connect(m_debugModule, &Debug::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_debugModule, &Debug::showMarker, m_scriptModule, &ScriptModule::markerShow);
-    connect(m_threadpoolModule, &Threadpool::startDebug, m_debugModule, &Debug::debugStart);
+    connect(m_diagnosticsModule, &DiagnosticsModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_diagnosticsModule, &DiagnosticsModule::setCursorPosition, m_scriptModule, &ScriptModule::cursorPositionSet);
+    connect(m_diagnosticsModule, &DiagnosticsModule::showIndicator, m_scriptModule, &ScriptModule::indicatorShow);
+    connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_debugModule, &DebugModule::showMarker, m_scriptModule, &ScriptModule::markerShow);
+    connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &Log::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceInit);
-    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &Debug::breakpointInsert);
-    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &Debug::breakpointRemove);
-    connect(m_scriptModule, &ScriptModule::runThread, m_threadpoolModule, &Threadpool::threadRun);
-    connect(m_scriptModule, &ScriptModule::debugThread, m_threadpoolModule, &Threadpool::threadDebug);
+    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
+    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
+    connect(m_scriptModule, &ScriptModule::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
+    connect(m_scriptModule, &ScriptModule::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);
 
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
