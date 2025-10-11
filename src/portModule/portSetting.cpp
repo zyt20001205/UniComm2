@@ -259,6 +259,7 @@ PortSetting::PortSetting(QWidget *parent)
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     const int portType = portConfig["portType"].toInt();
     m_portTypeCombobox->setCurrentIndex(portType);
+    m_portTypeCombobox->setEnabled(false);
     switch (portType) {
         case SERIALPORT: {
             int i = m_serialPortNameCombobox->findData(portConfig["portName"].toString());
@@ -368,7 +369,6 @@ void PortSetting::portSettingHideAll() const {
 
 void PortSetting::portSettingTypeSwitch(const int portType) {
     portSettingHideAll();
-    m_portTypeCombobox->setEnabled(false);
     switch (portType) {
         case SERIALPORT: {
             m_serialPortNameWidget->show();
@@ -436,7 +436,6 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
             break;
         }
         default: {
-            m_portTypeCombobox->setEnabled(true);
             break;
         }
     }

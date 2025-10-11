@@ -1,6 +1,8 @@
 #include "mainWindow.h"
 
+#include <QCameraDevice>
 #include <QCloseEvent>
+#include <QMediaDevices>
 
 #include "configModule.h"
 #include "globals.h"
@@ -38,6 +40,11 @@ MainWindow::MainWindow(QWidget *parent)
     shortcutInit();
     menuInit();
     layoutInit();
+
+    // preload multimedia to avoid lagging on first click
+    QTimer::singleShot(0, this, [] {
+        QMediaDevices::videoInputs();
+    });
 }
 
 void MainWindow::workspaceOpen() {

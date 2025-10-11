@@ -227,7 +227,6 @@ DebugModule::DebugModule(QWidget *parent)
     }
     layout->setStretch(0, 0);
     layout->setStretch(1, 1);
-    QTimer::singleShot(0, this, [this] { overlayResize(); });
 }
 
 void DebugModule::breakpointInsert(const QUrl &scriptUrl, const int line) const {
@@ -294,6 +293,7 @@ void DebugModule::resizeEvent(QResizeEvent *event) {
 
 // DebugModule private
 void DebugModule::overlayShow() const {
+    overlayResize();
     m_debugTabOverlay->raise();
     m_debugTabOverlay->show();
 }
@@ -303,7 +303,8 @@ void DebugModule::overlayHide() const {
 }
 
 void DebugModule::overlayResize() const {
-    m_debugTabOverlay->setGeometry(m_debugTabWidget->rect());
+    m_debugTabOverlay->resize(m_debugTabWidget->size());
+    m_debugTabOverlay->move(0, 0);
 }
 
 BreakpointsProxyModel::BreakpointsProxyModel(QObject *parent)

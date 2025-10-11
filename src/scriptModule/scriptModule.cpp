@@ -665,7 +665,7 @@ void ScriptPage::scriptEditFinish() {
 }
 
 void ScriptPage::dwellSwitch(const bool status) const {
-    if (status) m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, 500); // NOLINT
+    if (status) m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
     else m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, QsciScintilla::SC_TIME_FOREVER); // NOLINT
 }
 

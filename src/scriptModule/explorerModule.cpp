@@ -140,6 +140,9 @@ void ExplorerModule::scriptNew() {
     file.close();
 
     emit appendLog(QString("%1 %2").arg(fileName, "created"), "info");
+
+    const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
+    emit openScript(scriptUrl);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "created");

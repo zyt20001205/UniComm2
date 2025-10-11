@@ -1,7 +1,6 @@
 #include "portModule/portModule.h"
 
 #include <QContextMenuEvent>
-#include <QDialog>
 #include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
@@ -30,7 +29,6 @@ PortModule::PortModule(QWidget *parent)
     setWidget(m_portTabWidget);
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
-    // m_portTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { portRemove(index); });
     connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
     auto *addButton = new QPushButton(); // NOLINT
@@ -51,17 +49,16 @@ PortModule::PortModule(QWidget *parent)
         index++;
     }
 
+    m_portTabOverlay->installEventFilter(this);
     m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
     auto *overlayLayout = new QVBoxLayout(m_portTabOverlay); // NOLINT
     overlayLayout->setAlignment(Qt::AlignCenter);
     overlayLayout->setContentsMargins(0, 0, 0, 0);
-    auto *overlayLabel = new QLabel(tr("WIP")); // NOLINT
+    auto *overlayLabel = new QLabel(tr("Click to add a port")); // NOLINT
     overlayLayout->addWidget(overlayLabel);
     overlayLabel->setFont(QFont("Consolas", 12, QFont::Bold));
     overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
     if (m_portTabWidget->count() == 0) overlayShow();
-
-    QTimer::singleShot(0, this, [this] { overlayResize(); });
 }
 
 void PortModule::portConfigSave() const {
@@ -70,8 +67,8 @@ void PortModule::portConfigSave() const {
 
 BasePort *PortModule::portObject(const int index) const {
     BasePort *portObject = nullptr;
-    if (index == -1) portObject = qobject_cast<PortPage *>(m_portTabWidget->currentWidget())->m_port;
-    else portObject = qobject_cast<PortPage *>(m_portTabWidget->widget(index))->m_port;
+    if (index == -1) portObject = static_cast<PortPage *>(m_portTabWidget->currentWidget())->m_port;
+    else portObject = static_cast<PortPage *>(m_portTabWidget->widget(index))->m_port;
     return portObject;
 }
 
@@ -82,7 +79,7 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint tabBarPos = tabBar->mapFromGlobal(globalPos);
     if (tabBar->rect().contains(tabBarPos)) {
         const int index = tabBar->tabAt(tabBarPos);
-        auto *portPage = qobject_cast<PortPage *>(m_portTabWidget->widget(index));
+        auto *portPage = static_cast<PortPage *>(m_portTabWidget->widget(index));
         m_portTabWidget->setCurrentWidget(portPage);
         QMenu menu(this);
         menu.addAction("edit", [this, index, portPage] {
@@ -98,6 +95,18 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction("duplicate", [this, index] { portDuplicate(index); });
         menu.exec(event->globalPos());
     }
+}
+
+bool PortModule::eventFilter(QObject *obj, QEvent *event) {
+    if (obj == m_portTabOverlay && event->type() == QEvent::MouseButtonPress) {
+        if (PortSetting portSettingDialog; portSettingDialog.exec() == QDialog::Accepted) {
+            const QJsonObject portConfig = portSettingDialog.portSettingExport();
+            m_portConfig.append(portConfig);
+            portInsert(m_portTabWidget->count(), portConfig);
+        }
+        return true;
+    }
+    return QDockWidget::eventFilter(obj, event);
 }
 
 void PortModule::resizeEvent(QResizeEvent *event) {
@@ -149,6 +158,7 @@ void PortModule::portSwap(const int srcIndex, const int dstIndex) {
 }
 
 void PortModule::overlayShow() const {
+    overlayResize();
     m_portTabOverlay->raise();
     m_portTabOverlay->show();
 }
@@ -158,7 +168,8 @@ void PortModule::overlayHide() const {
 }
 
 void PortModule::overlayResize() const {
-    m_portTabOverlay->setGeometry(m_portTabWidget->rect());
+    m_portTabOverlay->resize(m_portTabWidget->size());
+    m_portTabOverlay->move(0, 0);
 }
 
 // PortPage public
