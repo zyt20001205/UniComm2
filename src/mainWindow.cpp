@@ -2,14 +2,17 @@
 
 #include <QCameraDevice>
 #include <QCloseEvent>
+#include <QFileDialog>
 #include <QMediaDevices>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QShortcut>
+#include <QStandardPaths>
 #include <QThread>
 
 #include "configModule.h"
 #include "globals.h"
-#include "log.h"
+#include "logModule.h"
 #include "undoModule.h"
 #include "utils.h"
 #include "dataModule/databaseModule.h"
@@ -199,7 +202,7 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
 
-    m_logModule = new Log();
+    m_logModule = new LogModule();
     addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
     m_logModule->setObjectName("logModule");
     connect(m_logModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_logModuleView->setChecked(visible); });
@@ -238,12 +241,12 @@ void MainWindow::moduleInit() {
     m_scriptModule = new ScriptModule();
     setCentralWidget(m_scriptModule);
 
-    connect(this, &MainWindow::appendLog, m_logModule, &Log::logAppend);
+    connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_scriptModule, &ScriptModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_explorerModule, &ExplorerModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &ThreadpoolModule::workspaceOpen);
-    connect(m_configModule, &ConfigModule::appendLog, m_logModule, &Log::logAppend);
+    connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &ScriptModule::completionReturn);
@@ -253,8 +256,8 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnHover, m_scriptModule, &ScriptModule::hoverReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpReturn);
-    connect(m_portModule, &PortModule::appendLog, m_logModule, &Log::logAppend);
-    connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &Log::logAppend);
+    connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &ExplorerModule::runScript, m_threadpoolModule, &ThreadpoolModule::threadRun);
     connect(m_explorerModule, &ExplorerModule::debugScript, m_threadpoolModule, &ThreadpoolModule::threadDebug);
@@ -269,7 +272,7 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
-    connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &Log::logAppend);
+    connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::switchScript, m_structureModule, &StructureModule::scriptSwitch);
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);

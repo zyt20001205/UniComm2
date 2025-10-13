@@ -1,8 +1,18 @@
-#include "log.h"
+#include "logModule.h"
+
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QPrinter>
+#include <QPushButton>
+#include <QStandardPaths>
+#include <QTextDocumentWriter>
+#include <QTextEdit>
 
 #include "globals.h"
-// Log public
-Log::Log(QWidget *parent)
+// LogModule public
+LogModule::LogModule(QWidget *parent)
     : QDockWidget("log", parent),
       m_logConfig(g_config["logConfig"].toObject()),
       m_textEdit(new QTextEdit()) {
@@ -43,19 +53,19 @@ Log::Log(QWidget *parent)
     saveButton->setFixedSize(24, 24);
     saveButton->setIcon(QIcon(":/icon/save.svg"));
     saveButton->setToolTip(tr("save log"));
-    connect(saveButton, &QPushButton::clicked, this, &Log::logSave);
+    connect(saveButton, &QPushButton::clicked, this, &LogModule::logSave);
     auto *clearButton = new QPushButton(); // NOLINT
     ctrlLayout->addWidget(clearButton);
     clearButton->setFixedSize(24, 24);
     clearButton->setIcon(QIcon(":/icon/delete.svg"));
     clearButton->setToolTip(tr("clear log"));
-    connect(clearButton, &QPushButton::clicked, this, &Log::logClear);
+    connect(clearButton, &QPushButton::clicked, this, &LogModule::logClear);
 
     layout->addWidget(m_textEdit);
     m_textEdit->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
 }
 
-void Log::logAppend(const QString &message, const QString &level) {
+void LogModule::logAppend(const QString &message, const QString &level) {
     // check timestamp
     QString timestamp = "";
     if (m_logConfig["timestamp"].toBool()) {
@@ -79,12 +89,12 @@ void Log::logAppend(const QString &message, const QString &level) {
     m_textEdit->append(f_message);
 }
 
-void Log::logConfigSave() const {
+void LogModule::logConfigSave() const {
     g_config["logConfig"] = m_logConfig;
 }
 
-// Log private
-void Log::logSave() {
+// LogModule private
+void LogModule::logSave() {
     if (m_textEdit->toPlainText().isEmpty()) {
         QMessageBox::warning(nullptr, "Warning", tr("Log is empty."));
         return;
@@ -161,6 +171,6 @@ void Log::logSave() {
     }
 }
 
-void Log::logClear() const {
+void LogModule::logClear() const {
     m_textEdit->clear();
 }

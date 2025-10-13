@@ -1,7 +1,9 @@
 #include "luaModule/luaMiscellaneous.h"
 
+#include <QInputDialog>
+
 #include "globals.h"
-#include "log.h"
+#include "logModule.h"
 #include "scriptModule/threadpoolModule.h"
 
 int lua_exec(lua_State *L) {

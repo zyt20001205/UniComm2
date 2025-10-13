@@ -9,7 +9,7 @@
 #include "luaModule/luaMiscellaneous.h"
 #include "luaModule/luaModbus.h"
 #include "globals.h"
-#include "log.h"
+#include "logModule.h"
 #include "scriptModule/scriptModule.h"
 #include "utils.h"
 

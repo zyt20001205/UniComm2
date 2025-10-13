@@ -43,7 +43,7 @@ qt_add_executable(UniComm src/main.cpp
         include/dataModule/dataplotModule.h
         include/dataModule/datatableModule.h
         include/globals.h
-        include/log.h
+        include/logModule.h
         include/luaModule/luaControl.h
         include/luaModule/luaDataProcess.h
         include/luaModule/luaInterpreter.h
@@ -78,7 +78,7 @@ qt_add_executable(UniComm src/main.cpp
         src/dataModule/dataplotModule.cpp
         src/dataModule/datatableModule.cpp
         src/globals.cpp
-        src/log.cpp
+        src/logModule.cpp
         src/luaModule/luaControl.cpp
         src/luaModule/luaDataProcess.cpp
         src/luaModule/luaInterpreter.cpp

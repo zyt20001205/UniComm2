@@ -1,7 +1,7 @@
 #include "luaModule/luaPort.h"
 
 #include "globals.h"
-#include "log.h"
+#include "logModule.h"
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
 

@@ -16,7 +16,7 @@ class SendModule;
 class DatabaseModule;
 class DatatableModule;
 class DataplotModule;
-class Log;
+class LogModule;
 class DiagnosticsModule;
 class DebugModule;
 class ThreadpoolModule;
@@ -68,7 +68,7 @@ private:
     DatabaseModule *m_databaseModule{};
     DatatableModule *m_datatableModule{};
     DataplotModule *m_dataplotModule{};
-    Log *m_logModule{};
+    LogModule *m_logModule{};
     DiagnosticsModule *m_diagnosticsModule{};
     DebugModule *m_debugModule{};
     ThreadpoolModule *m_threadpoolModule{};
