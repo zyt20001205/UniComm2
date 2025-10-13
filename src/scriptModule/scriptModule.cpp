@@ -452,7 +452,6 @@ void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
         switch (tokenType) {
             case TOKENTYPE_CLASS:
                 m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_CLASS); // NOLINT
-                qDebug() << "here" << currentLine << currentChar << length << tokenType;
                 break;
             case TOKENTYPE_TYPE:
                 m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_TYPE); // NOLINT
