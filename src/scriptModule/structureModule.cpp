@@ -23,7 +23,7 @@ StructureModule::StructureModule(QWidget *parent)
 void StructureModule::documentSymbolReturn(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
-        qDebug() << result;
+        // qDebug() << result;
         m_documentSymbolTreeModel->clear();
         documentSymbolPublish(result, nullptr);
         m_documentSymbolTreeView->expandAll();
