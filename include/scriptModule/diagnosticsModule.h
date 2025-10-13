@@ -2,7 +2,7 @@
 #define UNICOMM_DIAGNOSTICS_H
 
 #include <QJsonObject>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QTableWidget;
 class QTabWidget;

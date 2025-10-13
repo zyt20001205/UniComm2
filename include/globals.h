@@ -2,9 +2,10 @@
 #define UNICOMM_GLOBALS_H
 
 #include <QJsonObject>
-#include <QMainWindow>
 #include <QUrl>
 #include <QVariantMap>
+
+#include "mainWindow.h"
 
 class DatabaseModule;
 class DatatableModule;
@@ -17,7 +18,7 @@ class StructureModule;
 class ThreadpoolModule;
 class UndoModule;
 
-extern QMainWindow *g_mainWindow;
+extern MainWindow *g_mainWindow;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
@@ -72,6 +73,23 @@ enum {
     INDICATOR_INFO,
     INDICATOR_HINT,
     INDICATOR_HIGHLIGHT,
+};
+
+enum {
+    LUATOKEN_CLASS = 64,
+    LUATOKEN_TYPE,
+    LUATOKEN_PARAMETER,
+    LUATOKEN_VARIABLE,
+    LUATOKEN_PROPERTY,
+    LUATOKEN_FUNCTION_DECLARATION,
+    LUATOKEN_FUNCTION_CALL,
+    LUATOKEN_METHOD,
+    LUATOKEN_MACRO,
+    LUATOKEN_KEYWORD,
+    LUATOKEN_COMMENT,
+    LUATOKEN_STRING,
+    LUATOKEN_NUMBER,
+    LUATOKEN_OPERATOR,
 };
 
 enum {

@@ -2,7 +2,7 @@
 #define UNICOMM_DEBUG_H
 
 #include <QSortFilterProxyModel>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QStandardItemModel;
 class QTableView;

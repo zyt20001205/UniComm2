@@ -2,7 +2,7 @@
 #define UNICOMM_DATATABLE_H
 
 #include <QJsonArray>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QTableWidget;
 

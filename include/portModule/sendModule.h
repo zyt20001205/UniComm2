@@ -2,7 +2,7 @@
 #define UNICOMM_SENDMODULE_H
 
 #include <QJsonArray>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QLineEdit;
 class QTableWidget;

@@ -11,7 +11,11 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-QByteArray filehashCalc(const QString &filePath);
+QByteArray fileHashCalc(const QString &fileInfo);
+
+QByteArray fileHashCalc(const QUrl &fileInfo);
+
+QByteArray stringHashCalc(const QString &content);
 
 QString lua_toqstring(lua_State *L, int idx);
 

@@ -2,7 +2,7 @@
 #define UNICOMM_THREADPOOL_H
 
 #include <QUrl>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QTableWidget;
 

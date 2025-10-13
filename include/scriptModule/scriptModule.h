@@ -2,8 +2,9 @@
 #define UNICOMM_SCRIPT_H
 
 #include <QJsonObject>
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
-#include "Qsci/qsciscintilla.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
+
+#include "welcomePage.h"
 
 class QLabel;
 class QTableWidget;
@@ -13,24 +14,7 @@ class QTextBrowser;
 class ScriptPage;
 class ScriptEditor;
 
-enum {
-    LUATOKEN_CLASS = 64,
-    LUATOKEN_TYPE,
-    LUATOKEN_PARAMETER,
-    LUATOKEN_VARIABLE,
-    LUATOKEN_PROPERTY,
-    LUATOKEN_FUNCTION_DECLARATION,
-    LUATOKEN_FUNCTION_CALL,
-    LUATOKEN_METHOD,
-    LUATOKEN_MACRO,
-    LUATOKEN_KEYWORD,
-    LUATOKEN_COMMENT,
-    LUATOKEN_STRING,
-    LUATOKEN_NUMBER,
-    LUATOKEN_OPERATOR,
-};
-
-class ScriptModule final : public KDDockWidgets::QtWidgets::DockWidget {
+class ScriptModule final : public QObject {
     Q_OBJECT
 
 public:
@@ -38,7 +22,13 @@ public:
 
     ~ScriptModule() override = default;
 
+    KDDockWidgets::QtWidgets::DockWidget *welcomePage() const {
+        return m_welcomePage;
+    }
+
     void workspaceOpen(const QUrl &rootUrl);
+
+    void scriptLoad();
 
     void scriptConfigSave();
 
@@ -66,7 +56,7 @@ public:
 
     void signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
-    QTabWidget *m_scriptTabWidget{};
+    ScriptPage *m_focusedPage{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -82,283 +72,122 @@ signals:
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-    void resizeEvent(QResizeEvent *event) override;
-
 private:
-    void scriptSwitch(int index);
+    void scriptFocus(ScriptPage *scriptPage);
 
-    void scriptModify(int index) const;
+    static void scriptModify(ScriptPage *scriptPage, bool status);
 
-    void scriptClose(int index);
-
-    void scriptSwap(int srcIndex, int dstIndex);
-
-    void overlayShow() const;
-
-    void overlayHide() const;
-
-    void overlayResize() const;
+    static void scriptClose(ScriptPage *scriptPage);
 
     QJsonObject m_scriptConfig{};
     QUrl m_rootUrl{};
+    WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
-
-    QWidget *m_scriptTabOverlay{};
-    QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
 };
 
-class TooltipCompletion;
-class TooltipHover;
-class TooltipPosition;
-class TooltipSignatureHelp;
-
-class ScriptPage final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit ScriptPage(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl(), QWidget *parent = nullptr);
-
-    ~ScriptPage() override = default;
-
-    void scriptSave() const;
-
-    void completionReturn(const QJsonArray &items) const;
-
-    void diagnosticsReturn(const QJsonArray &diagnosticsArray) const;
-
-    void foldingRangeReturn(const QJsonArray &result) const;
-
-    void formattingReturn(const QString &newText) const;
-
-    void hoverReturn(const QString &message) const;
-
-    void semanticTokensReturn(const QJsonArray &data) const;
-
-    void signatureHelpReturn(const QJsonObject &signature) const;
-
-    ScriptEditor *m_scriptEditor{};
-    QUrl m_scriptUrl{};
-    bool m_scriptModify = false;
-    TooltipCompletion *m_tooltipCompletion{};
-    TooltipHover *m_tooltipHover{};
-    TooltipPosition *m_tooltipPosition{};
-    TooltipSignatureHelp *m_tooltipSignatureHelp{};
-
-signals:
-    void modifyScript();
-
-    void insertBreakpoint(const QUrl &scriptUrl, int line);
-
-    void removeBreakpoint(const QUrl &scriptUrl, int line);
-
-    void requestJson(const QString &method, const QJsonObject &params);
-
-    void notificationJson(const QString &method, const QJsonObject &params);
-
-private slots:
-    void scriptModify(bool status);
-
-    void scriptEdit() const;
-
-    void dwellStart(int pos, int x, int y);
-
-    void marginClick(int margin, int line, Qt::KeyboardModifiers state);
-
-private:
-    void scriptEditFinish();
-
-    void didOpenNotification();
-
-    void didChangeNotification();
-
-    void completionRequest();
-
-    void documentSymbolRequest();
-
-    void foldingRangeRequest();
-
-    void formattingRequest();
-
-    void semanticTokensRequest();
-
-    void signatureHelpRequest();
-
-    void dwellSwitch(bool status) const;
-
-    void hoverRequest(int line, int character);
-
-    void textReplace(QString &text, const QString &kind) const;
-
-    void textInsert(QString &text, const QString &kind) const;
-
-    void positionFill(int x, int y) const;
-
-    int m_version = 1;
-    QTimer *m_editTimer = nullptr;
-
-    // semantic related
-    enum {
-        TOKENTYPE_NAMESPACE,
-        TOKENTYPE_TYPE,
-        TOKENTYPE_CLASS,
-        TOKENTYPE_ENUM,
-        TOKENTYPE_INTERFACE,
-        TOKENTYPE_STRUCT,
-        TOKENTYPE_TYPEPARAMETER,
-        TOKENTYPE_PARAMETER,
-        TOKENTYPE_VARIABLE,
-        TOKENTYPE_PROPERTY,
-        TOKENTYPE_ENUMMEMBAER,
-        TOKENTYPE_EVENT,
-        TOKENTYPE_FUNCTION,
-        TOKENTYPE_METHOD,
-        TOKENTYPE_MACRO,
-        TOKENTYPE_KEYWORD,
-        TOKENTYPE_MODIFIER,
-        TOKENTYPE_COMMENT,
-        TOKENTYPE_STRING,
-        TOKENTYPE_NUMBER,
-        TOKENTYPE_REGEXP,
-        TOKENTYPE_OPERATOR,
-        TOKENTYOE_DECORATOR,
-    };
-
-    enum {
-        TOKENMODIFIERS_DECLARATION = 1 << 0,
-        TOKENMODIFIERS_DEFINITION = 1 << 1,
-        TOKENMODIFIERS_READONLY = 1 << 2,
-        TOKENMODIFIERS_STATIC = 1 << 3,
-        TOKENMODIFIERS_DEPRECATED = 1 << 4,
-        TOKENMODIFIERS_ABSTRACT = 1 << 5,
-        TOKENMODIFIERS_ASYNC = 1 << 6,
-        TOKENMODIFIERS_MODIFICATION = 1 << 7,
-        TOKENMODIFIERS_DOCUMENTATION = 1 << 8,
-        TOKENMODIFIERS_DEFAULTLIBRARY = 1 << 9,
-        TOKENMODIFIERS_GLOBAL = 1 << 10,
-    };
-};
-
-class TooltipCompletion final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit TooltipCompletion(QWidget *parent = nullptr);
-
-    ~TooltipCompletion() override = default;
-
-    void showTooltip(const QJsonArray &items);
-
-    void hideTooltip();
-
-signals:
-    void replaceText(QString &text, const QString &kind);
-
-    void insertText(QString &text, const QString &kind);
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private:
-    void moveUp();
-
-    void moveDown();
-
-    QTableWidget *m_tableWidget = nullptr;
-    int m_currentRow{};
-    QString m_insertText{};
-    QString m_kind{};
-    QList<QString> m_kindList{};
-};
-
-class TooltipHover final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit TooltipHover(QWidget *parent = nullptr);
-
-    ~TooltipHover() override = default;
-
-    void showTooltip(const QString &message);
-
-    void hideTooltip();
-
-signals:
-    void switchDwell(bool status);
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private:
-    QTextBrowser *m_textBrowser = nullptr;
-    QPointer<QWidget> m_previousFocus = nullptr;
-};
-
-class TooltipPosition final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit TooltipPosition(QWidget *parent = nullptr);
-
-    ~TooltipPosition() override = default;
-
-    void showTooltip();
-
-    void hideTooltip();
-
-signals:
-    void fillPosition(int x, int y);
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private:
-    QTimer *m_timer = nullptr;
-    QLabel *m_label = nullptr;
-};
-
-class TooltipSignatureHelp final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit TooltipSignatureHelp(QWidget *parent = nullptr);
-
-    ~TooltipSignatureHelp() override = default;
-
-    void showTooltip(const QJsonObject &signature);
-
-    void hideTooltip();
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private:
-    QLabel *m_label = nullptr;
-};
-
-class ScriptEditor final : public QsciScintilla {
-    Q_OBJECT
-
-public:
-    explicit ScriptEditor(QWidget *parent = nullptr);
-
-    ~ScriptEditor() override = default;
-
-protected:
-    void keyPressEvent(QKeyEvent *event) override;
-
-private slots:
-    void autoPairHandle(int ascii);
-
-private:
-    void commentHandle();
-
-    void duplicateHandle();
-
-    QHash<QChar, QChar> m_autoPairHash{};
-};
+// class TooltipCompletion;
+// class TooltipHover;
+// class TooltipPosition;
+// class TooltipSignatureHelp;
+//
+//
+//
+// class TooltipCompletion final : public QWidget {
+//     Q_OBJECT
+//
+// public:
+//     explicit TooltipCompletion(QWidget *parent = nullptr);
+//
+//     ~TooltipCompletion() override = default;
+//
+//     void showTooltip(const QJsonArray &items);
+//
+//     void hideTooltip();
+//
+// signals:
+//     void replaceText(QString &text, const QString &kind);
+//
+//     void insertText(QString &text, const QString &kind);
+//
+// protected:
+//     bool eventFilter(QObject *obj, QEvent *event) override;
+//
+// private:
+//     void moveUp();
+//
+//     void moveDown();
+//
+//     QTableWidget *m_tableWidget = nullptr;
+//     int m_currentRow{};
+//     QString m_insertText{};
+//     QString m_kind{};
+//     QList<QString> m_kindList{};
+// };
+//
+// class TooltipHover final : public QWidget {
+//     Q_OBJECT
+//
+// public:
+//     explicit TooltipHover(QWidget *parent = nullptr);
+//
+//     ~TooltipHover() override = default;
+//
+//     void showTooltip(const QString &message);
+//
+//     void hideTooltip();
+//
+// signals:
+//     void switchDwell(bool status);
+//
+// protected:
+//     bool eventFilter(QObject *obj, QEvent *event) override;
+//
+// private:
+//     QTextBrowser *m_textBrowser = nullptr;
+//     QPointer<QWidget> m_previousFocus = nullptr;
+// };
+//
+// class TooltipPosition final : public QWidget {
+//     Q_OBJECT
+//
+// public:
+//     explicit TooltipPosition(QWidget *parent = nullptr);
+//
+//     ~TooltipPosition() override = default;
+//
+//     void showTooltip();
+//
+//     void hideTooltip();
+//
+// signals:
+//     void fillPosition(int x, int y);
+//
+// protected:
+//     bool eventFilter(QObject *obj, QEvent *event) override;
+//
+// private:
+//     QTimer *m_timer = nullptr;
+//     QLabel *m_label = nullptr;
+// };
+//
+// class TooltipSignatureHelp final : public QWidget {
+//     Q_OBJECT
+//
+// public:
+//     explicit TooltipSignatureHelp(QWidget *parent = nullptr);
+//
+//     ~TooltipSignatureHelp() override = default;
+//
+//     void showTooltip(const QJsonObject &signature);
+//
+//     void hideTooltip();
+//
+// protected:
+//     bool eventFilter(QObject *obj, QEvent *event) override;
+//
+// private:
+//     QLabel *m_label = nullptr;
+// };
 
 #endif //UNICOMM_SCRIPT_H

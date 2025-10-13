@@ -2,7 +2,6 @@
 #include <kddockwidgets/Config.h>
 
 #include "mainWindow.h"
-#include "globals.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -17,7 +16,6 @@ int main(int argc, char *argv[]) {
 
     auto *mainWindow = new MainWindow();
     mainWindow->show();
-    g_mainWindow = mainWindow;
 
     return QApplication::exec();
 }

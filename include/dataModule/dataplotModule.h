@@ -1,7 +1,7 @@
 #ifndef UNICOMM_DATAPLOT_H
 #define UNICOMM_DATAPLOT_H
 
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QCPLegend;
 class QCustomPlot;

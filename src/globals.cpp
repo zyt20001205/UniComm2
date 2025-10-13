@@ -1,6 +1,6 @@
 #include "globals.h"
 
-QMainWindow *g_mainWindow = nullptr;
+MainWindow *g_mainWindow = nullptr;
 DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;

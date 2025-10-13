@@ -1,7 +1,7 @@
 #ifndef UNICOMM_EXPLORER_H
 #define UNICOMM_EXPLORER_H
 
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QFileSystemModel;
 class QTreeView;

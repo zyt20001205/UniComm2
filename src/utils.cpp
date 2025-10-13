@@ -1,7 +1,9 @@
 #include "utils.h"
 
-QByteArray filehashCalc(const QString &filePath) {
-    QFile file(filePath);
+#include <QUrl>
+
+QByteArray fileHashCalc(const QString &fileInfo) {
+    QFile file(fileInfo);
     if (!file.open(QIODevice::ReadOnly)) {
         return QByteArray();
     }
@@ -9,6 +11,17 @@ QByteArray filehashCalc(const QString &filePath) {
         return hash.result();
     }
     return QByteArray();
+}
+
+QByteArray fileHashCalc(const QUrl &fileInfo) {
+    const QString filePath = fileInfo.toLocalFile();
+    return fileHashCalc(filePath);
+}
+
+QByteArray stringHashCalc(const QString &content) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    hash.addData(content.toUtf8());
+    return hash.result();
 }
 
 QString lua_toqstring(lua_State *L, const int idx) {

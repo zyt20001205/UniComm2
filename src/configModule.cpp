@@ -96,7 +96,6 @@ void ConfigModule::configGenerate() {
                         "scriptList", QJsonArray{
                         },
                     },
-                    {"scriptFocused", 0},
                     {"formatting", "Ctrl+Alt+L"},
                     {"fontFamily", "consolas"},
                     {"fontSize", "12"}

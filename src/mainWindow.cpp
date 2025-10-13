@@ -12,7 +12,7 @@
 #include <QStandardPaths>
 #include <QThread>
 #include "kddockwidgets/qtwidgets/views/MainWindow.h"
-#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include "kddockwidgets/LayoutSaver.h"
 
 #include "configModule.h"
@@ -30,6 +30,7 @@
 #include "scriptModule/diagnosticsModule.h"
 #include "scriptModule/explorerModule.h"
 #include "scriptModule/scriptModule.h"
+#include "scriptModule/scriptPage.h"
 #include "scriptModule/structureModule.h"
 #include "scriptModule/threadpoolModule.h"
 
@@ -37,6 +38,7 @@
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent) {
     // mainWindow ui init
+    g_mainWindow = this;
     QWidget::setWindowTitle("UniComm");
     QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
     QWidget::resize(1600, 900);
@@ -81,7 +83,7 @@ void MainWindow::workspaceOpen() {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
-    } else if (filehashCalc(":/config/.luarc.json") != filehashCalc(luarcPath)) {
+    } else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
         QFile::remove(luarcPath);
         QFile::copy(":/config/.luarc.json", luarcPath);
         QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
@@ -99,7 +101,7 @@ void MainWindow::workspaceOpen() {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-    } else if (filehashCalc(":/config/lib.d.lua") != filehashCalc(libdPath)) {
+    } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
         QFile::remove(libdPath);
         QFile::copy(":/config/lib.d.lua", libdPath);
         QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
@@ -287,7 +289,7 @@ void MainWindow::workspaceInit() {
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
-        } else if (filehashCalc(":/config/.luarc.json") != filehashCalc(luarcPath)) {
+        } else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
             QFile::remove(luarcPath);
             QFile::copy(":/config/.luarc.json", luarcPath);
             QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
@@ -305,7 +307,7 @@ void MainWindow::workspaceInit() {
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-        } else if (filehashCalc(":/config/lib.d.lua") != filehashCalc(libdPath)) {
+        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
             QFile::remove(libdPath);
             QFile::copy(":/config/lib.d.lua", libdPath);
             QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
@@ -419,13 +421,13 @@ void MainWindow::menuInit() {
         runButton->setFixedSize(24, 24);
         runButton->setIcon(QIcon(":/icon/play.svg"));
         connect(runButton, &QPushButton::clicked, this, [this] {
-            if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptModule->m_scriptTabWidget->currentWidget())) {
-                const QUrl scriptUrl = scriptPage->m_scriptUrl;
-                const QString script = scriptPage->m_scriptEditor->text();
-                emit runThread(scriptUrl, script);
+            if (m_scriptModule->m_focusedPage == nullptr) {
+                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             }
             else {
-                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
+                const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
+                const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
+                emit runThread(scriptUrl, script);
             }
         });
         auto *debugButton = new QPushButton(); // NOLINT
@@ -433,13 +435,13 @@ void MainWindow::menuInit() {
         debugButton->setFixedSize(24, 24);
         debugButton->setIcon(QIcon(":/icon/bug.svg"));
         connect(debugButton, &QPushButton::clicked, this, [this] {
-            if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptModule->m_scriptTabWidget->currentWidget())) {
-                const QUrl scriptUrl = scriptPage->m_scriptUrl;
-                const QString script = scriptPage->m_scriptEditor->text();
-                emit debugThread(scriptUrl, script);
+            if (m_scriptModule->m_focusedPage == nullptr) {
+                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             }
             else {
-                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
+                const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
+                const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
+                emit debugThread(scriptUrl, script);
             }
         });
         connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
@@ -457,17 +459,18 @@ void MainWindow::layoutInit() {
         addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr);
         addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
         addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
-        addDockWidget(m_scriptModule, KDDockWidgets::Location_OnRight);
+        addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
         addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialVisibilityOption::StartHidden);
         addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
         addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr);
+        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
         m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
         m_logModule->addDockWidgetAsTab(m_debugModule);
         addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule);
         // dock resize
         // still figuring out how to do this
     } else {
+        m_scriptModule->scriptLoad();
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
         layoutSaver.restoreLayout(layoutData);
