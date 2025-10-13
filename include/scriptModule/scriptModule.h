@@ -66,16 +66,13 @@ public:
 
     void signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
+    QTabWidget *m_scriptTabWidget{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
     void openWorkspace();
 
     void switchScript(const QUrl &scriptUrl);
-
-    void runThread(const QUrl &scriptUrl, const QString &script);
-
-    void debugThread(const QUrl &scriptUrl, const QString &script);
 
     void insertBreakpoint(const QUrl &scriptUrl, int line);
 
@@ -108,7 +105,7 @@ private:
     QJsonObject m_scriptConfig{};
     QUrl m_rootUrl{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
-    QTabWidget *m_scriptTabWidget{};
+
     QWidget *m_scriptTabOverlay{};
     QList<QUrl> m_scriptList{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};

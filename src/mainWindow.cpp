@@ -3,9 +3,11 @@
 #include <QCameraDevice>
 #include <QCloseEvent>
 #include <QFileDialog>
+#include <QHBoxLayout>
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QThread>
@@ -259,8 +261,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::switchScript, m_structureModule, &StructureModule::scriptSwitch);
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
-    connect(m_scriptModule, &ScriptModule::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
-    connect(m_scriptModule, &ScriptModule::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);
 
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
@@ -406,6 +406,44 @@ void MainWindow::menuInit() {
         m_debugModule->toggleAction()->setText(tr("Debug"));
         viewMenu->addAction(m_threadpoolModule->toggleAction());
         m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
+    }
+    // control widget
+    {
+        auto *ctrlWidget = new QWidget(); // NOLINT
+        menuBar->setCornerWidget(ctrlWidget);
+        auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
+        ctrlLayout->setContentsMargins(0, 0, 0, 0);
+        ctrlLayout->setAlignment(Qt::AlignRight);
+        auto *runButton = new QPushButton(); // NOLINT
+        ctrlLayout->addWidget(runButton);
+        runButton->setFixedSize(24, 24);
+        runButton->setIcon(QIcon(":/icon/play.svg"));
+        connect(runButton, &QPushButton::clicked, this, [this] {
+            if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptModule->m_scriptTabWidget->currentWidget())) {
+                const QUrl scriptUrl = scriptPage->m_scriptUrl;
+                const QString script = scriptPage->m_scriptEditor->text();
+                emit runThread(scriptUrl, script);
+            }
+            else {
+                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
+            }
+        });
+        auto *debugButton = new QPushButton(); // NOLINT
+        ctrlLayout->addWidget(debugButton);
+        debugButton->setFixedSize(24, 24);
+        debugButton->setIcon(QIcon(":/icon/bug.svg"));
+        connect(debugButton, &QPushButton::clicked, this, [this] {
+            if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptModule->m_scriptTabWidget->currentWidget())) {
+                const QUrl scriptUrl = scriptPage->m_scriptUrl;
+                const QString script = scriptPage->m_scriptEditor->text();
+                emit debugThread(scriptUrl, script);
+            }
+            else {
+                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
+            }
+        });
+        connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
+        connect(this, &MainWindow::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);
     }
 }
 

@@ -36,6 +36,10 @@ signals:
 
     void openWorkspace(const QUrl &rootUrl);
 
+    void runThread(const QUrl &scriptUrl, const QString &script);
+
+    void debugThread(const QUrl &scriptUrl, const QString &script);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 

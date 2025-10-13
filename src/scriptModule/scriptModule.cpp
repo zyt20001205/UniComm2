@@ -39,36 +39,8 @@ ScriptModule::ScriptModule()
     m_scriptConfig["scriptList"] = validScriptList;
     m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &ScriptModule::scriptClose);
-    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, [this](const int index) {scriptSwitch(index);});
+    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, [this](const int index) { scriptSwitch(index); });
     connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &ScriptModule::scriptSwap);
-
-    auto *ctrlWidget = new QWidget(); // NOLINT
-    m_scriptTabWidget->setCornerWidget(ctrlWidget);
-    auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
-    ctrlLayout->setContentsMargins(0, 0, 0, 0);
-    ctrlLayout->setAlignment(Qt::AlignRight);
-    auto *runButton = new QPushButton(); // NOLINT
-    ctrlLayout->addWidget(runButton);
-    runButton->setFixedSize(24, 24);
-    runButton->setIcon(QIcon(":/icon/play.svg"));
-    connect(runButton, &QPushButton::clicked, this, [this] {
-        if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
-            const QUrl scriptUrl = scriptPage->m_scriptUrl;
-            const QString script = scriptPage->m_scriptEditor->text();
-            emit runThread(scriptUrl, script);
-        }
-    });
-    auto *debugButton = new QPushButton(); // NOLINT
-    ctrlLayout->addWidget(debugButton);
-    debugButton->setFixedSize(24, 24);
-    debugButton->setIcon(QIcon(":/icon/bug.svg"));
-    connect(debugButton, &QPushButton::clicked, this, [this] {
-        if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
-            const QUrl scriptUrl = scriptPage->m_scriptUrl;
-            const QString script = scriptPage->m_scriptEditor->text();
-            emit debugThread(scriptUrl, script);
-        }
-    });
 
     m_scriptTabOverlay->installEventFilter(this);
     m_scriptTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
@@ -230,6 +202,7 @@ void ScriptModule::resizeEvent(QResizeEvent *event) {
 
 // ScriptModule private
 void ScriptModule::scriptSwitch(const int index) {
+    if (index == -1) return;
     const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
     emit switchScript(scriptPage->m_scriptUrl);
 }
