@@ -6,6 +6,8 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 
+#include "globals.h"
+
 // StructureModule public
 StructureModule::StructureModule(QWidget *parent)
     : QDockWidget("structure", parent),
@@ -16,14 +18,19 @@ StructureModule::StructureModule(QWidget *parent)
     auto *layout = new QVBoxLayout(widget); // NOLINT
     layout->addWidget(m_documentSymbolTreeView);
     layout->setContentsMargins(0, 0, 0, 0);
-    m_documentSymbolTreeView->setModel(m_documentSymbolTreeModel);
+    m_documentSymbolTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_documentSymbolTreeView->setHeaderHidden(true);
+    m_documentSymbolTreeView->setModel(m_documentSymbolTreeModel);
+    connect(m_documentSymbolTreeView, &QTreeView::clicked, this, [this](const QModelIndex &index) {
+        const int line = index.data(Qt::UserRole + 1).toInt() + 1;
+        emit showMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
+    });
 }
 
 void StructureModule::documentSymbolReturn(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
-        // qDebug() << result;
+        qDebug() << result;
         m_documentSymbolTreeModel->clear();
         documentSymbolPublish(result, nullptr);
         m_documentSymbolTreeView->expandAll();
@@ -39,17 +46,22 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
     for (const auto &value: result) {
         const auto symbolObject = value.toObject();
         QString displayText{};
+        int line = 0;
         switch (symbolObject["kind"].toInt()) {
             case SYMBOLKIND_FUNCTION: {
                 const auto detail = symbolObject["detail"].toString();
                 const auto name = symbolObject["name"].toString();
                 displayText = name + detail.mid(9);
+                const auto rangeObject = symbolObject["range"].toObject();
+                const auto startObject = rangeObject["start"].toObject();
+                line = startObject["line"].toInt();
             }
             break;
             default: break;
         }
         if (!displayText.isEmpty()) {
             auto *item = new QStandardItem(displayText); // NOLINT
+            item->setData(line, Qt::UserRole + 1);
             if (parentItem) {
                 parentItem->appendRow(item);
             } else {

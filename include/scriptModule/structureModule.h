@@ -20,6 +20,9 @@ public:
 
     void scriptSwitch(const QUrl &scriptUrl);
 
+signals:
+    void showMarker(const QUrl &scriptUrl, int type, int line, int time);
+
 private:
     void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const;
 
