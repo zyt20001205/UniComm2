@@ -5,6 +5,7 @@
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QShortcut>
+#include <QThread>
 
 #include "configModule.h"
 #include "globals.h"
@@ -45,9 +46,11 @@ MainWindow::MainWindow(QWidget *parent)
     layoutInit();
 
     // preload multimedia to avoid lagging on first click
-    QTimer::singleShot(0, this, [] {
+    QThread *worker = QThread::create([] {
         QMediaDevices::videoInputs();
     });
+    worker->start();
+    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
 }
 
 void MainWindow::workspaceOpen() {
