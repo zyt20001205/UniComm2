@@ -14,6 +14,10 @@ set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
 set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
 
+set(KDDOCKWIDGETS_DIR "${CMAKE_SOURCE_DIR}/3rd/kddockwidgets-2.3.0")
+set(KDDOCKWIDGETS_INCLUDE_DIR "${KDDOCKWIDGETS_DIR}/include")
+set(KDDOCKWIDGETS_DLL "${KDDOCKWIDGETS_DIR}/bin/libkddockwidgets-qt62.dll")
+
 set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/qscintilla-2.14.1")
 set(QSCINTILLA_INCLUDE_DIR "${QSCINTILLA_DIR}/include")
 set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
@@ -158,6 +162,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::Multimedia
         Qt::TextToSpeech
         ${LUA_DLL}
+        ${KDDOCKWIDGETS_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
         ${OPENCV_DLLS}
@@ -168,6 +173,7 @@ target_link_libraries(UniComm PRIVATE
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
+        ${KDDOCKWIDGETS_INCLUDE_DIR}
         ${QSCINTILLA_INCLUDE_DIR}
         ${QCUSTOMPLOT_INCLUDE_DIR}
         ${OPENCV_INCLUDE_DIR}
@@ -261,6 +267,13 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "${LUA_LANGUAGE_SERVER_DIR}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
+    endif ()
+
+    if (EXISTS "${KDDOCKWIDGETS_DLL}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${KDDOCKWIDGETS_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
     if (EXISTS "${QSCINTILLA_DLL}")
