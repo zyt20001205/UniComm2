@@ -39,6 +39,11 @@ void StructureModule::documentSymbolReturn(const QUrl &scriptUrl, const QJsonArr
 
 void StructureModule::scriptSwitch(const QUrl &scriptUrl) {
     m_currentScriptUrl = scriptUrl;
+    if (m_documentSymbolHash.contains(scriptUrl)) {
+        m_documentSymbolTreeModel->clear();
+        documentSymbolPublish(m_documentSymbolHash[scriptUrl], nullptr);
+        m_documentSymbolTreeView->expandAll();
+    }
 }
 
 // StructureModule private

@@ -26,6 +26,8 @@ ScriptModule::ScriptModule()
       m_scriptTabOverlay(new QWidget(m_scriptTabWidget)) {
     // script module init
     setWidget(m_scriptTabWidget);
+    m_scriptTabWidget->setMovable(true);
+    m_scriptTabWidget->setTabsClosable(true);
     // clear invalid script url
     QJsonArray validScriptList;
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -37,9 +39,7 @@ ScriptModule::ScriptModule()
     m_scriptConfig["scriptList"] = validScriptList;
     m_scriptTabWidget->setCurrentIndex(m_scriptConfig["scriptFocused"].toInt());
     connect(m_scriptTabWidget, &QTabWidget::tabCloseRequested, this, &ScriptModule::scriptClose);
-    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, [this](const int index) {
-        scriptSwitch(index);
-    });
+    connect(m_scriptTabWidget, &QTabWidget::currentChanged, this, [this](const int index) {scriptSwitch(index);});
     connect(m_scriptTabWidget->tabBar(), &QTabBar::tabMoved, this, &ScriptModule::scriptSwap);
 
     auto *ctrlWidget = new QWidget(); // NOLINT
