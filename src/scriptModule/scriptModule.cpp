@@ -235,7 +235,6 @@ void ScriptModule::resizeEvent(QResizeEvent *event) {
     if (!m_scriptTabOverlay->isHidden()) overlayResize();
 }
 
-
 // ScriptModule private
 void ScriptModule::scriptSwitch(const int index) {
     const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->widget(index));
@@ -428,24 +427,8 @@ void ScriptPage::hoverReturn(const QString &message) const {
 
 void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
     // clear
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0, 0xFF); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, m_scriptEditor->length(), static_cast<long>(0));
-    // color format is BGR!!! DO NOT FORGET!!!
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUATOKEN_MACRO, 1); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
-
     int currentLine = 0;
     int currentChar = 0;
     for (int i = 0; i < data.size(); i += 5) {
@@ -465,8 +448,12 @@ void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
             continue;
         }
         // start styling
-        m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos, 0xFF); // NOLINT
+        m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos); // NOLINT
         switch (tokenType) {
+            case TOKENTYPE_CLASS:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_CLASS); // NOLINT
+                qDebug() << "here" << currentLine << currentChar << length << tokenType;
+                break;
             case TOKENTYPE_TYPE:
                 m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_TYPE); // NOLINT
                 break;
@@ -1059,58 +1046,74 @@ bool TooltipSignatureHelp::eventFilter(QObject *obj, QEvent *event) {
 ScriptEditor::ScriptEditor(QWidget *parent)
     : QsciScintilla(parent) {
     // define markers
-    this->markerDefine(Circle, MARKER_BREAKPOINT);
-    this->setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
-    this->setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
+    markerDefine(Circle, MARKER_BREAKPOINT);
+    setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
+    setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
 
-    this->markerDefine(RightTriangle, MARKER_ARROW);
-    this->setMarkerBackgroundColor(QColor(255, 165, 0), MARKER_ARROW);
-    this->setMarkerForegroundColor(QColor(255, 165, 0), MARKER_ARROW);
+    markerDefine(RightTriangle, MARKER_ARROW);
+    setMarkerBackgroundColor(QColor(255, 165, 0), MARKER_ARROW);
+    setMarkerForegroundColor(QColor(255, 165, 0), MARKER_ARROW);
 
-    this->markerDefine(Background, MARKER_ERROR);
-    this->setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
+    markerDefine(Background, MARKER_ERROR);
+    setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
 
-    this->markerDefine(Background, MARKER_HINT);
-    this->setMarkerBackgroundColor(Qt::cyan, MARKER_HINT);
+    markerDefine(Background, MARKER_HINT);
+    setMarkerBackgroundColor(Qt::cyan, MARKER_HINT);
     // define indicators
-    this->indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
-    this->setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);
-    this->setIndicatorDrawUnder(true, INDICATOR_ERROR);
+    indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
+    setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);
+    setIndicatorDrawUnder(true, INDICATOR_ERROR);
 
-    this->indicatorDefine(StraightBoxIndicator, INDICATOR_WARNING);
-    this->setIndicatorForegroundColor(QColor(255, 245, 230), INDICATOR_WARNING);
-    this->setIndicatorDrawUnder(true, INDICATOR_WARNING);
+    indicatorDefine(StraightBoxIndicator, INDICATOR_WARNING);
+    setIndicatorForegroundColor(QColor(255, 245, 230), INDICATOR_WARNING);
+    setIndicatorDrawUnder(true, INDICATOR_WARNING);
 
-    this->indicatorDefine(StraightBoxIndicator, INDICATOR_INFO);
-    this->setIndicatorForegroundColor(QColor(230, 240, 250), INDICATOR_INFO);
-    this->setIndicatorDrawUnder(true, INDICATOR_INFO);
+    indicatorDefine(StraightBoxIndicator, INDICATOR_INFO);
+    setIndicatorForegroundColor(QColor(230, 240, 250), INDICATOR_INFO);
+    setIndicatorDrawUnder(true, INDICATOR_INFO);
 
-    this->indicatorDefine(StraightBoxIndicator, INDICATOR_HINT);
-    this->setIndicatorForegroundColor(QColor(245, 245, 245), INDICATOR_HINT);
-    this->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    indicatorDefine(StraightBoxIndicator, INDICATOR_HINT);
+    setIndicatorForegroundColor(QColor(245, 245, 245), INDICATOR_HINT);
+    setIndicatorDrawUnder(true, INDICATOR_HINT);
 
-    this->indicatorDefine(BoxIndicator, INDICATOR_HIGHLIGHT);
-    this->setIndicatorForegroundColor(Qt::red, INDICATOR_HIGHLIGHT);
-    this->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+    indicatorDefine(BoxIndicator, INDICATOR_HIGHLIGHT);
+    setIndicatorForegroundColor(Qt::red, INDICATOR_HIGHLIGHT);
+    setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
     // set margins
-    this->setMarginType(0, NumberMargin);
-    this->QsciScintilla::setMarginWidth(0, "000");
+    setMarginType(0, NumberMargin);
+    QsciScintilla::setMarginWidth(0, "000");
 
-    this->setMarginType(1, SymbolMargin);
-    this->QsciScintilla::setMarginSensitivity(1, true);
-    this->QsciScintilla::setMarginWidth(1, "16");
+    setMarginType(1, SymbolMargin);
+    QsciScintilla::setMarginSensitivity(1, true);
+    QsciScintilla::setMarginWidth(1, "16");
 
-    this->QsciScintilla::setFolding(BoxedTreeFoldStyle);
-    this->setMarginType(2, SymbolMargin);
-    this->QsciScintilla::setMarginSensitivity(2, true);
-    this->QsciScintilla::setMarginWidth(2, "16");
+    QsciScintilla::setFolding(BoxedTreeFoldStyle);
+    setMarginType(2, SymbolMargin);
+    QsciScintilla::setMarginSensitivity(2, true);
+    QsciScintilla::setMarginWidth(2, "16");
+    // color format is BGR!!! DO NOT FORGET!!!
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUATOKEN_MACRO, 1); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
     // script scintilla settings
-    this->setScrollWidth(1);
-    this->QsciScintilla::setBraceMatching(SloppyBraceMatch);
-    this->QsciScintilla::setAutoIndent(true);
-    this->QsciScintilla::setBackspaceUnindents(true);
-    this->QsciScintilla::setIndentationGuides(true);
-    this->QsciScintilla::setTabWidth(4);
+    setScrollWidth(1);
+    QsciScintilla::setBraceMatching(SloppyBraceMatch);
+    QsciScintilla::setAutoIndent(true);
+    QsciScintilla::setBackspaceUnindents(true);
+    QsciScintilla::setIndentationGuides(true);
+    QsciScintilla::setTabWidth(4);
     // connect auto pair
     connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(autoPairHandle(int)));
     m_autoPairHash['('] = ')';

@@ -32,7 +32,7 @@ void DiagnosticsModule::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArra
 // DiagnosticsModule private
 void DiagnosticsModule::diagnosticsClose(const int index) {
     // find diagnostics table
-    const auto *diagnosticsTable = qobject_cast<QTableWidget *>(m_diagnosticsTabWidget->widget(index));
+    const auto *diagnosticsTable = static_cast<QTableWidget *>(m_diagnosticsTabWidget->widget(index));
     // find script url
     QUrl scriptUrl;
     foreach(const QUrl &url, m_diagnosticsTableHash.keys()) {
