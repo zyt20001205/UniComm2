@@ -11,8 +11,8 @@
 #include "globals.h"
 
 // DatatableModule public
-DatatableModule::DatatableModule(QWidget *parent)
-    : QDockWidget("data table", parent),
+DatatableModule::DatatableModule()
+    : DockWidget("data table"),
       m_datatableConfig(g_config["datatableConfig"].toArray()),
       m_tableWidget(new QTableWidget()) {
     setWidget(m_tableWidget);
@@ -212,7 +212,7 @@ bool DatatableModule::eventFilter(QObject *obj, QEvent *event) {
                 break;
         }
     }
-    return QDockWidget::eventFilter(obj, event);
+    return DockWidget::eventFilter(obj, event);
 }
 
 // DatatableModule private

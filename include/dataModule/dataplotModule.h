@@ -1,16 +1,16 @@
 #ifndef UNICOMM_DATAPLOT_H
 #define UNICOMM_DATAPLOT_H
 
-#include <QWidget>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QCPLegend;
 class QCustomPlot;
 
-class DataplotModule final : public QWidget {
+class DataplotModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit DataplotModule(QWidget *parent = nullptr);
+    explicit DataplotModule();
 
     ~DataplotModule() override = default;
 

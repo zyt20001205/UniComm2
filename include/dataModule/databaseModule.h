@@ -1,16 +1,16 @@
 #ifndef UNICOMM_DATABASE_H
 #define UNICOMM_DATABASE_H
 
-#include <QDockWidget>
 #include <QJsonArray>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QTableWidget;
 
-class DatabaseModule final : public QDockWidget {
+class DatabaseModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit DatabaseModule(QWidget *parent = nullptr);
+    explicit DatabaseModule();
 
     ~DatabaseModule() override = default;
 

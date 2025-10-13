@@ -1,17 +1,17 @@
 #ifndef UNICOMM_DIAGNOSTICS_H
 #define UNICOMM_DIAGNOSTICS_H
 
-#include <QDockWidget>
 #include <QJsonObject>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QTableWidget;
 class QTabWidget;
 
-class DiagnosticsModule final : public QDockWidget {
+class DiagnosticsModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit DiagnosticsModule(QWidget *parent = nullptr);
+    explicit DiagnosticsModule();
 
     ~DiagnosticsModule() override = default;
 

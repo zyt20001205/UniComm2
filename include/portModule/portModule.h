@@ -1,8 +1,8 @@
 #ifndef UNICOMM_PORT_H
 #define UNICOMM_PORT_H
 
-#include <QDockWidget>
 #include <QJsonArray>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QPushButton;
 class QVBoxLayout;
@@ -10,11 +10,11 @@ class QTabWidget;
 
 class BasePort;
 
-class PortModule final : public QDockWidget {
+class PortModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit PortModule(QWidget *parent = nullptr);
+    explicit PortModule();
 
     ~PortModule() override = default;
 

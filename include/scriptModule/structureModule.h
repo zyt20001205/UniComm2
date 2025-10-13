@@ -1,18 +1,18 @@
 #ifndef UNICOMM_STRUCTUREMODULE_H
 #define UNICOMM_STRUCTUREMODULE_H
 
-#include <QDockWidget>
 #include <QUrl>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 
-class StructureModule final : public QDockWidget {
+class StructureModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit StructureModule(QWidget *parent = nullptr);
+    explicit StructureModule();
 
     ~StructureModule() override = default;
 

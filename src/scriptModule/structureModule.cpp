@@ -9,8 +9,8 @@
 #include "globals.h"
 
 // StructureModule public
-StructureModule::StructureModule(QWidget *parent)
-    : QDockWidget("structure", parent),
+StructureModule::StructureModule()
+    : DockWidget("structure"),
       m_documentSymbolTreeView(new QTreeView()),
       m_documentSymbolTreeModel(new QStandardItemModel()) {
     auto *widget = new QWidget(); // NOLINT

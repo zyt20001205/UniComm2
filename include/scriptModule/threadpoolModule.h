@@ -1,18 +1,18 @@
 #ifndef UNICOMM_THREADPOOL_H
 #define UNICOMM_THREADPOOL_H
 
-#include <QDockWidget>
 #include <QUrl>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QTableWidget;
 
 class LuaInterpreter;
 
-class ThreadpoolModule final : public QDockWidget {
+class ThreadpoolModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit ThreadpoolModule(QWidget *parent = nullptr);
+    explicit ThreadpoolModule();
 
     ~ThreadpoolModule() override = default;
 

@@ -16,8 +16,8 @@
 #include "scriptModule/scriptModule.h"
 
 // DebugModule public
-DebugModule::DebugModule(QWidget *parent)
-    : QDockWidget("debug", parent),
+DebugModule::DebugModule()
+    : DockWidget("debug"),
       m_debugBreakpointsTableModel(new QStandardItemModel()),
       m_debugBreakpointsProxyModel(new BreakpointsProxyModel()),
       m_debugBreakpointsTableView(new QTableView()),
@@ -287,7 +287,7 @@ void DebugModule::callReturn(const QString &threadId, QStandardItemModel *callTa
 
 // DebugModule protected
 void DebugModule::resizeEvent(QResizeEvent *event) {
-    QDockWidget::resizeEvent(event);
+    DockWidget::resizeEvent(event);
     if (!m_debugTabOverlay->isHidden()) overlayResize();
 }
 

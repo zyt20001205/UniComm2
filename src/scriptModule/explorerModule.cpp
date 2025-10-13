@@ -11,8 +11,8 @@
 #include "globals.h"
 
 // ExplorerModule public
-ExplorerModule::ExplorerModule(QWidget *parent)
-    : QDockWidget("explorer", parent),
+ExplorerModule::ExplorerModule()
+    : DockWidget("explorer"),
       m_explorerTreeView(new QTreeView()),
       m_model(new QFileSystemModel()) {
     setWidget(m_explorerTreeView);

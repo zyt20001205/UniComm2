@@ -9,6 +9,9 @@
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QThread>
+#include "kddockwidgets/qtwidgets/views/MainWindow.h"
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
+#include "kddockwidgets/LayoutSaver.h"
 
 #include "configModule.h"
 #include "globals.h"
@@ -29,14 +32,12 @@
 #include "scriptModule/threadpoolModule.h"
 
 // MainWindow public
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
+    : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent) {
     // mainWindow ui init
-    setWindowTitle("UniComm");
-    setWindowIcon(QIcon(":/icon/icon.ico"));
-    resize(1600, 900);
-    setDockNestingEnabled(true);
-    setDockOptions(AllowNestedDocks | AllowTabbedDocks | AnimatedDocks);
+    QWidget::setWindowTitle("UniComm");
+    QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
+    QWidget::resize(1600, 900);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
@@ -150,96 +151,76 @@ void MainWindow::moduleInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "undo module initialized");
 
     m_portModule = new PortModule();
-    addDockWidget(Qt::LeftDockWidgetArea, m_portModule);
     m_portModule->setObjectName("portModule");
-    connect(m_portModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_portModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
 
     m_explorerModule = new ExplorerModule();
-    addDockWidget(Qt::LeftDockWidgetArea, m_explorerModule);
     m_explorerModule->setObjectName("explorerModule");
-    connect(m_explorerModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_explorerModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "explorer module initialized");
 
     m_structureModule = new StructureModule();
-    addDockWidget(Qt::LeftDockWidgetArea, m_structureModule);
     m_structureModule->setObjectName("structureModule");
-    connect(m_structureModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_structureModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "structure module initialized");
 
     m_sendModule = new SendModule();
-    addDockWidget(Qt::RightDockWidgetArea, m_sendModule);
     m_sendModule->setObjectName("sendModule");
-    connect(m_sendModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_sendModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
 
     m_databaseModule = new DatabaseModule();
-    addDockWidget(Qt::RightDockWidgetArea, m_databaseModule);
     m_databaseModule->setObjectName("databaseModule");
-    connect(m_databaseModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_databaseModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
 
     m_datatableModule = new DatatableModule();
-    addDockWidget(Qt::RightDockWidgetArea, m_datatableModule);
     m_datatableModule->setObjectName("datatableModule");
-    connect(m_datatableModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_datatableModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
 
-    m_dataplotModule = new DataplotModule(this);
+    m_dataplotModule = new DataplotModule();
+    m_dataplotModule->setObjectName("dataplotModule");
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
 
     m_logModule = new LogModule();
-    addDockWidget(Qt::BottomDockWidgetArea, m_logModule);
     m_logModule->setObjectName("logModule");
-    connect(m_logModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_logModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "log module initialized");
 
     m_diagnosticsModule = new DiagnosticsModule();
-    addDockWidget(Qt::BottomDockWidgetArea, m_diagnosticsModule);
     m_diagnosticsModule->setObjectName("diagnosticsModule");
-    connect(m_diagnosticsModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_diagnosticsModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "diagnostics module initialized");
 
     m_debugModule = new DebugModule();
-    addDockWidget(Qt::BottomDockWidgetArea, m_debugModule);
     m_debugModule->setObjectName("debugModule");
-    connect(m_debugModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_debugModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "debug module initialized");
 
-    tabifyDockWidget(m_logModule, m_diagnosticsModule);
-    tabifyDockWidget(m_logModule, m_debugModule);
-    m_logModule->raise();
-
     m_threadpoolModule = new ThreadpoolModule();
-    addDockWidget(Qt::BottomDockWidgetArea, m_threadpoolModule);
     m_threadpoolModule->setObjectName("threadpoolModule");
-    connect(m_threadpoolModule, &QDockWidget::visibilityChanged, this, [this](const bool visible) { m_threadpoolModuleView->setChecked(visible); });
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "threadpool module initialized");
 
     m_scriptModule = new ScriptModule();
-    setCentralWidget(m_scriptModule);
+    m_scriptModule->setObjectName("scriptModule");
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
@@ -402,60 +383,29 @@ void MainWindow::menuInit() {
     {
         auto *viewMenu = new QMenu(tr("View")); // NOLINT
         menuBar->addMenu(viewMenu);
-        m_portModuleView = new QAction(tr("port"));
-        viewMenu->addAction(m_portModuleView);
-        m_portModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_portModuleView->setChecked(m_portModule->isVisible()); });
-        connect(m_portModuleView, &QAction::triggered, this, [this](const bool visible) { m_portModule->setVisible(visible); });
-        m_explorerModuleView = new QAction(tr("explorer"));
-        viewMenu->addAction(m_explorerModuleView);
-        m_explorerModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_explorerModuleView->setChecked(m_explorerModule->isVisible()); });
-        connect(m_explorerModuleView, &QAction::triggered, this, [this](const bool visible) { m_explorerModule->setVisible(visible); });
-        m_structureModuleView = new QAction(tr("structure"));
-        viewMenu->addAction(m_structureModuleView);
-        m_structureModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_structureModuleView->setChecked(m_structureModule->isVisible()); });
-        m_sendModuleView = new QAction(tr("send"));
-        viewMenu->addAction(m_sendModuleView);
-        m_sendModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_sendModuleView->setChecked(m_sendModule->isVisible()); });
-        connect(m_sendModuleView, &QAction::triggered, this, [this](const bool visible) { m_sendModule->setVisible(visible); });
-        m_databaseModuleView = new QAction(tr("database"));
-        viewMenu->addAction(m_databaseModuleView);
-        m_databaseModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_databaseModuleView->setChecked(m_databaseModule->isVisible()); });
-        connect(m_databaseModuleView, &QAction::triggered, this, [this](const bool visible) { m_databaseModule->setVisible(visible); });
-        m_datatableModuleView = new QAction(tr("data table"));
-        viewMenu->addAction(m_datatableModuleView);
-        m_datatableModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_datatableModuleView->setChecked(m_datatableModule->isVisible()); });
-        connect(m_datatableModuleView, &QAction::triggered, this, [this](const bool visible) { m_datatableModule->setVisible(visible); });
-        m_dataplotModuleView = new QAction(tr("data plot"));
-        viewMenu->addAction(m_dataplotModuleView);
-        m_dataplotModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_dataplotModuleView->setChecked(m_dataplotModule->isVisible()); });
-        connect(m_dataplotModuleView, &QAction::triggered, this, [this](const bool visible) { m_dataplotModule->setVisible(visible); });
-        m_logModuleView = new QAction(tr("log"));
-        viewMenu->addAction(m_logModuleView);
-        m_logModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_logModuleView->setChecked(m_logModule->isVisible()); });
-        connect(m_logModuleView, &QAction::triggered, this, [this](const bool visible) { m_logModule->setVisible(visible); });
-        m_diagnosticsModuleView = new QAction(tr("diagnostics"));
-        viewMenu->addAction(m_diagnosticsModuleView);
-        m_diagnosticsModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_diagnosticsModuleView->setChecked(m_diagnosticsModule->isVisible()); });
-        connect(m_diagnosticsModuleView, &QAction::triggered, this, [this](const bool visible) { m_diagnosticsModule->setVisible(visible); });
-        m_debugModuleView = new QAction(tr("debug"));
-        viewMenu->addAction(m_debugModuleView);
-        m_debugModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_debugModuleView->setChecked(m_debugModule->isVisible()); });
-        connect(m_debugModuleView, &QAction::triggered, this, [this](const bool visible) { m_debugModule->setVisible(visible); });
-        m_threadpoolModuleView = new QAction(tr("threadpool"));
-        viewMenu->addAction(m_threadpoolModuleView);
-        m_threadpoolModuleView->setCheckable(true);
-        QTimer::singleShot(0, this, [this] { m_threadpoolModuleView->setChecked(m_threadpoolModule->isVisible()); });
-        connect(m_threadpoolModuleView, &QAction::triggered, this, [this](const bool visible) { m_threadpoolModule->setVisible(visible); });
+        viewMenu->addAction(m_portModule->toggleAction());
+        m_portModule->toggleAction()->setText(tr("Port"));
+        viewMenu->addAction(m_explorerModule->toggleAction());
+        m_explorerModule->toggleAction()->setText(tr("Explorer"));
+        viewMenu->addAction(m_structureModule->toggleAction());
+        m_structureModule->toggleAction()->setText(tr("Structure"));
+        viewMenu->addAction(m_sendModule->toggleAction());
+        m_sendModule->toggleAction()->setText(tr("Send"));
+        viewMenu->addAction(m_portModule->toggleAction());
+        m_databaseModule->toggleAction()->setText(tr("Database"));
+        viewMenu->addAction(m_databaseModule->toggleAction());
+        m_datatableModule->toggleAction()->setText(tr("Data Table"));
+        viewMenu->addAction(m_datatableModule->toggleAction());
+        m_dataplotModule->toggleAction()->setText(tr("Data Plot"));
+        viewMenu->addAction(m_dataplotModule->toggleAction());
+        m_logModule->toggleAction()->setText(tr("Log"));
+        viewMenu->addAction(m_logModule->toggleAction());
+        viewMenu->addAction(m_diagnosticsModule->toggleAction());
+        m_diagnosticsModule->toggleAction()->setText(tr("Diagnostics"));
+        viewMenu->addAction(m_debugModule->toggleAction());
+        m_debugModule->toggleAction()->setText(tr("Debug"));
+        viewMenu->addAction(m_threadpoolModule->toggleAction());
+        m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
     }
 }
 
@@ -465,21 +415,32 @@ void MainWindow::layoutInit() {
         restoreGeometry(geometry);
     }
     if (m_mainConfig["state"].toString().isEmpty()) {
-        m_sendModule->hide();
-        m_databaseModule->hide();
-        m_datatableModule->hide();
-        const QList<QDockWidget *> bottomDocks = {m_logModule, m_diagnosticsModule, m_debugModule, m_threadpoolModule};
-        const QList<int> sizes(bottomDocks.size(), 250);
-        resizeDocks(bottomDocks, sizes, Qt::Vertical);
+        // dock placement
+        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr);
+        addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
+        addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
+        addDockWidget(m_scriptModule, KDDockWidgets::Location_OnRight);
+        addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr);
+        m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
+        m_logModule->addDockWidgetAsTab(m_debugModule);
+        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule);
+        // dock resize
+        // still figuring out how to do this
     } else {
-        const QByteArray state = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
-        restoreState(state);
+        const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
+        KDDockWidgets::LayoutSaver layoutSaver;
+        layoutSaver.restoreLayout(layoutData);
     }
 }
 
 void MainWindow::mainConfigSave() {
     m_mainConfig["geometry"] = QString(saveGeometry().toBase64());
-    m_mainConfig["state"] = QString(saveState().toBase64());
+    const KDDockWidgets::LayoutSaver layoutSaver;
+    const QByteArray layoutData = layoutSaver.serializeLayout();
+    m_mainConfig["state"] = QString(layoutData.toBase64());
     g_config["mainConfig"] = m_mainConfig;
 }
 

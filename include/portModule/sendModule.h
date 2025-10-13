@@ -1,19 +1,19 @@
 #ifndef UNICOMM_SENDMODULE_H
 #define UNICOMM_SENDMODULE_H
 
-#include <QDockWidget>
 #include <QJsonArray>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QLineEdit;
 class QTableWidget;
 
 class PortModule;
 
-class SendModule final : public QDockWidget {
+class SendModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit SendModule(QWidget *parent = nullptr);
+    explicit SendModule();
 
     ~SendModule() override = default;
 

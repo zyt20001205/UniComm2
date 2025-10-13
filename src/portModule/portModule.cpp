@@ -21,8 +21,8 @@
 #include "portModule/udpSocket.h"
 
 // PortModule public
-PortModule::PortModule(QWidget *parent)
-    : QDockWidget("port", parent),
+PortModule::PortModule()
+    : DockWidget("port"),
       m_portConfig(g_config["portConfig"].toArray()),
       m_portTabWidget(new QTabWidget()),
       m_portTabOverlay(new QWidget(m_portTabWidget)) {
@@ -107,11 +107,11 @@ bool PortModule::eventFilter(QObject *obj, QEvent *event) {
         }
         return true;
     }
-    return QDockWidget::eventFilter(obj, event);
+    return DockWidget::eventFilter(obj, event);
 }
 
 void PortModule::resizeEvent(QResizeEvent *event) {
-    QDockWidget::resizeEvent(event);
+    DockWidget::resizeEvent(event);
     if (!m_portTabOverlay->isHidden()) overlayResize();
 }
 

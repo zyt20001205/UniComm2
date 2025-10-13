@@ -1,16 +1,16 @@
 #ifndef UNICOMM_DATATABLE_H
 #define UNICOMM_DATATABLE_H
 
-#include <QDockWidget>
 #include <QJsonArray>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QTableWidget;
 
-class DatatableModule final : public QDockWidget {
+class DatatableModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit DatatableModule(QWidget *parent = nullptr);
+    explicit DatatableModule();
 
     ~DatatableModule() override = default;
 

@@ -19,17 +19,13 @@
 #include "portModule/portModule.h"
 
 // ScriptModule public
-ScriptModule::ScriptModule(QWidget *parent)
-    : QWidget(parent),
+ScriptModule::ScriptModule()
+    : DockWidget("script"),
       m_scriptConfig(g_config["scriptConfig"].toObject()),
       m_scriptTabWidget(new QTabWidget()),
       m_scriptTabOverlay(new QWidget(m_scriptTabWidget)) {
     // script module init
-    auto *layout = new QHBoxLayout(this); // NOLINT
-    layout->addWidget(m_scriptTabWidget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    m_scriptTabWidget->setMovable(true);
-    m_scriptTabWidget->setTabsClosable(true);
+    setWidget(m_scriptTabWidget);
     // clear invalid script url
     QJsonArray validScriptList;
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -85,9 +81,6 @@ ScriptModule::ScriptModule(QWidget *parent)
     overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
     const QJsonObject mainConfig = g_config["mainConfig"].toObject();
     overlayShow();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
 
     // emit switchScript to ensure receive structure analysis(currentChanged won't trigger if index is not changed)
     if (m_scriptTabWidget->count() > 0) {

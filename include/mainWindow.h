@@ -2,7 +2,7 @@
 #define UNICOMM_MAINWINDOW_H
 
 #include <QJsonObject>
-#include <QMainWindow>
+#include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
 class QShortcut;
 
@@ -22,11 +22,11 @@ class DebugModule;
 class ThreadpoolModule;
 class ScriptModule;
 
-class MainWindow final : public QMainWindow {
+class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr, const QString &uniqueName = QStringLiteral("MyMainWindow"));
 
     ~MainWindow() override = default;
 
@@ -77,18 +77,6 @@ private:
     QShortcut *m_openWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceAsShortcut{};
-
-    QAction *m_portModuleView{};
-    QAction *m_explorerModuleView{};
-    QAction *m_structureModuleView{};
-    QAction *m_sendModuleView{};
-    QAction *m_databaseModuleView{};
-    QAction *m_datatableModuleView{};
-    QAction *m_dataplotModuleView{};
-    QAction *m_logModuleView{};
-    QAction *m_diagnosticsModuleView{};
-    QAction *m_debugModuleView{};
-    QAction *m_threadpoolModuleView{};
 };
 
 #endif //UNICOMM_MAINWINDOW_H

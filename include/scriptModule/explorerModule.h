@@ -1,16 +1,16 @@
 #ifndef UNICOMM_EXPLORER_H
 #define UNICOMM_EXPLORER_H
 
-#include <QDockWidget>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QFileSystemModel;
 class QTreeView;
 
-class ExplorerModule final : public QDockWidget {
+class ExplorerModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit ExplorerModule(QWidget *parent = nullptr);
+    explicit ExplorerModule();
 
     ~ExplorerModule() override = default;
 

@@ -2,7 +2,7 @@
 #define UNICOMM_SCRIPT_H
 
 #include <QJsonObject>
-
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 #include "Qsci/qsciscintilla.h"
 
 class QLabel;
@@ -30,11 +30,11 @@ enum {
     LUATOKEN_OPERATOR,
 };
 
-class ScriptModule final : public QWidget {
+class ScriptModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit ScriptModule(QWidget *parent = nullptr);
+    explicit ScriptModule();
 
     ~ScriptModule() override = default;
 

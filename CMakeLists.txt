@@ -181,6 +181,11 @@ target_include_directories(UniComm PRIVATE
         ${LEPTONICA_INCLUDE_DIR}
 )
 
+target_compile_definitions(UniComm PRIVATE
+        KDDW_FRONTEND_QT
+        KDDW_FRONTEND_QTWIDGETS
+)
+
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")

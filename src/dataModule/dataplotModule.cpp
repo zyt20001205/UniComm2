@@ -3,8 +3,8 @@
 #include "qcustomplot.h"
 
 // DataplotModule public
-DataplotModule::DataplotModule(QWidget *parent)
-    : QWidget(parent),
+DataplotModule::DataplotModule()
+    : DockWidget("dataplot"),
       m_plot(new QCustomPlot()),
       m_leftLegend(new QCPLegend()),
       m_rightLegend(new QCPLegend()),
@@ -15,12 +15,8 @@ DataplotModule::DataplotModule(QWidget *parent)
           QColor("#d1c7ae"),
           QColor("#e5d9da")
       } {
-    setWindowFlags(Qt::Dialog);
-    setWindowTitle(tr("Data Plot"));
     resize(1200, 600);
-
-    auto *layout = new QVBoxLayout(this); // NOLINT
-    layout->addWidget(m_plot);
+    setWidget(m_plot);
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     m_plot->yAxis2->setVisible(true);
     auto *axisRect = m_plot->axisRect();
@@ -37,7 +33,7 @@ DataplotModule::DataplotModule(QWidget *parent)
 }
 
 void DataplotModule::dataplotAppend(const QString &key, const int position) {
-    this->show();
+    this->open();
     emit addGraphDatatable(key, position);
 }
 

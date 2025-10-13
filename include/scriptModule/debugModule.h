@@ -1,8 +1,8 @@
 #ifndef UNICOMM_DEBUG_H
 #define UNICOMM_DEBUG_H
 
-#include <QDockWidget>
 #include <QSortFilterProxyModel>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QStandardItemModel;
 class QTableView;
@@ -13,11 +13,11 @@ class BreakpointsProxyModel;
 class DebugPage;
 class LuaInterpreter;
 
-class DebugModule final : public QDockWidget {
+class DebugModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit DebugModule(QWidget *parent = nullptr);
+    explicit DebugModule();
 
     ~DebugModule() override = default;
 

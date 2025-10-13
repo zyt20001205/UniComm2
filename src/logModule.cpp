@@ -12,8 +12,8 @@
 
 #include "globals.h"
 // LogModule public
-LogModule::LogModule(QWidget *parent)
-    : QDockWidget("log", parent),
+LogModule::LogModule()
+    : DockWidget("log"),
       m_logConfig(g_config["logConfig"].toObject()),
       m_textEdit(new QTextEdit()) {
     auto *widget = new QWidget(); // NOLINT

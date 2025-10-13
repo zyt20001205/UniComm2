@@ -1,16 +1,16 @@
 #ifndef UNICOMM_LOG_H
 #define UNICOMM_LOG_H
 
-#include <QDockWidget>
 #include <QJsonObject>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
 class QTextEdit;
 
-class LogModule final : public QDockWidget {
+class LogModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit LogModule(QWidget *parent = nullptr);
+    explicit LogModule();
 
     ~LogModule() override = default;
 

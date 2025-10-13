@@ -9,8 +9,8 @@
 #include "globals.h"
 
 // DatabaseModule public
-DatabaseModule::DatabaseModule(QWidget *parent)
-    : QDockWidget("database", parent),
+DatabaseModule::DatabaseModule()
+    : DockWidget("database"),
       m_databaseConfig(g_config["databaseConfig"].toArray()),
       m_tableWidget(new QTableWidget()) {
     setWidget(m_tableWidget);
@@ -120,7 +120,7 @@ bool DatabaseModule::eventFilter(QObject *obj, QEvent *event) {
                 break;
         }
     }
-    return QDockWidget::eventFilter(obj, event);
+    return DockWidget::eventFilter(obj, event);
 }
 
 // DatabaseModule private

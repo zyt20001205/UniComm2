@@ -6,8 +6,8 @@
 #include <QTabWidget>
 
 // DiagnosticsModule public
-DiagnosticsModule::DiagnosticsModule(QWidget *parent)
-    : QDockWidget("diagnostics", parent),
+DiagnosticsModule::DiagnosticsModule()
+    : DockWidget("diagnostics"),
       m_diagnosticsTabWidget(new QTabWidget()),
       m_diagnosticsColor{
           {LEVEL_ERROR, QColor(255, 230, 230)},

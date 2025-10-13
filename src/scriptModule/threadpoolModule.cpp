@@ -12,8 +12,8 @@
 #include "luaModule/luaInterpreter.h"
 
 // ThreadpoolModule public
-ThreadpoolModule::ThreadpoolModule(QWidget *parent)
-    : QDockWidget("threadpool", parent),
+ThreadpoolModule::ThreadpoolModule()
+    : DockWidget("threadpool"),
       m_threadpoolTableWidget(new QTableWidget()),
       m_threadpoolColor{
           {THREAD_RUN, QColor(230, 255, 230)},
