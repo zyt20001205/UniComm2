@@ -64,7 +64,7 @@ signals:
 
     void openWorkspace();
 
-    void switchScript(const QUrl &scriptUrl);
+    void focusScript(const QUrl &scriptUrl);
 
     void insertBreakpoint(const QUrl &scriptUrl, int line);
 

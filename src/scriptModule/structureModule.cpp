@@ -37,7 +37,7 @@ void StructureModule::documentSymbolReturn(const QUrl &scriptUrl, const QJsonArr
     }
 }
 
-void StructureModule::scriptSwitch(const QUrl &scriptUrl) {
+void StructureModule::scriptFocus(const QUrl &scriptUrl) {
     m_currentScriptUrl = scriptUrl;
     if (m_documentSymbolHash.contains(scriptUrl)) {
         m_documentSymbolTreeModel->clear();

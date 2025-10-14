@@ -18,7 +18,7 @@ public:
 
     void documentSymbolReturn(const QUrl &scriptUrl, const QJsonArray &result);
 
-    void scriptSwitch(const QUrl &scriptUrl);
+    void scriptFocus(const QUrl &scriptUrl);
 
 signals:
     void showMarker(const QUrl &scriptUrl, int type, int line, int time);

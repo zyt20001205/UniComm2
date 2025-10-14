@@ -29,8 +29,6 @@ public:
 
     void textReplace(QString &text, const QString &kind) ;
 
-    void textInsert(QString &text, const QString &kind) ;
-
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
     bool m_modified = false;

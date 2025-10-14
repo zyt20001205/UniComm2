@@ -55,6 +55,7 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
         m_tableWidget->selectRow(m_currentRow);
         m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
         m_kind = m_tableWidget->item(m_currentRow, 1)->text();
+        // if (m_tableWidget->rowCount() == 1&&)
     } else {
         m_currentRow = -1;
         m_kind.clear();
@@ -81,16 +82,13 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
                 if (!m_insertText.isEmpty()) emit replaceText(m_insertText, m_kind);
                 hideTooltip();
                 return true;
-            case Qt::Key_Return:
-                if (!m_insertText.isEmpty()) emit insertText(m_insertText, m_kind);
-                hideTooltip();
-                return true;
             case Qt::Key_Up:
                 moveUp();
                 return true;
             case Qt::Key_Down:
                 moveDown();
                 return true;
+            case Qt::Key_Return:
             case Qt::Key_Escape:
             case Qt::Key_Backspace:
             case Qt::Key_Left:

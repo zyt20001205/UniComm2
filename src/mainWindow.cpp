@@ -4,6 +4,7 @@
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -11,6 +12,8 @@
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QThread>
+#include <QToolBar>
+#include <qtoolbutton.h>
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
@@ -36,7 +39,8 @@
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
-    : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent) {
+    : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent),
+      m_currentScriptLabel(new QLabel("Idle")) {
     // mainWindow ui init
     g_mainWindow = this;
     QWidget::setWindowTitle("UniComm");
@@ -45,6 +49,9 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
+
+    m_currentScriptLabel->setFont(QFont("Consolas", 12));
+    m_currentScriptLabel->setStyleSheet("color: #333333;");
 
     configInit();
     moduleInit();
@@ -260,7 +267,8 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
-    connect(m_scriptModule, &ScriptModule::switchScript, m_structureModule, &StructureModule::scriptSwitch);
+    connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
+    connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &url) { m_currentScriptLabel->setText(url.fileName()); });
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
 
@@ -345,12 +353,17 @@ void MainWindow::shortcutInit() {
 }
 
 void MainWindow::menuInit() {
-    auto *menuBar = new QMenuBar(); // NOLINT
-    setMenuBar(menuBar);
+    auto *toolBar = new QToolBar(); // NOLINT
+    addToolBar(Qt::TopToolBarArea, toolBar);
     // file menu
     {
         auto *fileMenu = new QMenu(tr("File")); // NOLINT
-        menuBar->addMenu(fileMenu);
+        auto *fileButton = new QToolButton(); // NOLINT
+        fileButton->setText(tr("File"));
+        fileButton->setMenu(fileMenu);
+        fileButton->setPopupMode(QToolButton::InstantPopup);
+        toolBar->addWidget(fileButton);
+
         auto shortcutConfig = g_config["shortcutConfig"].toObject();
         auto *openWorkspaceAction = new QAction(tr("Open Workspace") + "\t" + shortcutConfig["openWorkspace"].toString()); // NOLINT
         fileMenu->addAction(openWorkspaceAction);
@@ -384,7 +397,12 @@ void MainWindow::menuInit() {
     // view menu
     {
         auto *viewMenu = new QMenu(tr("View")); // NOLINT
-        menuBar->addMenu(viewMenu);
+        auto *viewButton = new QToolButton(); // NOLINT
+        viewButton->setText(tr("View"));
+        viewButton->setMenu(viewMenu);
+        viewButton->setPopupMode(QToolButton::InstantPopup);
+        toolBar->addWidget(viewButton);
+
         viewMenu->addAction(m_portModule->toggleAction());
         m_portModule->toggleAction()->setText(tr("Port"));
         viewMenu->addAction(m_explorerModule->toggleAction());
@@ -409,18 +427,19 @@ void MainWindow::menuInit() {
         viewMenu->addAction(m_threadpoolModule->toggleAction());
         m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
     }
-    // control widget
+    // separator
+    auto *spacer = new QWidget(); // NOLINT
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    toolBar->addWidget(spacer);
+    toolBar->addSeparator();
+    // control menu
     {
-        auto *ctrlWidget = new QWidget(); // NOLINT
-        menuBar->setCornerWidget(ctrlWidget);
-        auto *ctrlLayout = new QHBoxLayout(ctrlWidget); // NOLINT
-        ctrlLayout->setContentsMargins(0, 0, 0, 0);
-        ctrlLayout->setAlignment(Qt::AlignRight);
-        auto *runButton = new QPushButton(); // NOLINT
-        ctrlLayout->addWidget(runButton);
-        runButton->setFixedSize(24, 24);
+        toolBar->addWidget(m_currentScriptLabel);
+
+        auto *runButton = new QToolButton(); // NOLINT
+        toolBar->addWidget(runButton);
+        runButton->setFixedSize(32, 32);
         runButton->setIcon(QIcon(":/icon/play.svg"));
-        runButton->setStyleSheet("QPushButton { background: transparent; border: none}");
         connect(runButton, &QPushButton::clicked, this, [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
@@ -431,11 +450,11 @@ void MainWindow::menuInit() {
                 m_logModule->raise();
             }
         });
-        auto *debugButton = new QPushButton(); // NOLINT
-        ctrlLayout->addWidget(debugButton);
-        debugButton->setFixedSize(24, 24);
+
+        auto *debugButton = new QToolButton(); // NOLINT
+        toolBar->addWidget(debugButton);
+        debugButton->setFixedSize(32, 32);
         debugButton->setIcon(QIcon(":/icon/bug.svg"));
-        debugButton->setStyleSheet("QPushButton { background: transparent; border: none; }");
         connect(debugButton, &QPushButton::clicked, this, [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));

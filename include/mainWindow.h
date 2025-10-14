@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
+class QLabel;
 class QShortcut;
 
 class StructureModule;
@@ -81,6 +82,8 @@ private:
     QShortcut *m_openWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceAsShortcut{};
+
+    QLabel *m_currentScriptLabel{};
 };
 
 #endif //UNICOMM_MAINWINDOW_H

@@ -33,14 +33,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_editTimer, &QTimer::timeout, [this] {
         scriptEditFinish();
     });
-    // m_scriptEditor->installEventFilter(m_SignatureHelpTooltip);
     // connect signals
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
-    // connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPage::textReplace);
-    // connect(m_tooltipCompletion, &TooltipCompletion::insertText, this, &ScriptPage::textInsert);
     // connect(m_tooltipHover, &TooltipHover::switchDwell, this, &ScriptPage::dwellSwitch);
     // connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPage::positionFill);
     // logging
@@ -214,32 +211,6 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
         cursorPos = startPos + text.length() - 1;
     } else {
         cursorPos = startPos + text.length();
-    }
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
-    if (kind == "Function") {
-        didChangeNotification();
-        signatureHelpRequest();
-    } else if (kind == "Field") {
-        didChangeNotification();
-        completionRequest();
-    }
-}
-
-void ScriptPage::textInsert(QString &text, const QString &kind) {
-    if (kind == "Function") {
-        text += "()";
-    } else if (kind == "Field") {
-        text += ".";
-    }
-    m_scriptEditor->insert(text);
-    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    long cursorPos;
-    if (kind == "Function") {
-        cursorPos = currentPos + text.length() - 1;
-    } else {
-        cursorPos = currentPos + text.length();
     }
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT

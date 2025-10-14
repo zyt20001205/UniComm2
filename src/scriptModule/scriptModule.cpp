@@ -38,7 +38,6 @@ ScriptModule::ScriptModule()
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
 
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
-    connect(m_completionTooltip, &CompletionTooltip::insertText, this, &ScriptModule::textInsert);
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
@@ -90,7 +89,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         } else {
             m_focusedPage->addDockWidgetAsTab(scriptPage);
         }
-        m_focusedPage = scriptPage;
+        scriptFocus(scriptPage, true);
         scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
     } else {
         m_focusedPage->addDockWidgetAsTab(m_scriptPageHash[scriptUrl]);
@@ -197,7 +196,7 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     m_signatureHelpTooltip->hideTooltip();
     if (status) {
         m_focusedPage = scriptPage;
-        emit switchScript(scriptPage->m_scriptUrl);
+        emit focusScript(scriptPage->m_scriptUrl);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
@@ -233,10 +232,6 @@ void ScriptModule::scriptClose(ScriptPage *scriptPage) {
 
 void ScriptModule::textReplace(QString &text, const QString &kind) const {
     m_focusedPage->textReplace(text, kind);
-}
-
-void ScriptModule::textInsert(QString &text, const QString &kind) const {
-    m_focusedPage->textInsert(text, kind);
 }
 
 //
