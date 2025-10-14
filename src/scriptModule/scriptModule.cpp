@@ -218,12 +218,12 @@ void ScriptModule::scriptClose(ScriptPage *scriptPage) {
         const QMessageBox::StandardButton reply =
                 QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::No);
+        if (m_focusedPage == scriptPage) {
+            m_focusedPage = nullptr;
+        }
         if (reply == QMessageBox::Yes) {
             scriptPage->scriptSave();
         } else {
-            if (m_focusedPage == scriptPage) {
-                m_focusedPage = nullptr;
-            }
             m_scriptPageHash.remove(scriptPage->m_scriptUrl);
             scriptPage->deleteLater();
         }
