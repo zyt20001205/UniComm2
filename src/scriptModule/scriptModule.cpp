@@ -73,9 +73,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         scriptPage->setObjectName(scriptUrl.toString());
         m_scriptPageHash[scriptUrl] = scriptPage;
-        connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isOpenChanged, this, [scriptPage] { scriptClose(scriptPage); });
+        connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isOpenChanged, this, [this, scriptPage] { scriptClose(scriptPage); });
         connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isFocusedChanged, this, [this, scriptPage](const bool status) {
-            if (status) scriptFocus(scriptPage);
+            scriptFocus(scriptPage, status);
         });
         connect(scriptPage, &ScriptPage::modifyScript, this, [scriptPage](const bool status) { scriptModify(scriptPage, status); });
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
@@ -85,6 +85,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
+            m_welcomePage->open();
             m_welcomePage->addDockWidgetAsTab(scriptPage);
             m_welcomePage->close();
         } else {
@@ -192,12 +193,16 @@ void ScriptModule::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject 
 }
 
 // ScriptModule private
-void ScriptModule::scriptFocus(ScriptPage *scriptPage) {
-    m_focusedPage = scriptPage;
-    emit switchScript(scriptPage->m_scriptUrl);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
+void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
+    m_completionTooltip->hideTooltip();
+    m_signatureHelpTooltip->hideTooltip();
+    if (status) {
+        m_focusedPage = scriptPage;
+        emit switchScript(scriptPage->m_scriptUrl);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
+    }
 }
 
 void ScriptModule::scriptModify(ScriptPage *scriptPage, const bool status) {
@@ -217,6 +222,12 @@ void ScriptModule::scriptClose(ScriptPage *scriptPage) {
                                       QMessageBox::No);
         if (reply == QMessageBox::Yes) {
             scriptPage->scriptSave();
+        } else {
+            if (m_focusedPage == scriptPage) {
+                m_focusedPage = nullptr;
+            }
+            m_scriptPageHash.remove(scriptPage->m_scriptUrl);
+            scriptPage->deleteLater();
         }
     }
 }

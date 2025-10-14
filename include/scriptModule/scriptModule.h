@@ -75,11 +75,11 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
 private:
-    void scriptFocus(ScriptPage *scriptPage);
+    void scriptFocus(ScriptPage *scriptPage, bool status);
 
     static void scriptModify(ScriptPage *scriptPage, bool status);
 
-    static void scriptClose(ScriptPage *scriptPage);
+    void scriptClose(ScriptPage *scriptPage);
 
     void textReplace(QString &text, const QString &kind) const;
 
