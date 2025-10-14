@@ -24,7 +24,7 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     const int rxLength = txQuantity * 2 + 5;
     const int rxTimeout = param4;
 
-    QByteArray txData;
+    QByteArray txData{};
     txData.append(static_cast<char>(txSlaveAddr));
     txData.append(txFuncCode);
     txData.append(static_cast<char>(txStartAddr >> 8 & 0xFF));
@@ -32,11 +32,15 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     txData.append(static_cast<char>(txQuantity >> 8 & 0xFF));
     txData.append(static_cast<char>(txQuantity & 0xFF));
     txData += modbusCRC(txData);
-    QByteArray rxData;
-    QMetaObject::invokeMethod(portObject, [portObject, txData, &rxData, rxTimeout, rxLength] {
-        portObject->writeData(txData);
+    QByteArray rxData{};
+    bool status = false;
+    QMetaObject::invokeMethod(portObject, [portObject, txData, &rxData, rxTimeout, rxLength, &status] {
+        status = portObject->writeData(txData);
         rxData = portObject->readData(rxTimeout, rxLength);
     }, Qt::BlockingQueuedConnection);
+    if (!status) {
+        luaL_error(L, "modbus rtu read holding registers failed");
+    }
     if (rxData.length() != rxLength) {
         luaL_error(L, "modbus rtu read holding registers wrong length");
         qDebug() << rxData;
@@ -83,7 +87,7 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
     const int txByteCount = static_cast<int>(len3);
     constexpr int rxLength = 8;
 
-    QByteArray txData;
+    QByteArray txData{};
     txData.append(static_cast<uint8_t>(txSlaveAddr));
     txData.append(txFuncCode);
     txData.append(static_cast<uint8_t>(txStartAddr >> 8 & 0xFF));
@@ -93,11 +97,15 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
     txData.append(static_cast<uint8_t>(txByteCount));
     txData += txRegData;
     txData += modbusCRC(txData);
-    QByteArray rxData;
-    QMetaObject::invokeMethod(portObject, [portObject, txData, &rxData, rxTimeout] {
-        portObject->writeData(txData);
+    QByteArray rxData{};
+    bool status = false;
+    QMetaObject::invokeMethod(portObject, [portObject, txData, &rxData, rxTimeout, &status] {
+        status = portObject->writeData(txData);
         rxData = portObject->readData(rxTimeout, 8);
     }, Qt::BlockingQueuedConnection);
+    if (!status) {
+        luaL_error(L, "modbus rtu write multiple registers failed");
+    }
     if (rxData.length() != rxLength) {
         qDebug() << rxData;
         luaL_error(L, "modbus rtu write multiple registers wrong length");

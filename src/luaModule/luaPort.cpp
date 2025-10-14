@@ -91,15 +91,19 @@ int lua_portWriteText(lua_State *L) {
     const int index = param1;
     const QString txText = QString::fromUtf8(param2);
     auto *portObject = g_port->portObject(index);
+    bool status = false;
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
-        QMetaObject::invokeMethod(portObject, [portObject, txText, peerIp] {
-            portObject->writeText(txText, peerIp);
+        QMetaObject::invokeMethod(portObject, [portObject, txText, peerIp, &status] {
+            status = portObject->writeText(txText, peerIp);
         }, Qt::BlockingQueuedConnection);
     } else {
-        QMetaObject::invokeMethod(portObject, [portObject, txText] {
-            portObject->writeText(txText);
+        QMetaObject::invokeMethod(portObject, [portObject, txText, &status] {
+            status = portObject->writeText(txText);
         }, Qt::BlockingQueuedConnection);
+    }
+    if (!status) {
+        luaL_error(L, "write text failed");
     }
     return 0;
 }
@@ -126,15 +130,19 @@ int lua_portWriteData(lua_State *L) {
     const int index = param1;
     const QByteArray txData(param2, static_cast<qsizetype>(len2));
     auto *portObject = g_port->portObject(index);
+    bool status = false;
     if (param3) {
         const QString peerIp = QString::fromUtf8(param3);
-        QMetaObject::invokeMethod(portObject, [portObject, txData, peerIp] {
-            portObject->writeData(txData, peerIp);
+        QMetaObject::invokeMethod(portObject, [portObject, txData, peerIp, &status] {
+            status = portObject->writeData(txData, peerIp);
         }, Qt::BlockingQueuedConnection);
     } else {
-        QMetaObject::invokeMethod(portObject, [portObject, txData] {
-            portObject->writeData(txData);
+        QMetaObject::invokeMethod(portObject, [portObject, txData, &status] {
+            status = portObject->writeData(txData);
         }, Qt::BlockingQueuedConnection);
+    }
+    if (!status) {
+        luaL_error(L, "write data failed");
     }
     return 0;
 }

@@ -22,13 +22,13 @@ public:
 
     QHash<QString, QVariant> info() override;
 
-    void writeText(const QString &txText) override;
+    bool writeText(const QString &txText) override;
 
-    void writeText(const QString &txText, const QString &peerIp) override;
+    bool writeText(const QString &txText, const QString &peerIp) override;
 
-    void writeData(const QByteArray &txData) override;
+    bool writeData(const QByteArray &txData) override;
 
-    void writeData(const QByteArray &txData, const QString &peerIp) override;
+    bool writeData(const QByteArray &txData, const QString &peerIp) override;
 
     QString readText(int timeout, int length, const QString &peerIp) override;
 
@@ -56,7 +56,7 @@ private:
 
     void handleError(QTcpSocket *tcpServerPeer);
 
-    void handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
+    bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
     QByteArray handleRead(int timeout, int length, QTcpSocket *tcpServerPeer);
 

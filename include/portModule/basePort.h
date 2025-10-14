@@ -19,16 +19,20 @@ public:
 
     virtual void close() = 0;
 
-    virtual void writeText(const QString &txText) {
+    virtual bool writeText(const QString &txText) {
+        return false;
     }
 
-    virtual void writeText(const QString &txText, const QString &peerIp) {
+    virtual bool writeText(const QString &txText, const QString &peerIp) {
+        return false;
     }
 
-    virtual void writeData(const QByteArray &txData) {
+    virtual bool writeData(const QByteArray &txData) {
+        return false;
     }
 
-    virtual void writeData(const QByteArray &txData, const QString &peerIp) {
+    virtual bool writeData(const QByteArray &txData, const QString &peerIp) {
+        return false;
     }
 
     virtual QString readText(int timeout, int length) {

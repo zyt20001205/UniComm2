@@ -78,7 +78,7 @@ void UdpSocket::close() {
     m_udpSocket->close();
 }
 
-void UdpSocket::writeText(const QString &txText) {
+bool UdpSocket::writeText(const QString &txText) {
     // tx text reformat
     QString f_txText = txText;
     // 1: remove space if tx format is hex
@@ -88,18 +88,10 @@ void UdpSocket::writeText(const QString &txText) {
     if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
     else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
     else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
+    return writeData(txData);
 }
 
-void UdpSocket::writeData(const QByteArray &txData) {
-    // check port status
-    if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog("udp socket is not opened", "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
-        return;
-    }
+bool UdpSocket::writeData(const QByteArray &txData) {
     // tx data reformat
     QByteArray f_txData = txData;
     // 1: append suffix according to tx suffix
@@ -108,7 +100,7 @@ void UdpSocket::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // call handle write
-    handleWrite(f_txData);
+    return handleWrite(f_txData);
 }
 
 QString UdpSocket::readText(const int timeout, const int length) {
@@ -139,7 +131,15 @@ QByteArray UdpSocket::readData(const int timeout, const int length) {
 void UdpSocket::handleError() {
 }
 
-void UdpSocket::handleWrite(const QByteArray &f_txData) {
+bool UdpSocket::handleWrite(const QByteArray &f_txData) {
+    // check port status
+    if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
+        emit appendLog("udp socket is not opened", "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
+        return false;
+    }
     m_udpSocket->write(f_txData);
     // tx message reformat
     QString txMessage;
@@ -151,9 +151,18 @@ void UdpSocket::handleWrite(const QByteArray &f_txData) {
     txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
                                                       QString::number(m_udpSocketRemotePort), txMessage);
     emit appendLog(txMessage, "tx");
+    return true;
 }
 
 QByteArray UdpSocket::handleRead(const int timeout, const int length) {
+    // check port status
+    if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
+        emit appendLog("udp socket is not opened", "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
+        return {};
+    }
     QByteArray rxData = m_udpSocket->readAll();
     if (timeout != 0 && length != 0) {
         int time = 0;

@@ -75,7 +75,7 @@ void TcpClient::close() {
     m_tcpClient->disconnectFromHost();
 }
 
-void TcpClient::writeText(const QString &txText) {
+bool TcpClient::writeText(const QString &txText) {
     // tx text reformat
     QString f_txText = txText;
     // 1: remove space if tx format is hex
@@ -85,18 +85,10 @@ void TcpClient::writeText(const QString &txText) {
     if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
     else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
     else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
+    return writeData(txData);
 }
 
-void TcpClient::writeData(const QByteArray &txData) {
-    // check port status
-    if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog("tcp client is not opened", "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] tcp client is not opened").arg(timestamp);
-        return;
-    }
+bool TcpClient::writeData(const QByteArray &txData) {
     // tx data reformat
     QByteArray f_txData = txData;
     // 1: append suffix according to tx suffix
@@ -105,7 +97,7 @@ void TcpClient::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // call handle write
-    handleWrite(f_txData);
+    return handleWrite(f_txData);
 }
 
 QString TcpClient::readText(const int timeout, const int length) {
@@ -152,7 +144,15 @@ void TcpClient::handleDisconnected() {
 void TcpClient::handleError() {
 }
 
-void TcpClient::handleWrite(const QByteArray &f_txData) {
+bool TcpClient::handleWrite(const QByteArray &f_txData) {
+    // check port status
+    if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
+        emit appendLog("tcp client is not opened", "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] tcp client is not opened").arg(timestamp);
+        return false;
+    }
     m_tcpClient->write(f_txData);
     // tx message reformat
     QString txMessage;
@@ -164,9 +164,18 @@ void TcpClient::handleWrite(const QByteArray &f_txData) {
     txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientLocalAddress, QString::number(m_tcpClientLocalPort), m_tcpClientRemoteAddress,
                                                       QString::number(m_tcpClientRemotePort), txMessage);
     emit appendLog(txMessage, "tx");
+    return true;
 }
 
 QByteArray TcpClient::handleRead(const int timeout, const int length) {
+    // check port status
+    if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
+        emit appendLog("tcp client is not opened", "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] tcp client is not opened").arg(timestamp);
+        return {};
+    }
     QByteArray rxData = m_tcpClient->readAll();
     if (timeout != 0 && length != 0) {
         int time = 0;

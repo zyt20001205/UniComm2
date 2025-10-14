@@ -21,9 +21,9 @@ public:
 
     void close() override;
 
-    void writeText(const QString &txText) override;
+    bool writeText(const QString &txText) override;
 
-    void writeData(const QByteArray &txData) override;
+    bool writeData(const QByteArray &txData) override;
 
     QString readText(int timeout, int length) override;
 
@@ -39,7 +39,7 @@ signals:
     void errorOccurred(const QString &error);
 
 private:
-    void handleWrite(const QByteArray &f_txData);
+    bool handleWrite(const QByteArray &f_txData);
 
     QByteArray handleRead(int timeout, int length);
 

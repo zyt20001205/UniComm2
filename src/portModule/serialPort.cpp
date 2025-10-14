@@ -105,7 +105,7 @@ void SerialPort::close() {
     qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "closed");
 }
 
-void SerialPort::writeText(const QString &txText) {
+bool SerialPort::writeText(const QString &txText) {
     // tx text reformat
     QString f_txText = txText;
     // 1: remove space if tx format is hex
@@ -115,18 +115,10 @@ void SerialPort::writeText(const QString &txText) {
     if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
     else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
     else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    writeData(txData);
+    return writeData(txData);
 }
 
-void SerialPort::writeData(const QByteArray &txData) {
-    // check port status
-    if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
-        return;
-    }
+bool SerialPort::writeData(const QByteArray &txData) {
     // tx data reformat
     QByteArray f_txData = txData;
     // 1: append suffix according to tx suffix
@@ -135,7 +127,7 @@ void SerialPort::writeData(const QByteArray &txData) {
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
     else; /* m_txSuffix == "null" */
     // call handle write
-    handleWrite(f_txData);
+    return handleWrite(f_txData);
 }
 
 QString SerialPort::readText(const int timeout, const int length) {
@@ -163,7 +155,15 @@ QByteArray SerialPort::readData(const int timeout, const int length) {
 }
 
 // SerialPort private
-void SerialPort::handleWrite(const QByteArray &f_txData) {
+bool SerialPort::handleWrite(const QByteArray &f_txData) {
+    // check port status
+    if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
+        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
+        return false;
+    }
     m_serialPort->write(f_txData);
     // tx message reformat
     QString txMessage;
@@ -174,9 +174,18 @@ void SerialPort::handleWrite(const QByteArray &f_txData) {
     // 2: add port info
     txMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), txMessage);
     emit appendLog(txMessage, "tx");
+    return true;
 }
 
 QByteArray SerialPort::handleRead(const int timeout, const int length) {
+    // check port status
+    if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
+        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
+        return {};
+    }
     QByteArray rxData = m_serialPort->readAll();
     if (timeout != 0 && length != 0) {
         int time = 0;
