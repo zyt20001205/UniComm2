@@ -36,10 +36,21 @@ signals:
 private:
     void threadAppend(int status, const QString &name, const QString &threadId, QThread *worker);
 
+    void timeRefresh() const;
+
     QUrl m_rootUrl{};
+    QTimer *m_runtimeTimer{};
     QTableWidget *m_threadpoolTableWidget{};
     QHash<int, QColor> m_threadpoolColor{};
     QHash<QString, QThread *> m_threadHash{};
+
+    enum {
+        STATUS_COL,
+        TIMER_COL,
+        SOURCE_COL,
+        THREAD_COL,
+        STOP_COL
+    };
 };
 
 #endif //UNICOMM_THREADPOOL_H
