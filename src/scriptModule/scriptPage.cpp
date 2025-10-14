@@ -11,13 +11,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.fileName()),
       m_scriptEditor(new ScriptEditor()),
       m_scriptUrl(scriptUrl),
-      m_editTimer(new QTimer(this))
-// ,
-//       m_tooltipCompletion(new TooltipCompletion(this)),
-//       m_tooltipHover(new TooltipHover(this)),
-//       m_tooltipPosition(new TooltipPosition(this)),
-//       m_tooltipSignatureHelp(new TooltipSignatureHelp(this))
-{
+      m_editTimer(new QTimer(this)) {
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutFormatting, &QShortcut::activated, this, [this] { formattingRequest(); });
@@ -42,6 +36,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // m_scriptEditor->installEventFilter(m_tooltipSignatureHelp);
     // connect signals
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
+    connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
     // connect(m_tooltipCompletion, &TooltipCompletion::replaceText, this, &ScriptPage::textReplace);
@@ -76,18 +71,6 @@ void ScriptPage::scriptSave() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
-}
-
-void ScriptPage::completionReturn(const QJsonArray &items) const {
-    // m_tooltipCompletion->showTooltip(items);
-    // const auto *editor = static_cast<QsciScintilla *>(m_scriptEditor);
-    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
-    // const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
-    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    // m_tooltipCompletion->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptPage::diagnosticsReturn(const QJsonArray &diagnosticsArray) const {
@@ -238,6 +221,12 @@ void ScriptPage::scriptEdit() const {
     m_editTimer->start();
 }
 
+void ScriptPage::charAdded(const int ch) {
+    if (const QChar character(ch); character.isLetter()) {
+        // completionRequest();
+    }
+}
+
 void ScriptPage::dwellStart(const int pos, const int x, const int y) {
     // int line, character;
     // m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
@@ -262,6 +251,7 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
         }
     }
 }
+
 
 // ScriptPage private
 void ScriptPage::didOpenNotification() {

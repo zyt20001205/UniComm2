@@ -13,6 +13,7 @@ class QTextBrowser;
 
 class ScriptPage;
 class ScriptEditor;
+class CompletionPopup;
 
 class ScriptModule final : public QObject {
     Q_OBJECT
@@ -84,46 +85,12 @@ private:
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
+    CompletionPopup *m_completionPopup{};
 };
 
-// class TooltipCompletion;
-// class TooltipHover;
-// class TooltipPosition;
-// class TooltipSignatureHelp;
-//
-//
-//
-// class TooltipCompletion final : public QWidget {
-//     Q_OBJECT
-//
-// public:
-//     explicit TooltipCompletion(QWidget *parent = nullptr);
-//
-//     ~TooltipCompletion() override = default;
-//
-//     void showTooltip(const QJsonArray &items);
-//
-//     void hideTooltip();
-//
-// signals:
-//     void replaceText(QString &text, const QString &kind);
-//
-//     void insertText(QString &text, const QString &kind);
-//
-// protected:
-//     bool eventFilter(QObject *obj, QEvent *event) override;
-//
-// private:
-//     void moveUp();
-//
-//     void moveDown();
-//
-//     QTableWidget *m_tableWidget = nullptr;
-//     int m_currentRow{};
-//     QString m_insertText{};
-//     QString m_kind{};
-//     QList<QString> m_kindList{};
-// };
+
+
+
 //
 // class TooltipHover final : public QWidget {
 //     Q_OBJECT

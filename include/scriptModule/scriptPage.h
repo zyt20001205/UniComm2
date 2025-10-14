@@ -17,8 +17,6 @@ public:
 
     void scriptSave();
 
-    void completionReturn(const QJsonArray &items) const;
-
     void diagnosticsReturn(const QJsonArray &diagnosticsArray) const;
 
     void foldingRangeReturn(const QJsonArray &result) const;
@@ -34,10 +32,6 @@ public:
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
     bool m_modified = false;
-    // TooltipCompletion *m_tooltipCompletion{};
-    // TooltipHover *m_tooltipHover{};
-    // TooltipPosition *m_tooltipPosition{};
-    // TooltipSignatureHelp *m_tooltipSignatureHelp{};
 
 signals:
     void modifyScript(bool status);
@@ -52,6 +46,8 @@ signals:
 
 private slots:
     void scriptEdit() const;
+
+    void charAdded(int ch);
 
     void dwellStart(int pos, int x, int y);
 

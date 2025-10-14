@@ -1,7 +1,7 @@
+#include "mainWindow.h"
+
 #include <QStyleFactory>
 #include <kddockwidgets/Config.h>
-
-#include "mainWindow.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible;
     flags |= KDDockWidgets::Config::Flag_AlwaysShowTabs;
     KDDockWidgets::Config::self().setFlags(flags);
+    KDDockWidgets::InitialOption::s_defaultNeighbourSqueezeStrategy = KDDockWidgets::NeighbourSqueezeStrategy::AllNeighbours;
 
     auto *mainWindow = new MainWindow();
     mainWindow->show();

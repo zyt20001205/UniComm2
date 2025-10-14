@@ -67,6 +67,7 @@ qt_add_executable(UniComm src/main.cpp
         include/portModule/tcpClient.h
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
+        include/scriptModule/completionPopup.h
         include/scriptModule/debugModule.h
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
@@ -104,6 +105,7 @@ qt_add_executable(UniComm src/main.cpp
         src/portModule/tcpClient.cpp
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
+        src/scriptModule/completionPopup.cpp
         src/scriptModule/debugModule.cpp
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp

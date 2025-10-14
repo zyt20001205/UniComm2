@@ -2,9 +2,6 @@
 
 #include <QFileInfo>
 #include <QHBoxLayout>
-#include <QHeaderView>
-#include <QKeyEvent>
-#include <QLabel>
 #include <QMessageBox>
 #include <QShortcut>
 #include <QTableWidget>
@@ -15,13 +12,19 @@
 #include "luaModule/luaControl.h"
 #include "utils.h"
 #include "portModule/portModule.h"
+#include "scriptModule/completionPopup.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/welcomePage.h"
 
 // ScriptModule public
 ScriptModule::ScriptModule()
     : m_scriptConfig(g_config["scriptConfig"].toObject()),
-      m_welcomePage(new WelcomePage()) {
+      m_welcomePage(new WelcomePage()),
+      m_completionPopup(new CompletionPopup())
+//       m_tooltipHover(new TooltipHover(this)),
+//       m_tooltipPosition(new TooltipPosition(this)),
+//       m_tooltipSignatureHelp(new TooltipSignatureHelp(this))
+{
     // clear invalid script url
     QJsonArray validScriptList;
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -83,6 +86,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         m_focusedPage = scriptPage;
         scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
     } else {
+        m_focusedPage->addDockWidgetAsTab(m_scriptPageHash[scriptUrl]);
         m_scriptPageHash[scriptUrl]->show();
     }
     // logging
@@ -96,16 +100,14 @@ void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine,
 }
 
 void ScriptModule::cursorPositionGet() const {
-    // if (const auto scriptPage = static_cast<ScriptPage *>(m_scriptTabWidget->currentWidget())) {
-    //     const QUrl scriptUrl = scriptPage->m_scriptUrl;
-    //     int line, index;
-    //     scriptPage->m_scriptEditor->getCursorPosition(&line, &index);
-    //     g_cursorPosition = {
-    //         {"url", scriptUrl},
-    //         {"line", line + 1},
-    //         {"character", index}
-    //     };
-    // }
+    const QUrl scriptUrl = m_focusedPage->m_scriptUrl;
+    int line, index;
+    m_focusedPage->m_scriptEditor->getCursorPosition(&line, &index);
+    g_cursorPosition = {
+        {"url", scriptUrl},
+        {"line", line + 1},
+        {"character", index}
+    };
 }
 
 void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
@@ -137,7 +139,16 @@ void ScriptModule::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &di
 }
 
 void ScriptModule::completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const {
-    m_scriptPageHash[scriptUrl]->completionReturn(items);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_completionPopup->showTooltip(items);
+    m_completionPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptModule::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {
@@ -190,117 +201,7 @@ void ScriptModule::scriptClose(ScriptPage *scriptPage) {
     }
 }
 
-// // TooltipCompletion public
-// TooltipCompletion::TooltipCompletion(QWidget *parent) : QWidget(parent), m_tableWidget(new QTableWidget(this)) {
-//     setWindowFlags(Qt::ToolTip);
-//     auto *layout = new QVBoxLayout(this); //NOLINT
-//     layout->setContentsMargins(0, 0, 0, 0);
-//     layout->addWidget(m_tableWidget);
-//     m_tableWidget->setFixedWidth(600);
-//     m_tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-//     m_tableWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-//     m_tableWidget->setFont(QFont("Consolas", 12));
-//     m_tableWidget->setShowGrid(false);
-//     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-//     m_tableWidget->setColumnCount(3);
-//     m_tableWidget->horizontalHeader()->setVisible(false);
-//     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-//     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-//     m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-//     m_tableWidget->verticalHeader()->setVisible(false);
-//     m_kindList = {
-//         "0", "Text", "Method", "Function", "Constructor", "Field", "Variable", "Class", "Interface", "Module", "Property", "Unit", "Value", "Enum", "Keyword", "Snippet", "Color",
-//         "File", "Reference", "Folder", "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParameter"
-//     };
-// }
-//
-// void TooltipCompletion::showTooltip(const QJsonArray &items) {
-//     m_tableWidget->setRowCount(0);
-//     int row = 0;
-//     for (const QJsonValue &value: items) {
-//         QJsonObject item = value.toObject();
-//         const QString kind = m_kindList[item["kind"].toInt()];
-//         const QString label = item["label"].toString();
-//         const QString insertText = item["insertText"].toString(label);
-//         m_tableWidget->insertRow(row);
-//         auto *insertTextItem = new QTableWidgetItem(insertText); // NOLINT
-//         auto *kindItem = new QTableWidgetItem(kind); // NOLINT
-//         auto *labelItem = new QTableWidgetItem(label); // NOLINT
-//         m_tableWidget->setItem(row, 0, insertTextItem);
-//         m_tableWidget->setItem(row, 1, kindItem);
-//         m_tableWidget->setItem(row, 2, labelItem);
-//         row++;
-//     }
-//     if (m_tableWidget->rowCount() > 0) {
-//         m_currentRow = 0;
-//         m_tableWidget->selectRow(m_currentRow);
-//         m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
-//         m_kind = m_tableWidget->item(m_currentRow, 1)->text();
-//     } else {
-//         m_currentRow = -1;
-//         m_kind.clear();
-//         m_insertText.clear();
-//     }
-//     m_tableWidget->resizeRowsToContents();
-//     this->adjustSize();
-//     this->show();
-// }
-//
-// void TooltipCompletion::hideTooltip() {
-//     this->hide();
-// }
-//
-// // TooltipCompletion protected
-// bool TooltipCompletion::eventFilter(QObject *obj, QEvent *event) {
-//     if (event->type() == QEvent::KeyPress && this->isVisible()) {
-//         auto *keyEvent = static_cast<QKeyEvent *>(event);
-//         switch (keyEvent->key()) {
-//             case Qt::Key_Tab:
-//                 if (!m_insertText.isEmpty()) emit replaceText(m_insertText, m_kind);
-//                 return true;
-//             case Qt::Key_Return:
-//                 if (!m_insertText.isEmpty()) emit insertText(m_insertText, m_kind);
-//                 return true;
-//             case Qt::Key_Escape:
-//                 hideTooltip();
-//                 return true;
-//             case Qt::Key_Up:
-//                 moveUp();
-//                 return true;
-//             case Qt::Key_Down:
-//                 moveDown();
-//                 return true;
-//             case Qt::Key_Left:
-//                 return true;
-//             case Qt::Key_Right:
-//                 return true;
-//             default:
-//                 return false;
-//         }
-//     }
-//     return QWidget::eventFilter(obj, event);
-// }
-//
-// // TooltipCompletion private
-// void TooltipCompletion::moveUp() {
-//     if (m_currentRow == -1) return;
-//     if (m_currentRow > 0) {
-//         m_currentRow--;
-//         m_tableWidget->selectRow(m_currentRow);
-//         m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
-//         m_kind = m_tableWidget->item(m_currentRow, 1)->text();
-//     }
-// }
-//
-// void TooltipCompletion::moveDown() {
-//     if (m_currentRow == -1) return;
-//     if (m_currentRow < m_tableWidget->rowCount() - 1) {
-//         m_currentRow++;
-//         m_tableWidget->selectRow(m_currentRow);
-//         m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
-//         m_kind = m_tableWidget->item(m_currentRow, 1)->text();
-//     }
-// }
+
 //
 // // TooltipHover public
 // TooltipHover::TooltipHover(QWidget *parent)

@@ -11,9 +11,9 @@
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QThread>
-#include "kddockwidgets/qtwidgets/views/MainWindow.h"
+#include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
-#include "kddockwidgets/LayoutSaver.h"
+#include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
 #include "configModule.h"
 #include "globals.h"
@@ -428,6 +428,7 @@ void MainWindow::menuInit() {
                 const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
                 const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
                 emit runThread(scriptUrl, script);
+                m_logModule->raise();
             }
         });
         auto *debugButton = new QPushButton(); // NOLINT
@@ -442,6 +443,7 @@ void MainWindow::menuInit() {
                 const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
                 const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
                 emit debugThread(scriptUrl, script);
+                m_debugModule->raise();
             }
         });
         connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
