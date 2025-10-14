@@ -19,7 +19,6 @@
 #include "globals.h"
 #include "logModule.h"
 #include "undoModule.h"
-#include "utils.h"
 #include "dataModule/databaseModule.h"
 #include "dataModule/dataplotModule.h"
 #include "dataModule/datatableModule.h"
@@ -33,6 +32,7 @@
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/structureModule.h"
 #include "scriptModule/threadpoolModule.h"
+#include "utils/qtUtils.h"
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -420,6 +420,7 @@ void MainWindow::menuInit() {
         ctrlLayout->addWidget(runButton);
         runButton->setFixedSize(24, 24);
         runButton->setIcon(QIcon(":/icon/play.svg"));
+        runButton->setStyleSheet("QPushButton { background: transparent; border: none}");
         connect(runButton, &QPushButton::clicked, this, [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
@@ -435,6 +436,7 @@ void MainWindow::menuInit() {
         ctrlLayout->addWidget(debugButton);
         debugButton->setFixedSize(24, 24);
         debugButton->setIcon(QIcon(":/icon/bug.svg"));
+        debugButton->setStyleSheet("QPushButton { background: transparent; border: none; }");
         connect(debugButton, &QPushButton::clicked, this, [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));

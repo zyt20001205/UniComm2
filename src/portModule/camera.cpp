@@ -7,7 +7,7 @@
 #include <QMediaDevices>
 
 #include "globals.h"
-#include "utils.h"
+#include "utils/cvUtils.h"
 
 // Camera public
 Camera::Camera(const QJsonObject &portConfig, QObject *parent)

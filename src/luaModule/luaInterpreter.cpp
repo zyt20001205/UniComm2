@@ -5,7 +5,6 @@
 
 #include "globals.h"
 #include "logModule.h"
-#include "utils.h"
 #include "luaModule/luaControl.h"
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaMiscellaneous.h"
@@ -13,6 +12,7 @@
 #include "luaModule/luaPort.h"
 #include "scriptModule/debugModule.h"
 #include "scriptModule/scriptModule.h"
+#include "utils/luaUtils.h"
 
 // LuaInterpreter public
 LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)

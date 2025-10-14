@@ -21,7 +21,7 @@
 #include <QStandardItem>
 
 #include "globals.h"
-#include "utils.h"
+#include "utils/cvUtils.h"
 
 // AreaSelection public
 AreaSelection::AreaSelection(QWidget *parent)

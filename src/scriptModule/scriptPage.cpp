@@ -1,10 +1,11 @@
 #include "scriptModule/scriptPage.h"
 
+#include <QFile>
 #include <QJsonArray>
 #include <QShortcut>
 
 #include "globals.h"
-#include "utils.h"
+#include "utils/qtUtils.h"
 
 // ScriptPage public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)

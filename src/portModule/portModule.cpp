@@ -10,7 +10,6 @@
 #include <QVBoxLayout>
 
 #include "globals.h"
-#include "utils.h"
 #include "portModule/basePort.h"
 #include "portModule/camera.h"
 #include "portModule/portSetting.h"

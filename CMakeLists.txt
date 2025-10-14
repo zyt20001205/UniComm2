@@ -79,7 +79,9 @@ qt_add_executable(UniComm src/main.cpp
         include/scriptModule/welcomePage.h
         include/suffix.h
         include/undoModule.h
-        include/utils.h
+        include/utils/cvUtils.h
+        include/utils/luaUtils.h
+        include/utils/qtUtils.h
         src/mainWindow.cpp
         src/configModule.cpp
         src/dataModule/databaseModule.cpp
@@ -118,7 +120,9 @@ qt_add_executable(UniComm src/main.cpp
         src/scriptModule/welcomePage.cpp
         src/suffix.cpp
         src/undoModule.cpp
-        src/utils.cpp
+        src/utils/cvUtils.cpp
+        src/utils/luaUtils.cpp
+        src/utils/qtUtils.cpp
 )
 
 qt_add_resources(UniComm "readme_resources"

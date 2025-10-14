@@ -10,7 +10,6 @@
 #include "configModule.h"
 #include "globals.h"
 #include "luaModule/luaControl.h"
-#include "utils.h"
 #include "portModule/portModule.h"
 #include "scriptModule/completionTooltip.h"
 #include "scriptModule/scriptPage.h"

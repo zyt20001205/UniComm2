@@ -3,7 +3,7 @@
 #include <QScreen>
 
 #include "globals.h"
-#include "utils.h"
+#include "utils/cvUtils.h"
 
 // Screen public
 Screen::Screen(const QJsonObject &portConfig, QObject *parent)
