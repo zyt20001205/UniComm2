@@ -12,18 +12,20 @@
 #include "luaModule/luaControl.h"
 #include "utils.h"
 #include "portModule/portModule.h"
-#include "scriptModule/completionPopup.h"
+#include "scriptModule/completionTooltip.h"
 #include "scriptModule/scriptPage.h"
+#include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"
 
 // ScriptModule public
 ScriptModule::ScriptModule()
     : m_scriptConfig(g_config["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
-      m_completionPopup(new CompletionPopup())
+      m_completionTooltip(new CompletionTooltip(g_mainWindow)),
+      m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow))
 //       m_tooltipHover(new TooltipHover(this)),
 //       m_tooltipPosition(new TooltipPosition(this)),
-//       m_tooltipSignatureHelp(new TooltipSignatureHelp(this))
+//
 {
     // clear invalid script url
     QJsonArray validScriptList;
@@ -35,6 +37,9 @@ ScriptModule::ScriptModule()
     m_scriptConfig["scriptList"] = validScriptList;
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
+
+    connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
+    connect(m_completionTooltip, &CompletionTooltip::insertText, this, &ScriptModule::textInsert);
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
@@ -77,6 +82,8 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
+        scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
+        scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
             m_welcomePage->addDockWidgetAsTab(scriptPage);
             m_welcomePage->close();
@@ -147,8 +154,8 @@ void ScriptModule::completionReturn(const QUrl &scriptUrl, const QJsonArray &ite
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_completionPopup->showTooltip(items);
-    m_completionPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    m_completionTooltip->showTooltip(items);
+    m_completionTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptModule::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {
@@ -168,7 +175,20 @@ void ScriptModule::semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray 
 }
 
 void ScriptModule::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const {
-    m_scriptPageHash[scriptUrl]->signatureHelpReturn(signature);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
+    long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    while (true) {
+        const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
+        if (prevChar == '(') break;
+        currentPos--;
+    }
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, currentPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_signatureHelpTooltip->showTooltip(signature);
+    m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
 // ScriptModule private
@@ -201,6 +221,13 @@ void ScriptModule::scriptClose(ScriptPage *scriptPage) {
     }
 }
 
+void ScriptModule::textReplace(QString &text, const QString &kind) const {
+    m_focusedPage->textReplace(text, kind);
+}
+
+void ScriptModule::textInsert(QString &text, const QString &kind) const {
+    m_focusedPage->textInsert(text, kind);
+}
 
 //
 // // TooltipHover public
@@ -285,56 +312,3 @@ void ScriptModule::scriptClose(ScriptPage *scriptPage) {
 //     return QWidget::eventFilter(obj, event);
 // }
 //
-// // TooltipSignatureHelp public
-// TooltipSignatureHelp::TooltipSignatureHelp(QWidget *parent) : QWidget(parent),
-//                                                               m_label(new QLabel(this)) {
-//     setWindowFlags(Qt::ToolTip);
-//     auto *layout = new QVBoxLayout(this); //NOLINT
-//     layout->setContentsMargins(0, 0, 0, 0);
-//     layout->addWidget(m_label);
-//     m_label->setFont(QFont("consolas", 12));
-//     m_label->setStyleSheet("QLabel{background-color: white; border: 1px solid #d0d0d0;}");
-// }
-//
-// void TooltipSignatureHelp::showTooltip(const QJsonObject &signature) {
-//     QString helpText;
-//     int index = 0;
-//     const int activeParameter = signature["activeParameter"].toInt();
-//     const QString label = signature["label"].toString();
-//     const QJsonArray parameters = signature["parameters"].toArray();
-//     for (const QJsonValue &value: parameters) {
-//         const QJsonObject parameter = value.toObject();
-//         const QJsonArray range = parameter["label"].toArray();
-//         const int startIndex = range[0].toInt();
-//         const int endIndex = range[1].toInt();
-//         QString param = label.mid(startIndex, endIndex - startIndex);
-//         if (index == activeParameter) {
-//             param = QString("<span style='color: orange;'>%1</span>").arg(param);
-//         }
-//         helpText += param;
-//         helpText += ", ";
-//         index++;
-//     }
-//     helpText.chop(2);
-//     m_label->setText(helpText);
-//     this->show();
-// }
-//
-// void TooltipSignatureHelp::hideTooltip() {
-//     this->hide();
-// }
-//
-// // TooltipSignatureHelp protected
-// bool TooltipSignatureHelp::eventFilter(QObject *obj, QEvent *event) {
-//     if (event->type() == QEvent::KeyPress && this->isVisible()) {
-//         auto *keyEvent = static_cast<QKeyEvent *>(event);
-//         switch (keyEvent->key()) {
-//             case Qt::Key_Escape:
-//                 hideTooltip();
-//                 return true;
-//             default:
-//                 return false;
-//         }
-//     }
-//     return QWidget::eventFilter(obj, event);
-// }

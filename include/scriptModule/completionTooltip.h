@@ -5,13 +5,13 @@
 
 class QTableWidget;
 
-class CompletionPopup final : public QWidget {
+class CompletionTooltip final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CompletionPopup(QWidget *parent = nullptr);
+    explicit CompletionTooltip(QWidget *parent = nullptr);
 
-    ~CompletionPopup() override = default;
+    ~CompletionTooltip() override = default;
 
     void showTooltip(const QJsonArray &items);
 

@@ -1,4 +1,4 @@
-#include "scriptModule/completionPopup.h"
+#include "scriptModule/completionTooltip.h"
 
 #include <QHeaderView>
 #include <QJsonArray>
@@ -7,8 +7,8 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-// CompletionPopup public
-CompletionPopup::CompletionPopup(QWidget *parent)
+// CompletionTooltip public
+CompletionTooltip::CompletionTooltip(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
       m_tableWidget(new QTableWidget(this)) {
     auto *layout = new QVBoxLayout(this); //NOLINT
@@ -21,6 +21,7 @@ CompletionPopup::CompletionPopup(QWidget *parent)
     m_tableWidget->setShowGrid(false);
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_tableWidget->setColumnCount(3);
+    m_tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_tableWidget->horizontalHeader()->setVisible(false);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
@@ -32,10 +33,10 @@ CompletionPopup::CompletionPopup(QWidget *parent)
     };
 }
 
-void CompletionPopup::showTooltip(const QJsonArray &items) {
+void CompletionTooltip::showTooltip(const QJsonArray &items) {
     m_tableWidget->setRowCount(0);
     int row = 0;
-    for (const QJsonValue &value: items) {
+    for (const auto &value: items) {
         QJsonObject item = value.toObject();
         const QString kind = m_kindList[item["kind"].toInt()];
         const QString label = item["label"].toString();
@@ -64,22 +65,24 @@ void CompletionPopup::showTooltip(const QJsonArray &items) {
     this->show();
 }
 
-void CompletionPopup::hideTooltip() {
+void CompletionTooltip::hideTooltip() {
     this->hide();
 }
 
-// CompletionPopup protected
-bool CompletionPopup::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::KeyPress && this->isVisible()) {
-        auto *keyEvent = static_cast<QKeyEvent *>(event);
+// CompletionTooltip protected
+bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
+    if (!this->isVisible()) {
+        return QWidget::eventFilter(obj, event);
+    }
+    if (event->type() == QEvent::KeyPress) {
+        const auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
             case Qt::Key_Tab:
                 if (!m_insertText.isEmpty()) emit replaceText(m_insertText, m_kind);
+                hideTooltip();
                 return true;
             case Qt::Key_Return:
                 if (!m_insertText.isEmpty()) emit insertText(m_insertText, m_kind);
-                return true;
-            case Qt::Key_Escape:
                 hideTooltip();
                 return true;
             case Qt::Key_Up:
@@ -88,10 +91,12 @@ bool CompletionPopup::eventFilter(QObject *obj, QEvent *event) {
             case Qt::Key_Down:
                 moveDown();
                 return true;
+            case Qt::Key_Escape:
+            case Qt::Key_Backspace:
             case Qt::Key_Left:
-                return true;
             case Qt::Key_Right:
-                return true;
+                hideTooltip();
+                return false;
             default:
                 return false;
         }
@@ -99,8 +104,8 @@ bool CompletionPopup::eventFilter(QObject *obj, QEvent *event) {
     return QWidget::eventFilter(obj, event);
 }
 
-// CompletionPopup private
-void CompletionPopup::moveUp() {
+// CompletionTooltip private
+void CompletionTooltip::moveUp() {
     if (m_currentRow == -1) return;
     if (m_currentRow > 0) {
         m_currentRow--;
@@ -110,7 +115,7 @@ void CompletionPopup::moveUp() {
     }
 }
 
-void CompletionPopup::moveDown() {
+void CompletionTooltip::moveDown() {
     if (m_currentRow == -1) return;
     if (m_currentRow < m_tableWidget->rowCount() - 1) {
         m_currentRow++;

@@ -32,8 +32,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_editTimer, &QTimer::timeout, [this] {
         scriptEditFinish();
     });
-    // m_scriptEditor->installEventFilter(m_tooltipCompletion);
-    // m_scriptEditor->installEventFilter(m_tooltipSignatureHelp);
+    // m_scriptEditor->installEventFilter(m_SignatureHelpTooltip);
     // connect signals
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
@@ -199,20 +198,58 @@ void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
     }
 }
 
-void ScriptPage::signatureHelpReturn(const QJsonObject &signature) const {
-    // m_tooltipSignatureHelp->showTooltip(signature);
-    // const auto *editor = static_cast<QsciScintilla *>(m_scriptEditor);
-    // long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // while (true) {
-    //     const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
-    //     if (prevChar == '(') break;
-    //     currentPos--;
-    // }
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, currentPos);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
-    // const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
-    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    // m_tooltipSignatureHelp->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
+void ScriptPage::textReplace(QString &text, const QString &kind) {
+    if (kind == "Function") {
+        text += "()";
+    } else if (kind == "Field") {
+        text += ".";
+    }
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETTARGETRANGE, startPos, currentPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_REPLACETARGET, text.length(), text.toUtf8().constData()); // NOLINT
+    long cursorPos;
+    if (kind == "Function") {
+        cursorPos = startPos + text.length() - 1;
+    } else {
+        cursorPos = startPos + text.length();
+    }
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
+    if (kind == "Function") {
+        didChangeNotification();
+        signatureHelpRequest();
+    } else if (kind == "Field") {
+        didChangeNotification();
+        completionRequest();
+    }
+}
+
+void ScriptPage::textInsert(QString &text, const QString &kind) {
+    if (kind == "Function") {
+        text += "()";
+    } else if (kind == "Field") {
+        text += ".";
+    }
+    m_scriptEditor->insert(text);
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    long cursorPos;
+    if (kind == "Function") {
+        cursorPos = currentPos + text.length() - 1;
+    } else {
+        cursorPos = currentPos + text.length();
+    }
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
+    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
+    if (kind == "Function") {
+        didChangeNotification();
+        signatureHelpRequest();
+    } else if (kind == "Field") {
+        didChangeNotification();
+        completionRequest();
+    }
 }
 
 // ScriptPage private slots
@@ -223,7 +260,11 @@ void ScriptPage::scriptEdit() const {
 
 void ScriptPage::charAdded(const int ch) {
     if (const QChar character(ch); character.isLetter()) {
-        // completionRequest();
+        didChangeNotification();
+        completionRequest();
+    } else if (character == "(" || character == ",") {
+        didChangeNotification();
+        signatureHelpRequest();
     }
 }
 
@@ -251,7 +292,6 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
         }
     }
 }
-
 
 // ScriptPage private
 void ScriptPage::didOpenNotification() {
@@ -426,46 +466,6 @@ void ScriptPage::hoverRequest(const int line, const int character) {
         }
     };
     emit requestJson("textDocument/hover", hoverParams);
-}
-
-void ScriptPage::textReplace(QString &text, const QString &kind) const {
-    if (kind == "Function") {
-        text += "()";
-    } else if (kind == "Field") {
-        text += ".";
-    }
-    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETTARGETRANGE, startPos, currentPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_REPLACETARGET, text.length(), text.toUtf8().constData()); // NOLINT
-    long cursorPos;
-    if (kind == "Function") {
-        cursorPos = startPos + text.length() - 1;
-    } else {
-        cursorPos = startPos + text.length();
-    }
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
-}
-
-void ScriptPage::textInsert(QString &text, const QString &kind) const {
-    if (kind == "Function") {
-        text += "()";
-    } else if (kind == "Field") {
-        text += ".";
-    }
-    m_scriptEditor->insert(text);
-    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    long cursorPos;
-    if (kind == "Function") {
-        cursorPos = currentPos + text.length() - 1;
-    } else {
-        cursorPos = currentPos + text.length();
-    }
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }
 
 void ScriptPage::positionFill(const int x, const int y) const {

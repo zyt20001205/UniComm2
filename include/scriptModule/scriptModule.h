@@ -13,7 +13,8 @@ class QTextBrowser;
 
 class ScriptPage;
 class ScriptEditor;
-class CompletionPopup;
+class CompletionTooltip;
+class SignatureHelpTooltip;
 
 class ScriptModule final : public QObject {
     Q_OBJECT
@@ -80,16 +81,18 @@ private:
 
     static void scriptClose(ScriptPage *scriptPage);
 
+    void textReplace(QString &text, const QString &kind) const;
+
+    void textInsert(QString &text, const QString &kind) const;
+
     QJsonObject m_scriptConfig{};
     QUrl m_rootUrl{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
-    CompletionPopup *m_completionPopup{};
+    CompletionTooltip *m_completionTooltip{};
+    SignatureHelpTooltip *m_signatureHelpTooltip{};
 };
-
-
-
 
 //
 // class TooltipHover final : public QWidget {
@@ -138,23 +141,6 @@ private:
 //     QLabel *m_label = nullptr;
 // };
 //
-// class TooltipSignatureHelp final : public QWidget {
-//     Q_OBJECT
-//
-// public:
-//     explicit TooltipSignatureHelp(QWidget *parent = nullptr);
-//
-//     ~TooltipSignatureHelp() override = default;
-//
-//     void showTooltip(const QJsonObject &signature);
-//
-//     void hideTooltip();
-//
-// protected:
-//     bool eventFilter(QObject *obj, QEvent *event) override;
-//
-// private:
-//     QLabel *m_label = nullptr;
-// };
+
 
 #endif //UNICOMM_SCRIPT_H

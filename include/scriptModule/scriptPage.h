@@ -27,7 +27,9 @@ public:
 
     void semanticTokensReturn(const QJsonArray &data) const;
 
-    void signatureHelpReturn(const QJsonObject &signature) const;
+    void textReplace(QString &text, const QString &kind) ;
+
+    void textInsert(QString &text, const QString &kind) ;
 
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
@@ -75,10 +77,6 @@ private:
     void dwellSwitch(bool status) const;
 
     void hoverRequest(int line, int character);
-
-    void textReplace(QString &text, const QString &kind) const;
-
-    void textInsert(QString &text, const QString &kind) const;
 
     void positionFill(int x, int y) const;
 

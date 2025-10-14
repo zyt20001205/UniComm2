@@ -1,4 +1,7 @@
 {
+  "completion": {
+    "keywordSnippet": "Disable"
+  },
   "semantic": {
     "keyword": true
   }
