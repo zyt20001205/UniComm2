@@ -2,6 +2,9 @@
 
 #include <QCryptographicHash>
 #include <QFile>
+#include <QIcon>
+#include <QPainter>
+#include <QSvgRenderer>
 #include <QUrl>
 
 QByteArray fileHashCalc(const QString &fileInfo) {
@@ -24,4 +27,18 @@ QByteArray stringHashCalc(const QString &content) {
     QCryptographicHash hash(QCryptographicHash::Sha256);
     hash.addData(content.toUtf8());
     return hash.result();
+}
+
+QIcon SvgIcon(const QString &svgPath, const QColor &color, const QSize &size) {
+    QSvgRenderer renderer(svgPath);
+    QPixmap pixmap(size);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    renderer.render(&painter);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.fillRect(pixmap.rect(), color);
+    painter.end();
+
+    return QIcon(pixmap);
 }

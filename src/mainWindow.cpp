@@ -424,8 +424,7 @@ void MainWindow::menuInit() {
         connect(runButton, &QPushButton::clicked, this, [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
-            }
-            else {
+            } else {
                 const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
                 const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
                 emit runThread(scriptUrl, script);
@@ -440,8 +439,7 @@ void MainWindow::menuInit() {
         connect(debugButton, &QPushButton::clicked, this, [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
-            }
-            else {
+            } else {
                 const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
                 const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
                 emit debugThread(scriptUrl, script);
