@@ -52,6 +52,7 @@ bool TcpServer::open() {
     // m_tcpServer->setMaxPendingConnections();
     // open port
     if (m_tcpServer->listen(QHostAddress(m_tcpServerLocalAddress), m_tcpServerLocalPort)) {
+        emit togglePort(true);
         emit appendLog(QString("%1 %2:%3").arg("tcp server started on", m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort)), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -78,6 +79,7 @@ void TcpServer::close() {
         }
     }
     m_tcpServerPeerList.clear();
+    emit togglePort(false);
     emit appendLog("tcp server closed", "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
