@@ -100,7 +100,7 @@ flowchart LR
 
 ## Port Control APIS
 
-|    API     | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
+|    APIS    | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
 |:----------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
 | port.open  |             |            |            |            |        |        |
 | port.close |             |            |            |            |        |        |
@@ -108,7 +108,7 @@ flowchart LR
 
 ## Port IO APIS
 
-|      API       | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
+|      APIS      | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
 |:--------------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
 | port.readData  |             |            |            |            |        |        |
 | port.writeData |             |            |            |            |        |        |
