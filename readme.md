@@ -39,7 +39,7 @@
 
 ```mermaid
 flowchart LR
-    port[Port]
+    port["`[Port](#support-port-types)`"]
 
     subgraph Lua Basic API
         portControl[Port Control]
@@ -64,8 +64,6 @@ flowchart LR
     
     port --> portControl & portIO 
     portIO --> modbus
-
-    click port "#support-port-types" "View Support Port Types"
 ```
 
 ## Support Port Types
