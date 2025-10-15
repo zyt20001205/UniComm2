@@ -37,6 +37,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
+    connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     // connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPage::positionFill);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -315,6 +316,24 @@ void ScriptPage::completionRequest() {
     emit requestJson("textDocument/completion", completionParams);
 }
 
+void ScriptPage::definitionRequest(const int line, const int character) {
+    // definition request to lua language server
+    const QJsonObject definitionParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/definition", definitionParams);
+}
+
 void ScriptPage::documentSymbolRequest() {
     // document symbol request to lua language server
     const QJsonObject documentSymbolParams{
@@ -441,7 +460,7 @@ void ScriptPage::positionFill(const int x, const int y) const {
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent)
     : QsciScintilla(parent) {
-    // define markers
+    // set markers
     markerDefine(Circle, MARKER_BREAKPOINT);
     setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
     setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
@@ -455,7 +474,8 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
     markerDefine(Background, MARKER_HINT);
     setMarkerBackgroundColor(Qt::cyan, MARKER_HINT);
-    // define indicators
+
+    // set indicators
     indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
     setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);
     setIndicatorDrawUnder(true, INDICATOR_ERROR);
@@ -475,6 +495,11 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     indicatorDefine(BoxIndicator, INDICATOR_HIGHLIGHT);
     setIndicatorForegroundColor(Qt::red, INDICATOR_HIGHLIGHT);
     setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+
+    indicatorDefine(PlainIndicator, INDICATOR_HYPERLINK);
+    setIndicatorForegroundColor(QColor(0, 0, 255), INDICATOR_HYPERLINK);
+    setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+
     // set margins
     setMarginType(0, NumberMargin);
     QsciScintilla::setMarginWidth(0, "000");
@@ -511,7 +536,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     QsciScintilla::setIndentationGuides(true);
     QsciScintilla::setTabWidth(4);
     // connect auto pair
-    connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(autoPairHandle(int)));
+    connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(pairHandle(int)));
     m_autoPairHash['('] = ')';
     m_autoPairHash['['] = ']';
     m_autoPairHash['{'] = '}';
@@ -521,24 +546,68 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
 // ScriptEditor protected
 void ScriptEditor::keyPressEvent(QKeyEvent *event) {
-    if (event->modifiers() == Qt::ControlModifier) {
-        switch (event->key()) {
-            case Qt::Key_Slash:
+    switch (event->key()) {
+        case Qt::Key_Slash: {
+            if (event->modifiers() == Qt::ControlModifier) {
                 commentHandle();
                 event->accept();
                 return;
-            case Qt::Key_D:
+            }
+        }
+        break;
+        case Qt::Key_D: {
+            if (event->modifiers() == Qt::ControlModifier) {
                 duplicateHandle();
                 event->accept();
                 return;
-            default: break;
+            }
         }
+        break;
+        case Qt::Key_Control: {
+            m_ctrlPressed = true;
+        }
+        break;
+        default:
+            break;
     }
     QsciScintilla::keyPressEvent(event);
 }
 
+void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_Control) {
+        m_ctrlPressed = false;
+        definitionHandle();
+        event->accept();
+    }
+    QsciScintilla::keyReleaseEvent(event);
+}
+
+void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
+    if (m_ctrlPressed) {
+        definitionHandle();
+        event->accept();
+        return;
+    }
+    QsciScintilla::mouseMoveEvent(event);
+}
+
+void ScriptEditor::mousePressEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton && m_jumpValid) {
+        const QPoint mousePos = event->pos();
+        const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, mousePos.x(), mousePos.y());
+        if (charPos != -1) {
+            const int line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
+            const int character = charPos - SendScintilla(SCI_POSITIONFROMLINE, line);
+            emit requestDefinition(line, character);
+        }
+        event->accept();
+        return;
+    }
+    QsciScintilla::mousePressEvent(event);
+}
+
 // ScriptEditor private
-void ScriptEditor::autoPairHandle(const int ascii) {
+void ScriptEditor::pairHandle(const int ascii) {
     const auto input = QChar(ascii);
     if (!m_autoPairHash.contains(input)) return;
     insert(m_autoPairHash[input]);
@@ -572,4 +641,37 @@ void ScriptEditor::duplicateHandle() {
     insertAt(lineText, currentLine + 1, 0);
     setCursorPosition(currentLine + 1, currentCharacter);
     endUndoAction();
+}
+
+void ScriptEditor::definitionHandle() {
+    const int lastLine = lines() - 1;
+    const int lastIndex = lineLength(lastLine);
+    clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HYPERLINK);
+    if (m_ctrlPressed) {
+        const QPoint mousePos = mapFromGlobal(QCursor::pos());
+        const int x = mousePos.x();
+        const int y = mousePos.y();
+        if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, x, y); charPos != -1) {
+            const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
+            const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
+            if (wordStart < wordEnd) {
+                m_jumpValid = true;
+                viewport()->setCursor(Qt::PointingHandCursor);
+                const int startLine = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
+                const int startIndex = wordStart - SendScintilla(SCI_POSITIONFROMLINE, startLine);
+                const int endLine = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
+                const int endIndex = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, endLine);
+                fillIndicatorRange(startLine, startIndex, endLine, endIndex, INDICATOR_HYPERLINK);
+            } else {
+                m_jumpValid = false;
+                viewport()->setCursor(Qt::IBeamCursor);
+            }
+        } else {
+            m_jumpValid = false;
+            viewport()->setCursor(Qt::IBeamCursor);
+        }
+    } else {
+        m_jumpValid = false;
+        viewport()->setCursor(Qt::IBeamCursor);
+    }
 }

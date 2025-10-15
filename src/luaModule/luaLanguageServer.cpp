@@ -135,6 +135,11 @@ void LuaLanguageServer::jsonReturn() {
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray items = result["items"].toArray();
                 emit returnCompletion(scriptUrl, items);
+            } else if (method == "textDocument/definition") {
+                // definition request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                emit returnDefinition(scriptUrl, result);
             } else if (method == "textDocument/documentSymbol") {
                 // document symbol request
                 if (!json["result"].isArray()) return; // null result

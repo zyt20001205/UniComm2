@@ -25,7 +25,7 @@ public:
 
     void semanticTokensReturn(const QJsonArray &data) const;
 
-    void textReplace(QString &text, const QString &kind) ;
+    void textReplace(QString &text, const QString &kind);
 
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
@@ -60,6 +60,8 @@ private:
 
     void completionRequest();
 
+    void definitionRequest(int line, int character);
+
     void documentSymbolRequest();
 
     void foldingRangeRequest();
@@ -74,7 +76,7 @@ private:
 
     void positionFill(int x, int y) const;
 
-    QTimer* m_editTimer{};
+    QTimer *m_editTimer{};
     QByteArray m_scriptHash{};
     int m_version = 1;
 
@@ -128,18 +130,31 @@ public:
 
     ~ScriptEditor() override = default;
 
+signals:
+    void requestDefinition(int line, int character);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
+    void keyReleaseEvent(QKeyEvent *event) override;
+
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    void mousePressEvent(QMouseEvent *event) override;
+
 private slots:
-    void autoPairHandle(int ascii);
+    void pairHandle(int ascii);
 
 private:
     void commentHandle();
 
     void duplicateHandle();
 
+    void definitionHandle();
+
     QHash<QChar, QChar> m_autoPairHash{};
+    bool m_ctrlPressed = false;
+    bool m_jumpValid = false;
 };
 
 #endif //UNICOMM_SCRIPTPAGE_H

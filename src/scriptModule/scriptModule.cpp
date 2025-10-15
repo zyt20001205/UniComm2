@@ -93,7 +93,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptFocus(scriptPage, true);
         scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
     } else {
-        m_focusedPage->addDockWidgetAsTab(m_scriptPageHash[scriptUrl]);
         m_scriptPageHash[scriptUrl]->show();
     }
     // logging
@@ -104,6 +103,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->setCursorPosition(startLine, startCharacter);
+    scriptPage->m_scriptEditor->setFocus();
 }
 
 void ScriptModule::cursorPositionGet() const {
@@ -156,6 +156,33 @@ void ScriptModule::completionReturn(const QUrl &scriptUrl, const QJsonArray &ite
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_completionTooltip->showTooltip(items);
     m_completionTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+}
+
+void ScriptModule::definitionReturn(const QUrl &scriptUrl, const QJsonArray &definitions) {
+    if (definitions.size() != 1) {
+        qDebug() << "multiple definitions WIP";
+        return;
+    }
+    for (const auto &value: definitions) {
+        const QJsonObject definition = value.toObject();
+        // open definition script
+        QString uri = definition["uri"].toString();
+        uri = QUrl::fromPercentEncoding(uri.toUtf8());
+        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) { drive = drive.toUpper(); }
+        const QUrl definitionUrl(uri);
+        scriptOpen(definitionUrl);
+        // show indicator
+        const QJsonObject rangeObject = definition["range"].toObject();
+        const QJsonObject startObject = rangeObject["start"].toObject();
+        const QJsonObject endObject = rangeObject["end"].toObject();
+        const int startLine = startObject["line"].toInt();
+        const int startCharacter = startObject["character"].toInt();
+        const int endLine = endObject["line"].toInt();
+        const int endCharacter = endObject["character"].toInt();
+        indicatorShow(definitionUrl, startLine, startCharacter, endLine, endCharacter, 1000);
+        // set cursor
+        cursorPositionSet(definitionUrl, startLine, startCharacter);
+    }
 }
 
 void ScriptModule::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {

@@ -242,6 +242,7 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnCompletion, m_scriptModule, &ScriptModule::completionReturn);
+    connect(m_llsModule, &LuaLanguageServer::returnDefinition, m_scriptModule, &ScriptModule::definitionReturn);
     connect(m_llsModule, &LuaLanguageServer::returnDocumentSymbol, m_structureModule, &StructureModule::documentSymbolReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFoldingRange, m_scriptModule, &ScriptModule::foldingRangeReturn);
     connect(m_llsModule, &LuaLanguageServer::returnFormatting, m_scriptModule, &ScriptModule::formattingReturn);

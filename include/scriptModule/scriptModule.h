@@ -49,6 +49,8 @@ public:
 
     void completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const;
 
+    void definitionReturn(const QUrl &scriptUrl, const QJsonArray &definitions);
+
     void foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const;
 
     void formattingReturn(const QUrl &scriptUrl, const QString &newText) const;
