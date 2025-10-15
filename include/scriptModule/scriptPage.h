@@ -78,7 +78,7 @@ private:
     QByteArray m_scriptHash{};
     int m_version = 1;
 
-    // semantic related
+    // semantic enum
     enum {
         TOKENTYPE_NAMESPACE,
         TOKENTYPE_TYPE,

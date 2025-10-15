@@ -226,7 +226,8 @@ void ScriptPage::scriptEdit() const {
 }
 
 void ScriptPage::charAdded(const int ch) {
-    if (const QChar character(ch); character.isLetter()) {
+    const QChar character(ch);
+    if (character.isLetter() || character == "." || character == ":") {
         didChangeNotification();
         completionRequest();
     } else if (character == "(" || character == ",") {
