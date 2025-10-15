@@ -226,8 +226,8 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);
         // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
+        // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        // qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
     }
 }
 
