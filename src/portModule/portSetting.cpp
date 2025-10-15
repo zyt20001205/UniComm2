@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMediaDevices>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScreen>
 #include <QSerialPortInfo>
@@ -17,8 +18,9 @@
 #include "portModule/areaSelection.h"
 
 // PortSetting public
-PortSetting::PortSetting(QWidget *parent)
+PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
     : QDialog(parent),
+      m_portUsedName(portUsedName),
       m_portSettingLayout(new QVBoxLayout(this)),
       m_portTypeWidget(new QWidget()),
       m_portTypeCombobox(new QComboBox()),
@@ -32,14 +34,20 @@ PortSetting::PortSetting(QWidget *parent)
       m_serialPortParityCombobox(new QComboBox()),
       m_serialPortStopBitsWidget(new QWidget()),
       m_serialPortStopBitsCombobox(new QComboBox()),
+      m_tcpClientNameWidget(new QWidget()),
+      m_tcpClientNameLineEdit(new QLineEdit()),
       m_tcpClientRemoteAddressWidget(new QWidget()),
       m_tcpClientRemoteAddressLineEdit(new QLineEdit()),
       m_tcpClientRemotePortWidget(new QWidget()),
       m_tcpClientRemotePortSpinBox(new QSpinBox()),
+      m_tcpServerNameWidget(new QWidget()),
+      m_tcpServerNameLineEdit(new QLineEdit()),
       m_tcpServerLocalAddressWidget(new QWidget()),
       m_tcpServerLocalAddressLineEdit(new QLineEdit()),
       m_tcpServerLocalPortWidget(new QWidget()),
       m_tcpServerLocalPortSpinBox(new QSpinBox()),
+      m_udpSocketNameWidget(new QWidget()),
+      m_udpSocketNameLineEdit(new QLineEdit()),
       m_udpSocketLocalAddressWidget(new QWidget()),
       m_udpSocketLocalAddressLineEdit(new QLineEdit()),
       m_udpSocketLocalPortWidget(new QWidget()),
@@ -132,6 +140,13 @@ PortSetting::PortSetting(QWidget *parent)
     }
     // tcp client settings
     {
+        m_portSettingLayout->addWidget(m_tcpClientNameWidget);
+        const auto tcpClientNameLayout = new QHBoxLayout(m_tcpClientNameWidget); // NOLINT
+        tcpClientNameLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpClientNameLabel = new QLabel("port name"); // NOLINT
+        tcpClientNameLayout->addWidget(tcpClientNameLabel);
+        tcpClientNameLayout->addWidget(m_tcpClientNameLineEdit);
+
         m_portSettingLayout->addWidget(m_tcpClientRemoteAddressWidget);
         const auto tcpClientRemoteAddressLayout = new QHBoxLayout(m_tcpClientRemoteAddressWidget); // NOLINT
         tcpClientRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
@@ -149,6 +164,13 @@ PortSetting::PortSetting(QWidget *parent)
     }
     // tcp server settings
     {
+        m_portSettingLayout->addWidget(m_tcpServerNameWidget);
+        const auto tcpServerNameLayout = new QHBoxLayout(m_tcpServerNameWidget); // NOLINT
+        tcpServerNameLayout->setContentsMargins(0, 0, 0, 0);
+        const auto tcpServerNameLabel = new QLabel("port name"); // NOLINT
+        tcpServerNameLayout->addWidget(tcpServerNameLabel);
+        tcpServerNameLayout->addWidget(m_tcpServerNameLineEdit);
+
         m_portSettingLayout->addWidget(m_tcpServerLocalAddressWidget);
         const auto tcpServerLocalAddressLayout = new QHBoxLayout(m_tcpServerLocalAddressWidget); // NOLINT
         tcpServerLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
@@ -166,6 +188,13 @@ PortSetting::PortSetting(QWidget *parent)
     }
     // udp socket settings
     {
+        m_portSettingLayout->addWidget(m_udpSocketNameWidget);
+        const auto udpSocketNameLayout = new QHBoxLayout(m_udpSocketNameWidget); // NOLINT
+        udpSocketNameLayout->setContentsMargins(0, 0, 0, 0);
+        const auto udpSocketNameLabel = new QLabel("port name"); // NOLINT
+        udpSocketNameLayout->addWidget(udpSocketNameLabel);
+        udpSocketNameLayout->addWidget(m_udpSocketNameLineEdit);
+
         m_portSettingLayout->addWidget(m_udpSocketLocalAddressWidget);
         const auto udpSocketLocalAddressLayout = new QHBoxLayout(m_udpSocketLocalAddressWidget); // NOLINT
         udpSocketLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
@@ -277,6 +306,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
         }
         case TCPCLIENT: {
+            m_tcpClientNameLineEdit->setText(portConfig["portName"].toString());
             m_tcpClientRemoteAddressLineEdit->setText(portConfig["tcpClientRemoteAddress"].toString());
             m_tcpClientRemotePortSpinBox->setValue(portConfig["tcpClientRemotePort"].toInt());
             m_txFormatCombobox->setCurrentText(portConfig["txFormat"].toString());
@@ -285,6 +315,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
         }
         case TCPSERVER: {
+            m_tcpServerNameLineEdit->setText(portConfig["portName"].toString());
             m_tcpServerLocalAddressLineEdit->setText(portConfig["tcpServerLocalAddress"].toString());
             m_tcpServerLocalPortSpinBox->setValue(portConfig["tcpServerLocalPort"].toInt());
             m_txFormatCombobox->setCurrentText(portConfig["txFormat"].toString());
@@ -293,6 +324,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
         }
         case UDPSOCKET: {
+            m_udpSocketNameLineEdit->setText(portConfig["portName"].toString());
             m_udpSocketLocalAddressLineEdit->setText(portConfig["udpSocketLocalAddress"].toString());
             m_udpSocketLocalPortSpinBox->setValue(portConfig["udpSocketLocalPort"].toInt());
             m_udpSocketRemoteAddressLineEdit->setText(portConfig["udpSocketRemoteAddress"].toString());
@@ -337,12 +369,18 @@ void PortSetting::portSettingHideAll() const {
     m_serialPortParityWidget->hide();
     m_serialPortStopBitsWidget->hide();
     // tcp client setting widget
+    m_tcpClientNameWidget->hide();
+    m_tcpClientNameLineEdit->setText("Tcp Client");
     m_tcpClientRemoteAddressWidget->hide();
     m_tcpClientRemotePortWidget->hide();
     // tcp server setting widget
+    m_tcpServerNameWidget->hide();
+    m_tcpServerNameLineEdit->setText("Tcp Server");
     m_tcpServerLocalAddressWidget->hide();
     m_tcpServerLocalPortWidget->hide();
     // udp socket setting widget
+    m_udpSocketNameWidget->hide();
+    m_udpSocketNameLineEdit->setText("Udp Socket");
     m_udpSocketLocalAddressWidget->hide();
     m_udpSocketLocalPortWidget->hide();
     m_udpSocketRemoteAddressWidget->hide();
@@ -385,6 +423,7 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
             break;
         }
         case TCPCLIENT: {
+            m_tcpClientNameWidget->show();
             m_tcpClientRemoteAddressWidget->show();
             m_tcpClientRemotePortWidget->show();
             m_txFormatWidget->show();
@@ -394,6 +433,7 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
             break;
         }
         case TCPSERVER: {
+            m_tcpServerNameWidget->show();
             m_tcpServerLocalAddressWidget->show();
             m_tcpServerLocalPortWidget->show();
             m_txFormatWidget->show();
@@ -403,6 +443,7 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
             break;
         }
         case UDPSOCKET: {
+            m_udpSocketNameWidget->show();
             m_udpSocketLocalAddressWidget->show();
             m_udpSocketLocalPortWidget->show();
             m_udpSocketRemoteAddressWidget->show();
@@ -446,6 +487,10 @@ void PortSetting::portSettingSave(const int portType) {
     m_portConfig = {};
     switch (portType) {
         case SERIALPORT: {
+            if (m_portUsedName.contains(m_serialPortNameCombobox->currentData().toString())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
             m_portConfig["portType"] = portType;
             m_portConfig["portName"] = m_serialPortNameCombobox->currentData().toString();
             m_portConfig["baudRate"] = m_serialPortBaudRateSpinBox->value();
@@ -458,8 +503,12 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
         case TCPCLIENT: {
+            if (m_portUsedName.contains(m_tcpClientNameLineEdit->text())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
             m_portConfig["portType"] = portType;
-            m_portConfig["portName"] = "tcp client";
+            m_portConfig["portName"] = m_tcpClientNameLineEdit->text();
             m_portConfig["tcpClientRemoteAddress"] = m_tcpClientRemoteAddressLineEdit->text();
             m_portConfig["tcpClientRemotePort"] = m_tcpClientRemotePortSpinBox->value();
             m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
@@ -468,8 +517,12 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
         case TCPSERVER: {
+            if (m_portUsedName.contains(m_tcpServerNameLineEdit->text())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
             m_portConfig["portType"] = portType;
-            m_portConfig["portName"] = "tcp server";
+            m_portConfig["portName"] = m_tcpServerNameLineEdit->text();
             m_portConfig["tcpServerLocalAddress"] = m_tcpServerLocalAddressLineEdit->text();
             m_portConfig["tcpServerLocalPort"] = m_tcpServerLocalPortSpinBox->value();
             m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
@@ -478,8 +531,12 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
         case UDPSOCKET: {
+            if (m_portUsedName.contains(m_udpSocketNameLineEdit->text())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
             m_portConfig["portType"] = portType;
-            m_portConfig["portName"] = "udp socket";
+            m_portConfig["portName"] = m_udpSocketNameLineEdit->text();
             m_portConfig["udpSocketLocalAddress"] = m_udpSocketLocalAddressLineEdit->text();
             m_portConfig["udpSocketLocalPort"] = m_udpSocketLocalPortSpinBox->value();
             m_portConfig["udpSocketRemoteAddress"] = m_udpSocketRemoteAddressLineEdit->text();
@@ -490,6 +547,10 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
         case SCREEN: {
+            if (m_portUsedName.contains(m_screenNameCombobox->currentText())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
             m_portConfig["portType"] = portType;
             m_portConfig["portName"] = m_screenNameCombobox->currentText();
             m_portConfig["dpr"] = m_areaSelectionDialog->dprExport();
@@ -499,6 +560,10 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
         case CAMERA: {
+            if (m_portUsedName.contains(m_cameraNameCombobox->currentText())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
             m_portConfig["portType"] = "camera";
             m_portConfig["portName"] = m_cameraNameCombobox->currentText();
             m_portConfig["dpr"] = m_areaSelectionDialog->dprExport();

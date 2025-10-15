@@ -100,20 +100,20 @@ flowchart LR
 
 ## Port Control APIS
 
-|    APIS    | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
-|:----------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
-| port.open  |             |            |            |            |        |        |
-| port.close |             |            |            |            |        |        |
-| port.info  |             |            |            |            |        |        |
+|    APIS    |                             Serial Port                             | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
+|:----------:|:-------------------------------------------------------------------:|:----------:|:----------:|:----------:|:------:|:------:|
+| port.open  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+| port.close | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+| port.info  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
 
 ## Port IO APIS
 
-|      APIS      | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
-|:--------------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
-| port.readData  |             |            |            |            |        |        |
-| port.writeData |             |            |            |            |        |        |
-| port.readText  |             |            |            |            |        |        |
-| port.writeText |             |            |            |            |        |        |
+|      APIS      |                             Serial Port                             | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
+|:--------------:|:-------------------------------------------------------------------:|:----------:|:----------:|:----------:|:------:|:------:|
+| port.readData  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+| port.writeData | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+| port.readText  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+| port.writeText | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
 
 ## Modbus APIS
 

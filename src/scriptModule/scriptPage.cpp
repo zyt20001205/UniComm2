@@ -444,6 +444,7 @@ void ScriptPage::hoverRequest(const int line, const int character) {
             }
         }
     };
+    qDebug()<<hoverParams;
     emit requestJson("textDocument/hover", hoverParams);
 }
 
@@ -535,6 +536,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     QsciScintilla::setBackspaceUnindents(true);
     QsciScintilla::setIndentationGuides(true);
     QsciScintilla::setTabWidth(4);
+    SendScintilla(QsciScintillaBase::SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
     // connect auto pair
     connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(pairHandle(int)));
     m_autoPairHash['('] = ')';

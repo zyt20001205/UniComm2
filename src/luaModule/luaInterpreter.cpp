@@ -76,10 +76,10 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     lua_setfield(L, -2, "writeMultipleRegisters");
     lua_setglobal(L, "modbusRtu");
     // register modbus ascii class
-    lua_newtable(L);
-    lua_pushcfunction(L, lua_modbusAsciiReadHoldingRegisters);
-    lua_setfield(L, -2, "readHoldingRegisters");
-    lua_setglobal(L, "modbusAscii");
+    // lua_newtable(L);
+    // lua_pushcfunction(L, lua_modbusAsciiReadHoldingRegisters);
+    // lua_setfield(L, -2, "readHoldingRegisters");
+    // lua_setglobal(L, "modbusAscii");
     // register database class
     lua_newtable(L);
     lua_pushcfunction(L, lua_databaseWrite);

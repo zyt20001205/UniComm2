@@ -2,8 +2,10 @@
 #define UNICOMM_PORT_H
 
 #include <QJsonArray>
+#include <QTabWidget>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class PortPage;
 class QPushButton;
 class QVBoxLayout;
 class QTabWidget;
@@ -20,8 +22,9 @@ public:
 
     void portConfigSave() const;
 
-    BasePort *portObject(int index) const;
+    BasePort* currentPort() const;
 
+    QHash<QString, BasePort *> m_portHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -34,8 +37,6 @@ protected:
 
 private:
     void portInsert(int index, const QJsonObject &portConfig);
-
-    void portDuplicate(int index);
 
     void portRemove(int index);
 

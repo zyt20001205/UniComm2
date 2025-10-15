@@ -35,7 +35,8 @@ PortModule::PortModule()
     addButton->setIcon(QIcon(":/icon/add.svg"));
     m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
     connect(addButton, &QPushButton::clicked, this, [this] {
-        if (PortSetting portSettingDialog; portSettingDialog.exec() == QDialog::Accepted) {
+        const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
+        if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
             const QJsonObject portConfig = portSettingDialog.portSettingExport();
             m_portConfig.append(portConfig);
             portInsert(m_portTabWidget->count(), portConfig);
@@ -65,11 +66,11 @@ void PortModule::portConfigSave() const {
     g_config["portConfig"] = m_portConfig;
 }
 
-BasePort *PortModule::portObject(const int index) const {
-    BasePort *portObject = nullptr;
-    if (index == -1) portObject = static_cast<PortPage *>(m_portTabWidget->currentWidget())->m_port;
-    else portObject = static_cast<PortPage *>(m_portTabWidget->widget(index))->m_port;
-    return portObject;
+BasePort* PortModule::currentPort() const {
+    if (m_portTabWidget->currentWidget()) {
+        return static_cast<PortPage *>(m_portTabWidget->currentWidget())->m_port;
+    }
+    return nullptr;
 }
 
 // PortModule protected
@@ -83,23 +84,32 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
         m_portTabWidget->setCurrentWidget(portPage);
         QMenu menu(this);
         menu.addAction("edit", [this, index, portPage] {
-            PortSetting portSettingDialog;
-            QJsonObject portConfig = m_portConfig[index].toObject();
-            portSettingDialog.portSettingImport(portConfig);
+            const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
+            PortSetting portSettingDialog(usedPortName);
+            const QJsonObject oldPortConfig = m_portConfig[index].toObject();
+            portSettingDialog.portSettingImport(oldPortConfig);
             if (portSettingDialog.exec() == QDialog::Accepted) {
-                portConfig = portSettingDialog.portSettingExport();
-                m_portConfig[index] = portConfig;
-                portPage->portReload(portConfig);
+                const QJsonObject newPortConfig = portSettingDialog.portSettingExport();
+                m_portConfig[index] = newPortConfig;
+                if (newPortConfig["portName"].toString() != oldPortConfig["portName"].toString()) {
+                    m_portTabWidget->setTabText(index, newPortConfig["portName"].toString());
+
+                    BasePort *port = m_portHash.value(oldPortConfig["portName"].toString());
+                    m_portHash.remove(oldPortConfig["portName"].toString());
+                    m_portHash.insert(newPortConfig["portName"].toString(), port);
+                    qDebug() << m_portHash;
+                }
+                portPage->portReload(newPortConfig);
             }
         });
-        menu.addAction("duplicate", [this, index] { portDuplicate(index); });
         menu.exec(event->globalPos());
     }
 }
 
 bool PortModule::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_portTabOverlay && event->type() == QEvent::MouseButtonPress) {
-        if (PortSetting portSettingDialog; portSettingDialog.exec() == QDialog::Accepted) {
+        const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
+        if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
             const QJsonObject portConfig = portSettingDialog.portSettingExport();
             m_portConfig.append(portConfig);
             portInsert(m_portTabWidget->count(), portConfig);
@@ -120,13 +130,9 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
     // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
     m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
+    m_portHash.insert(portConfig["portName"].toString(), portPage->m_port);
+    qDebug() << m_portHash;
     overlayHide();
-}
-
-void PortModule::portDuplicate(const int index) {
-    const QJsonObject portConfig = m_portConfig[index].toObject();
-    m_portConfig.insert(index + 1, portConfig);
-    portInsert(index + 1, portConfig);
 }
 
 void PortModule::portRemove(const int index) {
@@ -141,6 +147,8 @@ void PortModule::portRemove(const int index) {
                 QMessageBox::No);
     if (reply != QMessageBox::Yes) return;
     m_portConfig.removeAt(index);
+    m_portHash.remove(portName);
+    qDebug() << m_portHash;
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
     if (w) w->deleteLater();
@@ -176,56 +184,86 @@ void PortModule::overlayResize() const {
 PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
     : QWidget(parent),
       m_portToggleButton(new QPushButton(tr("Open"))) {
-    auto *pageLayout = new QVBoxLayout(this); // NOLINT
+    auto *layout = new QVBoxLayout(this); // NOLINT
     m_portToggleButton->setCheckable(true);
-    pageLayout->addWidget(m_portToggleButton);
+
 
     QString timestamp;
     switch (portConfig["portType"].toInt()) {
         case SERIALPORT: {
-            m_port = new SerialPort(portConfig);
+            layout->addWidget(m_portToggleButton);
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new SerialPort(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] serial port loaded").arg(timestamp);
             break;
         }
         case TCPCLIENT: {
-            m_port = new TcpClient(portConfig);
+            layout->addWidget(m_portToggleButton);
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new TcpClient(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] tcp client loaded").arg(timestamp);
             break;
         }
         case TCPSERVER: {
-            m_port = new TcpServer(portConfig);
+            layout->addWidget(m_portToggleButton);
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new TcpServer(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] tcp server loaded").arg(timestamp);
             break;
         }
         case UDPSOCKET: {
-            m_port = new UdpSocket(portConfig);
+            layout->addWidget(m_portToggleButton);
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new UdpSocket(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] udp socket loaded").arg(timestamp);
             break;
         }
         case SCREEN: {
-            m_port = new Screen(portConfig);
+            layout->addWidget(m_portToggleButton);
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new Screen(portConfig);
             // connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] screen loaded").arg(timestamp);
             break;
         }
         case CAMERA: {
-            m_port = new Camera(portConfig);
+            layout->addWidget(m_portToggleButton);
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new Camera(portConfig);
             // connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
             timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] camera loaded").arg(timestamp);
             break;

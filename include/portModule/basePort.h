@@ -54,6 +54,8 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void togglePort(bool status);
+
     void showPreview(QList<QPixmap> pixmapList);
 
 private:

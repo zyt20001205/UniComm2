@@ -67,12 +67,14 @@ bool TcpClient::open() {
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     // open port
     m_tcpClient->connectToHost(m_tcpClientRemoteAddress, m_tcpClientRemotePort);
+    emit togglePort(true);
     return true;
 }
 
 void TcpClient::close() {
     if (m_tcpClient == nullptr) return;
     m_tcpClient->disconnectFromHost();
+    emit togglePort(false);
 }
 
 bool TcpClient::writeText(const QString &txText) {

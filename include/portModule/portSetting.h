@@ -15,13 +15,14 @@ class PortSetting final : public QDialog {
     Q_OBJECT
 
 public:
-    explicit PortSetting(QWidget *parent = nullptr);
+    explicit PortSetting(QSet<QString> portUsedName, QWidget *parent = nullptr);
 
     ~PortSetting() override = default;
 
     void portSettingImport(const QJsonObject &portConfig);
 
     QJsonObject portSettingExport();
+
 private:
     void portSettingHideAll() const;
 
@@ -29,6 +30,7 @@ private:
 
     void portSettingSave(int portType);
 
+    QSet<QString> m_portUsedName{};
     QJsonObject m_portConfig{};
     QVBoxLayout *m_portSettingLayout{};
     QWidget *m_portTypeWidget{};
@@ -45,16 +47,22 @@ private:
     QWidget *m_serialPortStopBitsWidget{};
     QComboBox *m_serialPortStopBitsCombobox{};
     // tcp client
+    QWidget *m_tcpClientNameWidget{};
+    QLineEdit *m_tcpClientNameLineEdit{};
     QWidget *m_tcpClientRemoteAddressWidget{};
     QLineEdit *m_tcpClientRemoteAddressLineEdit{};
     QWidget *m_tcpClientRemotePortWidget{};
     QSpinBox *m_tcpClientRemotePortSpinBox{};
     // tcp server
+    QWidget *m_tcpServerNameWidget{};
+    QLineEdit *m_tcpServerNameLineEdit{};
     QWidget *m_tcpServerLocalAddressWidget{};
     QLineEdit *m_tcpServerLocalAddressLineEdit{};
     QWidget *m_tcpServerLocalPortWidget{};
     QSpinBox *m_tcpServerLocalPortSpinBox{};
     // udp socket
+    QWidget *m_udpSocketNameWidget{};
+    QLineEdit *m_udpSocketNameLineEdit{};
     QWidget *m_udpSocketLocalAddressWidget{};
     QLineEdit *m_udpSocketLocalAddressLineEdit{};
     QWidget *m_udpSocketLocalPortWidget{};

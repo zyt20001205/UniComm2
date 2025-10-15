@@ -19,7 +19,7 @@ public:
 
     void sendConfigSave() const;
 
-    void commandSend(const QString &txText) const;
+    static void commandSend(const QString &txText);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

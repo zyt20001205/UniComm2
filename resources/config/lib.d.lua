@@ -104,47 +104,66 @@ function control.keyPress(key) end
 
 port = {}
 --- Opens a port connection for communication.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @param name string Target port name.
 --- @return boolean status The status of the open operation.
 ---
---- @usage — Open current selected port.
+--- @usage — Open port COM3.
 ---
---- port.open()
----
---- @usage — Open specific port.
----
---- port.open(1)
-function port.open(index) end
+--- port.open("COM3")
+function port.open(name) end
 
 --- Closes a port connection.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @param name string Target port name.
 --- @return nil
 ---
---- @usage — Close current selected port.
+--- @usage — Close port COM3.
 ---
---- port.close()
----
---- @usage — Close specific port.
----
---- port.close(1)
-function port.close(index) end
+--- port.close("COM3")
+function port.close(name) end
 
 --- Prints information about a port.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @param name string Target port name.
+--- @return table information
+---
+--- @usage — Print information about port COM3.
+---
+--- port.info("COM3")
+function port.info(name) end
+
+--- Writes **raw binary data** to a port.
+--- @param name string Target port name.
+--- @param data bytes The raw binary data to write.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
 --- @return nil
 ---
---- @usage — Print information about current selected port.
+--- @usage — Write data to port COM3.
 ---
---- port.info()
+--- port.writeData("COM3", "/x01/x03")
 ---
---- @usage — Print information about specific port.
+--- @usage — Write data to specific client.
 ---
---- port.info(1)
-function port.info(index) end
+--- port.writeData("TCP SERVER", "/x01/x03", "192.169.1.56800")
+function port.writeData(name, data, peerIp) end
+
+--- Writes **text data** to a port.
+--- @param name string Target port name.
+--- @param text string The text data to write.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
+--- @return nil
+---
+--- @usage — Write text to port COM3.
+---
+--- port.writeText("COM3", "0103 0000 0001")
+---
+--- @usage — Write text to specific client.
+---
+--- port.writeText("TCP SERVER", "010203", "192.169.1.56800")
+function port.writeText(name, text, peerIp) end
 
 --- Reads **raw binary data** from a port.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @param name string Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param length? integer Number of bytes to read.
 ---
 --- * 0(default): The function returns immediately.
 ---
@@ -153,32 +172,29 @@ function port.info(index) end
 --- * -1: The function will block indefinitely until data arrives.
 --- @return bytes data
 ---
---- @usage — Read data from current selected port.
+--- @usage — Read data from port COM3.
 ---
---- port.readData()
+--- port.readData("COM3")
 ---
---- @usage — Read data from specific port index.
+--- @usage — Read data from port COM3 under async mode.
 ---
---- port.readData(1)
----
---- @usage — Read data from specific port index under async mode.
----
---- port.writeText(0, "0110 0000 000102 0000")
+--- port.writeText("COM3", "0110 0000 000102 0000")
 ---
 --- sleep(50)
 ---
---- port.readData(0, 0)
+--- port.readData("COM3", 0)
 ---
---- @usage — Read data from specific port index under sync mode.
+--- @usage — Read data from port COM3 index under sync mode.
 ---
---- port.writeText(0, "0110 0000 000102 0000")
+--- port.writeText("COM3", "0110 0000 000102 0000")
 ---
---- port.readData(0, 100)
-function port.readData(index, timeout) end
+--- port.readData("COM3", 100)
+function port.readData(name, timeout, length) end
 
 --- Reads **decoded text data** from a port.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
+--- @param name string Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param length? integer Number of bytes to read.
 ---
 --- * 0(default): The function returns immediately.
 ---
@@ -187,85 +203,43 @@ function port.readData(index, timeout) end
 --- * -1: The function will block indefinitely until data arrives.
 --- @return string|table text
 ---
---- @usage — Read text from current selected port.
+--- @usage — Read text from port COM3.
 ---
---- port.readText()
+--- port.readText("COM3")
 ---
---- @usage — Read text from specific port index.
+--- @usage — Read text from port COM3 under async mode.
 ---
---- port.readText(1)
----
---- @usage — Read text from specific port index under async mode.
----
---- port.writeText(0, "0110 0000 000102 0000")
+--- port.writeText("COM3", "0110 0000 000102 0000")
 ---
 --- sleep(50)
 ---
---- port.readText(0, 0)
+--- port.readText("COM3", 0)
 ---
---- @usage — Read text from specific port index under sync mode.
+--- @usage — Read text from port COM3 under sync mode.
 ---
---- port.writeText(0, "0110 0000 000102 0000")
+--- port.writeText("COM3", "0110 0000 000102 0000")
 ---
---- port.readText(0, 100)
-function port.readText(index, timeout) end
-
---- Writes **raw binary data** to a port.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
---- @param data bytes The raw binary data to write.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
---- @return nil
----
---- @usage — Write data to current selected port.
----
---- port.writeData("/x01/x03")
----
---- @usage — Write data to specific port index.
----
---- port.writeData("/x01/x03", 1)
----
---- @usage — Write data to specific client.
----
---- port.writeData("/x01/x03", "192.169.1.56800")
-function port.writeData(index, data, peerIp) end
-
---- Writes **text data** to a port.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
---- @param text string The text data to write.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
---- @return nil
----
---- @usage — Write text to current selected port.
----
---- port.writeText("010203")
----
---- @usage — Write text to specific port index.
----
---- port.writeText(1, "AT+RST\r\n")
----
---- @usage — Write text to specific client.
----
---- port.writeText("010203", "192.169.1.56800")
-function port.writeText(index, text, peerIp) end
+--- port.readText("COM3", 100)
+function port.readText(name, timeout, length) end
 
 modbusRtu = {}
 --- Reads data from multiple holding registers of a Modbus RTU device.
+--- @param name string Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
 --- @return bytes
-function modbusRtu.readHoldingRegisters(slaveAddr, startAddr, quantity, timeout, index) end
+function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
 --- Writes data to multiple holding registers to a Modbus RTU device.
+--- @param name string Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param data string **Binary string** containing the raw data to be written.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @param index? integer Target port index; when omitted or set to -1, the current selected port is used.
 --- @return nil
-function modbusRtu.writeMultipleRegisters(slaveAddr, startAddr, data, timeout, index) end
+function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
 
 modbusAscii = {}
 function modbusAscii.readHoldingRegisters() end
