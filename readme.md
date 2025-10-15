@@ -39,45 +39,36 @@
 
 ```mermaid
 flowchart LR
-    subgraph Polymorphism
-        serialPort[SerialPort]
-        tcpClient[TcpClient]
-        tcpServer[TcpServer]
-        udpSocket[UdpSocket]
-        screen[Screen]
-        camera[Camera]
-    end
-
-    basePort[BasePort]
+    port[Port]
 
     subgraph Lua Basic API
-        subgraph Control
-            portOpen[port.open]
-            portClose[port.close]
-            portInfo[port.info]
-        end
-        subgraph IO
-            portReadData[port.readData]
-            portWriteData[port.writeData]
-            portReadText[port.readText]
-            portWriteText[port.writeText]
-        end
+        portControl[Port Control]
+        portIO[Port IO]
+        
+%%        subgraph Control
+%%            portOpen[port.open]
+%%            portClose[port.close]
+%%            portInfo[port.info]
+%%        end
+%%        subgraph IO
+%%            portReadData[port.readData]
+%%            portWriteData[port.writeData]
+%%            portReadText[port.readText]
+%%            portWriteText[port.writeText]
+%%        end
     end
 
     subgraph Lua Service API
-        modbusRtuReadHoldingRegisters[modbusRtu.readHoldingRegisters]
-        modbusRtuWriteHoldingRegisters[modbusRtu.writeHoldingRegisters]
-        modbusAsciiReadHoldingRegisters[modbusAscii.readHoldingRegisters]
+        modbus[ModBus]
     end
+    
+    port --> portControl & portIO 
+    portIO --> modbus
 
-    serialPort & tcpClient & tcpServer & udpSocket & screen & camera --> basePort
-    basePort --> portOpen & portClose & portInfo & portReadData & portReadText & portWriteData & portWriteText
-    portReadData & portWriteData --> modbusRtuReadHoldingRegisters
-    portReadData & portWriteData --> modbusRtuWriteHoldingRegisters
-    portReadText & portWriteText --> modbusAsciiReadHoldingRegisters
+    click port "#support-port-types" "View Support Port Types"
 ```
 
-## Support
+## Support Port Types
 
 <style>
     .osi-table td {
