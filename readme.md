@@ -39,11 +39,11 @@
 
 ```mermaid
 flowchart LR
-    port[<a href='#Support Port Types'>Port</a>]
+    port[<a href='#SupportPortTypes'>Port</a>]
 
     subgraph Lua Basic API
-        portControl[<a href='#Port Control'>Port Control</a>]
-        portIO[<a href='#Port IO'>Port IO</a>]
+        portControl[<a href='#PortControl'>Port Control</a>]
+        portIO[<a href='#PortIO'>Port IO</a>]
     end
 
     subgraph Lua Service API
@@ -54,7 +54,7 @@ flowchart LR
     portIO --> modbus
 ```
 
-<a id="Support Port Types"></a>
+<a id="SupportPortTypes"></a>
 
 ## Support Port Types
 
@@ -107,7 +107,7 @@ flowchart LR
     </tr>
 </table>
 
-<a id="Port Control"></a>
+<a id="PortControl"></a>
 
 ## Port Control
 
@@ -117,7 +117,7 @@ flowchart LR
 | port.close |             |            |            |            |        |        |
 | port.info  |             |            |            |            |        |        |
 
-<a id="Port IO"></a>
+<a id="PortIO"></a>
 
 ## Port IO
 
