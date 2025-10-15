@@ -42,30 +42,16 @@ flowchart LR
     port[Port<a href='#Support Port Types'>]
 
     subgraph Lua Basic API
-        portControl[Port Control]
-        portIO[Port IO]
-        
-%%        subgraph Control
-%%            portOpen[port.open]
-%%            portClose[port.close]
-%%            portInfo[port.info]
-%%        end
-%%        subgraph IO
-%%            portReadData[port.readData]
-%%            portWriteData[port.writeData]
-%%            portReadText[port.readText]
-%%            portWriteText[port.writeText]
-%%        end
+        portControl[Port Control<a href='#Port Control'>]
+        portIO[Port IO<a href='#Port IO'>]
     end
 
     subgraph Lua Service API
-        modbus[ModBus]
+        modbus[Modbus<a href='#Modbus'>]
     end
-    
-    port --> portControl & portIO 
-    portIO --> modbus
 
-    click port "#support-port-types" "View Support Port Types"
+    port --> portControl & portIO
+    portIO --> modbus
 ```
 
 <a id="Support Port Types"></a>
@@ -86,7 +72,7 @@ flowchart LR
     <tr>
         <td>Application</td>
         <td colspan="2"></td>
-        <td><a href="#Modbus RTU/ASCII">Modbus RTU/ASCII</a></td>
+        <td>Modbus</td>
     </tr>
     <tr>
         <td>Presentation</td>
@@ -100,8 +86,8 @@ flowchart LR
     </tr>
     <tr>
         <td>Transport</td>
-        <td><a href="#TCP">TCP</a></td>
-        <td><a href="#UDP">UDP</a></td>
+        <td>TCP</td>
+        <td>UDP</td>
         <td></td>
     </tr>
     <tr>
@@ -117,25 +103,34 @@ flowchart LR
     <tr>
         <td>Physical</td>
         <td colspan="2">RJ45</td>
-        <td><a href="#Serial Port">Serial Port</a></td>
+        <td>Serial Port</td>
     </tr>
 </table>
 
-<a id="TCP"></a>
+<a id="Port Control"></a>
 
-## TCP
+## Port Control
 
-<a id="UDP"></a>
+|    API     | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
+|:----------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
+| port.open  |             |            |            |            |        |        |
+| port.close |             |            |            |            |        |        |
+| port.info  |             |            |            |            |        |        |
 
-## UDP
+<a id="Port IO"></a>
 
-<a id="Serial Port"></a>
+## Port IO
 
-## Serial Port
+|      API       | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
+|:--------------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
+| port.readData  |             |            |            |            |        |        |
+| port.writeData |             |            |            |            |        |        |
+| port.readText  |             |            |            |            |        |        |
+| port.writeText |             |            |            |            |        |        |
 
-<a id="Modbus RTU/ASCII"></a>
+<a id="Modbus"></a>
 
-### Modbus RTU/ASCII
+## Modbus
 
 | Function Code & Name                             | RTU Mode                                                            | ASCII Mode                                                          |
 |:-------------------------------------------------|:--------------------------------------------------------------------|:--------------------------------------------------------------------|
