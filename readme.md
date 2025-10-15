@@ -40,37 +40,23 @@
 ```mermaid
 flowchart LR
     port[Port]
-    
-    subgraph Lua Basic API
+
+    subgraph Lua Basic APIS
         portControl[Port Control]
         portIO[Port IO]
     end
 
-    subgraph Lua Service API
+    subgraph Lua Service APIS
         modbus[Modbus]
     end
 
     port --> portControl & portIO
     portIO --> modbus
-    
-    click port "#SupportPortTypes" "Support Port Types"
-    click portControl "#PortControl" "Port Control"
-    click portIO "#PortIO" "Port IO"
-    click modbus "#Modbus" "Modbus"
 ```
-
-<a id="SupportPortTypes"></a>
 
 ## Support Port Types
 
-<style>
-    .osi-table td {
-        text-align: center;
-        vertical-align: middle;
-    }
-</style>
-
-<table class="osi-table">
+<table>
     <tr>
         <th colspan="4">OSI Model</th>
     </tr>
@@ -112,9 +98,7 @@ flowchart LR
     </tr>
 </table>
 
-<a id="PortControl"></a>
-
-## Port Control
+## Port Control APIS
 
 |    API     | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
 |:----------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
@@ -122,9 +106,7 @@ flowchart LR
 | port.close |             |            |            |            |        |        |
 | port.info  |             |            |            |            |        |        |
 
-<a id="PortIO"></a>
-
-## Port IO
+## Port IO APIS
 
 |      API       | Serial Port | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
 |:--------------:|:-----------:|:----------:|:----------:|:----------:|:------:|:------:|
@@ -133,9 +115,7 @@ flowchart LR
 | port.readText  |             |            |            |            |        |        |
 | port.writeText |             |            |            |            |        |        |
 
-<a id="Modbus"></a>
-
-## Modbus
+## Modbus APIS
 
 | Function Code & Name                             | RTU Mode                                                            | ASCII Mode                                                          |
 |:-------------------------------------------------|:--------------------------------------------------------------------|:--------------------------------------------------------------------|
