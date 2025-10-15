@@ -12,6 +12,7 @@
 #include "luaModule/luaControl.h"
 #include "portModule/portModule.h"
 #include "scriptModule/completionTooltip.h"
+#include "scriptModule/hoverTooltip.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"
@@ -21,8 +22,8 @@ ScriptModule::ScriptModule()
     : m_scriptConfig(g_config["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_completionTooltip(new CompletionTooltip(g_mainWindow)),
+      m_hoverTooltip(new HoverTooltip(g_mainWindow)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow))
-//       m_tooltipHover(new TooltipHover(this)),
 //       m_tooltipPosition(new TooltipPosition(this)),
 //
 {
@@ -166,7 +167,7 @@ void ScriptModule::formattingReturn(const QUrl &scriptUrl, const QString &newTex
 }
 
 void ScriptModule::hoverReturn(const QUrl &scriptUrl, const QString &message) const {
-    m_scriptPageHash[scriptUrl]->hoverReturn(message);
+    m_hoverTooltip->showTooltip(message);
 }
 
 void ScriptModule::semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const {
@@ -234,44 +235,7 @@ void ScriptModule::textReplace(QString &text, const QString &kind) const {
     m_focusedPage->textReplace(text, kind);
 }
 
-//
-// // TooltipHover public
-// TooltipHover::TooltipHover(QWidget *parent)
-//     : QWidget(parent),
-//       m_textBrowser(new QTextBrowser(this)) {
-//     setWindowFlags(Qt::ToolTip);
-//     auto *layout = new QVBoxLayout(this); //NOLINT
-//     layout->setContentsMargins(0, 0, 0, 0);
-//     layout->addWidget(m_textBrowser);
-//     m_textBrowser->setFixedWidth(600);
-//     m_textBrowser->setFont(QFont("Consolas", 10));
-//     m_textBrowser->setOpenExternalLinks(true);
-//     m_textBrowser->installEventFilter(this);
-// }
-//
-// // TooltipHover protected
-// bool TooltipHover::eventFilter(QObject *obj, QEvent *event) {
-//     if (event->type() == QEvent::Leave) {
-//         hideTooltip();
-//         return true;
-//     }
-//     return QWidget::eventFilter(obj, event);
-// }
-//
-// // TooltipHover private
-// void TooltipHover::showTooltip(const QString &message) {
-//     emit switchDwell(false);
-//     m_textBrowser->setMarkdown(message);
-//     this->adjustSize();
-//     this->move(QCursor::pos() + QPoint(15, 15));
-//     this->show();
-// }
-//
-// void TooltipHover::hideTooltip() {
-//     emit switchDwell(true);
-//     this->hide();
-// }
-//
+
 // // TooltipPosition public
 // TooltipPosition::TooltipPosition(QWidget *parent)
 //     : QWidget(parent),

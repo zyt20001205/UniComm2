@@ -27,7 +27,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     file.close();
     m_scriptEditor->setText(content);
     m_scriptHash = stringHashCalc(m_scriptEditor->text());
-    dwellSwitch(true);
     m_editTimer->setInterval(300);
     m_editTimer->setSingleShot(true);
     connect(m_editTimer, &QTimer::timeout, [this] {
@@ -38,7 +37,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
-    // connect(m_tooltipHover, &TooltipHover::switchDwell, this, &ScriptPage::dwellSwitch);
     // connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPage::positionFill);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -97,9 +95,10 @@ void ScriptPage::diagnosticsReturn(const QJsonArray &diagnosticsArray) const {
 
 void ScriptPage::foldingRangeReturn(const QJsonArray &result) const {
     QMap<int, int> deltaDepthMap;
-    for (const QJsonValue &value: result) {
-        const int startLine = value["startLine"].toInt();
-        const int endLine = value["endLine"].toInt();
+    for (const auto &value: result) {
+        const QJsonObject valueObject = value.toObject();
+        const int startLine = valueObject["startLine"].toInt();
+        const int endLine = valueObject["endLine"].toInt();
         deltaDepthMap.insert(startLine + 1, deltaDepthMap.value(startLine + 1, 0) + 1);
         deltaDepthMap.insert(endLine + 1, deltaDepthMap.value(endLine + 1, 0) - 1);
     }
@@ -115,10 +114,6 @@ void ScriptPage::foldingRangeReturn(const QJsonArray &result) const {
 
 void ScriptPage::formattingReturn(const QString &newText) const {
     m_scriptEditor->setText(newText);
-}
-
-void ScriptPage::hoverReturn(const QString &message) const {
-    // m_tooltipHover->showTooltip(message);
 }
 
 void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
@@ -241,13 +236,10 @@ void ScriptPage::charAdded(const int ch) {
 }
 
 void ScriptPage::dwellStart(const int pos, const int x, const int y) {
-    // int line, character;
-    // m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
-    // if (line == 0 && character == 0) return;
-    // hoverRequest(line, character);
-    // // logging
-    // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    // qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "hovered");
+    int line, character;
+    m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
+    if (line == 0 && character == 0) return;
+    hoverRequest(line, character);
 }
 
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
@@ -415,11 +407,6 @@ void ScriptPage::scriptEditFinish() {
         m_modified = modified;
         emit modifyScript(modified);
     }
-}
-
-void ScriptPage::dwellSwitch(const bool status) const {
-    if (status) m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
-    else m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETMOUSEDWELLTIME, QsciScintilla::SC_TIME_FOREVER); // NOLINT
 }
 
 void ScriptPage::hoverRequest(const int line, const int character) {

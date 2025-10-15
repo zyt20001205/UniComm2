@@ -14,6 +14,7 @@ class QTextBrowser;
 class ScriptPage;
 class ScriptEditor;
 class CompletionTooltip;
+class HoverTooltip;
 class SignatureHelpTooltip;
 
 class ScriptModule final : public QObject {
@@ -83,41 +84,17 @@ private:
 
     void textReplace(QString &text, const QString &kind) const;
 
-    void textInsert(QString &text, const QString &kind) const;
-
     QJsonObject m_scriptConfig{};
     QUrl m_rootUrl{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     CompletionTooltip *m_completionTooltip{};
+    HoverTooltip *m_hoverTooltip{};
     SignatureHelpTooltip *m_signatureHelpTooltip{};
 };
 
-//
-// class TooltipHover final : public QWidget {
-//     Q_OBJECT
-//
-// public:
-//     explicit TooltipHover(QWidget *parent = nullptr);
-//
-//     ~TooltipHover() override = default;
-//
-//     void showTooltip(const QString &message);
-//
-//     void hideTooltip();
-//
-// signals:
-//     void switchDwell(bool status);
-//
-// protected:
-//     bool eventFilter(QObject *obj, QEvent *event) override;
-//
-// private:
-//     QTextBrowser *m_textBrowser = nullptr;
-//     QPointer<QWidget> m_previousFocus = nullptr;
-// };
-//
+
 // class TooltipPosition final : public QWidget {
 //     Q_OBJECT
 //

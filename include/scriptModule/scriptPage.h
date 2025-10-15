@@ -23,8 +23,6 @@ public:
 
     void formattingReturn(const QString &newText) const;
 
-    void hoverReturn(const QString &message) const;
-
     void semanticTokensReturn(const QJsonArray &data) const;
 
     void textReplace(QString &text, const QString &kind) ;
@@ -71,8 +69,6 @@ private:
     void semanticTokensRequest();
 
     void signatureHelpRequest();
-
-    void dwellSwitch(bool status) const;
 
     void hoverRequest(int line, int character);
 
