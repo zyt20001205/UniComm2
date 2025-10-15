@@ -100,11 +100,11 @@ flowchart LR
 
 ## Port Control APIS
 
-|    APIS    |                             Serial Port                             | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
-|:----------:|:-------------------------------------------------------------------:|:----------:|:----------:|:----------:|:------:|:------:|
-| port.open  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
-| port.close | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
-| port.info  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+|    APIS    |                             Serial Port                             |                             Tcp Client                              |                             Tcp Server                              | Udp Socket | Screen | Camera |
+|:----------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:----------:|:------:|:------:|
+| port.open  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |        |        |
+| port.close | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |        |        |
+| port.info  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |                                                                     |            |        |        |
 
 ## Port IO APIS
 

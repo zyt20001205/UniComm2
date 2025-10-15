@@ -25,21 +25,23 @@ void TcpServer::reload(const QJsonObject &portConfig) {
 }
 
 QHash<QString, QVariant> TcpServer::info() {
-    QString status;
-    if (m_tcpServer->isListening())
-        status = "listening";
-    else
-        status = "idle";
-    QString localAddress = m_tcpServerLocalAddress;
-    QString localPort = QString::number(m_tcpServerLocalPort);
-    QString message = QString("(%1) local ip: %2:%3 remote ip: [").arg(status, localAddress, localPort);
+    const bool status = m_tcpServer->isListening();
+    const QString localAddress = m_tcpServerLocalAddress;
+    const QString localPort = QString::number(m_tcpServerLocalPort);
+    QList<QVariant> peerList;
     for (const QTcpSocket *tcpServerPeer: m_tcpServerPeerList) {
-        QString peerIp = QString("%1:%2 ").arg(tcpServerPeer->peerAddress().toString(), QString::number(tcpServerPeer->peerPort()));
-        message.append(peerIp);
+        QMap<QString, QVariant> peerInfo;
+        peerInfo["peerAddress"] = tcpServerPeer->peerAddress().toString();
+        peerInfo["peerPort"] = tcpServerPeer->peerPort();
+        peerList.append(peerInfo);
     }
-    message.append("]");
-    return {};
-    // return message;
+
+    QHash<QString, QVariant> infoHash;
+    infoHash["status"] = status;
+    infoHash["localAddress"] = localAddress;
+    infoHash["localPort"] = localPort;
+    infoHash["peerList"] = peerList;
+    return infoHash;
 }
 
 bool TcpServer::open() {

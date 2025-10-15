@@ -73,6 +73,24 @@ int lua_portInfo(lua_State *L) {
                 case QMetaType::QString:
                     lua_pushstring(L, value.toString().toUtf8().constData());
                     break;
+                case QMetaType::QVariantList:
+                {
+                    const QVariantList varList = value.toList();
+                    lua_createtable(L, static_cast<int>(varList.size()), 0);
+                    for (int i = 0; i < varList.size(); ++i) {
+                        const QVariant &elem = varList[i];
+                        if (elem.typeId() == QMetaType::Int) {
+                            lua_pushinteger(L, elem.toInt());
+                        } else if (elem.typeId() == QMetaType::QString) {
+                            lua_pushstring(L, elem.toString().toUtf8().constData());
+                        } else {
+                            lua_pushnil(L);
+                            qDebug() << "unknown type";
+                        }
+                        lua_rawseti(L, -2, i + 1);
+                    }
+                    break;
+                }
                 default:
                     break;
             }
