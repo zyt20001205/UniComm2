@@ -58,11 +58,15 @@ private:
 
     void handleDisconnected(QTcpSocket *tcpServerPeer);
 
+    void handleReadyRead(QTcpSocket *tcpServerPeer);
+
     void handleError(QTcpSocket *tcpServerPeer);
 
     bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
     QByteArray handleRead(int timeout, int length, QTcpSocket *tcpServerPeer);
+
+    void handleLog(const QString &mode, const QByteArray &data, const QTcpSocket *tcpServerPeer);
 
     QTcpServer *m_tcpServer{};
     // port config
@@ -74,6 +78,8 @@ private:
     QString m_txSuffix{};
     QString m_rxFormat{};
     //
+    bool m_syncMode = false;
+    qint64 m_bufferSize = 0;
     QByteArray m_rxBuffer;
 };
 

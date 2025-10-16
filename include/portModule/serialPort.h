@@ -39,13 +39,13 @@ signals:
     void errorOccurred(const QString &error);
 
 private:
-    bool handleWrite(const QByteArray &f_txData);
-
-    QByteArray handleRead(int timeout, int length);
-
     void handleReadyRead();
 
     void handleError();
+
+    bool handleWrite(const QByteArray &f_txData);
+
+    QByteArray handleRead(int timeout, int length);
 
     void handleLog(const QString &mode, const QByteArray &data);
 

@@ -39,11 +39,15 @@ signals:
     void errorOccurred(const QString &error);
 
 private:
+    void handleReadyRead();
+
     void handleError();
 
     bool handleWrite(const QByteArray &f_txData);
 
     QByteArray handleRead(int timeout, int length);
+
+    void handleLog(const QString &mode, const QByteArray &data);
 
     QUdpSocket *m_udpSocket{};
     // port config
@@ -56,6 +60,8 @@ private:
     QString m_txSuffix{};
     QString m_rxFormat{};
     //
+    bool m_syncMode = false;
+    qint64 m_bufferSize = 0;
     QByteArray m_rxBuffer{};
 };
 

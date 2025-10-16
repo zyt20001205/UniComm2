@@ -1,5 +1,6 @@
 #include "portModule/tcpServer.h"
 
+#include <QElapsedTimer>
 #include <QTcpServer>
 #include <QTcpSocket>
 
@@ -25,6 +26,7 @@ void TcpServer::reload(const QJsonObject &portConfig) {
 }
 
 QHash<QString, QVariant> TcpServer::info() {
+    if (m_tcpServer == nullptr) return {};
     const bool status = m_tcpServer->isListening();
     const QString localAddress = m_tcpServerLocalAddress;
     const QString localPort = QString::number(m_tcpServerLocalPort);
@@ -55,16 +57,16 @@ bool TcpServer::open() {
     // open port
     if (m_tcpServer->listen(QHostAddress(m_tcpServerLocalAddress), m_tcpServerLocalPort)) {
         emit togglePort(true);
-        emit appendLog(QString("%1 %2:%3").arg("tcp server started on", m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort)), "info");
+        emit appendLog(QString("%1 started on %2:%3").arg(m_portName, m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort)), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp server started on", m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort));
+        qDebug() << QString("[%1] %2 started on %3:%4").arg(timestamp, m_portName, m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort));
         return true;
     }
-    emit appendLog(QString("%1: %2").arg("tcp server open failed", m_tcpServer->errorString()), "error");
+    emit appendLog(QString("%1 open failed: %2").arg(m_portName, m_tcpServer->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2: %3").arg(timestamp, "tcp server open failed", m_tcpServer->errorString());
+    qDebug() << QString("[%1] %2 open failed: %3").arg(timestamp, m_portName, m_tcpServer->errorString());
     return false;
 }
 
@@ -141,20 +143,18 @@ bool TcpServer::writeData(const QByteArray &txData, const QString &peerIp) {
 
 QString TcpServer::readText(const int timeout, const int length) {
     const QByteArray rxData = readData(timeout, length);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
+    if (m_rxFormat == "hex") return rxData.toHex().toUpper();
+    if (m_rxFormat == "ascii") return QString::fromLatin1(rxData);
     /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
+    return QString::fromUtf8(rxData);
 }
 
 QString TcpServer::readText(const int timeout, const int length, const QString &peerIp) {
     const QByteArray rxData = readData(timeout, length, peerIp);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
+    if (m_rxFormat == "hex") return rxData.toHex().toUpper();
+    if (m_rxFormat == "ascii") return QString::fromLatin1(rxData);
     /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
+    return QString::fromUtf8(rxData);
 }
 
 QByteArray TcpServer::readData(const int timeout, const int length) {
@@ -166,10 +166,11 @@ QByteArray TcpServer::readData(const int timeout, const int length) {
     // sync mode
     else {
         for (QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
-            disconnect(tcpServerPeer, &QTcpSocket::readyRead, this, nullptr);
+            m_syncMode = true;
+            m_bufferSize = 0;
             rxData = handleRead(timeout, length, tcpServerPeer);
-            connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
-            if (rxData != "timeout") break;
+            m_syncMode = false;
+            if (!rxData.isEmpty()) break;
         }
     }
     return rxData;
@@ -184,16 +185,17 @@ QByteArray TcpServer::readData(const int timeout, const int length, const QStrin
     // sync mode
     else {
         if (!m_tcpServerPeerHash.contains(peerIp)) {
-            emit appendLog("peer not found", "error");
+            emit appendLog(QString("%1 not found").arg(peerIp), "error");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "peer not found");
+            qDebug() << QString("[%1] %2 not found").arg(timestamp, peerIp);
             return {};
         }
         QTcpSocket *tcpServerPeer = m_tcpServerPeerHash[peerIp];
-        disconnect(tcpServerPeer, &QTcpSocket::readyRead, this, nullptr);
+        m_syncMode = true;
+        m_bufferSize = 0;
         rxData = handleRead(timeout, length, tcpServerPeer);
-        connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
+        m_syncMode = false;
     }
     return rxData;
 }
@@ -203,62 +205,84 @@ void TcpServer::handleNewConnection() {
     while (m_tcpServer->hasPendingConnections()) {
         QTcpSocket *tcpServerPeer = m_tcpServer->nextPendingConnection();
         handleConnected(tcpServerPeer);
-        connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleRead(0, 0, tcpServerPeer); });
+        connect(tcpServerPeer, &QTcpSocket::readyRead, this, [this, tcpServerPeer] { handleReadyRead(tcpServerPeer); });
         connect(tcpServerPeer, &QTcpSocket::disconnected, this, [this, tcpServerPeer] { handleDisconnected(tcpServerPeer); });
-        connect(tcpServerPeer, &QTcpSocket::errorOccurred, this, [this, tcpServerPeer](QAbstractSocket::SocketError error) { handleError(tcpServerPeer); });
+        connect(tcpServerPeer, &QTcpSocket::errorOccurred, this, [this, tcpServerPeer] { handleError(tcpServerPeer); });
     }
 }
 
 void TcpServer::handleServerError() {
-};
-
-void TcpServer::handleConnected(QTcpSocket *tcpServerPeer) {
-    QString peerAddress = tcpServerPeer->peerAddress().toString();
-    QString peerPort = QString::number(tcpServerPeer->peerPort());
-    const QString peerIp = peerAddress + ":" + peerPort;
-    m_tcpServerPeerHash.insert(peerIp, tcpServerPeer);
-    emit appendLog(QString("%1 %2:%3").arg("new client connected", peerAddress, peerPort), "info");
+    if (m_tcpServer->serverError() == QAbstractSocket::SocketTimeoutError) return;
+    if (m_tcpServer->isListening()) {
+        m_tcpServer->close();
+    }
+    emit togglePort(false);
+    emit appendLog(QString("%1 error: %2").arg(m_portName, m_tcpServer->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "new client connected", peerAddress, peerPort);
+    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, m_portName, m_tcpServer->errorString());
+}
+
+void TcpServer::handleConnected(QTcpSocket *tcpServerPeer) {
+    const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
+    m_tcpServerPeerHash.insert(peerIp, tcpServerPeer);
+    emit appendLog(QString("%1 accepts connection from %2").arg(m_portName, peerIp), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 accepts connection from %3").arg(timestamp, m_portName, peerIp);
 }
 
 void TcpServer::handleDisconnected(QTcpSocket *tcpServerPeer) {
-    QString peerAddress = tcpServerPeer->peerAddress().toString();
-    QString peerPort = QString::number(tcpServerPeer->peerPort());
-    const QString peerIp = peerAddress + ":" + peerPort;
-    m_tcpServerPeerHash.insert(peerIp, tcpServerPeer);
-    emit appendLog(QString("%1 %2:%3").arg("client disconnected", peerAddress, peerPort), "info");
+    const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
+    m_tcpServerPeerHash.remove(peerIp);
+    tcpServerPeer->deleteLater();
+    emit appendLog(QString("%1 lost connection from %2").arg(m_portName, peerIp), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "client disconnected", peerAddress, peerPort);
+    qDebug() << QString("[%1] %2 lost connection from %3").arg(timestamp, m_portName, peerIp);
+}
+
+void TcpServer::handleReadyRead(QTcpSocket *tcpServerPeer) {
+    QByteArray rxData;
+    if (m_syncMode) {
+        const auto newBufferSize = tcpServerPeer->bytesAvailable();
+        rxData = tcpServerPeer->peek(newBufferSize);
+        handleLog("rx", rxData.mid(m_bufferSize), tcpServerPeer);
+        m_bufferSize = newBufferSize;
+    } else {
+        rxData = tcpServerPeer->readAll();
+        handleLog("rx", rxData, tcpServerPeer);
+    }
+    m_rxBuffer = rxData;
 }
 
 void TcpServer::handleError(QTcpSocket *tcpServerPeer) {
+    if (tcpServerPeer->error() == QAbstractSocket::SocketTimeoutError) return;
+    // if (tcpServerPeer->isOpen()) {
+    //     tcpServerPeer->close();
+    // }
+    const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
+    // emit togglePort(false);
+    emit appendLog(QString("%1 error: %2").arg(peerIp, tcpServerPeer->errorString()), "error");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, peerIp, tcpServerPeer->errorString());
 }
 
 bool TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
     // check port status
     if (m_tcpServer == nullptr || !m_tcpServer->isListening()) {
-        emit appendLog("tcp server is not opened", "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "tcp server is not opened");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
         return false;
     }
     if (peerIp.isEmpty()) {
         for (QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
             tcpServerPeer->write(f_txData);
+            handleLog("tx", f_txData, tcpServerPeer);
         }
-        // tx message reformat
-        QString txMessage;
-        // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-        // 2: add port info
-        txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), "broadcast", txMessage);
-        emit appendLog(txMessage, "tx");
     } else {
         if (!m_tcpServerPeerHash.contains(peerIp)) {
             emit appendLog("peer not found", "error");
@@ -269,17 +293,7 @@ bool TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
         }
         QTcpSocket *tcpServerPeer = m_tcpServerPeerHash[peerIp];
         tcpServerPeer->write(f_txData);
-        // tx message reformat
-        QString txMessage;
-        // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-        // 2: add port info
-        QString peerAddress = tcpServerPeer->peerAddress().toString();
-        QString peerPort = QString::number(tcpServerPeer->peerPort());
-        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress, peerPort, txMessage);
-        emit appendLog(txMessage, "tx");
+        handleLog("tx", f_txData, tcpServerPeer);
     }
     return true;
 }
@@ -287,38 +301,47 @@ bool TcpServer::handleWrite(const QByteArray &f_txData, const QString &peerIp) {
 QByteArray TcpServer::handleRead(const int timeout, const int length, QTcpSocket *tcpServerPeer) {
     // check port status
     if (m_tcpServer == nullptr || !m_tcpServer->isListening()) {
-        emit appendLog("tcp server is not opened", "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "tcp server is not opened");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
         return {};
     }
-    QByteArray rxData = tcpServerPeer->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (!tcpServerPeer->waitForReadyRead(10)) {
-                rxData += tcpServerPeer->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
+    QElapsedTimer timer;
+    timer.start();
+    while (timer.elapsed() <= timeout) {
+        if (tcpServerPeer->bytesAvailable() == length) {
+            QByteArray rxData = tcpServerPeer->readAll();
+            return rxData;
         }
+        tcpServerPeer->waitForReadyRead(10);
     }
-    m_rxBuffer = rxData;
-    // rx message reformat
-    QString peerAddress = tcpServerPeer->peerAddress().toString();
-    QString peerPort = QString::number(tcpServerPeer->peerPort());
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerAddress,
-                                                      peerPort, rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
+    const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
+    emit appendLog(QString("%1 timeout").arg(peerIp), "error");
+    return {};
+}
+
+void TcpServer::handleLog(const QString &mode, const QByteArray &data, const QTcpSocket *tcpServerPeer) {
+    const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
+    if (mode == "tx") {
+        // tx message reformat
+        QString txMessage;
+        // 1: encode tx message according to tx format
+        if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
+        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(data);
+        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(data);
+        // 2: add port info
+        txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerIp, txMessage);
+        emit appendLog(txMessage, mode);
+    } else {
+        // rx message reformat
+        QString rxMessage;
+        // 1: encode rx message according to rx format
+        if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
+        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(data);
+        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(data);
+        // 2: add port info
+        rxMessage = QString("[%1:%2 &lt;- %3] %4").arg(m_tcpServerLocalAddress, QString::number(m_tcpServerLocalPort), peerIp, rxMessage);
+        emit appendLog(rxMessage, mode);
+    }
 }

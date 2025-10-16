@@ -108,12 +108,12 @@ flowchart LR
 
 ## Port IO APIS
 
-|      APIS      |                             Serial Port                             | Tcp Client | Tcp Server | Udp Socket | Screen | Camera |
-|:--------------:|:-------------------------------------------------------------------:|:----------:|:----------:|:----------:|:------:|:------:|
-| port.readData  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
-| port.writeData | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
-| port.readText  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
-| port.writeText | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |            |            |        |        |
+|      APIS      |                             Serial Port                             |                             Tcp Client                              |                             Tcp Server                              | Udp Socket | Screen | Camera |
+|:--------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:----------:|:------:|:------:|
+| port.readData  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |        |        |
+| port.writeData | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |        |        |
+| port.readText  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |        |        |
+| port.writeText | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |            |        |        |
 
 ## Modbus APIS
 

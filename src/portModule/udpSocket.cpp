@@ -1,5 +1,6 @@
 #include "portModule/udpSocket.h"
 
+#include <QElapsedTimer>
 #include <QUdpSocket>
 
 #include "suffix.h"
@@ -29,6 +30,7 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
 }
 
 QHash<QString, QVariant> UdpSocket::info() {
+    if (m_udpSocket == nullptr) return {};
     bool status;
     if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
         status = true;
@@ -52,30 +54,34 @@ bool UdpSocket::open() {
     // port init
     if (m_udpSocket == nullptr) {
         m_udpSocket = new QUdpSocket(this);
-        connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
+        connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpSocket::handleReadyRead);
         connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
     }
     // open port
     if (!m_udpSocket->bind(QHostAddress(m_udpSocketLocalAddress), m_udpSocketLocalPort)) {
-        emit appendLog(QString("udp socket open failed: %1").arg(m_udpSocket->errorString()), "error");
+        emit appendLog(QString("%1 open failed: %2").arg(m_portName, m_udpSocket->errorString()), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] udp socket open failed: %2").arg(timestamp, m_udpSocket->errorString());
+        qDebug() << QString("[%1] %2 open failed: %3").arg(timestamp, m_portName, m_udpSocket->errorString());
         return false;
     }
     m_udpSocket->connectToHost(m_udpSocketRemoteAddress, m_udpSocketRemotePort);
-    emit appendLog(QString("udp socket opened: %1:%2->%3:%4").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                                  QString::number(m_udpSocketRemotePort)), "info");
+    emit togglePort(true);
+    emit appendLog(QString("%1 opened: %2:%3->%4:%5").arg(m_portName, m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                          QString::number(m_udpSocketRemotePort)), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] udp socket opened: %2:%3->%4:%5").arg(timestamp, m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                                    QString::number(m_udpSocketRemotePort));
+    qDebug() << QString("[%1] %2 opened: %3:%4->%5:%6").arg(timestamp, m_portName, m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                            QString::number(m_udpSocketRemotePort));
     return true;
 }
 
 void UdpSocket::close() {
     if (m_udpSocket == nullptr) return;
-    m_udpSocket->close();
+    if (m_udpSocket->isOpen()) {
+        m_udpSocket->close();
+    }
+    emit togglePort(false);
 }
 
 bool UdpSocket::writeText(const QString &txText) {
@@ -105,11 +111,10 @@ bool UdpSocket::writeData(const QByteArray &txData) {
 
 QString UdpSocket::readText(const int timeout, const int length) {
     const QByteArray rxData = readData(timeout, length);
-    if (rxData == "timeout") return "timeout";
-    if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
+    if (m_rxFormat == "hex") return rxData.toHex().toUpper();
+    if (m_rxFormat == "ascii") return QString::fromLatin1(rxData);
     /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(m_rxBuffer);
+    return QString::fromUtf8(rxData);
 }
 
 QByteArray UdpSocket::readData(const int timeout, const int length) {
@@ -120,73 +125,100 @@ QByteArray UdpSocket::readData(const int timeout, const int length) {
     }
     // sync mode
     else {
-        disconnect(m_udpSocket, &QUdpSocket::readyRead, this, nullptr);
+        // BUG NEEDS TO BE FIXED: UDP LATENCY IS SO LOW, SYNC MODE CAN'T BE SET IN TIME
+        m_syncMode = true;
+        m_bufferSize = 0;
         rxData = handleRead(timeout, length);
-        connect(m_udpSocket, &QUdpSocket::readyRead, this, [this] { handleRead(0, 0); });
+        m_syncMode = false;
     }
     return rxData;
 }
 
 // UdpSocket private
+void UdpSocket::handleReadyRead() {
+    QByteArray rxData;
+    if (m_syncMode) {
+        const auto newBufferSize = m_udpSocket->bytesAvailable();
+        rxData = m_udpSocket->peek(newBufferSize);
+        handleLog("rx", rxData.mid(m_bufferSize));
+        m_bufferSize = newBufferSize;
+    } else {
+        rxData = m_udpSocket->readAll();
+        handleLog("rx", rxData);
+    }
+    m_rxBuffer = rxData;
+}
+
 void UdpSocket::handleError() {
+    if (m_udpSocket->error() == QAbstractSocket::SocketTimeoutError) return;
+    if (m_udpSocket->isOpen()) {
+        m_udpSocket->close();
+    }
+    emit togglePort(false);
+    emit appendLog(QString("%1 error: %2").arg(m_portName, m_udpSocket->errorString()), "error");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, m_portName, m_udpSocket->errorString());
 }
 
 bool UdpSocket::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog("udp socket is not opened", "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
         return false;
     }
     m_udpSocket->write(f_txData);
-    // tx message reformat
-    QString txMessage;
-    // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-    // 2: add port info
-    txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                      QString::number(m_udpSocketRemotePort), txMessage);
-    emit appendLog(txMessage, "tx");
+    handleLog("tx", f_txData);
     return true;
 }
 
 QByteArray UdpSocket::handleRead(const int timeout, const int length) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog("udp socket is not opened", "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] udp socket is not opened").arg(timestamp);
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
         return {};
     }
-    QByteArray rxData = m_udpSocket->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (!m_udpSocket->waitForReadyRead(10)) {
-                rxData += m_udpSocket->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
+    QElapsedTimer timer;
+    timer.start();
+    while (timer.elapsed() <= timeout) {
+        if (m_udpSocket->bytesAvailable() == length) {
+            QByteArray rxData = m_udpSocket->readAll();
+            return rxData;
         }
+        m_udpSocket->waitForReadyRead(10);
     }
-    m_rxBuffer = rxData;
-    // rx message reformat
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
-                                                      QString::number(m_udpSocketRemotePort), rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
+    emit appendLog(QString("%1 timeout").arg(m_portName), "error");
+    return {};
+}
+
+void UdpSocket::handleLog(const QString &mode, const QByteArray &data) {
+    if (mode == "tx") {
+        // tx message reformat
+        QString txMessage;
+        // 1: encode tx message according to tx format
+        if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
+        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(data);
+        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(data);
+        // 2: add port info
+        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                          QString::number(m_udpSocketRemotePort), txMessage);
+        emit appendLog(txMessage, mode);
+    } else {
+        // rx message reformat
+        QString rxMessage;
+        // 1: encode rx message according to rx format
+        if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
+        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(data);
+        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(data);
+        // 2: add port info
+        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_udpSocketLocalAddress, QString::number(m_udpSocketLocalPort), m_udpSocketRemoteAddress,
+                                                          QString::number(m_udpSocketRemotePort), rxMessage);
+        emit appendLog(rxMessage, mode);
+    }
 }
