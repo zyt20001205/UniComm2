@@ -100,7 +100,7 @@ void ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script)
         threadId,
         0,
         0,
-        DEBUG_RUN
+        DEBUG_PAUSE
     };
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);

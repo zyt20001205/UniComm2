@@ -73,25 +73,43 @@ int lua_portInfo(lua_State *L) {
                 case QMetaType::QString:
                     lua_pushstring(L, value.toString().toUtf8().constData());
                     break;
-                case QMetaType::QVariantList:
-                {
+                case QMetaType::QVariantList: {
                     const QVariantList varList = value.toList();
                     lua_createtable(L, static_cast<int>(varList.size()), 0);
                     for (int i = 0; i < varList.size(); ++i) {
                         const QVariant &elem = varList[i];
-                        if (elem.typeId() == QMetaType::Int) {
-                            lua_pushinteger(L, elem.toInt());
-                        } else if (elem.typeId() == QMetaType::QString) {
-                            lua_pushstring(L, elem.toString().toUtf8().constData());
-                        } else {
-                            lua_pushnil(L);
-                            qDebug() << "unknown type";
+                        switch (elem.typeId()) {
+                            case QMetaType::QVariantMap: {
+                                const QVariantMap varMap = elem.toMap();
+                                lua_createtable(L, 0, static_cast<int>(varMap.size()));
+                                for (auto mapIt = varMap.constBegin(); mapIt != varMap.constEnd(); ++mapIt) {
+                                    lua_pushstring(L, mapIt.key().toUtf8().constData());
+                                    const QVariant &mapValue = mapIt.value();
+                                    switch (mapValue.typeId()) {
+                                        case QMetaType::Int:
+                                            lua_pushinteger(L, mapValue.toInt());
+                                            break;
+                                        case QMetaType::QString:
+                                            lua_pushstring(L, mapValue.toString().toUtf8().constData());
+                                            break;
+                                        default:
+                                            lua_pushnil(L);
+                                            break;
+                                    }
+                                    lua_settable(L, -3);
+                                }
+                                break;
+                            }
+                            default:
+                                lua_pushnil(L);
+                                break;
                         }
                         lua_rawseti(L, -2, i + 1);
                     }
                     break;
                 }
                 default:
+                    lua_pushnil(L);
                     break;
             }
             lua_settable(L, -3);
