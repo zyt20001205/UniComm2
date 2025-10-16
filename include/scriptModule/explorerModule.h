@@ -37,14 +37,18 @@ private:
 
     void scriptOpen(const QModelIndex &index);
 
+    void scriptNew(QString rootPath = QString());
+
     void scriptDelete(const QModelIndex &index);
 
-    void scriptNew();
+    void folderNew(QString rootPath = QString());
+
+    void folderDelete(const QModelIndex &index);
 
     void scriptOpenInExplorer() const;
 
     QTreeView *m_explorerTreeView{};
-    QFileSystemModel *m_model{};
+    QFileSystemModel *m_explorerTreeModel{};
 };
 
 #endif //UNICOMM_EXPLORER_H

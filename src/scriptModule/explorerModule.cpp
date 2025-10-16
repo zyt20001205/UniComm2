@@ -14,25 +14,25 @@
 ExplorerModule::ExplorerModule()
     : DockWidget("explorer"),
       m_explorerTreeView(new QTreeView()),
-      m_model(new QFileSystemModel()) {
+      m_explorerTreeModel(new QFileSystemModel()) {
     setWidget(m_explorerTreeView);
 
     m_explorerTreeView->installEventFilter(this);
     connect(m_explorerTreeView, &QTreeView::doubleClicked, this, &ExplorerModule::scriptOpen);
 
-    m_explorerTreeView->setModel(m_model);
+    m_explorerTreeView->setModel(m_explorerTreeModel);
     m_explorerTreeView->setHeaderHidden(true);
     m_explorerTreeView->setColumnHidden(1, true);
     m_explorerTreeView->setColumnHidden(2, true);
     m_explorerTreeView->setColumnHidden(3, true);
     m_explorerTreeView->setColumnHidden(4, true);
-    m_model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
+    m_explorerTreeModel->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
 }
 
 void ExplorerModule::workspaceOpen(const QUrl &rootUrl) const {
     const QString rootPath = rootUrl.toLocalFile();
-    m_model->setRootPath(rootPath);
-    m_explorerTreeView->QTreeView::setRootIndex(m_model->index(rootPath));
+    m_explorerTreeModel->setRootPath(rootPath);
+    m_explorerTreeView->QTreeView::setRootIndex(m_explorerTreeModel->index(rootPath));
 }
 
 // ExplorerModule protected
@@ -41,13 +41,28 @@ void ExplorerModule::contextMenuEvent(QContextMenuEvent *event) {
     const QModelIndex index = m_explorerTreeView->indexAt(vpPos);
     QMenu menu(this);
     if (!index.isValid()) {
-        menu.addAction(tr("new script"), this, &ExplorerModule::scriptNew);
+        menu.addAction(tr("new script"), this, [this] { scriptNew(); });
+        menu.addAction(tr("new folder"), this, [this] { folderNew(); });
         menu.addAction(tr("open in explorer"), this, &ExplorerModule::scriptOpenInExplorer);
     } else {
-        menu.addAction(tr("run"), [this, index] { scriptRun(index); });
-        menu.addAction(tr("debug"), [this, index] { scriptDebug(index); });
-        menu.addAction(tr("open"), [this, index] { scriptOpen(index); });
-        menu.addAction(tr("delete"), [this, index] { scriptDelete(index); });
+        if (const QFileInfo fileInfo = m_explorerTreeModel->fileInfo(index); fileInfo.isDir()) {
+            menu.addAction(tr("new script"), this, [this, fileInfo] {
+                const QString rootPath = fileInfo.absoluteFilePath();
+                scriptNew(rootPath);
+            });
+            menu.addAction(tr("new folder"), this, [this, fileInfo] {
+                const QString rootPath = fileInfo.absoluteFilePath();
+                folderNew(rootPath);
+            });
+            menu.addAction(tr("delete folder"), [this, index] { folderDelete(index); });
+        } else {
+            if (const QString fileSuffix = fileInfo.suffix(); fileSuffix == "lua") {
+                menu.addAction(tr("run script"), [this, index] { scriptRun(index); });
+                menu.addAction(tr("debug script"), [this, index] { scriptDebug(index); });
+                menu.addAction(tr("open script"), [this, index] { scriptOpen(index); });
+                menu.addAction(tr("delete script"), [this, index] { scriptDelete(index); });
+            }
+        }
     }
     menu.exec(event->globalPos());
 }
@@ -67,7 +82,7 @@ bool ExplorerModule::eventFilter(QObject *obj, QEvent *event) {
 
 // ExplorerModule private
 void ExplorerModule::scriptRun(const QModelIndex &index) {
-    const QString scriptPath = m_model->filePath(index);
+    const QString scriptPath = m_explorerTreeModel->filePath(index);
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
     QFile file(scriptPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -79,7 +94,7 @@ void ExplorerModule::scriptRun(const QModelIndex &index) {
 }
 
 void ExplorerModule::scriptDebug(const QModelIndex &index) {
-    const QString scriptPath = m_model->filePath(index);
+    const QString scriptPath = m_explorerTreeModel->filePath(index);
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
     QFile file(scriptPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -91,40 +106,23 @@ void ExplorerModule::scriptDebug(const QModelIndex &index) {
 }
 
 void ExplorerModule::scriptOpen(const QModelIndex &index) {
-    const QString scriptPath = m_model->filePath(index);
+    const QString scriptPath = m_explorerTreeModel->filePath(index);
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath).toString();
     emit openScript(scriptUrl);
 }
 
-void ExplorerModule::scriptDelete(const QModelIndex &index) {
-    const QString fileName = m_model->fileName(index);
-    const QMessageBox::StandardButton reply =
-            QMessageBox::question(nullptr, tr("Delete Script"), tr("Are you sure to delete script?"), QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::No);
-    if (reply != QMessageBox::Yes) {
-        return;
-    }
-    if (!m_model->remove(index)) {
-        emit appendLog(QString("%1 %2").arg(fileName, "delete failed"), "info");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "delete failed");
-        return;
-    }
-    emit appendLog(QString("%1 %2").arg(fileName, "deleted"), "info");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "deleted");
-}
-
-void ExplorerModule::scriptNew() {
+void ExplorerModule::scriptNew(QString rootPath) {
     bool ok;
-    QString fileName = QInputDialog::getText(nullptr, "New Script", "script name:", QLineEdit::Normal, "new", &ok);
+    QString fileName = QInputDialog::getText(nullptr, tr("New Script"), tr("script name:"), QLineEdit::Normal, "new script", &ok);
     if (!ok || fileName.isEmpty()) {
         return;
     }
     fileName += ".lua";
-    const QString filePath = QDir::current().filePath(m_model->rootPath() + "/" + fileName);
+
+    if (rootPath.isEmpty()) {
+        rootPath = m_explorerTreeModel->rootPath();
+    }
+    const QString filePath = QDir(rootPath).filePath(fileName);
 
     if (QFile::exists(filePath)) {
         const QMessageBox::StandardButton reply =
@@ -139,17 +137,87 @@ void ExplorerModule::scriptNew() {
     QTextStream out(&file);
     file.close();
 
-    emit appendLog(QString("%1 %2").arg(fileName, "created"), "info");
-
+    emit appendLog(QString("%1 created").arg(fileName), "info");
     const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
     emit openScript(scriptUrl);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, fileName, "created");
+    qDebug() << QString("[%1] %2 created").arg(timestamp, fileName);
+}
+
+void ExplorerModule::scriptDelete(const QModelIndex &index) {
+    const QString fileName = m_explorerTreeModel->fileName(index);
+    const QMessageBox::StandardButton reply =
+            QMessageBox::question(nullptr, tr("Delete Script"),
+                                  tr("Are you sure to delete script %1?").arg(fileName),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+    if (!m_explorerTreeModel->remove(index)) {
+        emit appendLog(QString("%1 delete failed").arg(fileName), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 delete failed").arg(timestamp, fileName);
+        return;
+    }
+    emit appendLog(QString("%1 deleted").arg(fileName), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 deleted").arg(timestamp, fileName);
+}
+
+void ExplorerModule::folderNew(QString rootPath) {
+    bool ok;
+    const QString folderName = QInputDialog::getText(nullptr, tr("New Folder"), tr("folder name:"), QLineEdit::Normal, "new folder", &ok);
+    if (!ok || folderName.isEmpty()) {
+        return;
+    }
+
+    if (rootPath.isEmpty()) {
+        rootPath = m_explorerTreeModel->rootPath();
+    }
+    const QString folderPath = QDir(rootPath).filePath(folderName);
+
+    if (QFile::exists(folderPath)) {
+        QMessageBox::critical(this, tr("Error"), tr("Folder already exists."));
+        return;
+    }
+
+    if (QDir().mkdir(folderPath)) {
+        emit appendLog(QString("%1 created").arg(folderName), "info");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 created").arg(timestamp, folderName);
+    }
+}
+
+void ExplorerModule::folderDelete(const QModelIndex &index) {
+    const QString folderName = m_explorerTreeModel->fileName(index);
+    const QMessageBox::StandardButton reply =
+            QMessageBox::question(nullptr, tr("Delete Folder"),
+                                  tr("Are you sure to delete folder %1 and all its contents?").arg(folderName),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+    if (!m_explorerTreeModel->remove(index)) {
+        emit appendLog(QString("%1 delete failed").arg(folderName), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 delete failed").arg(timestamp, folderName);
+        return;
+    }
+    emit appendLog(QString("%1 deleted").arg(folderName), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 deleted").arg(timestamp, folderName);
 }
 
 void ExplorerModule::scriptOpenInExplorer() const {
-    const QDir folderPath = m_model->rootPath();
+    const QDir folderPath = m_explorerTreeModel->rootPath();
     const QString folderAbsolutePath = folderPath.absolutePath();
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
