@@ -27,12 +27,6 @@
 
 </div>
 
-# Roadmap
-
-<div align="center">
-<img src="resources/sketch/roadmap.svg" alt="roadmap" style="max-width: 100%; height: auto;">
-</div>
-
 # Port Module
 
 ## Architecture
