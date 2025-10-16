@@ -1,6 +1,8 @@
 #include "portModule/serialPort.h"
 
+#include <QElapsedTimer>
 #include <QSerialPort>
+#include <QThread>
 
 #include "suffix.h"
 
@@ -72,7 +74,7 @@ bool SerialPort::open() {
     // port init
     if (m_serialPort == nullptr) {
         m_serialPort = new QSerialPort(this);
-        connect(m_serialPort, &QSerialPort::readyRead, this, [this] { handleRead(0, 0); });
+        connect(m_serialPort, &QSerialPort::readyRead, this, &SerialPort::handleReadyRead);
         connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
     }
     m_serialPort->setPortName(m_portName);
@@ -83,16 +85,16 @@ bool SerialPort::open() {
     // port open
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
         emit togglePort(true);
-        emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "opened"), "info");
+        emit appendLog(QString("%1 opened").arg(m_portName), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "opened");
+        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portName);
         return true;
     }
-    emit appendLog(QString("%1 %2 %3: %4").arg("serial port", m_portName, "open failed", m_serialPort->errorString()), "error");
+    emit appendLog(QString("%1 open failed").arg(m_portName), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4: %5").arg(timestamp, "serial port", m_portName, "open failed", m_serialPort->errorString());
+    qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portName);
     return false;
 }
 
@@ -134,7 +136,6 @@ bool SerialPort::writeData(const QByteArray &txData) {
 
 QString SerialPort::readText(const int timeout, const int length) {
     const QByteArray rxData = readData(timeout, length);
-    if (rxData == "timeout") return "timeout";
     if (m_rxFormat == "hex") return m_rxBuffer.toHex().toUpper();
     if (m_rxFormat == "ascii") return QString::fromLatin1(m_rxBuffer);
     /* m_rxFormat == "utf-8" */
@@ -149,9 +150,10 @@ QByteArray SerialPort::readData(const int timeout, const int length) {
     }
     // sync mode
     else {
-        disconnect(m_serialPort, &QSerialPort::readyRead, this, nullptr);
+        m_syncMode = true;
+        m_bufferSize = 0;
         rxData = handleRead(timeout, length);
-        connect(m_serialPort, &QSerialPort::readyRead, this, [this] { handleRead(0, 0); });
+        m_syncMode = false;
     }
     return rxData;
 }
@@ -160,60 +162,85 @@ QByteArray SerialPort::readData(const int timeout, const int length) {
 bool SerialPort::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
         return false;
     }
     m_serialPort->write(f_txData);
-    // tx message reformat
-    QString txMessage;
-    // 1: encode tx message according to tx format
-    if (m_txFormat == "hex") txMessage = f_txData.toHex(' ').toUpper();
-    else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(f_txData);
-    else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(f_txData);
-    // 2: add port info
-    txMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), txMessage);
-    emit appendLog(txMessage, "tx");
+    handleLog("tx", f_txData);
     return true;
 }
 
 QByteArray SerialPort::handleRead(const int timeout, const int length) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(QString("serial port %1 is not opened").arg(m_portName), "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] serial port %2 is not opened").arg(timestamp, m_portName);
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
         return {};
     }
-    QByteArray rxData = m_serialPort->readAll();
-    if (timeout != 0 && length != 0) {
-        int time = 0;
-        while (rxData.size() != length) {
-            if (m_serialPort->waitForReadyRead(10)) {
-                rxData += m_serialPort->readAll();
-            }
-            time += 10;
-            if (time >= timeout) {
-                rxData = "timeout";
-                break;
-            }
+    QElapsedTimer timer;
+    timer.start();
+    while (timer.elapsed() <= timeout) {
+        if (m_serialPort->bytesAvailable() == length) {
+            QByteArray rxData = m_serialPort->readAll();
+            return rxData;
         }
+        m_serialPort->waitForReadyRead(10);
+    }
+    emit appendLog(QString("%1 timeout").arg(m_portName), "error");
+    return {};
+}
+
+void SerialPort::handleReadyRead() {
+    QByteArray rxData;
+    if (m_syncMode) {
+        const auto newBufferSize = m_serialPort->bytesAvailable();
+        rxData = m_serialPort->peek(newBufferSize);
+        handleLog("rx", rxData.mid(m_bufferSize));
+        m_bufferSize = newBufferSize;
+    } else {
+        rxData = m_serialPort->readAll();
+        handleLog("rx", rxData);
     }
     m_rxBuffer = rxData;
-    // rx message reformat
-    QString rxMessage;
-    // 1: encode rx message according to rx format
-    if (m_rxFormat == "hex") rxMessage = rxData.toHex(' ').toUpper();
-    else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(rxData);
-    else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(rxData);
-    // 2: add port info
-    rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
-    emit appendLog(rxMessage, "rx");
-    return rxData;
 }
 
 void SerialPort::handleError() {
+    if (m_serialPort->error() == QSerialPort::NoError || m_serialPort->error() == QSerialPort::TimeoutError) return;
+    if (m_serialPort->isOpen()) {
+        m_serialPort->close();
+    }
+    emit togglePort(false);
+    emit appendLog(QString("%1 error: %2").arg(m_portName, m_serialPort->errorString()), "error");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, m_portName, m_serialPort->errorString());
+}
+
+void SerialPort::handleLog(const QString &mode, const QByteArray &data) {
+    if (mode == "tx") {
+        // tx message reformat
+        QString txMessage;
+        // 1: encode tx message according to tx format
+        if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
+        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(data);
+        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(data);
+        // 2: add port info
+        txMessage = QString("[%1] -&gt; %2").arg(m_serialPort->portName(), txMessage);
+        emit appendLog(txMessage, mode);
+    } else {
+        // rx message reformat
+        QString rxMessage;
+        // 1: encode rx message according to rx format
+        if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
+        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(data);
+        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(data);
+        // 2: add port info
+        rxMessage = QString("[%1] &lt;- %2").arg(m_serialPort->portName(), rxMessage);
+        emit appendLog(rxMessage, mode);
+    }
 }

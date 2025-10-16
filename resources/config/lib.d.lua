@@ -133,7 +133,7 @@ function port.info(name) end
 --- Writes **raw binary data** to a port.
 --- @param name string Target port name.
 --- @param data bytes The raw binary data to write.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
 --- @return nil
 ---
 --- @usage — Write data to port COM3.
@@ -148,7 +148,7 @@ function port.writeData(name, data, peerIp) end
 --- Writes **text data** to a port.
 --- @param name string Target port name.
 --- @param text string The text data to write.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted or set to -1, the command will be broadcast to all connected clients.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
 --- @return nil
 ---
 --- @usage — Write text to port COM3.
@@ -164,6 +164,7 @@ function port.writeText(name, text, peerIp) end
 --- @param name string Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
 ---
 --- * 0(default): The function returns immediately.
 ---
@@ -189,12 +190,13 @@ function port.writeText(name, text, peerIp) end
 --- port.writeText("COM3", "0110 0000 000102 0000")
 ---
 --- port.readData("COM3", 100)
-function port.readData(name, timeout, length) end
+function port.readData(name, timeout, length, peerIp) end
 
 --- Reads **decoded text data** from a port.
 --- @param name string Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
 ---
 --- * 0(default): The function returns immediately.
 ---
@@ -220,7 +222,7 @@ function port.readData(name, timeout, length) end
 --- port.writeText("COM3", "0110 0000 000102 0000")
 ---
 --- port.readText("COM3", 100)
-function port.readText(name, timeout, length) end
+function port.readText(name, timeout, length, peerIp) end
 
 modbusRtu = {}
 --- Reads data from multiple holding registers of a Modbus RTU device.

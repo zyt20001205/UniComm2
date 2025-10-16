@@ -30,7 +30,11 @@ public:
 
     bool writeData(const QByteArray &txData, const QString &peerIp) override;
 
+    QString readText(int timeout, int length) override;
+
     QString readText(int timeout, int length, const QString &peerIp) override;
+
+    QByteArray readData(int timeout, int length) override;
 
     QByteArray readData(int timeout, int length, const QString &peerIp) override;
 
@@ -65,7 +69,7 @@ private:
     QString m_portName{};
     QString m_tcpServerLocalAddress{};
     int m_tcpServerLocalPort{};
-    QList<QTcpSocket *> m_tcpServerPeerList{};
+    QHash<QString, QTcpSocket *> m_tcpServerPeerHash{};
     QString m_txFormat{};
     QString m_txSuffix{};
     QString m_rxFormat{};
