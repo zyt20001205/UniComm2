@@ -213,6 +213,7 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
     if (kind == "Function") {
         didChangeNotification();
+        completionRequest();
         signatureHelpRequest();
     } else if (kind == "Field") {
         didChangeNotification();
@@ -228,7 +229,7 @@ void ScriptPage::scriptEdit() const {
 
 void ScriptPage::charAdded(const int ch) {
     const QChar character(ch);
-    if (character.isLetter() || character == "." || character == ":") {
+    if (character.isLetter() || character == '.' || character == ':' || character == '(') {
         didChangeNotification();
         completionRequest();
     } else if (character == "(" || character == ",") {

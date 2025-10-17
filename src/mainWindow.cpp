@@ -25,6 +25,7 @@
 #include "dataModule/databaseModule.h"
 #include "dataModule/dataplotModule.h"
 #include "dataModule/datatableModule.h"
+#include "luaModule/luaInterpreter.h"
 #include "luaModule/luaLanguageServer.h"
 #include "portModule/portModule.h"
 #include "portModule/sendModule.h"
@@ -235,9 +236,10 @@ void MainWindow::moduleInit() {
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
-    connect(this, &MainWindow::openWorkspace, m_scriptModule, &ScriptModule::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_portModule, &PortModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_explorerModule, &ExplorerModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &ThreadpoolModule::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_scriptModule, &ScriptModule::workspaceOpen);
     connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsReturn);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsReturn);
@@ -250,6 +252,7 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpReturn);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_portModule, &PortModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &ExplorerModule::runScript, m_threadpoolModule, &ThreadpoolModule::threadRun);

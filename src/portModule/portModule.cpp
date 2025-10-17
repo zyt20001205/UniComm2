@@ -62,11 +62,15 @@ PortModule::PortModule()
     if (m_portTabWidget->count() == 0) overlayShow();
 }
 
+void PortModule::workspaceOpen(const QUrl &rootUrl) {
+    didOpenNotification();
+}
+
 void PortModule::portConfigSave() const {
     g_config["portConfig"] = m_portConfig;
 }
 
-BasePort* PortModule::currentPort() const {
+BasePort *PortModule::currentPort() const {
     if (m_portTabWidget->currentWidget()) {
         return static_cast<PortPage *>(m_portTabWidget->currentWidget())->m_port;
     }
@@ -97,6 +101,7 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
                     BasePort *port = m_portHash.value(oldPortConfig["portName"].toString());
                     m_portHash.remove(oldPortConfig["portName"].toString());
                     m_portHash.insert(newPortConfig["portName"].toString(), port);
+                    didChangeNotification();
                     qDebug() << m_portHash;
                 }
                 portPage->portReload(newPortConfig);
@@ -131,6 +136,7 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
     m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
     m_portHash.insert(portConfig["portName"].toString(), portPage->m_port);
+    didChangeNotification();
     qDebug() << m_portHash;
     overlayHide();
 }
@@ -148,6 +154,7 @@ void PortModule::portRemove(const int index) {
     if (reply != QMessageBox::Yes) return;
     m_portConfig.removeAt(index);
     m_portHash.remove(portName);
+    didChangeNotification();
     qDebug() << m_portHash;
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
@@ -178,6 +185,58 @@ void PortModule::overlayHide() const {
 void PortModule::overlayResize() const {
     m_portTabOverlay->resize(m_portTabWidget->size());
     m_portTabOverlay->move(0, 0);
+}
+
+QString PortModule::portAnnotationGet() const {
+    QString annotation;
+
+    annotation += "--- @meta\n\n";
+    annotation += "--- @alias port\n";
+    QStringList portList = m_portHash.keys();
+    for (const QString &portName: portList) {
+        annotation += QString("--- | '\"%1\"'\n").arg(portName);
+    }
+    if (portList.isEmpty()) {
+        annotation += "--- | string\n";
+    }
+    annotation += "\n";
+
+    return annotation;
+}
+
+void PortModule::didOpenNotification() {
+    // didOpen notification to lua language server
+    const QJsonObject didOpenParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()},
+                {"languageId", "lua"},
+                {"version", m_version++},
+                {"text", portAnnotationGet()}
+            }
+        }
+    };
+    emit notificationJson("textDocument/didOpen", didOpenParams);
+}
+
+void PortModule::didChangeNotification() {
+    // didChange notification to lua language server
+    const QJsonObject didChangeParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()},
+                {"version", m_version++}
+            }
+        },
+        {
+            "contentChanges", QJsonArray{
+                QJsonObject{
+                    {"text", portAnnotationGet()}
+                }
+            }
+        }
+    };
+    emit notificationJson("textDocument/didChange", didChangeParams);
 }
 
 // PortPage public

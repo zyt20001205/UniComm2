@@ -53,9 +53,9 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
     if (m_tableWidget->rowCount() > 0) {
         m_currentRow = 0;
         m_tableWidget->selectRow(m_currentRow);
+        m_tableWidget->setFocus();
         m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
         m_kind = m_tableWidget->item(m_currentRow, 1)->text();
-        // if (m_tableWidget->rowCount() == 1&&)
     } else {
         m_currentRow = -1;
         m_kind.clear();

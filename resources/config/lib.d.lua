@@ -104,7 +104,7 @@ function control.keyPress(key) end
 
 port = {}
 --- Opens a port connection for communication.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @return boolean status The status of the open operation.
 ---
 --- @usage — Open port COM3.
@@ -113,7 +113,7 @@ port = {}
 function port.open(name) end
 
 --- Closes a port connection.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @return nil
 ---
 --- @usage — Close port COM3.
