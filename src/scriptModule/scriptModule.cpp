@@ -94,6 +94,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
     } else {
         m_scriptPageHash[scriptUrl]->show();
+        m_scriptPageHash[scriptUrl]->raise();
     }
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

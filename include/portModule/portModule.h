@@ -22,6 +22,8 @@ public:
 
     void workspaceOpen(const QUrl &rootUrl);
 
+    void portLoad();
+
     void portConfigSave() const;
 
     BasePort* currentPort() const;
@@ -29,8 +31,6 @@ public:
     QHash<QString, BasePort *> m_portHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
-
-    void notificationJson(const QString &method, const QJsonObject &params);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -52,16 +52,12 @@ private:
 
     void overlayResize() const;
 
-    QString portAnnotationGet() const;
-
-    void didOpenNotification();
-
-    void didChangeNotification();
+    void portAnnotationRefresh() const;
 
     QJsonArray m_portConfig{};
     QTabWidget *m_portTabWidget{};
     QWidget *m_portTabOverlay{};
-    QUrl m_scriptUrl{"virtual://port-annotation.lua"};
+    QUrl m_annotationUrl{};
     int m_version = 1;
 };
 

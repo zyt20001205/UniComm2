@@ -1,6 +1,8 @@
 #include "portModule/portModule.h"
 
 #include <QContextMenuEvent>
+#include <QDir>
+#include <QFile>
 #include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
@@ -42,13 +44,6 @@ PortModule::PortModule()
             portInsert(m_portTabWidget->count(), portConfig);
         }
     });
-    // load ports
-    int index = 0;
-    for (const auto &value: m_portConfig) {
-        QJsonObject portConfig = value.toObject();
-        portInsert(index, portConfig);
-        index++;
-    }
 
     m_portTabOverlay->installEventFilter(this);
     m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
@@ -63,7 +58,18 @@ PortModule::PortModule()
 }
 
 void PortModule::workspaceOpen(const QUrl &rootUrl) {
-    didOpenNotification();
+    const QString rootPath = rootUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
+    m_annotationUrl = QUrl::fromLocalFile(annotationPath);
+}
+
+void PortModule::portLoad() {
+    int index = 0;
+    for (const auto &value: m_portConfig) {
+        QJsonObject portConfig = value.toObject();
+        portInsert(index, portConfig);
+        index++;
+    }
 }
 
 void PortModule::portConfigSave() const {
@@ -101,7 +107,7 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
                     BasePort *port = m_portHash.value(oldPortConfig["portName"].toString());
                     m_portHash.remove(oldPortConfig["portName"].toString());
                     m_portHash.insert(newPortConfig["portName"].toString(), port);
-                    didChangeNotification();
+                    portAnnotationRefresh();
                     qDebug() << m_portHash;
                 }
                 portPage->portReload(newPortConfig);
@@ -136,7 +142,7 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
     m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
     m_portHash.insert(portConfig["portName"].toString(), portPage->m_port);
-    didChangeNotification();
+    portAnnotationRefresh();
     qDebug() << m_portHash;
     overlayHide();
 }
@@ -154,7 +160,7 @@ void PortModule::portRemove(const int index) {
     if (reply != QMessageBox::Yes) return;
     m_portConfig.removeAt(index);
     m_portHash.remove(portName);
-    didChangeNotification();
+    portAnnotationRefresh();
     qDebug() << m_portHash;
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
@@ -187,9 +193,8 @@ void PortModule::overlayResize() const {
     m_portTabOverlay->move(0, 0);
 }
 
-QString PortModule::portAnnotationGet() const {
+void PortModule::portAnnotationRefresh() const {
     QString annotation;
-
     annotation += "--- @meta\n\n";
     annotation += "--- @alias port\n";
     QStringList portList = m_portHash.keys();
@@ -201,42 +206,15 @@ QString PortModule::portAnnotationGet() const {
     }
     annotation += "\n";
 
-    return annotation;
-}
-
-void PortModule::didOpenNotification() {
-    // didOpen notification to lua language server
-    const QJsonObject didOpenParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()},
-                {"languageId", "lua"},
-                {"version", m_version++},
-                {"text", portAnnotationGet()}
-            }
-        }
-    };
-    emit notificationJson("textDocument/didOpen", didOpenParams);
-}
-
-void PortModule::didChangeNotification() {
-    // didChange notification to lua language server
-    const QJsonObject didChangeParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()},
-                {"version", m_version++}
-            }
-        },
-        {
-            "contentChanges", QJsonArray{
-                QJsonObject{
-                    {"text", portAnnotationGet()}
-                }
-            }
-        }
-    };
-    emit notificationJson("textDocument/didChange", didChangeParams);
+    QFile file(m_annotationUrl.toLocalFile());
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream stream(&file);
+        stream << annotation;
+        file.close();
+        qDebug() << "Annotation file written successfully";
+    } else {
+        qDebug() << "Failed to open file. Error:" << file.errorString();
+    }
 }
 
 // PortPage public
