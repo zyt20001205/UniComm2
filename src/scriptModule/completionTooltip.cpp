@@ -57,14 +57,14 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
         m_tableWidget->setFocus();
         m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
         m_kind = m_tableWidget->item(m_currentRow, 1)->text();
+        m_tableWidget->resizeRowsToContents();
+        this->adjustSize();
+        this->show();
     } else {
         m_currentRow = -1;
         m_kind.clear();
         m_insertText.clear();
     }
-    m_tableWidget->resizeRowsToContents();
-    this->adjustSize();
-    this->show();
 }
 
 void CompletionTooltip::hideTooltip() {

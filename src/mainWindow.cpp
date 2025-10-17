@@ -310,34 +310,36 @@ void MainWindow::workspaceInit() {
         }
 
         // check if lib dir exists
-        if (const QString libDirPath = QDir(rootPath).filePath("lib"); QDir().mkdir(libDirPath)) {
+        const QString libDirPath = QDir(rootPath).filePath("lib");
+        if (QDir().mkdir(libDirPath)) {
             emit appendLog("lib dir created", "info");
             // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] lib dir created").arg(timestamp);
-
-            if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
-                QFile::copy(":/config/lib.d.lua", libdPath);
-                // logging
-                timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-            } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
-                QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                                | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                                | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-                QFile::remove(libdPath);
-                QFile::copy(":/config/lib.d.lua", libdPath);
-                // logging
-                timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
-            }
-            if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
-                if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
-                // logging
-                timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
-            }
         }
+
+        if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
+        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
+            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(libdPath);
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+        }
+        if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
+            if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
+        }
+
         emit openWorkspace(rootUrl);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

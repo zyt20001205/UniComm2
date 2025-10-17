@@ -122,7 +122,7 @@ function port.open(name) end
 function port.close(name) end
 
 --- Prints information about a port.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @return table information
 ---
 --- @usage — Print information about port COM3.
@@ -131,7 +131,7 @@ function port.close(name) end
 function port.info(name) end
 
 --- Writes **raw binary data** to a port.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @param data bytes The raw binary data to write.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
 --- @return nil
@@ -146,7 +146,7 @@ function port.info(name) end
 function port.writeData(name, data, peerIp) end
 
 --- Writes **text data** to a port.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @param text string The text data to write.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
 --- @return nil
@@ -161,7 +161,7 @@ function port.writeData(name, data, peerIp) end
 function port.writeText(name, text, peerIp) end
 
 --- Reads **raw binary data** from a port.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
@@ -193,7 +193,7 @@ function port.writeText(name, text, peerIp) end
 function port.readData(name, timeout, length, peerIp) end
 
 --- Reads **decoded text data** from a port.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
@@ -226,7 +226,7 @@ function port.readText(name, timeout, length, peerIp) end
 
 modbusRtu = {}
 --- Reads data from multiple holding registers of a Modbus RTU device.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
@@ -235,7 +235,7 @@ modbusRtu = {}
 function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
 --- Writes data to multiple holding registers to a Modbus RTU device.
---- @param name string Target port name.
+--- @param name port Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param data string **Binary string** containing the raw data to be written.
