@@ -42,6 +42,8 @@ signals:
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
+    void setFullCompletion(bool status);
+
 private slots:
     void scriptEdit() const;
 

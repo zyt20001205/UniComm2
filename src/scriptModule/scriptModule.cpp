@@ -81,6 +81,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
+        connect(scriptPage,&ScriptPage::setFullCompletion,m_completionTooltip,&CompletionTooltip::fullCompleteSet);
         scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {

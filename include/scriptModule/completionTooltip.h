@@ -17,6 +17,8 @@ public:
 
     void hideTooltip();
 
+    void fullCompleteSet(bool status);
+
 signals:
     void replaceText(QString &text, const QString &kind);
 
@@ -29,6 +31,7 @@ private:
     void moveDown();
 
     QTableWidget *m_tableWidget = nullptr;
+    bool m_fullComplete = false;
     int m_currentRow{};
     QString m_insertText{};
     QString m_kind{};

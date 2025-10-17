@@ -39,6 +39,7 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
     for (const auto &value: items) {
         QJsonObject item = value.toObject();
         const QString kind = m_kindList[item["kind"].toInt()];
+        if (!m_fullComplete && kind != "EnumMember") continue;
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
         m_tableWidget->insertRow(row);
@@ -68,6 +69,10 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
 
 void CompletionTooltip::hideTooltip() {
     this->hide();
+}
+
+void CompletionTooltip::fullCompleteSet(const bool status) {
+    m_fullComplete = status;
 }
 
 // CompletionTooltip protected

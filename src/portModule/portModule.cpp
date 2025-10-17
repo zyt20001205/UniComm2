@@ -207,14 +207,10 @@ void PortModule::portAnnotationRefresh() const {
     annotation += "\n";
 
     QFile file(m_annotationUrl.toLocalFile());
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream stream(&file);
-        stream << annotation;
-        file.close();
-        qDebug() << "Annotation file written successfully";
-    } else {
-        qDebug() << "Failed to open file. Error:" << file.errorString();
-    }
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream stream(&file);
+    stream << annotation;
+    file.close();
 }
 
 // PortPage public
