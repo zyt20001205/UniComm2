@@ -150,10 +150,12 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/debugStepOver.svg"
         "resources/icon/delete.svg"
         "resources/icon/function.svg"
+        "resources/icon/moreHorizontal.svg"
         "resources/icon/pause.svg"
         "resources/icon/play.svg"
         "resources/icon/save.svg"
         "resources/icon/send.svg"
+        "resources/icon/share.svg"
         "resources/icon/stop.svg"
 )
 

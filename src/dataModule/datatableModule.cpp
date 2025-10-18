@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTableWidget>
+#include <qtoolbutton.h>
 
 #include "globals.h"
 
@@ -25,14 +26,20 @@ DatatableModule::DatatableModule()
         const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
         datatableRename(visualIndex);
     });
-
-    auto *clearButton = new QPushButton(); // NOLINT
-    clearButton->setIcon(QIcon(":/icon/delete.svg"));
-    m_tableWidget->setCornerWidget(clearButton);
-    connect(clearButton, &QPushButton::clicked, this, [this] {
-        datatableClear("");
-    });
     m_tableWidget->installEventFilter(this);
+    auto *moreButton = new QToolButton(); // NOLINT
+    moreButton->setIcon(QIcon(":/icon/moreHorizontal.svg"));
+    moreButton->setPopupMode(QToolButton::InstantPopup);
+    m_tableWidget->setCornerWidget(moreButton);
+
+    auto *cornerMenu = new QMenu(); // NOLINT
+    moreButton->setMenu(cornerMenu);
+    auto *exportAction = new QAction(QIcon(":/icon/share.svg"), tr("export"), cornerMenu); // NOLINT
+    cornerMenu->addAction(exportAction);
+    connect(exportAction, &QAction::triggered, this, [this] {datatableExport();});
+    auto *clearAction = new QAction(QIcon(":/icon/delete.svg"), tr("clear"), cornerMenu); // NOLINT
+    cornerMenu->addAction(clearAction);
+    connect(clearAction, &QAction::triggered, this, [this] {datatableClear("");});
 }
 
 void DatatableModule::workspaceOpen(const QUrl &rootUrl) {
