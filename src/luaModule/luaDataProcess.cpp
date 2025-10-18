@@ -13,17 +13,21 @@ int lua_databaseWrite(lua_State *L) {
     const char *param1 = luaL_checkstring(L, 1);
     const char *param2 = luaL_checkstring(L, 2);
     // start operation
+    bool status = false;
     const QString key = param1;
     const QString value = param2;
-    QMetaObject::invokeMethod(g_mainWindow, [key, value] {
-        g_database->databaseWrite(key, value);
-    }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(g_mainWindow, [&status, key, value] {
+        status = g_database->databaseWrite(key, value);
+    }, Qt::BlockingQueuedConnection);
+    if (!status) {
+        luaL_error(L, "key not found in database");
+    }
     return 0;
 }
 
 int lua_databaseClear(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 0)
+    if (lua_gettop(L) != 0)
         luaL_error(L, "unexpected number of arguments");
     // start operation
     QMetaObject::invokeMethod(g_mainWindow, [] {
@@ -40,25 +44,33 @@ int lua_datatableWrite(lua_State *L) {
     const char *param1 = luaL_checkstring(L, 1);
     const char *param2 = luaL_checkstring(L, 2);
     // start operation
+    bool status = false;
     const QString key = param1;
     const QString value = param2;
-    QMetaObject::invokeMethod(g_mainWindow, [key, value] {
-        g_datatable->datatableWrite(key, value);
-    }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(g_mainWindow, [&status, key, value] {
+        status = g_datatable->datatableWrite(key, value);
+    }, Qt::BlockingQueuedConnection);
+    if (!status) {
+        luaL_error(L, "key not found in datatable");
+    }
     return 0;
 }
 
 int lua_datatableClear(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 1)
+    if (lua_gettop(L) != 0 && lua_gettop(L) != 1)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
-    const char *param1 = luaL_optstring(L, 1, "all");
+    const char *param1 = luaL_optstring(L, 1, "");
     // start operation
+    bool status = false;
     const QString key = param1;
-    QMetaObject::invokeMethod(g_mainWindow, [key] {
-        g_datatable->datatableClear(key);
-    }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(g_mainWindow, [&status, key] {
+        status = g_datatable->datatableClear(key);
+    }, Qt::BlockingQueuedConnection);
+    if (!status) {
+        luaL_error(L, "key not found in datatable");
+    }
     return 0;
 }
 

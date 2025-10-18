@@ -18,7 +18,7 @@ public:
 
     void databaseConfigSave() const;
 
-    void databaseWrite(const QString &key, const QString &value) const;
+    bool databaseWrite(const QString &key, const QString &value) const;
 
     void databaseClear() const;
 

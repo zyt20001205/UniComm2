@@ -258,13 +258,13 @@ function database.clear() end
 
 datatable = {}
 --- Writes data to a key in datatable.
---- @param key string The key to write to.
+--- @param key datatable The key to write to.
 --- @param value string|number The value to write.
 --- @return nil
 function datatable.write(key, value) end
 
 --- Clears a column of datatable using a key identifier.
---- @param key? string The target column key identifier. ; when omitted or set to "all" clears all columns.
+--- @param key? datatable The target column key identifier. ; when omitted or set to "all" clears all columns.
 --- @return nil
 function datatable.clear(key) end
 
@@ -274,7 +274,7 @@ function datatable.export() end
 
 dataplot = {}
 --- Appends a column from the datatable to dataplot using a key identifier
---- @param key string The named key of the column to append from the datatable.
+--- @param key datatable The named key of the column to append from the datatable.
 --- @param position? integer 0=left Y-axis (default), 1=right Y-axis.
 --- @return nil
 function dataplot.append(key, position) end

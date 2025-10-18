@@ -201,6 +201,7 @@ void PortModule::portAnnotate() const {
     }
     annotation += "\n";
 
+
     QFile file(m_annotationUrl.toLocalFile());
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream stream(&file);

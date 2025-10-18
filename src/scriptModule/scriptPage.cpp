@@ -248,7 +248,7 @@ void ScriptPage::scriptEdit() const {
 
 void ScriptPage::charAdded(const int ch) {
     const QChar character(ch);
-    if (character.isLetter() || character == '.' || character == ':' || character == '(') {
+    if (character.isLetter() || character == '.' || character == ':') {
         didChangeNotification();
         emit setFullCompletion(true);
         completionRequest();

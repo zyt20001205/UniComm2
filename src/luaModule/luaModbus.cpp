@@ -7,7 +7,7 @@
 
 int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) != 4 || lua_gettop(L) != 5)
+    if (lua_gettop(L) != 4 && lua_gettop(L) != 5)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     const char *param1 = luaL_checkstring(L, 1);
@@ -72,7 +72,7 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
 
 int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) != 4 || lua_gettop(L) != 5)
+    if (lua_gettop(L) != 4 && lua_gettop(L) != 5)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     const char *param1 = luaL_checkstring(L, 1);

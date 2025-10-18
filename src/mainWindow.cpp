@@ -240,6 +240,7 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::openWorkspace, m_portModule, &PortModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_explorerModule, &ExplorerModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_databaseModule, &DatabaseModule::workspaceOpen);
+    connect(this, &MainWindow::openWorkspace, m_datatableModule, &DatatableModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &ThreadpoolModule::workspaceOpen);
     connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_llsModule, &LuaLanguageServer::returnPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsReturn);
@@ -267,6 +268,7 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &ExplorerModule::debugScript, m_threadpoolModule, &ThreadpoolModule::threadDebug);
     connect(m_structureModule, &StructureModule::showMarker, m_scriptModule, &ScriptModule::markerShow);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
     connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
     connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
@@ -511,6 +513,12 @@ void MainWindow::workspaceInit() {
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] %2").arg(timestamp, "database.d.lua generated");
+        }
+        if (const QString datatabledPath = QDir(libDirPath).filePath("datatable.d.lua"); !QFile::exists(datatabledPath)) {
+            if (QFile file(datatabledPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "datatable.d.lua generated");
         }
         emit openWorkspace(rootUrl);
         // logging

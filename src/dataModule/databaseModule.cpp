@@ -22,7 +22,10 @@ DatabaseModule::DatabaseModule()
     m_tableWidget->verticalHeader()->setMinimumWidth(30);
     m_tableWidget->verticalHeader()->setSectionsMovable(true);
     connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionMoved, this, &DatabaseModule::databaseSwap);
-
+    connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionDoubleClicked, this, [this](const int logicalIndex) {
+        const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
+        databaseRename(visualIndex);
+    });
     m_tableWidget->installEventFilter(this);
 }
 
@@ -43,14 +46,10 @@ void DatabaseModule::databaseConfigSave() const {
     g_config["databaseConfig"] = m_databaseConfig;
 }
 
-void DatabaseModule::databaseWrite(const QString &key, const QString &value) const {
-    for (int index = 0; index < m_tableWidget->rowCount(); index++) {
-        if (m_tableWidget->verticalHeaderItem(index)->text() == key) {
-            m_tableWidget->item(index, 0)->setText(value);
-            return;
-        }
-    }
-    qDebug() << "key not found in database";
+bool DatabaseModule::databaseWrite(const QString &key, const QString &value) const {
+    if (!m_databaseHash.contains(key)) return false;
+    m_tableWidget->item(m_databaseHash[key], 0)->setText(value);
+    return true;
 }
 
 void DatabaseModule::databaseClear() const {
@@ -186,7 +185,7 @@ void DatabaseModule::databaseRename(const int visualIndex) {
         return;
     }
     m_tableWidget->verticalHeaderItem(logicalIndex)->setText(newKey);
-    // config
+    // backend
     m_databaseConfig[visualIndex] = newKey;
     m_databaseHash.clear();
     for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
@@ -200,13 +199,14 @@ void DatabaseModule::databaseRename(const int visualIndex) {
     qDebug() << QString("[%1] %2 renamed").arg(timestamp, newKey);
 }
 
-void DatabaseModule::databaseSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex) {
+void DatabaseModule::databaseSwap(int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
     const QJsonValue tmp = m_databaseConfig.takeAt(oldVisualIndex);
     m_databaseConfig.insert(newVisualIndex, tmp);
 }
 
 void DatabaseModule::databaseAnnotate() const {
     QString annotation;
+
     annotation += "--- @meta\n\n";
     annotation += "--- @alias database\n";
     for (const QString &databaseKey: m_databaseHash.keys()) {

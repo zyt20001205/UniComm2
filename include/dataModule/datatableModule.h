@@ -14,17 +14,23 @@ public:
 
     ~DatatableModule() override = default;
 
+    void workspaceOpen(const QUrl &rootUrl);
+
     void datatableConfigSave() const;
 
-    void datatableWrite(const QString &key, const QString &value);
+    bool datatableWrite(const QString &key, const QString &value);
 
-    void datatableClear(const QString &key);
+    bool datatableClear(const QString &key);
 
     void datatableAddGraph(const QString &key, int position);
 
     void datatableExport();
 
+    QHash<QString, int> m_datatableHash{};
+
 signals:
+    void appendLog(const QString &message, const QString &level);
+
     void addGraphDataPlot(const QString &key, const QList<double> &x, const QList<double> &y, int position);
 
     void addPointDataPlot(const QString &key, double x, double y);
@@ -35,14 +41,17 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void datatableRename(int visualIndex);
+    void datatableInsert(int visualIndex, QString key = QString());
 
-    void datatableInsert(int visualIndex);
+    void datatableRename(int visualIndex);
 
     void datatableRemove(int visualIndex);
 
+    void datatableSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex);
+
+    void datatableAnnotate() const;
+
     struct DataMap {
-        int index;
         bool enable;
         QDateTime basetime;
         QList<double> x;
@@ -51,6 +60,8 @@ private:
 
     QJsonArray m_datatableConfig{};
     QTableWidget *m_tableWidget{};
+    QUrl m_annotationUrl{};
+    int m_version = 1;
     QHash<QString, DataMap> m_data{};
 };
 
