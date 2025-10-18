@@ -261,6 +261,7 @@ void ScriptPage::charAdded(const int ch) {
 }
 
 void ScriptPage::dwellStart(const int pos, const int x, const int y) {
+    if (x == 0 || y == 0) return;
     int line, character;
     m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
     if (line == 0 && character == 0) return;
