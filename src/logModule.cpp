@@ -1,5 +1,6 @@
 #include "logModule.h"
 
+#include <qdesktopservices.h>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QInputDialog>
@@ -8,14 +9,14 @@
 #include <QPushButton>
 #include <QStandardPaths>
 #include <QTextDocumentWriter>
-#include <QTextEdit>
+#include <QTextBrowser>
 
 #include "globals.h"
 // LogModule public
 LogModule::LogModule()
     : DockWidget("log"),
       m_logConfig(g_config["logConfig"].toObject()),
-      m_textEdit(new QTextEdit()) {
+      m_logTextBrowser(new QTextBrowser()) {
     auto *widget = new QWidget(); // NOLINT
     auto *layout = new QHBoxLayout(widget); // NOLINT
     setWidget(widget);
@@ -44,7 +45,7 @@ LogModule::LogModule()
         bool ok = false;
         const int height = QInputDialog::getInt(nullptr, "Log Setting", "maximum line count:", m_logConfig["height"].toInt(), 1, 10000, 1, &ok);
         if (ok) {
-            m_textEdit->document()->setMaximumBlockCount(height);
+            m_logTextBrowser->document()->setMaximumBlockCount(height);
             m_logConfig["height"] = height;
         }
     });
@@ -61,8 +62,11 @@ LogModule::LogModule()
     clearButton->setToolTip(tr("clear log"));
     connect(clearButton, &QPushButton::clicked, this, &LogModule::logClear);
 
-    layout->addWidget(m_textEdit);
-    m_textEdit->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
+    layout->addWidget(m_logTextBrowser);
+    m_logTextBrowser->setOpenLinks(false);
+    m_logTextBrowser->setOpenExternalLinks(false);
+    m_logTextBrowser->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
+    connect(m_logTextBrowser, &QTextBrowser::anchorClicked, this, [](const QUrl &link) { QDesktopServices::openUrl(link); });
 }
 
 void LogModule::logAppend(const QString &message, const QString &level) {
@@ -86,7 +90,7 @@ void LogModule::logAppend(const QString &message, const QString &level) {
     else //(level == "rx")
         f_message = QString("<span style='background-color:lightgreen;'>%1</span>").arg(f_message);
     // append log
-    m_textEdit->append(f_message);
+    m_logTextBrowser->append(f_message);
 }
 
 void LogModule::logConfigSave() const {
@@ -95,7 +99,7 @@ void LogModule::logConfigSave() const {
 
 // LogModule private
 void LogModule::logSave() {
-    if (m_textEdit->toPlainText().isEmpty()) {
+    if (m_logTextBrowser->toPlainText().isEmpty()) {
         QMessageBox::warning(nullptr, "Warning", tr("Log is empty."));
         return;
     }
@@ -110,7 +114,7 @@ void LogModule::logSave() {
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream stream(&file);
-            stream << m_textEdit->toPlainText();
+            stream << m_logTextBrowser->toPlainText();
             file.close();
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
@@ -126,7 +130,7 @@ void LogModule::logSave() {
         QPrinter printer(QPrinter::HighResolution);
         printer.setOutputFormat(QPrinter::PdfFormat);
         printer.setOutputFileName(filePath);
-        m_textEdit->document()->print(&printer);
+        m_logTextBrowser->document()->print(&printer);
         if (QFile::exists(filePath)) {
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
@@ -142,7 +146,7 @@ void LogModule::logSave() {
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream stream(&file);
-            stream << m_textEdit->toHtml();
+            stream << m_logTextBrowser->toHtml();
             file.close();
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
@@ -157,7 +161,7 @@ void LogModule::logSave() {
     } else {
         QTextDocumentWriter writer(filePath);
         writer.setFormat("odf");
-        if (writer.write(m_textEdit->document())) {
+        if (writer.write(m_logTextBrowser->document())) {
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -172,5 +176,5 @@ void LogModule::logSave() {
 }
 
 void LogModule::logClear() const {
-    m_textEdit->clear();
+    m_logTextBrowser->clear();
 }

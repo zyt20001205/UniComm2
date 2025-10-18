@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
-class QTextEdit;
+class QTextBrowser;
 
 class LogModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -24,7 +24,7 @@ private:
     void logClear() const;
 
     QJsonObject m_logConfig{};
-    QTextEdit *m_textEdit{};
+    QTextBrowser *m_logTextBrowser{};
 };
 
 #endif //UNICOMM_LOG_H

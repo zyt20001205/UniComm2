@@ -31,8 +31,6 @@ public:
 
     void workspaceOpen(const QUrl &rootUrl);
 
-    void scriptLoad();
-
     void scriptConfigSave();
 
     void scriptOpen(const QUrl &scriptUrl);

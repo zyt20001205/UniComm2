@@ -104,10 +104,10 @@ void SerialPort::close() {
     if (m_serialPort == nullptr) return;
     m_serialPort->close();
     emit togglePort(false);
-    emit appendLog(QString("%1 %2 %3").arg("serial port", m_portName, "closed"), "info");
+    emit appendLog(QString("%1 closed").arg(m_portName), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3 %4").arg(timestamp, "serial port", m_portName, "closed");
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
 }
 
 bool SerialPort::writeText(const QString &txText) {

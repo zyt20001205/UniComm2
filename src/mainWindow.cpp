@@ -56,10 +56,10 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 
     configInit();
     moduleInit();
-    workspaceInit();
     shortcutInit();
     menuInit();
     layoutInit();
+    workspaceInit();
 
     // preload multimedia to avoid lagging on first click
     QThread *worker = QThread::create([] {
@@ -162,6 +162,12 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "undo module initialized");
 
+    m_scriptModule = new ScriptModule();
+    m_scriptModule->setObjectName("scriptModule");
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
+
     m_portModule = new PortModule();
     m_portModule->setObjectName("portModule");
     // logging
@@ -228,12 +234,6 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "threadpool module initialized");
 
-    m_scriptModule = new ScriptModule();
-    m_scriptModule->setObjectName("scriptModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
-
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
     connect(this, &MainWindow::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_portModule, &PortModule::workspaceOpen);
@@ -251,6 +251,14 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::returnHover, m_scriptModule, &ScriptModule::hoverReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensReturn);
     connect(m_llsModule, &LuaLanguageServer::returnSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpReturn);
+    connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
+    connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
+    connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
+    connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
+    connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &url) { m_currentScriptLabel->setText(url.fileName()); });
+    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
+    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
@@ -266,14 +274,6 @@ void MainWindow::moduleInit() {
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::showMarker, m_scriptModule, &ScriptModule::markerShow);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
-    connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
-    connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
-    connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
-    connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &url) { m_currentScriptLabel->setText(url.fileName()); });
-    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
-    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
 
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
@@ -284,67 +284,6 @@ void MainWindow::moduleInit() {
     g_script = m_scriptModule;
     g_threadpool = m_threadpoolModule;
     g_undo = m_undoModule;
-}
-
-void MainWindow::workspaceInit() {
-    QUrl rootUrl{};
-    // check if workspace is valid
-    if (rootUrl = QUrl(m_mainConfig["workspace"].toString()); QFileInfo::exists(rootUrl.toLocalFile())) {
-        const QString rootPath = rootUrl.toLocalFile();
-
-        // check if luarc.json exists
-        if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
-            QFile::copy(":/config/.luarc.json", luarcPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
-        } else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
-            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            QFile::remove(luarcPath);
-            QFile::copy(":/config/.luarc.json", luarcPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
-        }
-
-        // check if lib dir exists
-        const QString libDirPath = QDir(rootPath).filePath("lib");
-        if (QDir().mkdir(libDirPath)) {
-            emit appendLog("lib dir created", "info");
-            // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] lib dir created").arg(timestamp);
-        }
-
-        if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
-            QFile::copy(":/config/lib.d.lua", libdPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
-            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            QFile::remove(libdPath);
-            QFile::copy(":/config/lib.d.lua", libdPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
-        }
-        if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
-            if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
-        }
-
-        emit openWorkspace(rootUrl);
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
-    }
 }
 
 void MainWindow::shortcutInit() {
@@ -506,11 +445,69 @@ void MainWindow::layoutInit() {
         // dock resize
         // still figuring out how to do this
     } else {
-        m_portModule->portLoad();
-        m_scriptModule->scriptLoad();
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
         layoutSaver.restoreLayout(layoutData);
+    }
+}
+
+void MainWindow::workspaceInit() {
+    QUrl rootUrl{};
+    // check if workspace is valid
+    if (rootUrl = QUrl(m_mainConfig["workspace"].toString()); QFileInfo::exists(rootUrl.toLocalFile())) {
+        const QString rootPath = rootUrl.toLocalFile();
+
+        // check if luarc.json exists
+        if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
+        } else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
+            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(luarcPath);
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+        }
+
+        // check if lib dir exists
+        const QString libDirPath = QDir(rootPath).filePath("lib");
+        if (QDir().mkdir(libDirPath)) {
+            emit appendLog("lib dir created", "info");
+            // logging
+            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] lib dir created").arg(timestamp);
+        }
+
+        if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
+        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
+            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(libdPath);
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+        }
+        if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
+            if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
+        }
+        emit openWorkspace(rootUrl);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
     }
 }
 

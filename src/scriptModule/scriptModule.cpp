@@ -2,7 +2,6 @@
 
 #include <QFileInfo>
 #include <QHBoxLayout>
-#include <QMessageBox>
 #include <QShortcut>
 #include <QTableWidget>
 #include <QTextBrowser>
@@ -37,16 +36,13 @@ ScriptModule::ScriptModule()
     m_scriptConfig["scriptList"] = validScriptList;
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
-
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
     m_diagnosticsHash.clear();
-}
-
-void ScriptModule::scriptLoad() {
+    // post initialization after workspace opened
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
         scriptOpen(QUrl(value.toString()));
     }
@@ -72,7 +68,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         scriptPage->setObjectName(scriptUrl.toString());
         m_scriptPageHash[scriptUrl] = scriptPage;
-        connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isOpenChanged, this, [this, scriptPage] { scriptClose(scriptPage); });
+        connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isOpenChanged, this, [this, scriptPage](const bool status) {
+            if (!status) scriptClose(scriptPage);
+        });
         connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isFocusedChanged, this, [this, scriptPage](const bool status) {
             scriptFocus(scriptPage, status);
         });
@@ -81,7 +79,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
-        connect(scriptPage,&ScriptPage::setFullCompletion,m_completionTooltip,&CompletionTooltip::fullCompleteSet);
+        connect(scriptPage, &ScriptPage::setFullCompletion, m_completionTooltip, &CompletionTooltip::fullCompleteSet);
         scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
@@ -98,8 +96,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         m_scriptPageHash[scriptUrl]->raise();
     }
     // logging
+    emit appendLog(QString("<a href='%1'>%2</a> opened").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptUrl.toString(), "opened");
+    qDebug() << QString("[%1] %2 opened").arg(timestamp, scriptUrl.fileName());
 }
 
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
@@ -243,21 +242,19 @@ void ScriptModule::scriptModify(ScriptPage *scriptPage, const bool status) {
 }
 
 void ScriptModule::scriptClose(ScriptPage *scriptPage) {
-    // ask for saving
-    if (scriptPage->m_modified) {
-        const QMessageBox::StandardButton reply =
-                QMessageBox::question(nullptr, tr("Close Script"), tr("The script has been edited. Save changes?"), QMessageBox::Yes | QMessageBox::No,
-                                      QMessageBox::No);
-        if (m_focusedPage == scriptPage) {
-            m_focusedPage = nullptr;
-        }
-        if (reply == QMessageBox::Yes) {
-            scriptPage->scriptSave();
-        } else {
-            m_scriptPageHash.remove(scriptPage->m_scriptUrl);
-            scriptPage->deleteLater();
-        }
+    const QUrl scriptUrl = scriptPage->m_scriptUrl;
+    scriptPage->scriptClose();
+    m_scriptPageHash.remove(scriptPage->m_scriptUrl);
+    if (m_scriptPageHash.isEmpty()) {
+        m_welcomePage->open();
+        m_focusedPage = nullptr;
+    } else {
+        m_focusedPage = m_scriptPageHash.values()[0];
     }
+    // logging
+    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, scriptUrl.fileName());
 }
 
 void ScriptModule::textReplace(QString &text, const QString &kind) const {

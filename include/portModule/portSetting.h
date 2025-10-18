@@ -15,7 +15,7 @@ class PortSetting final : public QDialog {
     Q_OBJECT
 
 public:
-    explicit PortSetting(QSet<QString> portUsedName, QWidget *parent = nullptr);
+    explicit PortSetting(QSet<QString> portUsedName = QSet<QString>(), QWidget *parent = nullptr);
 
     ~PortSetting() override = default;
 

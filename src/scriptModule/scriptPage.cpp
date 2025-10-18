@@ -2,6 +2,7 @@
 
 #include <QFile>
 #include <QJsonArray>
+#include <QMessageBox>
 #include <QShortcut>
 
 #include "globals.h"
@@ -67,6 +68,22 @@ void ScriptPage::scriptSave() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
+}
+
+void ScriptPage::scriptClose() {
+    // ask for saving
+    if (m_modified) {
+        const QMessageBox::StandardButton reply = QMessageBox::question(
+            nullptr,
+            tr("Close Script"),
+            tr("The script has been edited. Save changes?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            scriptSave();
+        }
+    }
+    deleteLater();
 }
 
 void ScriptPage::diagnosticsReturn(const QJsonArray &diagnosticsArray) const {
@@ -266,6 +283,25 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
 }
 
 // ScriptPage private
+void ScriptPage::scriptEditFinish() {
+    // lsp request
+    didChangeNotification();
+    documentSymbolRequest();
+    foldingRangeRequest();
+    semanticTokensRequest();
+    // modification check
+    bool modified{};
+    if (const QString script = m_scriptEditor->text(); stringHashCalc(script) != m_scriptHash) {
+        modified = true;
+    } else {
+        modified = false;
+    }
+    if (modified != m_modified) {
+        m_modified = modified;
+        emit modifyScript(modified);
+    }
+}
+
 void ScriptPage::didOpenNotification() {
     // didOpen notification to lua language server
     const QJsonObject didOpenParams{
@@ -416,25 +452,6 @@ void ScriptPage::signatureHelpRequest() {
     emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
 
-void ScriptPage::scriptEditFinish() {
-    // lsp request
-    didChangeNotification();
-    documentSymbolRequest();
-    foldingRangeRequest();
-    semanticTokensRequest();
-    // modification check
-    bool modified{};
-    if (const QString script = m_scriptEditor->text(); stringHashCalc(script) != m_scriptHash) {
-        modified = true;
-    } else {
-        modified = false;
-    }
-    if (modified != m_modified) {
-        m_modified = modified;
-        emit modifyScript(modified);
-    }
-}
-
 void ScriptPage::hoverRequest(const int line, const int character) {
     // hover request to lua language server
     const QJsonObject hoverParams{
@@ -450,7 +467,6 @@ void ScriptPage::hoverRequest(const int line, const int character) {
             }
         }
     };
-    qDebug()<<hoverParams;
     emit requestJson("textDocument/hover", hoverParams);
 }
 

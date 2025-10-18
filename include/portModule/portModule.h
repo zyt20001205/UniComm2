@@ -2,6 +2,7 @@
 #define UNICOMM_PORT_H
 
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QTabWidget>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
@@ -22,8 +23,6 @@ public:
 
     void workspaceOpen(const QUrl &rootUrl);
 
-    void portLoad();
-
     void portConfigSave() const;
 
     BasePort* currentPort() const;
@@ -40,9 +39,11 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    void portInsert(int index, const QJsonObject &portConfig);
+    void portInsert(int index, QJsonObject portConfig = QJsonObject());
 
     void portRemove(int index);
+
+    void portReload(int index);
 
     void portSwap(int srcIndex, int dstIndex);
 

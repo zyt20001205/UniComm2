@@ -17,6 +17,8 @@ public:
 
     void scriptSave();
 
+    void scriptClose();
+
     void diagnosticsReturn(const QJsonArray &diagnosticsArray) const;
 
     void foldingRangeReturn(const QJsonArray &result) const;
@@ -29,7 +31,6 @@ public:
 
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
-    bool m_modified = false;
 
 signals:
     void modifyScript(bool status);
@@ -78,6 +79,7 @@ private:
 
     void positionFill(int x, int y) const;
 
+    bool m_modified = false;
     QTimer *m_editTimer{};
     QByteArray m_scriptHash{};
     int m_version = 1;

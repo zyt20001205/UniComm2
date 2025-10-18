@@ -24,26 +24,19 @@
 // PortModule public
 PortModule::PortModule()
     : DockWidget("port"),
-      m_portConfig(g_config["portConfig"].toArray()),
       m_portTabWidget(new QTabWidget()),
       m_portTabOverlay(new QWidget(m_portTabWidget)) {
     setMinimumHeight(100);
     setWidget(m_portTabWidget);
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
-    connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { portRemove(index); });
+    connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, &PortModule::portRemove);
     connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
     auto *addButton = new QPushButton(); // NOLINT
+    addButton->setFixedSize(24, 24);
     addButton->setIcon(QIcon(":/icon/add.svg"));
     m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
-    connect(addButton, &QPushButton::clicked, this, [this] {
-        const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
-        if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
-            const QJsonObject portConfig = portSettingDialog.portSettingExport();
-            m_portConfig.append(portConfig);
-            portInsert(m_portTabWidget->count(), portConfig);
-        }
-    });
+    connect(addButton, &QPushButton::clicked, this, [this] { portInsert(-1); });
 
     m_portTabOverlay->installEventFilter(this);
     m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
@@ -61,13 +54,11 @@ void PortModule::workspaceOpen(const QUrl &rootUrl) {
     const QString rootPath = rootUrl.toLocalFile();
     const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
-}
-
-void PortModule::portLoad() {
+    // post initialization after workspace opened
     portAnnotate();
     int index = 0;
-    for (const auto &value: m_portConfig) {
-        QJsonObject portConfig = value.toObject();
+    for (const auto &value: g_config["portConfig"].toArray()) {
+        const QJsonObject portConfig = value.toObject();
         portInsert(index, portConfig);
         index++;
     }
@@ -91,29 +82,9 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint tabBarPos = tabBar->mapFromGlobal(globalPos);
     if (tabBar->rect().contains(tabBarPos)) {
         const int index = tabBar->tabAt(tabBarPos);
-        auto *portPage = static_cast<PortPage *>(m_portTabWidget->widget(index));
-        m_portTabWidget->setCurrentWidget(portPage);
+        m_portTabWidget->setCurrentIndex(index);
         QMenu menu(this);
-        menu.addAction("edit", [this, index, portPage] {
-            const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
-            PortSetting portSettingDialog(usedPortName);
-            const QJsonObject oldPortConfig = m_portConfig[index].toObject();
-            portSettingDialog.portSettingImport(oldPortConfig);
-            if (portSettingDialog.exec() == QDialog::Accepted) {
-                const QJsonObject newPortConfig = portSettingDialog.portSettingExport();
-                m_portConfig[index] = newPortConfig;
-                if (newPortConfig["portName"].toString() != oldPortConfig["portName"].toString()) {
-                    m_portTabWidget->setTabText(index, newPortConfig["portName"].toString());
-
-                    BasePort *port = m_portHash.value(oldPortConfig["portName"].toString());
-                    m_portHash.remove(oldPortConfig["portName"].toString());
-                    m_portHash.insert(newPortConfig["portName"].toString(), port);
-                    portAnnotate();
-                    qDebug() << m_portHash;
-                }
-                portPage->portReload(newPortConfig);
-            }
-        });
+        menu.addAction("edit", [this, index] { portReload(index); });
         menu.exec(event->globalPos());
     }
 }
@@ -137,15 +108,30 @@ void PortModule::resizeEvent(QResizeEvent *event) {
 }
 
 // PortModule private
-void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
+void PortModule::portInsert(const int index, QJsonObject portConfig) {
+    if (portConfig.isEmpty()) {
+        const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
+        if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
+            portConfig = portSettingDialog.portSettingExport();
+        } else {
+            return;
+        }
+    }
+    const QString portName = portConfig["portName"].toString();
+    // frontend
     auto *portPage = new PortPage(portConfig); // NOLINT
     connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
-    // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
-    m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
-    m_portHash.insert(portConfig["portName"].toString(), portPage->m_port);
-    portAnnotate();
-    qDebug() << m_portHash;
+    /* connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);*/
+    m_portTabWidget->insertTab(index, portPage, portName);
     overlayHide();
+    // backend
+    m_portConfig.insert(index, portConfig);
+    m_portHash.insert(portName, portPage->m_port);
+    portAnnotate();
+    // logging
+    emit appendLog(QString("%1 initialized").arg(portName), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 initialized").arg(timestamp, portName);
 }
 
 void PortModule::portRemove(const int index) {
@@ -158,37 +144,60 @@ void PortModule::portRemove(const int index) {
         QMessageBox::Yes | QMessageBox::No,
         QMessageBox::No);
     if (reply != QMessageBox::Yes) return;
-    m_portConfig.removeAt(index);
-    m_portHash.remove(portName);
-    portAnnotate();
-    qDebug() << m_portHash;
-
+    // frontend
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
     if (w) w->deleteLater();
     if (m_portTabWidget->count() == 0) overlayShow();
+    // backend
+    m_portConfig.removeAt(index);
+    m_portHash.remove(portName);
+    portAnnotate();
     // logging
+    emit appendLog(QString("%1 removed").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
+}
+
+void PortModule::portReload(const int index) {
+    const auto *portPage = static_cast<PortPage *>(m_portTabWidget->widget(index));
+    PortSetting portSettingDialog{};
+    const QJsonObject oldPortConfig = m_portConfig[index].toObject();
+    const QString oldPortName = oldPortConfig["portName"].toString();
+    portSettingDialog.portSettingImport(oldPortConfig);
+    if (portSettingDialog.exec() == QDialog::Accepted) {
+        const QJsonObject newPortConfig = portSettingDialog.portSettingExport();
+        const QString newPortName = newPortConfig["portName"].toString();
+        if (newPortName != oldPortName) {
+            // frontend
+            m_portTabWidget->setTabText(index, newPortName);
+            // backend
+            BasePort *port = m_portHash.value(oldPortName);
+            m_portHash.remove(oldPortName);
+            m_portHash.insert(newPortName, port);
+            portAnnotate();
+        }
+        m_portConfig[index] = newPortConfig;
+        portPage->portReload(newPortConfig);
+        // logging
+        emit appendLog(QString("%1 reloaded").arg(oldPortName), "info");
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 reloaded").arg(timestamp, oldPortName);
+    }
 }
 
 void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // config
     const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
     m_portConfig.insert(dstIndex, tmp);
-    // qDebug() << m_portConfig;
 }
 
 void PortModule::portAnnotate() const {
     QString annotation;
     annotation += "--- @meta\n\n";
     annotation += "--- @alias port\n";
-    QStringList portList = m_portHash.keys();
-    for (const QString &portName: portList) {
+    for (const QString &portName: m_portHash.keys()) {
         annotation += QString("--- | '\"%1\"'\n").arg(portName);
-    }
-    if (portList.isEmpty()) {
-        annotation += "";
     }
     annotation += "\n";
 
@@ -221,7 +230,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
     auto *layout = new QVBoxLayout(this); // NOLINT
     m_portToggleButton->setCheckable(true);
 
-
     QString timestamp;
     switch (portConfig["portType"].toInt()) {
         case SERIALPORT: {
@@ -233,8 +241,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
             });
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] serial port loaded").arg(timestamp);
             break;
         }
         case TCPCLIENT: {
@@ -246,8 +252,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
             });
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] tcp client loaded").arg(timestamp);
             break;
         }
         case TCPSERVER: {
@@ -259,8 +263,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
             });
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] tcp server loaded").arg(timestamp);
             break;
         }
         case UDPSOCKET: {
@@ -272,8 +274,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
             });
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] udp socket loaded").arg(timestamp);
             break;
         }
         case SCREEN: {
@@ -285,8 +285,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
             });
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] screen loaded").arg(timestamp);
             break;
         }
         case CAMERA: {
@@ -298,8 +296,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
             });
-            timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] camera loaded").arg(timestamp);
             break;
         }
         default: {

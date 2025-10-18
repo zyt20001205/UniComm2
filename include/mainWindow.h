@@ -11,6 +11,7 @@ class StructureModule;
 class ConfigModule;
 class LuaLanguageServer;
 class UndoModule;
+class ScriptModule;
 class PortModule;
 class ExplorerModule;
 class SendModule;
@@ -21,7 +22,6 @@ class LogModule;
 class DiagnosticsModule;
 class DebugModule;
 class ThreadpoolModule;
-class ScriptModule;
 
 class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
@@ -32,6 +32,7 @@ public:
     ~MainWindow() override = default;
 
     void workspaceOpen();
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -47,8 +48,6 @@ protected:
 private:
     void configInit();
 
-    void workspaceInit();
-
     void moduleInit();
 
     void menuInit();
@@ -56,6 +55,8 @@ private:
     void shortcutInit();
 
     void layoutInit();
+
+    void workspaceInit();
 
     void mainConfigSave();
 
@@ -66,6 +67,7 @@ private:
     ConfigModule *m_configModule{};
     LuaLanguageServer *m_llsModule{};
     UndoModule *m_undoModule{};
+    ScriptModule *m_scriptModule{};
     PortModule *m_portModule{};
     ExplorerModule *m_explorerModule{};
     StructureModule *m_structureModule{};
@@ -77,7 +79,6 @@ private:
     DiagnosticsModule *m_diagnosticsModule{};
     DebugModule *m_debugModule{};
     ThreadpoolModule *m_threadpoolModule{};
-    ScriptModule *m_scriptModule{};
 
     QShortcut *m_openWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceShortcut{};
