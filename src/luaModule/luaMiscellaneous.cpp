@@ -15,8 +15,17 @@ int lua_exec(lua_State *L) {
     // start operation
     const QString scriptPath = QString::fromUtf8(param1);
     QString threadId = "null";
+    if (const auto ptrHolder = static_cast<void **>(lua_getextraspace(L)); *ptrHolder == nullptr) {
+        // run mode
+        QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
+            threadId = g_threadpool->threadExec(scriptPath, "run");
+        }, Qt::BlockingQueuedConnection);
+        lua_pushstring(L, threadId.toUtf8().constData());
+        return 1;
+    }
+    // debug mode
     QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
-        threadId = g_threadpool->threadExec(scriptPath);
+        threadId = g_threadpool->threadExec(scriptPath, "debug");
     }, Qt::BlockingQueuedConnection);
     lua_pushstring(L, threadId.toUtf8().constData());
     return 1;

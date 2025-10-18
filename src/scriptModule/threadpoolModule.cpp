@@ -61,7 +61,7 @@ void ThreadpoolModule::workspaceOpen(const QUrl &rootUrl) {
     m_rootUrl = rootUrl;
 }
 
-QString ThreadpoolModule::threadExec(const QString &scriptPath) {
+QString ThreadpoolModule::threadExec(const QString &scriptPath, const QString &mode) {
     const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
     QFile file(fullPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -69,9 +69,12 @@ QString ThreadpoolModule::threadExec(const QString &scriptPath) {
     in.setEncoding(QStringConverter::Utf8);
     const QString script = in.readAll();
     file.close();
-    // call script run
+    if (mode == "run") {
+        const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
+        return threadRun(scriptUrl, script);
+    }
     const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
-    return threadRun(scriptUrl, script);
+    return threadDebug(scriptUrl, script);
 }
 
 QString ThreadpoolModule::threadRun(const QUrl &scriptUrl, const QString &script) {
@@ -91,7 +94,7 @@ QString ThreadpoolModule::threadRun(const QUrl &scriptUrl, const QString &script
     return threadId;
 }
 
-void ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script) {
+QString ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
     const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
@@ -100,7 +103,7 @@ void ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script)
         threadId,
         0,
         0,
-        DEBUG_PAUSE
+        DEBUG_RUN
     };
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);
@@ -113,6 +116,7 @@ void ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script)
     worker->start();
     threadAppend(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
     emit startDebug(threadId, interpreter);
+    return threadId;
 }
 
 bool ThreadpoolModule::threadStop(const QString &threadId) {

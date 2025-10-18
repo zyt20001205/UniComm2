@@ -119,6 +119,9 @@ LuaInterpreter::~LuaInterpreter() {
 void LuaInterpreter::run(const QString &script) const {
     // set terminate hook
     lua_sethook(L, luaTerminateHook, LUA_MASKCOUNT, 100);
+    // save run session
+    const auto ptrHolder = static_cast<void **>(lua_getextraspace(L));
+    *ptrHolder = nullptr;
     // lua exec preparation
     QUrl scriptUrl = m_scriptUrl;
     QMetaObject::invokeMethod(g_mainWindow, [scriptUrl] {

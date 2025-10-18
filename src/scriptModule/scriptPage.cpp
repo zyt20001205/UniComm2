@@ -65,6 +65,7 @@ void ScriptPage::scriptSave() {
     m_modified = false;
     m_scriptHash = fileHashCalc(m_scriptEditor->text());
     emit modifyScript(false);
+    didSaveNotification();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
@@ -83,6 +84,8 @@ void ScriptPage::scriptClose() {
             scriptSave();
         }
     }
+    didCloseNotification();
+    emit closeScript(m_scriptUrl);
     deleteLater();
 }
 
@@ -240,6 +243,12 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
     }
 }
 
+// ScriptPage protected
+void ScriptPage::closeEvent(QCloseEvent *event) {
+    scriptClose();
+    event->accept();
+}
+
 // ScriptPage private slots
 void ScriptPage::scriptEdit() const {
     m_editTimer->stop();
@@ -304,7 +313,7 @@ void ScriptPage::scriptEditFinish() {
 }
 
 void ScriptPage::didOpenNotification() {
-    // didOpen notification to lua language server
+    // did open notification to lua language server
     const QJsonObject didOpenParams{
         {
             "textDocument", QJsonObject{
@@ -319,7 +328,7 @@ void ScriptPage::didOpenNotification() {
 }
 
 void ScriptPage::didChangeNotification() {
-    // didChange notification to lua language server
+    // did change notification to lua language server
     const QString content = m_scriptEditor->text();
     const QJsonObject didChangeParams{
         {
@@ -337,6 +346,32 @@ void ScriptPage::didChangeNotification() {
         }
     };
     emit notificationJson("textDocument/didChange", didChangeParams);
+}
+
+void ScriptPage::didSaveNotification() {
+    // did save notification to lua language server
+    const QString content = m_scriptEditor->text();
+    const QJsonObject didSaveParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", m_scriptUrl.toString()}
+                }
+            }
+    };
+    emit notificationJson("textDocument/didSave", didSaveParams);
+}
+
+void ScriptPage::didCloseNotification() {
+    // did save notification to lua language server
+    const QString content = m_scriptEditor->text();
+    const QJsonObject didCloseParams{
+                {
+                    "textDocument", QJsonObject{
+                        {"uri", m_scriptUrl.toString()}
+                    }
+                }
+    };
+    emit notificationJson("textDocument/didClose", didCloseParams);
 }
 
 void ScriptPage::completionRequest() {
@@ -422,7 +457,7 @@ void ScriptPage::formattingRequest() {
 }
 
 void ScriptPage::semanticTokensRequest() {
-    // semanticTokens request to lua language server
+    // semantic tokens request to lua language server
     const QJsonObject semanticTokensParams{
         {
             "textDocument", QJsonObject{
@@ -434,7 +469,7 @@ void ScriptPage::semanticTokensRequest() {
 }
 
 void ScriptPage::signatureHelpRequest() {
-    // signatureHelp request to lua language server
+    // signature help request to lua language server
     int line, character;
     m_scriptEditor->getCursorPosition(&line, &character);
     const QJsonObject signatureHelpParams{

@@ -41,7 +41,7 @@ public:
 
     void indicatorShow(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-    void markerShow(const QUrl &scriptUrl, int type, int line = -1, int time = -1) const;
+    void markerShow(const QUrl &scriptUrl, int type, int line = -1, int time = -1);
 
     void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
@@ -80,7 +80,7 @@ private:
 
     static void scriptModify(ScriptPage *scriptPage, bool status);
 
-    void scriptClose(ScriptPage *scriptPage);
+    void scriptClose(const QUrl &scriptUrl);
 
     void textReplace(QString &text, const QString &kind) const;
 

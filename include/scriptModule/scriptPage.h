@@ -35,6 +35,8 @@ public:
 signals:
     void modifyScript(bool status);
 
+    void closeScript(const QUrl &scriptUrl);
+
     void insertBreakpoint(const QUrl &scriptUrl, int line);
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);
@@ -44,6 +46,9 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void setFullCompletion(bool status);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void scriptEdit() const;
@@ -60,6 +65,10 @@ private:
     void didOpenNotification();
 
     void didChangeNotification();
+
+    void didSaveNotification();
+
+    void didCloseNotification();
 
     void completionRequest();
 

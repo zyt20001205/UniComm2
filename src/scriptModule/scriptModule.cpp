@@ -68,13 +68,11 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         scriptPage->setObjectName(scriptUrl.toString());
         m_scriptPageHash[scriptUrl] = scriptPage;
-        connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isOpenChanged, this, [this, scriptPage](const bool status) {
-            if (!status) scriptClose(scriptPage);
-        });
         connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isFocusedChanged, this, [this, scriptPage](const bool status) {
             scriptFocus(scriptPage, status);
         });
         connect(scriptPage, &ScriptPage::modifyScript, this, [scriptPage](const bool status) { scriptModify(scriptPage, status); });
+        connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
@@ -119,6 +117,7 @@ void ScriptModule::cursorPositionGet() const {
 }
 
 void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
     QTimer::singleShot(time, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
@@ -126,12 +125,15 @@ void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, con
     });
 }
 
-void ScriptModule::markerShow(const QUrl &scriptUrl, const int type, const int line, const int time) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+void ScriptModule::markerShow(const QUrl &scriptUrl, const int type, const int line, const int time) {
     if (line == -1) {
+        if (!m_scriptPageHash.contains(scriptUrl)) return;
+        const auto *scriptPage = m_scriptPageHash[scriptUrl];
         scriptPage->m_scriptEditor->markerDeleteAll(type);
         return;
     }
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->markerAdd(line - 1, type);
     if (time == -1) return;
     QTimer::singleShot(time, [scriptPage, line, type] {
@@ -241,10 +243,8 @@ void ScriptModule::scriptModify(ScriptPage *scriptPage, const bool status) {
     }
 }
 
-void ScriptModule::scriptClose(ScriptPage *scriptPage) {
-    const QUrl scriptUrl = scriptPage->m_scriptUrl;
-    scriptPage->scriptClose();
-    m_scriptPageHash.remove(scriptPage->m_scriptUrl);
+void ScriptModule::scriptClose(const QUrl &scriptUrl) {
+    m_scriptPageHash.remove(scriptUrl);
     if (m_scriptPageHash.isEmpty()) {
         m_welcomePage->open();
         m_focusedPage = nullptr;

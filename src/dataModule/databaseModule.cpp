@@ -206,7 +206,6 @@ void DatabaseModule::databaseSwap(int logicalIndex, const int oldVisualIndex, co
 
 void DatabaseModule::databaseAnnotate() const {
     QString annotation;
-
     annotation += "--- @meta\n\n";
     annotation += "--- @alias database\n";
     for (const QString &databaseKey: m_databaseHash.keys()) {

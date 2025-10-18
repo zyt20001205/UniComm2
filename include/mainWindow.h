@@ -54,9 +54,9 @@ private:
 
     void shortcutInit();
 
-    void layoutInit();
-
     void workspaceInit();
+
+    void layoutInit();
 
     void mainConfigSave();
 

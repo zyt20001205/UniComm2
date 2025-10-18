@@ -305,7 +305,6 @@ void DatatableModule::datatableSwap(int logicalIndex, const int oldVisualIndex, 
 
 void DatatableModule::datatableAnnotate() const {
     QString annotation;
-
     annotation += "--- @meta\n\n";
     annotation += "--- @alias datatable\n";
     for (const QString &databaseKey: m_datatableHash.keys()) {

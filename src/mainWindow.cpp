@@ -58,8 +58,8 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     moduleInit();
     shortcutInit();
     menuInit();
-    layoutInit();
     workspaceInit();
+    layoutInit();
 
     // preload multimedia to avoid lagging on first click
     QThread *worker = QThread::create([] {
@@ -428,33 +428,6 @@ void MainWindow::menuInit() {
     }
 }
 
-void MainWindow::layoutInit() {
-    if (!m_mainConfig["geometry"].toString().isEmpty()) {
-        const QByteArray geometry = QByteArray::fromBase64(m_mainConfig["geometry"].toString().toLatin1());
-        restoreGeometry(geometry);
-    }
-    if (m_mainConfig["state"].toString().isEmpty()) {
-        // dock placement
-        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr);
-        addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
-        addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
-        addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
-        addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
-        m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
-        m_logModule->addDockWidgetAsTab(m_debugModule);
-        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule);
-        // dock resize
-        // still figuring out how to do this
-    } else {
-        const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
-        KDDockWidgets::LayoutSaver layoutSaver;
-        layoutSaver.restoreLayout(layoutData);
-    }
-}
-
 void MainWindow::workspaceInit() {
     QUrl rootUrl{};
     // check if workspace is valid
@@ -524,6 +497,33 @@ void MainWindow::workspaceInit() {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
+    }
+}
+
+void MainWindow::layoutInit() {
+    if (!m_mainConfig["geometry"].toString().isEmpty()) {
+        const QByteArray geometry = QByteArray::fromBase64(m_mainConfig["geometry"].toString().toLatin1());
+        restoreGeometry(geometry);
+    }
+    if (m_mainConfig["state"].toString().isEmpty()) {
+        // dock placement
+        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr);
+        addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
+        addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
+        addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
+        addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
+        m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
+        m_logModule->addDockWidgetAsTab(m_debugModule);
+        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule);
+        // dock resize
+        // still figuring out how to do this
+    } else {
+        const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
+        KDDockWidgets::LayoutSaver layoutSaver;
+        layoutSaver.restoreLayout(layoutData);
     }
 }
 

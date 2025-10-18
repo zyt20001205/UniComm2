@@ -18,11 +18,11 @@ public:
 
     void workspaceOpen(const QUrl &rootUrl);
 
-    QString threadExec(const QString &scriptPath);
+    QString threadExec(const QString &scriptPath, const QString &mode);
 
     QString threadRun(const QUrl &scriptUrl, const QString &script);
 
-    void threadDebug(const QUrl &scriptUrl, const QString &script);
+    QString threadDebug(const QUrl &scriptUrl, const QString &script);
 
     bool threadStop(const QString &threadId);
 
