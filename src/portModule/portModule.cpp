@@ -36,7 +36,7 @@ PortModule::PortModule()
     addButton->setFixedSize(24, 24);
     addButton->setIcon(QIcon(":/icon/add.svg"));
     m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
-    connect(addButton, &QPushButton::clicked, this, [this] { portInsert(-1); });
+    connect(addButton, &QPushButton::clicked, this, [this] { portInsert(m_portTabWidget->count()); });
 
     m_portTabOverlay->installEventFilter(this);
     m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
@@ -59,8 +59,7 @@ void PortModule::workspaceOpen(const QUrl &rootUrl) {
     int index = 0;
     for (const auto &value: g_config["portConfig"].toArray()) {
         const QJsonObject portConfig = value.toObject();
-        portInsert(index, portConfig);
-        index++;
+        portInsert(index++, portConfig);
     }
 }
 
@@ -123,6 +122,7 @@ void PortModule::portInsert(const int index, QJsonObject portConfig) {
     connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
     /* connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);*/
     m_portTabWidget->insertTab(index, portPage, portName);
+    m_portTabWidget->setCurrentWidget(portPage);
     overlayHide();
     // backend
     m_portConfig.insert(index, portConfig);
