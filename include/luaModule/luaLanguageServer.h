@@ -3,7 +3,6 @@
 
 #include <QCoreApplication>
 #include <QFileInfo>
-#include <QJsonArray>
 #include <QJsonObject>
 #include <QProcess>
 #include <QWidget>

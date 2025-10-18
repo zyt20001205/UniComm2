@@ -46,13 +46,13 @@ private:
 
     void portSwap(int srcIndex, int dstIndex);
 
+    void portAnnotate() const;
+
     void overlayShow() const;
 
     void overlayHide() const;
 
     void overlayResize() const;
-
-    void portAnnotationRefresh() const;
 
     QJsonArray m_portConfig{};
     QTabWidget *m_portTabWidget{};

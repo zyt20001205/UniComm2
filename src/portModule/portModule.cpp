@@ -64,6 +64,7 @@ void PortModule::workspaceOpen(const QUrl &rootUrl) {
 }
 
 void PortModule::portLoad() {
+    portAnnotate();
     int index = 0;
     for (const auto &value: m_portConfig) {
         QJsonObject portConfig = value.toObject();
@@ -107,7 +108,7 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
                     BasePort *port = m_portHash.value(oldPortConfig["portName"].toString());
                     m_portHash.remove(oldPortConfig["portName"].toString());
                     m_portHash.insert(newPortConfig["portName"].toString(), port);
-                    portAnnotationRefresh();
+                    portAnnotate();
                     qDebug() << m_portHash;
                 }
                 portPage->portReload(newPortConfig);
@@ -142,7 +143,7 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     // connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);
     m_portTabWidget->insertTab(index, portPage, portConfig["portName"].toString());
     m_portHash.insert(portConfig["portName"].toString(), portPage->m_port);
-    portAnnotationRefresh();
+    portAnnotate();
     qDebug() << m_portHash;
     overlayHide();
 }
@@ -150,18 +151,18 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
 void PortModule::portRemove(const int index) {
     QJsonObject portConfig = m_portConfig[index].toObject();
     QString portName = portConfig["portName"].toString();
-    const QMessageBox::StandardButton reply =
-            QMessageBox::question(
-                nullptr,
-                tr("Remove Port"),
-                QString(tr("Are you sure to remove port %1?")).arg(portName),
-                QMessageBox::Yes | QMessageBox::No,
-                QMessageBox::No);
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        nullptr,
+        tr("Remove Port"),
+        QString(tr("Are you sure to remove port %1?")).arg(portName),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
     if (reply != QMessageBox::Yes) return;
     m_portConfig.removeAt(index);
     m_portHash.remove(portName);
-    portAnnotationRefresh();
+    portAnnotate();
     qDebug() << m_portHash;
+
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
     if (w) w->deleteLater();
@@ -178,6 +179,26 @@ void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // qDebug() << m_portConfig;
 }
 
+void PortModule::portAnnotate() const {
+    QString annotation;
+    annotation += "--- @meta\n\n";
+    annotation += "--- @alias port\n";
+    QStringList portList = m_portHash.keys();
+    for (const QString &portName: portList) {
+        annotation += QString("--- | '\"%1\"'\n").arg(portName);
+    }
+    if (portList.isEmpty()) {
+        annotation += "";
+    }
+    annotation += "\n";
+
+    QFile file(m_annotationUrl.toLocalFile());
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream stream(&file);
+    stream << annotation;
+    file.close();
+}
+
 void PortModule::overlayShow() const {
     overlayResize();
     m_portTabOverlay->raise();
@@ -191,26 +212,6 @@ void PortModule::overlayHide() const {
 void PortModule::overlayResize() const {
     m_portTabOverlay->resize(m_portTabWidget->size());
     m_portTabOverlay->move(0, 0);
-}
-
-void PortModule::portAnnotationRefresh() const {
-    QString annotation;
-    annotation += "--- @meta\n\n";
-    annotation += "--- @alias port\n";
-    QStringList portList = m_portHash.keys();
-    for (const QString &portName: portList) {
-        annotation += QString("--- | '\"%1\"'\n").arg(portName);
-    }
-    if (portList.isEmpty()) {
-        annotation += "--- | string\n";
-    }
-    annotation += "\n";
-
-    QFile file(m_annotationUrl.toLocalFile());
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream stream(&file);
-    stream << annotation;
-    file.close();
 }
 
 // PortPage public

@@ -1,5 +1,7 @@
 #include "luaModule/luaLanguageServer.h"
 
+#include <QJsonArray>
+
 #include "globals.h"
 
 // LuaLanguageServer public
