@@ -28,7 +28,6 @@ DatatableModule::DatatableModule()
     });
     m_tableWidget->installEventFilter(this);
     auto *moreButton = new QToolButton(); // NOLINT
-    moreButton->setIcon(QIcon(":/icon/moreHorizontal.svg"));
     moreButton->setPopupMode(QToolButton::InstantPopup);
     m_tableWidget->setCornerWidget(moreButton);
 
