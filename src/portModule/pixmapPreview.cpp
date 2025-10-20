@@ -9,14 +9,13 @@ PixmapPreview::PixmapPreview(QWidget *parent)
       m_layout(new QVBoxLayout(this)) {
 }
 
-void PixmapPreview::previewShow(const QList<QPixmap> &pixmapList) {
+void PixmapPreview::previewShow(const QList<QPixmap> &pixmapList) const {
     previewClear();
     foreach(QPixmap pixmap, pixmapList) {
         auto *label = new QLabel(); // NOLINT
         m_layout->addWidget(label);
         label->setPixmap(pixmap);
     }
-    this->show();
 }
 
 // PixmapPreview private

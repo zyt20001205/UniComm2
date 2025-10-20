@@ -13,7 +13,7 @@ public:
 
     ~PixmapPreview() override = default;
 
-    void previewShow(const QList<QPixmap> &pixmapList);
+    void previewShow(const QList<QPixmap> &pixmapList) const;
 
 private:
     void previewClear() const;

@@ -74,7 +74,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
-                m_pixmapPreview->hide();
+                m_pixmapPreview->setVisible(status);
             });
             connect(m_port, &BasePort::showPreview, m_pixmapPreview, &PixmapPreview::previewShow);
             break;
@@ -87,7 +87,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
-                m_pixmapPreview->hide();
+                m_pixmapPreview->setVisible(status);
             });
             connect(m_port, &BasePort::showPreview, m_pixmapPreview, &PixmapPreview::previewShow);
             break;
