@@ -137,9 +137,11 @@ flowchart LR
     luaLanguageServer[LuaLanguageServer]
     scriptModule[Script Module]
     luaLanguageServer e1@-->|LSP Response| scriptModule
-    scriptModule e1@-->|LSP Request| luaLanguageServer
-    scriptModule e1@-->|LSP Notification| luaLanguageServer
+    scriptModule e2@-->|LSP Request| luaLanguageServer
+    scriptModule e2@-->|LSP Notification| luaLanguageServer
     e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
 ```
 
 | LSP Request Type            | Status                                                              |
