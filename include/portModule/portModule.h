@@ -29,6 +29,8 @@ public:
 
     QVariantList portList() const;
 
+    void portInsert(int index, QJsonObject portConfig = QJsonObject());
+
     QHash<QString, BasePort *> m_portHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -41,8 +43,6 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    void portInsert(int index, QJsonObject portConfig = QJsonObject());
-
     void portRemove(int index);
 
     void portReload(int index);

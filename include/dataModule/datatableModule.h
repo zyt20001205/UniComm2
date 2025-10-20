@@ -20,6 +20,8 @@ public:
 
     QVariantList datatableList() const;
 
+    void datatableInsert(int visualIndex, QString key = QString());
+
     bool datatableWrite(const QString &key, const QString &value);
 
     bool datatableClear(const QString &key);
@@ -43,8 +45,6 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void datatableInsert(int visualIndex, QString key = QString());
-
     void datatableRename(int visualIndex);
 
     void datatableRemove(int visualIndex);

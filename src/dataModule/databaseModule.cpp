@@ -35,10 +35,9 @@ void DatabaseModule::workspaceOpen(const QUrl &rootUrl) {
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
     // post initialization after workspace opened
     databaseAnnotate();
-    int index = 0;
     for (const auto &value: g_config["databaseConfig"].toArray()) {
         const QString key = value.toString();
-        databaseInsert(index++, key);
+        databaseInsert(-1, key);
     }
 }
 
@@ -52,6 +51,37 @@ QVariantList DatabaseModule::databaseList() const {
         databaseList.append(portName);
     }
     return databaseList;
+}
+
+void DatabaseModule::databaseInsert(int visualIndex, QString key) {
+    if (visualIndex == -1) {
+        visualIndex = m_databaseConfig.size();
+    }
+    if (key.isEmpty()) {
+        bool ok = false;
+        key = QInputDialog::getText(this, tr("Input Name"), "", QLineEdit::Normal, "", &ok);
+        if (!ok) return;
+        if (m_databaseHash.contains(key)) {
+            QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
+            return;
+        }
+    }
+    // frontend
+    m_tableWidget->insertRow(visualIndex);
+    m_tableWidget->setVerticalHeaderItem(visualIndex, new QTableWidgetItem(key));
+    m_tableWidget->setItem(visualIndex, 0, new QTableWidgetItem(""));
+    // backend
+    m_databaseConfig.insert(visualIndex, key);
+    m_databaseHash.clear();
+    for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
+        const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
+        m_databaseHash.insert(headerItem->text(), index);
+    }
+    databaseAnnotate();
+    // logging
+    emit appendLog(QString("%1 inserted").arg(key), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
 }
 
 bool DatabaseModule::databaseWrite(const QString &key, const QString &value) const {
@@ -76,12 +106,8 @@ void DatabaseModule::contextMenuEvent(QContextMenuEvent *event) {
         const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
         QMenu menu(this);
         if (logicalIndex == -1) {
-            menu.addAction(tr("new"), [this] {
-                if (m_databaseConfig.isEmpty()) {
-                    databaseInsert(0);
-                } else {
-                    databaseInsert(m_databaseConfig.size());
-                }
+            menu.addAction(tr("New"), [this] {
+                databaseInsert(-1);
             });
         } else {
             menu.addAction(tr("Rename"), [this, visualIndex] {
@@ -134,34 +160,6 @@ bool DatabaseModule::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // DatabaseModule private
-void DatabaseModule::databaseInsert(const int visualIndex, QString key) {
-    if (key.isEmpty()) {
-        bool ok = false;
-        key = QInputDialog::getText(this, tr("Input Name"), "", QLineEdit::Normal, "", &ok);
-        if (!ok) return;
-        if (m_databaseHash.contains(key)) {
-            QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
-            return;
-        }
-    }
-    // frontend
-    m_tableWidget->insertRow(visualIndex);
-    m_tableWidget->setVerticalHeaderItem(visualIndex, new QTableWidgetItem(key));
-    m_tableWidget->setItem(visualIndex, 0, new QTableWidgetItem(""));
-    // backend
-    m_databaseConfig.insert(visualIndex, key);
-    m_databaseHash.clear();
-    for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
-        const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
-        m_databaseHash.insert(headerItem->text(), index);
-    }
-    databaseAnnotate();
-    // logging
-    emit appendLog(QString("%1 inserted").arg(key), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
-}
-
 void DatabaseModule::databaseRemove(const int visualIndex) {
     // frontend
     const int logicalIndex = m_tableWidget->verticalHeader()->logicalIndex(visualIndex);
@@ -219,6 +217,7 @@ void DatabaseModule::databaseAnnotate() const {
     for (const QString &databaseKey: m_databaseHash.keys()) {
         annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
     }
+    annotation += QString("--- | '\"Add New Database Key\"'\n");
     annotation += "\n";
 
     QFile file(m_annotationUrl.toLocalFile());

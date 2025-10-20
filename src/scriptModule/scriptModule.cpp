@@ -73,6 +73,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         });
         connect(scriptPage, &ScriptPage::modifyScript, this, [scriptPage](const bool status) { scriptModify(scriptPage, status); });
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
+        connect(scriptPage, &ScriptPage::insertPort, this, &ScriptModule::insertPort);
+        connect(scriptPage, &ScriptPage::insertDatabase, this, &ScriptModule::insertDatabase);
+        connect(scriptPage, &ScriptPage::insertDatatable, this, &ScriptModule::insertDatatable);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);

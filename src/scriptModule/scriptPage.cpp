@@ -217,6 +217,19 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
         text += "()";
     } else if (kind == "Field") {
         text += ".";
+    } else if (kind == "EnumMember") {
+        if (text == "\"Add New Port\"") {
+            emit insertPort(-1, QJsonObject());
+            return;
+        }
+        if (text == "\"Add New Database Key\"") {
+            emit insertDatabase(-1, QString());
+            return;
+        }
+        if (text == "\"Add New Datatable Key\"") {
+            emit insertDatatable(-1, QString());
+            return;
+        }
     }
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT

@@ -37,6 +37,12 @@ signals:
 
     void closeScript(const QUrl &scriptUrl);
 
+    void insertPort(int index, const QJsonObject &portConfig);
+
+    void insertDatabase(int index, const QString &key);
+
+    void insertDatatable(int index, const QString &key);
+
     void insertBreakpoint(const QUrl &scriptUrl, int line);
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);

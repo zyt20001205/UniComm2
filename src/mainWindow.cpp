@@ -259,6 +259,9 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &url) { m_currentScriptLabel->setText(url.fileName()); });
+    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, &PortModule::portInsert);
+    connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, &DatabaseModule::databaseInsert);
+    connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, &DatatableModule::datatableInsert);
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);

@@ -36,7 +36,7 @@ PortModule::PortModule()
     addButton->setFixedSize(24, 24);
     addButton->setIcon(QIcon(":/icon/add.svg"));
     m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
-    connect(addButton, &QPushButton::clicked, this, [this] { portInsert(m_portTabWidget->count()); });
+    connect(addButton, &QPushButton::clicked, this, [this] { portInsert(-1); });
 
     m_portTabOverlay->installEventFilter(this);
     m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
@@ -56,10 +56,9 @@ void PortModule::workspaceOpen(const QUrl &rootUrl) {
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
     // post initialization after workspace opened
     portAnnotate();
-    int index = 0;
     for (const auto &value: g_config["portConfig"].toArray()) {
         const QJsonObject portConfig = value.toObject();
-        portInsert(index++, portConfig);
+        portInsert(-1, portConfig);
     }
 }
 
@@ -82,40 +81,10 @@ QVariantList PortModule::portList() const {
     return portList;
 }
 
-// PortModule protected
-void PortModule::contextMenuEvent(QContextMenuEvent *event) {
-    const QPoint globalPos = event->globalPos();
-    const auto *tabBar = m_portTabWidget->tabBar();
-    const QPoint tabBarPos = tabBar->mapFromGlobal(globalPos);
-    if (tabBar->rect().contains(tabBarPos)) {
-        const int index = tabBar->tabAt(tabBarPos);
-        m_portTabWidget->setCurrentIndex(index);
-        QMenu menu(this);
-        menu.addAction("edit", [this, index] { portReload(index); });
-        menu.exec(event->globalPos());
+void PortModule::portInsert(int index, QJsonObject portConfig) {
+    if (index == -1) {
+        index = m_portConfig.size();
     }
-}
-
-bool PortModule::eventFilter(QObject *obj, QEvent *event) {
-    if (obj == m_portTabOverlay && event->type() == QEvent::MouseButtonPress) {
-        const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
-        if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
-            const QJsonObject portConfig = portSettingDialog.portSettingExport();
-            m_portConfig.append(portConfig);
-            portInsert(m_portTabWidget->count(), portConfig);
-        }
-        return true;
-    }
-    return DockWidget::eventFilter(obj, event);
-}
-
-void PortModule::resizeEvent(QResizeEvent *event) {
-    DockWidget::resizeEvent(event);
-    if (!m_portTabOverlay->isHidden()) overlayResize();
-}
-
-// PortModule private
-void PortModule::portInsert(const int index, QJsonObject portConfig) {
     if (portConfig.isEmpty()) {
         const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
         if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
@@ -142,6 +111,34 @@ void PortModule::portInsert(const int index, QJsonObject portConfig) {
     qDebug() << QString("[%1] %2 initialized").arg(timestamp, portName);
 }
 
+// PortModule protected
+void PortModule::contextMenuEvent(QContextMenuEvent *event) {
+    const QPoint globalPos = event->globalPos();
+    const auto *tabBar = m_portTabWidget->tabBar();
+    const QPoint tabBarPos = tabBar->mapFromGlobal(globalPos);
+    if (tabBar->rect().contains(tabBarPos)) {
+        const int index = tabBar->tabAt(tabBarPos);
+        m_portTabWidget->setCurrentIndex(index);
+        QMenu menu(this);
+        menu.addAction("edit", [this, index] { portReload(index); });
+        menu.exec(event->globalPos());
+    }
+}
+
+bool PortModule::eventFilter(QObject *obj, QEvent *event) {
+    if (obj == m_portTabOverlay && event->type() == QEvent::MouseButtonPress) {
+        portInsert(-1);
+        return true;
+    }
+    return DockWidget::eventFilter(obj, event);
+}
+
+void PortModule::resizeEvent(QResizeEvent *event) {
+    DockWidget::resizeEvent(event);
+    if (!m_portTabOverlay->isHidden()) overlayResize();
+}
+
+// PortModule private
 void PortModule::portRemove(const int index) {
     QJsonObject portConfig = m_portConfig[index].toObject();
     QString portName = portConfig["portName"].toString();
@@ -207,6 +204,7 @@ void PortModule::portAnnotate() const {
     for (const QString &portName: m_portHash.keys()) {
         annotation += QString("--- | '\"%1\"'\n").arg(portName);
     }
+    annotation += QString("--- | '\"Add New Port\"'\n");
     annotation += "\n";
 
 

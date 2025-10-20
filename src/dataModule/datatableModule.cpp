@@ -47,10 +47,9 @@ void DatatableModule::workspaceOpen(const QUrl &rootUrl) {
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
     // post initialization after workspace opened
     datatableAnnotate();
-    int index = 0;
     for (const auto &value: g_config["datatableConfig"].toArray()) {
         const QString key = value.toString();
-        datatableInsert(index++, key);
+        datatableInsert(-1, key);
     }
 }
 
@@ -64,6 +63,43 @@ QVariantList DatatableModule::datatableList() const {
         datatableList.append(portName);
     }
     return datatableList;
+}
+
+void DatatableModule::datatableInsert(int visualIndex, QString key) {
+    if (visualIndex == -1) {
+        visualIndex = m_datatableConfig.size();
+    }
+    if (key.isEmpty()) {
+        bool ok = false;
+        key = QInputDialog::getText(this, tr("Input Name"), "", QLineEdit::Normal, "", &ok);
+        if (!ok) return;
+        if (m_datatableHash.contains(key)) {
+            QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
+            return;
+        }
+    }
+    // frontend
+    m_tableWidget->insertColumn(visualIndex);
+    m_tableWidget->setHorizontalHeaderItem(visualIndex, new QTableWidgetItem(key));
+    // backend
+    m_datatableConfig.insert(visualIndex, key);
+    m_data.insert(key,
+                  DataMap{
+                      /*enable*/ false,
+                      /*basetime*/ {},
+                      /*x*/ {},
+                      /*y*/ {}
+                  });
+    m_datatableHash.clear();
+    for (int index = 0; index < m_tableWidget->columnCount(); ++index) {
+        const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
+        m_datatableHash.insert(headerItem->text(), index);
+    }
+    datatableAnnotate();
+    // logging
+    emit appendLog(QString("%1 inserted").arg(key), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
 }
 
 bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
@@ -167,12 +203,8 @@ void DatatableModule::contextMenuEvent(QContextMenuEvent *event) {
         const int visualIndex = header->visualIndex(logicalIndex);
         QMenu menu(this);
         if (logicalIndex == -1) {
-            menu.addAction(tr("new"), [this] {
-                if (m_datatableConfig.isEmpty()) {
-                    datatableInsert(0);
-                } else {
-                    datatableInsert(m_datatableConfig.size());
-                }
+            menu.addAction(tr("New"), [this] {
+                datatableInsert(-1);
             });
         } else {
             menu.addAction(tr("Rename"), [this, visualIndex] {
@@ -225,40 +257,6 @@ bool DatatableModule::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // DatatableModule private
-void DatatableModule::datatableInsert(const int visualIndex, QString key) {
-    if (key.isEmpty()) {
-        bool ok = false;
-        key = QInputDialog::getText(this, tr("Input Name"), "", QLineEdit::Normal, "", &ok);
-        if (!ok) return;
-        if (m_datatableHash.contains(key)) {
-            QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
-            return;
-        }
-    }
-    // frontend
-    m_tableWidget->insertColumn(visualIndex);
-    m_tableWidget->setHorizontalHeaderItem(visualIndex, new QTableWidgetItem(key));
-    // backend
-    m_datatableConfig.insert(visualIndex, key);
-    m_data.insert(key,
-                  DataMap{
-                      /*enable*/ false,
-                      /*basetime*/ {},
-                      /*x*/ {},
-                      /*y*/ {}
-                  });
-    m_datatableHash.clear();
-    for (int index = 0; index < m_tableWidget->columnCount(); ++index) {
-        const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
-        m_datatableHash.insert(headerItem->text(), index);
-    }
-    datatableAnnotate();
-    // logging
-    emit appendLog(QString("%1 inserted").arg(key), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
-}
-
 void DatatableModule::datatableRemove(const int visualIndex) {
     // frontend
     const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
@@ -318,6 +316,7 @@ void DatatableModule::datatableAnnotate() const {
     for (const QString &databaseKey: m_datatableHash.keys()) {
         annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
     }
+    annotation += QString("--- | '\"Add New Datatable Key\"'\n");
     annotation += "\n";
 
     QFile file(m_annotationUrl.toLocalFile());
