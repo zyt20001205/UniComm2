@@ -1,9 +1,9 @@
 #include "luaModule/luaPort.h"
 
 #include "globals.h"
-#include "logModule.h"
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
+#include "utils/luaUtils.h"
 
 int lua_portOpen(lua_State *L) {
     // check arguments
@@ -56,64 +56,12 @@ int lua_portInfo(lua_State *L) {
     if (!g_port->m_portHash.contains(portName)) {
         luaL_error(L, "port '%s' does not exist", portName.toUtf8().constData());
     } else {
-        QHash<QString, QVariant> infoHash;
+        QVariantMap infoMap;
         auto *portObject = g_port->m_portHash[portName];
-        QMetaObject::invokeMethod(portObject, [&infoHash, portObject] {
-            infoHash = portObject->info();
+        QMetaObject::invokeMethod(portObject, [&infoMap, portObject] {
+            infoMap = portObject->info();
         }, Qt::BlockingQueuedConnection);
-        lua_createtable(L, 0, static_cast<int>(infoHash.size()));
-        for (auto it = infoHash.constBegin(); it != infoHash.constEnd(); ++it) {
-            const QString &key = it.key();
-            const QVariant &value = it.value();
-            lua_pushstring(L, key.toUtf8().constData());
-            switch (value.typeId()) {
-                case QMetaType::Bool:
-                    lua_pushboolean(L, value.toBool());
-                    break;
-                case QMetaType::QString:
-                    lua_pushstring(L, value.toString().toUtf8().constData());
-                    break;
-                case QMetaType::QVariantList: {
-                    const QVariantList varList = value.toList();
-                    lua_createtable(L, static_cast<int>(varList.size()), 0);
-                    for (int i = 0; i < varList.size(); ++i) {
-                        const QVariant &elem = varList[i];
-                        switch (elem.typeId()) {
-                            case QMetaType::QVariantMap: {
-                                const QVariantMap varMap = elem.toMap();
-                                lua_createtable(L, 0, static_cast<int>(varMap.size()));
-                                for (auto mapIt = varMap.constBegin(); mapIt != varMap.constEnd(); ++mapIt) {
-                                    lua_pushstring(L, mapIt.key().toUtf8().constData());
-                                    const QVariant &mapValue = mapIt.value();
-                                    switch (mapValue.typeId()) {
-                                        case QMetaType::Int:
-                                            lua_pushinteger(L, mapValue.toInt());
-                                            break;
-                                        case QMetaType::QString:
-                                            lua_pushstring(L, mapValue.toString().toUtf8().constData());
-                                            break;
-                                        default:
-                                            lua_pushnil(L);
-                                            break;
-                                    }
-                                    lua_settable(L, -3);
-                                }
-                                break;
-                            }
-                            default:
-                                lua_pushnil(L);
-                                break;
-                        }
-                        lua_rawseti(L, -2, i + 1);
-                    }
-                    break;
-                }
-                default:
-                    lua_pushnil(L);
-                    break;
-            }
-            lua_settable(L, -3);
-        }
+        lua_pushqvariant(L, infoMap);
         return 1;
     }
 }

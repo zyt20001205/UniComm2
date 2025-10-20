@@ -25,7 +25,7 @@ void TcpServer::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QHash<QString, QVariant> TcpServer::info() {
+QVariantMap TcpServer::info() {
     if (m_tcpServer == nullptr) return {};
     const bool status = m_tcpServer->isListening();
     const QString localAddress = m_tcpServerLocalAddress;
@@ -38,12 +38,12 @@ QHash<QString, QVariant> TcpServer::info() {
         peerList.append(peerInfo);
     }
 
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["localAddress"] = localAddress;
-    infoHash["localPort"] = localPort;
-    infoHash["peerList"] = peerList;
-    return infoHash;
+    QVariantMap infoMap;
+    infoMap["status"] = status;
+    infoMap["localAddress"] = localAddress;
+    infoMap["localPort"] = localPort;
+    infoMap["peerList"] = peerList;
+    return infoMap;
 }
 
 bool TcpServer::open() {

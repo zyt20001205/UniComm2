@@ -24,7 +24,7 @@ void TcpClient::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QHash<QString, QVariant> TcpClient::info() {
+QVariantMap TcpClient::info() {
     if (m_tcpClient == nullptr) return{};
     QString status;
     switch (m_tcpClient->state()) {
@@ -47,13 +47,13 @@ QHash<QString, QVariant> TcpClient::info() {
     const QString remoteAddress = m_tcpClientRemoteAddress;
     const QString remotePort = QString::number(m_tcpClientRemotePort);
 
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["localAddress"] = localAddress;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteAddress"] = remoteAddress;
-    infoHash["remotePort"] = remotePort;
-    return infoHash;
+    QVariantMap infoMap;
+    infoMap["status"] = status;
+    infoMap["localAddress"] = localAddress;
+    infoMap["localPort"] = localPort;
+    infoMap["remoteAddress"] = remoteAddress;
+    infoMap["remotePort"] = remotePort;
+    return infoMap;
 }
 
 bool TcpClient::open() {

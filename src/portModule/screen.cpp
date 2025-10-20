@@ -30,7 +30,7 @@ void Screen::close() {
     m_showPreview = false;
 }
 
-QHash<QString, QVariant> Screen::info() {
+QVariantMap Screen::info() {
     return {};
 }
 

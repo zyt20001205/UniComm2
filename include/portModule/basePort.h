@@ -13,7 +13,7 @@ public:
 
     virtual void reload(const QJsonObject &portConfig) =0;
 
-    virtual QHash<QString, QVariant> info() = 0;
+    virtual QVariantMap info() = 0;
 
     virtual bool open() = 0;
 

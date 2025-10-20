@@ -20,7 +20,7 @@ public:
 
     void close() override;
 
-    QHash<QString, QVariant> info() override;
+    QVariantMap info() override;
 
     bool writeText(const QString &txText) override;
 

@@ -30,7 +30,7 @@ void SerialPort::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QHash<QString, QVariant> SerialPort::info() {
+QVariantMap SerialPort::info() {
     if (m_serialPort == nullptr) return {};
     const bool status = m_serialPort->isOpen();
     const QString portName = m_portName;
@@ -61,14 +61,14 @@ QHash<QString, QVariant> SerialPort::info() {
         default: stopBits = "unknown";
     }
 
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["portName"] = portName;
-    infoHash["baudRate"] = baudRate;
-    infoHash["dataBits"] = dataBits;
-    infoHash["parity"] = parity;
-    infoHash["stopBits"] = stopBits;
-    return infoHash;
+    QVariantMap infoMap;
+    infoMap["status"] = status;
+    infoMap["portName"] = portName;
+    infoMap["baudRate"] = baudRate;
+    infoMap["dataBits"] = dataBits;
+    infoMap["parity"] = parity;
+    infoMap["stopBits"] = stopBits;
+    return infoMap;
 }
 
 bool SerialPort::open() {

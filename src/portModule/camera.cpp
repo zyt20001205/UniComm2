@@ -34,7 +34,7 @@ void Camera::close() {
     m_showPreview = false;
 }
 
-QHash<QString, QVariant> Camera::info() {
+QVariantMap Camera::info() {
     return {};
 }
 

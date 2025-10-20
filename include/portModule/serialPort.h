@@ -15,7 +15,7 @@ public:
 
     void reload(const QJsonObject &portConfig) override;
 
-    QHash<QString, QVariant> info() override;
+    QVariantMap info() override;
 
     bool open() override;
 

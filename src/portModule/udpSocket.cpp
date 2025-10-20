@@ -29,7 +29,7 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QHash<QString, QVariant> UdpSocket::info() {
+QVariantMap UdpSocket::info() {
     if (m_udpSocket == nullptr) return {};
     bool status;
     if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
@@ -41,13 +41,13 @@ QHash<QString, QVariant> UdpSocket::info() {
     const QString remoteAddress = m_udpSocketRemoteAddress;
     const QString remotePort = QString::number(m_udpSocketRemotePort);
 
-    QHash<QString, QVariant> infoHash;
-    infoHash["status"] = status;
-    infoHash["localAddress"] = localAddress;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteAddress"] = remoteAddress;
-    infoHash["remotePort"] = remotePort;
-    return infoHash;
+    QVariantMap infoMap;
+    infoMap["status"] = status;
+    infoMap["localAddress"] = localAddress;
+    infoMap["localPort"] = localPort;
+    infoMap["remoteAddress"] = remoteAddress;
+    infoMap["remotePort"] = remotePort;
+    return infoMap;
 }
 
 bool UdpSocket::open() {

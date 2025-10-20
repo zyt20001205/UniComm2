@@ -20,7 +20,7 @@ public:
 
     void close() override;
 
-    QHash<QString, QVariant> info() override;
+    QVariantMap info() override;
 
     QString readText(int timeout, int length) override;
 
