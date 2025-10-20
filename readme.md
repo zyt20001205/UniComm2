@@ -137,7 +137,7 @@ flowchart LR
     luaLanguageServer[LuaLanguageServer]
     scriptModule[Script Module]
     subgraph scriptPages[Script Pages]
-        direction TB
+        direction LR
         qScintilla1[QScintilla]
         qScintilla2[QScintilla]
         qScintilla3[QScintilla]
