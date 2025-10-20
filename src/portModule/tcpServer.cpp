@@ -30,7 +30,7 @@ QVariantMap TcpServer::info() {
     const bool status = m_tcpServer->isListening();
     const QString localAddress = m_tcpServerLocalAddress;
     const QString localPort = QString::number(m_tcpServerLocalPort);
-    QList<QVariant> peerList;
+    QVariantList peerList;
     for (const QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
         QMap<QString, QVariant> peerInfo;
         peerInfo["peerAddress"] = tcpServerPeer->peerAddress().toString();

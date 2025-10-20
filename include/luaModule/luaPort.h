@@ -3,6 +3,8 @@
 
 #include <lua.hpp>
 
+int lua_portList(lua_State *L);
+
 int lua_portOpen(lua_State *L);
 
 int lua_portClose(lua_State *L);

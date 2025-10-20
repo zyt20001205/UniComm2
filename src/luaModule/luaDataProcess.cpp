@@ -4,6 +4,21 @@
 #include "dataModule/datatableModule.h"
 #include "dataModule/dataplotModule.h"
 #include "globals.h"
+#include "utils/luaUtils.h"
+
+int lua_databaseList(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 0)
+        luaL_error(L, "unexpected number of arguments");
+    // convert arguments
+    // start operation
+    QVariantList variantList{};
+    QMetaObject::invokeMethod(g_mainWindow, [&variantList] {
+        variantList = g_database->databaseList();
+    }, Qt::BlockingQueuedConnection);
+    lua_pushqvariant(L, variantList);
+    return 1;
+}
 
 int lua_databaseWrite(lua_State *L) {
     // check arguments
@@ -34,6 +49,20 @@ int lua_databaseClear(lua_State *L) {
         g_database->databaseClear();
     }, Qt::QueuedConnection);
     return 0;
+}
+
+int lua_datatableList(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 0)
+        luaL_error(L, "unexpected number of arguments");
+    // convert arguments
+    // start operation
+    QVariantList variantList{};
+    QMetaObject::invokeMethod(g_mainWindow, [&variantList] {
+        variantList = g_datatable->datatableList();
+    }, Qt::BlockingQueuedConnection);
+    lua_pushqvariant(L, variantList);
+    return 1;
 }
 
 int lua_datatableWrite(lua_State *L) {
@@ -76,7 +105,7 @@ int lua_datatableClear(lua_State *L) {
 
 int lua_datatableExport(lua_State *L) {
     // check arguments
-    if (lua_gettop(L) > 0)
+    if (lua_gettop(L) != 0)
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     // start operation

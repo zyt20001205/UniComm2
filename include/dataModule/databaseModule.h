@@ -18,6 +18,8 @@ public:
 
     void databaseConfigSave() const;
 
+    QVariantList databaseList() const;
+
     bool databaseWrite(const QString &key, const QString &value) const;
 
     void databaseClear() const;

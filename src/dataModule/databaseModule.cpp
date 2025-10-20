@@ -46,6 +46,14 @@ void DatabaseModule::databaseConfigSave() const {
     g_config["databaseConfig"] = m_databaseConfig;
 }
 
+QVariantList DatabaseModule::databaseList() const {
+    QVariantList databaseList{};
+    for (const QString &portName: m_databaseHash.keys()) {
+        databaseList.append(portName);
+    }
+    return databaseList;
+}
+
 bool DatabaseModule::databaseWrite(const QString &key, const QString &value) const {
     if (!m_databaseHash.contains(key)) return false;
     m_tableWidget->item(m_databaseHash[key], 0)->setText(value);

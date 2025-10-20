@@ -5,6 +5,20 @@
 #include "portModule/portModule.h"
 #include "utils/luaUtils.h"
 
+int lua_portList(lua_State *L) {
+    // check arguments
+    if (lua_gettop(L) != 0)
+        luaL_error(L, "unexpected number of arguments");
+    // convert arguments
+    // start operation
+    QVariantList variantList{};
+    QMetaObject::invokeMethod(g_mainWindow, [&variantList] {
+        variantList = g_port->portList();
+    }, Qt::BlockingQueuedConnection);
+    lua_pushqvariant(L, variantList);
+    return 1;
+}
+
 int lua_portOpen(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 1)
@@ -56,7 +70,7 @@ int lua_portInfo(lua_State *L) {
     if (!g_port->m_portHash.contains(portName)) {
         luaL_error(L, "port '%s' does not exist", portName.toUtf8().constData());
     } else {
-        QVariantMap infoMap;
+        QVariantMap infoMap{};
         auto *portObject = g_port->m_portHash[portName];
         QMetaObject::invokeMethod(portObject, [&infoMap, portObject] {
             infoMap = portObject->info();

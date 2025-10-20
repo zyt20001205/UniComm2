@@ -3,9 +3,13 @@
 
 #include <lua.hpp>
 
+int lua_databaseList(lua_State *L);
+
 int lua_databaseWrite(lua_State *L);
 
 int lua_databaseClear(lua_State *L);
+
+int lua_datatableList(lua_State *L);
 
 int lua_datatableWrite(lua_State *L);
 

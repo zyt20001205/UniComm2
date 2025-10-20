@@ -103,6 +103,10 @@ function control.rightDoubleClick(x, y) end
 function control.keyPress(key) end
 
 port = {}
+--- Retrieves a list of all available communication ports.
+--- @return table
+function port.list() end
+
 --- Opens a port connection for communication.
 --- @param name port Target port name.
 --- @return boolean status The status of the open operation.
@@ -247,6 +251,10 @@ modbusAscii = {}
 function modbusAscii.readHoldingRegisters() end
 
 database = {}
+--- Retrieves a list of all available database keys.
+--- @return table
+function database.list() end
+
 --- Writes data to a key in database.
 --- @param key database The key to write to.
 --- @param value string|number The value to write.
@@ -257,6 +265,10 @@ function database.write(key, value) end
 function database.clear() end
 
 datatable = {}
+--- Retrieves a list of all available datatable keys.
+--- @return table
+function datatable.list() end
+
 --- Writes data to a key in datatable.
 --- @param key datatable The key to write to.
 --- @param value string|number The value to write.

@@ -27,6 +27,8 @@ public:
 
     BasePort* currentPort() const;
 
+    QVariantList portList() const;
+
     QHash<QString, BasePort *> m_portHash{};
 signals:
     void appendLog(const QString &message, const QString &level);

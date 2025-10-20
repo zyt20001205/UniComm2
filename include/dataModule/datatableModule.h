@@ -18,6 +18,8 @@ public:
 
     void datatableConfigSave() const;
 
+    QVariantList datatableList() const;
+
     bool datatableWrite(const QString &key, const QString &value);
 
     bool datatableClear(const QString &key);

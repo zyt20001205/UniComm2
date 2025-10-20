@@ -53,6 +53,8 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     lua_setglobal(L, "control");
     // register port class
     lua_newtable(L);
+    lua_pushcfunction(L, lua_portList);
+    lua_setfield(L, -2, "list");
     lua_pushcfunction(L, lua_portOpen);
     lua_setfield(L, -2, "open");
     lua_pushcfunction(L, lua_portClose);
@@ -82,6 +84,8 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     // lua_setglobal(L, "modbusAscii");
     // register database class
     lua_newtable(L);
+    lua_pushcfunction(L, lua_databaseList);
+    lua_setfield(L, -2, "list");
     lua_pushcfunction(L, lua_databaseWrite);
     lua_setfield(L, -2, "write");
     lua_pushcfunction(L, lua_databaseClear);
@@ -89,6 +93,8 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     lua_setglobal(L, "database");
     // register datatable class
     lua_newtable(L);
+    lua_pushcfunction(L, lua_datatableList);
+    lua_setfield(L, -2, "list");
     lua_pushcfunction(L, lua_datatableWrite);
     lua_setfield(L, -2, "write");
     lua_pushcfunction(L, lua_datatableClear);

@@ -74,6 +74,14 @@ BasePort *PortModule::currentPort() const {
     return nullptr;
 }
 
+QVariantList PortModule::portList() const {
+    QVariantList portList{};
+    for (const QString &portName: m_portHash.keys()) {
+        portList.append(portName);
+    }
+    return portList;
+}
+
 // PortModule protected
 void PortModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint globalPos = event->globalPos();

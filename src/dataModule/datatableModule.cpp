@@ -58,6 +58,14 @@ void DatatableModule::datatableConfigSave() const {
     g_config["datatableConfig"] = m_datatableConfig;
 }
 
+QVariantList DatatableModule::datatableList() const {
+    QVariantList datatableList{};
+    for (const QString &portName: m_datatableHash.keys()) {
+        datatableList.append(portName);
+    }
+    return datatableList;
+}
+
 bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
     if (!m_datatableHash.contains(key)) return false;
 
