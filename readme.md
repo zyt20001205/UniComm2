@@ -168,19 +168,32 @@ flowchart LR
 
 ### textDocument/completion
 
+![completion](resources/assets/completion.gif)
+
 ### textDocument/definition
+
+![definition](resources/assets/definition.gif)
 
 ### textDocument/documentSymbol
 
 ### textDocument/foldingRange
 
+![foldingRange](resources/assets/foldingRange.gif)
+
 ### textDocument/formatting
+
+![formatting](resources/assets/formatting.gif)
 
 ### textDocument/hover
 
+![hover](resources/assets/hover.gif)
+
 ### textDocument/semanticTokens
 
+
 ### textDocument/signatureHelp
+
+![signatureHelp](resources/assets/signatureHelp.gif)
 
 ## Editor Features
 
