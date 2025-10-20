@@ -50,7 +50,7 @@ flowchart LR
 
 ## Support Port Types
 
-<table style="width: 100%;">
+<table>
     <tr>
         <th colspan="4">OSI Model</th>
     </tr>
@@ -130,15 +130,16 @@ flowchart LR
 
 # Script Module
 
-## LSP Integration
+## Architecture
 
 ```mermaid
 flowchart LR
-    A[Script Module]
-    B[LuaLanguageServer]
-    B -->|LSP Response| A
-    A -->|LSP Request| B
-    A -->|LSP Notification| B
+    luaLanguageServer[LuaLanguageServer]
+    scriptModule[Script Module]
+    luaLanguageServer e1@-->|LSP Response| scriptModule
+    scriptModule e1@-->|LSP Request| luaLanguageServer
+    scriptModule e1@-->|LSP Notification| luaLanguageServer
+    e1@{ animate: true }
 ```
 
 | LSP Request Type            | Status                                                              |
