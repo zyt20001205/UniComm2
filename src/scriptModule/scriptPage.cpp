@@ -230,6 +230,7 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
             emit insertDatatable(-1, QString());
             return;
         }
+        text.replace("\\", "\\\\");
     }
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT
@@ -365,11 +366,11 @@ void ScriptPage::didSaveNotification() {
     // did save notification to lua language server
     const QString content = m_scriptEditor->text();
     const QJsonObject didSaveParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", m_scriptUrl.toString()}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()}
             }
+        }
     };
     emit notificationJson("textDocument/didSave", didSaveParams);
 }
@@ -378,11 +379,11 @@ void ScriptPage::didCloseNotification() {
     // did save notification to lua language server
     const QString content = m_scriptEditor->text();
     const QJsonObject didCloseParams{
-                {
-                    "textDocument", QJsonObject{
-                        {"uri", m_scriptUrl.toString()}
-                    }
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()}
+            }
+        }
     };
     emit notificationJson("textDocument/didClose", didCloseParams);
 }

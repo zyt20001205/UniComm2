@@ -40,6 +40,7 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
         QJsonObject item = value.toObject();
         const QString kind = m_kindList[item["kind"].toInt()];
         if (!m_fullComplete && kind != "EnumMember") continue;
+        qDebug() << item;
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
         m_tableWidget->insertRow(row);

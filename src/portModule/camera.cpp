@@ -27,11 +27,21 @@ void Camera::reload(const QJsonObject &portConfig) {
 
 bool Camera::open() {
     m_showPreview = true;
+    emit togglePort(true);
+    emit appendLog(QString("%1 opened").arg(m_portName), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portName);
     return true;
 }
 
 void Camera::close() {
     m_showPreview = false;
+    emit togglePort(false);
+    emit appendLog(QString("%1 closed").arg(m_portName), "info");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
 }
 
 QVariantMap Camera::info() {

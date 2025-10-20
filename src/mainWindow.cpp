@@ -51,9 +51,6 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
 
-    m_currentScriptLabel->setFont(QFont("Consolas", 12));
-    m_currentScriptLabel->setStyleSheet("color: #333333;");
-
     configInit();
     moduleInit();
     shortcutInit();
@@ -396,6 +393,8 @@ void MainWindow::menuInit() {
     // control menu
     {
         toolBar->addWidget(m_currentScriptLabel);
+        m_currentScriptLabel->setFont(QFont("Consolas", 12, QFont::Bold));
+        m_currentScriptLabel->setStyleSheet("color: #333333;");
 
         auto *runButton = new QToolButton(); // NOLINT
         toolBar->addWidget(runButton);

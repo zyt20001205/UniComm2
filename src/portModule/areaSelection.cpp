@@ -26,7 +26,7 @@
 // AreaSelection public
 AreaSelection::AreaSelection(QWidget *parent)
     : QDialog(parent) {
-    this->setFixedSize(1280, 720);
+    resize(1280, 720);
     auto *layout = new QHBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     auto *splitter = new QSplitter(Qt::Horizontal); // NOLINT

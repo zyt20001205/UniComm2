@@ -10,8 +10,9 @@ PixmapPreview::PixmapPreview(QWidget *parent)
 }
 
 void PixmapPreview::previewShow(const QList<QPixmap> &pixmapList) {
+    previewClear();
     foreach(QPixmap pixmap, pixmapList) {
-        auto *label = new QLabel();
+        auto *label = new QLabel(); // NOLINT
         m_layout->addWidget(label);
         label->setPixmap(pixmap);
     }

@@ -64,24 +64,4 @@ private:
     int m_version = 1;
 };
 
-class PortPage final : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit PortPage(const QJsonObject &portConfig, QWidget *parent = nullptr);
-
-    ~PortPage() override;
-
-    void portReload(const QJsonObject &portConfig) const;
-
-    BasePort *m_port{};
-signals:
-    void appendLog(const QString &message, const QString &level);
-
-private:
-    void portToggle(bool status) const;
-
-    QPushButton *m_portToggleButton{};
-};
-
 #endif //UNICOMM_PORT_H

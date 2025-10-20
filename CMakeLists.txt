@@ -60,6 +60,7 @@ qt_add_executable(UniComm src/main.cpp
         include/portModule/camera.h
         include/portModule/pixmapPreview.h
         include/portModule/portModule.h
+        include/portModule/portPage.h
         include/portModule/portSetting.h
         include/portModule/screen.h
         include/portModule/sendModule.h
@@ -102,6 +103,7 @@ qt_add_executable(UniComm src/main.cpp
         src/portModule/camera.cpp
         src/portModule/pixmapPreview.cpp
         src/portModule/portModule.cpp
+        src/portModule/portPage.cpp
         src/portModule/portSetting.cpp
         src/portModule/screen.cpp
         src/portModule/sendModule.cpp
