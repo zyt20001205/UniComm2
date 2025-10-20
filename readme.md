@@ -176,6 +176,8 @@ flowchart LR
 
 ### textDocument/documentSymbol
 
+![documentSymbol](resources/assets/documentSymbol.gif)
+
 ### textDocument/foldingRange
 
 ![foldingRange](resources/assets/foldingRange.gif)
@@ -190,6 +192,7 @@ flowchart LR
 
 ### textDocument/semanticTokens
 
+![semanticTokens](resources/assets/semanticTokens.png)
 
 ### textDocument/signatureHelp
 
