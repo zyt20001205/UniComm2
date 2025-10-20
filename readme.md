@@ -143,25 +143,44 @@ flowchart LR
         qScintilla3[QScintilla]
         qScintilla4[...]
     end
-    luaLanguageServer e1@-->|LSP Response| scriptModule
-    scriptModule e2@-->|LSP Request| luaLanguageServer
-    scriptModule e3@-->|LSP Notification| luaLanguageServer
+    luaLanguageServer e1@ -->|LSP Response| scriptModule
+    scriptModule e2@ -->|LSP Request| luaLanguageServer
+    scriptModule e3@ -->|LSP Notification| luaLanguageServer
     scriptModule --- scriptPages
-    e1@{ animate: true }
-    e2@{ animate: true }
-    e3@{ animate: true }
+    e1@{animate: true}
+    e2@{animate: true}
+    e3@{animate: true}
 ```
 
-| LSP Request Type            | Status                                                              |
-|:----------------------------|:--------------------------------------------------------------------|
-| textDocument/completion     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/foldingRange   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/formatting     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/hover          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/semanticTokens | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/signatureHelp  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/definition     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| textDocument/references     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+## Supported LSP Requests
+
+| LSP Request Type                                           | Status                                                              |
+|:-----------------------------------------------------------|:--------------------------------------------------------------------|
+| [textDocument/completion](#textdocumentcompletion)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/definition](#textdocumentdefinition)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/documentSymbol](#textdocumentdocumentsymbol) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/foldingRange](#textdocumentfoldingrange)     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/formatting](#textdocumentformatting)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/hover](#textdocumenthover)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/semanticTokens](#textdocumentsemantictokens) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/signatureHelp](#textdocumentsignaturehelp)   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/references](#textdocumentcompletion)         | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+
+### textDocument/completion
+
+### textDocument/definition
+
+### textDocument/documentSymbol
+
+### textDocument/foldingRange
+
+### textDocument/formatting
+
+### textDocument/hover
+
+### textDocument/semanticTokens
+
+### textDocument/signatureHelp
 
 ## Editor Features
 
