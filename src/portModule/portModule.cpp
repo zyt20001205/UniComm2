@@ -80,6 +80,7 @@ QVariantList PortModule::portList() const {
 }
 
 void PortModule::portInsert(int index, QJsonObject portConfig) {
+    if (m_annotationUrl.isEmpty()) return;
     if (index == -1) {
         index = m_portConfig.size();
     }

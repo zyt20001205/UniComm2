@@ -70,6 +70,7 @@ QVariantList DatatableModule::datatableList() const {
 }
 
 void DatatableModule::datatableInsert(int visualIndex, QString key) {
+    if (m_annotationUrl.isEmpty()) return;
     if (visualIndex == -1) {
         visualIndex = m_datatableConfig.size();
     }

@@ -58,6 +58,7 @@ QVariantList DatabaseModule::databaseList() const {
 }
 
 void DatabaseModule::databaseInsert(int visualIndex, QString key) {
+    if (m_annotationUrl.isEmpty()) return;
     if (visualIndex == -1) {
         visualIndex = m_databaseConfig.size();
     }
