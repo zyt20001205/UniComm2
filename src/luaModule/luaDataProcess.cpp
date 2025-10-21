@@ -24,7 +24,7 @@ int lua_databaseWrite(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 2)
         luaL_error(L, "unexpected number of arguments");
-    // check arguments
+    // convert arguments
     const char *param1 = luaL_checkstring(L, 1);
     const char *param2 = luaL_checkstring(L, 2);
     // start operation
@@ -44,7 +44,7 @@ int lua_databaseClear(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 0)
         luaL_error(L, "unexpected number of arguments");
-    // start operation
+    // convert arguments
     QMetaObject::invokeMethod(g_mainWindow, [] {
         g_database->databaseClear();
     }, Qt::QueuedConnection);
@@ -69,7 +69,7 @@ int lua_datatableWrite(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 2)
         luaL_error(L, "unexpected number of arguments");
-    // check arguments
+    // convert arguments
     const char *param1 = luaL_checkstring(L, 1);
     const char *param2 = luaL_checkstring(L, 2);
     // start operation
@@ -89,7 +89,7 @@ int lua_datatableClear(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 0 && lua_gettop(L) != 1)
         luaL_error(L, "unexpected number of arguments");
-    // check arguments
+    // convert arguments
     const char *param1 = luaL_optstring(L, 1, "");
     // start operation
     bool status = false;
@@ -107,7 +107,7 @@ int lua_datatableExport(lua_State *L) {
     // check arguments
     if (lua_gettop(L) != 0)
         luaL_error(L, "unexpected number of arguments");
-    // check arguments
+    // convert arguments
     // start operation
     QMetaObject::invokeMethod(g_mainWindow, [] {
         g_datatable->datatableExport();
@@ -119,7 +119,7 @@ int lua_dataplotAppend(lua_State *L) {
     // check arguments
     if (lua_gettop(L) > 2)
         luaL_error(L, "unexpected number of arguments");
-    // check arguments
+    // convert arguments
     const char *param1 = luaL_checkstring(L, 1);
     const int param2 = luaL_optinteger(L, 2, 0);
     // start operation
@@ -130,3 +130,18 @@ int lua_dataplotAppend(lua_State *L) {
     }, Qt::QueuedConnection);
     return 0;
 }
+//
+// int lua_dataplotRemove(lua_State *L) {
+//     // check arguments
+//     if (lua_gettop(L) != 1)
+//         luaL_error(L, "unexpected number of arguments");
+//     // convert arguments
+//     const char *param1 = luaL_checkstring(L, 1);
+//     // start operation
+//     const QString key = param1;
+//     QMetaObject::invokeMethod(g_mainWindow, [key] {
+//         g_dataplot->dataplotRemove(key);
+//     }, Qt::QueuedConnection);
+//     return 0;
+// }
+

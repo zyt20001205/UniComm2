@@ -11,10 +11,10 @@ int lua_modbusRtuReadHoldingRegisters(lua_State *L) {
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     const char *param1 = luaL_checkstring(L, 1);
-    const int param2 = static_cast<int>(luaL_checkinteger(L, 1));
-    const int param3 = static_cast<int>(luaL_checkinteger(L, 2));
-    const int param4 = static_cast<int>(luaL_checkinteger(L, 3));
-    const int param5 = static_cast<int>(luaL_optinteger(L, 4, 1000));
+    const int param2 = static_cast<int>(luaL_checkinteger(L, 2));
+    const int param3 = static_cast<int>(luaL_checkinteger(L, 3));
+    const int param4 = static_cast<int>(luaL_checkinteger(L, 4));
+    const int param5 = static_cast<int>(luaL_optinteger(L, 5, 1000));
     // start operation
     const QString portName = QString::fromUtf8(param1);
     if (!g_port->m_portHash.contains(portName)) {
@@ -76,11 +76,11 @@ int lua_modbusRtuWriteMultipleRegisters(lua_State *L) {
         luaL_error(L, "unexpected number of arguments");
     // check arguments
     const char *param1 = luaL_checkstring(L, 1);
-    const int param2 = static_cast<int>(luaL_checkinteger(L, 1));
-    const int param3 = static_cast<int>(luaL_checkinteger(L, 2));
+    const int param2 = static_cast<int>(luaL_checkinteger(L, 2));
+    const int param3 = static_cast<int>(luaL_checkinteger(L, 3));
     size_t len4;
-    const char *param4 = luaL_checklstring(L, 3, &len4);
-    const int param5 = static_cast<int>(luaL_optinteger(L, 4, 1000));
+    const char *param4 = luaL_checklstring(L, 4, &len4);
+    const int param5 = static_cast<int>(luaL_optinteger(L, 5, 1000));
     // start operation
     const QString portName = QString::fromUtf8(param1);
     if (!g_port->m_portHash.contains(portName)) {

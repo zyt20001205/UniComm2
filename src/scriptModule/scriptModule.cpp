@@ -46,7 +46,6 @@ void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
             scriptOpen(QUrl(value.toString()));
         }
     } else {
-
         for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
             scriptClose(QUrl(value.toString()));
         }
@@ -59,10 +58,9 @@ void ScriptModule::scriptConfigSave() {
     // save config
     auto scriptList = QJsonArray();
     for (const QUrl &url: m_scriptPageHash.keys()) {
-        if (ScriptPage *scriptPage = m_scriptPageHash[url]; scriptPage->isVisible()) {
-            scriptPage->scriptSave();
-            scriptList.append(url.toString());
-        }
+        ScriptPage *scriptPage = m_scriptPageHash[url];
+        scriptPage->scriptSave();
+        scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
     g_config["scriptConfig"] = m_scriptConfig;

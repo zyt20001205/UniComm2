@@ -120,7 +120,7 @@ bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
     if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
 
     const int row = m_data[key].x.size() - 1;
-    const int column = m_datatableHash["key"];
+    const int column = m_datatableHash[key];
     m_tableWidget->setRowCount(qMax(m_tableWidget->rowCount(), row + 1));
     m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
     m_tableWidget->scrollToBottom();

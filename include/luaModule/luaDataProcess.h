@@ -19,4 +19,6 @@ int lua_datatableExport(lua_State *L);
 
 int lua_dataplotAppend(lua_State *L);
 
+int lua_dataplotRemove(lua_State *L);
+
 #endif //UNICOMM_LUADATAPROCESS_H
