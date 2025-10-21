@@ -143,6 +143,7 @@ void ScriptModule::markerShow(const QUrl &scriptUrl, const int type, const int l
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->markerAdd(line - 1, type);
+    scriptPage->m_scriptEditor->ensureLineVisible(line - 1);
     if (time == -1) return;
     QTimer::singleShot(time, [scriptPage, line, type] {
         scriptPage->m_scriptEditor->markerDelete(line - 1, type);
