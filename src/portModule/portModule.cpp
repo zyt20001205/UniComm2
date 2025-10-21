@@ -80,7 +80,6 @@ QVariantList PortModule::portList() const {
 }
 
 void PortModule::portInsert(int index, QJsonObject portConfig) {
-    if (m_annotationUrl.isEmpty()) return;
     if (index == -1) {
         index = m_portConfig.size();
     }
@@ -103,7 +102,7 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
     // backend
     m_portConfig.insert(index, portConfig);
     m_portHash.insert(portName, portPage->m_port);
-    portAnnotate();
+    if (!m_annotationUrl.isEmpty()) portAnnotate();
     // logging
     emit appendLog(QString("%1 initialized").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

@@ -58,7 +58,6 @@ QVariantList DatabaseModule::databaseList() const {
 }
 
 void DatabaseModule::databaseInsert(int visualIndex, QString key) {
-    if (m_annotationUrl.isEmpty()) return;
     if (visualIndex == -1) {
         visualIndex = m_databaseConfig.size();
     }
@@ -82,7 +81,7 @@ void DatabaseModule::databaseInsert(int visualIndex, QString key) {
         const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
         m_databaseHash.insert(headerItem->text(), index);
     }
-    databaseAnnotate();
+    if (!m_annotationUrl.isEmpty()) databaseAnnotate();
     // logging
     emit appendLog(QString("%1 inserted").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

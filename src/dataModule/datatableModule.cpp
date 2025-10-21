@@ -70,7 +70,6 @@ QVariantList DatatableModule::datatableList() const {
 }
 
 void DatatableModule::datatableInsert(int visualIndex, QString key) {
-    if (m_annotationUrl.isEmpty()) return;
     if (visualIndex == -1) {
         visualIndex = m_datatableConfig.size();
     }
@@ -100,7 +99,7 @@ void DatatableModule::datatableInsert(int visualIndex, QString key) {
         const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
         m_datatableHash.insert(headerItem->text(), index);
     }
-    datatableAnnotate();
+    if (!m_annotationUrl.isEmpty()) datatableAnnotate();
     // logging
     emit appendLog(QString("%1 inserted").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
