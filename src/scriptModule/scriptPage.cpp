@@ -575,16 +575,16 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
     // set margins
     setMarginType(0, NumberMargin);
-    QsciScintilla::setMarginWidth(0, "000");
+    QsciScintilla::setMarginWidth(0, 32);
 
     setMarginType(1, SymbolMargin);
     QsciScintilla::setMarginSensitivity(1, true);
-    QsciScintilla::setMarginWidth(1, "16");
+    QsciScintilla::setMarginWidth(1, "00");
 
     QsciScintilla::setFolding(BoxedTreeFoldStyle);
     setMarginType(2, SymbolMargin);
     QsciScintilla::setMarginSensitivity(2, true);
-    QsciScintilla::setMarginWidth(2, "16");
+    QsciScintilla::setMarginWidth(2, "00");
     // color format is BGR!!! DO NOT FORGET!!!
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
