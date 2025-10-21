@@ -45,15 +45,19 @@ PortModule::PortModule()
 }
 
 void PortModule::workspaceOpen(const QUrl &rootUrl) {
+    if (m_annotationUrl.isEmpty()) {
+        // post initialization after workspace opened
+        for (const auto &value: g_config["portConfig"].toArray()) {
+            const QJsonObject portConfig = value.toObject();
+            portInsert(-1, portConfig);
+        }
+    } else {
+        // nothing to do here
+    }
     const QString rootPath = rootUrl.toLocalFile();
     const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
-    // post initialization after workspace opened
     portAnnotate();
-    for (const auto &value: g_config["portConfig"].toArray()) {
-        const QJsonObject portConfig = value.toObject();
-        portInsert(-1, portConfig);
-    }
 }
 
 void PortModule::portConfigSave() const {

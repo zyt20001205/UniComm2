@@ -40,12 +40,19 @@ ScriptModule::ScriptModule()
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
-    m_rootUrl = rootUrl;
-    m_diagnosticsHash.clear();
-    // post initialization after workspace opened
-    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-        scriptOpen(QUrl(value.toString()));
+    if (m_rootUrl.isEmpty()) {
+        // post initialization after workspace opened
+        for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
+            scriptOpen(QUrl(value.toString()));
+        }
+    } else {
+
+        for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
+            scriptClose(QUrl(value.toString()));
+        }
+        m_diagnosticsHash.clear();
     }
+    m_rootUrl = rootUrl;
 }
 
 void ScriptModule::scriptConfigSave() {

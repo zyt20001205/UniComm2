@@ -11,8 +11,6 @@ public:
 
     ~ConfigModule() override = default;
 
-    void configInit();
-
     void configSave(const QString &filePath);
 
 signals:

@@ -78,48 +78,74 @@ void MainWindow::workspaceOpen() {
     if (rootDir.isEmpty()) return;
     rootUrl = QUrl::fromLocalFile(rootDir);
     m_mainConfig["workspace"] = rootUrl.toString();
-    // check if lua config files exist
-    const QString rootPath = rootUrl.toLocalFile();
-    if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
-        QFile::copy(":/config/.luarc.json", luarcPath);
-        QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                         | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                         | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+    // check if workspace is valid
+    if (rootUrl = QUrl(m_mainConfig["workspace"].toString()); QFileInfo::exists(rootUrl.toLocalFile())) {
+        const QString rootPath = rootUrl.toLocalFile();
+
+        // check if luarc.json exists
+        if (const QString luarcPath = QDir(rootPath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
+        } else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
+            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(luarcPath);
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+        }
+
+        // check if lib dir exists
+        const QString libDirPath = QDir(rootPath).filePath("lib");
+        if (QDir().mkdir(libDirPath)) {
+            emit appendLog("lib dir created", "info");
+            // logging
+            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] lib dir created").arg(timestamp);
+        }
+
+        if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
+        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
+            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(libdPath);
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+        }
+        if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
+            if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
+        }
+        if (const QString databasedPath = QDir(libDirPath).filePath("database.d.lua"); !QFile::exists(databasedPath)) {
+            if (QFile file(databasedPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "database.d.lua generated");
+        }
+        if (const QString datatabledPath = QDir(libDirPath).filePath("datatable.d.lua"); !QFile::exists(datatabledPath)) {
+            if (QFile file(datatabledPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "datatable.d.lua generated");
+        }
+        emit openWorkspace(rootUrl);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
-    } else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
-        QFile::remove(luarcPath);
-        QFile::copy(":/config/.luarc.json", luarcPath);
-        QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                         | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                         | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+        qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
     }
-    if (const QString libdPath = QDir(rootPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
-        QFile::copy(":/config/lib.d.lua", libdPath);
-        QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                        | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                        | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-    } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
-        QFile::remove(libdPath);
-        QFile::copy(":/config/lib.d.lua", libdPath);
-        QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                        | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                        | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
-    }
-    emit openWorkspace(rootUrl);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "workspace opened");
 }
 
 // MainWindow protected
@@ -136,12 +162,11 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 // MainWindow private
 void MainWindow::configInit() {
+    m_configModule = new ConfigModule(this);
+    m_mainConfig = g_config["mainConfig"].toObject();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "initializing config");
-    m_configModule = new ConfigModule;
-    m_configModule->configInit();
-    m_mainConfig = g_config["mainConfig"].toObject();
+    qDebug() << QString("[%1] %2").arg(timestamp, "config initialized");
 }
 
 void MainWindow::moduleInit() {
@@ -308,6 +333,9 @@ void MainWindow::shortcutInit() {
             workspaceSave(filePath);
         }
     });
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "shortcut initialized");
 }
 
 void MainWindow::menuInit() {
@@ -428,6 +456,9 @@ void MainWindow::menuInit() {
         connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
         connect(this, &MainWindow::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);
     }
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "menu initialized");
 }
 
 void MainWindow::workspaceInit() {
@@ -498,7 +529,7 @@ void MainWindow::workspaceInit() {
         emit openWorkspace(rootUrl);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
+        qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
     }
 }
 
@@ -527,6 +558,9 @@ void MainWindow::layoutInit() {
         KDDockWidgets::LayoutSaver layoutSaver;
         layoutSaver.restoreLayout(layoutData);
     }
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "layout initialized");
 }
 
 void MainWindow::mainConfigSave() {

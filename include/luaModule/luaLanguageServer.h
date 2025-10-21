@@ -50,8 +50,7 @@ private:
     void jsonReturn();
 
     QProcess *m_process{};
-    bool m_initialized = false;
-    QUrl m_currentWorkspace{};
+    QUrl m_rootUrl{};
     QByteArray m_buffer{};
     int m_id = 0;
     QHash<int, QString> m_methods{};

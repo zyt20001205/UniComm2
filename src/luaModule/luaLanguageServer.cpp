@@ -16,11 +16,12 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
 }
 
 void LuaLanguageServer::workspaceOpen(const QUrl &rootUrl) {
-    if (!m_initialized) {
+    if (m_rootUrl.isEmpty()) {
         initializeNotification(rootUrl);
     } else {
         didChangeWorkspaceFoldersNotification(rootUrl);
     }
+    m_rootUrl = rootUrl;
 }
 
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
@@ -70,16 +71,13 @@ void LuaLanguageServer::initializeNotification(const QUrl &rootUrl) {
     connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
     loop.exec();
     jsonNotification("initialized", QJsonObject{});
-    // record workspace
-    m_initialized = true;
-    m_currentWorkspace = rootUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
 }
 
 void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) {
-    if (rootUrl == m_currentWorkspace) return;
+    if (rootUrl == m_rootUrl) return;
     const QString rootUriStr = rootUrl.toString();
     const QJsonObject didChangeWorkspaceFoldersParams{
         {
@@ -94,7 +92,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUr
                 {
                     "removed", QJsonArray{
                         QJsonObject{
-                            {"uri", m_currentWorkspace.toString()}
+                            {"uri", m_rootUrl.toString()}
                         }
                     }
                 }
@@ -102,8 +100,6 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUr
         }
     };
     jsonNotification("workspace/didChangeWorkspaceFolders", didChangeWorkspaceFoldersParams);
-    // update workspace
-    m_currentWorkspace = rootUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");

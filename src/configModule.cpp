@@ -11,9 +11,6 @@
 ConfigModule::ConfigModule(QWidget *parent)
     : QObject(parent),
       m_configFile(QDir::current().filePath("config.json")) {
-}
-
-void ConfigModule::configInit() {
     if (m_configFile.exists()) {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

@@ -35,22 +35,26 @@ DatatableModule::DatatableModule()
     moreButton->setMenu(cornerMenu);
     auto *exportAction = new QAction(QIcon(":/icon/share.svg"), tr("export"), cornerMenu); // NOLINT
     cornerMenu->addAction(exportAction);
-    connect(exportAction, &QAction::triggered, this, [this] {datatableExport();});
+    connect(exportAction, &QAction::triggered, this, [this] { datatableExport(); });
     auto *clearAction = new QAction(QIcon(":/icon/delete.svg"), tr("clear"), cornerMenu); // NOLINT
     cornerMenu->addAction(clearAction);
-    connect(clearAction, &QAction::triggered, this, [this] {datatableClear("");});
+    connect(clearAction, &QAction::triggered, this, [this] { datatableClear(""); });
 }
 
 void DatatableModule::workspaceOpen(const QUrl &rootUrl) {
+    if (m_annotationUrl.isEmpty()) {
+        // post initialization after workspace opened
+        for (const auto &value: g_config["datatableConfig"].toArray()) {
+            const QString key = value.toString();
+            datatableInsert(-1, key);
+        }
+    } else {
+        // nothing to do here
+    }
     const QString rootPath = rootUrl.toLocalFile();
     const QString annotationPath = QDir(rootPath).filePath("lib/datatable.d.lua");
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
-    // post initialization after workspace opened
     datatableAnnotate();
-    for (const auto &value: g_config["datatableConfig"].toArray()) {
-        const QString key = value.toString();
-        datatableInsert(-1, key);
-    }
 }
 
 void DatatableModule::datatableConfigSave() const {

@@ -30,15 +30,19 @@ DatabaseModule::DatabaseModule()
 }
 
 void DatabaseModule::workspaceOpen(const QUrl &rootUrl) {
+    if (m_annotationUrl.isEmpty()) {
+        // post initialization after workspace opened
+        for (const auto &value: g_config["databaseConfig"].toArray()) {
+            const QString key = value.toString();
+            databaseInsert(-1, key);
+        }
+    } else {
+        // nothing to do here
+    }
     const QString rootPath = rootUrl.toLocalFile();
     const QString annotationPath = QDir(rootPath).filePath("lib/database.d.lua");
     m_annotationUrl = QUrl::fromLocalFile(annotationPath);
-    // post initialization after workspace opened
     databaseAnnotate();
-    for (const auto &value: g_config["databaseConfig"].toArray()) {
-        const QString key = value.toString();
-        databaseInsert(-1, key);
-    }
 }
 
 void DatabaseModule::databaseConfigSave() const {
