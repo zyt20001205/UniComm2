@@ -45,7 +45,7 @@ signals:
 private:
     void initializeNotification(const QUrl &rootUrl);
 
-    void didChangeWorkspaceFoldersNotification(const QUrl &rootUrl);
+    void didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) const;
 
     void jsonReturn();
 

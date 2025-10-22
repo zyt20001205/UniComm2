@@ -76,7 +76,7 @@ void LuaLanguageServer::initializeNotification(const QUrl &rootUrl) {
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
 }
 
-void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) {
+void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) const {
     if (rootUrl == m_rootUrl) return;
     const QString rootUriStr = rootUrl.toString();
     const QJsonObject didChangeWorkspaceFoldersParams{
@@ -176,8 +176,7 @@ void LuaLanguageServer::jsonReturn() {
                 emit returnSignatureHelp(scriptUrl, signature);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
-            // qDebug() << json;
-            // return from notification
+            // publish diagnostics return
             const QJsonObject params = json["params"].toObject();
             const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
             QString uri = params["uri"].toString();
@@ -188,7 +187,8 @@ void LuaLanguageServer::jsonReturn() {
             const QUrl scriptUrl(uri);
             emit returnPublishDiagnostics(scriptUrl, diagnosticsArray);
         } else {
-            // qDebug() << json;
+            qDebug() << "unknown lsp pack";
+            qDebug() << json;
         }
         if (m_buffer.size() == 0) break;
     }

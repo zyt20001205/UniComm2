@@ -364,7 +364,6 @@ void ScriptPage::didChangeNotification() {
 
 void ScriptPage::didSaveNotification() {
     // did save notification to lua language server
-    const QString content = m_scriptEditor->text();
     const QJsonObject didSaveParams{
         {
             "textDocument", QJsonObject{
@@ -376,8 +375,7 @@ void ScriptPage::didSaveNotification() {
 }
 
 void ScriptPage::didCloseNotification() {
-    // did save notification to lua language server
-    const QString content = m_scriptEditor->text();
+    // did close notification to lua language server
     const QJsonObject didCloseParams{
         {
             "textDocument", QJsonObject{

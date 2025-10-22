@@ -152,19 +152,43 @@ flowchart LR
     e3@{animate: true}
 ```
 
-## Supported LSP Requests
+## Editor Features
 
-| LSP Request Type                                           | Status                                                                     |
-|:-----------------------------------------------------------|:---------------------------------------------------------------------------|
-| [textDocument/completion](#textdocumentcompletion)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/definition](#textdocumentdefinition)         | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |
-| [textDocument/documentSymbol](#textdocumentdocumentsymbol) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/foldingRange](#textdocumentfoldingrange)     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/formatting](#textdocumentformatting)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/hover](#textdocumenthover)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/references](#textdocumentcompletion)         | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| [textDocument/semanticTokens](#textdocumentsemantictokens) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/signatureHelp](#textdocumentsignaturehelp)   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| Feature                 | Status                                                              |
+|:------------------------|:--------------------------------------------------------------------|
+| comment (Ctrl+/)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| duplicate line (Ctrl+D) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| auto pair ( [ { \" '    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| search                  | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| replace                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+
+## Supported LSP Specifications
+
+| LSP Specification                                                  | Status                                                                     |
+|:-------------------------------------------------------------------|:---------------------------------------------------------------------------|
+| textDocument/codeAction                                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/codeLens                                              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/completion](#textdocumentcompletion)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/definition](#textdocumentdefinition)                 | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |
+| textDocument/didChange                                             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/didClose                                              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/didOpen                                               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/didSave                                               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/documentHighlight                                     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/foldingRange](#textdocumentfoldingrange)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/formatting](#textdocumentformatting)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/hover](#textdocumenthover)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/implementation                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/onTypeFormatting                                      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/publishDiagnostics](#textdocumentpublishdiagnostics) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/rangeFormatting                                       | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/references                                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/rename                                                | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/semanticTokens](#textdocumentsemantictokens)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/signatureHelp](#textdocumentsignaturehelp)           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/typeDefinition                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| workspace/didChangeWorkspaceFolders                                | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 
 ### textDocument/completion
 
@@ -184,11 +208,17 @@ flowchart LR
 
 ### textDocument/formatting
 
+Ctrl+Alt+L
+
 ![formatting](resources/assets/formatting.gif)
 
 ### textDocument/hover
 
 ![hover](resources/assets/hover.gif)
+
+### textDocument/publishDiagnostics
+
+![publishDiagnostics](resources/assets/publishDiagnostics.gif)
 
 ### textDocument/semanticTokens
 
@@ -198,18 +228,7 @@ flowchart LR
 
 ![signatureHelp](resources/assets/signatureHelp.gif)
 
-## Editor Features
-
-| Feature                 | Status                                                              |
-|:------------------------|:--------------------------------------------------------------------|
-| comment (Ctrl+/)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| duplicate line (Ctrl+D) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| auto pair ( [ { \" '    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| search                  | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| replace                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| workspace               | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-
-## Debugging Features
+## Debug Features
 
 | Feature             | Status                                                              |
 |:--------------------|:--------------------------------------------------------------------|

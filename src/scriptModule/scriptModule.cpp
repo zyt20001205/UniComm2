@@ -47,7 +47,8 @@ void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
         }
     } else {
         for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-            scriptClose(QUrl(value.toString()));
+            const auto scriptUrl = QUrl(value.toString());
+            m_scriptPageHash[scriptUrl]->scriptClose();
         }
         m_diagnosticsHash.clear();
     }
