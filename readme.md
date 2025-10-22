@@ -231,6 +231,9 @@ Ctrl+Alt+L
 ## Debug Features
 
 ### terminate
+![terminate](resources/assets/debug/terminate.gif)
+
+### 
 
 | Feature             | Status                                                              |
 |:--------------------|:--------------------------------------------------------------------|

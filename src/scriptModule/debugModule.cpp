@@ -58,12 +58,12 @@ DebugModule::DebugModule()
                 const LuaInterpreter *interpreter = m_interpreterHash[threadId];
                 interpreter->thread()->requestInterruption();
             });
-            auto *debugRunButton = new QPushButton(); // NOLINT
-            debugCtrlLayout->addWidget(debugRunButton);
-            debugRunButton->setFixedSize(24, 24);
-            debugRunButton->setIcon(QIcon(":/icon/play.svg"));
-            debugRunButton->setToolTip(tr("run"));
-            connect(debugRunButton, &QPushButton::clicked, this, [this] {
+            auto *debugResumeButton = new QPushButton(); // NOLINT
+            debugCtrlLayout->addWidget(debugResumeButton);
+            debugResumeButton->setFixedSize(24, 24);
+            debugResumeButton->setIcon(QIcon(":/icon/play.svg"));
+            debugResumeButton->setToolTip(tr("resume"));
+            connect(debugResumeButton, &QPushButton::clicked, this, [this] {
                 if (m_debugPageHash.isEmpty()) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
@@ -72,7 +72,7 @@ DebugModule::DebugModule()
                 const QString threadId = m_debugTabWidget->tabText(index);
                 LuaInterpreter *interpreter = m_interpreterHash[threadId];
                 QMetaObject::invokeMethod(interpreter->thread(), [interpreter] {
-                    interpreter->debugStateSet(DEBUG_RUN);
+                    interpreter->debugStateSet(DEBUG_RESUME);
                 }, Qt::QueuedConnection);
                 emit resume(threadId);
             });

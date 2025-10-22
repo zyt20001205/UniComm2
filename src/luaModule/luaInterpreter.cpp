@@ -328,7 +328,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
         // debug state machine
-        if (debugData->state == DEBUG_RUN && g_breakpoints.contains(currentUrl)) {
+        if (debugData->state == DEBUG_RESUME && g_breakpoints.contains(currentUrl)) {
             if (g_breakpoints[currentUrl].contains(ar->currentline)) {
                 QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
                 const int base = lua_gettop(L);
