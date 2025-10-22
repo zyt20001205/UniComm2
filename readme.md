@@ -230,11 +230,6 @@ Ctrl+Alt+L
 
 ## Debug Features
 
-### terminate
-![terminate](resources/assets/debug/terminate.gif)
-
-### 
-
 | Feature             | Status                                                              |
 |:--------------------|:--------------------------------------------------------------------|
 | continue            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
@@ -244,3 +239,24 @@ Ctrl+Alt+L
 | step out            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | variable watch      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | variable hot update | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+
+### stop
+![stop](resources/assets/debug/stop.gif)
+
+### resume
+![resume](resources/assets/debug/resume.gif)
+
+### pause
+![pause](resources/assets/debug/pause.gif)
+
+### step over
+![stepOver](resources/assets/debug/stepOver.gif)
+
+### step into
+![stepInto](resources/assets/debug/stepInto.gif)
+
+### step out
+![stepOut](resources/assets/debug/stepOut.gif)
+
+### run to cursor
+![runToCursor](resources/assets/debug/runToCursor.gif)

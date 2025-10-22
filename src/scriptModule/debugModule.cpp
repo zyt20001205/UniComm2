@@ -43,12 +43,12 @@ DebugModule::DebugModule()
             auto *debugCtrlLayout = new QHBoxLayout(debugCtrlWidget); // NOLINT
             debugCtrlLayout->setContentsMargins(0, 0, 0, 0);
             debugCtrlLayout->setAlignment(Qt::AlignLeft);
-            auto *debugTerminateButton = new QPushButton(); // NOLINT
-            debugCtrlLayout->addWidget(debugTerminateButton);
-            debugTerminateButton->setFixedSize(24, 24);
-            debugTerminateButton->setIcon(QIcon(":/icon/stop.svg"));
-            debugTerminateButton->setToolTip(tr("terminate"));
-            connect(debugTerminateButton, &QPushButton::clicked, this, [this] {
+            auto *debugStopButton = new QPushButton(); // NOLINT
+            debugCtrlLayout->addWidget(debugStopButton);
+            debugStopButton->setFixedSize(24, 24);
+            debugStopButton->setIcon(QIcon(":/icon/stop.svg"));
+            debugStopButton->setToolTip(tr("stop"));
+            connect(debugStopButton, &QPushButton::clicked, this, [this] {
                 if (m_debugPageHash.isEmpty()) {
                     QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
