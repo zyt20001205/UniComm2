@@ -458,7 +458,7 @@ void MainWindow::menuInit() {
         toolBar->addWidget(debugButton);
         debugButton->setFixedSize(32, 32);
         debugButton->setIcon(QIcon(":/icon/bug.svg"));
-        debugButton->setToolTip(tr("Debug Shift + F10"));
+        debugButton->setToolTip(tr("Debug Shift + F9"));
         connect(debugButton, &QPushButton::clicked, this, debugScript);
         const auto *debugShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F9), this); // NOLINT
         connect(debugShortcut, &QShortcut::activated, this, debugScript);
