@@ -154,17 +154,17 @@ flowchart LR
 
 ## Supported LSP Requests
 
-| LSP Request Type                                           | Status                                                              |
-|:-----------------------------------------------------------|:--------------------------------------------------------------------|
-| [textDocument/completion](#textdocumentcompletion)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/definition](#textdocumentdefinition)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/documentSymbol](#textdocumentdocumentsymbol) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/foldingRange](#textdocumentfoldingrange)     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/formatting](#textdocumentformatting)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/hover](#textdocumenthover)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/semanticTokens](#textdocumentsemantictokens) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/signatureHelp](#textdocumentsignaturehelp)   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/references](#textdocumentcompletion)         | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| LSP Request Type                                           | Status                                                                     |
+|:-----------------------------------------------------------|:---------------------------------------------------------------------------|
+| [textDocument/completion](#textdocumentcompletion)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/definition](#textdocumentdefinition)         | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |
+| [textDocument/documentSymbol](#textdocumentdocumentsymbol) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/foldingRange](#textdocumentfoldingrange)     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/formatting](#textdocumentformatting)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/hover](#textdocumenthover)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/references](#textdocumentcompletion)         | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/semanticTokens](#textdocumentsemantictokens) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/signatureHelp](#textdocumentsignaturehelp)   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 
 ### textDocument/completion
 
