@@ -192,43 +192,45 @@ flowchart LR
 
 ### textDocument/completion
 
-![completion](resources/assets/completion.gif)
+![completion](resources/assets/lsp/completion.gif)
 
 ### textDocument/definition
 
-![definition](resources/assets/definition.gif)
+![definition](resources/assets/lsp/definition.gif)
 
 ### textDocument/documentSymbol
 
-![documentSymbol](resources/assets/documentSymbol.gif)
+![documentSymbol](resources/assets/lsp/documentSymbol.gif)
 
 ### textDocument/foldingRange
 
-![foldingRange](resources/assets/foldingRange.gif)
+![foldingRange](resources/assets/lsp/foldingRange.gif)
 
 ### textDocument/formatting
 
 Ctrl+Alt+L
 
-![formatting](resources/assets/formatting.gif)
+![formatting](resources/assets/lsp/formatting.gif)
 
 ### textDocument/hover
 
-![hover](resources/assets/hover.gif)
+![hover](resources/assets/lsp/hover.gif)
 
 ### textDocument/publishDiagnostics
 
-![publishDiagnostics](resources/assets/publishDiagnostics.gif)
+![publishDiagnostics](resources/assets/lsp/publishDiagnostics.gif)
 
 ### textDocument/semanticTokens
 
-![semanticTokens](resources/assets/semanticTokens.png)
+![semanticTokens](resources/assets/lsp/semanticTokens.png)
 
 ### textDocument/signatureHelp
 
-![signatureHelp](resources/assets/signatureHelp.gif)
+![signatureHelp](resources/assets/lsp/signatureHelp.gif)
 
 ## Debug Features
+
+### terminate
 
 | Feature             | Status                                                              |
 |:--------------------|:--------------------------------------------------------------------|

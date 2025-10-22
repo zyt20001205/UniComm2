@@ -424,11 +424,7 @@ void MainWindow::menuInit() {
         m_currentScriptLabel->setFont(QFont("Consolas", 12, QFont::Bold));
         m_currentScriptLabel->setStyleSheet("color: #333333;");
 
-        auto *runButton = new QToolButton(); // NOLINT
-        toolBar->addWidget(runButton);
-        runButton->setFixedSize(32, 32);
-        runButton->setIcon(QIcon(":/icon/play.svg"));
-        connect(runButton, &QPushButton::clicked, this, [this] {
+        auto runScript = [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
@@ -437,13 +433,18 @@ void MainWindow::menuInit() {
                 emit runThread(scriptUrl, script);
                 m_logModule->raise();
             }
-        });
+        };
+        auto *runButton = new QToolButton(); // NOLINT
+        toolBar->addWidget(runButton);
+        runButton->setFixedSize(32, 32);
+        runButton->setIcon(QIcon(":/icon/play.svg"));
+        runButton->setToolTip(tr("Run Shift + F10"));
+        connect(runButton, &QPushButton::clicked, this, runScript);
+        const auto *runShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F10), this); // NOLINT
+        connect(runShortcut, &QShortcut::activated, this, runScript);
+        connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
 
-        auto *debugButton = new QToolButton(); // NOLINT
-        toolBar->addWidget(debugButton);
-        debugButton->setFixedSize(32, 32);
-        debugButton->setIcon(QIcon(":/icon/bug.svg"));
-        connect(debugButton, &QPushButton::clicked, this, [this] {
+        auto debugScript = [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
@@ -452,8 +453,15 @@ void MainWindow::menuInit() {
                 emit debugThread(scriptUrl, script);
                 m_debugModule->raise();
             }
-        });
-        connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
+        };
+        auto *debugButton = new QToolButton(); // NOLINT
+        toolBar->addWidget(debugButton);
+        debugButton->setFixedSize(32, 32);
+        debugButton->setIcon(QIcon(":/icon/bug.svg"));
+        debugButton->setToolTip(tr("Debug Shift + F10"));
+        connect(debugButton, &QPushButton::clicked, this, debugScript);
+        const auto *debugShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F9), this); // NOLINT
+        connect(debugShortcut, &QShortcut::activated, this, debugScript);
         connect(this, &MainWindow::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);
     }
     // logging
