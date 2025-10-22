@@ -136,17 +136,17 @@ flowchart LR
 flowchart LR
     luaLanguageServer[LuaLanguageServer]
     scriptModule[Script Module]
-    subgraph scriptPages[Script Pages]
+    subgraph qScintilla[QScintilla]
         direction LR
-        qScintilla1[QScintilla]
-        qScintilla2[QScintilla]
-        qScintilla3[QScintilla]
-        qScintilla4[...]
+        scriptPage1[Script Page]
+        scriptPage2[Script Page]
+        scriptPage3[Script Page]
+        scriptPage4[...]
     end
     luaLanguageServer e1@ -->|LSP Response| scriptModule
     scriptModule e2@ -->|LSP Request| luaLanguageServer
     scriptModule e3@ -->|LSP Notification| luaLanguageServer
-    scriptModule --- scriptPages
+    scriptModule --- qScintilla
     e1@{animate: true}
     e2@{animate: true}
     e3@{animate: true}
