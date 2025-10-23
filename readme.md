@@ -65,9 +65,6 @@ flowchart RL
     scriptModule -->|run/debug signal| threadpoolModule
     luaInterpreter -->|instantiation| threadpoolModule
     debugModule <-->|debug session| threadpoolModule
-    threadpoolModule -->|run thread spawned| luaInterpreter1
-    threadpoolModule -->|run thread spawned| luaInterpreter2
-    threadpoolModule -->|debug thread spawned| luaInterpreter3
     threadpoolModule <-->|port control| portModule
     threadpoolModule <-->|dataflow| dataModule
 
