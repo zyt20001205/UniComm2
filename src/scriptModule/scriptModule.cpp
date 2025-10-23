@@ -256,7 +256,8 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
         m_welcomePage->open();
         m_focusedPage = nullptr;
     } else {
-        m_focusedPage = m_scriptPageHash.values()[0];
+        const auto begin = m_scriptPageHash.begin();
+        m_focusedPage = begin.value();
     }
 }
 
