@@ -258,10 +258,6 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
     } else {
         m_focusedPage = m_scriptPageHash.values()[0];
     }
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, scriptUrl.fileName());
 }
 
 void ScriptModule::textReplace(QString &text, const QString &kind) const {
