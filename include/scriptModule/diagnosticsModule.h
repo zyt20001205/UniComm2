@@ -15,7 +15,7 @@ public:
 
     ~DiagnosticsModule() override = default;
 
-    void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
+    void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
 signals:
     void openScript(const QUrl &scriptUrl);

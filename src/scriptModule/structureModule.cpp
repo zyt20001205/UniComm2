@@ -27,7 +27,7 @@ StructureModule::StructureModule()
     });
 }
 
-void StructureModule::documentSymbolReturn(const QUrl &scriptUrl, const QJsonArray &result) {
+void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
         // qDebug() << result;

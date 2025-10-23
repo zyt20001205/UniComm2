@@ -24,30 +24,30 @@ public:
 signals:
     void initialized();
 
-    void returnPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
+    void notificationPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    void returnCompletion(const QUrl &scriptUrl, const QJsonArray &items);
+    void responseCompletion(const QUrl &scriptUrl, const QJsonArray &items);
 
-    void returnDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
+    void responseDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
 
-    void returnDocumentSymbol(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseDocumentSymbol(const QUrl &scriptUrl, const QJsonArray &result);
 
-    void returnFoldingRange(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseFoldingRange(const QUrl &scriptUrl, const QJsonArray &result);
 
-    void returnFormatting(const QUrl &scriptUrl, const QString &newText);
+    void responseFormatting(const QUrl &scriptUrl, const QString &newText);
 
-    void returnHover(const QUrl &scriptUrl, const QString &message);
+    void responseHover(const QUrl &scriptUrl, const QString &message);
 
-    void returnSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);
+    void responseSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);
 
-    void returnSignatureHelp(const QUrl &scriptUrl, const QJsonObject &signature);
+    void responseSignatureHelp(const QUrl &scriptUrl, const QJsonObject &signature);
 
 private:
     void initializeNotification(const QUrl &rootUrl);
 
     void didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) const;
 
-    void jsonReturn();
+    void jsonResponse();
 
     QProcess *m_process{};
     QUrl m_rootUrl{};

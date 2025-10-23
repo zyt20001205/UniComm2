@@ -145,7 +145,7 @@ flowchart LR
     end
     luaLanguageServer e1@ -->|LSP Response| scriptModule
     scriptModule e2@ -->|LSP Request| luaLanguageServer
-    scriptModule e3@ -->|LSP Notification| luaLanguageServer
+    scriptModule e3@ <-->|LSP Notification| luaLanguageServer
     scriptModule --- qScintilla
     e1@{animate: true}
     e2@{animate: true}
@@ -164,31 +164,31 @@ flowchart LR
 
 ## Supported LSP Specifications
 
-| LSP Specification                                                  | Status                                                                     |
-|:-------------------------------------------------------------------|:---------------------------------------------------------------------------|
-| textDocument/codeAction                                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| textDocument/codeLens                                              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| [textDocument/completion](#textdocumentcompletion)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/definition](#textdocumentdefinition)                 | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |
-| textDocument/didChange                                             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/didClose                                              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/didOpen                                               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/didSave                                               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/documentHighlight                                     | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/foldingRange](#textdocumentfoldingrange)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/formatting](#textdocumentformatting)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/hover](#textdocumenthover)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/implementation                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| textDocument/onTypeFormatting                                      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| [textDocument/publishDiagnostics](#textdocumentpublishdiagnostics) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/rangeFormatting                                       | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| textDocument/references                                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| textDocument/rename                                                | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| [textDocument/semanticTokens](#textdocumentsemantictokens)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| [textDocument/signatureHelp](#textdocumentsignaturehelp)           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
-| textDocument/typeDefinition                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
-| workspace/didChangeWorkspaceFolders                                | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| LSP Specification                                                  | Type         | Status                                                                     |
+|:-------------------------------------------------------------------|:-------------|:---------------------------------------------------------------------------|
+| textDocument/didChange                                             | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/didClose                                              | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/didOpen                                               | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/didSave                                               | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/publishDiagnostics](#textdocumentpublishdiagnostics) | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| workspace/didChangeWorkspaceFolders                                | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/codeAction                                            | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/codeLens                                              | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/completion](#textdocumentcompletion)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/definition](#textdocumentdefinition)                 | Request      | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |
+| textDocument/documentHighlight                                     | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/foldingRange](#textdocumentfoldingrange)             | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/formatting](#textdocumentformatting)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/hover](#textdocumenthover)                           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/implementation                                        | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/onTypeFormatting                                      | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/rangeFormatting                                       | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/references                                            | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| textDocument/rename                                                | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/semanticTokens](#textdocumentsemantictokens)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| [textDocument/signatureHelp](#textdocumentsignaturehelp)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
+| textDocument/typeDefinition                                        | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
 
 ### textDocument/completion
 
@@ -230,33 +230,44 @@ Ctrl+Alt+L
 
 ## Debug Features
 
-| Feature             | Status                                                              |
-|:--------------------|:--------------------------------------------------------------------|
-| continue            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| pause               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| step into           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| step over           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| step out            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| variable watch      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| variable hot update | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| Feature                         | Status                                                              |
+|:--------------------------------|:--------------------------------------------------------------------|
+| [stop](#stop)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [resume](#resume)               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [pause](#pause)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step over](#step-over)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step into](#step-into)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step out](#step-out)           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [run to cursor](#run-to-cursor) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 
 ### stop
+
 ![stop](resources/assets/debug/stop.gif)
 
 ### resume
+
 ![resume](resources/assets/debug/resume.gif)
 
 ### pause
+
 ![pause](resources/assets/debug/pause.gif)
 
 ### step over
+
 ![stepOver](resources/assets/debug/stepOver.gif)
 
 ### step into
+
 ![stepInto](resources/assets/debug/stepInto.gif)
 
 ### step out
+
 ![stepOut](resources/assets/debug/stepOut.gif)
 
 ### run to cursor
+
 ![runToCursor](resources/assets/debug/runToCursor.gif)
+
+### breakpoint console
+
+![breakpointConsole](resources/assets/debug/breakpointConsole.gif)

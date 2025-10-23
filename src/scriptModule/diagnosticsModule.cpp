@@ -21,7 +21,7 @@ DiagnosticsModule::DiagnosticsModule()
     connect(m_diagnosticsTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { diagnosticsClose(index); });
 }
 
-void DiagnosticsModule::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
+void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     if (diagnosticsArray.isEmpty()) {
         diagnosticsRemove(scriptUrl);
     } else {

@@ -19,13 +19,13 @@ public:
 
     void scriptClose();
 
-    void diagnosticsReturn(const QJsonArray &diagnosticsArray) const;
+    void diagnosticsResponse(const QJsonArray &diagnosticsArray) const;
 
-    void foldingRangeReturn(const QJsonArray &result) const;
+    void foldingRangeResponse(const QJsonArray &result) const;
 
-    void formattingReturn(const QString &newText) const;
+    void formattingResponse(const QString &newText) const;
 
-    void semanticTokensReturn(const QJsonArray &data) const;
+    void semanticTokensResponse(const QJsonArray &data) const;
 
     void textReplace(QString &text, const QString &kind);
 

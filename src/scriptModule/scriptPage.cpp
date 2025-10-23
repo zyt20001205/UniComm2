@@ -89,7 +89,7 @@ void ScriptPage::scriptClose() {
     deleteLater();
 }
 
-void ScriptPage::diagnosticsReturn(const QJsonArray &diagnosticsArray) const {
+void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) const {
     // clear previous diagnostics
     const int lastLine = m_scriptEditor->lines() - 1;
     const int lastIndex = m_scriptEditor->lineLength(lastLine);
@@ -114,7 +114,7 @@ void ScriptPage::diagnosticsReturn(const QJsonArray &diagnosticsArray) const {
     }
 }
 
-void ScriptPage::foldingRangeReturn(const QJsonArray &result) const {
+void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
     QMap<int, int> deltaDepthMap;
     for (const auto &value: result) {
         const QJsonObject valueObject = value.toObject();
@@ -133,11 +133,11 @@ void ScriptPage::foldingRangeReturn(const QJsonArray &result) const {
     }
 }
 
-void ScriptPage::formattingReturn(const QString &newText) const {
+void ScriptPage::formattingResponse(const QString &newText) const {
     m_scriptEditor->setText(newText);
 }
 
-void ScriptPage::semanticTokensReturn(const QJsonArray &data) const {
+void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
     m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, m_scriptEditor->length(), static_cast<long>(0));

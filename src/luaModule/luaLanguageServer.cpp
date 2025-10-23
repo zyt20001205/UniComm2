@@ -9,7 +9,7 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     : QWidget(parent),
       m_process(new QProcess(this)) {
     m_process->start(QCoreApplication::applicationDirPath() + "/lua-language-server/bin/lua-language-server.exe", {});
-    connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonReturn);
+    connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonResponse);
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
@@ -105,7 +105,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUr
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
 }
 
-void LuaLanguageServer::jsonReturn() {
+void LuaLanguageServer::jsonResponse() {
     while (true) {
         // append to buffer
         m_buffer.append(m_process->readAllStandardOutput());
@@ -132,51 +132,51 @@ void LuaLanguageServer::jsonReturn() {
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray items = result["items"].toArray();
-                emit returnCompletion(scriptUrl, items);
+                emit responseCompletion(scriptUrl, items);
             } else if (method == "textDocument/definition") {
                 // definition request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
-                emit returnDefinition(scriptUrl, result);
+                emit responseDefinition(scriptUrl, result);
             } else if (method == "textDocument/documentSymbol") {
                 // document symbol request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
-                emit returnDocumentSymbol(scriptUrl, result);
+                emit responseDocumentSymbol(scriptUrl, result);
             } else if (method == "textDocument/foldingRange") {
                 // folding range request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
-                emit returnFoldingRange(scriptUrl, result);
+                emit responseFoldingRange(scriptUrl, result);
             } else if (method == "textDocument/formatting") {
                 // formatting request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
                 const QString newText = result[0]["newText"].toString();
-                emit returnFormatting(scriptUrl, newText);
+                emit responseFormatting(scriptUrl, newText);
             } else if (method == "textDocument/hover") {
                 // hover request
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
-                emit returnHover(scriptUrl, value);
+                emit responseHover(scriptUrl, value);
             } else if (method == "textDocument/semanticTokens/full") {
                 // semanticTokens request
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray data = result["data"].toArray();
-                emit returnSemanticTokens(scriptUrl, data);
+                emit responseSemanticTokens(scriptUrl, data);
             } else if (method == "textDocument/signatureHelp") {
                 // signatureHelp request
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray signatures = result["signatures"].toArray();
                 const QJsonObject signature = signatures[0].toObject();
-                emit returnSignatureHelp(scriptUrl, signature);
+                emit responseSignatureHelp(scriptUrl, signature);
             }
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
-            // publish diagnostics return
+            // publish diagnostics notification
             const QJsonObject params = json["params"].toObject();
             const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
             QString uri = params["uri"].toString();
@@ -185,7 +185,7 @@ void LuaLanguageServer::jsonReturn() {
                 drive = drive.toUpper();
             }
             const QUrl scriptUrl(uri);
-            emit returnPublishDiagnostics(scriptUrl, diagnosticsArray);
+            emit notificationPublishDiagnostics(scriptUrl, diagnosticsArray);
         } else {
             qDebug() << "unknown lsp pack";
             qDebug() << json;

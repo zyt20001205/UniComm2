@@ -97,7 +97,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
             m_focusedPage->addDockWidgetAsTab(scriptPage);
         }
         scriptFocus(scriptPage, true);
-        scriptPage->diagnosticsReturn(m_diagnosticsHash[scriptUrl]);
+        scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
     } else {
         m_scriptPageHash[scriptUrl]->show();
         m_scriptPageHash[scriptUrl]->raise();
@@ -151,14 +151,14 @@ void ScriptModule::markerShow(const QUrl &scriptUrl, const int type, const int l
     });
 }
 
-void ScriptModule::diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
+void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
     if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->diagnosticsReturn(diagnosticsArray);
+        m_scriptPageHash[scriptUrl]->diagnosticsResponse(diagnosticsArray);
     }
 }
 
-void ScriptModule::completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const {
+void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
@@ -171,7 +171,7 @@ void ScriptModule::completionReturn(const QUrl &scriptUrl, const QJsonArray &ite
     m_completionTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
-void ScriptModule::definitionReturn(const QUrl &scriptUrl, const QJsonArray &definitions) {
+void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) {
     if (definitions.size() != 1) {
         qDebug() << "multiple definitions WIP";
         return;
@@ -198,23 +198,23 @@ void ScriptModule::definitionReturn(const QUrl &scriptUrl, const QJsonArray &def
     }
 }
 
-void ScriptModule::foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const {
-    m_scriptPageHash[scriptUrl]->foldingRangeReturn(result);
+void ScriptModule::foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const {
+    m_scriptPageHash[scriptUrl]->foldingRangeResponse(result);
 }
 
-void ScriptModule::formattingReturn(const QUrl &scriptUrl, const QString &newText) const {
-    m_scriptPageHash[scriptUrl]->formattingReturn(newText);
+void ScriptModule::formattingResponse(const QUrl &scriptUrl, const QString &newText) const {
+    m_scriptPageHash[scriptUrl]->formattingResponse(newText);
 }
 
-void ScriptModule::hoverReturn(const QUrl &scriptUrl, const QString &message) const {
+void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     m_hoverTooltip->showTooltip(message);
 }
 
-void ScriptModule::semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const {
-    m_scriptPageHash[scriptUrl]->semanticTokensReturn(data);
+void ScriptModule::semanticTokensResponse(const QUrl &scriptUrl, const QJsonArray &data) const {
+    m_scriptPageHash[scriptUrl]->semanticTokensResponse(data);
 }
 
-void ScriptModule::signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const {
+void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);

@@ -16,7 +16,7 @@ public:
 
     ~StructureModule() override = default;
 
-    void documentSymbolReturn(const QUrl &scriptUrl, const QJsonArray &result);
+    void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
 
     void scriptFocus(const QUrl &scriptUrl);
 

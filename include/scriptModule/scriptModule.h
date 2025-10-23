@@ -43,21 +43,21 @@ public:
 
     void markerShow(const QUrl &scriptUrl, int type, int line = -1, int time = -1);
 
-    void diagnosticsReturn(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
+    void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
-    void completionReturn(const QUrl &scriptUrl, const QJsonArray &items) const;
+    void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;
 
-    void definitionReturn(const QUrl &scriptUrl, const QJsonArray &definitions);
+    void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions);
 
-    void foldingRangeReturn(const QUrl &scriptUrl, const QJsonArray &result) const;
+    void foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const;
 
-    void formattingReturn(const QUrl &scriptUrl, const QString &newText) const;
+    void formattingResponse(const QUrl &scriptUrl, const QString &newText) const;
 
-    void hoverReturn(const QUrl &scriptUrl, const QString &message) const;
+    void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
 
-    void semanticTokensReturn(const QUrl &scriptUrl, const QJsonArray &data) const;
+    void semanticTokensResponse(const QUrl &scriptUrl, const QJsonArray &data) const;
 
-    void signatureHelpReturn(const QUrl &scriptUrl, const QJsonObject &signature) const;
+    void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
     ScriptPage *m_focusedPage{};
 signals:
