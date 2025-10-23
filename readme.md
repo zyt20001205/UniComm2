@@ -51,8 +51,8 @@ flowchart RL
 
         subgraph Lua
             direction LR
-            luaInterpreterRun["Lua Interpreter\n(run hook)"]
-            luaInterpreterDebug["Lua Interpreter\n(debug hook)"]
+            luaInterpreterRun["Lua Interpreter<br>(run hook)"]
+            luaInterpreterDebug["Lua Interpreter<br>(debug hook)"]
         end
 
     end
