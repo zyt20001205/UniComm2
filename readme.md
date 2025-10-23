@@ -243,6 +243,7 @@ Ctrl+Alt+L
 | [conditional breakpoint](#conditional-breakpoint) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [variable watch](#variable-operation)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [variable hot update](#variable-operation)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [callstack](#callstack)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ### stop
 
@@ -283,3 +284,7 @@ Ctrl+Alt+L
 ### variable operation
 
 ![variableOperation](resources/assets/debug/variableOperation.gif)
+
+### callstack
+
+![callstack](resources/assets/debug/callstack.gif)
