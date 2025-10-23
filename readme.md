@@ -35,41 +35,41 @@ flowchart RL
 
     subgraph UniComm
         direction LR
-        subgraph C++
+        scriptModule[Script Module]
+        luaInterpreter[Lua Interpreter]
+        debugModule[Debug Module]
+        subgraph threadpoolModule[Threadpool Module]
             direction LR
-
-            subgraph Coding
-                scriptModule[Script Module]
-            end
-
-            subgraph Control
-                threadpoolModule[Threadpool Module]
-                debugModule[Debug Module]
-            end
-
+            luaInterpreter1["Lua Interpreter 1<br>(run)"]
+            luaInterpreter2["Lua Interpreter 2<br>(run)"]
+            luaInterpreter3["Lua Interpreter 3<br>(debug)"]
+            more["..."]
         end
-
-        subgraph Lua
+        portModule[Port Module]
+        subgraph dataModule[Data Module]
             direction LR
-            luaInterpreterRun["Lua Interpreter<br>(run hook)"]
-            luaInterpreterDebug["Lua Interpreter<br>(debug hook)"]
+            databaseModule["Database"]
+            datatableModule["Data Table"]
+            dataplotModule["Data Plot"]
         end
-
     end
 
-%%    UniComm -->|LSP Request| LuaLS
-%%    LuaLS <==>|LSP Notification| UniComm
-%%    LuaLS  -->|LSP Response| UniComm
-    UniComm e1@ -->|LSP Request| LuaLS
+    UniComm -->|LSP Request| LuaLS
     LuaLS <==>|LSP Notification| UniComm
-    LuaLS e2@ -->|LSP Response| UniComm
-    e1@{animate: true}
-    e2@{animate: true}
-    scriptModule -->|run signal| Control
-    scriptModule -->|debug signal| Control
-    threadpoolModule <--> debugModule
-    Control -->|start run thread| luaInterpreterRun
-    Control -->|start debug thread| luaInterpreterDebug
+    LuaLS -->|LSP Response| UniComm
+%%    UniComm e1@ -->|LSP Request| LuaLS
+%%    LuaLS <==>|LSP Notification| UniComm
+%%    LuaLS e2@ -->|LSP Response| UniComm
+%%    e1@{animate: true}
+%%    e2@{animate: true}
+    scriptModule -->|run/debug signal| threadpoolModule
+    luaInterpreter -->|instantiation| threadpoolModule
+    debugModule <-->|debug session| threadpoolModule
+    threadpoolModule -->|run thread spawned| luaInterpreter1
+    threadpoolModule -->|run thread spawned| luaInterpreter2
+    threadpoolModule -->|debug thread spawned| luaInterpreter3
+    threadpoolModule <-->|port control| portModule
+    threadpoolModule <-->|dataflow| dataModule
 
 ```
 
