@@ -143,13 +143,12 @@ flowchart LR
         scriptPage3[Script Page]
         scriptPage4[...]
     end
-    scriptModule e2@ -->|LSP Request| luaLanguageServer
-    scriptModule e3@ <-->|LSP Notification| luaLanguageServer
-    luaLanguageServer e1@ -->|LSP Response| scriptModule
+    scriptModule e1@ -->|LSP Request| luaLanguageServer
+    scriptModule <==>|LSP Notification| luaLanguageServer
+    luaLanguageServer e2@ -->|LSP Response| scriptModule
     scriptModule --- qScintilla
     e1@{animate: true}
     e2@{animate: true}
-    e3@{animate: true}
 ```
 
 ## Editor Features
