@@ -291,7 +291,7 @@ Ctrl+Alt+L
 
 # FAQ
 
-## read method async & sync mode
+## read method sync & async mode
 
 ### standard sync dataflow
 
@@ -330,5 +330,44 @@ sequenceDiagram
         Note over Lua Thread, Port Thread: ""
         Note over Lua Thread: rx = ""
     end
+
+```
+
+### standard async dataflow
+
+```lua
+port.writeText("Actual Port", "How are you?")
+sleep(1000)
+local rx = port.readText("Actual Port", 0)
+```
+
+```mermaid
+
+sequenceDiagram
+    participant Lua Thread
+    participant Port Thread
+    participant Physical Port
+    Lua Thread ->> Port Thread: writeData/writeText
+    activate Lua Thread
+    Note over Lua Thread, Port Thread: "How are you?"
+    activate Port Thread
+    Note over Port Thread: data process
+    Port Thread ->> Physical Port: dataflow
+    deactivate Port Thread
+    Note over Port Thread, Physical Port: "/x48/x6F/x77..."
+    Note over Lua Thread: sleep 1000ms
+    activate Port Thread
+    loop fill buffer with last pack
+        Physical Port ->> Port Thread: dataflow 1
+        Note over Port Thread, Physical Port: "/x00/x00/x00..."
+        Note over Port Thread: buffer = "/x00/x00/x00..."
+        Physical Port ->> Port Thread: dataflow 2
+        Note over Port Thread, Physical Port: "/x47/x72/x65..."
+        Note over Port Thread: buffer = "/x47/x72/x65..."
+    end
+    deactivate Port Thread
+    Port Thread ->> Lua Thread: readData/readText
+    Note over Lua Thread, Port Thread: rx = buffer
+    deactivate Lua Thread
 
 ```
