@@ -28,7 +28,7 @@
 </div>
 
 ```mermaid
-flowchart LR
+flowchart RL
     subgraph Lua Language Server
         LuaLS[LuaLS]
     end
@@ -57,9 +57,12 @@ flowchart LR
 
     end
 
-    scriptModule e1@ -->|LSP Request| luaLanguageServer
-    scriptModule <==>|LSP Notification| luaLanguageServer
-    luaLanguageServer e2@ -->|LSP Response| scriptModule
+%%    UniComm -->|LSP Request| LuaLS
+%%    LuaLS <==>|LSP Notification| UniComm
+%%    LuaLS  -->|LSP Response| UniComm
+    UniComm e1@ -->|LSP Request| LuaLS
+    LuaLS <==>|LSP Notification| UniComm
+    LuaLS e2@ -->|LSP Response| UniComm
     e1@{animate: true}
     e2@{animate: true}
     scriptModule -->|run signal| Control
