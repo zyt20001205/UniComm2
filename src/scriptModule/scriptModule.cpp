@@ -77,6 +77,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isFocusedChanged, this, [this, scriptPage](const bool status) {
             scriptFocus(scriptPage, status);
         });
+        connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::modifyScript, this, [scriptPage](const bool status) { scriptModify(scriptPage, status); });
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::insertPort, this, &ScriptModule::insertPort);
@@ -102,10 +103,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         m_scriptPageHash[scriptUrl]->show();
         m_scriptPageHash[scriptUrl]->raise();
     }
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> opened").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 opened").arg(timestamp, scriptUrl.fileName());
 }
 
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {

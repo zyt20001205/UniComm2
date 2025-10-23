@@ -138,9 +138,9 @@ flowchart LR
     scriptModule[Script Module]
     subgraph qScintilla[QScintilla]
         direction LR
-        scriptPage1[Script Page]
-        scriptPage2[Script Page]
-        scriptPage3[Script Page]
+        scriptPage1[Script Page 1]
+        scriptPage2[Script Page 2]
+        scriptPage3[Script Page 3]
         scriptPage4[...]
     end
     scriptModule e1@ -->|LSP Request| luaLanguageServer
@@ -189,6 +189,10 @@ flowchart LR
 | [textDocument/signatureHelp](#textdocumentsignaturehelp)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 | textDocument/typeDefinition                                        | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
 
+### textDocument/publishDiagnostics
+
+![publishDiagnostics](resources/assets/lsp/publishDiagnostics.gif)
+
 ### textDocument/completion
 
 ![completion](resources/assets/lsp/completion.gif)
@@ -215,10 +219,6 @@ Ctrl+Alt+L
 
 ![hover](resources/assets/lsp/hover.gif)
 
-### textDocument/publishDiagnostics
-
-![publishDiagnostics](resources/assets/lsp/publishDiagnostics.gif)
-
 ### textDocument/semanticTokens
 
 ![semanticTokens](resources/assets/lsp/semanticTokens.png)
@@ -229,15 +229,17 @@ Ctrl+Alt+L
 
 ## Debug Features
 
-| Feature                         | Status                                                              |
-|:--------------------------------|:--------------------------------------------------------------------|
-| [stop](#stop)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [resume](#resume)               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [pause](#pause)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step over](#step-over)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step into](#step-into)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step out](#step-out)           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [run to cursor](#run-to-cursor) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| Feature                                  | Status                                                              |
+|:-----------------------------------------|:--------------------------------------------------------------------|
+| [stop](#stop)                            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [resume](#resume)                        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [pause](#pause)                          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step over](#step-over)                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step into](#step-into)                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step out](#step-out)                    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [run to cursor](#run-to-cursor)          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|                                          |                                                                     |
+| [breakpointConsole](#breakpoint-console) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ### stop
 

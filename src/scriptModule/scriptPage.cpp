@@ -41,8 +41,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     // connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPage::positionFill);
     // logging
+    emit appendLog(QString("<a href='%1'>%2</a> opened").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPath, "opened");
+    qDebug() << QString("[%1] %2 opened").arg(timestamp, scriptUrl.fileName());
     // didOpen notification to lua language server
     QTimer::singleShot(0, this, [this] {
         didOpenNotification();
@@ -67,8 +68,9 @@ void ScriptPage::scriptSave() {
     emit modifyScript(false);
     didSaveNotification();
     // logging
+    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3").arg(timestamp, m_scriptUrl.toString(), "saved");
+    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_scriptUrl.fileName());
 }
 
 void ScriptPage::scriptClose() {
@@ -87,6 +89,10 @@ void ScriptPage::scriptClose() {
     didCloseNotification();
     emit closeScript(m_scriptUrl);
     deleteLater();
+    // logging
+    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.fileName());
 }
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) const {

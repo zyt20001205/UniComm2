@@ -33,6 +33,8 @@ public:
     QUrl m_scriptUrl{};
 
 signals:
+    void appendLog(const QString &message, const QString &level);
+
     void modifyScript(bool status);
 
     void closeScript(const QUrl &scriptUrl);
