@@ -288,3 +288,47 @@ Ctrl+Alt+L
 ### callstack
 
 ![callstack](resources/assets/debug/callstack.gif)
+
+# FAQ
+
+## read method async & sync mode
+
+### standard sync dataflow
+
+```lua
+port.writeText("Actual Port", "How are you?")
+local rx = port.readText("Actual Port", 1000, 6)
+```
+
+```mermaid
+
+sequenceDiagram
+    participant Lua Thread
+    participant Port Thread
+    participant Physical Port
+    Lua Thread ->> Port Thread: writeData/writeText
+    Note over Lua Thread, Port Thread: "How are you?"
+    activate Port Thread
+    Note over Port Thread: data process
+    Port Thread ->> Physical Port: dataflow
+    deactivate Port Thread
+    Note over Port Thread, Physical Port: "/x48/x6F/x77..."
+    Lua Thread ->> Port Thread: readData/readText
+    activate Port Thread
+    loop check every 10ms
+        Physical Port ->> Port Thread: dataflow
+    end
+    deactivate Port Thread
+    alt time <= 1000ms && length == 6bytes
+        Note over Port Thread, Physical Port: "/x47/x72/x65..."
+        Note over Port Thread: data process
+        Port Thread ->> Lua Thread: return to lua
+        Note over Lua Thread, Port Thread: "Great!"
+        Note over Lua Thread: rx = "Great!"
+    else time > 1000ms || length != 6bytes
+        Port Thread ->> Lua Thread: return to lua
+        Note over Lua Thread, Port Thread: ""
+        Note over Lua Thread: rx = ""
+    end
+
+```

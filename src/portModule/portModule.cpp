@@ -22,6 +22,7 @@ PortModule::PortModule()
       m_portTabOverlay(new QWidget(m_portTabWidget)) {
     setMinimumHeight(100);
     setWidget(m_portTabWidget);
+    m_portTabWidget->setTabPosition(QTabWidget::West);
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
     connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, &PortModule::portRemove);
@@ -29,7 +30,7 @@ PortModule::PortModule()
     auto *addButton = new QPushButton(); // NOLINT
     addButton->setFixedSize(24, 24);
     addButton->setIcon(QIcon(":/icon/add.svg"));
-    m_portTabWidget->setCornerWidget(addButton, Qt::TopRightCorner);
+    m_portTabWidget->setCornerWidget(addButton, Qt::BottomLeftCorner);
     connect(addButton, &QPushButton::clicked, this, [this] { portInsert(-1); });
 
     m_portTabOverlay->installEventFilter(this);
