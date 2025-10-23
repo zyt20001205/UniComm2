@@ -15,7 +15,7 @@
 </div>
 
 <p align="center">
-    A programmable communication debugging tool for multiple protocols
+    A programmable communication debugging platform for multiple protocols
 </p>
 
 <div align="center">
@@ -26,6 +26,49 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)]()
 
 </div>
+
+```mermaid
+flowchart LR
+    subgraph Lua Language Server
+        LuaLS[LuaLS]
+    end
+
+    subgraph UniComm
+        direction LR
+        subgraph C++
+            direction LR
+
+            subgraph Coding
+                scriptModule[Script Module]
+            end
+
+            subgraph Control
+                threadpoolModule[Threadpool Module]
+                debugModule[Debug Module]
+            end
+
+        end
+
+        subgraph Lua
+            direction LR
+            luaInterpreterRun["Lua Interpreter\n(run hook)"]
+            luaInterpreterDebug["Lua Interpreter\n(debug hook)"]
+        end
+
+    end
+
+    scriptModule e1@ -->|LSP Request| luaLanguageServer
+    scriptModule <==>|LSP Notification| luaLanguageServer
+    luaLanguageServer e2@ -->|LSP Response| scriptModule
+    e1@{animate: true}
+    e2@{animate: true}
+    scriptModule -->|run signal| Control
+    scriptModule -->|debug signal| Control
+    threadpoolModule <--> debugModule
+    Control -->|start run thread| luaInterpreterRun
+    Control -->|start debug thread| luaInterpreterDebug
+
+```
 
 # Port Module
 
@@ -293,7 +336,7 @@ Ctrl+Alt+L
 
 ## read method sync & async mode
 
-### standard sync dataflow
+### unicomm sync dataflow
 
 ```lua
 port.writeText("Actual Port", "How are you?")
@@ -333,7 +376,7 @@ sequenceDiagram
 
 ```
 
-### standard async dataflow
+### unicomm async dataflow
 
 ```lua
 port.writeText("Actual Port", "How are you?")
