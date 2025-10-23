@@ -229,17 +229,20 @@ Ctrl+Alt+L
 
 ## Debug Features
 
-| Feature                                  | Status                                                              |
-|:-----------------------------------------|:--------------------------------------------------------------------|
-| [stop](#stop)                            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [resume](#resume)                        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [pause](#pause)                          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step over](#step-over)                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step into](#step-into)                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step out](#step-out)                    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [run to cursor](#run-to-cursor)          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-|                                          |                                                                     |
-| [breakpointConsole](#breakpoint-console) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Feature                                           | Status                                                              |
+|:--------------------------------------------------|:--------------------------------------------------------------------|
+| [stop](#stop)                                     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [resume](#resume)                                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [pause](#pause)                                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step over](#step-over)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step into](#step-into)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [step out](#step-out)                             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| [run to cursor](#run-to-cursor)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|                                                   |                                                                     |
+| [breakpoint console](#breakpoint-console)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [conditional breakpoint](#conditional-breakpoint) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [variable watch](#variable-operation)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [variable hot update](#variable-operation)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ### stop
 
@@ -272,3 +275,11 @@ Ctrl+Alt+L
 ### breakpoint console
 
 ![breakpointConsole](resources/assets/debug/breakpointConsole.gif)
+
+### conditional breakpoint
+
+![conditionalBreakpoint](resources/assets/debug/conditionalBreakpoint.gif)
+
+### variable operation
+
+![variableOperation](resources/assets/debug/variableOperation.gif)
