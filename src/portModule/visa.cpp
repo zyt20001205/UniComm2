@@ -21,6 +21,7 @@ QVariantMap Visa::info() {
 }
 
 bool Visa::open() {
+    ViStatus status;
     status = viOpen(g_rm, m_portName.toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
     status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
     return {};
