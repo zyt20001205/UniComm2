@@ -26,6 +26,10 @@ set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/3rd/qcustomplot-2.1.1")
 set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
 set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
 
+set(VISA_DIR "${CMAKE_SOURCE_DIR}/3rd/visa")
+set(VISA_INCLUDE_DIR "${VISA_DIR}/include")
+set(VISA_LIB "${VISA_DIR}/bin/visa64.lib")
+
 set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
 set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
 file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/libopencv_*.dll")
@@ -68,6 +72,7 @@ qt_add_executable(UniComm src/main.cpp
         include/portModule/tcpClient.h
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
+        include/portModule/visa.h
         include/scriptModule/completionTooltip.h
         include/scriptModule/debugModule.h
         include/scriptModule/diagnosticsModule.h
@@ -111,6 +116,7 @@ qt_add_executable(UniComm src/main.cpp
         src/portModule/tcpClient.cpp
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
+        src/portModule/visa.cpp
         src/scriptModule/completionTooltip.cpp
         src/scriptModule/debugModule.cpp
         src/scriptModule/diagnosticsModule.cpp
@@ -182,6 +188,7 @@ target_link_libraries(UniComm PRIVATE
         ${KDDOCKWIDGETS_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
+        ${VISA_LIB}
         ${OPENCV_DLLS}
         ${TESSERACT_DLL}
         ${LEPTONICA_DLL}
@@ -193,6 +200,7 @@ target_include_directories(UniComm PRIVATE
         ${KDDOCKWIDGETS_INCLUDE_DIR}
         ${QSCINTILLA_INCLUDE_DIR}
         ${QCUSTOMPLOT_INCLUDE_DIR}
+        ${VISA_INCLUDE_DIR}
         ${OPENCV_INCLUDE_DIR}
         ${TESSERACT_INCLUDE_DIR}
         ${LEPTONICA_INCLUDE_DIR}
@@ -309,6 +317,13 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${QCUSTOMPLOT_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endif ()
+
+    if (EXISTS "${VISA_LIB}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${VISA_LIB}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 

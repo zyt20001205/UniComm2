@@ -13,6 +13,7 @@
 #include <QScreen>
 #include <QSerialPortInfo>
 #include <QSpinBox>
+#include <visa.h>
 
 #include "globals.h"
 #include "portModule/areaSelection.h"
@@ -34,6 +35,8 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
       m_serialPortParityCombobox(new QComboBox()),
       m_serialPortStopBitsWidget(new QWidget()),
       m_serialPortStopBitsCombobox(new QComboBox()),
+      m_visaNameWidget(new QWidget()),
+      m_visaNameCombobox(new QComboBox()),
       m_tcpClientNameWidget(new QWidget()),
       m_tcpClientNameLineEdit(new QLineEdit()),
       m_tcpClientRemoteAddressWidget(new QWidget()),
@@ -81,6 +84,7 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         portTypeLayout->addWidget(m_portTypeCombobox);
         m_portTypeCombobox->addItem(tr("Choose Port Type"));
         m_portTypeCombobox->addItem(tr("Serial Port"));
+        m_portTypeCombobox->addItem(tr("Visa"));
         m_portTypeCombobox->addItem(tr("TCP Client"));
         m_portTypeCombobox->addItem(tr("TCP Server"));
         m_portTypeCombobox->addItem(tr("UDP Socket"));
@@ -137,6 +141,15 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         m_serialPortStopBitsCombobox->addItem("1", 1);
         m_serialPortStopBitsCombobox->addItem("1.5", 3);
         m_serialPortStopBitsCombobox->addItem("2", 2);
+    }
+    // visa settings
+    {
+        m_portSettingLayout->addWidget(m_visaNameWidget);
+        const auto visaNameLayout = new QHBoxLayout(m_visaNameWidget); // NOLINT
+        visaNameLayout->setContentsMargins(0, 0, 0, 0);
+        const auto visaNameLabel = new QLabel("port name"); // NOLINT
+        visaNameLayout->addWidget(visaNameLabel);
+        visaNameLayout->addWidget(m_visaNameCombobox);
     }
     // tcp client settings
     {
@@ -305,6 +318,14 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             m_rxFormatCombobox->setCurrentText(portConfig["rxFormat"].toString());
             break;
         }
+        case VISA: {
+            const int i = m_visaNameCombobox->findData(portConfig["portName"].toString());
+            m_visaNameCombobox->setCurrentIndex(i);
+            m_txFormatCombobox->setCurrentText(portConfig["txFormat"].toString());
+            m_txSuffixCombobox->setCurrentText(portConfig["txSuffix"].toString());
+            m_rxFormatCombobox->setCurrentText(portConfig["rxFormat"].toString());
+            break;
+        }
         case TCPCLIENT: {
             m_tcpClientNameLineEdit->setText(portConfig["portName"].toString());
             m_tcpClientRemoteAddressLineEdit->setText(portConfig["tcpClientRemoteAddress"].toString());
@@ -357,7 +378,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
 }
 
 // PortSetting private
-void PortSetting::portSettingHideAll() const {
+void PortSetting::portSettingHideAll() {
     // serial port setting widget
     m_serialPortNameWidget->hide();
     m_serialPortNameCombobox->clear();
@@ -368,6 +389,12 @@ void PortSetting::portSettingHideAll() const {
     m_serialPortDataBitsWidget->hide();
     m_serialPortParityWidget->hide();
     m_serialPortStopBitsWidget->hide();
+    // visa setting widget
+    m_visaNameWidget->hide();
+    m_visaNameCombobox->clear();
+    for (QStringList devices = visaListGet(); const QString &device : devices) {
+        m_visaNameCombobox->addItem(device, device);
+    }
     // tcp client setting widget
     m_tcpClientNameWidget->hide();
     m_tcpClientNameLineEdit->setText("Tcp Client");
@@ -420,6 +447,10 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
             m_txSuffixWidget->show();
             m_rxFormatWidget->show();
             m_portSettingSavePushButton->show();
+            break;
+        }
+        case VISA: {
+            m_visaNameWidget->show();
             break;
         }
         case TCPCLIENT: {
@@ -502,6 +533,17 @@ void PortSetting::portSettingSave(const int portType) {
             m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
             break;
         }
+        case VISA: {
+            if (m_portUsedName.contains(m_serialPortNameCombobox->currentData().toString())) {
+                QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
+                return;
+            }
+            m_portConfig["portType"] = portType;
+            m_portConfig["portName"] = m_visaNameCombobox->currentData().toString();
+            m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
+            m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
+            m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+        }
         case TCPCLIENT: {
             if (m_portUsedName.contains(m_tcpClientNameLineEdit->text())) {
                 QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
@@ -582,4 +624,39 @@ void PortSetting::portSettingSave(const int portType) {
 
 QJsonObject PortSetting::portSettingExport() {
     return m_portConfig;
+}
+
+QStringList PortSetting::visaListGet() {
+    QStringList deviceList;
+
+    ViFindList findList;
+    ViUInt32 numInst;
+    ViChar portName[VI_FIND_BUFLEN];
+
+    ViStatus status = viOpenDefaultRM(&g_rm);
+    if (status != VI_SUCCESS) {
+        qDebug() << "fails to start visa resource manager";
+        return deviceList;
+    }
+
+    status = viFindRsrc(g_rm, "?*INSTR", &findList, &numInst, portName);
+    if (status != VI_SUCCESS) {
+        qDebug() << "fails to search visa instruments";
+        viClose(g_rm);
+        return deviceList;
+    }
+
+    deviceList.append(QString(portName));
+
+    for (ViUInt32 i = 1; i < numInst; i++) {
+        status = viFindNext(findList, portName);
+        if (status == VI_SUCCESS) {
+            deviceList.append(QString(portName));
+        }
+    }
+
+    // viClose(findList);
+    // viClose(rm);
+
+    return deviceList;
 }

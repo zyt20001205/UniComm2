@@ -23,8 +23,10 @@ public:
 
     QJsonObject portSettingExport();
 
+    static QStringList visaListGet();
+
 private:
-    void portSettingHideAll() const;
+    void portSettingHideAll();
 
     void portSettingTypeSwitch(int portType);
 
@@ -46,6 +48,9 @@ private:
     QComboBox *m_serialPortParityCombobox{};
     QWidget *m_serialPortStopBitsWidget{};
     QComboBox *m_serialPortStopBitsCombobox{};
+    // visa
+    QWidget *m_visaNameWidget{};
+    QComboBox *m_visaNameCombobox{};
     // tcp client
     QWidget *m_tcpClientNameWidget{};
     QLineEdit *m_tcpClientNameLineEdit{};

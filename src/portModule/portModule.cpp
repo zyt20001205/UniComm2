@@ -96,7 +96,6 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
     // frontend
     auto *portPage = new PortPage(portConfig); // NOLINT
     connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
-    /* connect(pageWidget->m_port, &BasePort::showPreview, this, &PortModule::previewShow);*/
     m_portTabWidget->insertTab(index, portPage, portName);
     m_portTabWidget->setCurrentWidget(portPage);
     overlayHide();

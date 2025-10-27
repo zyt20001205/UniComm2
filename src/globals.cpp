@@ -12,6 +12,8 @@ StructureModule *g_structure = nullptr;
 ThreadpoolModule *g_threadpool = nullptr;
 UndoModule *g_undo = nullptr;
 
+ViSession g_rm = VI_NULL;
+
 QJsonObject g_config = {};
 
 QVariantMap g_cursorPosition = {

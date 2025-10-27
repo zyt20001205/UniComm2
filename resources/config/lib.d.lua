@@ -186,7 +186,7 @@ modbusRtu = {}
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @return bytes
+--- @return string
 function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
 --- Writes data to multiple holding registers to a Modbus RTU device.

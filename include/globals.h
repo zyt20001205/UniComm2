@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <QUrl>
 #include <QVariantMap>
+#include <visa.h>
 
 #include "mainWindow.h"
 
@@ -32,12 +33,15 @@ extern UndoModule *g_undo;
 
 extern QJsonObject g_config;
 
+extern ViSession g_rm;
+
 extern QVariantMap g_cursorPosition;
 
 extern QHash<QUrl, QHash<int, QVariantMap> > g_breakpoints;
 
 enum {
     SERIALPORT = 1,
+    VISA,
     TCPCLIENT,
     TCPSERVER,
     UDPSOCKET,

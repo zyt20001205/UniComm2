@@ -11,6 +11,7 @@
 #include "portModule/tcpClient.h"
 #include "portModule/tcpServer.h"
 #include "portModule/udpSocket.h"
+#include "portModule/visa.h"
 
 // PortPage public
 PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
@@ -27,6 +28,17 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
             connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
 
             m_port = new SerialPort(portConfig);
+            connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+                m_portToggleButton->setChecked(status);
+            });
+            break;
+        }
+        case VISA: {
+            layout->addWidget(m_portToggleButton);
+            connect(m_portToggleButton, &QPushButton::clicked, this, &PortPage::portToggle);
+
+            m_port = new Visa(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
             connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
                 m_portToggleButton->setChecked(status);
