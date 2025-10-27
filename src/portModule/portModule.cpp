@@ -25,6 +25,7 @@ PortModule::PortModule()
     m_portTabWidget->setTabPosition(QTabWidget::West);
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
+    m_portTabWidget->tabBar()->setElideMode(Qt::ElideRight);
     connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, &PortModule::portRemove);
     connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
     auto *addButton = new QPushButton(); // NOLINT
