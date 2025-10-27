@@ -451,6 +451,10 @@ void PortSetting::portSettingTypeSwitch(const int portType) {
         }
         case VISA: {
             m_visaNameWidget->show();
+            m_txFormatWidget->show();
+            m_txSuffixWidget->show();
+            m_rxFormatWidget->show();
+            m_portSettingSavePushButton->show();
             break;
         }
         case TCPCLIENT: {
@@ -534,7 +538,7 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
         case VISA: {
-            if (m_portUsedName.contains(m_serialPortNameCombobox->currentData().toString())) {
+            if (m_portUsedName.contains(m_visaNameCombobox->currentData().toString())) {
                 QMessageBox::critical(this, tr("Error"), tr("Port name already exists."));
                 return;
             }
@@ -543,6 +547,7 @@ void PortSetting::portSettingSave(const int portType) {
             m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
             m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
             m_portConfig["rxFormat"] = m_rxFormatCombobox->currentText();
+            break;
         }
         case TCPCLIENT: {
             if (m_portUsedName.contains(m_tcpClientNameLineEdit->text())) {
