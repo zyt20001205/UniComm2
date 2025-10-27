@@ -295,7 +295,12 @@ void TcpServer::handleLog(const QString &mode, const QByteArray &data, const QTc
         // tx message reformat
         QString txMessage;
         // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
+        if (m_txFormat == "raw") {
+            txMessage.reserve(data.size() * 4);
+            for (const char c: data) {
+                txMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
+            }
+        } else if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
         else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
@@ -305,7 +310,12 @@ void TcpServer::handleLog(const QString &mode, const QByteArray &data, const QTc
         // rx message reformat
         QString rxMessage;
         // 1: encode rx message according to rx format
-        if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
+        if (m_rxFormat == "raw") {
+            rxMessage.reserve(data.size() * 4);
+            for (const char c: data) {
+                rxMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
+            }
+        } else if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
         else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
