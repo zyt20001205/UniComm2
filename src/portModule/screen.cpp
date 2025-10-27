@@ -45,7 +45,7 @@ QVariantMap Screen::info() {
     return {};
 }
 
-QString Screen::readText(const int timeout, const int length) {
+QByteArray Screen::read(const int timeout, const int length, const QString &rxFormat) {
     // find screen
     for (QScreen *s: QGuiApplication::screens()) {
         if (s->name() == m_portName) {
@@ -90,5 +90,5 @@ QString Screen::readText(const int timeout, const int length) {
         resultList.append(text);
     }
     emit showPreview(pixmapList);
-    return resultList.join("\x1E");
+    // return resultList.join("\x1E");
 }

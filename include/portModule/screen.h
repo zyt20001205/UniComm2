@@ -22,7 +22,7 @@ public:
 
     QVariantMap info() override;
 
-    QString readText(int timeout, int length) override;
+    QByteArray read(int timeout, int length, const QString &rxFormat) override;
 
 private:
     QScreen *m_screen{};

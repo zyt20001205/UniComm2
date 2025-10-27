@@ -48,7 +48,7 @@ QVariantMap Camera::info() {
     return {};
 }
 
-QString Camera::readText(const int timeout, const int length) {
+QByteArray Camera::read(const int timeout, const int length, const QString &rxFormat) {
     // find camera
     m_camera = QCameraDevice();
     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
@@ -111,5 +111,5 @@ QString Camera::readText(const int timeout, const int length) {
         resultList.append(text);
     }
     emit showPreview(pixmapList);
-    return resultList.join("\x1E");
+    // return resultList.join("\x1E");
 }
