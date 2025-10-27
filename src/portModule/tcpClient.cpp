@@ -102,7 +102,7 @@ bool TcpClient::write(const QByteArray &txData, const QString &txFormat, const Q
     if (m_txFormat == "hex") f_txData = QByteArray::fromHex(txData);
     // 2: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(f_txData);
     // call handle write
     return handleWrite(f_txData);
 }

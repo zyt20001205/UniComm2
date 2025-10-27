@@ -121,7 +121,7 @@ bool SerialPort::write(const QByteArray &txData, const QString &txFormat, const 
     if (m_txFormat == "hex") f_txData = QByteArray::fromHex(txData);
     // 2: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
+    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(f_txData);
     // call handle write
     return handleWrite(f_txData);
 }
@@ -227,7 +227,7 @@ void SerialPort::handleLog(const QString &mode, const QByteArray &data) {
         // rx message reformat
         QString rxMessage;
         // 1: encode rx message according to rx format
-        if (m_txFormat == "raw") {
+        if (m_rxFormat == "raw") {
             rxMessage.reserve(data.size() * 4);
             for (const char c: data) {
                 rxMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
