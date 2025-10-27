@@ -19,35 +19,19 @@ public:
 
     virtual void close() = 0;
 
-    virtual bool writeText(const QString &txText) {
+    virtual bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
         return false;
     }
 
-    virtual bool writeText(const QString &txText, const QString &peerIp) {
+    virtual bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) {
         return false;
     }
 
-    virtual bool writeData(const QByteArray &txData) {
-        return false;
-    }
-
-    virtual bool writeData(const QByteArray &txData, const QString &peerIp) {
-        return false;
-    }
-
-    virtual QString readText(int timeout, int length) {
+    virtual QByteArray read(int timeout, int length, const QString &rxFormat) {
         return {};
     }
 
-    virtual QString readText(int timeout, int length, const QString &peerIp) {
-        return {};
-    }
-
-    virtual QByteArray readData(int timeout, int length) {
-        return {};
-    }
-
-    virtual QByteArray readData(int timeout, int length, const QString &peerIp) {
+    virtual QByteArray read(int timeout, int length, const QString &peerIp, const QString &rxFormat) {
         return {};
     }
 

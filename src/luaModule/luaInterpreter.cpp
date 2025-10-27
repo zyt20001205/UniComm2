@@ -61,14 +61,10 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     lua_setfield(L, -2, "close");
     lua_pushcfunction(L, lua_portInfo);
     lua_setfield(L, -2, "info");
-    lua_pushcfunction(L, lua_portWriteText);
-    lua_setfield(L, -2, "writeText");
-    lua_pushcfunction(L, lua_portWriteData);
-    lua_setfield(L, -2, "writeData");
-    lua_pushcfunction(L, lua_portReadText);
-    lua_setfield(L, -2, "readText");
-    lua_pushcfunction(L, lua_portReadData);
-    lua_setfield(L, -2, "readData");
+    lua_pushcfunction(L, lua_portWrite);
+    lua_setfield(L, -2, "write");
+    lua_pushcfunction(L, lua_portRead);
+    lua_setfield(L, -2, "read");
     lua_setglobal(L, "port");
     // register modbus rtu class
     lua_newtable(L);

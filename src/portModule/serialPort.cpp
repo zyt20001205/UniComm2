@@ -1,6 +1,7 @@
 #include "portModule/serialPort.h"
 
 #include <QElapsedTimer>
+#include <QScopedValueRollback>
 #include <QSerialPort>
 #include <QThread>
 
@@ -110,40 +111,24 @@ void SerialPort::close() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
 }
 
-bool SerialPort::writeText(const QString &txText) {
-    // tx text reformat
-    QString f_txText = txText;
+bool SerialPort::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+    QScopedValueRollback txFormatRollback(m_txFormat);
+    QScopedValueRollback txSuffixRollback(m_txSuffix);
+    if (!txFormat.isEmpty()) m_txFormat = txFormat;
+    if (!txSuffix.isEmpty()) m_txSuffix = txSuffix;
     // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    return writeData(txData);
-}
-
-bool SerialPort::writeData(const QByteArray &txData) {
-    // tx data reformat
     QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
+    if (m_txFormat == "hex") f_txData = QByteArray::fromHex(txData);
+    // 2: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
     // call handle write
     return handleWrite(f_txData);
 }
 
-QString SerialPort::readText(const int timeout, const int length) {
-    const QByteArray rxData = readData(timeout, length);
-    if (m_rxFormat == "hex") return rxData.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(rxData);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(rxData);
-}
-
-QByteArray SerialPort::readData(const int timeout, const int length) {
+QByteArray SerialPort::read(const int timeout, const int length, const QString &rxFormat) {
+    QScopedValueRollback rxFormatRollback(m_rxFormat);
+    if (!rxFormat.isEmpty()) m_rxFormat = rxFormat;
     QByteArray rxData;
     // async mode
     if (timeout == 0) {
@@ -227,7 +212,12 @@ void SerialPort::handleLog(const QString &mode, const QByteArray &data) {
         // tx message reformat
         QString txMessage;
         // 1: encode tx message according to tx format
-        if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
+        if (m_txFormat == "raw") {
+            txMessage.reserve(data.size() * 4);
+            for (const char c: data) {
+                txMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
+            }
+        } else if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
         else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
@@ -237,7 +227,12 @@ void SerialPort::handleLog(const QString &mode, const QByteArray &data) {
         // rx message reformat
         QString rxMessage;
         // 1: encode rx message according to rx format
-        if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
+        if (m_txFormat == "raw") {
+            rxMessage.reserve(data.size() * 4);
+            for (const char c: data) {
+                rxMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
+            }
+        } else if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
         else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info

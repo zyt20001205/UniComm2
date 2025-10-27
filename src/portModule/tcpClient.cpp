@@ -1,6 +1,7 @@
 #include "portModule/tcpClient.h"
 
 #include <QElapsedTimer>
+#include <QScopedValueRollback>
 #include <QTcpSocket>
 
 #include "suffix.h"
@@ -91,40 +92,24 @@ void TcpClient::close() {
     emit togglePort(false);
 }
 
-bool TcpClient::writeText(const QString &txText) {
-    // tx text reformat
-    QString f_txText = txText;
+bool TcpClient::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+    QScopedValueRollback txFormatRollback(m_txFormat);
+    QScopedValueRollback txSuffixRollback(m_txSuffix);
+    if (!txFormat.isEmpty()) m_txFormat = txFormat;
+    if (!txSuffix.isEmpty()) m_txSuffix = txSuffix;
     // 1: remove space if tx format is hex
-    if (m_txFormat == "hex") f_txText.remove(" ");
-    // 2: convert to byte array
-    QByteArray txData;
-    if (m_txFormat == "hex") txData = QByteArray::fromHex(f_txText.toUtf8());
-    else if (m_txFormat == "ascii") txData = f_txText.toLatin1();
-    else /* txFormat == "utf-8" */ txData = f_txText.toUtf8();
-    return writeData(txData);
-}
-
-bool TcpClient::writeData(const QByteArray &txData) {
-    // tx data reformat
     QByteArray f_txData = txData;
-    // 1: append suffix according to tx suffix
+    if (m_txFormat == "hex") f_txData = QByteArray::fromHex(txData);
+    // 2: append suffix according to tx suffix
     if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc8 maxim") f_txData += crc8Maxim(txData);
     else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(txData);
-    else; /* m_txSuffix == "null" */
     // call handle write
     return handleWrite(f_txData);
 }
 
-QString TcpClient::readText(const int timeout, const int length) {
-    const QByteArray rxData = readData(timeout, length);
-    if (m_rxFormat == "hex") return rxData.toHex().toUpper();
-    if (m_rxFormat == "ascii") return QString::fromLatin1(rxData);
-    /* m_rxFormat == "utf-8" */
-    return QString::fromUtf8(rxData);
-}
-
-QByteArray TcpClient::readData(const int timeout, const int length) {
+QByteArray TcpClient::read(const int timeout, const int length, const QString &rxFormat) {
+    QScopedValueRollback rxFormatRollback(m_rxFormat);
+    if (!rxFormat.isEmpty()) m_rxFormat = rxFormat;
     QByteArray rxData;
     // async mode
     if (timeout == 0) {

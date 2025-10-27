@@ -21,13 +21,9 @@ public:
 
     void close() override;
 
-    bool writeText(const QString &txText) override;
+    bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
-    bool writeData(const QByteArray &txData) override;
-
-    QString readText(int timeout, int length) override;
-
-    QByteArray readData(int timeout, int length) override;
+    QByteArray read(int timeout, int length, const QString &rxFormat) override;
 
 signals:
     void connected();

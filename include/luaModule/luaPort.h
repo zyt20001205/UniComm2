@@ -11,6 +11,10 @@ int lua_portClose(lua_State *L);
 
 int lua_portInfo(lua_State *L);
 
+int lua_portWrite(lua_State *L);
+
+int lua_portRead(lua_State *L);
+
 int lua_portWriteData(lua_State *L);
 
 int lua_portWriteText(lua_State *L);

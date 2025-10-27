@@ -1,7 +1,5 @@
 --- @meta
 
---- @alias bytes string
-
 --- @alias key
 --- | '"A"'
 --- | '"B"'
@@ -134,9 +132,9 @@ function port.close(name) end
 --- port.info("COM3")
 function port.info(name) end
 
---- Writes **raw binary data** to a port.
+--- Writes data to a port.
 --- @param name port Target port name.
---- @param data bytes The raw binary data to write.
+--- @param data string The data to write.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
 --- @return nil
 ---
@@ -147,24 +145,9 @@ function port.info(name) end
 --- @usage — Write data to specific client.
 ---
 --- port.writeData("TCP SERVER", "/x01/x03", "192.169.1.56800")
-function port.writeData(name, data, peerIp) end
+function port.write(name, data, peerIp) end
 
---- Writes **text data** to a port.
---- @param name port Target port name.
---- @param text string The text data to write.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
---- @return nil
----
---- @usage — Write text to port COM3.
----
---- port.writeText("COM3", "0103 0000 0001")
----
---- @usage — Write text to specific client.
----
---- port.writeText("TCP SERVER", "010203", "192.169.1.56800")
-function port.writeText(name, text, peerIp) end
-
---- Reads **raw binary data** from a port.
+--- Reads data from a port.
 --- @param name port Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
@@ -175,7 +158,7 @@ function port.writeText(name, text, peerIp) end
 --- * &gt;0: The function will block for up to the specified time, waiting for data.
 ---
 --- * -1: The function will block indefinitely until data arrives.
---- @return bytes data
+--- @return string data
 ---
 --- @usage — Read data from port COM3.
 ---
@@ -194,39 +177,7 @@ function port.writeText(name, text, peerIp) end
 --- port.writeText("COM3", "0110 0000 000102 0000")
 ---
 --- port.readData("COM3", 100)
-function port.readData(name, timeout, length, peerIp) end
-
---- Reads **decoded text data** from a port.
---- @param name port Target port name.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @param length? integer Number of bytes to read.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
----
---- * 0(default): The function returns immediately.
----
---- * &gt;0: The function will block for up to the specified time, waiting for data.
----
---- * -1: The function will block indefinitely until data arrives.
---- @return string|table text
----
---- @usage — Read text from port COM3.
----
---- port.readText("COM3")
----
---- @usage — Read text from port COM3 under async mode.
----
---- port.writeText("COM3", "0110 0000 000102 0000")
----
---- sleep(50)
----
---- port.readText("COM3", 0)
----
---- @usage — Read text from port COM3 under sync mode.
----
---- port.writeText("COM3", "0110 0000 000102 0000")
----
---- port.readText("COM3", 100)
-function port.readText(name, timeout, length, peerIp) end
+function port.read(name, timeout, length, peerIp) end
 
 modbusRtu = {}
 --- Reads data from multiple holding registers of a Modbus RTU device.

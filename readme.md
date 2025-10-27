@@ -152,6 +152,10 @@ flowchart LR
 | port.readText  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | port.writeText | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |    ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)     |    ![Unsupported](https://img.shields.io/badge/unsupported-red)     |    ![Unsupported](https://img.shields.io/badge/unsupported-red)     |
 
+- [How is data processed in the write method?](#write-method-data-process)
+
+- [What's the difference between sync and async mode in the read method?](#sync--async-mode)
+
 ## Modbus APIS
 
 | Function Code & Name                             | RTU Mode                                                            | ASCII Mode                                             |
@@ -334,7 +338,76 @@ Ctrl+Alt+L
 
 # FAQ
 
-## read method sync & async mode
+## write method data process
+
+```mermaid
+flowchart RL
+    
+    subgraph dataProcessWorkFlow[data process workflow]
+        input[/input/]
+        api{API}
+        writeText["writeText()"]
+        writeData["writeData()"]
+        handleWrite["handleWrite()"]
+        output[/output/]
+    end
+
+    input --> api
+    api -->|"port.writeText()"| writeText
+    api -->|"port.writeData()"| writeData
+    writeText -->|reformat| writeData
+    writeData -->|suffix| handleWrite
+    handleWrite --> output
+```
+
+- example: hex & crc16 modbus
+
+```lua
+port.writeText("Actual Port", "0103 0000 0001")
+```
+
+```mermaid
+flowchart TB
+    input[/0103 0000 0001/]
+    step1[010300000001]
+    step2["\x01\x03\x00\x00\x00\x01"]
+    step3[/"\x01\x03\x00\x00\x00\x01\x84\x0A"/]
+    input -->|space removed| step1
+    step1 -->|formatted| step2
+    step2 -->|suffix appended| step3
+```
+
+- example: ascii & crlf
+
+```lua
+port.writeText("Actual Port", "AT+STACH1=1")
+```
+
+```mermaid
+flowchart TB
+    input[/AT+STACH1=1/]
+    step1["\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"]
+    step2[/"\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"\x0D\x0A/]
+    input -->|formatted| step1
+    step1 -->|suffix appended| step2
+```
+
+- example: writeData & null
+
+```lua
+port.writeData("Actual Port", string.pack(">i2", 100))
+```
+
+```mermaid
+flowchart TB
+    input[/AT+STACH1=1/]
+    step1["\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"]
+    step2[/"\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"\x0D\x0A/]
+    input -->|formatted| step1
+    step1 -->|suffix appended| step2
+```
+
+## sync & async mode
 
 ### unicomm sync dataflow
 
@@ -344,7 +417,6 @@ local rx = port.readText("Actual Port", 1000, 6)
 ```
 
 ```mermaid
-
 sequenceDiagram
     participant Lua Thread
     participant Port Thread

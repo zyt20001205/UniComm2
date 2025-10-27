@@ -22,21 +22,13 @@ public:
 
     QVariantMap info() override;
 
-    bool writeText(const QString &txText) override;
+    bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
-    bool writeText(const QString &txText, const QString &peerIp) override;
+    bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) override;
 
-    bool writeData(const QByteArray &txData) override;
+    QByteArray read(int timeout, int length, const QString &rxFormat) override;
 
-    bool writeData(const QByteArray &txData, const QString &peerIp) override;
-
-    QString readText(int timeout, int length) override;
-
-    QString readText(int timeout, int length, const QString &peerIp) override;
-
-    QByteArray readData(int timeout, int length) override;
-
-    QByteArray readData(int timeout, int length, const QString &peerIp) override;
+    QByteArray read(int timeout, int length, const QString &peerIp, const QString &rxFormat) override;
 
 signals:
     void newConnection();

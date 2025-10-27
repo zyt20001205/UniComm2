@@ -256,7 +256,7 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto txFormatLabel = new QLabel("tx format"); // NOLINT
         txFormatLayout->addWidget(txFormatLabel);
         txFormatLayout->addWidget(m_txFormatCombobox);
-        m_txFormatCombobox->addItems(QStringList{"hex", "ascii", "utf-8"});
+        m_txFormatCombobox->addItems(QStringList{"raw", "hex", "ascii", "utf-8"});
 
         m_portSettingLayout->addWidget(m_txSuffixWidget);
         const auto txSuffixLayout = new QHBoxLayout(m_txSuffixWidget); // NOLINT
@@ -264,7 +264,7 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto txSuffixLabel = new QLabel("tx suffix"); // NOLINT
         txSuffixLayout->addWidget(txSuffixLabel);
         txSuffixLayout->addWidget(m_txSuffixCombobox);
-        m_txSuffixCombobox->addItems(QStringList{"null", "crlf", "crc8 maxim", "crc16 modbus"});
+        m_txSuffixCombobox->addItems(QStringList{"null", "crlf", "crc16 modbus"});
 
         m_portSettingLayout->addWidget(m_rxFormatWidget);
         const auto rxFormatLayout = new QHBoxLayout(m_rxFormatWidget); // NOLINT
@@ -272,7 +272,7 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto rxFormatLabel = new QLabel("rx format"); // NOLINT
         rxFormatLayout->addWidget(rxFormatLabel);
         rxFormatLayout->addWidget(m_rxFormatCombobox);
-        m_rxFormatCombobox->addItems(QStringList{"hex", "ascii", "utf-8"});
+        m_rxFormatCombobox->addItems(QStringList{"raw", "hex", "ascii", "utf-8"});
     }
     // init setting save button
     {
