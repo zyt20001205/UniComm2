@@ -21,13 +21,32 @@ QVariantMap Visa::info() {
 }
 
 bool Visa::open() {
-    ViStatus status;
-    status = viOpen(g_rm, m_portName.toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
-    status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
-    return {};
+    ViStatus status = viOpen(g_rm, m_portName.toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
+    if (status == VI_SUCCESS) {
+        status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
+        emit togglePort(true);
+        emit appendLog(QString("%1 opened").arg(m_portName), "info");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portName);
+        return true;
+    }
+    emit appendLog(QString("%1 open failed").arg(m_portName), "error");
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portName);
+    return false;
 }
 
 void Visa::close() {
+    if (m_visa != VI_NULL) {
+        ViStatus status = viClose(m_visa);
+        emit togglePort(false);
+        emit appendLog(QString("%1 closed").arg(m_portName), "info");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
+    }
 }
 
 bool Visa::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
@@ -74,7 +93,7 @@ bool Visa::handleWrite(const QByteArray &f_txData) {
         return false;
     }
     ViUInt32 retCount;
-    const ViStatus status = viWrite(m_visa, (ViBuf)f_txData.constData(), f_txData.size(), &retCount);
+    const ViStatus status = viWrite(m_visa, (ViBuf) f_txData.constData(), f_txData.size(), &retCount);
     handleLog("tx", f_txData);
     if (status == VI_SUCCESS) {
         return true;

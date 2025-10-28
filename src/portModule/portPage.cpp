@@ -21,7 +21,6 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
     auto *layout = new QVBoxLayout(this); // NOLINT
     m_portToggleButton->setCheckable(true);
 
-    QString timestamp;
     switch (portConfig["portType"].toInt()) {
         case SERIALPORT: {
             layout->addWidget(m_portToggleButton);
