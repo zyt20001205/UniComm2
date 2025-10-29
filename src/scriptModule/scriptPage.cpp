@@ -290,7 +290,13 @@ void ScriptPage::charAdded(const int ch) {
 }
 
 void ScriptPage::dwellStart(const int pos, const int x, const int y) {
-    if (x == 0 || y == 0) return;
+    if (x <= 10
+        || x >= m_scriptEditor->width() - 30
+        || y <= 10
+        || y >= m_scriptEditor->height() - 10)
+        return;
+    qDebug() << x << m_scriptEditor->width();
+    qDebug() << y << m_scriptEditor->height();
     int line, character;
     m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
     if (line == 0 && character == 0) return;
