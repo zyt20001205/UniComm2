@@ -2,9 +2,9 @@
 
 #include <QCameraDevice>
 #include <QCloseEvent>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -41,7 +41,7 @@
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent),
-      m_currentScriptLabel(new QLabel("Idle")) {
+      m_scriptComboBox(new QComboBox()) {
     // mainWindow ui init
     g_mainWindow = this;
     QWidget::setWindowTitle("UniComm");
@@ -279,8 +279,17 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
+    connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {
+        const QString scriptName = scriptUrl.fileName();
+        m_scriptComboBox->addItem(scriptName, scriptUrl);
+    });
+    connect(m_scriptModule, &ScriptModule::closeScript, this, [this](const QUrl &scriptUrl) {
+        const QString scriptName = scriptUrl.fileName();
+        if (const int index = m_scriptComboBox->findText(scriptName); index != -1) {
+            m_scriptComboBox->removeItem(index);
+        }
+    });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &url) { m_currentScriptLabel->setText(url.fileName()); });
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, &PortModule::portInsert);
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, &DatabaseModule::databaseInsert);
     connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, &DatatableModule::datatableInsert);
@@ -420,15 +429,15 @@ void MainWindow::menuInit() {
     toolBar->addSeparator();
     // control menu
     {
-        toolBar->addWidget(m_currentScriptLabel);
-        m_currentScriptLabel->setFont(QFont("Consolas", 12, QFont::Bold));
-        m_currentScriptLabel->setStyleSheet("color: #333333;");
+        toolBar->addWidget(m_scriptComboBox);
+        m_scriptComboBox->setFont(QFont("Consolas", 12, QFont::Bold));
+        m_scriptComboBox->setStyleSheet("color: #333333;");
 
         auto runScript = [this] {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
-                const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
+                const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
                 const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
                 emit runThread(scriptUrl, script);
                 m_logModule->raise();
@@ -448,7 +457,7 @@ void MainWindow::menuInit() {
             if (m_scriptModule->m_focusedPage == nullptr) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
-                const QUrl scriptUrl = m_scriptModule->m_focusedPage->m_scriptUrl;
+                const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
                 const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
                 emit debugThread(scriptUrl, script);
                 m_debugModule->raise();

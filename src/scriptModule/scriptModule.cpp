@@ -103,6 +103,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         m_scriptPageHash[scriptUrl]->show();
         m_scriptPageHash[scriptUrl]->raise();
     }
+    emit openScript(scriptUrl);
 }
 
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
@@ -259,6 +260,7 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
         const auto begin = m_scriptPageHash.begin();
         m_focusedPage = begin.value();
     }
+    emit closeScript(scriptUrl);
 }
 
 void ScriptModule::textReplace(QString &text, const QString &kind) const {
