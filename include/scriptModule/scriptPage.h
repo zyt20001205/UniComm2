@@ -154,7 +154,11 @@ public:
 signals:
     void requestDefinition(int line, int character);
 
+    void requestFormatting();
+
 protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
     void keyPressEvent(QKeyEvent *event) override;
 
     void keyReleaseEvent(QKeyEvent *event) override;
