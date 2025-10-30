@@ -1,6 +1,7 @@
 #include "mainWindow.h"
 
 #include <QStyleFactory>
+
 #include <kddockwidgets/Config.h>
 
 int main(int argc, char *argv[]) {
@@ -9,9 +10,9 @@ int main(int argc, char *argv[]) {
 
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
     auto flags = KDDockWidgets::Config::self().flags();
-    flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     flags |= KDDockWidgets::Config::Flag_HideTitleBarWhenTabsVisible;
     flags |= KDDockWidgets::Config::Flag_AlwaysShowTabs;
+    flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
     KDDockWidgets::InitialOption::s_defaultNeighbourSqueezeStrategy = KDDockWidgets::NeighbourSqueezeStrategy::AllNeighbours;
 
