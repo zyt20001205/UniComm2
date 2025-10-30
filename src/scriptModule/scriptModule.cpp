@@ -99,11 +99,10 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         }
         scriptFocus(scriptPage, true);
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
+        emit openScript(scriptUrl);
     } else {
-        m_scriptPageHash[scriptUrl]->show();
         m_scriptPageHash[scriptUrl]->raise();
     }
-    emit openScript(scriptUrl);
 }
 
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {

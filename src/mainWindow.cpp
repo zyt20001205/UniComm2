@@ -264,6 +264,10 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::openWorkspace, m_databaseModule, &DatabaseModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_datatableModule, &DatatableModule::workspaceOpen);
     connect(this, &MainWindow::openWorkspace, m_threadpoolModule, &ThreadpoolModule::workspaceOpen);
+    connect(m_scriptComboBox, &QComboBox::activated, m_scriptModule, [this] {
+        const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
+        m_scriptModule->scriptOpen(scriptUrl);
+    });
     connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
