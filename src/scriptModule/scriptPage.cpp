@@ -290,7 +290,9 @@ void ScriptPage::charAdded(const int ch) {
 }
 
 void ScriptPage::dwellStart(const int pos, const int x, const int y) {
-    if (x <= 10 || x >= m_scriptEditor->width() - 30 || y <= 10 || y >= m_scriptEditor->height() - 10)return;
+    const QPoint globalPos = QCursor::pos();
+    QPoint localPos = m_scriptEditor->mapFromGlobal(globalPos);
+    if (!m_scriptEditor->rect().contains(localPos)) return;
     int line, character;
     m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
     if (line == 0 && character == 0) return;
