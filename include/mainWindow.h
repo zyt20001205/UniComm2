@@ -11,6 +11,7 @@ class StructureModule;
 class ConfigModule;
 class LuaLanguageServer;
 class UndoModule;
+class SettingModule;
 class ScriptModule;
 class PortModule;
 class ExplorerModule;
@@ -67,6 +68,7 @@ private:
     ConfigModule *m_configModule{};
     LuaLanguageServer *m_llsModule{};
     UndoModule *m_undoModule{};
+    SettingModule *m_settingModule{};
     ScriptModule *m_scriptModule{};
     PortModule *m_portModule{};
     ExplorerModule *m_explorerModule{};

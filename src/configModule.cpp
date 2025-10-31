@@ -94,12 +94,14 @@ void ConfigModule::configGenerate() {
                         },
                     },
                     {"formatting", "Ctrl+Alt+L"},
-                    {"fontFamily", "consolas"},
-                    {"fontSize", "12"}
+                    {"fontFamily", "Consolas"},
+                    {"fontSize", 12}
                 },
             },
             {
                 "logConfig", QJsonObject{
+                    {"fontFamily", "Consolas"},
+                    {"fontSize", 12},
                     {"timestamp", true},
                     {"height", 1000}
                 },

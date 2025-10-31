@@ -36,6 +36,7 @@
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/structureModule.h"
 #include "scriptModule/threadpoolModule.h"
+#include "settingModule/settingModule.h"
 #include "utils/qtUtils.h"
 
 // MainWindow public
@@ -183,6 +184,11 @@ void MainWindow::moduleInit() {
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "undo module initialized");
+
+    m_settingModule = new SettingModule(this);
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "setting module initialized");
 
     m_scriptModule = new ScriptModule();
     m_scriptModule->setObjectName("scriptModule");
@@ -425,6 +431,22 @@ void MainWindow::menuInit() {
         m_debugModule->toggleAction()->setText(tr("Debug"));
         viewMenu->addAction(m_threadpoolModule->toggleAction());
         m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
+    }
+    // setting menu
+    {
+        auto *settingAction = new QAction(tr("Setting"), this); // NOLINT
+        toolBar->addAction(settingAction);
+        connect(settingAction, &QAction::triggered, this, [this] {
+            const QJsonObject logConfig = g_config["logConfig"].toObject();
+            const QJsonObject settingConfig = {
+                {"logFontFamily", logConfig["fontFamily"].toString()},
+                {"logFontSize", logConfig["fontSize"].toInt()}
+            };
+            m_settingModule->settingImport(settingConfig);
+            if (m_settingModule->exec() == QDialog::Accepted) {
+                qDebug() << "saved";
+            }
+        });
     }
     // separator
     auto *spacer = new QWidget(); // NOLINT
