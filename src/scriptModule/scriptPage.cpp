@@ -631,7 +631,7 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
     menu.addAction(tr("Fold All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
     menu.addAction(tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
-    menu.addAction(tr("Reformat"), this, &ScriptEditor::requestFormatting);
+    menu.addAction(tr("Formatting"), this, &ScriptEditor::requestFormatting);
     menu.exec(event->globalPos());
 }
 
