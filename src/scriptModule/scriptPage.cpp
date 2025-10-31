@@ -238,10 +238,6 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
             emit insertDatatable(-1, QString());
             return;
         }
-        if (text == "\"Add New Datatable Key\"") {
-            emit insertDatatable(-1, QString());
-            return;
-        }
         if (text == "\"Position Hint\"") {
             emit showPositionTooltip();
             return;
