@@ -1,6 +1,7 @@
 #ifndef UNICOMM_LOGFONTSETTING_H
 #define UNICOMM_LOGFONTSETTING_H
 
+#include <QTextEdit>
 #include <QWidget>
 
 class QSpinBox;
@@ -21,6 +22,7 @@ public:
 private:
     QFontComboBox *m_fontFamilyComboBox{};
     QSpinBox *m_fontSizeSpinBox{};
+    QTextEdit *m_fontPreviewTextEdit{};
 };
 
 #endif //UNICOMM_LOGFONTSETTING_H

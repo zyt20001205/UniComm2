@@ -59,6 +59,7 @@ SettingModule::SettingModule(QWidget *parent)
     controlLayout->addWidget(cancelButton);
     auto *applyButton = new QPushButton(tr("Apply")); // NOLINT
     controlLayout->addWidget(applyButton);
+    connect(saveButton, &QPushButton::clicked, this, [this] { settingSave(); });
 
     resize(1280, 720);
 }
@@ -76,5 +77,6 @@ void SettingModule::settingSave() {
     const QJsonObject logFontConfig = m_logFontSettingWidget->settingExport();
     settingConfig["logFontFamily"] = logFontConfig["fontFamily"].toString();
     settingConfig["logFontSize"] = logFontConfig["fontSize"].toInt();
+
     qDebug() << settingConfig;
 }
