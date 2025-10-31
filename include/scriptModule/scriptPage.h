@@ -45,6 +45,8 @@ signals:
 
     void insertDatatable(int index, const QString &key);
 
+    void showPositionTooltip();
+
     void insertBreakpoint(const QUrl &scriptUrl, int line);
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);

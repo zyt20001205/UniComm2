@@ -12,6 +12,7 @@
 #include "portModule/portModule.h"
 #include "scriptModule/completionTooltip.h"
 #include "scriptModule/hoverTooltip.h"
+#include "scriptModule/positionTooltip.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"
@@ -22,10 +23,8 @@ ScriptModule::ScriptModule()
       m_welcomePage(new WelcomePage()),
       m_completionTooltip(new CompletionTooltip(g_mainWindow)),
       m_hoverTooltip(new HoverTooltip(g_mainWindow)),
-      m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow))
-//       m_tooltipPosition(new TooltipPosition(this)),
-//
-{
+      m_positionTooltip(new PositionTooltip(g_mainWindow)),
+      m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow)) {
     // clear invalid script url
     QJsonArray validScriptList;
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -37,6 +36,7 @@ ScriptModule::ScriptModule()
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
+    connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::textReplace);
 }
 
 void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
@@ -83,6 +83,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::insertPort, this, &ScriptModule::insertPort);
         connect(scriptPage, &ScriptPage::insertDatabase, this, &ScriptModule::insertDatabase);
         connect(scriptPage, &ScriptPage::insertDatatable, this, &ScriptModule::insertDatatable);
+        connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, [this] {
+            m_positionTooltip->showTooltip();
+        });
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
@@ -265,50 +268,3 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
 void ScriptModule::textReplace(QString &text, const QString &kind) const {
     m_focusedPage->textReplace(text, kind);
 }
-
-
-// // TooltipPosition public
-// TooltipPosition::TooltipPosition(QWidget *parent)
-//     : QWidget(parent),
-//       m_timer(new QTimer(this)),
-//       m_label(new QLabel(this)) {
-//     qApp->installEventFilter(this);
-//     setWindowFlags(Qt::Popup);
-//     auto *layout = new QVBoxLayout(this); //NOLINT
-//     layout->setContentsMargins(0, 0, 0, 0);
-//     layout->addWidget(m_label);
-//     m_label->setFont(QFont("consolas", 12));
-//     m_timer->setInterval(30);
-//     connect(m_timer, &QTimer::timeout, [this] {
-//         const QPoint logicalPos = QCursor::pos();
-//         this->move(logicalPos + QPoint(15, 15));
-//         POINT physicalPos;
-//         GetCursorPos(&physicalPos);
-//         m_label->setText(QString("X: %1, Y: %2").arg(QString::number(physicalPos.x), QString::number(physicalPos.y)));
-//     });
-// }
-//
-// void TooltipPosition::showTooltip() {
-//     this->show();
-//     m_timer->start();
-// }
-//
-// void TooltipPosition::hideTooltip() {
-//     this->hide();
-//     m_timer->stop();
-// }
-//
-// // TooltipPosition protected
-// bool TooltipPosition::eventFilter(QObject *obj, QEvent *event) {
-//     if (event->type() == QEvent::MouseButtonPress && this->isVisible()) {
-//         const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-//         if (mouseEvent->button() == Qt::LeftButton) {
-//             POINT physicalPos;
-//             GetCursorPos(&physicalPos);
-//             emit fillPosition(physicalPos.x, physicalPos.y);
-//             hideTooltip();
-//         }
-//     }
-//     return QWidget::eventFilter(obj, event);
-// }
-//

@@ -72,25 +72,25 @@ function speak(text) end
 
 control = {}
 --- Simulates a left mouse button click at specified coordinates.
---- @param x integer The horizontal screen position.
+--- @param x integer | "Position Hint" The horizontal screen position.
 --- @param y integer The vertical screen position.
 --- @return nil
 function control.leftClick(x, y) end
 
 --- Simulates a left mouse button double click at specified coordinates.
---- @param x integer The horizontal screen position.
+--- @param x integer | "Position Hint" The horizontal screen position.
 --- @param y integer The vertical screen position.
 --- @return nil
 function control.leftDoubleClick(x, y) end
 
 --- Simulates a right mouse button click at specified coordinates.
---- @param x integer The horizontal screen position.
+--- @param x integer | "Position Hint" The horizontal screen position.
 --- @param y integer The vertical screen position.
 --- @return nil
 function control.rightClick(x, y) end
 
 --- Simulates a right mouse button double click at specified coordinates.
---- @param x integer The horizontal screen position.
+--- @param x integer | "Position Hint" The horizontal screen position.
 --- @param y integer The vertical screen position.
 --- @return nil
 function control.rightDoubleClick(x, y) end

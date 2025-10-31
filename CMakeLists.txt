@@ -78,6 +78,7 @@ qt_add_executable(UniComm src/main.cpp
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
         include/scriptModule/hoverTooltip.h
+        include/scriptModule/positionTooltip.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
         include/scriptModule/signatureHelpTooltip.h
@@ -122,6 +123,7 @@ qt_add_executable(UniComm src/main.cpp
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp
         src/scriptModule/hoverTooltip.cpp
+        src/scriptModule/positionTooltip.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
         src/scriptModule/signatureHelpTooltip.cpp

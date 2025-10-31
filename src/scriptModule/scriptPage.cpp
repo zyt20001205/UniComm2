@@ -238,6 +238,14 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
             emit insertDatatable(-1, QString());
             return;
         }
+        if (text == "\"Add New Datatable Key\"") {
+            emit insertDatatable(-1, QString());
+            return;
+        }
+        if (text == "\"Position Hint\"") {
+            emit showPositionTooltip();
+            return;
+        }
         text.replace("\\", "\\\\");
     }
     const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);

@@ -15,6 +15,7 @@ class ScriptPage;
 class ScriptEditor;
 class CompletionTooltip;
 class HoverTooltip;
+class PositionTooltip;
 class SignatureHelpTooltip;
 
 class ScriptModule final : public QObject {
@@ -102,32 +103,7 @@ private:
     CompletionTooltip *m_completionTooltip{};
     HoverTooltip *m_hoverTooltip{};
     SignatureHelpTooltip *m_signatureHelpTooltip{};
+    PositionTooltip *m_positionTooltip{};
 };
-
-
-// class TooltipPosition final : public QWidget {
-//     Q_OBJECT
-//
-// public:
-//     explicit TooltipPosition(QWidget *parent = nullptr);
-//
-//     ~TooltipPosition() override = default;
-//
-//     void showTooltip();
-//
-//     void hideTooltip();
-//
-// signals:
-//     void fillPosition(int x, int y);
-//
-// protected:
-//     bool eventFilter(QObject *obj, QEvent *event) override;
-//
-// private:
-//     QTimer *m_timer = nullptr;
-//     QLabel *m_label = nullptr;
-// };
-//
-
 
 #endif //UNICOMM_SCRIPT_H
