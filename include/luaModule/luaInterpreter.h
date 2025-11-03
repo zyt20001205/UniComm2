@@ -1,6 +1,7 @@
 #ifndef UNICOMM_LUAINTERPRETER_H
 #define UNICOMM_LUAINTERPRETER_H
 
+#include <QHash>
 #include <QObject>
 #include <QSharedPointer>
 #include <QUrl>
@@ -12,6 +13,7 @@ struct DebugData {
     int depth = 0;
     int baseDepth = 0;
     int state;
+    QHash<QUrl, QList<int>> heatmap;
 };
 
 class LuaInterpreter final : public QObject {
@@ -29,6 +31,10 @@ public:
     void debugStateSet(int state) const;
 
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
+
+    void showHeatmap() const;
+
+    void hideHeatmap() const;
 
 private:
     static void luaTerminateHook(lua_State *L, lua_Debug *ar);

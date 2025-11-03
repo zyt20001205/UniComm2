@@ -103,7 +103,8 @@ QString ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &scri
         threadId,
         0,
         0,
-        DEBUG_RESUME
+        DEBUG_RESUME,
+        {}
     };
     auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);

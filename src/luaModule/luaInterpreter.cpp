@@ -292,6 +292,53 @@ void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, 
     }
 }
 
+void LuaInterpreter::showHeatmap() const {
+    const QUrl currentUrl = m_debugData->currentUrl;
+    const QList<int> heatlist = m_debugData->heatmap[currentUrl];
+    int maxHit = 0;
+    for (const int hitCount: heatlist) {
+        if (hitCount > maxHit) {
+            maxHit = hitCount;
+        }
+    }
+    if (maxHit == 0) return;
+    for (int line = 1; line < heatlist.size(); ++line) {
+        const int hitCount = m_debugData->heatmap[currentUrl][line];
+        if (const float percent = static_cast<float>(hitCount) / maxHit; percent < 0.25) {
+            QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP0, line);
+            }, Qt::QueuedConnection);
+        } else if (percent < 0.5) {
+            QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP25, line);
+            }, Qt::QueuedConnection);
+        } else if (percent < 0.75) {
+            QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP50, line);
+            }, Qt::QueuedConnection);
+        } else if (percent < 1) {
+            QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP75, line);
+            }, Qt::QueuedConnection);
+        } else {
+            QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP100, line);
+            }, Qt::QueuedConnection);
+        }
+    }
+}
+
+void LuaInterpreter::hideHeatmap() const {
+    const QUrl currentUrl = m_debugData->currentUrl;
+    QMetaObject::invokeMethod(g_mainWindow, [currentUrl] {
+        g_script->markerRemove(currentUrl, MARKER_HEATMAP0);
+        g_script->markerRemove(currentUrl, MARKER_HEATMAP25);
+        g_script->markerRemove(currentUrl, MARKER_HEATMAP50);
+        g_script->markerRemove(currentUrl, MARKER_HEATMAP75);
+        g_script->markerRemove(currentUrl, MARKER_HEATMAP100);
+    }, Qt::QueuedConnection);
+}
+
 // LuaInterpreter private
 void LuaInterpreter::luaTerminateHook(lua_State *L, lua_Debug *ar) {
     (void) ar;
@@ -323,10 +370,16 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         if (ar->source[0] == '@' && ar->source[1] != '\0') {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
+        const int currentLine = ar->currentline;
+        QList<int> &heatlist = debugData->heatmap[currentUrl];
+        if (currentLine >= heatlist.size()) {
+            heatlist.resize(currentLine + 1);
+        }
+        heatlist[currentLine]++;
         // debug state machine
         if (debugData->state == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
-            if (g_breakpoints[currentUrl].contains(ar->currentline)) {
-                QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
+            if (g_breakpoints[currentUrl].contains(currentLine)) {
+                QString expression = g_breakpoints[currentUrl][currentLine]["expr"].toString();
                 const int base = lua_gettop(L);
                 if (expression.isEmpty()) {
                     debugData->state = DEBUG_PAUSE;
@@ -372,7 +425,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         } else if (debugData->state == DEBUG_STEPOVER && debugData->depth == debugData->baseDepth) debugData->state = DEBUG_PAUSE;
         else if (debugData->state == DEBUG_STEPOUT && debugData->depth < debugData->baseDepth) debugData->state = DEBUG_PAUSE;
         else if (debugData->state == DEBUG_STEPINTO) debugData->state = DEBUG_PAUSE;
-        else if (debugData->state == DEBUG_RUNTOCURSOR && g_cursorPosition["url"].toUrl() == currentUrl && g_cursorPosition["line"].toInt() == ar->currentline)
+        else if (debugData->state == DEBUG_RUNTOCURSOR && g_cursorPosition["url"].toUrl() == currentUrl && g_cursorPosition["line"].toInt() == currentLine)
             debugData->state = DEBUG_PAUSE;
         if (debugData->state == DEBUG_PAUSE) {
             // src handle
@@ -383,8 +436,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 debugData->currentUrl = currentUrl;
             }
             // line handle
-            QMetaObject::invokeMethod(g_mainWindow, [debugData, ar] {
-                g_script->markerInsert(debugData->currentUrl, MARKER_ARROW, ar->currentline);
+            QMetaObject::invokeMethod(g_mainWindow, [debugData, currentLine] {
+                g_script->markerInsert(debugData->currentUrl, MARKER_ARROW, currentLine);
             }, Qt::BlockingQueuedConnection);
             // var tree
             {

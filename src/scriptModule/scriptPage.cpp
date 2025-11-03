@@ -555,6 +555,20 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     markerDefine(Background, MARKER_HINT);
     setMarkerBackgroundColor(Qt::cyan, MARKER_HINT);
 
+    markerDefine(Background, MARKER_HEATMAP0);
+    setMarkerBackgroundColor(QColor(235, 245, 235), MARKER_HEATMAP0);
+
+    markerDefine(Background, MARKER_HEATMAP25);
+    setMarkerBackgroundColor(QColor(175, 225, 175), MARKER_HEATMAP25);
+
+    markerDefine(Background, MARKER_HEATMAP50);
+    setMarkerBackgroundColor(QColor(110, 200, 110), MARKER_HEATMAP50);
+
+    markerDefine(Background, MARKER_HEATMAP75);
+    setMarkerBackgroundColor(QColor(40, 160, 40), MARKER_HEATMAP75);
+
+    markerDefine(Background, MARKER_HEATMAP100);
+    setMarkerBackgroundColor(QColor(20, 100, 20), MARKER_HEATMAP100);
     // set indicators
     indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
     setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);

@@ -167,6 +167,25 @@ DebugModule::DebugModule()
                 }, Qt::QueuedConnection);
                 emit resume(threadId);
             });
+            auto *heatmapButton = new QPushButton(); // NOLINT
+            debugCtrlLayout->addWidget(heatmapButton);
+            heatmapButton->setCheckable(true);
+            heatmapButton->setFixedSize(24, 24);
+            heatmapButton->setIcon(QIcon(":/icon/dataBarVertical.svg"));
+            heatmapButton->setToolTip(tr("line heatmap"));
+            connect(heatmapButton, &QPushButton::toggled, this, [this](const bool status) {
+                if (m_debugPageHash.isEmpty()) {
+                    QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
+                    return;
+                }
+                const int index = m_debugTabWidget->currentIndex();
+                const QString threadId = m_debugTabWidget->tabText(index);
+                LuaInterpreter *interpreter = m_interpreterHash[threadId];
+                QMetaObject::invokeMethod(interpreter->thread(), [interpreter, status] {
+                    if (status) interpreter->showHeatmap();
+                    else interpreter->hideHeatmap();
+                }, Qt::QueuedConnection);
+            });
         }
         // debug breakpoints
         {
