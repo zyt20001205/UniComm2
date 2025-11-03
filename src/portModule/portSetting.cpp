@@ -624,7 +624,7 @@ void PortSetting::portSettingSave(const int portType) {
             break;
         }
     }
-    this->accept();
+    accept();
 }
 
 QJsonObject PortSetting::portSettingExport() {

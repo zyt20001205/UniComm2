@@ -16,6 +16,10 @@ public:
 
     void logConfigSave() const;
 
+    void logFontReload(const QJsonObject &logFontConfig) const;
+
+    void logFontSave(const QJsonObject &logFontConfig);
+
     void logAppend(const QString &message, const QString &level);
 
 private:

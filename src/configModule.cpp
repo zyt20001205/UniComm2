@@ -100,8 +100,8 @@ void ConfigModule::configGenerate() {
             },
             {
                 "logConfig", QJsonObject{
-                    {"fontFamily", "Consolas"},
-                    {"fontSize", 12},
+                    {"fontFamily", "Segoe UI"},
+                    {"fontSize", 9},
                     {"timestamp", true},
                     {"height", 1000}
                 },

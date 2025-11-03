@@ -21,7 +21,7 @@ SettingModule::SettingModule(QWidget *parent)
 
     auto *settingTreeView = new QTreeView(); // NOLINT
     splitter->addWidget(settingTreeView);
-    settingTreeView->setFont(QFont("Consolas", 14, QFont::Bold));
+    settingTreeView->setFont(QFont("Consolas", 14));
     settingTreeView->setHeaderHidden(true);
     auto *settingTreeModel = new QStandardItemModel(); // NOLINT
     settingTreeView->setModel(settingTreeModel);
@@ -59,7 +59,7 @@ SettingModule::SettingModule(QWidget *parent)
     controlLayout->addWidget(cancelButton);
     auto *applyButton = new QPushButton(tr("Apply")); // NOLINT
     controlLayout->addWidget(applyButton);
-    connect(saveButton, &QPushButton::clicked, this, [this] { settingSave(); });
+    connect(applyButton, &QPushButton::clicked, this, &SettingModule::settingApply);
 
     resize(1280, 720);
 }
@@ -72,11 +72,14 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
 }
 
 // SettingModule private
-void SettingModule::settingSave() {
-    QJsonObject settingConfig = {};
+void SettingModule::settingApply() {
     const QJsonObject logFontConfig = m_logFontSettingWidget->settingExport();
-    settingConfig["logFontFamily"] = logFontConfig["fontFamily"].toString();
-    settingConfig["logFontSize"] = logFontConfig["fontSize"].toInt();
+    emit reloadLogFont(logFontConfig);
+}
 
-    qDebug() << settingConfig;
+void SettingModule::settingSave() {
+    const QJsonObject logFontConfig = m_logFontSettingWidget->settingExport();
+    emit reloadLogFont(logFontConfig);
+    emit saveLogFont(logFontConfig);
+    accept();
 }

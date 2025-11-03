@@ -2,6 +2,7 @@
 #define UNICOMM_SETTINGMODULE_H
 
 #include <QDialog>
+#include <QJsonObject>
 
 class QStackedWidget;
 class QTreeView;
@@ -18,7 +19,14 @@ public:
 
     void settingImport(const QJsonObject &settingConfig) const;
 
+signals:
+    void reloadLogFont(const QJsonObject &logFontConfig);
+
+    void saveLogFont(const QJsonObject &logFontConfig);
+
 private:
+    void settingApply();
+
     void settingSave();
 
     QStackedWidget *m_settingStackedWidget{};

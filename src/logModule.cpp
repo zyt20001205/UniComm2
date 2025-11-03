@@ -63,10 +63,27 @@ LogModule::LogModule()
     connect(clearButton, &QPushButton::clicked, this, &LogModule::logClear);
 
     layout->addWidget(m_logTextBrowser);
-    m_logTextBrowser->setOpenLinks(false);
+    const auto logFont = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
+    m_logTextBrowser->setFont(logFont);
     m_logTextBrowser->setOpenExternalLinks(false);
+    m_logTextBrowser->setOpenLinks(false);
     m_logTextBrowser->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
     connect(m_logTextBrowser, &QTextBrowser::anchorClicked, this, [](const QUrl &link) { QDesktopServices::openUrl(link); });
+}
+
+void LogModule::logConfigSave() const {
+    g_config["logConfig"] = m_logConfig;
+}
+
+void LogModule::logFontReload(const QJsonObject &logFontConfig) const {
+    const auto logFont = QFont(logFontConfig["fontFamily"].toString(), logFontConfig["fontSize"].toInt());
+    m_logTextBrowser->setFont(logFont);
+}
+
+void LogModule::logFontSave(const QJsonObject &logFontConfig) {
+    m_logConfig["fontFamily"] = logFontConfig["fontFamily"].toString();
+    m_logConfig["fontSize"] = logFontConfig["fontSize"].toInt();
+    qDebug() << m_logConfig;
 }
 
 void LogModule::logAppend(const QString &message, const QString &level) {
@@ -91,10 +108,6 @@ void LogModule::logAppend(const QString &message, const QString &level) {
         f_message = QString("<span style='background-color:lightgreen;'>%1</span>").arg(f_message);
     // append log
     m_logTextBrowser->append(f_message);
-}
-
-void LogModule::logConfigSave() const {
-    g_config["logConfig"] = m_logConfig;
 }
 
 // LogModule private
