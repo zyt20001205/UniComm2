@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_AlwaysShowTabs;
     flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
-    KDDockWidgets::InitialOption::s_defaultNeighbourSqueezeStrategy = KDDockWidgets::NeighbourSqueezeStrategy::AllNeighbours;
 
     auto *mainWindow = new MainWindow();
     mainWindow->show();

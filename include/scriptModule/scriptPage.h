@@ -154,6 +154,10 @@ public:
     ~ScriptEditor() override = default;
 
 signals:
+    void dockRight();
+
+    void dockLeft();
+
     void requestDefinition(int line, int character);
 
     void requestFormatting();

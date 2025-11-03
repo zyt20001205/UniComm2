@@ -5,6 +5,9 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QShortcut>
+#include <kddockwidgets/core/DockWidget.h>
+#include <kddockwidgets/core/Group.h>
+#include <kddockwidgets/core/MainWindow.h>
 
 #include "globals.h"
 #include "utils/qtUtils.h"
@@ -39,9 +42,28 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
+    connect(m_scriptEditor, &ScriptEditor::dockRight, this, [this] {
+        const auto controller = dockWidget();
+        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
+            for (const auto &dock: tabGroup->dockWidgets()) {
+                if (dock != controller) {
+                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnRight, dock);
+                }
+            }
+        }
+    });
+    connect(m_scriptEditor, &ScriptEditor::dockLeft, this, [this] {
+        const auto controller = dockWidget();
+        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
+            for (const auto &dock: tabGroup->dockWidgets()) {
+                if (dock != controller) {
+                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnLeft, dock);
+                }
+            }
+        }
+    });
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
-    // connect(m_tooltipPosition, &TooltipPosition::fillPosition, this, &ScriptPage::positionFill);
     // logging
     emit appendLog(QString("<a href='%1'>%2</a> opened").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -644,8 +666,10 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 // ScriptEditor protected
 void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
-    menu.addAction(tr("Fold All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
-    menu.addAction(tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
+    menu.addAction(QIcon(":/icon/textCollapse.svg"), tr("Fold All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
+    menu.addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
+    menu.addAction(QIcon(":/icon/dockPanelRight.svg"), tr("Dock Right"), this, [this] { emit dockRight(); }); // NOLINT
+    menu.addAction(QIcon(":/icon/dockPanelLeft.svg"), tr("Dock Left"), this, [this] { emit dockLeft(); }); // NOLINT
     menu.addAction(tr("Formatting"), this, &ScriptEditor::requestFormatting);
     menu.exec(event->globalPos());
 }

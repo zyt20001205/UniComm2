@@ -33,10 +33,10 @@ DatatableModule::DatatableModule()
 
     auto *cornerMenu = new QMenu(); // NOLINT
     moreButton->setMenu(cornerMenu);
-    auto *exportAction = new QAction(QIcon(":/icon/share.svg"), tr("export"), cornerMenu); // NOLINT
+    auto *exportAction = new QAction(QIcon(":/icon/share.svg"), tr("Export"), cornerMenu); // NOLINT
     cornerMenu->addAction(exportAction);
     connect(exportAction, &QAction::triggered, this, [this] { datatableExport(); });
-    auto *clearAction = new QAction(QIcon(":/icon/delete.svg"), tr("clear"), cornerMenu); // NOLINT
+    auto *clearAction = new QAction(QIcon(":/icon/delete.svg"), tr("Clear"), cornerMenu); // NOLINT
     cornerMenu->addAction(clearAction);
     connect(clearAction, &QAction::triggered, this, [this] { datatableClear(""); });
 }
