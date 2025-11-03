@@ -30,7 +30,6 @@ StructureModule::StructureModule()
 void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
-        // qDebug() << result;
         m_documentSymbolTreeModel->clear();
         documentSymbolPublish(result, nullptr);
         m_documentSymbolTreeView->expandAll();
@@ -39,8 +38,8 @@ void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonA
 
 void StructureModule::scriptFocus(const QUrl &scriptUrl) {
     m_currentScriptUrl = scriptUrl;
+    m_documentSymbolTreeModel->clear();
     if (m_documentSymbolHash.contains(scriptUrl)) {
-        m_documentSymbolTreeModel->clear();
         documentSymbolPublish(m_documentSymbolHash[scriptUrl], nullptr);
         m_documentSymbolTreeView->expandAll();
     }
