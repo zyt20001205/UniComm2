@@ -21,6 +21,8 @@ private:
 
     void configLoad();
 
+    static QJsonObject configValidate(QJsonObject jsonObject);
+
     QFile m_configFile{};
 };
 

@@ -25,14 +25,6 @@ ScriptModule::ScriptModule()
       m_hoverTooltip(new HoverTooltip(g_mainWindow)),
       m_positionTooltip(new PositionTooltip(g_mainWindow)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow)) {
-    // clear invalid script url
-    QJsonArray validScriptList;
-    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-        if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
-            validScriptList.append(value);
-        }
-    }
-    m_scriptConfig["scriptList"] = validScriptList;
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);

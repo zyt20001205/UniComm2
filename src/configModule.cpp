@@ -125,11 +125,29 @@ void ConfigModule::configGenerate() {
 void ConfigModule::configLoad() {
     m_configFile.open(QIODevice::ReadOnly | QIODevice::Text);
     const QByteArray jsonData = m_configFile.readAll();
-    if (const QJsonDocument doc = QJsonDocument::fromJson(jsonData); doc.isObject()) {
-        g_config = doc.object();
-    }
+    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+    if (!jsonDoc.isObject()) return;
+    const QJsonObject jsonObject = jsonDoc.object();
+    g_config = configValidate(jsonObject);
     m_configFile.close();
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "config loaded");
+}
+
+QJsonObject ConfigModule::configValidate(QJsonObject jsonObject) {
+    // clear invalid script url
+    QJsonObject scriptConfig = jsonObject["scriptConfig"].toObject();
+    QJsonArray validScriptList;
+    for (const auto &value: scriptConfig["scriptList"].toArray()) {
+        if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+            validScriptList.append(value);
+        } else {
+            qDebug() << "invalid script url removed:" << scriptUrl;
+        }
+    }
+    scriptConfig["scriptList"] = validScriptList;
+    // return validated json object
+    jsonObject["scriptConfig"] = scriptConfig;
+    return jsonObject;
 }
