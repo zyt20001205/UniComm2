@@ -46,6 +46,10 @@ public:
 
     void markerRemove(const QUrl &scriptUrl, int type, int line = -1);
 
+    void annotationInsert(const QUrl &scriptUrl, int line, const QString &annotation);
+
+    void annotationRemove(const QUrl &scriptUrl, int line = -1);
+
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
     void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;

@@ -185,6 +185,22 @@ void ScriptModule::markerRemove(const QUrl &scriptUrl, const int type, const int
     }
 }
 
+void ScriptModule::annotationInsert(const QUrl &scriptUrl, const int line, const QString &annotation) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_scriptEditor->annotate(line - 1, annotation, 0);
+}
+
+void ScriptModule::annotationRemove(const QUrl &scriptUrl, const int line) {
+    if (!m_scriptPageHash.contains(scriptUrl)) return;
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    if (line == -1) {
+        scriptPage->m_scriptEditor->clearAnnotations();
+    } else {
+        scriptPage->m_scriptEditor->annotate(line - 1, "", 0);
+    }
+}
+
 void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
     m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
     if (m_scriptPageHash.contains(scriptUrl)) {

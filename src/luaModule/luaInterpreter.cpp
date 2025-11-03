@@ -304,6 +304,9 @@ void LuaInterpreter::showHeatmap() const {
     if (maxHit == 0) return;
     for (int line = 1; line < heatlist.size(); ++line) {
         const int hitCount = m_debugData->heatmap[currentUrl][line];
+        QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line, hitCount] {
+            g_script->annotationInsert(currentUrl, line, QString("hit count: %1").arg(QString::number(hitCount)));
+        }, Qt::QueuedConnection);
         if (const float percent = static_cast<float>(hitCount) / maxHit; percent < 0.25) {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
                 g_script->markerInsert(currentUrl, MARKER_HEATMAP0, line);
@@ -331,6 +334,7 @@ void LuaInterpreter::showHeatmap() const {
 void LuaInterpreter::hideHeatmap() const {
     const QUrl currentUrl = m_debugData->currentUrl;
     QMetaObject::invokeMethod(g_mainWindow, [currentUrl] {
+        g_script->annotationRemove(currentUrl);
         g_script->markerRemove(currentUrl, MARKER_HEATMAP0);
         g_script->markerRemove(currentUrl, MARKER_HEATMAP25);
         g_script->markerRemove(currentUrl, MARKER_HEATMAP50);

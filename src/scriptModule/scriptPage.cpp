@@ -569,6 +569,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
     markerDefine(Background, MARKER_HEATMAP100);
     setMarkerBackgroundColor(QColor(20, 100, 20), MARKER_HEATMAP100);
+
     // set indicators
     indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
     setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);
@@ -606,6 +607,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setMarginType(2, SymbolMargin);
     QsciScintilla::setMarginSensitivity(2, true);
     QsciScintilla::setMarginWidth(2, 16);
+
     // color format is BGR!!! DO NOT FORGET!!!
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
