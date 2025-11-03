@@ -134,18 +134,33 @@ void ConfigModule::configLoad() {
 }
 
 QJsonObject ConfigModule::configValidate(QJsonObject jsonObject) {
-    // clear invalid script url
-    QJsonObject scriptConfig = jsonObject["scriptConfig"].toObject();
-    QJsonArray validScriptList;
-    for (const auto &value: scriptConfig["scriptList"].toArray()) {
-        if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
-            validScriptList.append(value);
-        } else {
-            qDebug() << "invalid script url removed:" << scriptUrl;
+    // validate script config
+    {
+        QJsonObject scriptConfig = jsonObject["scriptConfig"].toObject();
+        // clear invalid script url in script list
+        QJsonArray validScriptList;
+        for (const auto &value: scriptConfig["scriptList"].toArray()) {
+            if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+                validScriptList.append(value);
+            } else {
+                qDebug() << "invalid script url found in script list:" << scriptUrl;
+            }
         }
+        scriptConfig["scriptList"] = validScriptList;
+        // clear invalid script url in breakpoint hash
+        QJsonObject breakpointHash = scriptConfig["breakpointHash"].toObject();
+        QJsonObject validBreakpointHash;
+        for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
+            if (const auto scriptUrl = QUrl(it.key()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+                validBreakpointHash.insert(it.key(), it.value());
+            } else {
+                qDebug() << "invalid script url found in breakpoint hash:" << scriptUrl;
+            }
+        }
+        scriptConfig["breakpointHash"] = validBreakpointHash;
+        // write valid script config back
+        jsonObject["scriptConfig"] = scriptConfig;
     }
-    scriptConfig["scriptList"] = validScriptList;
     // return validated json object
-    jsonObject["scriptConfig"] = scriptConfig;
     return jsonObject;
 }
