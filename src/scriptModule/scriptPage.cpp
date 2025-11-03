@@ -68,7 +68,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     emit appendLog(QString("<a href='%1'>%2</a> opened").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 opened").arg(timestamp, scriptUrl.fileName());
-    // didOpen notification to lua language server
+    // did open notification to lua language server
     QTimer::singleShot(0, this, [this] {
         didOpenNotification();
         documentSymbolRequest();
