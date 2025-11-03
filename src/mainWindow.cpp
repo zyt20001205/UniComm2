@@ -312,7 +312,7 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &ExplorerModule::runScript, m_threadpoolModule, &ThreadpoolModule::threadRun);
     connect(m_explorerModule, &ExplorerModule::debugScript, m_threadpoolModule, &ThreadpoolModule::threadDebug);
-    connect(m_structureModule, &StructureModule::showMarker, m_scriptModule, &ScriptModule::markerShow);
+    connect(m_structureModule, &StructureModule::showMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
@@ -322,7 +322,7 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &DiagnosticsModule::setCursorPosition, m_scriptModule, &ScriptModule::cursorPositionSet);
     connect(m_diagnosticsModule, &DiagnosticsModule::showIndicator, m_scriptModule, &ScriptModule::indicatorShow);
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_debugModule, &DebugModule::showMarker, m_scriptModule, &ScriptModule::markerShow);
+    connect(m_debugModule, &DebugModule::showMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
 
     g_database = m_databaseModule;

@@ -42,7 +42,9 @@ public:
 
     void indicatorShow(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-    void markerShow(const QUrl &scriptUrl, int type, int line = -1, int time = -1);
+    void markerInsert(const QUrl &scriptUrl, int type, int line, int time = -1);
+
+    void markerRemove(const QUrl &scriptUrl, int type, int line = -1);
 
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
@@ -102,8 +104,8 @@ private:
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     CompletionTooltip *m_completionTooltip{};
     HoverTooltip *m_hoverTooltip{};
-    SignatureHelpTooltip *m_signatureHelpTooltip{};
     PositionTooltip *m_positionTooltip{};
+    SignatureHelpTooltip *m_signatureHelpTooltip{};
 };
 
 #endif //UNICOMM_SCRIPT_H

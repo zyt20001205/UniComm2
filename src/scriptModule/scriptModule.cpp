@@ -25,6 +25,16 @@ ScriptModule::ScriptModule()
       m_hoverTooltip(new HoverTooltip(g_mainWindow)),
       m_positionTooltip(new PositionTooltip(g_mainWindow)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow)) {
+    const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
+    for (const auto &key: breakpointHash.keys()) {
+        const QUrl url(key);
+        const auto breakpointLineHash = breakpointHash[key].toObject();
+        for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
+            const int line = it.key().toInt();
+            const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
+            g_breakpoints[url].insert(line, breakpointInfo);
+        }
+    }
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
@@ -56,11 +66,24 @@ void ScriptModule::scriptConfigSave() {
         scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
+
+    auto breakpointHash = QJsonObject();
+    for (const auto &url: g_breakpoints.keys()) {
+        auto breakpointLineHash = QJsonObject();
+        for (auto it = g_breakpoints[url].begin(); it != g_breakpoints[url].end(); ++it) {
+            const int line = it.key();
+            const QVariantHash &info = it.value();
+            breakpointLineHash.insert(QString::number(line), QJsonObject::fromVariantHash(info));
+        }
+        breakpointHash.insert(url.toString(), breakpointLineHash);
+    }
+    m_scriptConfig["breakpointHash"] = breakpointHash;
+
     g_config["scriptConfig"] = m_scriptConfig;
 }
 
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
-    // check if tab exists
+    // open page
     if (!m_scriptPageHash.contains(scriptUrl)) {
         // create script page
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
@@ -78,8 +101,8 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, [this] {
             m_positionTooltip->showTooltip();
         });
-        connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
-        connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
+        connect(scriptPage, &ScriptPage::insertMarker, this, &ScriptModule::markerInsert);
+        connect(scriptPage, &ScriptPage::removeMarker, this, &ScriptModule::markerRemove);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::setFullCompletion, m_completionTooltip, &CompletionTooltip::fullCompleteSet);
@@ -95,6 +118,12 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptFocus(scriptPage, true);
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
         emit openScript(scriptUrl);
+        // load breakpoint
+        if (g_breakpoints.contains(scriptUrl)) {
+            for (const auto &line: g_breakpoints[scriptUrl].keys()) {
+                markerInsert(scriptUrl, MARKER_BREAKPOINT, line);
+            }
+        }
     } else {
         m_scriptPageHash[scriptUrl]->raise();
     }
@@ -126,21 +155,34 @@ void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, con
     });
 }
 
-void ScriptModule::markerShow(const QUrl &scriptUrl, const int type, const int line, const int time) {
-    if (line == -1) {
-        if (!m_scriptPageHash.contains(scriptUrl)) return;
-        const auto *scriptPage = m_scriptPageHash[scriptUrl];
-        scriptPage->m_scriptEditor->markerDeleteAll(type);
-        return;
-    }
+void ScriptModule::markerInsert(const QUrl &scriptUrl, const int type, const int line, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->markerAdd(line - 1, type);
     scriptPage->m_scriptEditor->ensureLineVisible(line - 1);
+    if (type == MARKER_BREAKPOINT) {
+        g_breakpoints[scriptUrl][line]["expr"] = "";
+        emit insertBreakpoint(scriptUrl, line);
+    }
     if (time == -1) return;
     QTimer::singleShot(time, [scriptPage, line, type] {
         scriptPage->m_scriptEditor->markerDelete(line - 1, type);
     });
+}
+
+void ScriptModule::markerRemove(const QUrl &scriptUrl, const int type, const int line) {
+    if (!m_scriptPageHash.contains(scriptUrl)) return;
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    if (line == -1) {
+        scriptPage->m_scriptEditor->markerDeleteAll(type);
+    } else {
+        if (type == MARKER_BREAKPOINT) {
+            g_breakpoints[scriptUrl].remove(line);
+            if (g_breakpoints[scriptUrl].isEmpty()) g_breakpoints.remove(scriptUrl);
+            emit removeBreakpoint(scriptUrl, line);
+        }
+        scriptPage->m_scriptEditor->markerDelete(line - 1, type);
+    }
 }
 
 void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {

@@ -89,10 +89,8 @@ void ConfigModule::configGenerate() {
             },
             {
                 "scriptConfig", QJsonObject{
-                    {
-                        "scriptList", QJsonArray{
-                        },
-                    },
+                    {"scriptList", QJsonArray{}},
+                    {"breakpointHash", QJsonObject{}},
                     {"formatting", "Ctrl+Alt+L"},
                     {"fontFamily", "Consolas"},
                     {"fontSize", 12}

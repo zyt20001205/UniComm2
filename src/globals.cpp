@@ -22,4 +22,4 @@ QVariantMap g_cursorPosition = {
     {"character", -1}
 };
 
-QHash<QUrl, QHash<int, QVariantMap> > g_breakpoints = {};
+QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints = {};

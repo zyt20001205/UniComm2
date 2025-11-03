@@ -127,8 +127,8 @@ void LuaInterpreter::run(const QString &script) const {
     // lua exec preparation
     QUrl scriptUrl = m_scriptUrl;
     QMetaObject::invokeMethod(g_mainWindow, [scriptUrl] {
-        g_script->markerShow(scriptUrl, MARKER_ARROW);
-        g_script->markerShow(scriptUrl, MARKER_ERROR);
+        g_script->markerRemove(scriptUrl, MARKER_ARROW);
+        g_script->markerRemove(scriptUrl, MARKER_ERROR);
     }, Qt::QueuedConnection);
     // lua exec
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
@@ -137,8 +137,8 @@ void LuaInterpreter::run(const QString &script) const {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_mainWindow, [scriptUrl] {
-                g_script->markerShow(scriptUrl, MARKER_ARROW);
-                g_script->markerShow(scriptUrl, MARKER_ERROR);
+                g_script->markerRemove(scriptUrl, MARKER_ARROW);
+                g_script->markerRemove(scriptUrl, MARKER_ERROR);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -160,8 +160,8 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
     // lua debug preparation
     QUrl scriptUrl = m_scriptUrl;
     QMetaObject::invokeMethod(g_mainWindow, [scriptUrl] {
-        g_script->markerShow(scriptUrl, MARKER_ARROW);
-        g_script->markerShow(scriptUrl, MARKER_ERROR);
+        g_script->markerRemove(scriptUrl, MARKER_ARROW);
+        g_script->markerRemove(scriptUrl, MARKER_ERROR);
     }, Qt::QueuedConnection);
     // lua debug
     const QString filePath = "@" + m_scriptUrl.toLocalFile();
@@ -170,8 +170,8 @@ void LuaInterpreter::debug(const QString &script, const DebugData &debugData) {
         const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
         if (pcall_result == LUA_OK) {
             QMetaObject::invokeMethod(g_mainWindow, [scriptUrl] {
-                g_script->markerShow(scriptUrl, MARKER_ARROW);
-                g_script->markerShow(scriptUrl, MARKER_ERROR);
+                g_script->markerRemove(scriptUrl, MARKER_ARROW);
+                g_script->markerRemove(scriptUrl, MARKER_ERROR);
             }, Qt::QueuedConnection);
         } else {
             handleError();
@@ -310,7 +310,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     auto debugData = static_cast<DebugData *>(*ptrHolder);
     // clear highlight
     QMetaObject::invokeMethod(g_mainWindow, [debugData] {
-        g_script->markerShow(debugData->currentUrl, MARKER_ARROW);
+        g_script->markerRemove(debugData->currentUrl, MARKER_ARROW);
     }, Qt::BlockingQueuedConnection);
     if (ar->event == LUA_HOOKCALL) {
         debugData->depth += 1;
@@ -324,7 +324,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
         // debug state machine
-        if (debugData->state == DEBUG_RESUME && g_breakpoints.contains(currentUrl)) {
+        if (debugData->state == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(ar->currentline)) {
                 QString expression = g_breakpoints[currentUrl][ar->currentline]["expr"].toString();
                 const int base = lua_gettop(L);
@@ -384,7 +384,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // line handle
             QMetaObject::invokeMethod(g_mainWindow, [debugData, ar] {
-                g_script->markerShow(debugData->currentUrl, MARKER_ARROW, ar->currentline);
+                g_script->markerInsert(debugData->currentUrl, MARKER_ARROW, ar->currentline);
             }, Qt::BlockingQueuedConnection);
             // var tree
             {
@@ -542,7 +542,7 @@ void LuaInterpreter::handleError() const {
     if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
     QUrl scriptUrl = m_scriptUrl;
     QMetaObject::invokeMethod(g_mainWindow, [scriptUrl, line, error] {
-        g_script->markerShow(scriptUrl, MARKER_ERROR, line);
+        g_script->markerInsert(scriptUrl, MARKER_ERROR, line);
         g_log->logAppend(error, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);

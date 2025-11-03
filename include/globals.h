@@ -37,7 +37,7 @@ extern ViSession g_rm;
 
 extern QVariantMap g_cursorPosition;
 
-extern QHash<QUrl, QHash<int, QVariantMap> > g_breakpoints;
+extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
 
 enum {
     SERIALPORT = 1,

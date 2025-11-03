@@ -47,9 +47,9 @@ signals:
 
     void showPositionTooltip();
 
-    void insertBreakpoint(const QUrl &scriptUrl, int line);
+    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
-    void removeBreakpoint(const QUrl &scriptUrl, int line);
+    void removeMarker(const QUrl &scriptUrl, int type, int line);
 
     void requestJson(const QString &method, const QJsonObject &params);
 
