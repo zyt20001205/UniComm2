@@ -173,8 +173,9 @@ DebugModule::DebugModule()
             heatmapButton->setFixedSize(24, 24);
             heatmapButton->setIcon(QIcon(":/icon/dataBarVertical.svg"));
             heatmapButton->setToolTip(tr("line heatmap"));
-            connect(heatmapButton, &QPushButton::toggled, this, [this](const bool status) {
+            connect(heatmapButton, &QPushButton::clicked, this, [this, heatmapButton](const bool status) {
                 if (m_debugPageHash.isEmpty()) {
+                    heatmapButton->setChecked(false);
                     QMessageBox::critical(this, tr("Error"), tr("No active debug session."));
                     return;
                 }
