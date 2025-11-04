@@ -691,7 +691,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 // ScriptEditor protected
 void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
-    menu.addAction(QIcon(":/icon/textCollapse.svg"), tr("Fold All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
+    menu.addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
     menu.addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
     QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock Position"));
     dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Dock Right"), this, [this] { emit dockRight(); }); // NOLINT
