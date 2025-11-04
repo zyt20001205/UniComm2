@@ -104,9 +104,9 @@ void ScriptPage::scriptReload() {
     const QMessageBox::StandardButton reply = QMessageBox::question(
         nullptr,
         tr("Reload"),
-        QString("%1\n\n"
+        QString(tr("%1\n\n"
             "This file has been modified by another program.\n"
-            "Do you want to reload it?").arg(m_scriptUrl.toDisplayString()),
+            "Do you want to reload it?")).arg(m_scriptUrl.toDisplayString()),
         QMessageBox::Yes | QMessageBox::No);
     if (reply != QMessageBox::Yes) {
         return;
