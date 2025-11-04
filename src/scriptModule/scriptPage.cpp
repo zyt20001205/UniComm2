@@ -1,13 +1,13 @@
 #include "scriptModule/scriptPage.h"
 
 #include <QFile>
+#include <QFileSystemWatcher>
 #include <QJsonArray>
 #include <QMenu>
 #include <QMessageBox>
 #include <QShortcut>
 #include <kddockwidgets/core/DockWidget.h>
 #include <kddockwidgets/core/Group.h>
-#include <kddockwidgets/core/MainWindow.h>
 
 #include "globals.h"
 #include "utils/qtUtils.h"
@@ -17,19 +17,21 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.fileName()),
       m_scriptEditor(new ScriptEditor()),
       m_scriptUrl(scriptUrl),
+      m_fileWatcher(new QFileSystemWatcher()),
       m_editTimer(new QTimer(this)) {
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutFormatting, &QShortcut::activated, this, [this] { formattingRequest(); });
     setWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-    const QUrl &url(scriptUrl);
+    const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
     QFile file(scriptPath);
     file.open(QIODevice::ReadOnly);
     QTextStream in(&file);
     const QString content = in.readAll();
     file.close();
+    m_fileWatcher->addPath(scriptPath);
     m_scriptEditor->setText(content);
     m_scriptHash = stringHashCalc(m_scriptEditor->text());
     m_editTimer->setInterval(300);
@@ -63,15 +65,15 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         }
     });
     connect(m_scriptEditor, &ScriptEditor::dockTop, this, [this] {
-    const auto controller = dockWidget();
-    if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
-        for (const auto &dock: tabGroup->dockWidgets()) {
-            if (dock != controller) {
-                controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnTop, dock);
+        const auto controller = dockWidget();
+        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
+            for (const auto &dock: tabGroup->dockWidgets()) {
+                if (dock != controller) {
+                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnTop, dock);
+                }
             }
         }
-    }
-});
+    });
     connect(m_scriptEditor, &ScriptEditor::dockBottom, this, [this] {
         const auto controller = dockWidget();
         if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
@@ -84,6 +86,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
+    connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
     // did open notification to lua language server
     QTimer::singleShot(0, this, [this] {
         didOpenNotification();
@@ -97,8 +100,36 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
 }
 
+void ScriptPage::scriptReload() {
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        nullptr,
+        tr("Reload"),
+        QString("%1\n\n"
+            "This file has been modified by another program.\n"
+            "Do you want to reload it?").arg(m_scriptUrl.toDisplayString()),
+        QMessageBox::Yes | QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+    // reload new script
+    const QUrl &url(m_scriptUrl);
+    const QString scriptPath = url.toLocalFile();
+    QFile file(scriptPath);
+    file.open(QIODevice::ReadOnly);
+    QTextStream in(&file);
+    const QString content = in.readAll();
+    file.close();
+    m_scriptEditor->setText(content);
+    // logging
+    emit appendLog(QString("<a href='%1'>%2</a> reloaded").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 reloaded").arg(timestamp, m_scriptUrl.fileName());
+}
+
 void ScriptPage::scriptSave() {
     if (!m_modified) return;
+    // block file watcher signals
+    m_fileWatcher->blockSignals(true);
     // save file
     const QString scriptPath = m_scriptUrl.toLocalFile();
     QFile file(scriptPath);
@@ -115,6 +146,8 @@ void ScriptPage::scriptSave() {
     emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 saved").arg(timestamp, m_scriptUrl.fileName());
+    // restore file watcher signals 1 sec later
+    QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
 }
 
 void ScriptPage::scriptClose() {

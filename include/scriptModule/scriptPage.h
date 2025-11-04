@@ -5,6 +5,8 @@
 #include <Qsci/qsciscintilla.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QFileSystemWatcher;
+
 class ScriptEditor;
 
 class ScriptPage final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -14,6 +16,8 @@ public:
     explicit ScriptPage(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl());
 
     ~ScriptPage() override = default;
+
+    void scriptReload();
 
     void scriptSave();
 
@@ -102,6 +106,7 @@ private:
 
     void positionFill(int x, int y) const;
 
+    QFileSystemWatcher *m_fileWatcher{};
     bool m_modified = false;
     QTimer *m_editTimer{};
     QByteArray m_scriptHash{};
