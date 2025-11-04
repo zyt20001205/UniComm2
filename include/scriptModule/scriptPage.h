@@ -51,6 +51,10 @@ signals:
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
+    void insertBreakpoint(const QUrl &scriptUrl, int line);
+
+    void removeBreakpoint(const QUrl &scriptUrl, int line);
+
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);

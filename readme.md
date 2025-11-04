@@ -291,6 +291,8 @@ Ctrl+Alt+L
 | [variable watch](#variable-operation)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [variable hot update](#variable-operation)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [callstack](#callstack)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [heatmap](#heatmap)                               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [multithreading](#multithreading)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ### stop
 
@@ -336,13 +338,20 @@ Ctrl+Alt+L
 
 ![callstack](resources/assets/debug/callstack.gif)
 
+### heatmap
+
+![heatmap](resources/assets/debug/heatmap.gif)
+
+### multithreading
+
+![multithreading](resources/assets/debug/multithreading.gif)
+
 # FAQ
 
 ## write method data process
 
 ```mermaid
 flowchart RL
-    
     subgraph dataProcessWorkFlow[data process workflow]
         input[/input/]
         api{API}
@@ -353,8 +362,8 @@ flowchart RL
     end
 
     input --> api
-    api -->|"port.writeText()"| writeText
-    api -->|"port.writeData()"| writeData
+    api -->|" port.writeText() "| writeText
+    api -->|" port.writeData() "| writeData
     writeText -->|reformat| writeData
     writeData -->|suffix| handleWrite
     handleWrite --> output
