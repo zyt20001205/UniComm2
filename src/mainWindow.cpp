@@ -460,7 +460,7 @@ void MainWindow::menuInit() {
         m_scriptComboBox->setStyleSheet("color: #333333;");
 
         auto runScript = [this] {
-            if (m_scriptModule->m_focusedPage == nullptr) {
+            if (m_scriptModule->m_scriptPageHash.isEmpty()) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
@@ -480,7 +480,7 @@ void MainWindow::menuInit() {
         connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
 
         auto debugScript = [this] {
-            if (m_scriptModule->m_focusedPage == nullptr) {
+            if (m_scriptModule->m_scriptPageHash.isEmpty()) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
