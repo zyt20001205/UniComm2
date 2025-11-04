@@ -96,6 +96,8 @@ signals:
 private:
     void scriptFocus(ScriptPage *scriptPage, bool status);
 
+    static void scriptReadonly(ScriptPage *scriptPage, bool status);
+
     static void scriptModify(ScriptPage *scriptPage, bool status);
 
     void scriptClose(const QUrl &scriptUrl);

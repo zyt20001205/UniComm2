@@ -39,6 +39,8 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void readonlyScript(bool status);
+
     void modifyScript(bool status);
 
     void closeScript(const QUrl &scriptUrl);

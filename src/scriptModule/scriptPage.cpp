@@ -1,6 +1,7 @@
 #include "scriptModule/scriptPage.h"
 
 #include <QFile>
+#include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QJsonArray>
 #include <QMenu>
@@ -87,12 +88,16 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
-    // did open notification to lua language server
-    QTimer::singleShot(0, this, [this] {
+    QTimer::singleShot(0, this, [this, scriptPath] {
+        // lsp
         didOpenNotification();
         documentSymbolRequest();
         foldingRangeRequest();
         semanticTokensRequest();
+        // read-only check
+        if (const QFileInfo fileInfo(scriptPath); !fileInfo.isWritable()) {
+            emit readonlyScript(true);
+        }
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -106,7 +111,7 @@ void ScriptPage::scriptReload() {
         tr("Reload"),
         QString(tr("%1\n\n"
             "This file has been modified by another program.\n"
-            "Do you want to reload it?")).arg(m_scriptUrl.toDisplayString()),
+            "Do you want to reload it?")).arg(m_scriptUrl.toString()),
         QMessageBox::Yes | QMessageBox::No);
     if (reply != QMessageBox::Yes) {
         return;
