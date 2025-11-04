@@ -41,26 +41,26 @@ void ExplorerModule::contextMenuEvent(QContextMenuEvent *event) {
     const QModelIndex index = m_explorerTreeView->indexAt(vpPos);
     QMenu menu(this);
     if (!index.isValid()) {
-        menu.addAction(tr("new script"), this, [this] { scriptNew(); });
-        menu.addAction(tr("new folder"), this, [this] { folderNew(); });
-        menu.addAction(tr("open in explorer"), this, &ExplorerModule::scriptOpenInExplorer);
+        menu.addAction(tr("New Script"), this, [this] { scriptNew(); });
+        menu.addAction(tr("New Folder"), this, [this] { folderNew(); });
+        menu.addAction(tr("Open In Explorer"), this, &ExplorerModule::scriptOpenInExplorer);
     } else {
         if (const QFileInfo fileInfo = m_explorerTreeModel->fileInfo(index); fileInfo.isDir()) {
-            menu.addAction(tr("new script"), this, [this, fileInfo] {
+            menu.addAction(tr("New Script"), this, [this, fileInfo] {
                 const QString rootPath = fileInfo.absoluteFilePath();
                 scriptNew(rootPath);
             });
-            menu.addAction(tr("new folder"), this, [this, fileInfo] {
+            menu.addAction(tr("New Folder"), this, [this, fileInfo] {
                 const QString rootPath = fileInfo.absoluteFilePath();
                 folderNew(rootPath);
             });
-            menu.addAction(tr("delete folder"), [this, index] { folderDelete(index); });
+            menu.addAction(tr("Delete Folder"), [this, index] { folderDelete(index); });
         } else {
             if (const QString fileSuffix = fileInfo.suffix(); fileSuffix == "lua") {
-                menu.addAction(tr("run script"), [this, index] { scriptRun(index); });
-                menu.addAction(tr("debug script"), [this, index] { scriptDebug(index); });
-                menu.addAction(tr("open script"), [this, index] { scriptOpen(index); });
-                menu.addAction(tr("delete script"), [this, index] { scriptDelete(index); });
+                menu.addAction(tr("Run Script"), [this, index] { scriptRun(index); });
+                menu.addAction(tr("Debug Script"), [this, index] { scriptDebug(index); });
+                menu.addAction(tr("Open Script"), [this, index] { scriptOpen(index); });
+                menu.addAction(tr("Delete Script"), [this, index] { scriptDelete(index); });
             }
         }
     }
