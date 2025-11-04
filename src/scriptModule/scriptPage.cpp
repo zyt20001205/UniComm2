@@ -62,6 +62,26 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             }
         }
     });
+    connect(m_scriptEditor, &ScriptEditor::dockTop, this, [this] {
+    const auto controller = dockWidget();
+    if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
+        for (const auto &dock: tabGroup->dockWidgets()) {
+            if (dock != controller) {
+                controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnTop, dock);
+            }
+        }
+    }
+});
+    connect(m_scriptEditor, &ScriptEditor::dockBottom, this, [this] {
+        const auto controller = dockWidget();
+        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
+            for (const auto &dock: tabGroup->dockWidgets()) {
+                if (dock != controller) {
+                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnBottom, dock);
+                }
+            }
+        }
+    });
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     // did open notification to lua language server
@@ -673,8 +693,11 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
     menu.addAction(QIcon(":/icon/textCollapse.svg"), tr("Fold All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
     menu.addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
-    menu.addAction(QIcon(":/icon/dockPanelRight.svg"), tr("Dock Right"), this, [this] { emit dockRight(); }); // NOLINT
-    menu.addAction(QIcon(":/icon/dockPanelLeft.svg"), tr("Dock Left"), this, [this] { emit dockLeft(); }); // NOLINT
+    QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock Position"));
+    dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Dock Right"), this, [this] { emit dockRight(); }); // NOLINT
+    dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Dock Left"), this, [this] { emit dockLeft(); }); // NOLINT
+    dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Dock Top"), this, [this] { emit dockTop(); }); // NOLINT
+    dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Dock Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
     menu.addAction(tr("Formatting"), this, &ScriptEditor::requestFormatting);
     menu.exec(event->globalPos());
 }

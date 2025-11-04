@@ -296,8 +296,7 @@ void MainWindow::moduleInit() {
         m_scriptComboBox->addItem(scriptName, scriptUrl);
     });
     connect(m_scriptModule, &ScriptModule::closeScript, this, [this](const QUrl &scriptUrl) {
-        const QString scriptName = scriptUrl.fileName();
-        if (const int index = m_scriptComboBox->findText(scriptName); index != -1) {
+        if (const int index = m_scriptComboBox->findData(scriptUrl); index != -1) {
             m_scriptComboBox->removeItem(index);
         }
     });
@@ -465,7 +464,7 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
+                const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_scriptEditor->text();
                 emit runThread(scriptUrl, script);
                 m_logModule->raise();
             }
@@ -475,7 +474,7 @@ void MainWindow::menuInit() {
         runButton->setFixedSize(32, 32);
         runButton->setIcon(QIcon(":/icon/play.svg"));
         runButton->setToolTip(tr("Run Shift + F10"));
-        connect(runButton, &QPushButton::clicked, this, runScript);
+        connect(runButton, &QToolButton::clicked, this, runScript);
         const auto *runShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F10), this); // NOLINT
         connect(runShortcut, &QShortcut::activated, this, runScript);
         connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
@@ -485,7 +484,8 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                const QString script = m_scriptModule->m_focusedPage->m_scriptEditor->text();
+                const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_scriptEditor->text();
+                qDebug() << scriptUrl << script;
                 emit debugThread(scriptUrl, script);
                 m_debugModule->raise();
             }
@@ -495,7 +495,7 @@ void MainWindow::menuInit() {
         debugButton->setFixedSize(32, 32);
         debugButton->setIcon(QIcon(":/icon/bug.svg"));
         debugButton->setToolTip(tr("Debug Shift + F9"));
-        connect(debugButton, &QPushButton::clicked, this, debugScript);
+        connect(debugButton, &QToolButton::clicked, this, debugScript);
         const auto *debugShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F9), this); // NOLINT
         connect(debugShortcut, &QShortcut::activated, this, debugScript);
         connect(this, &MainWindow::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);

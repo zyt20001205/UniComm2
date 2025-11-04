@@ -67,6 +67,7 @@ public:
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
     ScriptPage *m_focusedPage{};
+    QHash<QUrl, ScriptPage *> m_scriptPageHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -105,7 +106,6 @@ private:
     QUrl m_rootUrl{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
-    QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     CompletionTooltip *m_completionTooltip{};
     HoverTooltip *m_hoverTooltip{};
     PositionTooltip *m_positionTooltip{};

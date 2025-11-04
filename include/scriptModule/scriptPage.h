@@ -162,6 +162,10 @@ signals:
 
     void dockLeft();
 
+    void dockTop();
+
+    void dockBottom();
+
     void requestDefinition(int line, int character);
 
     void requestFormatting();
