@@ -64,16 +64,16 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> opened").arg(scriptUrl.toString(), scriptUrl.fileName()), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 opened").arg(timestamp, scriptUrl.fileName());
     // did open notification to lua language server
     QTimer::singleShot(0, this, [this] {
         didOpenNotification();
         documentSymbolRequest();
         foldingRangeRequest();
         semanticTokensRequest();
+        // logging
+        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_scriptUrl.fileName());
     });
 }
 
