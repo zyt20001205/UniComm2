@@ -1,6 +1,5 @@
 #include "scriptModule/scriptPage.h"
 
-#include <QFile>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QJsonArray>
@@ -96,7 +95,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         semanticTokensRequest();
         // read-only check
         if (const QFileInfo fileInfo(scriptPath); !fileInfo.isWritable()) {
-            emit readonlyScript(true);
+            scriptReadonly(true);
         }
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
@@ -145,7 +144,7 @@ void ScriptPage::scriptSave() {
     // update status
     m_modified = false;
     m_scriptHash = fileHashCalc(m_scriptEditor->text());
-    emit modifyScript(false);
+    scriptModify(false);
     didSaveNotification();
     // logging
     emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
@@ -416,7 +415,25 @@ void ScriptPage::scriptEditFinish() {
     }
     if (modified != m_modified) {
         m_modified = modified;
-        emit modifyScript(modified);
+        scriptModify(modified);
+    }
+}
+
+void ScriptPage::scriptReadonly(const bool status) {
+    const QString pageName = title();
+    if (status) {
+        setTitle(pageName + "(read-only)");
+    } else {
+        setTitle(pageName.chopped(11));
+    }
+}
+
+void ScriptPage::scriptModify(const bool status) {
+    const QString pageName = title();
+    if (status) {
+        setTitle(pageName + "*");
+    } else {
+        setTitle(pageName.chopped(1));
     }
 }
 

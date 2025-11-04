@@ -93,8 +93,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
             scriptFocus(scriptPage, status);
         });
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
-        connect(scriptPage, &ScriptPage::readonlyScript, this, [scriptPage](const bool status) { scriptReadonly(scriptPage, status); });
-        connect(scriptPage, &ScriptPage::modifyScript, this, [scriptPage](const bool status) { scriptModify(scriptPage, status); });
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::insertPort, this, &ScriptModule::insertPort);
         connect(scriptPage, &ScriptPage::insertDatabase, this, &ScriptModule::insertDatabase);
@@ -283,24 +281,6 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
         // logging
         // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         // qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
-    }
-}
-
-void ScriptModule::scriptReadonly(ScriptPage *scriptPage, const bool status) {
-    const QString pageName = scriptPage->title();
-    if (status) {
-        scriptPage->setTitle(pageName + "(read-only))");
-    } else {
-        scriptPage->setTitle(pageName.chopped(11));
-    }
-}
-
-void ScriptModule::scriptModify(ScriptPage *scriptPage, const bool status) {
-    const QString pageName = scriptPage->title();
-    if (status) {
-        scriptPage->setTitle(pageName + "*");
-    } else {
-        scriptPage->setTitle(pageName.chopped(1));
     }
 }
 

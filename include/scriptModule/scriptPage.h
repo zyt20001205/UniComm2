@@ -39,10 +39,6 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void readonlyScript(bool status);
-
-    void modifyScript(bool status);
-
     void closeScript(const QUrl &scriptUrl);
 
     void insertPort(int index, const QJsonObject &portConfig);
@@ -81,6 +77,10 @@ private slots:
 
 private:
     void scriptEditFinish();
+
+    void scriptReadonly(bool status);
+
+    void scriptModify(bool status);
 
     void didOpenNotification();
 
