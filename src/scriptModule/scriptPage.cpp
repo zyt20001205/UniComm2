@@ -3,9 +3,12 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QJsonArray>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QShortcut>
+#include <QVBoxLayout>
 #include <kddockwidgets/core/DockWidget.h>
 #include <kddockwidgets/core/Group.h>
 
@@ -18,11 +21,21 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_scriptEditor(new ScriptEditor()),
       m_scriptUrl(scriptUrl),
       m_fileWatcher(new QFileSystemWatcher()),
+      m_searchWidget(new SearchWidget()),
       m_editTimer(new QTimer(this)) {
+    auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
+    connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(shortcutFormatting, &QShortcut::activated, this, [this] { formattingRequest(); });
-    setWidget(m_scriptEditor);
+    connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
+
+    auto *widget = new QWidget(); // NOLINT
+    setWidget(widget);
+    auto *layout = new QVBoxLayout(widget); // NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(m_searchWidget);
+    layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -93,6 +106,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
+    connect(m_searchWidget, &SearchWidget::searchText, m_scriptEditor, &ScriptEditor::textSearch);
     QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
@@ -667,6 +681,88 @@ void ScriptPage::positionFill(const int x, const int y) const {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }
 
+// SearchWidget public
+SearchWidget::SearchWidget(QWidget *parent)
+    : QWidget(parent),
+      m_searchLineEdit(new QLineEdit()),
+      m_wholeWordButton(new QPushButton()),
+      m_matchCaseButton(new QPushButton()),
+      m_wordStartButton(new QPushButton()),
+      m_regExpButton(new QPushButton()) {
+    auto *layout = new QVBoxLayout(this); // NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    auto *searchBar = new QWidget(); // NOLINT
+    layout->addWidget(searchBar);
+    auto *searchLayout = new QHBoxLayout(searchBar); // NOLINT
+    searchLayout->setContentsMargins(0, 0, 0, 0);
+    searchLayout->addWidget(m_searchLineEdit);
+    m_searchLineEdit->setClearButtonEnabled(true);
+    connect(m_searchLineEdit, &QLineEdit::textChanged, this, [this] { emit searchText(m_searchLineEdit->text(), m_searchFlag); });
+    searchLayout->addWidget(m_wholeWordButton);
+    m_wholeWordButton->setCheckable(true);
+    m_wholeWordButton->setFixedSize(24, 24);
+    m_wholeWordButton->setIcon(QIcon(":/icon/wholeWord.svg"));
+    m_wholeWordButton->setToolTip(tr("Whole Word"));
+    connect(m_wholeWordButton, &QPushButton::clicked, this, [this](const bool status) {
+        if (status) {
+            m_searchFlag |= QsciScintilla::SCFIND_WHOLEWORD;
+        } else {
+            m_searchFlag &= ~QsciScintilla::SCFIND_WHOLEWORD;
+        }
+        emit searchText(m_searchLineEdit->text(), m_searchFlag);
+    });
+    searchLayout->addWidget(m_matchCaseButton);
+    m_matchCaseButton->setCheckable(true);
+    m_matchCaseButton->setFixedSize(24, 24);
+    m_matchCaseButton->setIcon(QIcon(":/icon/matchCase.svg"));
+    m_matchCaseButton->setToolTip(tr("Match Case"));
+    connect(m_matchCaseButton, &QPushButton::clicked, this, [this](const bool status) {
+        if (status) {
+            m_searchFlag |= QsciScintilla::SCFIND_MATCHCASE;
+        } else {
+            m_searchFlag &= ~QsciScintilla::SCFIND_MATCHCASE;
+        }
+        emit searchText(m_searchLineEdit->text(), m_searchFlag);
+    });
+    searchLayout->addWidget(m_wordStartButton);
+    m_wordStartButton->setCheckable(true);
+    m_wordStartButton->setFixedSize(24, 24);
+    m_wordStartButton->setIcon(QIcon(":/icon/wordStart.svg"));
+    m_wordStartButton->setToolTip(tr("Word Start"));
+    connect(m_wordStartButton, &QPushButton::clicked, this, [this](const bool status) {
+        if (status) {
+            m_searchFlag |= QsciScintilla::SCFIND_WORDSTART;
+        } else {
+            m_searchFlag &= ~QsciScintilla::SCFIND_WORDSTART;
+        }
+        emit searchText(m_searchLineEdit->text(), m_searchFlag);
+    });
+    searchLayout->addWidget(m_regExpButton);
+    m_regExpButton->setCheckable(true);
+    m_regExpButton->setFixedSize(24, 24);
+    m_regExpButton->setIcon(QIcon(":/icon/regExp.svg"));
+    m_regExpButton->setToolTip(tr("Regular Expression"));
+    connect(m_regExpButton, &QPushButton::clicked, this, [this](const bool status) {
+        if (status) {
+            m_searchFlag |= QsciScintilla::SCFIND_REGEXP;
+        } else {
+            m_searchFlag &= ~QsciScintilla::SCFIND_REGEXP;
+        }
+        emit searchText(m_searchLineEdit->text(), m_searchFlag);
+    });
+
+    hide();
+}
+
+void SearchWidget::toggle() {
+    if (isVisible()) hide();
+    else {
+        m_searchLineEdit->setFocus();
+        show();
+    }
+}
+
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent)
     : QsciScintilla(parent) {
@@ -717,8 +813,8 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setIndicatorForegroundColor(QColor(245, 245, 245), INDICATOR_HINT);
     setIndicatorDrawUnder(true, INDICATOR_HINT);
 
-    indicatorDefine(BoxIndicator, INDICATOR_HIGHLIGHT);
-    setIndicatorForegroundColor(Qt::red, INDICATOR_HIGHLIGHT);
+    indicatorDefine(StraightBoxIndicator, INDICATOR_HIGHLIGHT);
+    setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_HIGHLIGHT);
     setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
 
     indicatorDefine(PlainIndicator, INDICATOR_HYPERLINK);
@@ -769,6 +865,28 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     m_autoPairHash['{'] = '}';
     m_autoPairHash['"'] = '"';
     m_autoPairHash['\''] = '\'';
+}
+
+void ScriptEditor::textSearch(const QString &text, const int flag) const {
+    // clear previous search result
+    const int docLength = SendScintilla(SCI_GETLENGTH);
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_HIGHLIGHT); // NOLINT
+    SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
+    // start searching
+    if (text.isEmpty()) return;
+    const int currentPos = SendScintilla(SCI_GETCURRENTPOS);
+    const int anchorPos = SendScintilla(SCI_GETANCHOR);
+    SendScintilla(SCI_SETCURRENTPOS, 0); // NOLINT
+    SendScintilla(SCI_SEARCHANCHOR); // NOLINT
+    while (SendScintilla(SCI_SEARCHNEXT, flag, text.toUtf8().constData()) != -1) {
+        const int start = SendScintilla(SCI_GETSELECTIONSTART);
+        const int end = SendScintilla(SCI_GETSELECTIONEND);
+        const int length = end - start;
+        SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+        SendScintilla(SCI_SETCURRENTPOS, end); // NOLINT
+        SendScintilla(SCI_SEARCHANCHOR); // NOLINT
+    }
+    SendScintilla(SCI_SETSEL, anchorPos, currentPos); // NOLINT
 }
 
 // ScriptEditor protected

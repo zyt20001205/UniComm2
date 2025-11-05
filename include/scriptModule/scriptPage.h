@@ -6,7 +6,10 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QFileSystemWatcher;
+class QLineEdit;
+class QPushButton;
 
+class SearchWidget;
 class ScriptEditor;
 
 class ScriptPage final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -111,6 +114,7 @@ private:
     void positionFill(int x, int y) const;
 
     QFileSystemWatcher *m_fileWatcher{};
+    SearchWidget *m_searchWidget{};
     bool m_readonly = false;
     bool m_modified = false;
     QTimer *m_editTimer{};
@@ -159,6 +163,28 @@ private:
     };
 };
 
+class SearchWidget final : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit SearchWidget(QWidget *parent = nullptr);
+
+    ~SearchWidget() override = default;
+
+    void toggle();
+
+signals:
+    void searchText(const QString &text, int flag);
+
+private:
+    QLineEdit *m_searchLineEdit{};
+    int m_searchFlag = 0;
+    QPushButton *m_wholeWordButton{};
+    QPushButton *m_matchCaseButton{};
+    QPushButton *m_wordStartButton{};
+    QPushButton *m_regExpButton{};
+};
+
 class ScriptEditor final : public QsciScintilla {
     Q_OBJECT
 
@@ -166,6 +192,8 @@ public:
     explicit ScriptEditor(QWidget *parent = nullptr);
 
     ~ScriptEditor() override = default;
+
+    void textSearch(const QString &text, int flag) const;
 
 signals:
     void dockRight();
