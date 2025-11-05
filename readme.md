@@ -95,43 +95,44 @@ flowchart LR
 
 <table>
     <tr>
-        <th colspan="4">OSI Model</th>
+        <th colspan="5">OSI Model</th>
     </tr>
     <tr>
         <td>Application</td>
         <td colspan="2"></td>
         <td>Modbus</td>
+        <td>USB TMC</td>
     </tr>
     <tr>
         <td>Presentation</td>
         <td colspan="2"></td>
-        <td></td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Session</td>
         <td colspan="2"></td>
-        <td></td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Transport</td>
         <td>TCP</td>
         <td>UDP</td>
-        <td></td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Network</td>
         <td colspan="2">IP</td>
-        <td></td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Data Link</td>
         <td colspan="2">Ethernet</td>
-        <td>Serial Framing</td>
+        <td colspan="2">Serial Framing</td>
     </tr>
     <tr>
         <td>Physical</td>
         <td colspan="2">RJ45</td>
-        <td>Serial Port</td>
+        <td colspan="2">Serial Port</td>
     </tr>
 </table>
 
@@ -352,25 +353,20 @@ Ctrl+Alt+L
 flowchart RL
     subgraph dataProcessWorkFlow[data process workflow]
         input[/input/]
-        api{API}
-        writeText["writeText()"]
-        writeData["writeData()"]
+        write["write()"]
         handleWrite["handleWrite()"]
         output[/output/]
     end
 
-    input --> api
-    api -->|" port.writeText() "| writeText
-    api -->|" port.writeData() "| writeData
-    writeText -->|reformat| writeData
-    writeData -->|suffix| handleWrite
+    input --> write
+    write -->|reformat\nsuffix| handleWrite
     handleWrite --> output
 ```
 
 - example: hex & crc16 modbus
 
 ```lua
-port.writeText("Actual Port", "0103 0000 0001")
+port.write("Actual Port", "0103 0000 0001")
 ```
 
 ```mermaid
@@ -387,22 +383,7 @@ flowchart TB
 - example: ascii & crlf
 
 ```lua
-port.writeText("Actual Port", "AT+STACH1=1")
-```
-
-```mermaid
-flowchart TB
-    input[/AT+STACH1=1/]
-    step1["\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"]
-    step2[/"\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"\x0D\x0A/]
-    input -->|formatted| step1
-    step1 -->|suffix appended| step2
-```
-
-- example: writeData & null
-
-```lua
-port.writeData("Actual Port", string.pack(">i2", 100))
+port.write("Actual Port", "AT+STACH1=1")
 ```
 
 ```mermaid
