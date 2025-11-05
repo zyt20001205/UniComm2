@@ -420,11 +420,10 @@ void ScriptPage::scriptEditFinish() {
 }
 
 void ScriptPage::scriptReadonly(const bool status) {
-    const QString pageName = title();
     if (status) {
-        setTitle(pageName + "(read-only)");
+        setIcon(QIcon(":/icon/lockClosed.svg"));
     } else {
-        setTitle(pageName.chopped(11));
+        setIcon(QIcon());
     }
 }
 

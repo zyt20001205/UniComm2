@@ -140,11 +140,11 @@ function port.info(name) end
 ---
 --- @usage — Write data to port COM3.
 ---
---- port.writeData("COM3", "/x01/x03")
+--- port.write("COM3", "/x01/x03")
 ---
 --- @usage — Write data to specific client.
 ---
---- port.writeData("TCP SERVER", "/x01/x03", "192.169.1.56800")
+--- port.write("TCP SERVER", "/x01/x03", "192.169.1.56800")
 function port.write(name, data, peerIp) end
 
 --- Reads data from a port.
@@ -162,21 +162,21 @@ function port.write(name, data, peerIp) end
 ---
 --- @usage — Read data from port COM3.
 ---
---- port.readData("COM3")
+--- port.read("COM3")
 ---
 --- @usage — Read data from port COM3 under async mode.
 ---
---- port.writeText("COM3", "0110 0000 000102 0000")
+--- port.write("COM3", "0110 0000 000102 0000")
 ---
 --- sleep(50)
 ---
---- port.readData("COM3", 0)
+--- port.read("COM3", 0)
 ---
 --- @usage — Read data from port COM3 index under sync mode.
 ---
---- port.writeText("COM3", "0110 0000 000102 0000")
+--- port.write("COM3", "0110 0000 000102 0000")
 ---
---- port.readData("COM3", 100)
+--- port.read("COM3", 100)
 function port.read(name, timeout, length, peerIp) end
 
 modbusRtu = {}
