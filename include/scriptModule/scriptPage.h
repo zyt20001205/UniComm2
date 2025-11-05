@@ -6,6 +6,7 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QFileSystemWatcher;
+class QLabel;
 class QLineEdit;
 class QPushButton;
 
@@ -173,6 +174,8 @@ public:
 
     void toggle();
 
+    void statSet(int current, int total);
+
 signals:
     void searchText(const QString &text, int flag);
 
@@ -183,6 +186,11 @@ private:
     QPushButton *m_matchCaseButton{};
     QPushButton *m_wordStartButton{};
     QPushButton *m_regExpButton{};
+    QLabel *m_statLabel{};
+    int m_current = 0;
+    int m_total = 0;
+    QPushButton *m_prevButton{};
+    QPushButton *m_nextButton{};
 };
 
 class ScriptEditor final : public QsciScintilla {
@@ -193,7 +201,7 @@ public:
 
     ~ScriptEditor() override = default;
 
-    void textSearch(const QString &text, int flag) const;
+    void textSearch(const QString &text, int flag);
 
 signals:
     void dockRight();
@@ -209,6 +217,8 @@ signals:
     void requestDefinition(int line, int character);
 
     void requestFormatting();
+
+    void setStat(int current, int total);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
