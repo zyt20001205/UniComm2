@@ -19,7 +19,7 @@
 #include "portModule/areaSelection.h"
 
 // PortSetting public
-PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
+PortSetting::PortSetting(const QSet<QString> &portUsedName, QWidget *parent)
     : QDialog(parent),
       m_portUsedName(portUsedName),
       m_portSettingLayout(new QVBoxLayout(this)),
@@ -157,15 +157,15 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto tcpClientNameLayout = new QHBoxLayout(m_tcpClientNameWidget); // NOLINT
         tcpClientNameLayout->setContentsMargins(0, 0, 0, 0);
         const auto tcpClientNameLabel = new QLabel("port name"); // NOLINT
-        tcpClientNameLayout->addWidget(tcpClientNameLabel);
-        tcpClientNameLayout->addWidget(m_tcpClientNameLineEdit);
+        tcpClientNameLayout->addWidget(tcpClientNameLabel, 1);
+        tcpClientNameLayout->addWidget(m_tcpClientNameLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_tcpClientRemoteAddressWidget);
         const auto tcpClientRemoteAddressLayout = new QHBoxLayout(m_tcpClientRemoteAddressWidget); // NOLINT
         tcpClientRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
         const auto tcpClientRemoteAddressLabel = new QLabel("remote adress"); // NOLINT
-        tcpClientRemoteAddressLayout->addWidget(tcpClientRemoteAddressLabel);
-        tcpClientRemoteAddressLayout->addWidget(m_tcpClientRemoteAddressLineEdit);
+        tcpClientRemoteAddressLayout->addWidget(tcpClientRemoteAddressLabel, 1);
+        tcpClientRemoteAddressLayout->addWidget(m_tcpClientRemoteAddressLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_tcpClientRemotePortWidget);
         const auto tcpClientRemotePortLayout = new QHBoxLayout(m_tcpClientRemotePortWidget); // NOLINT
@@ -181,15 +181,15 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto tcpServerNameLayout = new QHBoxLayout(m_tcpServerNameWidget); // NOLINT
         tcpServerNameLayout->setContentsMargins(0, 0, 0, 0);
         const auto tcpServerNameLabel = new QLabel("port name"); // NOLINT
-        tcpServerNameLayout->addWidget(tcpServerNameLabel);
-        tcpServerNameLayout->addWidget(m_tcpServerNameLineEdit);
+        tcpServerNameLayout->addWidget(tcpServerNameLabel, 1);
+        tcpServerNameLayout->addWidget(m_tcpServerNameLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_tcpServerLocalAddressWidget);
         const auto tcpServerLocalAddressLayout = new QHBoxLayout(m_tcpServerLocalAddressWidget); // NOLINT
         tcpServerLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
         const auto tcpServerLocalAddressLabel = new QLabel("local adress"); // NOLINT
-        tcpServerLocalAddressLayout->addWidget(tcpServerLocalAddressLabel);
-        tcpServerLocalAddressLayout->addWidget(m_tcpServerLocalAddressLineEdit);
+        tcpServerLocalAddressLayout->addWidget(tcpServerLocalAddressLabel, 1);
+        tcpServerLocalAddressLayout->addWidget(m_tcpServerLocalAddressLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_tcpServerLocalPortWidget);
         const auto tcpServerLocalPortLayout = new QHBoxLayout(m_tcpServerLocalPortWidget); // NOLINT
@@ -205,15 +205,15 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto udpSocketNameLayout = new QHBoxLayout(m_udpSocketNameWidget); // NOLINT
         udpSocketNameLayout->setContentsMargins(0, 0, 0, 0);
         const auto udpSocketNameLabel = new QLabel("port name"); // NOLINT
-        udpSocketNameLayout->addWidget(udpSocketNameLabel);
-        udpSocketNameLayout->addWidget(m_udpSocketNameLineEdit);
+        udpSocketNameLayout->addWidget(udpSocketNameLabel, 1);
+        udpSocketNameLayout->addWidget(m_udpSocketNameLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_udpSocketLocalAddressWidget);
         const auto udpSocketLocalAddressLayout = new QHBoxLayout(m_udpSocketLocalAddressWidget); // NOLINT
         udpSocketLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
         const auto udpSocketLocalAddressLabel = new QLabel("local adress"); // NOLINT
-        udpSocketLocalAddressLayout->addWidget(udpSocketLocalAddressLabel);
-        udpSocketLocalAddressLayout->addWidget(m_udpSocketLocalAddressLineEdit);
+        udpSocketLocalAddressLayout->addWidget(udpSocketLocalAddressLabel, 1);
+        udpSocketLocalAddressLayout->addWidget(m_udpSocketLocalAddressLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_udpSocketLocalPortWidget);
         const auto udpSocketLocalPortLayout = new QHBoxLayout(m_udpSocketLocalPortWidget); // NOLINT
@@ -227,8 +227,8 @@ PortSetting::PortSetting(QSet<QString> portUsedName, QWidget *parent)
         const auto udpSocketRemoteAddressLayout = new QHBoxLayout(m_udpSocketRemoteAddressWidget); // NOLINT
         udpSocketRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
         const auto udpSocketRemoteAddressLabel = new QLabel("remote adress"); // NOLINT
-        udpSocketRemoteAddressLayout->addWidget(udpSocketRemoteAddressLabel);
-        udpSocketRemoteAddressLayout->addWidget(m_udpSocketRemoteAddressLineEdit);
+        udpSocketRemoteAddressLayout->addWidget(udpSocketRemoteAddressLabel, 1);
+        udpSocketRemoteAddressLayout->addWidget(m_udpSocketRemoteAddressLineEdit, 1);
 
         m_portSettingLayout->addWidget(m_udpSocketRemotePortWidget);
         const auto udpSocketRemotePortLayout = new QHBoxLayout(m_udpSocketRemotePortWidget); // NOLINT
