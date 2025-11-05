@@ -151,8 +151,12 @@ void MainWindow::workspaceOpen() {
 
 // MainWindow protected
 void MainWindow::closeEvent(QCloseEvent *event) {
-    const QMessageBox::StandardButton reply =
-            QMessageBox::question(this, "Exit", "Save and exit?", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        "Exit",
+        "Save and exit?",
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::Yes);
     if (reply == QMessageBox::Yes) {
         workspaceSave();
         event->accept();

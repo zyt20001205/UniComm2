@@ -26,6 +26,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
+    // read-only check
+    if (const QFileInfo fileInfo(scriptPath); !fileInfo.isWritable()) {
+        scriptReadonly(true);
+    }
+    // load script
     QFile file(scriptPath);
     file.open(QIODevice::ReadOnly);
     QTextStream in(&file);
@@ -84,19 +89,16 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             }
         }
     });
+    connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
-    QTimer::singleShot(0, this, [this, scriptPath] {
+    QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
         documentSymbolRequest();
         foldingRangeRequest();
         semanticTokensRequest();
-        // read-only check
-        if (const QFileInfo fileInfo(scriptPath); !fileInfo.isWritable()) {
-            scriptReadonly(true);
-        }
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -132,6 +134,10 @@ void ScriptPage::scriptReload() {
 
 void ScriptPage::scriptSave() {
     if (!m_modified) return;
+    // update status
+    scriptModify(false);
+    m_scriptHash = fileHashCalc(m_scriptEditor->text());
+    didSaveNotification();
     // block file watcher signals
     m_fileWatcher->blockSignals(true);
     // save file
@@ -141,11 +147,6 @@ void ScriptPage::scriptSave() {
     QTextStream out(&file);
     out << m_scriptEditor->text();
     file.close();
-    // update status
-    m_modified = false;
-    m_scriptHash = fileHashCalc(m_scriptEditor->text());
-    scriptModify(false);
-    didSaveNotification();
     // logging
     emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -414,12 +415,13 @@ void ScriptPage::scriptEditFinish() {
         modified = false;
     }
     if (modified != m_modified) {
-        m_modified = modified;
         scriptModify(modified);
     }
 }
 
 void ScriptPage::scriptReadonly(const bool status) {
+    m_readonly = status;
+    m_scriptEditor->setReadOnly(status);
     if (status) {
         setIcon(QIcon(":/icon/lockClosed.svg"));
     } else {
@@ -428,12 +430,39 @@ void ScriptPage::scriptReadonly(const bool status) {
 }
 
 void ScriptPage::scriptModify(const bool status) {
+    m_modified = status;
     const QString pageName = title();
     if (status) {
         setTitle(pageName + "*");
     } else {
         setTitle(pageName.chopped(1));
     }
+}
+
+void ScriptPage::permissionRequest() {
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        tr("Warning"),
+        tr("This file is read-only. Would you like to make it writable?"),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+    // update status
+    scriptReadonly(false);
+    // block file watcher signals
+    m_fileWatcher->blockSignals(true);
+    const QString scriptPath = m_scriptUrl.toLocalFile();
+    QFile::setPermissions(
+        scriptPath,
+        QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+    // logging
+    emit appendLog(QString("<a href='%1'>%2</a> permitted").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
+    // restore file watcher signals 1 sec later
+    QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
 }
 
 void ScriptPage::didOpenNotification() {
@@ -757,6 +786,11 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
 }
 
 void ScriptEditor::keyPressEvent(QKeyEvent *event) {
+    if (isReadOnly()) {
+        emit requestPermission();
+        event->accept();
+        return;
+    }
     switch (event->key()) {
         case Qt::Key_Slash: {
             if (event->modifiers() == Qt::ControlModifier) {

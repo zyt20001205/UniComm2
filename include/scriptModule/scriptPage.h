@@ -82,6 +82,8 @@ private:
 
     void scriptModify(bool status);
 
+    void permissionRequest();
+
     void didOpenNotification();
 
     void didChangeNotification();
@@ -109,6 +111,7 @@ private:
     void positionFill(int x, int y) const;
 
     QFileSystemWatcher *m_fileWatcher{};
+    bool m_readonly = false;
     bool m_modified = false;
     QTimer *m_editTimer{};
     QByteArray m_scriptHash{};
@@ -172,6 +175,8 @@ signals:
     void dockTop();
 
     void dockBottom();
+
+    void requestPermission();
 
     void requestDefinition(int line, int character);
 

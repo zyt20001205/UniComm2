@@ -125,8 +125,12 @@ void ExplorerModule::scriptNew(QString rootPath) {
     const QString filePath = QDir(rootPath).filePath(fileName);
 
     if (QFile::exists(filePath)) {
-        const QMessageBox::StandardButton reply =
-                QMessageBox::question(nullptr, tr("File Exists"), tr("File already exists. Overwrite?"), QMessageBox::Yes | QMessageBox::No);
+        const QMessageBox::StandardButton reply = QMessageBox::question(
+            nullptr,
+            tr("File Exists"),
+            tr("File already exists. Overwrite?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No);
         if (reply != QMessageBox::Yes) {
             return;
         }
@@ -147,11 +151,12 @@ void ExplorerModule::scriptNew(QString rootPath) {
 
 void ExplorerModule::scriptDelete(const QModelIndex &index) {
     const QString fileName = m_explorerTreeModel->fileName(index);
-    const QMessageBox::StandardButton reply =
-            QMessageBox::question(nullptr, tr("Delete Script"),
-                                  tr("Are you sure to delete script %1?").arg(fileName),
-                                  QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::No);
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        nullptr,
+        tr("Delete Script"),
+        tr("Are you sure to delete script %1?").arg(fileName),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
     if (reply != QMessageBox::Yes) {
         return;
     }
@@ -195,11 +200,11 @@ void ExplorerModule::folderNew(QString rootPath) {
 
 void ExplorerModule::folderDelete(const QModelIndex &index) {
     const QString folderName = m_explorerTreeModel->fileName(index);
-    const QMessageBox::StandardButton reply =
-            QMessageBox::question(nullptr, tr("Delete Folder"),
-                                  tr("Are you sure to delete folder %1 and all its contents?").arg(folderName),
-                                  QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::No);
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        nullptr, tr("Delete Folder"),
+        tr("Are you sure to delete folder %1 and all its contents?").arg(folderName),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
     if (reply != QMessageBox::Yes) {
         return;
     }
