@@ -117,8 +117,8 @@ flowchart LR
     </tr>
     <tr>
         <td>Transport</td>
-        <td>TCP</td>
-        <td>UDP</td>
+        <td><a href ="#tcp">TCP</a></td>
+        <td><a href ="#udp">UDP</a></td>
         <td colspan="2"></td>
     </tr>
     <tr>
@@ -135,8 +135,8 @@ flowchart LR
         <td>Physical</td>
         <td colspan="2">RJ45</td>
         <td colspan="2"><a href ="#serial-port">Serial Port</a></td>
-        <td>Screen</td>
-        <td>Camera</td>
+        <td><a href ="#screen">Screen</a></td>
+        <td><a href ="#camera">Camera</a></td>
     </tr>
 </table>
 
