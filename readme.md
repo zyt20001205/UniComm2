@@ -93,22 +93,22 @@ flowchart LR
 
 ## Support Port Types
 
-<table width = "100%">
+<table align = "center">
     <tr>
         <th colspan="7">OSI Model</th>
     </tr>
     <tr>
         <td>Application</td>
         <td colspan="2"></td>
-        <td>Modbus</td>
-        <td>USB TMC</td>
-        <td colspan="2">OCR</td>
+        <td align = "center">Modbus</td>
+        <td align = "center">USB TMC</td>
+        <td align = "center" colspan="2">OCR</td>
     </tr>
     <tr>
         <td>Presentation</td>
         <td colspan="2"></td>
         <td colspan="2"></td>
-        <td colspan="2">Image Processing</td>
+        <td align = "center" colspan="2">Image Processing</td>
     </tr>
     <tr>
         <td>Session</td>
@@ -118,29 +118,29 @@ flowchart LR
     </tr>
     <tr>
         <td>Transport</td>
-        <td><a href ="#tcp">TCP</a></td>
-        <td><a href ="#udp">UDP</a></td>
+        <td align = "center"><a href ="#tcp">TCP</a></td>
+        <td align = "center"><a href ="#udp">UDP</a></td>
         <td colspan="2"></td>
         <td colspan="2"></td>
     </tr>
     <tr>
         <td>Network</td>
-        <td colspan="2">IP</td>
+        <td align = "center" colspan="2">IP</td>
         <td colspan="2"></td>
         <td colspan="2"></td>
     </tr>
     <tr>
         <td>Data Link</td>
-        <td colspan="2">Ethernet</td>
-        <td colspan="2">Serial Framing</td>
+        <td align = "center" colspan="2">Ethernet</td>
+        <td align = "center" colspan="2">Serial Framing</td>
         <td colspan="2"></td>
     </tr>
     <tr>
         <td>Physical</td>
-        <td colspan="2">RJ45</td>
-        <td colspan="2"><a href ="#serial-port">Serial Port</a></td>
-        <td><a href ="#screen">Screen</a></td>
-        <td><a href ="#camera">Camera</a></td>
+        <td align = "center" colspan="2">RJ45</td>
+        <td align = "center" colspan="2"><a href ="#serial-port">Serial Port</a></td>
+        <td align = "center"><a href ="#screen">Screen</a></td>
+        <td align = "center"><a href ="#camera">Camera</a></td>
     </tr>
 </table>
 
