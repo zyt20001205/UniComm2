@@ -95,18 +95,20 @@ flowchart LR
 
 <table>
     <tr>
-        <th colspan="5">OSI Model</th>
+        <th colspan="7">OSI Model</th>
     </tr>
     <tr>
         <td>Application</td>
         <td colspan="2"></td>
         <td>Modbus</td>
         <td>USB TMC</td>
+        <td colspan="2">OCR</td>
     </tr>
     <tr>
         <td>Presentation</td>
         <td colspan="2"></td>
         <td colspan="2"></td>
+        <td colspan="2">Image Processing</td>
     </tr>
     <tr>
         <td>Session</td>
@@ -132,22 +134,60 @@ flowchart LR
     <tr>
         <td>Physical</td>
         <td colspan="2">RJ45</td>
-        <td colspan="2">Serial Port</td>
+        <td colspan="2"><a href ="#serial-port">Serial Port</a></td>
+        <td>Screen</td>
+        <td>Camera</td>
     </tr>
 </table>
 
-## Port Control APIS
+### Serial Port
 
-|    APIS    |                             Serial Port                             |                             Tcp Client                              |                             Tcp Server                              |                             Udp Socket                              |                               Screen                                |                               Camera                                |
-|:----------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
-| port.open  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| port.close | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| port.info  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+| Feature      | Status                                                              |
+|--------------|---------------------------------------------------------------------|
+| Baud Rate    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Data Bits    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Parity       | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Stop Bits    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Flow Control | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
 
-## Port IO APIS
+### TCP
+
+| Feature              | Status                                                              |
+|----------------------|---------------------------------------------------------------------|
+| TCP Client           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| TCP Server Unicast   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| TCP Server Broadcast | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+### UDP
+
+| Feature    | Status                                                              |
+|------------|---------------------------------------------------------------------|
+| UDP Socket | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+### Screen
+
+| Feature          | Status                                                              |
+|------------------|---------------------------------------------------------------------|
+| Area Selection   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Image Processing | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| OCR              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| DPI Adapt        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+### Camera
+
+| Feature          | Status                                                              |
+|------------------|---------------------------------------------------------------------|
+| Area Selection   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| Image Processing | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| OCR              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+## APIS
 
 |    APIS    |                             Serial Port                             |                             Tcp Client                              |                             Tcp Server                              |                                 Udp Socket                                 |                               Screen                                |                               Camera                                |
 |:----------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:--------------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
+| port.open  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |    ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| port.close | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |    ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| port.info  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |    ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 | port.read  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | port.write | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |    ![Unsupported](https://img.shields.io/badge/unsupported-red)     |    ![Unsupported](https://img.shields.io/badge/unsupported-red)     |
 
