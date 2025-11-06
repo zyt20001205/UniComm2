@@ -792,7 +792,7 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_replaceAllButton->setEnabled(false);
     connect(m_replaceAllButton, &QPushButton::clicked, this, [this] { emit replaceAllText(m_replaceLineEdit->text()); });
 
-    setTabOrder(m_searchLineEdit,m_replaceLineEdit);
+    setTabOrder(m_searchLineEdit, m_replaceLineEdit);
 
     hide();
 }
