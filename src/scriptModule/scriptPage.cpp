@@ -109,6 +109,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::setStat, m_searchWidget, &SearchWidget::statSet);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
     connect(m_searchWidget, &SearchWidget::searchText, m_scriptEditor, &ScriptEditor::textSearch);
+    connect(m_searchWidget, &SearchWidget::searchPrev, m_scriptEditor, &ScriptEditor::prevSearch);
+    connect(m_searchWidget, &SearchWidget::searchNext, m_scriptEditor, &ScriptEditor::nextSearch);
     QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
@@ -691,7 +693,7 @@ SearchWidget::SearchWidget(QWidget *parent)
       m_matchCaseButton(new QPushButton()),
       m_wordStartButton(new QPushButton()),
       m_regExpButton(new QPushButton()),
-      m_statLabel(new QLabel()),
+      m_statLabel(new QLabel("0/0")),
       m_prevButton(new QPushButton()),
       m_nextButton(new QPushButton()) {
     auto *layout = new QVBoxLayout(this); // NOLINT
@@ -758,21 +760,18 @@ SearchWidget::SearchWidget(QWidget *parent)
     });
     searchLayout->addStretch();
     searchLayout->addWidget(m_statLabel);
-    m_statLabel->setText(QString("%1/%2").arg(QString::number(m_current), QString::number(m_total)));
-    // searchLayout->addWidget(m_prevButton);
+    searchLayout->addWidget(m_prevButton);
     m_prevButton->setEnabled(false);
     m_prevButton->setFixedSize(24, 24);
     m_prevButton->setIcon(QIcon(":/icon/arrowUp.svg"));
     m_prevButton->setToolTip(tr("Search Previous"));
-    connect(m_prevButton, &QPushButton::clicked, this, [this] {
-    });
-    // searchLayout->addWidget(m_nextButton);
+    connect(m_prevButton, &QPushButton::clicked, this, &SearchWidget::searchPrev);
+    searchLayout->addWidget(m_nextButton);
     m_nextButton->setEnabled(false);
     m_nextButton->setFixedSize(24, 24);
     m_nextButton->setIcon(QIcon(":/icon/arrowDown.svg"));
     m_nextButton->setToolTip(tr("Search Next"));
-    connect(m_nextButton, &QPushButton::clicked, this, [this] {
-    });
+    connect(m_nextButton, &QPushButton::clicked, this, &SearchWidget::searchNext);
 
     hide();
 }
@@ -785,18 +784,16 @@ void SearchWidget::toggle() {
     }
 }
 
-void SearchWidget::statSet(const int current, const int total) {
-    m_current = current;
-    m_total = total;
-    m_statLabel->setText(QString("%1/%2").arg(QString::number(m_current), QString::number(m_total)));
+void SearchWidget::statSet(const int current, const int total) const {
+    m_statLabel->setText(QString("%1/%2").arg(QString::number(current), QString::number(total)));
     m_prevButton->setEnabled(true);
     m_nextButton->setEnabled(true);
-    if (m_current == 0 && m_total == 0) {
+    if (current == 0 && total == 0) {
         m_prevButton->setEnabled(false);
         m_nextButton->setEnabled(false);
     } else {
-        if (m_current == 1) m_prevButton->setEnabled(false);
-        if (m_current == m_total) m_nextButton->setEnabled(false);
+        if (current == 1) m_prevButton->setEnabled(false);
+        if (current == total) m_nextButton->setEnabled(false);
     }
 }
 
@@ -914,6 +911,10 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
 void ScriptEditor::textSearch(const QString &text, const int flag) {
     // clear previous search result
+    m_searchText = text;
+    m_searchFlag = flag;
+    m_anchorPos = 0;
+    m_currentPos = 0;
     const int docLength = SendScintilla(SCI_GETLENGTH);
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
@@ -924,9 +925,7 @@ void ScriptEditor::textSearch(const QString &text, const int flag) {
         emit setStat(0, 0);
         return;
     }
-    const int currentPos = SendScintilla(SCI_GETCURRENTPOS);
-    const int anchorPos = SendScintilla(SCI_GETANCHOR);
-    SendScintilla(SCI_SETCURRENTPOS, 0); // NOLINT
+    SendScintilla(SCI_SETSEL, m_anchorPos, m_currentPos); // NOLINT
     SendScintilla(SCI_SEARCHANCHOR); // NOLINT
     int count = 0;
     while (SendScintilla(SCI_SEARCHNEXT, flag, text.toUtf8().constData()) != -1) {
@@ -936,6 +935,8 @@ void ScriptEditor::textSearch(const QString &text, const int flag) {
         if (count == 0) {
             SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
             SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+            m_anchorPos = start;
+            m_currentPos = end;
         }
         SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
         SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
@@ -943,12 +944,61 @@ void ScriptEditor::textSearch(const QString &text, const int flag) {
         SendScintilla(SCI_SEARCHANCHOR); // NOLINT
         count++;
     }
-    SendScintilla(SCI_SETSEL, anchorPos, currentPos); // NOLINT
     if (count == 0) {
-        emit setStat(0, 0);
+        m_searchCurrent = 0;
+        m_searchResult = 0;
     } else {
-        emit setStat(1, count);
+        m_searchCurrent = 1;
+        m_searchResult = count;
     }
+    emit setStat(m_searchCurrent, m_searchResult);
+    SendScintilla(SCI_CLEARSELECTIONS); // NOLINT
+}
+
+void ScriptEditor::prevSearch() {
+    // clear previous search current
+    const int docLength = SendScintilla(SCI_GETLENGTH);
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+    SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
+    // search prev
+    SendScintilla(SCI_SETSEL, m_anchorPos, m_anchorPos); // NOLINT
+    SendScintilla(SCI_SEARCHANCHOR); // NOLINT
+    SendScintilla(SCI_SEARCHPREV, m_searchFlag, m_searchText.toUtf8().constData()); // NOLINT
+    const int start = SendScintilla(SCI_GETSELECTIONSTART);
+    const int end = SendScintilla(SCI_GETSELECTIONEND);
+    const int length = end - start;
+    const int line = SendScintilla(SCI_LINEFROMPOSITION, start);
+    SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+    SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+    m_anchorPos = start;
+    m_currentPos = end;
+    m_searchCurrent--;
+    emit setStat(m_searchCurrent, m_searchResult);
+    SendScintilla(SCI_CLEARSELECTIONS); // NOLINT
+}
+
+void ScriptEditor::nextSearch() {
+    // clear previous search current
+    const int docLength = SendScintilla(SCI_GETLENGTH);
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+    SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
+    // search next
+    SendScintilla(SCI_SETSEL, m_currentPos, m_currentPos); // NOLINT
+    SendScintilla(SCI_SEARCHANCHOR); // NOLINT
+    SendScintilla(SCI_SEARCHNEXT, m_searchFlag, m_searchText.toUtf8().constData()); // NOLINT
+    const int start = SendScintilla(SCI_GETSELECTIONSTART);
+    const int end = SendScintilla(SCI_GETSELECTIONEND);
+    const int length = end - start;
+    const int line = SendScintilla(SCI_LINEFROMPOSITION, start);
+    SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+    SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+    m_anchorPos = start;
+    m_currentPos = end;
+    m_searchCurrent++;
+    emit setStat(m_searchCurrent, m_searchResult);
+    SendScintilla(SCI_CLEARSELECTIONS); // NOLINT
 }
 
 // ScriptEditor protected

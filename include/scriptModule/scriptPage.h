@@ -174,10 +174,14 @@ public:
 
     void toggle();
 
-    void statSet(int current, int total);
+    void statSet(int current, int total) const;
 
 signals:
     void searchText(const QString &text, int flag);
+
+    void searchPrev();
+
+    void searchNext();
 
 private:
     QLineEdit *m_searchLineEdit{};
@@ -187,8 +191,6 @@ private:
     QPushButton *m_wordStartButton{};
     QPushButton *m_regExpButton{};
     QLabel *m_statLabel{};
-    int m_current = 0;
-    int m_total = 0;
     QPushButton *m_prevButton{};
     QPushButton *m_nextButton{};
 };
@@ -202,6 +204,10 @@ public:
     ~ScriptEditor() override = default;
 
     void textSearch(const QString &text, int flag);
+
+    void prevSearch();
+
+    void nextSearch();
 
 signals:
     void dockRight();
@@ -239,6 +245,13 @@ private:
 
     void definitionHandle();
 
+    QString m_searchText{};
+    int m_searchFlag = 0;
+    int m_searchCurrent = 0;
+    int m_searchResult = 0;
+    int m_anchorPos = 0;
+    int m_currentPos = 0;
+    // int
     QHash<QChar, QChar> m_autoPairHash{};
     bool m_jumpValid = false;
 };
