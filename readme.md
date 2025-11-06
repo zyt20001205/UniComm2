@@ -114,22 +114,26 @@ flowchart LR
         <td>Session</td>
         <td colspan="2"></td>
         <td colspan="2"></td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Transport</td>
         <td><a href ="#tcp">TCP</a></td>
         <td><a href ="#udp">UDP</a></td>
         <td colspan="2"></td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Network</td>
         <td colspan="2">IP</td>
+        <td colspan="2"></td>
         <td colspan="2"></td>
     </tr>
     <tr>
         <td>Data Link</td>
         <td colspan="2">Ethernet</td>
         <td colspan="2">Serial Framing</td>
+        <td colspan="2"></td>
     </tr>
     <tr>
         <td>Physical</td>
