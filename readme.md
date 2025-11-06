@@ -93,7 +93,7 @@ flowchart LR
 
 ## Support Port Types
 
-<table>
+<table width = "100%>
     <tr>
         <th colspan="7">OSI Model</th>
     </tr>
