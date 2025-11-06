@@ -855,7 +855,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_SEARCH_RESULT);
     setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
 
-    indicatorDefine(BoxIndicator, INDICATOR_SEARCH_CURRENT);
+    indicatorDefine(StraightBoxIndicator, INDICATOR_SEARCH_CURRENT);
     setIndicatorForegroundColor(QColor(196, 114, 51), INDICATOR_SEARCH_CURRENT);
     setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
 
