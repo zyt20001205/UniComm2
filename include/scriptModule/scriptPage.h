@@ -183,6 +183,10 @@ signals:
 
     void searchNext();
 
+    void replaceText(const QString &text);
+
+    void replaceAllText(const QString &text);
+
 private:
     QLineEdit *m_searchLineEdit{};
     int m_searchFlag = 0;
@@ -193,6 +197,9 @@ private:
     QLabel *m_statLabel{};
     QPushButton *m_prevButton{};
     QPushButton *m_nextButton{};
+    QLineEdit *m_replaceLineEdit{};
+    QPushButton *m_replaceButton{};
+    QPushButton *m_replaceAllButton{};
 };
 
 class ScriptEditor final : public QsciScintilla {
@@ -208,6 +215,10 @@ public:
     void prevSearch();
 
     void nextSearch();
+
+    void textReplace(const QString &text);
+
+    void textReplaceAll(const QString &text);
 
 signals:
     void dockRight();
@@ -245,6 +256,10 @@ private:
 
     void definitionHandle();
 
+    void searchHandle();
+
+    QString m_searchText = {};
+    int m_searchFlag = 0;
     QList<QList<int>> m_searchList;
     int m_currentIndex = 0;
     // int
