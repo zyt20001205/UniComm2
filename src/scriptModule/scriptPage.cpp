@@ -780,6 +780,7 @@ SearchWidget::SearchWidget(QWidget *parent)
 void SearchWidget::toggle() {
     if (isVisible()) hide();
     else {
+        m_searchLineEdit->setFocus();
         show();
     }
 }
@@ -853,6 +854,14 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_HIGHLIGHT);
     setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
 
+    indicatorDefine(StraightBoxIndicator, INDICATOR_SEARCH_RESULT);
+    setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_SEARCH_RESULT);
+    setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
+
+    indicatorDefine(BoxIndicator, INDICATOR_SEARCH_CURRENT);
+    setIndicatorForegroundColor(QColor(196, 114, 51), INDICATOR_SEARCH_CURRENT);
+    setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
+
     indicatorDefine(PlainIndicator, INDICATOR_HYPERLINK);
     setIndicatorForegroundColor(QColor(0, 0, 255), INDICATOR_HYPERLINK);
     setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
@@ -906,26 +915,29 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 void ScriptEditor::textSearch(const QString &text, const int flag) {
     // clear previous search result
     const int docLength = SendScintilla(SCI_GETLENGTH);
-    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_HIGHLIGHT); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
+    SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
     // start searching
     if (text.isEmpty()) {
         emit setStat(0, 0);
         return;
     }
-    int currentPos = SendScintilla(SCI_GETCURRENTPOS);
-    int anchorPos = SendScintilla(SCI_GETANCHOR);
+    const int currentPos = SendScintilla(SCI_GETCURRENTPOS);
+    const int anchorPos = SendScintilla(SCI_GETANCHOR);
     SendScintilla(SCI_SETCURRENTPOS, 0); // NOLINT
     SendScintilla(SCI_SEARCHANCHOR); // NOLINT
     int count = 0;
     while (SendScintilla(SCI_SEARCHNEXT, flag, text.toUtf8().constData()) != -1) {
-        if (count == 0) {
-            currentPos = SendScintilla(SCI_GETCURRENTPOS);
-            anchorPos = SendScintilla(SCI_GETANCHOR);
-        }
         const int start = SendScintilla(SCI_GETSELECTIONSTART);
         const int end = SendScintilla(SCI_GETSELECTIONEND);
         const int length = end - start;
+        if (count == 0) {
+            SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+            SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+        }
+        SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
         SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
         SendScintilla(SCI_SETCURRENTPOS, end); // NOLINT
         SendScintilla(SCI_SEARCHANCHOR); // NOLINT
@@ -959,44 +971,28 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
         event->accept();
         return;
     }
-    switch (event->key()) {
-        case Qt::Key_Slash: {
-            if (event->modifiers() == Qt::ControlModifier) {
+    if (event->modifiers() == Qt::ControlModifier) {
+        switch (event->key()) {
+            case Qt::Key_Slash: {
                 commentHandle();
                 event->accept();
                 return;
             }
-        }
-        break;
-        case Qt::Key_D: {
-            if (event->modifiers() == Qt::ControlModifier) {
+            break;
+            case Qt::Key_D: {
                 duplicateHandle();
                 event->accept();
                 return;
             }
-        }
-        break;
-        case Qt::Key_Control: {
-            m_ctrlPressed = true;
-        }
-        break;
-        default:
             break;
+            default: break;
+        }
     }
     QsciScintilla::keyPressEvent(event);
 }
 
-void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
-    if (event->key() == Qt::Key_Control) {
-        m_ctrlPressed = false;
-        definitionHandle();
-        event->accept();
-    }
-    QsciScintilla::keyReleaseEvent(event);
-}
-
 void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
-    if (m_ctrlPressed) {
+    if (event->modifiers() == Qt::ControlModifier) {
         definitionHandle();
         event->accept();
         return;
@@ -1060,25 +1056,20 @@ void ScriptEditor::definitionHandle() {
     const int lastLine = lines() - 1;
     const int lastIndex = lineLength(lastLine);
     clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HYPERLINK);
-    if (m_ctrlPressed) {
-        const QPoint mousePos = mapFromGlobal(QCursor::pos());
-        const int x = mousePos.x();
-        const int y = mousePos.y();
-        if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, x, y); charPos != -1) {
-            const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
-            const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
-            if (wordStart < wordEnd) {
-                m_jumpValid = true;
-                viewport()->setCursor(Qt::PointingHandCursor);
-                const int startLine = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
-                const int startIndex = wordStart - SendScintilla(SCI_POSITIONFROMLINE, startLine);
-                const int endLine = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
-                const int endIndex = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, endLine);
-                fillIndicatorRange(startLine, startIndex, endLine, endIndex, INDICATOR_HYPERLINK);
-            } else {
-                m_jumpValid = false;
-                viewport()->setCursor(Qt::IBeamCursor);
-            }
+    const QPoint mousePos = mapFromGlobal(QCursor::pos());
+    const int x = mousePos.x();
+    const int y = mousePos.y();
+    if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, x, y); charPos != -1) {
+        const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
+        const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
+        if (wordStart < wordEnd) {
+            m_jumpValid = true;
+            viewport()->setCursor(Qt::PointingHandCursor);
+            const int startLine = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
+            const int startIndex = wordStart - SendScintilla(SCI_POSITIONFROMLINE, startLine);
+            const int endLine = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
+            const int endIndex = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, endLine);
+            fillIndicatorRange(startLine, startIndex, endLine, endIndex, INDICATOR_HYPERLINK);
         } else {
             m_jumpValid = false;
             viewport()->setCursor(Qt::IBeamCursor);
