@@ -784,17 +784,16 @@ void SearchWidget::toggle() {
     }
 }
 
-void SearchWidget::statSet(const int current, const int total) const {
-    m_statLabel->setText(QString("%1/%2").arg(QString::number(current), QString::number(total)));
+void SearchWidget::statSet(int current, const int total) const {
     m_prevButton->setEnabled(true);
     m_nextButton->setEnabled(true);
     if (current == 0 && total == 0) {
         m_prevButton->setEnabled(false);
         m_nextButton->setEnabled(false);
     } else {
-        if (current == 1) m_prevButton->setEnabled(false);
-        if (current == total) m_nextButton->setEnabled(false);
+        current++;
     }
+    m_statLabel->setText(QString("%1/%2").arg(QString::number(current), QString::number(total)));
 }
 
 // ScriptEditor public
@@ -911,48 +910,43 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
 void ScriptEditor::textSearch(const QString &text, const int flag) {
     // clear previous search result
-    m_searchText = text;
-    m_searchFlag = flag;
-    m_anchorPos = 0;
-    m_currentPos = 0;
+    m_currentIndex = 0;
+    m_searchList.clear();
     const int docLength = SendScintilla(SCI_GETLENGTH);
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
     // start searching
-    if (text.isEmpty()) {
-        emit setStat(0, 0);
-        return;
-    }
-    SendScintilla(SCI_SETSEL, m_anchorPos, m_currentPos); // NOLINT
-    SendScintilla(SCI_SEARCHANCHOR); // NOLINT
-    int count = 0;
-    while (SendScintilla(SCI_SEARCHNEXT, flag, text.toUtf8().constData()) != -1) {
-        const int start = SendScintilla(SCI_GETSELECTIONSTART);
-        const int end = SendScintilla(SCI_GETSELECTIONEND);
-        const int length = end - start;
-        if (count == 0) {
-            SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
-            SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
-            m_anchorPos = start;
-            m_currentPos = end;
-        }
-        SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
-        SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
-        SendScintilla(SCI_SETCURRENTPOS, end); // NOLINT
+    if (!text.isEmpty()) {
+        SendScintilla(SCI_GOTOPOS, 0); // NOLINT
         SendScintilla(SCI_SEARCHANCHOR); // NOLINT
-        count++;
+        int count = 0;
+        while (SendScintilla(SCI_SEARCHNEXT, flag, text.toUtf8().constData()) != -1) {
+            const int start = SendScintilla(SCI_GETSELECTIONSTART);
+            const int end = SendScintilla(SCI_GETSELECTIONEND);
+            const int length = end - start;
+            m_searchList.append({start, end, length});
+            if (count == 0) {
+                SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+                SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+            }
+            SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
+            SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+            SendScintilla(SCI_GOTOPOS, end); // NOLINT
+            SendScintilla(SCI_SEARCHANCHOR); // NOLINT
+            count++;
+        }
+        if (count != 0) {
+            SendScintilla(SCI_GOTOPOS, m_searchList[m_currentIndex][0]); // NOLINT
+            const int line = SendScintilla(SCI_LINEFROMPOSITION, m_searchList[m_currentIndex][0]);
+            SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
+            SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+            SendScintilla(SCI_INDICATORFILLRANGE, m_searchList[m_currentIndex][0], m_searchList[m_currentIndex][2]); // NOLINT
+        }
     }
-    if (count == 0) {
-        m_searchCurrent = 0;
-        m_searchResult = 0;
-    } else {
-        m_searchCurrent = 1;
-        m_searchResult = count;
-    }
-    emit setStat(m_searchCurrent, m_searchResult);
-    SendScintilla(SCI_CLEARSELECTIONS); // NOLINT
+    emit setStat(m_currentIndex, m_searchList.length());
+    SendScintilla(SCI_CLEARSELECTIONS); // NOLINT}
 }
 
 void ScriptEditor::prevSearch() {
@@ -960,21 +954,28 @@ void ScriptEditor::prevSearch() {
     const int docLength = SendScintilla(SCI_GETLENGTH);
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
-    // search prev
-    SendScintilla(SCI_SETSEL, m_anchorPos, m_anchorPos); // NOLINT
-    SendScintilla(SCI_SEARCHANCHOR); // NOLINT
-    SendScintilla(SCI_SEARCHPREV, m_searchFlag, m_searchText.toUtf8().constData()); // NOLINT
-    const int start = SendScintilla(SCI_GETSELECTIONSTART);
-    const int end = SendScintilla(SCI_GETSELECTIONEND);
-    const int length = end - start;
-    const int line = SendScintilla(SCI_LINEFROMPOSITION, start);
+    // go prev
+    if (m_currentIndex == 0) {
+        const QMessageBox::StandardButton reply = QMessageBox::question(
+            nullptr,
+            tr("First match"),
+            tr("Go to bottom?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::Yes);
+        if (reply == QMessageBox::Yes) {
+            m_currentIndex = m_searchList.length() - 1;
+        } else {
+            return;
+        }
+    } else {
+        m_currentIndex--;
+    }
+    SendScintilla(SCI_GOTOPOS, m_searchList[m_currentIndex][0]); // NOLINT
+    const int line = SendScintilla(SCI_LINEFROMPOSITION, m_searchList[m_currentIndex][0]);
     SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
-    SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
-    m_anchorPos = start;
-    m_currentPos = end;
-    m_searchCurrent--;
-    emit setStat(m_searchCurrent, m_searchResult);
+    SendScintilla(SCI_INDICATORFILLRANGE, m_searchList[m_currentIndex][0], m_searchList[m_currentIndex][2]); // NOLINT
+    emit setStat(m_currentIndex, m_searchList.length());
     SendScintilla(SCI_CLEARSELECTIONS); // NOLINT
 }
 
@@ -983,21 +984,28 @@ void ScriptEditor::nextSearch() {
     const int docLength = SendScintilla(SCI_GETLENGTH);
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
-    // search next
-    SendScintilla(SCI_SETSEL, m_currentPos, m_currentPos); // NOLINT
-    SendScintilla(SCI_SEARCHANCHOR); // NOLINT
-    SendScintilla(SCI_SEARCHNEXT, m_searchFlag, m_searchText.toUtf8().constData()); // NOLINT
-    const int start = SendScintilla(SCI_GETSELECTIONSTART);
-    const int end = SendScintilla(SCI_GETSELECTIONEND);
-    const int length = end - start;
-    const int line = SendScintilla(SCI_LINEFROMPOSITION, start);
+    // go next
+    if (m_currentIndex == m_searchList.length() - 1) {
+        const QMessageBox::StandardButton reply = QMessageBox::question(
+            nullptr,
+            tr("Last match"),
+            tr("Go to top?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::Yes);
+        if (reply == QMessageBox::Yes) {
+            m_currentIndex = 0;
+        } else {
+            return;
+        }
+    } else {
+        m_currentIndex++;
+    }
+    SendScintilla(SCI_GOTOPOS, m_searchList[m_currentIndex][0]); // NOLINT
+    const int line = SendScintilla(SCI_LINEFROMPOSITION, m_searchList[m_currentIndex][0]);
     SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
-    SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
-    m_anchorPos = start;
-    m_currentPos = end;
-    m_searchCurrent++;
-    emit setStat(m_searchCurrent, m_searchResult);
+    SendScintilla(SCI_INDICATORFILLRANGE, m_searchList[m_currentIndex][0], m_searchList[m_currentIndex][2]); // NOLINT
+    emit setStat(m_currentIndex, m_searchList.length());
     SendScintilla(SCI_CLEARSELECTIONS); // NOLINT
 }
 

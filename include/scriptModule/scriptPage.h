@@ -245,12 +245,8 @@ private:
 
     void definitionHandle();
 
-    QString m_searchText{};
-    int m_searchFlag = 0;
-    int m_searchCurrent = 0;
-    int m_searchResult = 0;
-    int m_anchorPos = 0;
-    int m_currentPos = 0;
+    QList<QList<int>> m_searchList;
+    int m_currentIndex = 0;
     // int
     QHash<QChar, QChar> m_autoPairHash{};
     bool m_jumpValid = false;
