@@ -26,7 +26,7 @@ SettingModule::SettingModule(QWidget *parent)
     auto *settingTreeModel = new QStandardItemModel(); // NOLINT
     settingTreeView->setModel(settingTreeModel);
     // font setting
-    auto *fontSetting = new QStandardItem(tr("Font")); // NOLINT
+    auto *fontSetting = new QStandardItem(tr("Font Setting")); // NOLINT
     settingTreeModel->appendRow(fontSetting);
     auto *logFontSetting = new QStandardItem(tr("Log Module")); // NOLINT
     fontSetting->appendRow(logFontSetting);
@@ -34,8 +34,8 @@ SettingModule::SettingModule(QWidget *parent)
 
     connect(settingTreeView, &QTreeView::clicked, this, [this, settingTreeModel](const QModelIndex &index) {
         const QStandardItem *item = settingTreeModel->itemFromIndex(index);
-        const int page = item->data(Qt::UserRole + 1).toInt();
-        m_settingStackedWidget->setCurrentIndex(page);
+        const int pageIndex = item->data(Qt::UserRole + 1).toInt();
+        m_settingStackedWidget->setCurrentIndex(pageIndex);
     });
 
     splitter->addWidget(m_settingStackedWidget);

@@ -13,7 +13,7 @@ LogFontSetting::LogFontSetting(QWidget *parent)
       m_fontSizeSpinBox(new QSpinBox()),
       m_fontPreviewTextEdit(new QTextEdit()) {
     auto *layout = new QVBoxLayout(this); // NOLINT
-    layout->setAlignment(Qt::AlignTop);
+    layout->setContentsMargins(0, 0, 0, 0);
 
     auto *fontFamilyWidget = new QWidget(); // NOLINT
     layout->addWidget(fontFamilyWidget);
