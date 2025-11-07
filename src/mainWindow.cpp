@@ -588,8 +588,7 @@ void MainWindow::layoutInit() {
     }
     if (m_mainConfig["state"].toString().isEmpty()) {
         addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
-        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(
-            KDDockWidgets::Size(100, 0)));
+        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
         addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
         addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
         addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, m_scriptModule->welcomePage(), KDDockWidgets::InitialVisibilityOption::StartHidden);
@@ -599,8 +598,7 @@ void MainWindow::layoutInit() {
         m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
         m_logModule->addDockWidgetAsTab(m_debugModule);
         m_logModule->raise();
-        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(
-            KDDockWidgets::Size(100, 0)));
+        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
     } else {
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
