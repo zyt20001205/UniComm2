@@ -25,6 +25,10 @@ signals:
 
     void saveLogFont(const QJsonObject &fontConfigLog);
 
+    void reloadScriptFont(const QJsonObject &fontConfigScript);
+
+    void saveScriptFont(const QJsonObject &fontConfigScript);
+
 private:
     void settingApply();
 

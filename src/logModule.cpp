@@ -83,7 +83,6 @@ void LogModule::logFontReload(const QJsonObject &fontConfigLog) const {
 void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
     m_logConfig["fontFamily"] = fontConfigLog["fontFamily"].toString();
     m_logConfig["fontSize"] = fontConfigLog["fontSize"].toInt();
-    qDebug() << m_logConfig;
 }
 
 void LogModule::logAppend(const QString &message, const QString &level) {

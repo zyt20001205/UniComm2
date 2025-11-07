@@ -85,11 +85,16 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
 void SettingModule::settingApply() {
     const QJsonObject fontConfigLog = m_fontSettingLogWidget->settingExport();
     emit reloadLogFont(fontConfigLog);
+    const QJsonObject fontConfigScript = m_fontSettingScriptWidget->settingExport();
+    emit reloadScriptFont(fontConfigScript);
 }
 
 void SettingModule::settingSave() {
     const QJsonObject fontConfigLog = m_fontSettingLogWidget->settingExport();
     emit reloadLogFont(fontConfigLog);
     emit saveLogFont(fontConfigLog);
+    const QJsonObject fontConfigScript = m_fontSettingScriptWidget->settingExport();
+    emit reloadScriptFont(fontConfigScript);
+    emit saveScriptFont(fontConfigScript);
     accept();
 }

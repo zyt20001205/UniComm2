@@ -60,7 +60,7 @@ void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
 void ScriptModule::scriptConfigSave() {
     // save config
     auto scriptList = QJsonArray();
-    for (const QUrl &url: m_scriptPageHash.keys()) {
+    for (const auto &url: m_scriptPageHash.keys()) {
         ScriptPage *scriptPage = m_scriptPageHash[url];
         scriptPage->scriptSave();
         scriptList.append(url.toString());
@@ -80,6 +80,18 @@ void ScriptModule::scriptConfigSave() {
     m_scriptConfig["breakpointHash"] = breakpointHash;
 
     g_config["scriptConfig"] = m_scriptConfig;
+}
+
+void ScriptModule::scriptFontReload(const QJsonObject &fontConfigScript) const {
+    const auto scriptFont = QFont(fontConfigScript["fontFamily"].toString(), fontConfigScript["fontSize"].toInt());
+    for (const auto &scriptPage: m_scriptPageHash) {
+        scriptPage->m_scriptEditor->setFont(scriptFont);
+    }
+}
+
+void ScriptModule::scriptFontSave(const QJsonObject &fontConfigScript) {
+    m_scriptConfig["fontFamily"] = fontConfigScript["fontFamily"].toString();
+    m_scriptConfig["fontSize"] = fontConfigScript["fontSize"].toInt();
 }
 
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
