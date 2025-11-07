@@ -587,20 +587,20 @@ void MainWindow::layoutInit() {
         restoreGeometry(geometry);
     }
     if (m_mainConfig["state"].toString().isEmpty()) {
-        // dock placement
-        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr);
+        addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
+        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(
+            KDDockWidgets::Size(100, 0)));
         addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
         addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
-        addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
-        addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialVisibilityOption::StartHidden);
+        addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, m_scriptModule->welcomePage(), KDDockWidgets::InitialVisibilityOption::StartHidden);
         addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
         addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
         addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
         m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
         m_logModule->addDockWidgetAsTab(m_debugModule);
-        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule);
-        // dock resize
-        // still figuring out how to do this
+        m_logModule->raise();
+        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(
+            KDDockWidgets::Size(100, 0)));
     } else {
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
