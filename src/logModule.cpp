@@ -75,14 +75,14 @@ void LogModule::logConfigSave() const {
     g_config["logConfig"] = m_logConfig;
 }
 
-void LogModule::logFontReload(const QJsonObject &logFontConfig) const {
-    const auto logFont = QFont(logFontConfig["fontFamily"].toString(), logFontConfig["fontSize"].toInt());
+void LogModule::logFontReload(const QJsonObject &fontConfigLog) const {
+    const auto logFont = QFont(fontConfigLog["fontFamily"].toString(), fontConfigLog["fontSize"].toInt());
     m_logTextBrowser->setFont(logFont);
 }
 
-void LogModule::logFontSave(const QJsonObject &logFontConfig) {
-    m_logConfig["fontFamily"] = logFontConfig["fontFamily"].toString();
-    m_logConfig["fontSize"] = logFontConfig["fontSize"].toInt();
+void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
+    m_logConfig["fontFamily"] = fontConfigLog["fontFamily"].toString();
+    m_logConfig["fontSize"] = fontConfigLog["fontSize"].toInt();
     qDebug() << m_logConfig;
 }
 

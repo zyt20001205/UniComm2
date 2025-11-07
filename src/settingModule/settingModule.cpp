@@ -8,13 +8,15 @@
 #include <QStandardItemModel>
 #include <QTreeView>
 
-#include "settingModule/logFontSetting.h"
+#include "settingModule/fontSettingLog.h"
+#include "settingModule/fontSettingScript.h"
 
 // SettingModule public
 SettingModule::SettingModule(QWidget *parent)
     : QDialog(parent),
       m_settingStackedWidget(new QStackedWidget()),
-      m_logFontSettingWidget(new LogFontSetting()) {
+      m_fontSettingLogWidget(new FontSettingLog()),
+      m_fontSettingScriptWidget(new FontSettingScript()) {
     auto *layout = new QVBoxLayout(this); //NOLINT
     auto *splitter = new QSplitter(); // NOLINT
     layout->addWidget(splitter);
@@ -28,9 +30,12 @@ SettingModule::SettingModule(QWidget *parent)
     // font setting
     auto *fontSetting = new QStandardItem(tr("Font Setting")); // NOLINT
     settingTreeModel->appendRow(fontSetting);
-    auto *logFontSetting = new QStandardItem(tr("Log Module")); // NOLINT
-    fontSetting->appendRow(logFontSetting);
-    logFontSetting->setData(LOGFONTSETTING, Qt::UserRole + 1);
+    auto *fontSettingLog = new QStandardItem(tr("Log Module")); // NOLINT
+    fontSetting->appendRow(fontSettingLog);
+    fontSettingLog->setData(FONT_SETTING_LOG, Qt::UserRole + 1);
+    auto *fontSettingScript = new QStandardItem(tr("Script Module")); // NOLINT
+    fontSetting->appendRow(fontSettingScript);
+    fontSettingScript->setData(FONT_SETTING_SCRIPT, Qt::UserRole + 1);
 
     connect(settingTreeView, &QTreeView::clicked, this, [this, settingTreeModel](const QModelIndex &index) {
         const QStandardItem *item = settingTreeModel->itemFromIndex(index);
@@ -40,7 +45,8 @@ SettingModule::SettingModule(QWidget *parent)
 
     splitter->addWidget(m_settingStackedWidget);
     m_settingStackedWidget->addWidget(new QWidget());
-    m_settingStackedWidget->addWidget(m_logFontSettingWidget);
+    m_settingStackedWidget->addWidget(m_fontSettingLogWidget);
+    m_settingStackedWidget->addWidget(m_fontSettingScriptWidget);
     m_settingStackedWidget->setCurrentIndex(0);
 
     splitter->setStretchFactor(0, 0);
@@ -65,21 +71,25 @@ SettingModule::SettingModule(QWidget *parent)
 }
 
 void SettingModule::settingImport(const QJsonObject &settingConfig) const {
-    QJsonObject logFontConfig = {};
-    logFontConfig["fontFamily"] = settingConfig["logFontFamily"].toString();
-    logFontConfig["fontSize"] = settingConfig["logFontSize"].toInt();
-    m_logFontSettingWidget->settingImport(logFontConfig);
+    QJsonObject fontConfigLog = {};
+    fontConfigLog["fontFamily"] = settingConfig["fontFamilyLog"].toString();
+    fontConfigLog["fontSize"] = settingConfig["fontSizeLog"].toInt();
+    m_fontSettingLogWidget->settingImport(fontConfigLog);
+    QJsonObject fontConfigScript = {};
+    fontConfigScript["fontFamily"] = settingConfig["fontFamilyScript"].toString();
+    fontConfigScript["fontSize"] = settingConfig["fontSizeScript"].toInt();
+    m_fontSettingScriptWidget->settingImport(fontConfigScript);
 }
 
 // SettingModule private
 void SettingModule::settingApply() {
-    const QJsonObject logFontConfig = m_logFontSettingWidget->settingExport();
-    emit reloadLogFont(logFontConfig);
+    const QJsonObject fontConfigLog = m_fontSettingLogWidget->settingExport();
+    emit reloadLogFont(fontConfigLog);
 }
 
 void SettingModule::settingSave() {
-    const QJsonObject logFontConfig = m_logFontSettingWidget->settingExport();
-    emit reloadLogFont(logFontConfig);
-    emit saveLogFont(logFontConfig);
+    const QJsonObject fontConfigLog = m_fontSettingLogWidget->settingExport();
+    emit reloadLogFont(fontConfigLog);
+    emit saveLogFont(fontConfigLog);
     accept();
 }

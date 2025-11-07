@@ -1,4 +1,4 @@
-#include "settingModule/logFontSetting.h"
+#include "settingModule/fontSettingLog.h"
 
 #include <QFontComboBox>
 #include <QJsonObject>
@@ -6,8 +6,8 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-// LogFontSetting public
-LogFontSetting::LogFontSetting(QWidget *parent)
+// FontSettingLog public
+FontSettingLog::FontSettingLog(QWidget *parent)
     : QWidget(parent),
       m_fontFamilyComboBox(new QFontComboBox()),
       m_fontSizeSpinBox(new QSpinBox()),
@@ -48,20 +48,20 @@ LogFontSetting::LogFontSetting(QWidget *parent)
     layout->addWidget(m_fontPreviewTextEdit);
 }
 
-void LogFontSetting::settingImport(const QJsonObject &logFontConfig) const {
-    m_fontFamilyComboBox->setCurrentText(logFontConfig["fontFamily"].toString());
-    m_fontSizeSpinBox->setValue(logFontConfig["fontSize"].toInt());
+void FontSettingLog::settingImport(const QJsonObject &fontConfigLog) const {
+    m_fontFamilyComboBox->setCurrentText(fontConfigLog["fontFamily"].toString());
+    m_fontSizeSpinBox->setValue(fontConfigLog["fontSize"].toInt());
     m_fontPreviewTextEdit->setText(
         "abcdefghijklmnopqrstuvwxyz\n"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n"
         "0123456789 (){}[]\n"
         "+ - * / = .,;:!? #&$%@|^");
-    m_fontPreviewTextEdit->setFont(QFont(logFontConfig["fontFamily"].toString(), logFontConfig["fontSize"].toInt()));
+    m_fontPreviewTextEdit->setFont(QFont(fontConfigLog["fontFamily"].toString(), fontConfigLog["fontSize"].toInt()));
 }
 
-QJsonObject LogFontSetting::settingExport() const {
-    QJsonObject logFontConfig = {};
-    logFontConfig["fontFamily"] = m_fontFamilyComboBox->currentText();
-    logFontConfig["fontSize"] = m_fontSizeSpinBox->value();
-    return logFontConfig;
+QJsonObject FontSettingLog::settingExport() const {
+    QJsonObject fontConfigLog = {};
+    fontConfigLog["fontFamily"] = m_fontFamilyComboBox->currentText();
+    fontConfigLog["fontSize"] = m_fontSizeSpinBox->value();
+    return fontConfigLog;
 }

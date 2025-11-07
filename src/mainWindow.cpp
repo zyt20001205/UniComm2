@@ -443,9 +443,12 @@ void MainWindow::menuInit() {
         toolBar->addAction(settingAction);
         connect(settingAction, &QAction::triggered, this, [this] {
             const QJsonObject logConfig = g_config["logConfig"].toObject();
+            const QJsonObject scriptConfig = g_config["scriptConfig"].toObject();
             const QJsonObject settingConfig = {
-                {"logFontFamily", logConfig["fontFamily"].toString()},
-                {"logFontSize", logConfig["fontSize"].toInt()}
+                {"fontFamilyLog", logConfig["fontFamily"].toString()},
+                {"fontSizeLog", logConfig["fontSize"].toInt()},
+                {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
+                {"fontSizeScript", scriptConfig["fontSize"].toInt()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {

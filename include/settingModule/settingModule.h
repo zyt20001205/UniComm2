@@ -7,7 +7,8 @@
 class QStackedWidget;
 class QTreeView;
 
-class LogFontSetting;
+class FontSettingLog;
+class FontSettingScript;
 
 class SettingModule final : public QDialog {
     Q_OBJECT
@@ -20,9 +21,9 @@ public:
     void settingImport(const QJsonObject &settingConfig) const;
 
 signals:
-    void reloadLogFont(const QJsonObject &logFontConfig);
+    void reloadLogFont(const QJsonObject &fontConfigLog);
 
-    void saveLogFont(const QJsonObject &logFontConfig);
+    void saveLogFont(const QJsonObject &fontConfigLog);
 
 private:
     void settingApply();
@@ -30,11 +31,13 @@ private:
     void settingSave();
 
     QStackedWidget *m_settingStackedWidget{};
-    LogFontSetting *m_logFontSettingWidget{};
+    FontSettingLog *m_fontSettingLogWidget{};
+    FontSettingScript *m_fontSettingScriptWidget{};
 
     enum {
-        BLANKSETTING,
-        LOGFONTSETTING
+        BLANK_SETTING,
+        FONT_SETTING_LOG,
+        FONT_SETTING_SCRIPT
     };
 };
 
