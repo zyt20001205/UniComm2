@@ -451,10 +451,14 @@ void MainWindow::menuInit() {
                 {"fontSizeLog", logConfig["fontSize"].toInt()},
                 {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
                 {"fontSizeScript", scriptConfig["fontSize"].toInt()},
-                {"backgroundErrorScript",scriptConfig["backgroundError"].toString()},
-                {"backgroundWarningScript",scriptConfig["backgroundWarning"].toString()},
-                {"backgroundInfoScript",scriptConfig["backgroundInfo"].toString()},
-                {"backgroundHintScript",scriptConfig["backgroundHint"].toString()}
+                {"indicatorErrorStyleScript", scriptConfig["indicatorErrorStyle"].toInt()},
+                {"indicatorErrorColorScript", scriptConfig["indicatorErrorColor"].toString()},
+                {"indicatorWarningStyleScript", scriptConfig["indicatorWarningStyle"].toInt()},
+                {"indicatorWarningColorScript", scriptConfig["indicatorWarningColor"].toString()},
+                {"indicatorInfoStyleScript", scriptConfig["indicatorInfoStyle"].toInt()},
+                {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
+                {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
+                {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {

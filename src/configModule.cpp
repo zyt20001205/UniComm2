@@ -94,10 +94,14 @@ void ConfigModule::configGenerate() {
                     {"formatting", "Ctrl+Alt+L"},
                     {"fontFamily", "Consolas"},
                     {"fontSize", 12},
-                    {"backgroundError", "#ffe6e6"},
-                    {"backgroundWarning", "#fff5e6"},
-                    {"backgroundInfo", "#e6f0fa"},
-                    {"backgroundHint", "#f5f5f5"}
+                    {"indicatorErrorStyle", 8},
+                    {"indicatorErrorColor", "#ffe6e6"},
+                    {"indicatorWarningStyle", 8},
+                    {"indicatorWarningColor", "#fff5e6"},
+                    {"indicatorInfoStyle", 8},
+                    {"indicatorInfoColor", "#e6f0fa"},
+                    {"indicatorHintStyle", 8},
+                    {"indicatorHintColor", "#f5f5f5"}
                 },
             },
             {
