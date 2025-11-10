@@ -85,6 +85,7 @@ qt_add_executable(UniComm src/main.cpp
         include/scriptModule/structureModule.h
         include/scriptModule/threadpoolModule.h
         include/scriptModule/welcomePage.h
+        include/settingModule/colorSettingScript.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
         include/settingModule/settingModule.h
@@ -133,6 +134,7 @@ qt_add_executable(UniComm src/main.cpp
         src/scriptModule/structureModule.cpp
         src/scriptModule/threadpoolModule.cpp
         src/scriptModule/welcomePage.cpp
+        src/settingModule/colorSettingScript.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
         src/settingModule/settingModule.cpp

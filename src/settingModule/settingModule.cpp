@@ -8,6 +8,7 @@
 #include <QStandardItemModel>
 #include <QTreeView>
 
+#include "settingModule/colorSettingScript.h"
 #include "settingModule/fontSettingLog.h"
 #include "settingModule/fontSettingScript.h"
 
@@ -16,14 +17,15 @@ SettingModule::SettingModule(QWidget *parent)
     : QDialog(parent),
       m_settingStackedWidget(new QStackedWidget()),
       m_fontSettingLogWidget(new FontSettingLog()),
-      m_fontSettingScriptWidget(new FontSettingScript()) {
+      m_fontSettingScriptWidget(new FontSettingScript()),
+      m_colorSettingScriptWidget(new ColorSettingScript()) {
     auto *layout = new QVBoxLayout(this); //NOLINT
     auto *splitter = new QSplitter(); // NOLINT
     layout->addWidget(splitter);
 
     auto *settingTreeView = new QTreeView(); // NOLINT
     splitter->addWidget(settingTreeView);
-    settingTreeView->setFont(QFont("Consolas", 14));
+    settingTreeView->setFont(QFont("Segoe UI", 12));
     settingTreeView->setHeaderHidden(true);
     auto *settingTreeModel = new QStandardItemModel(); // NOLINT
     settingTreeView->setModel(settingTreeModel);
@@ -36,6 +38,12 @@ SettingModule::SettingModule(QWidget *parent)
     auto *fontSettingScript = new QStandardItem(tr("Script Module")); // NOLINT
     fontSetting->appendRow(fontSettingScript);
     fontSettingScript->setData(FONT_SETTING_SCRIPT, Qt::UserRole + 1);
+    // color setting
+    auto *colorSetting = new QStandardItem(tr("Color Setting")); // NOLINT
+    settingTreeModel->appendRow(colorSetting);
+    auto *colorSettingScript = new QStandardItem(tr("Script Module")); // NOLINT
+    colorSetting->appendRow(colorSettingScript);
+    colorSettingScript->setData(COLOR_SETTING_SCRIPT, Qt::UserRole + 1);
 
     connect(settingTreeView, &QTreeView::clicked, this, [this, settingTreeModel](const QModelIndex &index) {
         const QStandardItem *item = settingTreeModel->itemFromIndex(index);
@@ -47,6 +55,7 @@ SettingModule::SettingModule(QWidget *parent)
     m_settingStackedWidget->addWidget(new QWidget());
     m_settingStackedWidget->addWidget(m_fontSettingLogWidget);
     m_settingStackedWidget->addWidget(m_fontSettingScriptWidget);
+    m_settingStackedWidget->addWidget(m_colorSettingScriptWidget);
     m_settingStackedWidget->setCurrentIndex(0);
 
     splitter->setStretchFactor(0, 0);
@@ -79,6 +88,12 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
     fontConfigScript["fontFamily"] = settingConfig["fontFamilyScript"].toString();
     fontConfigScript["fontSize"] = settingConfig["fontSizeScript"].toInt();
     m_fontSettingScriptWidget->settingImport(fontConfigScript);
+    QJsonObject colorConfigScript = {};
+    colorConfigScript["backgroundError"] = settingConfig["backgroundErrorScript"].toString();
+    colorConfigScript["backgroundWarning"] = settingConfig["backgroundWarningScript"].toString();
+    colorConfigScript["backgroundInfo"] = settingConfig["backgroundInfoScript"].toString();
+    colorConfigScript["backgroundHint"] = settingConfig["backgroundHintScript"].toString();
+    m_colorSettingScriptWidget->settingImport(colorConfigScript);
 }
 
 // SettingModule private

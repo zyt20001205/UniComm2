@@ -7,6 +7,7 @@
 class QStackedWidget;
 class QTreeView;
 
+class ColorSettingScript;
 class FontSettingLog;
 class FontSettingScript;
 
@@ -37,11 +38,13 @@ private:
     QStackedWidget *m_settingStackedWidget{};
     FontSettingLog *m_fontSettingLogWidget{};
     FontSettingScript *m_fontSettingScriptWidget{};
+    ColorSettingScript *m_colorSettingScriptWidget{};
 
     enum {
         BLANK_SETTING,
         FONT_SETTING_LOG,
-        FONT_SETTING_SCRIPT
+        FONT_SETTING_SCRIPT,
+        COLOR_SETTING_SCRIPT
     };
 };
 

@@ -21,9 +21,9 @@ FontSettingLog::FontSettingLog(QWidget *parent)
     fontFamilyLayout->setContentsMargins(0, 0, 0, 0);
     auto *fontFamilyLabel = new QLabel(tr("Font Family")); // NOLINT
     fontFamilyLayout->addWidget(fontFamilyLabel);
-    fontFamilyLabel->setFont(QFont("Consolas", 12));
+    fontFamilyLabel->setFont(QFont("Segoe UI", 12));
     fontFamilyLayout->addWidget(m_fontFamilyComboBox);
-    m_fontFamilyComboBox->setFont(QFont("Consolas", 12));
+    m_fontFamilyComboBox->setFont(QFont("Segoe UI", 12));
     connect(m_fontFamilyComboBox, &QFontComboBox::currentTextChanged, this, [this](const QString &fontFamily) {
         QFont font = m_fontPreviewTextEdit->font();
         font.setFamily(fontFamily);
@@ -36,9 +36,9 @@ FontSettingLog::FontSettingLog(QWidget *parent)
     fontSizeLayout->setContentsMargins(0, 0, 0, 0);
     auto *fontSizeLabel = new QLabel(tr("Font Size")); // NOLINT
     fontSizeLayout->addWidget(fontSizeLabel);
-    fontSizeLabel->setFont(QFont("Consolas", 12));
+    fontSizeLabel->setFont(QFont("Segoe UI", 12));
     fontSizeLayout->addWidget(m_fontSizeSpinBox);
-    m_fontSizeSpinBox->setFont(QFont("Consolas", 12));
+    m_fontSizeSpinBox->setFont(QFont("Segoe UI", 12));
     connect(m_fontSizeSpinBox, &QSpinBox::valueChanged, this, [this](const int &fontSize) {
         QFont font = m_fontPreviewTextEdit->font();
         font.setPointSize(fontSize);

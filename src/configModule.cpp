@@ -93,7 +93,11 @@ void ConfigModule::configGenerate() {
                     {"breakpointHash", QJsonObject{}},
                     {"formatting", "Ctrl+Alt+L"},
                     {"fontFamily", "Consolas"},
-                    {"fontSize", 12}
+                    {"fontSize", 12},
+                    {"backgroundError", "#ffe6e6"},
+                    {"backgroundWarning", "#fff5e6"},
+                    {"backgroundInfo", "#e6f0fa"},
+                    {"backgroundHint", "#f5f5f5"}
                 },
             },
             {
