@@ -220,6 +220,13 @@ void IndicatorSettingScript::settingImport(const QJsonObject &indicatorConfigScr
 
 QJsonObject IndicatorSettingScript::settingExport() const {
     QJsonObject indicatorConfigScript = {};
+    indicatorConfigScript["indicatorErrorStyle"] = m_indicatorErrorStyleComboBox->currentIndex();
     indicatorConfigScript["indicatorErrorColor"] = m_indicatorErrorColorButton->text();
+    indicatorConfigScript["indicatorWarningStyle"] = m_indicatorWarningStyleComboBox->currentIndex();
+    indicatorConfigScript["indicatorWarningColor"] = m_indicatorWarningColorButton->text();
+    indicatorConfigScript["indicatorInfoStyle"] = m_indicatorInfoStyleComboBox->currentIndex();
+    indicatorConfigScript["indicatorInfoColor"] = m_indicatorInfoColorButton->text();
+    indicatorConfigScript["indicatorHintStyle"] = m_indicatorHintStyleComboBox->currentIndex();
+    indicatorConfigScript["indicatorHintColor"] = m_indicatorHintColorButton->text();
     return indicatorConfigScript;
 }

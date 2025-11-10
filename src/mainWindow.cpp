@@ -293,6 +293,8 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
     connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);
     connect(m_settingModule, &SettingModule::saveScriptFont, m_scriptModule, &ScriptModule::scriptFontSave);
+    connect(m_settingModule, &SettingModule::reloadScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorReload);
+    connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
@@ -462,6 +464,7 @@ void MainWindow::menuInit() {
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {
+                workspaceSave();
             }
         });
     }

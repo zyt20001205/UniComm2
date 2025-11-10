@@ -38,6 +38,10 @@ public:
 
     void scriptFontSave(const QJsonObject &fontConfigScript);
 
+    void scriptIndicatorReload(const QJsonObject &indicatorConfigScript) const;
+
+    void scriptIndicatorSave(const QJsonObject &indicatorConfigScript);
+
     void scriptOpen(const QUrl &scriptUrl);
 
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);

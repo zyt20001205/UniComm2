@@ -38,6 +38,19 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_scriptEditor);
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorErrorColor"].toString()), INDICATOR_ERROR);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_ERROR);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWarningColor"].toString()), INDICATOR_WARNING);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_WARNING);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorInfoColor"].toString()), INDICATOR_INFO);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_INFO);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
     // read-only check
@@ -855,22 +868,6 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setMarkerBackgroundColor(QColor(20, 100, 20), MARKER_HEATMAP100);
 
     // set indicators
-    indicatorDefine(StraightBoxIndicator, INDICATOR_ERROR);
-    setIndicatorForegroundColor(QColor(255, 230, 230), INDICATOR_ERROR);
-    setIndicatorDrawUnder(true, INDICATOR_ERROR);
-
-    indicatorDefine(StraightBoxIndicator, INDICATOR_WARNING);
-    setIndicatorForegroundColor(QColor(255, 245, 230), INDICATOR_WARNING);
-    setIndicatorDrawUnder(true, INDICATOR_WARNING);
-
-    indicatorDefine(StraightBoxIndicator, INDICATOR_INFO);
-    setIndicatorForegroundColor(QColor(230, 240, 250), INDICATOR_INFO);
-    setIndicatorDrawUnder(true, INDICATOR_INFO);
-
-    indicatorDefine(StraightBoxIndicator, INDICATOR_HINT);
-    setIndicatorForegroundColor(QColor(245, 245, 245), INDICATOR_HINT);
-    setIndicatorDrawUnder(true, INDICATOR_HINT);
-
     indicatorDefine(StraightBoxIndicator, INDICATOR_HIGHLIGHT);
     setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_HIGHLIGHT);
     setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);

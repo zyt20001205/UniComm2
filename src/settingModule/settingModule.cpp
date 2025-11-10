@@ -109,6 +109,8 @@ void SettingModule::settingApply() {
     emit reloadLogFont(fontConfigLog);
     const QJsonObject fontConfigScript = m_fontSettingScriptWidget->settingExport();
     emit reloadScriptFont(fontConfigScript);
+    const QJsonObject indicatorConfigScript = m_indicatorSettingScriptWidget->settingExport();
+    emit reloadScriptIndicator(indicatorConfigScript);
 }
 
 void SettingModule::settingCancel() {
@@ -122,5 +124,8 @@ void SettingModule::settingSave() {
     const QJsonObject fontConfigScript = m_fontSettingScriptWidget->settingExport();
     emit reloadScriptFont(fontConfigScript);
     emit saveScriptFont(fontConfigScript);
+    const QJsonObject indicatorConfigScript = m_indicatorSettingScriptWidget->settingExport();
+    emit reloadScriptIndicator(indicatorConfigScript);
+    emit saveScriptIndicator(indicatorConfigScript);
     accept();
 }

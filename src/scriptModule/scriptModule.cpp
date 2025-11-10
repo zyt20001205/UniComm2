@@ -94,6 +94,35 @@ void ScriptModule::scriptFontSave(const QJsonObject &fontConfigScript) {
     m_scriptConfig["fontSize"] = fontConfigScript["fontSize"].toInt();
 }
 
+void ScriptModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScript) const {
+    for (const auto &scriptPage: m_scriptPageHash) {
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorErrorColor"].toString()), INDICATOR_ERROR);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_ERROR);
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWarningColor"].toString()), INDICATOR_WARNING);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_WARNING);
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorInfoColor"].toString()), INDICATOR_INFO);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_INFO);
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHintStyle"].toInt()), INDICATOR_HINT);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHintColor"].toString()), INDICATOR_HINT);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
+        scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptPage->m_scriptUrl]);
+    }
+}
+
+void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript) {
+    m_scriptConfig["indicatorErrorStyle"] = indicatorConfigScript["indicatorErrorStyle"].toInt();
+    m_scriptConfig["indicatorErrorColor"] = indicatorConfigScript["indicatorErrorColor"].toString();
+    m_scriptConfig["indicatorWarningStyle"] = indicatorConfigScript["indicatorWarningStyle"].toInt();
+    m_scriptConfig["indicatorWarningColor"] = indicatorConfigScript["indicatorWarningColor"].toString();
+    m_scriptConfig["indicatorInfoStyle"] = indicatorConfigScript["indicatorInfoStyle"].toInt();
+    m_scriptConfig["indicatorInfoColor"] = indicatorConfigScript["indicatorInfoColor"].toString();
+    m_scriptConfig["indicatorHintStyle"] = indicatorConfigScript["indicatorHintStyle"].toInt();
+    m_scriptConfig["indicatorHintColor"] = indicatorConfigScript["indicatorHintColor"].toString();
+}
+
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     // open page
     if (!m_scriptPageHash.contains(scriptUrl)) {

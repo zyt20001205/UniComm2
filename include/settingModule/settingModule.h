@@ -30,6 +30,10 @@ signals:
 
     void saveScriptFont(const QJsonObject &fontConfigScript);
 
+    void reloadScriptIndicator(const QJsonObject &indicatorConfigScript);
+
+    void saveScriptIndicator(const QJsonObject &indicatorConfigScript);
+
 private:
     void settingApply();
 
