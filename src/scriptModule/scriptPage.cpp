@@ -1033,6 +1033,10 @@ void ScriptEditor::indicatorInsert(const int type, const int lineFrom, const int
     });
 }
 
+void ScriptEditor::indicatorRemove(const int type) {
+
+}
+
 void ScriptEditor::markerInsert(const int type, int line, const int time) {
     line--;
     markerAdd(line, type);

@@ -38,7 +38,7 @@ signals:
 
     void openScript(const QUrl &scriptUrl);
 
-    void showMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -86,7 +86,7 @@ public:
 signals:
     void openScript(const QUrl &scriptUrl);
 
-    void showMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
 private:
     LuaInterpreter *m_interpreter{};

@@ -23,7 +23,7 @@ StructureModule::StructureModule()
     m_documentSymbolTreeView->setModel(m_documentSymbolTreeModel);
     connect(m_documentSymbolTreeView, &QTreeView::clicked, this, [this](const QModelIndex &index) {
         const int line = index.data(Qt::UserRole + 1).toInt() + 1;
-        emit showMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
+        emit insertMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
     });
 }
 

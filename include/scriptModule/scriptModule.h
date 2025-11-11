@@ -50,6 +50,8 @@ public:
 
     void indicatorInsert(const QUrl &scriptUrl, int type, int lineFrom, int indexFrom, int lineTo, int indexTo, int time = -1);
 
+    void indicatorRemove(const QUrl &scriptUrl, int type);
+
     void markerInsert(const QUrl &scriptUrl, int type, int line, int time = -1);
 
     void markerRemove(const QUrl &scriptUrl, int type, int line = -1);

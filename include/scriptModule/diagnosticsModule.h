@@ -22,7 +22,7 @@ signals:
 
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
 
-    void showIndicator(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
     void diagnosticsClose(int index);
