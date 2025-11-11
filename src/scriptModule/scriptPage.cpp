@@ -37,7 +37,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->setSpacing(0);
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_scriptEditor);
+    // font
     m_scriptEditor->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+    // indicator diagnostic
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorErrorColor"].toString()), INDICATOR_ERROR);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_ERROR);
@@ -50,6 +52,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    // indicator search
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchResultStyle"].toInt()), INDICATOR_SEARCH_RESULT);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchResultColor"].toString()), INDICATOR_SEARCH_RESULT);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchCurrentStyle"].toInt()), INDICATOR_SEARCH_CURRENT);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchCurrentColor"].toString()), INDICATOR_SEARCH_CURRENT);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
 
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -867,14 +876,6 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     indicatorDefine(StraightBoxIndicator, INDICATOR_HIGHLIGHT);
     setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_HIGHLIGHT);
     setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
-
-    indicatorDefine(StraightBoxIndicator, INDICATOR_SEARCH_RESULT);
-    setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_SEARCH_RESULT);
-    setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
-
-    indicatorDefine(StraightBoxIndicator, INDICATOR_SEARCH_CURRENT);
-    setIndicatorForegroundColor(QColor(196, 114, 51), INDICATOR_SEARCH_CURRENT);
-    setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
 
     indicatorDefine(TextColorIndicator, INDICATOR_HYPERLINK_FONT);
     setIndicatorForegroundColor(QColor(0, 109, 204), INDICATOR_HYPERLINK_FONT);

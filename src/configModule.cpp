@@ -101,7 +101,11 @@ void ConfigModule::configGenerate() {
                     {"indicatorInfoStyle", 8},
                     {"indicatorInfoColor", "#e6f0fa"},
                     {"indicatorHintStyle", 8},
-                    {"indicatorHintColor", "#f5f5f5"}
+                    {"indicatorHintColor", "#f5f5f5"},
+                    {"indicatorSearchResultStyle", 8},
+                    {"indicatorSearchResultColor", "#fcd47e"},
+                    {"indicatorSearchCurrentStyle", 8},
+                    {"indicatorSearchCurrentColor", "#c47233"},
                 },
             },
             {

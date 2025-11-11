@@ -1,13 +1,13 @@
 #ifndef UNICOMM_INDICATORSETTINGSCRIPT_H
 #define UNICOMM_INDICATORSETTINGSCRIPT_H
 
-#include <QWidget>
+#include <QScrollArea>
 
 class QComboBox;
 class QPushButton;
 class QsciScintilla;
 
-class IndicatorSettingScript final : public QWidget {
+class IndicatorSettingScript final : public QScrollArea {
     Q_OBJECT
 
 public:
@@ -30,6 +30,11 @@ private:
     QComboBox *m_indicatorHintStyleComboBox{};
     QPushButton *m_indicatorHintColorButton{};
     QsciScintilla *m_diagnosticPreviewEditor{};
+    QComboBox *m_indicatorSearchResultStyleComboBox{};
+    QPushButton *m_indicatorSearchResultColorButton{};
+    QComboBox *m_indicatorSearchCurrentStyleComboBox{};
+    QPushButton *m_indicatorSearchCurrentColorButton{};
+    QsciScintilla *m_searchPreviewEditor{};
 };
 
 #endif //UNICOMM_INDICATORSETTINGSCRIPT_H
