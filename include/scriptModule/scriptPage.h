@@ -75,8 +75,6 @@ private slots:
 
     void charAdded(int ch);
 
-    void dwellStart(int pos, int x, int y);
-
     void marginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
@@ -243,6 +241,8 @@ signals:
 
     void requestFormatting();
 
+    void requestHover(int line, int character);
+
     void setStat(int current, int total);
 
 protected:
@@ -265,14 +265,16 @@ private:
 
     void duplicateHandle();
 
+    void dwellHandle();
+
     void searchHandle();
 
     QString m_searchText = {};
     int m_searchFlag = 0;
-    QList<QList<int>> m_searchList;
+    QList<QList<int>> m_searchList{};
     int m_currentIndex = 0;
-    // int
     QHash<QChar, QChar> m_autoPairHash{};
+    QTimer *m_dwellTimer{};
 };
 
 #endif //UNICOMM_SCRIPTPAGE_H

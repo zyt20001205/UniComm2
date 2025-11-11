@@ -74,7 +74,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // connect signals
     connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
-    connect(m_scriptEditor, SIGNAL(SCN_DWELLSTART(int,int,int)), this, SLOT(dwellStart(int,int,int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
     connect(m_scriptEditor, &ScriptEditor::dockRight, this, [this] {
         const auto controller = dockWidget();
@@ -119,6 +118,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestHover, this, &ScriptPage::hoverRequest);
     connect(m_scriptEditor, &ScriptEditor::setStat, m_searchWidget, &SearchWidget::statSet);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
     connect(m_searchWidget, &SearchWidget::searchText, m_scriptEditor, &ScriptEditor::textSearch);
@@ -404,16 +404,6 @@ void ScriptPage::charAdded(const int ch) {
         completionRequest();
         signatureHelpRequest();
     }
-}
-
-void ScriptPage::dwellStart(const int pos, const int x, const int y) {
-    const QPoint globalPos = QCursor::pos();
-    QPoint localPos = m_scriptEditor->mapFromGlobal(globalPos);
-    if (!m_scriptEditor->rect().contains(localPos)) return;
-    int line, character;
-    m_scriptEditor->lineIndexFromPosition(pos, &line, &character);
-    if (line == 0 && character == 0) return;
-    hoverRequest(line, character);
 }
 
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
@@ -834,7 +824,15 @@ void SearchWidget::statSet(int current, const int total) const {
 
 // ScriptEditor public
 ScriptEditor::ScriptEditor(QWidget *parent)
-    : QsciScintilla(parent) {
+    : QsciScintilla(parent),
+      m_autoPairHash{
+          {'(', ')'},
+          {'[', ']'},
+          {'{', '}'},
+          {'"', '"'},
+          {'\'', '\''},
+      },
+      m_dwellTimer(new QTimer(this)) {
     // set markers
     markerDefine(Circle, MARKER_BREAKPOINT);
     setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
@@ -922,14 +920,12 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     QsciScintilla::setBackspaceUnindents(true);
     QsciScintilla::setIndentationGuides(true);
     QsciScintilla::setTabWidth(4);
-    SendScintilla(QsciScintillaBase::SCI_SETMOUSEDWELLTIME, 1000); // NOLINT
     // connect auto pair
     connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(pairHandle(int)));
-    m_autoPairHash['('] = ')';
-    m_autoPairHash['['] = ']';
-    m_autoPairHash['{'] = '}';
-    m_autoPairHash['"'] = '"';
-    m_autoPairHash['\''] = '\'';
+    // init dwell timer
+    m_dwellTimer->setSingleShot(true);
+    m_dwellTimer->setInterval(1000);
+    connect(m_dwellTimer, &QTimer::timeout, this, &ScriptEditor::dwellHandle);
 }
 
 void ScriptEditor::textSearch(const QString &text, const int flag) {
@@ -1079,6 +1075,7 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
 }
 
 void ScriptEditor::keyPressEvent(QKeyEvent *event) {
+    m_dwellTimer->stop();
     if (isReadOnly()) {
         emit requestPermission();
         event->accept();
@@ -1115,17 +1112,17 @@ void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
 
 void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
     if (event->modifiers() == Qt::ControlModifier) {
+        m_dwellTimer->stop();
         indicatorRemove(INDICATOR_HYPERLINK_FONT);
         indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
         viewport()->setCursor(Qt::IBeamCursor);
-
-        const QPoint mousePos = mapFromGlobal(QCursor::pos());
-        const int x = mousePos.x();
-        const int y = mousePos.y();
-        if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, x, y); charPos != -1) {
+        const QPoint localPos = mapFromGlobal(QCursor::pos());
+        if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y()); charPos != -1) {
             const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
             const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
             if (wordStart < wordEnd) {
+                const int luaToken = SendScintilla(SCI_GETSTYLEAT, charPos);
+                if (luaToken >= LUATOKEN_MACRO || luaToken == 0) return;
                 const int lineFrom = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
                 const int indexFrom = wordStart - SendScintilla(SCI_POSITIONFROMLINE, lineFrom);
                 const int lineTo = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
@@ -1133,24 +1130,17 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
                 indicatorInsert(INDICATOR_HYPERLINK_FONT, lineFrom, indexFrom, lineTo, indexTo);
                 indicatorInsert(INDICATOR_HYPERLINK_UNDERLINE, lineFrom, indexFrom, lineTo, indexTo);
                 viewport()->setCursor(Qt::PointingHandCursor);
-            } else {
-                indicatorRemove(INDICATOR_HYPERLINK_FONT);
-                indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
-                viewport()->setCursor(Qt::IBeamCursor);
             }
-        } else {
-            indicatorRemove(INDICATOR_HYPERLINK_FONT);
-            indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
-            viewport()->setCursor(Qt::IBeamCursor);
         }
         event->accept();
         return;
     }
+    m_dwellTimer->start();
     QsciScintilla::mouseMoveEvent(event);
 }
 
 void ScriptEditor::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
+    if (event->modifiers() == Qt::ControlModifier && event->button() == Qt::LeftButton) {
         const QPoint mousePos = event->pos();
         const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, mousePos.x(), mousePos.y());
         if (charPos != -1) {
@@ -1201,6 +1191,16 @@ void ScriptEditor::duplicateHandle() {
     endUndoAction();
 }
 
+void ScriptEditor::dwellHandle() {
+    const QPoint localPos = mapFromGlobal(QCursor::pos());
+    if (!rect().contains(localPos)) return;
+    const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+    if (charPos == -1) return;
+    int line, character;
+    lineIndexFromPosition(charPos, &line, &character);
+    if (line == 0 && character == 0) return;
+    emit requestHover(line, character);
+}
 
 void ScriptEditor::searchHandle() {
     // clear previous search current
