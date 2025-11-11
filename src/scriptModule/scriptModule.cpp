@@ -198,22 +198,13 @@ void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, con
 void ScriptModule::markerInsert(const QUrl &scriptUrl, const int type, const int line, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_scriptEditor->markerAdd(line - 1, type);
-    scriptPage->m_scriptEditor->ensureLineVisible(line - 1);
-    if (time == -1) return;
-    QTimer::singleShot(time, [scriptPage, line, type] {
-        scriptPage->m_scriptEditor->markerDelete(line - 1, type);
-    });
+    scriptPage->m_scriptEditor->markerInsert(type, line, time);
 }
 
 void ScriptModule::markerRemove(const QUrl &scriptUrl, const int type, const int line) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    if (line == -1) {
-        scriptPage->m_scriptEditor->markerDeleteAll(type);
-    } else {
-        scriptPage->m_scriptEditor->markerDelete(line - 1, type);
-    }
+    scriptPage->m_scriptEditor->markerRemove(type, line);
 }
 
 void ScriptModule::annotationInsert(const QUrl &scriptUrl, const int line, const QString &annotation) {

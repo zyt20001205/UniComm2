@@ -1025,6 +1025,29 @@ void ScriptEditor::textReplaceAll(const QString &text) {
     textSearch(m_searchText, m_searchFlag);
 }
 
+// void ScriptEditor::indicatorInsert() {
+//     fillIndicatorRange();
+// }
+
+void ScriptEditor::markerInsert(const int type, int line, const int time) {
+    line--;
+    markerAdd(line, type);
+    ensureLineVisible(line);
+    if (time == -1) return;
+    QTimer::singleShot(time, [this, line, type] {
+        markerDelete(line, type);
+    });
+}
+
+void ScriptEditor::markerRemove(const int type, int line) {
+    if (line == -1) {
+        markerDeleteAll(type);
+    } else {
+        line--;
+        markerDelete(line, type);
+    }
+}
+
 // ScriptEditor protected
 void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
@@ -1159,7 +1182,7 @@ void ScriptEditor::searchHandle() {
     const int docLength = SendScintilla(SCI_GETLENGTH);
     SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
-    if (m_searchList.length() == 0) {
+    if (m_searchList.empty()) {
         m_currentIndex = 0;
     } else {
         if (m_currentIndex < 0) m_currentIndex = 0;

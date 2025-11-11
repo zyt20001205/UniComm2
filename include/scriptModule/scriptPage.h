@@ -220,6 +220,10 @@ public:
 
     void textReplaceAll(const QString &text);
 
+    void markerInsert(int type, int line, int time = -1);
+
+    void markerRemove(int type, int line = -1);
+
 signals:
     void dockRight();
 
