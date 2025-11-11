@@ -192,10 +192,10 @@ void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const 
     scriptPage->m_scriptEditor->indicatorInsert(type, lineFrom, indexFrom, lineTo, indexTo, time);
 }
 
-void ScriptModule::indicatorRemove(const QUrl &scriptUrl, const int type) {
+void ScriptModule::indicatorRemove(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_scriptEditor->indicatorRemove(type);
+    scriptPage->m_scriptEditor->indicatorRemove(type, lineFrom, indexFrom, lineTo, indexTo);
 }
 
 void ScriptModule::markerInsert(const QUrl &scriptUrl, const int type, const int line, const int time) {

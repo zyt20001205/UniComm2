@@ -50,7 +50,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
-    
+
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
     // read-only check
@@ -212,12 +212,10 @@ void ScriptPage::scriptClose() {
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) const {
     // clear previous diagnostics
-    const int lastLine = m_scriptEditor->lines() - 1;
-    const int lastIndex = m_scriptEditor->lineLength(lastLine);
-    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_ERROR);
-    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_WARNING);
-    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_INFO);
-    m_scriptEditor->clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HINT);
+    m_scriptEditor->indicatorRemove(INDICATOR_ERROR);
+    m_scriptEditor->indicatorRemove(INDICATOR_WARNING);
+    m_scriptEditor->indicatorRemove(INDICATOR_INFO);
+    m_scriptEditor->indicatorRemove(INDICATOR_HINT);
     // publish diagnostics
     int row = 0;
     for (const auto &diagnostic: diagnosticsArray) {
@@ -230,7 +228,7 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) const {
         const int startCharacter = diagnosticStartPos["character"].toInt();
         const int endLine = diagnosticEndPos["line"].toInt();
         const int endCharacter = diagnosticEndPos["character"].toInt();
-        m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, severity);
+        m_scriptEditor->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
         row++;
     }
 }
@@ -880,9 +878,13 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setIndicatorForegroundColor(QColor(196, 114, 51), INDICATOR_SEARCH_CURRENT);
     setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
 
-    indicatorDefine(PlainIndicator, INDICATOR_HYPERLINK);
-    setIndicatorForegroundColor(QColor(0, 0, 255), INDICATOR_HYPERLINK);
-    setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+    indicatorDefine(TextColorIndicator, INDICATOR_HYPERLINK_FONT);
+    setIndicatorForegroundColor(QColor(0, 109, 204), INDICATOR_HYPERLINK_FONT);
+    setIndicatorDrawUnder(true, INDICATOR_HYPERLINK_FONT);
+
+    indicatorDefine(PlainIndicator, INDICATOR_HYPERLINK_UNDERLINE);
+    setIndicatorForegroundColor(QColor(0, 109, 204), INDICATOR_HYPERLINK_UNDERLINE);
+    setIndicatorDrawUnder(true, INDICATOR_HYPERLINK_UNDERLINE);
 
     // set margins
     setMarginType(0, NumberMargin);
@@ -1033,8 +1035,14 @@ void ScriptEditor::indicatorInsert(const int type, const int lineFrom, const int
     });
 }
 
-void ScriptEditor::indicatorRemove(const int type) {
-
+void ScriptEditor::indicatorRemove(const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
+    if (lineFrom == -1) {
+        const int lastLine = lines() - 1;
+        const int lastIndex = lineLength(lastLine);
+        clearIndicatorRange(0, 0, lastLine, lastIndex, type);
+    } else {
+        clearIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, type);
+    }
 }
 
 void ScriptEditor::markerInsert(const int type, int line, const int time) {
@@ -1096,9 +1104,45 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
     QsciScintilla::keyPressEvent(event);
 }
 
+void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_Control) {
+        indicatorRemove(INDICATOR_HYPERLINK_FONT);
+        indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+        viewport()->setCursor(Qt::IBeamCursor);
+    }
+    QsciScintilla::keyReleaseEvent(event);
+}
+
 void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
     if (event->modifiers() == Qt::ControlModifier) {
-        definitionHandle();
+        indicatorRemove(INDICATOR_HYPERLINK_FONT);
+        indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+        viewport()->setCursor(Qt::IBeamCursor);
+
+        const QPoint mousePos = mapFromGlobal(QCursor::pos());
+        const int x = mousePos.x();
+        const int y = mousePos.y();
+        if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, x, y); charPos != -1) {
+            const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
+            const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
+            if (wordStart < wordEnd) {
+                const int lineFrom = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
+                const int indexFrom = wordStart - SendScintilla(SCI_POSITIONFROMLINE, lineFrom);
+                const int lineTo = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
+                const int indexTo = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, lineTo);
+                indicatorInsert(INDICATOR_HYPERLINK_FONT, lineFrom, indexFrom, lineTo, indexTo);
+                indicatorInsert(INDICATOR_HYPERLINK_UNDERLINE, lineFrom, indexFrom, lineTo, indexTo);
+                viewport()->setCursor(Qt::PointingHandCursor);
+            } else {
+                indicatorRemove(INDICATOR_HYPERLINK_FONT);
+                indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+                viewport()->setCursor(Qt::IBeamCursor);
+            }
+        } else {
+            indicatorRemove(INDICATOR_HYPERLINK_FONT);
+            indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+            viewport()->setCursor(Qt::IBeamCursor);
+        }
         event->accept();
         return;
     }
@@ -1106,7 +1150,7 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void ScriptEditor::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton && m_jumpValid) {
+    if (event->button() == Qt::LeftButton) {
         const QPoint mousePos = event->pos();
         const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, mousePos.x(), mousePos.y());
         if (charPos != -1) {
@@ -1157,33 +1201,6 @@ void ScriptEditor::duplicateHandle() {
     endUndoAction();
 }
 
-void ScriptEditor::definitionHandle() {
-    const int lastLine = lines() - 1;
-    const int lastIndex = lineLength(lastLine);
-    clearIndicatorRange(0, 0, lastLine, lastIndex, INDICATOR_HYPERLINK);
-    const QPoint mousePos = mapFromGlobal(QCursor::pos());
-    const int x = mousePos.x();
-    const int y = mousePos.y();
-    if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, x, y); charPos != -1) {
-        const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
-        const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
-        if (wordStart < wordEnd) {
-            m_jumpValid = true;
-            viewport()->setCursor(Qt::PointingHandCursor);
-            const int startLine = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
-            const int startIndex = wordStart - SendScintilla(SCI_POSITIONFROMLINE, startLine);
-            const int endLine = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
-            const int endIndex = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, endLine);
-            fillIndicatorRange(startLine, startIndex, endLine, endIndex, INDICATOR_HYPERLINK);
-        } else {
-            m_jumpValid = false;
-            viewport()->setCursor(Qt::IBeamCursor);
-        }
-    } else {
-        m_jumpValid = false;
-        viewport()->setCursor(Qt::IBeamCursor);
-    }
-}
 
 void ScriptEditor::searchHandle() {
     // clear previous search current

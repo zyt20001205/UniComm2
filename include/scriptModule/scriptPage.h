@@ -222,7 +222,7 @@ public:
 
     void indicatorInsert(int type, int lineFrom, int indexFrom, int lineTo, int indexTo, int time = -1);
 
-    void indicatorRemove(int type);
+    void indicatorRemove(int type, int lineFrom = -1, int indexFrom = -1, int lineTo = -1, int indexTo = -1);
 
     void markerInsert(int type, int line, int time = -1);
 
@@ -250,9 +250,12 @@ protected:
 
     void keyPressEvent(QKeyEvent *event) override;
 
+    void keyReleaseEvent(QKeyEvent *event) override;
+
     void mouseMoveEvent(QMouseEvent *event) override;
 
     void mousePressEvent(QMouseEvent *event) override;
+
 
 private slots:
     void pairHandle(int ascii);
@@ -262,8 +265,6 @@ private:
 
     void duplicateHandle();
 
-    void definitionHandle();
-
     void searchHandle();
 
     QString m_searchText = {};
@@ -272,7 +273,6 @@ private:
     int m_currentIndex = 0;
     // int
     QHash<QChar, QChar> m_autoPairHash{};
-    bool m_jumpValid = false;
 };
 
 #endif //UNICOMM_SCRIPTPAGE_H
