@@ -220,6 +220,8 @@ public:
 
     void textReplaceAll(const QString &text);
 
+    void indicatorInsert(int type, int lineFrom, int indexFrom, int lineTo, int indexTo, int time = -1);
+
     void markerInsert(int type, int line, int time = -1);
 
     void markerRemove(int type, int line = -1);

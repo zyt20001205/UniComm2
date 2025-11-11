@@ -186,13 +186,10 @@ void ScriptModule::cursorPositionGet() const {
     };
 }
 
-void ScriptModule::indicatorShow(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
+void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_scriptEditor->fillIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-    QTimer::singleShot(time, [scriptPage, startLine, startCharacter, endLine, endCharacter] {
-        scriptPage->m_scriptEditor->clearIndicatorRange(startLine, startCharacter, endLine, endCharacter, INDICATOR_HIGHLIGHT);
-    });
+    scriptPage->m_scriptEditor->indicatorInsert(type, lineFrom, indexFrom, lineTo, indexTo);
 }
 
 void ScriptModule::markerInsert(const QUrl &scriptUrl, const int type, const int line, const int time) {
@@ -264,7 +261,7 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
         const int startCharacter = startObject["character"].toInt();
         const int endLine = endObject["line"].toInt();
         const int endCharacter = endObject["character"].toInt();
-        indicatorShow(definitionUrl, startLine, startCharacter, endLine, endCharacter, 1000);
+        indicatorInsert(INDICATOR_HIGHLIGHT, definitionUrl, startLine, startCharacter, endLine, endCharacter, 1000);
         // set cursor
         cursorPositionSet(definitionUrl, startLine, startCharacter);
     }

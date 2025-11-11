@@ -48,7 +48,7 @@ public:
 
     void cursorPositionGet() const;
 
-    void indicatorShow(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void indicatorInsert(const QUrl &scriptUrl, int type, int lineFrom, int indexFrom, int lineTo, int indexTo, int time = -1);
 
     void markerInsert(const QUrl &scriptUrl, int type, int line, int time = -1);
 

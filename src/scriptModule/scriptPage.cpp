@@ -1025,9 +1025,13 @@ void ScriptEditor::textReplaceAll(const QString &text) {
     textSearch(m_searchText, m_searchFlag);
 }
 
-// void ScriptEditor::indicatorInsert() {
-//     fillIndicatorRange();
-// }
+void ScriptEditor::indicatorInsert(const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
+    fillIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, type);
+    if (time == -1) return;
+    QTimer::singleShot(time, [this, lineFrom, indexFrom, lineTo, indexTo, type] {
+        clearIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, type);
+    });
+}
 
 void ScriptEditor::markerInsert(const int type, int line, const int time) {
     line--;
