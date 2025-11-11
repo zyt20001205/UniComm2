@@ -13,9 +13,9 @@
 IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
     : QScrollArea(parent),
       m_indicatorStyleList{
-          tr("Plain"), tr("Squiggle"), tr("TT"), tr("Diagonal"), tr("Strike"), tr("Hidden"), tr("Box"), tr("Round Box"),
-          tr("Straight Box"), tr("Full Box"), tr("Dashes"), tr("Dots"), tr("Squiggle Low"), tr("Dot Box"), tr("Squiggle Pixmap"), tr("Thick Composition"),
-          tr("Thin Composition"), tr("Text Color"), tr("Triangle"), tr("Triangle Character"), tr("Gradient"), tr("Centre Gradient")
+          tr("Plain"), tr("Squiggle"), tr("TT"), tr("Diagonal"), tr("Strike"), tr("Hidden"), tr("Box"), tr("Round Box"), tr("Straight Box"), tr("Dashes"),
+          tr("Dots"), tr("Squiggle Low"), tr("Dot Box"), tr("Squiggle Pixmap"), tr("Thick Composition"), tr("Thin Composition"), tr("Full Box"), tr("Text Color"),
+          tr("Triangle"), tr("Triangle Character"), tr("Gradient"), tr("Centre Gradient")
       },
       m_indicatorErrorStyleComboBox(new QComboBox()),
       m_indicatorErrorColorButton(new QPushButton()),

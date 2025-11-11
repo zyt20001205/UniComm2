@@ -197,7 +197,7 @@ flowchart LR
 
 - [How is data processed in the write method?](#write-method-data-process)
 
-- [What's the difference between sync and async mode in the read method?](#sync--async-mode)
+- [How does timeout argument work in the read method?](#difference-between-blocking--non-blocking)
 
 ## Modbus APIS
 
@@ -248,8 +248,8 @@ flowchart LR
 | comment (Ctrl+/)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | duplicate line (Ctrl+D) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | auto pair ( [ { \" '    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| search                  | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| replace                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| search                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| replace                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ## Supported LSP Specifications
 
@@ -389,6 +389,18 @@ Ctrl+Alt+L
 
 ![multithreading](resources/assets/debug/multithreading.gif)
 
+# Data Process
+
+## Database Module
+
+### APIS
+
+|      APIS      |                               Status                                |                           
+|:--------------:|:-------------------------------------------------------------------:|
+| database.list  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| database.write | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| database.clear | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
 # FAQ
 
 ## write method data process
@@ -439,13 +451,13 @@ flowchart TB
     step1 -->|suffix appended| step2
 ```
 
-## sync & async mode
+## difference between blocking & non-blocking
 
-### unicomm sync dataflow
+### blocking dataflow
 
 ```lua
-port.writeText("Actual Port", "How are you?")
-local rx = port.readText("Actual Port", 1000, 6)
+port.write("Actual Port", "How are you?")
+local rx = port.read("Actual Port", 1000, 6)
 ```
 
 ```mermaid
@@ -453,14 +465,13 @@ sequenceDiagram
     participant Lua Thread
     participant Port Thread
     participant Physical Port
-    Lua Thread ->> Port Thread: writeData/writeText
+    Lua Thread ->> Port Thread: write
     Note over Lua Thread, Port Thread: "How are you?"
     activate Port Thread
-    Note over Port Thread: data process
     Port Thread ->> Physical Port: dataflow
     deactivate Port Thread
     Note over Port Thread, Physical Port: "/x48/x6F/x77..."
-    Lua Thread ->> Port Thread: readData/readText
+    Lua Thread ->> Port Thread: read
     activate Port Thread
     loop check every 10ms
         Physical Port ->> Port Thread: dataflow
@@ -468,24 +479,23 @@ sequenceDiagram
     deactivate Port Thread
     alt time <= 1000ms && length == 6bytes
         Note over Port Thread, Physical Port: "/x47/x72/x65..."
-        Note over Port Thread: data process
-        Port Thread ->> Lua Thread: return to lua
+        Port Thread ->> Lua Thread: return
         Note over Lua Thread, Port Thread: "Great!"
         Note over Lua Thread: rx = "Great!"
     else time > 1000ms || length != 6bytes
-        Port Thread ->> Lua Thread: return to lua
+        Port Thread ->> Lua Thread: return
         Note over Lua Thread, Port Thread: ""
         Note over Lua Thread: rx = ""
     end
 
 ```
 
-### unicomm async dataflow
+### non-blocking dataflow
 
 ```lua
-port.writeText("Actual Port", "How are you?")
+port.write("Actual Port", "How are you?")
 sleep(1000)
-local rx = port.readText("Actual Port", 0)
+local rx = port.read("Actual Port", 0)
 ```
 
 ```mermaid
@@ -494,11 +504,10 @@ sequenceDiagram
     participant Lua Thread
     participant Port Thread
     participant Physical Port
-    Lua Thread ->> Port Thread: writeData/writeText
+    Lua Thread ->> Port Thread: write
     activate Lua Thread
     Note over Lua Thread, Port Thread: "How are you?"
     activate Port Thread
-    Note over Port Thread: data process
     Port Thread ->> Physical Port: dataflow
     deactivate Port Thread
     Note over Port Thread, Physical Port: "/x48/x6F/x77..."
@@ -513,7 +522,7 @@ sequenceDiagram
         Note over Port Thread: buffer = "/x47/x72/x65..."
     end
     deactivate Port Thread
-    Port Thread ->> Lua Thread: readData/readText
+    Port Thread ->> Lua Thread: read
     Note over Lua Thread, Port Thread: rx = buffer
     deactivate Lua Thread
 
