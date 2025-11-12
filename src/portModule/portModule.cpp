@@ -146,13 +146,6 @@ void PortModule::resizeEvent(QResizeEvent *event) {
 void PortModule::portRemove(const int index) {
     QJsonObject portConfig = m_portConfig[index].toObject();
     QString portName = portConfig["portName"].toString();
-    const QMessageBox::StandardButton reply = QMessageBox::question(
-        nullptr,
-        tr("Remove Port"),
-        QString(tr("Are you sure to remove port %1?")).arg(portName),
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No);
-    if (reply != QMessageBox::Yes) return;
     // frontend
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);

@@ -83,6 +83,8 @@ signals:
 
     void openWorkspace();
 
+    void clearBreakpoint();
+
     void openScript(const QUrl &scriptUrl);
 
     void closeScript(const QUrl &scriptUrl);

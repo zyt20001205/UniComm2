@@ -275,6 +275,10 @@ void DebugModule::breakpointRemove(const QUrl &scriptUrl, const int line) const 
     }
 }
 
+void DebugModule::breakpointClear() const {
+    m_debugBreakpointsTableModel->setRowCount(0);
+}
+
 void DebugModule::debugStart(const QString &threadId, LuaInterpreter *interpreter) {
     m_interpreterHash.insert(threadId, interpreter);
     auto *debugPage = new DebugPage(interpreter); // NOLINT

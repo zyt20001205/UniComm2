@@ -13,10 +13,10 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
-    initializeNotification(g_workspaceUrl);
+    initializeNotification();
 }
 
-void LuaLanguageServer::workspaceOpen() const {
+void LuaLanguageServer::workspaceOpen() {
     didChangeWorkspaceFoldersNotification();
 }
 
@@ -54,8 +54,8 @@ void LuaLanguageServer::jsonNotification(const QString &method, const QJsonObjec
 }
 
 // LuaLanguageServer private
-void LuaLanguageServer::initializeNotification(const QUrl &workspaceUrl) {
-    const QString rootUriStr = workspaceUrl.toString();
+void LuaLanguageServer::initializeNotification() {
+    const QString rootUriStr = g_workspaceUrl.toString();
     const QJsonObject initializeParams{
         {"processId", QCoreApplication::applicationPid()},
         {"rootUri", rootUriStr},
@@ -67,12 +67,13 @@ void LuaLanguageServer::initializeNotification(const QUrl &workspaceUrl) {
     connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
     loop.exec();
     jsonNotification("initialized", QJsonObject{});
+    m_prevWorkspaceUrl = g_workspaceUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
 }
 
-void LuaLanguageServer::didChangeWorkspaceFoldersNotification() const {
+void LuaLanguageServer::didChangeWorkspaceFoldersNotification() {
     const QString rootUriStr = g_workspaceUrl.toString();
     const QJsonObject didChangeWorkspaceFoldersParams{
         {
@@ -87,7 +88,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification() const {
                 {
                     "removed", QJsonArray{
                         QJsonObject{
-                            {"uri", g_workspaceUrl.toString()}
+                            {"uri", m_prevWorkspaceUrl.toString()}
                         }
                     }
                 }
@@ -95,6 +96,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification() const {
         }
     };
     jsonNotification("workspace/didChangeWorkspaceFolders", didChangeWorkspaceFoldersParams);
+    m_prevWorkspaceUrl = g_workspaceUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");

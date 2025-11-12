@@ -212,6 +212,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, m_configModule, &ConfigModule::workspaceOpen);
+    connect(m_scriptModule, &ScriptModule::clearBreakpoint, m_debugModule, &DebugModule::breakpointClear);
     connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {
         const QString scriptName = scriptUrl.fileName();
         m_scriptComboBox->addItem(scriptName, scriptUrl);

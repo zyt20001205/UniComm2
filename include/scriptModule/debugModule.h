@@ -25,6 +25,8 @@ public:
 
     void breakpointRemove(const QUrl &scriptUrl, int line) const;
 
+    void breakpointClear() const;
+
     void debugStart(const QString &threadId, LuaInterpreter *interpreter);
 
     void debugEnd(const QString &threadId, const DebugPage *debugPage);

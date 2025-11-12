@@ -46,10 +46,28 @@ ScriptModule::ScriptModule()
 }
 
 void ScriptModule::workspaceOpen() {
+    emit clearBreakpoint();
     for (const auto &scriptPage: m_scriptPageHash) {
         scriptPage->scriptClose();
     }
     m_diagnosticsHash.clear();
+
+
+    m_scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
+    const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
+    for (const auto &key: breakpointHash.keys()) {
+        const QUrl url(key);
+        const auto breakpointLineHash = breakpointHash[key].toObject();
+        for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
+            const int line = it.key().toInt();
+            const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
+            g_breakpoints[url].insert(line, breakpointInfo);
+            emit insertBreakpoint(url, line);
+        }
+    }
+    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
+        scriptOpen(QUrl(value.toString()));
+    }
 }
 
 void ScriptModule::scriptConfigSave() {
