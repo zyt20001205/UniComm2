@@ -28,6 +28,10 @@ void ConfigModule::workspaceOpen() {
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
     if (workspaceDir.isEmpty()) return;
+    if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
+        qDebug() << "same as prev workspace";
+        return;
+    }
     g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     // write to main config
     const QJsonObject json{
