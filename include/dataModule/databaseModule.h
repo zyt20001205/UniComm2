@@ -14,7 +14,7 @@ public:
 
     ~DatabaseModule() override = default;
 
-    void workspaceOpen(const QUrl &rootUrl);
+    void workspaceOpen();
 
     void databaseConfigSave() const;
 
@@ -47,7 +47,6 @@ private:
 
     QJsonArray m_databaseConfig{};
     QTableWidget *m_tableWidget{};
-    QUrl m_annotationUrl{};
     int m_version = 1;
 };
 

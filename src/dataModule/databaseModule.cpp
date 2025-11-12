@@ -21,6 +21,11 @@ DatabaseModule::DatabaseModule()
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     m_tableWidget->verticalHeader()->setMinimumWidth(30);
     m_tableWidget->verticalHeader()->setSectionsMovable(true);
+    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
+        const QString key = value.toString();
+        databaseInsert(-1, key);
+    }
+    databaseAnnotate();
     connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionMoved, this, &DatabaseModule::databaseSwap);
     connect(m_tableWidget->verticalHeader(), &QHeaderView::sectionDoubleClicked, this, [this](const int logicalIndex) {
         const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
@@ -29,24 +34,17 @@ DatabaseModule::DatabaseModule()
     m_tableWidget->installEventFilter(this);
 }
 
-void DatabaseModule::workspaceOpen(const QUrl &rootUrl) {
-    if (m_annotationUrl.isEmpty()) {
-        // post initialization after workspace opened
-        for (const auto &value: g_config["databaseConfig"].toArray()) {
-            const QString key = value.toString();
-            databaseInsert(-1, key);
-        }
-    } else {
-        // nothing to do here
+void DatabaseModule::workspaceOpen() {
+    m_tableWidget->setRowCount(0);
+    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
+        const QString key = value.toString();
+        databaseInsert(-1, key);
     }
-    const QString rootPath = rootUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/database.d.lua");
-    m_annotationUrl = QUrl::fromLocalFile(annotationPath);
     databaseAnnotate();
 }
 
 void DatabaseModule::databaseConfigSave() const {
-    g_config["databaseConfig"] = m_databaseConfig;
+    g_workspaceConfig["databaseConfig"] = m_databaseConfig;
 }
 
 QVariantList DatabaseModule::databaseList() const {
@@ -81,7 +79,6 @@ void DatabaseModule::databaseInsert(int visualIndex, QString key) {
         const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
         m_databaseHash.insert(headerItem->text(), index);
     }
-    if (!m_annotationUrl.isEmpty()) databaseAnnotate();
     // logging
     emit appendLog(QString("%1 inserted").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -112,6 +109,7 @@ void DatabaseModule::contextMenuEvent(QContextMenuEvent *event) {
         if (logicalIndex == -1) {
             menu.addAction(tr("New"), [this] {
                 databaseInsert(-1);
+                databaseAnnotate();
             });
         } else {
             menu.addAction(tr("Rename"), [this, visualIndex] {
@@ -119,12 +117,15 @@ void DatabaseModule::contextMenuEvent(QContextMenuEvent *event) {
             });
             menu.addAction(tr("Insert Above \t Ins"), [this, visualIndex] {
                 databaseInsert(visualIndex);
+                databaseAnnotate();
             });
             menu.addAction(tr("Insert Below \t Ctrl+Ins"), [this, visualIndex] {
                 databaseInsert(visualIndex + 1);
+                databaseAnnotate();
             });
             menu.addAction(tr("Remove \t Del"), [this, visualIndex] {
                 databaseRemove(visualIndex);
+                databaseAnnotate();
             });
         }
         menu.exec(event->globalPos());
@@ -139,8 +140,10 @@ bool DatabaseModule::eventFilter(QObject *obj, QEvent *event) {
                 const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
                 if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
                     databaseInsert(visualIndex + 1);
+                    databaseAnnotate();
                 } else {
                     databaseInsert(visualIndex);
+                    databaseAnnotate();
                 }
                 return true;
             }
@@ -148,6 +151,7 @@ bool DatabaseModule::eventFilter(QObject *obj, QEvent *event) {
                 const int logicalIndex = m_tableWidget->currentRow();
                 const int visualIndex = m_tableWidget->verticalHeader()->visualIndex(logicalIndex);
                 databaseRemove(visualIndex);
+                databaseAnnotate();
                 return true;
             }
             case Qt::Key_Escape: {
@@ -176,7 +180,6 @@ void DatabaseModule::databaseRemove(const int visualIndex) {
         const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
         m_databaseHash.insert(headerItem->text(), index);
     }
-    databaseAnnotate();
     // logging
     emit appendLog(QString("%1 removed").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -224,7 +227,9 @@ void DatabaseModule::databaseAnnotate() const {
     annotation += QString("--- | '\"Add New Database Key\"'\n");
     annotation += "\n";
 
-    QFile file(m_annotationUrl.toLocalFile());
+    const QString rootPath = g_workspaceUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/database.d.lua");
+    QFile file(annotationPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream stream(&file);
     stream << annotation;

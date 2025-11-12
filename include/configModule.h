@@ -1,7 +1,8 @@
 #ifndef UNICOMM_CONFIG_H
 #define UNICOMM_CONFIG_H
 
-#include <QFile>
+#include <QObject>
+#include <QUrl>
 
 class ConfigModule final : public QObject {
     Q_OBJECT
@@ -11,19 +12,21 @@ public:
 
     ~ConfigModule() override = default;
 
-    void configSave(const QString &filePath);
+    void workspaceOpen();
+
+    void workspaceInit();
+
+    void workspaceConfigSave(QString &filePath);
 
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void openWorkspace();
+
 private:
-    void configGenerate();
+    static void mainConfigGenerate();
 
-    void configLoad();
-
-    static QJsonObject configValidate(QJsonObject jsonObject);
-
-    QFile m_configFile{};
+    static void mainConfigLoad();
 };
 
 #endif //UNICOMM_CONFIG_H

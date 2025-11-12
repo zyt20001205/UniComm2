@@ -1,178 +1,254 @@
 #include "configModule.h"
 
-#include <QDir>
 #include <QFileDialog>
 #include <QJsonArray>
 #include <QStandardPaths>
 
 #include "globals.h"
+#include "utils/qtUtils.h"
 
 // ConfigModule public
 ConfigModule::ConfigModule(QWidget *parent)
-    : QObject(parent),
-      m_configFile(QDir::current().filePath("config.json")) {
-    if (m_configFile.exists()) {
+    : QObject(parent) {
+    if (const auto rootPath = QDir::current().filePath("config.json"); !QFile::exists(rootPath)) {
+        mainConfigGenerate();
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "config found");
-        configLoad();
-    } else {
+        qDebug() << QString("[%1] %2").arg(timestamp, "main config not found");
+    }
+    mainConfigLoad();
+    workspaceInit();
+}
+
+void ConfigModule::workspaceOpen() {
+    const QString workspaceDir = QFileDialog::getExistingDirectory(
+        g_mainWindow,
+        tr("Open Workspace"),
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+    if (workspaceDir.isEmpty()) return;
+    g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
+    // write to main config
+    const QJsonObject json{
+        {"version", "1.0.0"},
+        {"workspace", g_workspaceUrl.toString()},
+    };
+    const QJsonDocument doc(json);
+    QFile mainConfig(QDir::current().filePath("config.json"));
+    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    mainConfig.write(doc.toJson(QJsonDocument::Indented));
+    mainConfig.close();
+    // initialize new workspace
+    workspaceInit();
+    // initialize modules
+    emit openWorkspace();
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "workspace opened");
+}
+
+void ConfigModule::workspaceInit() {
+    const QString workspacePath = g_workspaceUrl.toLocalFile();
+    // 1: config.json
+    {
+        const QString configPath = QDir(workspacePath).filePath("config.json");
+        // check if config.json exists
+        if (!QFile::exists(configPath)) {
+            QFile::copy(":/config/config.json", configPath);
+            QFile::setPermissions(configPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                              | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                              | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".config.json generated");
+        }
+        // validate config.json
+        {
+            QFile config(configPath);
+            config.open(QIODevice::ReadOnly | QIODevice::Text);
+            const QByteArray jsonData = config.readAll();
+            config.close();
+            const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+            if (!jsonDoc.isObject()) return;
+            const QJsonObject jsonObject = jsonDoc.object();
+            // validate script config
+            {
+                QJsonObject scriptConfig = jsonObject["scriptConfig"].toObject();
+                // clear invalid script url in script list
+                QJsonArray validScriptList;
+                for (const auto &value: scriptConfig["scriptList"].toArray()) {
+                    if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+                        validScriptList.append(value);
+                    } else {
+                        qDebug() << "invalid script url found in script list:" << scriptUrl;
+                    }
+                }
+                scriptConfig["scriptList"] = validScriptList;
+                // clear invalid script url in breakpoint hash
+                QJsonObject breakpointHash = scriptConfig["breakpointHash"].toObject();
+                QJsonObject validBreakpointHash;
+                for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
+                    if (const auto scriptUrl = QUrl(it.key()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+                        validBreakpointHash.insert(it.key(), it.value());
+                    } else {
+                        qDebug() << "invalid script url found in breakpoint hash:" << scriptUrl;
+                    }
+                }
+                scriptConfig["breakpointHash"] = validBreakpointHash;
+                // write valid script config back
+                jsonObject["scriptConfig"] = scriptConfig;
+            }
+            // write back
+            g_workspaceConfig = jsonObject;
+            const QJsonDocument doc(jsonObject);
+            config.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+            config.write(doc.toJson(QJsonDocument::Indented));
+            config.close();
+        }
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "config not found");
-        configGenerate();
+        qDebug() << QString("[%1] %2").arg(timestamp, "config loaded");
+    }
+    // 2: .luarc.json
+    {
+        // check if .luarc.json exists
+        if (const QString luarcPath = QDir(workspacePath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
+        }
+        // validate .luarc.json
+        else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
+            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(luarcPath);
+            QFile::copy(":/config/.luarc.json", luarcPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+        }
+    }
+    // 3: lib dir
+    {
+        // check if lib dir exists
+        const QString libDirPath = QDir(workspacePath).filePath("lib");
+        if (QDir().mkdir(libDirPath)) {
+            emit appendLog("lib dir created", "info");
+            // logging
+            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] lib dir created").arg(timestamp);
+        }
+
+        if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
+        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
+            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+            QFile::remove(libdPath);
+            QFile::copy(":/config/lib.d.lua", libdPath);
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+        }
+        if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
+            if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
+        }
+        if (const QString databasedPath = QDir(libDirPath).filePath("database.d.lua"); !QFile::exists(databasedPath)) {
+            if (QFile file(databasedPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "database.d.lua generated");
+        }
+        if (const QString datatabledPath = QDir(libDirPath).filePath("datatable.d.lua"); !QFile::exists(datatabledPath)) {
+            if (QFile file(datatabledPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] %2").arg(timestamp, "datatable.d.lua generated");
+        }
     }
 }
 
-void ConfigModule::configSave(const QString &filePath) {
+void ConfigModule::workspaceConfigSave(QString &filePath) {
     if (filePath.isEmpty()) {
-        m_configFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-        const QJsonDocument doc(g_config);
-        m_configFile.write(doc.toJson());
-        m_configFile.close();
-        emit appendLog("workspace saved", "info");
+        const auto workspacePath = g_workspaceUrl.toLocalFile();
+        filePath = QDir(workspacePath).filePath("config.json");
+    }
+    if (QFile workspaceConfig(filePath); workspaceConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        const QJsonDocument doc(g_workspaceConfig);
+        workspaceConfig.write(doc.toJson(QJsonDocument::Indented));
+        workspaceConfig.close();
+        emit appendLog(QString("workspace saved to %1").arg(filePath), "info");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] workspace saved to %2").arg(timestamp, filePath);
+    } else {
+        emit appendLog("workspace save failed", "info");
         // logging
         const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] workspace saved").arg(timestamp);
-    } else {
-        if (QFile file(filePath); file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-            const QJsonDocument doc(g_config);
-            file.write(doc.toJson());
-            file.close();
-            emit appendLog(QString("workspace saved to %1").arg(filePath), "info");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] workspace saved to %2").arg(timestamp, filePath);
-        } else {
-            emit appendLog("workspace save failed", "info");
-            // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] workspace save failed").arg(timestamp);
-        }
+        qDebug() << QString("[%1] workspace save failed").arg(timestamp);
     }
 }
 
 // ConfigModule private
-void ConfigModule::configGenerate() {
-    if (m_configFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+void ConfigModule::mainConfigGenerate() {
+    if (QFile mainConfig(QDir::current().filePath("config.json")); mainConfig.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
-            {
-                "mainConfig", QJsonObject{
-                    {"version", "1.0.0"},
-                    {"workspace", ""},
-                    {"geometry", ""},
-                    {"state", ""}
-                },
-            },
-            {
-                "shortcutConfig", QJsonObject{
-                    {"openWorkspace", "Ctrl+O"},
-                    {"saveWorkspace", "Ctrl+S"},
-                    {"saveWorkspaceAs", "Ctrl+Shift+S"}
-                },
-            },
-            {
-                "portConfig", QJsonArray{
-                },
-            },
-            {
-                "sendConfig", QJsonArray{
-                },
-            },
-            {
-                "databaseConfig", QJsonArray{
-                },
-            },
-            {
-                "datatableConfig", QJsonArray{
-                },
-            },
-            {
-                "scriptConfig", QJsonObject{
-                    {"scriptList", QJsonArray{}},
-                    {"breakpointHash", QJsonObject{}},
-                    {"formatting", "Ctrl+Alt+L"},
-                    {"fontFamily", "Consolas"},
-                    {"fontSize", 12},
-                    {"indicatorErrorStyle", 8},
-                    {"indicatorErrorColor", "#ffe6e6"},
-                    {"indicatorWarningStyle", 8},
-                    {"indicatorWarningColor", "#fff5e6"},
-                    {"indicatorInfoStyle", 8},
-                    {"indicatorInfoColor", "#e6f0fa"},
-                    {"indicatorHintStyle", 8},
-                    {"indicatorHintColor", "#f5f5f5"},
-                    {"indicatorSearchResultStyle", 8},
-                    {"indicatorSearchResultColor", "#fcd47e"},
-                    {"indicatorSearchCurrentStyle", 8},
-                    {"indicatorSearchCurrentColor", "#c47233"},
-                },
-            },
-            {
-                "logConfig", QJsonObject{
-                    {"fontFamily", "Segoe UI"},
-                    {"fontSize", 9},
-                    {"timestamp", true},
-                    {"height", 1000}
-                },
-            },
+            {"version", "1.0.0"},
+            {"workspace", ""}
         };
-        // load to g_config
-        g_config = json;
         const QJsonDocument doc(json);
-        m_configFile.write(doc.toJson(QJsonDocument::Indented));
-        m_configFile.close();
+        mainConfig.write(doc.toJson(QJsonDocument::Indented));
+        mainConfig.close();
     } else {
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "config generation failed");
+        qDebug() << QString("[%1] %2").arg(timestamp, "main config generation failed");
     }
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "config generated");
+    qDebug() << QString("[%1] %2").arg(timestamp, "main config generated");
 }
 
-void ConfigModule::configLoad() {
-    m_configFile.open(QIODevice::ReadOnly | QIODevice::Text);
-    const QByteArray jsonData = m_configFile.readAll();
+void ConfigModule::mainConfigLoad() {
+    QFile mainConfig(QDir::current().filePath("config.json"));
+    mainConfig.open(QIODevice::ReadOnly | QIODevice::Text);
+    const QByteArray jsonData = mainConfig.readAll();
+    mainConfig.close();
     const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
     if (!jsonDoc.isObject()) return;
     const QJsonObject jsonObject = jsonDoc.object();
-    g_config = configValidate(jsonObject);
-    m_configFile.close();
+    auto workspacePath = jsonObject.value("workspace").toString();
+    auto workspaceUrl = QUrl(workspacePath);
+    if (workspacePath.isEmpty() || !QFileInfo::exists(workspaceUrl.toLocalFile())) {
+        const QString workspaceDir = QFileDialog::getExistingDirectory(
+            g_mainWindow,
+            tr("Open Workspace"),
+            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+        );
+        if (workspaceDir.isEmpty()) return;
+        workspaceUrl = QUrl::fromLocalFile(workspaceDir);
+        const QJsonObject json{
+            {"version", "1.0.0"},
+            {"workspace", workspaceUrl.toString()},
+        };
+        const QJsonDocument doc(json);
+        mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+        mainConfig.write(doc.toJson(QJsonDocument::Indented));
+        mainConfig.close();
+    }
+    g_workspaceUrl = workspaceUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "config loaded");
-}
-
-QJsonObject ConfigModule::configValidate(QJsonObject jsonObject) {
-    // validate script config
-    {
-        QJsonObject scriptConfig = jsonObject["scriptConfig"].toObject();
-        // clear invalid script url in script list
-        QJsonArray validScriptList;
-        for (const auto &value: scriptConfig["scriptList"].toArray()) {
-            if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
-                validScriptList.append(value);
-            } else {
-                qDebug() << "invalid script url found in script list:" << scriptUrl;
-            }
-        }
-        scriptConfig["scriptList"] = validScriptList;
-        // clear invalid script url in breakpoint hash
-        QJsonObject breakpointHash = scriptConfig["breakpointHash"].toObject();
-        QJsonObject validBreakpointHash;
-        for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
-            if (const auto scriptUrl = QUrl(it.key()); QFileInfo::exists(scriptUrl.toLocalFile())) {
-                validBreakpointHash.insert(it.key(), it.value());
-            } else {
-                qDebug() << "invalid script url found in breakpoint hash:" << scriptUrl;
-            }
-        }
-        scriptConfig["breakpointHash"] = validBreakpointHash;
-        // write valid script config back
-        jsonObject["scriptConfig"] = scriptConfig;
-    }
-    // return validated json object
-    return jsonObject;
+    qDebug() << QString("[%1] %2").arg(timestamp, "main config loaded");
 }

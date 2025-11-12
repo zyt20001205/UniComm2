@@ -15,7 +15,7 @@
 // LogModule public
 LogModule::LogModule()
     : DockWidget("log"),
-      m_logConfig(g_config["logConfig"].toObject()),
+      m_logConfig(g_workspaceConfig["logConfig"].toObject()),
       m_logTextBrowser(new QTextBrowser()) {
     auto *widget = new QWidget(); // NOLINT
     auto *layout = new QHBoxLayout(widget); // NOLINT
@@ -72,7 +72,7 @@ LogModule::LogModule()
 }
 
 void LogModule::logConfigSave() const {
-    g_config["logConfig"] = m_logConfig;
+    g_workspaceConfig["logConfig"] = m_logConfig;
 }
 
 void LogModule::logFontReload(const QJsonObject &fontConfigLog) const {

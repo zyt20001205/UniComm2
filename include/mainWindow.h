@@ -32,12 +32,8 @@ public:
 
     ~MainWindow() override = default;
 
-    void workspaceOpen();
-
 signals:
     void appendLog(const QString &message, const QString &level);
-
-    void openWorkspace(const QUrl &rootUrl);
 
     void runThread(const QUrl &scriptUrl, const QString &script);
 
@@ -47,21 +43,17 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
-    void configInit();
-
     void moduleInit();
 
     void menuInit();
 
     void shortcutInit();
 
-    void workspaceInit();
-
     void layoutInit();
 
     void mainConfigSave();
 
-    void workspaceSave(const QString &filePath = QString());
+    void workspaceSave(QString filePath = QString());
 
     QJsonObject m_mainConfig{};
 

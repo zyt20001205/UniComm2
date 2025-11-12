@@ -31,7 +31,8 @@ extern StructureModule *g_structure;
 extern ThreadpoolModule *g_threadpool;
 extern UndoModule *g_undo;
 
-extern QJsonObject g_config;
+extern QUrl g_workspaceUrl;
+extern QJsonObject g_workspaceConfig;
 
 extern ViSession g_rm;
 

@@ -1,0 +1,46 @@
+{
+  "databaseConfig": [
+  ],
+  "datatableConfig": [
+  ],
+  "logConfig": {
+    "fontFamily": "Segoe UI",
+    "fontSize": 9,
+    "height": 1000,
+    "timestamp": true
+  },
+  "mainConfig": {
+    "geometry": "",
+    "state": ""
+  },
+  "portConfig": [
+  ],
+  "scriptConfig": {
+    "breakpointHash": {
+    },
+    "fontFamily": "Consolas",
+    "fontSize": 12,
+    "formatting": "Ctrl+Alt+L",
+    "indicatorErrorColor": "#ffe6e6",
+    "indicatorErrorStyle": 8,
+    "indicatorHintColor": "#f5f5f5",
+    "indicatorHintStyle": 8,
+    "indicatorInfoColor": "#e6f0fa",
+    "indicatorInfoStyle": 8,
+    "indicatorSearchCurrentColor": "#c47233",
+    "indicatorSearchCurrentStyle": 8,
+    "indicatorSearchResultColor": "#fcd47e",
+    "indicatorSearchResultStyle": 8,
+    "indicatorWarningColor": "#fff5e6",
+    "indicatorWarningStyle": 8,
+    "scriptList": [
+    ]
+  },
+  "sendConfig": [
+  ],
+  "shortcutConfig": {
+    "openWorkspace": "Ctrl+O",
+    "saveWorkspace": "Ctrl+S",
+    "saveWorkspaceAs": "Ctrl+Shift+S"
+  }
+}

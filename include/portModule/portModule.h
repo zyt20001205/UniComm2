@@ -21,7 +21,7 @@ public:
 
     ~PortModule() override = default;
 
-    void workspaceOpen(const QUrl &rootUrl);
+    void workspaceOpen();
 
     void portConfigSave() const;
 
@@ -60,7 +60,6 @@ private:
     QJsonArray m_portConfig{};
     QTabWidget *m_portTabWidget{};
     QWidget *m_portTabOverlay{};
-    QUrl m_annotationUrl{};
     int m_version = 1;
 };
 

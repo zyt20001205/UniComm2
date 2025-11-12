@@ -26,13 +26,24 @@ PortModule::PortModule()
     m_portTabWidget->setTabsClosable(true);
     m_portTabWidget->setMovable(true);
     m_portTabWidget->tabBar()->setElideMode(Qt::ElideRight);
-    connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, &PortModule::portRemove);
+    connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) {
+        portRemove(index);
+        portAnnotate();
+    });
     connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
     auto *addButton = new QPushButton(); // NOLINT
     addButton->setFixedSize(24, 24);
     addButton->setIcon(QIcon(":/icon/add.svg"));
     m_portTabWidget->setCornerWidget(addButton, Qt::BottomLeftCorner);
-    connect(addButton, &QPushButton::clicked, this, [this] { portInsert(-1); });
+    connect(addButton, &QPushButton::clicked, this, [this] {
+        portInsert(-1);
+        portAnnotate();
+    });
+    for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
+        const QJsonObject portConfig = value.toObject();
+        portInsert(-1, portConfig);
+    }
+    portAnnotate();
 
     m_portTabOverlay->installEventFilter(this);
     m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
@@ -46,24 +57,19 @@ PortModule::PortModule()
     if (m_portTabWidget->count() == 0) overlayShow();
 }
 
-void PortModule::workspaceOpen(const QUrl &rootUrl) {
-    if (m_annotationUrl.isEmpty()) {
-        // post initialization after workspace opened
-        for (const auto &value: g_config["portConfig"].toArray()) {
-            const QJsonObject portConfig = value.toObject();
-            portInsert(-1, portConfig);
-        }
-    } else {
-        // nothing to do here
+void PortModule::workspaceOpen() {
+    for (int index = m_portHash.size() - 1; index >= 0; --index) {
+        portRemove(index);
     }
-    const QString rootPath = rootUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
-    m_annotationUrl = QUrl::fromLocalFile(annotationPath);
+    for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
+        const QJsonObject portConfig = value.toObject();
+        portInsert(-1, portConfig);
+    }
     portAnnotate();
 }
 
 void PortModule::portConfigSave() const {
-    g_config["portConfig"] = m_portConfig;
+    g_workspaceConfig["portConfig"] = m_portConfig;
 }
 
 BasePort *PortModule::currentPort() const {
@@ -103,7 +109,6 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
     // backend
     m_portConfig.insert(index, portConfig);
     m_portHash.insert(portName, portPage->m_port);
-    if (!m_annotationUrl.isEmpty()) portAnnotate();
     // logging
     emit appendLog(QString("%1 initialized").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -156,7 +161,6 @@ void PortModule::portRemove(const int index) {
     // backend
     m_portConfig.removeAt(index);
     m_portHash.remove(portName);
-    portAnnotate();
     // logging
     emit appendLog(QString("%1 removed").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -207,7 +211,9 @@ void PortModule::portAnnotate() const {
     annotation += QString("--- | '\"Add New Port\"'\n");
     annotation += "\n";
 
-    QFile file(m_annotationUrl.toLocalFile());
+    const QString rootPath = g_workspaceUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
+    QFile file(annotationPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream stream(&file);
     stream << annotation;

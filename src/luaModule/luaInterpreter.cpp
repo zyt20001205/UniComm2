@@ -15,7 +15,7 @@
 #include "utils/luaUtils.h"
 
 // LuaInterpreter public
-LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent)
+LuaInterpreter::LuaInterpreter(const QUrl &workspaceUrl, const QUrl &scriptUrl, QObject *parent)
     : QObject(parent),
       m_scriptUrl(scriptUrl) {
     // init lua interpreter
@@ -27,7 +27,7 @@ LuaInterpreter::LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObje
     luaL_openlibs(L);
     lua_getglobal(L, "package");
     // set workspace
-    const QString rootPath = QString("%1/?.lua").arg(rootUrl.toLocalFile());
+    const QString rootPath = QString("%1/?.lua").arg(workspaceUrl.toLocalFile());
     lua_pushstring(L, rootPath.toUtf8().constData());
     lua_setfield(L, -2, "path");
     // register C++ functions

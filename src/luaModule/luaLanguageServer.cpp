@@ -13,15 +13,11 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
+    initializeNotification(g_workspaceUrl);
 }
 
-void LuaLanguageServer::workspaceOpen(const QUrl &rootUrl) {
-    if (m_rootUrl.isEmpty()) {
-        initializeNotification(rootUrl);
-    } else {
-        didChangeWorkspaceFoldersNotification(rootUrl);
-    }
-    m_rootUrl = rootUrl;
+void LuaLanguageServer::workspaceOpen() const {
+    didChangeWorkspaceFoldersNotification();
 }
 
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
@@ -58,8 +54,8 @@ void LuaLanguageServer::jsonNotification(const QString &method, const QJsonObjec
 }
 
 // LuaLanguageServer private
-void LuaLanguageServer::initializeNotification(const QUrl &rootUrl) {
-    const QString rootUriStr = rootUrl.toString();
+void LuaLanguageServer::initializeNotification(const QUrl &workspaceUrl) {
+    const QString rootUriStr = workspaceUrl.toString();
     const QJsonObject initializeParams{
         {"processId", QCoreApplication::applicationPid()},
         {"rootUri", rootUriStr},
@@ -76,9 +72,8 @@ void LuaLanguageServer::initializeNotification(const QUrl &rootUrl) {
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
 }
 
-void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUrl) const {
-    if (rootUrl == m_rootUrl) return;
-    const QString rootUriStr = rootUrl.toString();
+void LuaLanguageServer::didChangeWorkspaceFoldersNotification() const {
+    const QString rootUriStr = g_workspaceUrl.toString();
     const QJsonObject didChangeWorkspaceFoldersParams{
         {
             "event", QJsonObject{
@@ -92,7 +87,7 @@ void LuaLanguageServer::didChangeWorkspaceFoldersNotification(const QUrl &rootUr
                 {
                     "removed", QJsonArray{
                         QJsonObject{
-                            {"uri", m_rootUrl.toString()}
+                            {"uri", g_workspaceUrl.toString()}
                         }
                     }
                 }

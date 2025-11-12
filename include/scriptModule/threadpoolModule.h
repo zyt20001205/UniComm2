@@ -16,8 +16,6 @@ public:
 
     ~ThreadpoolModule() override = default;
 
-    void workspaceOpen(const QUrl &rootUrl);
-
     QString threadExec(const QString &scriptPath, const QString &mode);
 
     QString threadRun(const QUrl &scriptUrl, const QString &script);
@@ -38,7 +36,6 @@ private:
 
     void timeRefresh() const;
 
-    QUrl m_rootUrl{};
     QTimer *m_runtimeTimer{};
     QTableWidget *m_threadpoolTableWidget{};
     QHash<int, QColor> m_threadpoolColor{};

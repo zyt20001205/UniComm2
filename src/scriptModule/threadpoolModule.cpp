@@ -57,12 +57,8 @@ ThreadpoolModule::ThreadpoolModule()
     });
 }
 
-void ThreadpoolModule::workspaceOpen(const QUrl &rootUrl) {
-    m_rootUrl = rootUrl;
-}
-
 QString ThreadpoolModule::threadExec(const QString &scriptPath, const QString &mode) {
-    const QString fullPath = QDir::current().filePath(m_rootUrl.toLocalFile() + "/" + scriptPath);
+    const QString fullPath = QDir::current().filePath(g_workspaceUrl.toLocalFile() + "/" + scriptPath);
     QFile file(fullPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);
@@ -80,7 +76,7 @@ QString ThreadpoolModule::threadExec(const QString &scriptPath, const QString &m
 QString ThreadpoolModule::threadRun(const QUrl &scriptUrl, const QString &script) {
     // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
+    auto *interpreter = new LuaInterpreter(g_workspaceUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -106,7 +102,7 @@ QString ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &scri
         DEBUG_RESUME,
         {}
     };
-    auto *interpreter = new LuaInterpreter(m_rootUrl, scriptUrl); // NOLINT
+    auto *interpreter = new LuaInterpreter(g_workspaceUrl, scriptUrl); // NOLINT
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);

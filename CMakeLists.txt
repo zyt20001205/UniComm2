@@ -196,6 +196,7 @@ qt_add_resources(UniComm "config_resources"
         BASE "resources/config"
         FILES
         "resources/config/.luarc.json"
+        "resources/config/config.json"
         "resources/config/lib.d.lua"
 )
 

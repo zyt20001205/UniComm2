@@ -19,42 +19,37 @@
 
 // ScriptModule public
 ScriptModule::ScriptModule()
-    : m_scriptConfig(g_config["scriptConfig"].toObject()),
+    : m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_completionTooltip(new CompletionTooltip(g_mainWindow)),
       m_hoverTooltip(new HoverTooltip(g_mainWindow)),
       m_positionTooltip(new PositionTooltip(g_mainWindow)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow)) {
     m_welcomePage->setObjectName("welcomePage");
+    const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
+    for (const auto &key: breakpointHash.keys()) {
+        const QUrl url(key);
+        const auto breakpointLineHash = breakpointHash[key].toObject();
+        for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
+            const int line = it.key().toInt();
+            const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
+            g_breakpoints[url].insert(line, breakpointInfo);
+            emit insertBreakpoint(url, line);
+        }
+    }
+    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
+        scriptOpen(QUrl(value.toString()));
+    }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
     connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::textReplace);
 }
 
-void ScriptModule::workspaceOpen(const QUrl &rootUrl) {
-    if (m_rootUrl.isEmpty()) {
-        // post initialization after workspace opened
-        const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
-        for (const auto &key: breakpointHash.keys()) {
-            const QUrl url(key);
-            const auto breakpointLineHash = breakpointHash[key].toObject();
-            for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
-                const int line = it.key().toInt();
-                const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
-                g_breakpoints[url].insert(line, breakpointInfo);
-                emit insertBreakpoint(url, line);
-            }
-        }
-        for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-            scriptOpen(QUrl(value.toString()));
-        }
-    } else {
-        for (const auto &scriptPage: m_scriptPageHash) {
-            scriptPage->scriptClose();
-        }
-        m_diagnosticsHash.clear();
+void ScriptModule::workspaceOpen() {
+    for (const auto &scriptPage: m_scriptPageHash) {
+        scriptPage->scriptClose();
     }
-    m_rootUrl = rootUrl;
+    m_diagnosticsHash.clear();
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -79,7 +74,7 @@ void ScriptModule::scriptConfigSave() {
     }
     m_scriptConfig["breakpointHash"] = breakpointHash;
 
-    g_config["scriptConfig"] = m_scriptConfig;
+    g_workspaceConfig["scriptConfig"] = m_scriptConfig;
 }
 
 void ScriptModule::scriptFontReload(const QJsonObject &fontConfigScript) const {

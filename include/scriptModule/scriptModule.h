@@ -30,7 +30,7 @@ public:
         return m_welcomePage;
     }
 
-    void workspaceOpen(const QUrl &rootUrl);
+    void workspaceOpen();
 
     void scriptConfigSave();
 
@@ -111,7 +111,6 @@ private:
     void textReplace(QString &text, const QString &kind) const;
 
     QJsonObject m_scriptConfig{};
-    QUrl m_rootUrl{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CompletionTooltip *m_completionTooltip{};

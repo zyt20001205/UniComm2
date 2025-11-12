@@ -21,16 +21,21 @@ DatatableModule::DatatableModule()
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->horizontalHeader()->setMinimumHeight(30);
     m_tableWidget->horizontalHeader()->setSectionsMovable(true);
+    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
+        const QString key = value.toString();
+        datatableInsert(-1, key);
+    }
+    datatableAnnotate();
     connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionMoved, this, &DatatableModule::datatableSwap);
     connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionDoubleClicked, this, [this](const int logicalIndex) {
         const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
         datatableRename(visualIndex);
     });
     m_tableWidget->installEventFilter(this);
+
     auto *moreButton = new QToolButton(); // NOLINT
     moreButton->setPopupMode(QToolButton::InstantPopup);
     m_tableWidget->setCornerWidget(moreButton);
-
     auto *cornerMenu = new QMenu(); // NOLINT
     moreButton->setMenu(cornerMenu);
     auto *exportAction = new QAction(QIcon(":/icon/share.svg"), tr("Export"), cornerMenu); // NOLINT
@@ -41,24 +46,18 @@ DatatableModule::DatatableModule()
     connect(clearAction, &QAction::triggered, this, [this] { datatableClear(""); });
 }
 
-void DatatableModule::workspaceOpen(const QUrl &rootUrl) {
-    if (m_annotationUrl.isEmpty()) {
-        // post initialization after workspace opened
-        for (const auto &value: g_config["datatableConfig"].toArray()) {
-            const QString key = value.toString();
-            datatableInsert(-1, key);
-        }
-    } else {
-        // nothing to do here
+void DatatableModule::workspaceOpen() {
+    m_tableWidget->setRowCount(0);
+    m_tableWidget->setColumnCount(0);
+    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
+        const QString key = value.toString();
+        datatableInsert(-1, key);
     }
-    const QString rootPath = rootUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/datatable.d.lua");
-    m_annotationUrl = QUrl::fromLocalFile(annotationPath);
     datatableAnnotate();
 }
 
 void DatatableModule::datatableConfigSave() const {
-    g_config["datatableConfig"] = m_datatableConfig;
+    g_workspaceConfig["datatableConfig"] = m_datatableConfig;
 }
 
 QVariantList DatatableModule::datatableList() const {
@@ -99,7 +98,6 @@ void DatatableModule::datatableInsert(int visualIndex, QString key) {
         const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
         m_datatableHash.insert(headerItem->text(), index);
     }
-    if (!m_annotationUrl.isEmpty()) datatableAnnotate();
     // logging
     emit appendLog(QString("%1 inserted").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -209,6 +207,7 @@ void DatatableModule::contextMenuEvent(QContextMenuEvent *event) {
         if (logicalIndex == -1) {
             menu.addAction(tr("New"), [this] {
                 datatableInsert(-1);
+                datatableAnnotate();
             });
         } else {
             menu.addAction(tr("Rename"), [this, visualIndex] {
@@ -216,12 +215,15 @@ void DatatableModule::contextMenuEvent(QContextMenuEvent *event) {
             });
             menu.addAction(tr("Insert Left \t Ins"), [this, visualIndex] {
                 datatableInsert(visualIndex);
+                datatableAnnotate();
             });
             menu.addAction(tr("Insert Right \t Ctrl+Ins"), [this, visualIndex] {
                 datatableInsert(visualIndex + 1);
+                datatableAnnotate();
             });
             menu.addAction(tr("Remove \t Del"), [this, visualIndex] {
                 datatableRemove(visualIndex);
+                datatableAnnotate();
             });
         }
         menu.exec(event->globalPos());
@@ -236,8 +238,10 @@ bool DatatableModule::eventFilter(QObject *obj, QEvent *event) {
                 const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
                 if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
                     datatableInsert(visualIndex + 1);
+                    datatableAnnotate();
                 } else {
                     datatableInsert(visualIndex);
+                    datatableAnnotate();
                 }
                 return true;
             }
@@ -245,6 +249,7 @@ bool DatatableModule::eventFilter(QObject *obj, QEvent *event) {
                 const int logicalIndex = m_tableWidget->currentColumn();
                 const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
                 datatableRemove(visualIndex);
+                datatableAnnotate();
                 return true;
             }
             case Qt::Key_Escape: {
@@ -274,7 +279,6 @@ void DatatableModule::datatableRemove(const int visualIndex) {
         const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
         m_datatableHash.insert(headerItem->text(), index);
     }
-    datatableAnnotate();
     // logging
     emit appendLog(QString("%1 removed").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -323,7 +327,9 @@ void DatatableModule::datatableAnnotate() const {
     annotation += QString("--- | '\"Add New Datatable Key\"'\n");
     annotation += "\n";
 
-    QFile file(m_annotationUrl.toLocalFile());
+    const QString rootPath = g_workspaceUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/datatable.d.lua");
+    QFile file(annotationPath);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream stream(&file);
     stream << annotation;

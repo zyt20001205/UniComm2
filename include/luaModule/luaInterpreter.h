@@ -20,7 +20,7 @@ class LuaInterpreter final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaInterpreter(const QUrl &rootUrl, const QUrl &scriptUrl, QObject *parent = nullptr);
+    explicit LuaInterpreter(const QUrl &workspaceUrl, const QUrl &scriptUrl, QObject *parent = nullptr);
 
     ~LuaInterpreter() override;
 

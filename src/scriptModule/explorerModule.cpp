@@ -27,10 +27,11 @@ ExplorerModule::ExplorerModule()
     m_explorerTreeView->setColumnHidden(3, true);
     m_explorerTreeView->setColumnHidden(4, true);
     m_explorerTreeModel->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Files);
+    workspaceOpen();
 }
 
-void ExplorerModule::workspaceOpen(const QUrl &rootUrl) const {
-    const QString rootPath = rootUrl.toLocalFile();
+void ExplorerModule::workspaceOpen() {
+    const QString rootPath = g_workspaceUrl.toLocalFile();
     m_explorerTreeModel->setRootPath(rootPath);
     m_explorerTreeView->QTreeView::setRootIndex(m_explorerTreeModel->index(rootPath));
 }

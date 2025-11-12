@@ -12,9 +12,10 @@ StructureModule *g_structure = nullptr;
 ThreadpoolModule *g_threadpool = nullptr;
 UndoModule *g_undo = nullptr;
 
-ViSession g_rm = VI_NULL;
+QUrl g_workspaceUrl = {};
+QJsonObject g_workspaceConfig = {};
 
-QJsonObject g_config = {};
+ViSession g_rm = VI_NULL;
 
 QVariantMap g_cursorPosition = {
     {"url", QUrl()},

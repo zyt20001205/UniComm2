@@ -14,7 +14,7 @@ public:
 
     ~DatatableModule() override = default;
 
-    void workspaceOpen(const QUrl &rootUrl);
+    void workspaceOpen();
 
     void datatableConfigSave() const;
 
@@ -62,7 +62,6 @@ private:
 
     QJsonArray m_datatableConfig{};
     QTableWidget *m_tableWidget{};
-    QUrl m_annotationUrl{};
     int m_version = 1;
     QHash<QString, DataMap> m_data{};
 };

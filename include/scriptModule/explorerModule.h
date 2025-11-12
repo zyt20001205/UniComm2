@@ -14,7 +14,7 @@ public:
 
     ~ExplorerModule() override = default;
 
-    void workspaceOpen(const QUrl &rootUrl) const;
+    void workspaceOpen();
 
 signals:
     void appendLog(const QString &message, const QString &level);
