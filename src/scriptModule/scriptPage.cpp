@@ -22,8 +22,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_scriptEditor(new ScriptEditor()),
       m_scriptUrl(scriptUrl),
       m_fileWatcher(new QFileSystemWatcher()),
-      m_searchWidget(new SearchWidget()),
-      m_editTimer(new QTimer(this)) {
+      m_searchWidget(new SearchWidget()) {
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
@@ -76,13 +75,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_fileWatcher->addPath(scriptPath);
     m_scriptEditor->setText(content);
     m_scriptHash = stringHashCalc(m_scriptEditor->text());
-    m_editTimer->setInterval(300);
-    m_editTimer->setSingleShot(true);
-    connect(m_editTimer, &QTimer::timeout, [this] {
-        scriptEditFinish();
-    });
     // connect signals
-    connect(m_scriptEditor, SIGNAL(textChanged()), this, SLOT(scriptEdit()));
     connect(m_scriptEditor, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_scriptEditor, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
     connect(m_scriptEditor, &ScriptEditor::dockRight, this, [this] {
@@ -126,7 +119,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         }
     });
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestIdle, this, &ScriptPage::idleRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_scriptEditor, &ScriptEditor::requestHover, this, &ScriptPage::hoverRequest);
     connect(m_scriptEditor, &ScriptEditor::setStat, m_searchWidget, &SearchWidget::statSet);
@@ -239,6 +234,24 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) {
         const int endLine = diagnosticEndPos["line"].toInt();
         const int endCharacter = diagnosticEndPos["character"].toInt();
         m_scriptEditor->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
+    }
+}
+
+void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
+    // clear previous highlight
+    m_scriptEditor->indicatorRemove(INDICATOR_HIGHLIGHT);
+    // highlight
+    for (const auto &highlight: result) {
+        const QJsonObject highlightObject = highlight.toObject();
+        // const int kind = highlightObject["kind"].toInt();
+        const QJsonObject highlightRange = highlightObject["range"].toObject();
+        const QJsonObject highlightStartPos = highlightRange["start"].toObject();
+        const QJsonObject highlightEndPos = highlightRange["end"].toObject();
+        const int startLine = highlightStartPos["line"].toInt();
+        const int startCharacter = highlightStartPos["character"].toInt();
+        const int endLine = highlightEndPos["line"].toInt();
+        const int endCharacter = highlightEndPos["character"].toInt();
+        m_scriptEditor->indicatorInsert(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -396,11 +409,6 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 }
 
 // ScriptPage private slots
-void ScriptPage::scriptEdit() const {
-    m_editTimer->stop();
-    m_editTimer->start();
-}
-
 void ScriptPage::charAdded(const int ch) {
     const QChar character(ch);
     if (character.isLetter() || character == '.' || character == ':') {
@@ -431,24 +439,6 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
 }
 
 // ScriptPage private
-void ScriptPage::scriptEditFinish() {
-    // lsp request
-    didChangeNotification();
-    documentSymbolRequest();
-    foldingRangeRequest();
-    semanticTokensRequest();
-    // modification check
-    bool modified{};
-    if (const QString script = m_scriptEditor->text(); stringHashCalc(script) != m_scriptHash) {
-        modified = true;
-    } else {
-        modified = false;
-    }
-    if (modified != m_modified) {
-        scriptModify(modified);
-    }
-}
-
 void ScriptPage::scriptReadonly(const bool status) {
     m_readonly = status;
     m_scriptEditor->setReadOnly(status);
@@ -493,6 +483,27 @@ void ScriptPage::permissionRequest() {
     qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
     // restore file watcher signals 1 sec later
     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
+}
+
+void ScriptPage::idleRequest() {
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // lsp request
+    didChangeNotification();
+    documentHighlightRequest(line, character);
+    documentSymbolRequest();
+    foldingRangeRequest();
+    semanticTokensRequest();
+    // modification check
+    bool modified{};
+    if (const QString script = m_scriptEditor->text(); stringHashCalc(script) != m_scriptHash) {
+        modified = true;
+    } else {
+        modified = false;
+    }
+    if (modified != m_modified) {
+        scriptModify(modified);
+    }
 }
 
 void ScriptPage::didOpenNotification() {
@@ -591,6 +602,24 @@ void ScriptPage::definitionRequest(const int line, const int character) {
         }
     };
     emit requestJson("textDocument/definition", definitionParams);
+}
+
+void ScriptPage::documentHighlightRequest(const int line, const int character) {
+    // document highlight request to lua language server
+    const QJsonObject documentHighlightParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", m_scriptUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/documentHighlight", documentHighlightParams);
 }
 
 void ScriptPage::documentSymbolRequest() {
@@ -867,7 +896,8 @@ ScriptEditor::ScriptEditor(QWidget *parent)
           {'"', '"'},
           {'\'', '\''},
       },
-      m_dwellTimer(new QTimer(this)) {
+      m_dwellTimer(new QTimer(this)),
+      m_typeTimer(new QTimer(this)) {
     // set markers
     markerDefine(Circle, MARKER_BREAKPOINT);
     setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
@@ -943,12 +973,17 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     QsciScintilla::setBackspaceUnindents(true);
     QsciScintilla::setIndentationGuides(true);
     QsciScintilla::setTabWidth(4);
-    // connect auto pair
+    // connect
     connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(pairHandle(int)));
-    // init dwell timer
+    connect(this, SIGNAL(textChanged()), this, SLOT(typeHandle()));
+    // init timer
     m_dwellTimer->setSingleShot(true);
     m_dwellTimer->setInterval(1000);
     connect(m_dwellTimer, &QTimer::timeout, this, &ScriptEditor::dwellHandle);
+
+    m_typeTimer->setInterval(500);
+    m_typeTimer->setSingleShot(true);
+    connect(m_typeTimer, &QTimer::timeout, this, &ScriptEditor::requestIdle);
 }
 
 void ScriptEditor::textSearch(const QString &text, const int flag) {
@@ -1164,26 +1199,24 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
 
 void ScriptEditor::mousePressEvent(QMouseEvent *event) {
     if (event->modifiers() == Qt::ControlModifier && event->button() == Qt::LeftButton) {
-        const QPoint mousePos = event->pos();
-        const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, mousePos.x(), mousePos.y());
-        if (charPos != -1) {
-            const int line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
-            const int character = charPos - SendScintilla(SCI_POSITIONFROMLINE, line);
-            emit requestDefinition(line, character);
-        }
-        event->accept();
+        QsciScintilla::mousePressEvent(event);
+        int line, character;
+        getCursorPosition(&line, &character);
+        emit requestDefinition(line, character);
+        indicatorRemove(INDICATOR_HYPERLINK_FONT);
+        indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+        return;
+    } else if (event->button() == Qt::LeftButton) {
+        QsciScintilla::mousePressEvent(event);
+        int line, character;
+        getCursorPosition(&line, &character);
+        emit requestDocumentHighlight(line, character);
         return;
     }
     QsciScintilla::mousePressEvent(event);
 }
 
 // ScriptEditor private
-void ScriptEditor::pairHandle(const int ascii) {
-    const auto input = QChar(ascii);
-    if (!m_autoPairHash.contains(input)) return;
-    insert(m_autoPairHash[input]);
-}
-
 void ScriptEditor::commentHandle() {
     int startLine, startCharacter, endLine, endCharacter;
     getSelection(&startLine, &startCharacter, &endLine, &endCharacter);
@@ -1225,6 +1258,12 @@ void ScriptEditor::dwellHandle() {
     emit requestHover(line, character);
 }
 
+void ScriptEditor::pairHandle(const int ascii) {
+    const auto input = QChar(ascii);
+    if (!m_autoPairHash.contains(input)) return;
+    insert(m_autoPairHash[input]);
+}
+
 void ScriptEditor::searchHandle() {
     // clear previous highlight
     const int docLength = SendScintilla(SCI_GETLENGTH);
@@ -1243,4 +1282,8 @@ void ScriptEditor::searchHandle() {
     }
     emit setStat(m_currentIndex, m_searchList.length());
     SendScintilla(SCI_CLEARSELECTIONS); // NOLINT}
+}
+
+void ScriptEditor::typeHandle() const {
+    m_typeTimer->start();
 }

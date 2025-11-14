@@ -30,6 +30,8 @@ public:
 
     void diagnosticsResponse(const QJsonArray &diagnosticsArray);
 
+    void documentHighlightResponse(const QJsonArray &result) const;
+
     void foldingRangeResponse(const QJsonArray &result) const;
 
     void formattingResponse(const QString &newText) const;
@@ -74,20 +76,18 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void scriptEdit() const;
-
     void charAdded(int ch);
 
     void marginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
-    void scriptEditFinish();
-
     void scriptReadonly(bool status);
 
     void scriptModify(bool status);
 
     void permissionRequest();
+
+    void idleRequest();
 
     void didOpenNotification();
 
@@ -100,6 +100,8 @@ private:
     void completionRequest();
 
     void definitionRequest(int line, int character);
+
+    void documentHighlightRequest(int line, int character);
 
     void documentSymbolRequest();
 
@@ -119,7 +121,6 @@ private:
     SearchWidget *m_searchWidget{};
     bool m_readonly = false;
     bool m_modified = false;
-    QTimer *m_editTimer{};
     QByteArray m_scriptHash{};
     QJsonArray m_scriptDiagnostic{};
     int m_version = 1;
@@ -241,7 +242,11 @@ signals:
 
     void requestPermission();
 
+    void requestIdle();
+
     void requestDefinition(int line, int character);
+
+    void requestDocumentHighlight(int line, int character);
 
     void requestFormatting();
 
@@ -264,6 +269,8 @@ protected:
 private slots:
     void pairHandle(int ascii);
 
+    void typeHandle() const;
+
 private:
     void commentHandle();
 
@@ -279,6 +286,7 @@ private:
     int m_currentIndex = 0;
     QHash<QChar, QChar> m_autoPairHash{};
     QTimer *m_dwellTimer{};
+    QTimer *m_typeTimer{};
 };
 
 #endif //UNICOMM_SCRIPTPAGE_H

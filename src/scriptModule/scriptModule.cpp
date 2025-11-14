@@ -276,6 +276,10 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     }
 }
 
+void ScriptModule::documentHighlightResponse(const QUrl &scriptUrl, const QJsonArray &result) {
+    m_scriptPageHash[scriptUrl]->documentHighlightResponse(result);
+}
+
 void ScriptModule::foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const {
     m_scriptPageHash[scriptUrl]->foldingRangeResponse(result);
 }

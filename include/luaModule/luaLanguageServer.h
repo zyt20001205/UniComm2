@@ -28,6 +28,8 @@ signals:
 
     void responseDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
 
+    void responseDocumentHighlight(const QUrl &scriptUrl, const QJsonArray &result);
+
     void responseDocumentSymbol(const QUrl &scriptUrl, const QJsonArray &result);
 
     void responseFoldingRange(const QUrl &scriptUrl, const QJsonArray &result);

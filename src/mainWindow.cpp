@@ -187,6 +187,7 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
     connect(m_llsModule, &LuaLanguageServer::responseCompletion, m_scriptModule, &ScriptModule::completionResponse);
     connect(m_llsModule, &LuaLanguageServer::responseDefinition, m_scriptModule, &ScriptModule::definitionResponse);
+    connect(m_llsModule, &LuaLanguageServer::responseDocumentHighlight, m_scriptModule, &ScriptModule::documentHighlightResponse);
     connect(m_llsModule, &LuaLanguageServer::responseDocumentSymbol, m_structureModule, &StructureModule::documentSymbolResponse);
     connect(m_llsModule, &LuaLanguageServer::responseFoldingRange, m_scriptModule, &ScriptModule::foldingRangeResponse);
     connect(m_llsModule, &LuaLanguageServer::responseFormatting, m_scriptModule, &ScriptModule::formattingResponse);

@@ -64,6 +64,8 @@ public:
 
     void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions);
 
+    void documentHighlightResponse(const QUrl &scriptUrl, const QJsonArray &result);
+
     void foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const;
 
     void formattingResponse(const QUrl &scriptUrl, const QString &newText) const;
