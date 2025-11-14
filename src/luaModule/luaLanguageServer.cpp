@@ -16,10 +16,6 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     initializeNotification();
 }
 
-void LuaLanguageServer::workspaceOpen() {
-    didChangeWorkspaceFoldersNotification();
-}
-
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
     const QJsonObject textDocument = params["textDocument"].toObject();
     const auto url = QUrl(textDocument["uri"].toString());
@@ -67,39 +63,9 @@ void LuaLanguageServer::initializeNotification() {
     connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
     loop.exec();
     jsonNotification("initialized", QJsonObject{});
-    m_prevWorkspaceUrl = g_workspaceUrl;
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
-}
-
-void LuaLanguageServer::didChangeWorkspaceFoldersNotification() {
-    const QString rootUriStr = g_workspaceUrl.toString();
-    const QJsonObject didChangeWorkspaceFoldersParams{
-        {
-            "event", QJsonObject{
-                {
-                    "added", QJsonArray{
-                        QJsonObject{
-                            {"uri", rootUriStr}
-                        }
-                    }
-                },
-                {
-                    "removed", QJsonArray{
-                        QJsonObject{
-                            {"uri", m_prevWorkspaceUrl.toString()}
-                        }
-                    }
-                }
-            }
-        }
-    };
-    jsonNotification("workspace/didChangeWorkspaceFolders", didChangeWorkspaceFoldersParams);
-    m_prevWorkspaceUrl = g_workspaceUrl;
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "workspace loaded");
 }
 
 void LuaLanguageServer::jsonResponse() {
@@ -107,8 +73,8 @@ void LuaLanguageServer::jsonResponse() {
         // append to buffer
         m_buffer.append(m_process->readAllStandardOutput());
         // extract header to get pack length
-        const int headerFrontIndex = m_buffer.indexOf("Content-Length: ") + 16;
-        const int headerEndIndex = m_buffer.indexOf("\r\n\r\n");
+        const long long headerFrontIndex = m_buffer.indexOf("Content-Length: ") + 16;
+        const long long headerEndIndex = m_buffer.indexOf("\r\n\r\n");
         const QByteArray lengthBytes = m_buffer.mid(headerFrontIndex, headerEndIndex - headerFrontIndex);
         const QByteArray dataBytes = m_buffer.mid(headerEndIndex + 4, lengthBytes.toInt());
         const QJsonObject json = QJsonDocument::fromJson(dataBytes).object();

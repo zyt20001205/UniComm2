@@ -14,8 +14,6 @@ public:
 
     ~DatatableModule() override = default;
 
-    void workspaceOpen();
-
     void datatableConfigSave() const;
 
     QVariantList datatableList() const;

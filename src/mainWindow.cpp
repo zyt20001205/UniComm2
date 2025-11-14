@@ -8,7 +8,6 @@
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
-#include <QPushButton>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QThread>
@@ -37,7 +36,6 @@
 #include "scriptModule/structureModule.h"
 #include "scriptModule/threadpoolModule.h"
 #include "settingModule/settingModule.h"
-#include "utils/qtUtils.h"
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -56,7 +54,6 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     shortcutInit();
     menuInit();
     layoutInit();
-
     // preload multimedia to avoid lagging on first click
     QThread *worker = QThread::create([] {
         QMediaDevices::videoInputs();
@@ -186,12 +183,6 @@ void MainWindow::moduleInit() {
         m_scriptModule->scriptOpen(scriptUrl);
     });
     connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_configModule, &ConfigModule::openWorkspace, m_llsModule, &LuaLanguageServer::workspaceOpen);
-    connect(m_configModule, &ConfigModule::openWorkspace, m_scriptModule, &ScriptModule::workspaceOpen);
-    connect(m_configModule, &ConfigModule::openWorkspace, m_portModule, &PortModule::workspaceOpen);
-    connect(m_configModule, &ConfigModule::openWorkspace, m_explorerModule, &ExplorerModule::workspaceOpen);
-    connect(m_configModule, &ConfigModule::openWorkspace, m_databaseModule, &DatabaseModule::workspaceOpen);
-    connect(m_configModule, &ConfigModule::openWorkspace, m_datatableModule, &DatatableModule::workspaceOpen);
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
     connect(m_llsModule, &LuaLanguageServer::responseCompletion, m_scriptModule, &ScriptModule::completionResponse);
@@ -212,7 +203,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, m_configModule, &ConfigModule::workspaceOpen);
-    connect(m_scriptModule, &ScriptModule::clearBreakpoint, m_debugModule, &DebugModule::breakpointClear);
     connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {
         const QString scriptName = scriptUrl.fileName();
         m_scriptComboBox->addItem(scriptName, scriptUrl);
@@ -396,6 +386,14 @@ void MainWindow::menuInit() {
         toolBar->addWidget(m_scriptComboBox);
         m_scriptComboBox->setFont(QFont("Consolas", 12, QFont::Bold));
         m_scriptComboBox->setStyleSheet("color: #333333;");
+        // load script
+        const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
+        const QJsonArray scriptList = scriptConfig["scriptList"].toArray();
+        for (const auto &value: scriptConfig["scriptList"].toArray()) {
+            const auto scriptUrl = QUrl(value.toString());
+            const QString scriptName = scriptUrl.fileName();
+            m_scriptComboBox->addItem(scriptName, scriptUrl);
+        }
 
         auto runScript = [this] {
             if (m_scriptModule->m_scriptPageHash.isEmpty()) {

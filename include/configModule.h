@@ -12,6 +12,8 @@ public:
 
     ~ConfigModule() override = default;
 
+    static int mainConfigLoad();
+
     void workspaceOpen();
 
     void workspaceInit();
@@ -23,10 +25,10 @@ signals:
 
     void openWorkspace();
 
+    void quit();
+
 private:
     static void mainConfigGenerate();
-
-    static void mainConfigLoad();
 };
 
 #endif //UNICOMM_CONFIG_H

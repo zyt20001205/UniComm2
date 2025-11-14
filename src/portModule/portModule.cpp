@@ -57,17 +57,6 @@ PortModule::PortModule()
     if (m_portTabWidget->count() == 0) overlayShow();
 }
 
-void PortModule::workspaceOpen() {
-    for (int index = m_portHash.size() - 1; index >= 0; --index) {
-        portRemove(index);
-    }
-    for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
-        const QJsonObject portConfig = value.toObject();
-        portInsert(-1, portConfig);
-    }
-    portAnnotate();
-}
-
 void PortModule::portConfigSave() const {
     g_workspaceConfig["portConfig"] = m_portConfig;
 }
@@ -132,6 +121,7 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
 bool PortModule::eventFilter(QObject *obj, QEvent *event) {
     if (obj == m_portTabOverlay && event->type() == QEvent::MouseButtonPress) {
         portInsert(-1);
+        portAnnotate();
         return true;
     }
     return DockWidget::eventFilter(obj, event);
@@ -146,6 +136,13 @@ void PortModule::resizeEvent(QResizeEvent *event) {
 void PortModule::portRemove(const int index) {
     QJsonObject portConfig = m_portConfig[index].toObject();
     QString portName = portConfig["portName"].toString();
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        nullptr,
+        tr("Remove Port"),
+        QString(tr("Are you sure to remove port %1?")).arg(portName),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+    if (reply != QMessageBox::Yes) return;
     // frontend
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);

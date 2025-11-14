@@ -15,8 +15,6 @@ public:
 
     ~LuaLanguageServer() override = default;
 
-    void workspaceOpen();
-
     void jsonRequest(const QString &method, const QJsonObject &params);
 
     void jsonNotification(const QString &method, const QJsonObject &params) const;
@@ -45,12 +43,9 @@ signals:
 private:
     void initializeNotification();
 
-    void didChangeWorkspaceFoldersNotification();
-
     void jsonResponse();
 
     QProcess *m_process{};
-    QUrl m_prevWorkspaceUrl{};
     QByteArray m_buffer{};
     int m_id = 0;
     QHash<int, QString> m_methods{};

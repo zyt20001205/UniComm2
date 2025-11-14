@@ -14,8 +14,6 @@ public:
 
     ~DatabaseModule() override = default;
 
-    void workspaceOpen();
-
     void databaseConfigSave() const;
 
     QVariantList databaseList() const;

@@ -21,8 +21,6 @@ public:
 
     ~PortModule() override = default;
 
-    void workspaceOpen();
-
     void portConfigSave() const;
 
     BasePort* currentPort() const;

@@ -34,15 +34,6 @@ DatabaseModule::DatabaseModule()
     m_tableWidget->installEventFilter(this);
 }
 
-void DatabaseModule::workspaceOpen() {
-    m_tableWidget->setRowCount(0);
-    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
-        const QString key = value.toString();
-        databaseInsert(-1, key);
-    }
-    databaseAnnotate();
-}
-
 void DatabaseModule::databaseConfigSave() const {
     g_workspaceConfig["databaseConfig"] = m_databaseConfig;
 }

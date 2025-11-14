@@ -30,8 +30,6 @@ public:
         return m_welcomePage;
     }
 
-    void workspaceOpen();
-
     void scriptConfigSave();
 
     void scriptFontReload(const QJsonObject &fontConfigScript) const;
@@ -82,8 +80,6 @@ signals:
     void appendLog(const QString &message, const QString &level);
 
     void openWorkspace();
-
-    void clearBreakpoint();
 
     void openScript(const QUrl &scriptUrl);
 

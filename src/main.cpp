@@ -1,8 +1,9 @@
 #include "mainWindow.h"
 
 #include <QStyleFactory>
-
 #include <kddockwidgets/Config.h>
+
+#include "configModule.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -15,6 +16,7 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
 
+    if (ConfigModule::mainConfigLoad()) return 1;
     auto *mainWindow = new MainWindow();
     mainWindow->show();
 

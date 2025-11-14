@@ -46,16 +46,6 @@ DatatableModule::DatatableModule()
     connect(clearAction, &QAction::triggered, this, [this] { datatableClear(""); });
 }
 
-void DatatableModule::workspaceOpen() {
-    m_tableWidget->setRowCount(0);
-    m_tableWidget->setColumnCount(0);
-    for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
-        const QString key = value.toString();
-        datatableInsert(-1, key);
-    }
-    datatableAnnotate();
-}
-
 void DatatableModule::datatableConfigSave() const {
     g_workspaceConfig["datatableConfig"] = m_datatableConfig;
 }
