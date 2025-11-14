@@ -36,14 +36,14 @@ int ConfigModule::mainConfigLoad() {
             nullptr,
             tr("Open Workspace"),
             QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
         );
     } else {
         workspaceDir = QFileDialog::getExistingDirectory(
             nullptr,
             tr("Open Workspace"),
             workspaceUrl.toLocalFile(),
-            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
         );
     }
     if (workspaceDir.isEmpty()) {
@@ -72,7 +72,7 @@ void ConfigModule::workspaceOpen() {
         g_mainWindow,
         tr("Open Workspace"),
         QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::DontUseNativeDialog
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
     if (workspaceDir.isEmpty()) return;
     if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
