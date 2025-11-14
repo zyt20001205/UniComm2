@@ -593,14 +593,14 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
 }
 
 void LuaInterpreter::handleError() const {
-    const QString error = lua_tostring(L, -1);
-    int line = -1;
+    const QString errorMessage = lua_tostring(L, -1);
+    int errorLine = -1;
     static const QRegularExpression re(R"(:(\d+):)");
-    if (const auto match = re.match(error); match.hasMatch()) line = match.captured(1).toInt();
+    if (const auto match = re.match(errorMessage); match.hasMatch()) errorLine = match.captured(1).toInt();
     QUrl scriptUrl = m_scriptUrl;
-    QMetaObject::invokeMethod(g_mainWindow, [scriptUrl, line, error] {
-        g_script->markerInsert(scriptUrl, MARKER_ERROR, line);
-        g_log->logAppend(error, "error");
+    QMetaObject::invokeMethod(g_mainWindow, [scriptUrl, errorLine, errorMessage] {
+        g_script->markerInsert(scriptUrl, MARKER_ERROR, errorLine);
+        g_log->logAppend(errorMessage, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);
 }
