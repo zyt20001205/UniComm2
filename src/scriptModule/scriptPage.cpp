@@ -219,14 +219,14 @@ void ScriptPage::scriptClose() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.fileName());
 }
 
-void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) const {
+void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) {
+    m_scriptDiagnostic = diagnosticsArray;
     // clear previous diagnostics
     m_scriptEditor->indicatorRemove(INDICATOR_ERROR);
     m_scriptEditor->indicatorRemove(INDICATOR_WARNING);
     m_scriptEditor->indicatorRemove(INDICATOR_INFO);
     m_scriptEditor->indicatorRemove(INDICATOR_HINT);
     // publish diagnostics
-    int row = 0;
     for (const auto &diagnostic: diagnosticsArray) {
         const QJsonObject diagnosticObject = diagnostic.toObject();
         const int severity = diagnosticObject["severity"].toInt();
@@ -238,7 +238,6 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) const {
         const int endLine = diagnosticEndPos["line"].toInt();
         const int endCharacter = diagnosticEndPos["character"].toInt();
         m_scriptEditor->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
-        row++;
     }
 }
 
@@ -670,6 +669,32 @@ void ScriptPage::signatureHelpRequest() {
 }
 
 void ScriptPage::hoverRequest(const int line, const int character) {
+    QString markdown = "```lua\n";
+    for (const auto &diagnostic: m_scriptDiagnostic) {
+        const QJsonObject diagnosticObject = diagnostic.toObject();
+        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
+        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
+        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
+        const int startLine = diagnosticStartPos["line"].toInt();
+        const int startCharacter = diagnosticStartPos["character"].toInt();
+        const int endLine = diagnosticEndPos["line"].toInt();
+        const int endCharacter = diagnosticEndPos["character"].toInt();
+        if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
+            const QString source = diagnosticObject["source"].toString();
+            const QString code = diagnosticObject["code"].toString();
+            const QString message = diagnosticObject["message"].toString();
+            markdown += source;
+            markdown += code;
+            markdown += ": ";
+            markdown += message;
+            markdown += "\n";
+        }
+    }
+    if (markdown != "```lua\n") {
+        markdown += "\n```";
+        emit showHoverTooltip(markdown);
+        return;
+    }
     // hover request to lua language server
     const QJsonObject hoverParams{
         {

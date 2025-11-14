@@ -1,6 +1,7 @@
 #ifndef UNICOMM_SCRIPTPAGE_H
 #define UNICOMM_SCRIPTPAGE_H
 
+#include <QJsonArray>
 #include <QJsonObject>
 #include <Qsci/qsciscintilla.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
@@ -27,7 +28,7 @@ public:
 
     void scriptClose();
 
-    void diagnosticsResponse(const QJsonArray &diagnosticsArray) const;
+    void diagnosticsResponse(const QJsonArray &diagnosticsArray);
 
     void foldingRangeResponse(const QJsonArray &result) const;
 
@@ -50,6 +51,8 @@ signals:
     void insertDatabase(int index, const QString &key);
 
     void insertDatatable(int index, const QString &key);
+
+    void showHoverTooltip(const QString &message);
 
     void showPositionTooltip();
 
@@ -118,6 +121,7 @@ private:
     bool m_modified = false;
     QTimer *m_editTimer{};
     QByteArray m_scriptHash{};
+    QJsonArray m_scriptDiagnostic{};
     int m_version = 1;
 
     // semantic enum

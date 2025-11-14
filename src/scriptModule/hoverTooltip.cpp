@@ -20,7 +20,6 @@ HoverTooltip::HoverTooltip(QWidget *parent)
 
 // HoverTooltip private
 void HoverTooltip::showTooltip(const QString &message) {
-    // emit switchDwell(false);
     m_textBrowser->setMarkdown(message);
     this->adjustSize();
     this->move(QCursor::pos() + QPoint(15, 15));
@@ -28,6 +27,5 @@ void HoverTooltip::showTooltip(const QString &message) {
 }
 
 void HoverTooltip::hideTooltip() {
-    // emit switchDwell(true);
     this->hide();
 }
