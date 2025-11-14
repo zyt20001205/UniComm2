@@ -365,10 +365,10 @@ void MainWindow::menuInit() {
                 {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
                 {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
                 {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
-                {"indicatorSearchResultStyleScript", scriptConfig["indicatorSearchResultStyle"].toInt()},
-                {"indicatorSearchResultColorScript", scriptConfig["indicatorSearchResultColor"].toString()},
-                {"indicatorSearchCurrentStyleScript", scriptConfig["indicatorSearchCurrentStyle"].toInt()},
-                {"indicatorSearchCurrentColorScript", scriptConfig["indicatorSearchCurrentColor"].toString()}
+                {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
+                {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
+                {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
+                {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {

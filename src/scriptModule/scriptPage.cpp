@@ -26,6 +26,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_editTimer(new QTimer(this)) {
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
+    shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
@@ -52,13 +53,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
-    // indicator search
-    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchResultStyle"].toInt()), INDICATOR_SEARCH_RESULT);
-    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchResultColor"].toString()), INDICATOR_SEARCH_RESULT);
-    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
-    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchCurrentStyle"].toInt()), INDICATOR_SEARCH_CURRENT);
-    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchCurrentColor"].toString()), INDICATOR_SEARCH_CURRENT);
-    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
+    // indicator misc
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
 
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -898,10 +899,6 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setMarkerBackgroundColor(QColor(20, 100, 20), MARKER_HEATMAP100);
 
     // set indicators
-    indicatorDefine(StraightBoxIndicator, INDICATOR_HIGHLIGHT);
-    setIndicatorForegroundColor(QColor(252, 212, 126), INDICATOR_HIGHLIGHT);
-    setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
-
     indicatorDefine(TextColorIndicator, INDICATOR_HYPERLINK_FONT);
     setIndicatorForegroundColor(QColor(0, 109, 204), INDICATOR_HYPERLINK_FONT);
     setIndicatorDrawUnder(true, INDICATOR_HYPERLINK_FONT);
@@ -923,7 +920,7 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     QsciScintilla::setMarginSensitivity(2, true);
     QsciScintilla::setMarginWidth(2, 16);
 
-    // color format is BGR!!! DO NOT FORGET!!!
+    // set styles !!!color format is BGR!!!
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
@@ -961,7 +958,7 @@ void ScriptEditor::textSearch(const QString &text, const int flag) {
     m_currentIndex = 0;
     m_searchList.clear();
     const int docLength = SendScintilla(SCI_GETLENGTH);
-    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
     // start searching
     if (!text.isEmpty()) {
@@ -973,7 +970,7 @@ void ScriptEditor::textSearch(const QString &text, const int flag) {
             const int end = SendScintilla(SCI_GETSELECTIONEND);
             const int length = end - start;
             m_searchList.append({start, end, length});
-            SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_RESULT); // NOLINT
+            SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH); // NOLINT
             SendScintilla(SCI_INDICATORFILLRANGE, start, length); // NOLINT
             SendScintilla(SCI_GOTOPOS, end); // NOLINT
             SendScintilla(SCI_SEARCHANCHOR); // NOLINT
@@ -1229,9 +1226,9 @@ void ScriptEditor::dwellHandle() {
 }
 
 void ScriptEditor::searchHandle() {
-    // clear previous search current
+    // clear previous highlight
     const int docLength = SendScintilla(SCI_GETLENGTH);
-    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_HIGHLIGHT); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
     if (m_searchList.empty()) {
         m_currentIndex = 0;
@@ -1241,7 +1238,7 @@ void ScriptEditor::searchHandle() {
         SendScintilla(SCI_GOTOPOS, m_searchList[m_currentIndex][0]); // NOLINT
         const int line = SendScintilla(SCI_LINEFROMPOSITION, m_searchList[m_currentIndex][0]);
         SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
-        SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SEARCH_CURRENT); // NOLINT
+        SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_HIGHLIGHT); // NOLINT
         SendScintilla(SCI_INDICATORFILLRANGE, m_searchList[m_currentIndex][0], m_searchList[m_currentIndex][2]); // NOLINT
     }
     emit setStat(m_currentIndex, m_searchList.length());

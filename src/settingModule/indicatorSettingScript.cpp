@@ -26,10 +26,10 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
       m_indicatorHintStyleComboBox(new QComboBox()),
       m_indicatorHintColorButton(new QPushButton()),
       m_diagnosticPreviewEditor(new QsciScintilla()),
-      m_indicatorSearchResultStyleComboBox(new QComboBox()),
-      m_indicatorSearchResultColorButton(new QPushButton()),
-      m_indicatorSearchCurrentStyleComboBox(new QComboBox()),
-      m_indicatorSearchCurrentColorButton(new QPushButton()),
+      m_indicatorSearchStyleComboBox(new QComboBox()),
+      m_indicatorSearchColorButton(new QPushButton()),
+      m_indicatorHighlightStyleComboBox(new QComboBox()),
+      m_indicatorHighlightColorButton(new QPushButton()),
       m_searchPreviewEditor(new QsciScintilla()) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
@@ -43,7 +43,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         diagnosticLabel->setFont(QFont("Segoe UI", 14, QFont::Bold));
         QFrame *horizontalLine = new QFrame(); // NOLINT
         layout->addWidget(horizontalLine);
-        horizontalLine->setFrameShape(QFrame::HLine);
+        horizontalLine->setFrameShape(HLine);
         horizontalLine->setLineWidth(3);
 
         auto *indicatorErrorStyleWidget = new QWidget(); // NOLINT
@@ -184,83 +184,83 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
     }
     // search
     {
-        auto *searchLabel = new QLabel(tr("Search")); // NOLINT
+        auto *searchLabel = new QLabel(tr("Misc")); // NOLINT
         layout->addWidget(searchLabel);
         searchLabel->setFont(QFont("Segoe UI", 14, QFont::Bold));
         QFrame *horizontalLine = new QFrame(); // NOLINT
         layout->addWidget(horizontalLine);
-        horizontalLine->setFrameShape(QFrame::HLine);
+        horizontalLine->setFrameShape(HLine);
         horizontalLine->setLineWidth(3);
 
-        auto *indicatorSearchResultStyleWidget = new QWidget(); // NOLINT
-        layout->addWidget(indicatorSearchResultStyleWidget);
-        auto *indicatorSearchResultStyleLayout = new QHBoxLayout(indicatorSearchResultStyleWidget); // NOLINT
-        indicatorSearchResultStyleLayout->setContentsMargins(0, 0, 0, 0);
-        auto *indicatorSearchResultStyleLabel = new QLabel(tr("Result Style")); // NOLINT
-        indicatorSearchResultStyleLayout->addWidget(indicatorSearchResultStyleLabel);
-        indicatorSearchResultStyleLabel->setFont(QFont("Segoe UI", 12));
-        indicatorSearchResultStyleLayout->addWidget(m_indicatorSearchResultStyleComboBox);
-        m_indicatorSearchResultStyleComboBox->addItems(m_indicatorStyleList);
-        m_indicatorSearchResultStyleComboBox->setFont(QFont("Segoe UI", 12));
-        connect(m_indicatorSearchResultStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
-            m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(style), INDICATOR_SEARCH_RESULT);
-            m_searchPreviewEditor->setIndicatorForegroundColor(QColor(m_indicatorSearchResultColorButton->text()), INDICATOR_SEARCH_RESULT);
-            m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH_RESULT);
-            m_searchPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_SEARCH_RESULT);
-            m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH_RESULT);
-            m_searchPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_SEARCH_RESULT);
-            m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH_RESULT);
+        auto *indicatorSearchStyleWidget = new QWidget(); // NOLINT
+        layout->addWidget(indicatorSearchStyleWidget);
+        auto *indicatorSearchStyleLayout = new QHBoxLayout(indicatorSearchStyleWidget); // NOLINT
+        indicatorSearchStyleLayout->setContentsMargins(0, 0, 0, 0);
+        auto *indicatorSearchStyleLabel = new QLabel(tr("Search Style")); // NOLINT
+        indicatorSearchStyleLayout->addWidget(indicatorSearchStyleLabel);
+        indicatorSearchStyleLabel->setFont(QFont("Segoe UI", 12));
+        indicatorSearchStyleLayout->addWidget(m_indicatorSearchStyleComboBox);
+        m_indicatorSearchStyleComboBox->addItems(m_indicatorStyleList);
+        m_indicatorSearchStyleComboBox->setFont(QFont("Segoe UI", 12));
+        connect(m_indicatorSearchStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
+            m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(style), INDICATOR_SEARCH);
+            m_searchPreviewEditor->setIndicatorForegroundColor(QColor(m_indicatorSearchColorButton->text()), INDICATOR_SEARCH);
+            m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH);
+            m_searchPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_SEARCH);
+            m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH);
+            m_searchPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_SEARCH);
+            m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH);
         });
-        auto *indicatorSearchResultColorWidget = new QWidget(); // NOLINT
-        layout->addWidget(indicatorSearchResultColorWidget);
-        auto *indicatorSearchResultColorLayout = new QHBoxLayout(indicatorSearchResultColorWidget); // NOLINT
-        indicatorSearchResultColorLayout->setContentsMargins(0, 0, 0, 0);
-        auto *indicatorSearchResultColorLabel = new QLabel(tr("Result Color")); // NOLINT
-        indicatorSearchResultColorLayout->addWidget(indicatorSearchResultColorLabel, 1);
-        indicatorSearchResultColorLabel->setFont(QFont("Segoe UI", 12));
-        indicatorSearchResultColorLayout->addWidget(m_indicatorSearchResultColorButton, 1);
-        m_indicatorSearchResultColorButton->setFont(QFont("Segoe UI", 12));
-        connect(m_indicatorSearchResultColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorSearchResultColorButton->text(), this, tr("Choose Search Result Background")); newColor.isValid()) {
-                m_indicatorSearchResultColorButton->setText(newColor.name());
-                m_searchPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_SEARCH_RESULT);
-                m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH_RESULT);
-                m_searchPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_SEARCH_RESULT);
-                m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH_RESULT);
-                m_searchPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_SEARCH_RESULT);
-                m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH_RESULT);
+        auto *indicatorSearchColorWidget = new QWidget(); // NOLINT
+        layout->addWidget(indicatorSearchColorWidget);
+        auto *indicatorSearchColorLayout = new QHBoxLayout(indicatorSearchColorWidget); // NOLINT
+        indicatorSearchColorLayout->setContentsMargins(0, 0, 0, 0);
+        auto *indicatorSearchColorLabel = new QLabel(tr("Search Color")); // NOLINT
+        indicatorSearchColorLayout->addWidget(indicatorSearchColorLabel, 1);
+        indicatorSearchColorLabel->setFont(QFont("Segoe UI", 12));
+        indicatorSearchColorLayout->addWidget(m_indicatorSearchColorButton, 1);
+        m_indicatorSearchColorButton->setFont(QFont("Segoe UI", 12));
+        connect(m_indicatorSearchColorButton, &QPushButton::clicked, this, [this] {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorSearchColorButton->text(), this, tr("Choose Search Result Background")); newColor.isValid()) {
+                m_indicatorSearchColorButton->setText(newColor.name());
+                m_searchPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_SEARCH);
+                m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH);
+                m_searchPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_SEARCH);
+                m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH);
+                m_searchPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_SEARCH);
+                m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH);
             }
         });
 
-        auto *indicatorSearchCurrentStyleWidget = new QWidget(); // NOLINT
-        layout->addWidget(indicatorSearchCurrentStyleWidget);
-        auto *indicatorSearchCurrentStyleLayout = new QHBoxLayout(indicatorSearchCurrentStyleWidget); // NOLINT
-        indicatorSearchCurrentStyleLayout->setContentsMargins(0, 0, 0, 0);
-        auto *indicatorSearchCurrentStyleLabel = new QLabel(tr("Current Style")); // NOLINT
-        indicatorSearchCurrentStyleLayout->addWidget(indicatorSearchCurrentStyleLabel);
-        indicatorSearchCurrentStyleLabel->setFont(QFont("Segoe UI", 12));
-        indicatorSearchCurrentStyleLayout->addWidget(m_indicatorSearchCurrentStyleComboBox);
-        m_indicatorSearchCurrentStyleComboBox->addItems(m_indicatorStyleList);
-        m_indicatorSearchCurrentStyleComboBox->setFont(QFont("Segoe UI", 12));
-        connect(m_indicatorSearchCurrentStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
-            m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(style), INDICATOR_SEARCH_CURRENT);
-            m_searchPreviewEditor->setIndicatorForegroundColor(QColor(m_indicatorSearchCurrentColorButton->text()), INDICATOR_SEARCH_CURRENT);
-            m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH_CURRENT);
+        auto *indicatorHighlightStyleWidget = new QWidget(); // NOLINT
+        layout->addWidget(indicatorHighlightStyleWidget);
+        auto *indicatorHighlightStyleLayout = new QHBoxLayout(indicatorHighlightStyleWidget); // NOLINT
+        indicatorHighlightStyleLayout->setContentsMargins(0, 0, 0, 0);
+        auto *indicatorHighlightStyleLabel = new QLabel(tr("Highlight Style")); // NOLINT
+        indicatorHighlightStyleLayout->addWidget(indicatorHighlightStyleLabel);
+        indicatorHighlightStyleLabel->setFont(QFont("Segoe UI", 12));
+        indicatorHighlightStyleLayout->addWidget(m_indicatorHighlightStyleComboBox);
+        m_indicatorHighlightStyleComboBox->addItems(m_indicatorStyleList);
+        m_indicatorHighlightStyleComboBox->setFont(QFont("Segoe UI", 12));
+        connect(m_indicatorHighlightStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
+            m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(style), INDICATOR_HIGHLIGHT);
+            m_searchPreviewEditor->setIndicatorForegroundColor(QColor(m_indicatorHighlightColorButton->text()), INDICATOR_HIGHLIGHT);
+            m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_HIGHLIGHT);
         });
-        auto *indicatorSearchCurrentColorWidget = new QWidget(); // NOLINT
-        layout->addWidget(indicatorSearchCurrentColorWidget);
-        auto *indicatorSearchCurrentColorLayout = new QHBoxLayout(indicatorSearchCurrentColorWidget); // NOLINT
-        indicatorSearchCurrentColorLayout->setContentsMargins(0, 0, 0, 0);
-        auto *indicatorSearchCurrentColorLabel = new QLabel(tr("Current Color")); // NOLINT
-        indicatorSearchCurrentColorLayout->addWidget(indicatorSearchCurrentColorLabel, 1);
-        indicatorSearchCurrentColorLabel->setFont(QFont("Segoe UI", 12));
-        indicatorSearchCurrentColorLayout->addWidget(m_indicatorSearchCurrentColorButton, 1);
-        m_indicatorSearchCurrentColorButton->setFont(QFont("Segoe UI", 12));
-        connect(m_indicatorSearchCurrentColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorSearchCurrentColorButton->text(), this, tr("Choose Search Current Background")); newColor.isValid()) {
-                m_indicatorSearchCurrentColorButton->setText(newColor.name());
-                m_searchPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_SEARCH_CURRENT);
-                m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH_CURRENT);
+        auto *indicatorHighlightColorWidget = new QWidget(); // NOLINT
+        layout->addWidget(indicatorHighlightColorWidget);
+        auto *indicatorHighlightColorLayout = new QHBoxLayout(indicatorHighlightColorWidget); // NOLINT
+        indicatorHighlightColorLayout->setContentsMargins(0, 0, 0, 0);
+        auto *indicatorHighlightColorLabel = new QLabel(tr("Highlight Color")); // NOLINT
+        indicatorHighlightColorLayout->addWidget(indicatorHighlightColorLabel, 1);
+        indicatorHighlightColorLabel->setFont(QFont("Segoe UI", 12));
+        indicatorHighlightColorLayout->addWidget(m_indicatorHighlightColorButton, 1);
+        m_indicatorHighlightColorButton->setFont(QFont("Segoe UI", 12));
+        connect(m_indicatorHighlightColorButton, &QPushButton::clicked, this, [this] {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorHighlightColorButton->text(), this, tr("Choose Search Current Background")); newColor.isValid()) {
+                m_indicatorHighlightColorButton->setText(newColor.name());
+                m_searchPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_HIGHLIGHT);
+                m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_HIGHLIGHT);
             }
         });
 
@@ -316,35 +316,35 @@ void IndicatorSettingScript::settingImport(const QJsonObject &indicatorConfigScr
         m_diagnosticPreviewEditor->fillIndicatorRange(2, 0, 2, m_diagnosticPreviewEditor->text(2).length(), INDICATOR_INFO);
         m_diagnosticPreviewEditor->fillIndicatorRange(3, 0, 3, m_diagnosticPreviewEditor->text(3).length(), INDICATOR_HINT);
     }
-    // search
+    // misc
     {
-        const int indicatorSearchResultStyle = indicatorConfigScript["indicatorSearchResultStyle"].toInt();
-        m_indicatorSearchResultStyleComboBox->setCurrentIndex(indicatorSearchResultStyle);
-        const QString indicatorSearchResultColor = indicatorConfigScript["indicatorSearchResultColor"].toString();
-        m_indicatorSearchResultColorButton->setText(indicatorSearchResultColor);
-        const int indicatorSearchCurrentStyle = indicatorConfigScript["indicatorSearchCurrentStyle"].toInt();
-        m_indicatorSearchCurrentStyleComboBox->setCurrentIndex(indicatorSearchCurrentStyle);
-        const QString indicatorSearchCurrentColor = indicatorConfigScript["indicatorSearchCurrentColor"].toString();
-        m_indicatorSearchCurrentColorButton->setText(indicatorSearchCurrentColor);
+        const int indicatorSearchStyle = indicatorConfigScript["indicatorSearchStyle"].toInt();
+        m_indicatorSearchStyleComboBox->setCurrentIndex(indicatorSearchStyle);
+        const QString indicatorSearchColor = indicatorConfigScript["indicatorSearchColor"].toString();
+        m_indicatorSearchColorButton->setText(indicatorSearchColor);
+        const int indicatorHighlightStyle = indicatorConfigScript["indicatorHighlightStyle"].toInt();
+        m_indicatorHighlightStyleComboBox->setCurrentIndex(indicatorHighlightStyle);
+        const QString indicatorHighlightColor = indicatorConfigScript["indicatorHighlightColor"].toString();
+        m_indicatorHighlightColorButton->setText(indicatorHighlightColor);
 
-        m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorSearchResultStyle), INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->setIndicatorForegroundColor(QColor(indicatorSearchResultColor), INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorSearchCurrentStyle), INDICATOR_SEARCH_CURRENT);
-        m_searchPreviewEditor->setIndicatorForegroundColor(QColor(indicatorSearchCurrentColor), INDICATOR_SEARCH_CURRENT);
-        m_searchPreviewEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
+        m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorSearchStyle), INDICATOR_SEARCH);
+        m_searchPreviewEditor->setIndicatorForegroundColor(QColor(indicatorSearchColor), INDICATOR_SEARCH);
+        m_searchPreviewEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
+        m_searchPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorHighlightStyle), INDICATOR_HIGHLIGHT);
+        m_searchPreviewEditor->setIndicatorForegroundColor(QColor(indicatorHighlightColor), INDICATOR_HIGHLIGHT);
+        m_searchPreviewEditor->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
         m_searchPreviewEditor->setText(
             "local count = 0\n"
             "while count < 10 do\n"
             "    print(count)\n"
             "    count = count + 1\n"
             "end");
-        m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH_RESULT);
-        m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH_CURRENT);
+        m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH);
+        m_searchPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_SEARCH);
+        m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SEARCH);
+        m_searchPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_SEARCH);
+        m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH);
+        m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_HIGHLIGHT);
     }
 }
 
@@ -358,9 +358,9 @@ QJsonObject IndicatorSettingScript::settingExport() const {
     indicatorConfigScript["indicatorInfoColor"] = m_indicatorInfoColorButton->text();
     indicatorConfigScript["indicatorHintStyle"] = m_indicatorHintStyleComboBox->currentIndex();
     indicatorConfigScript["indicatorHintColor"] = m_indicatorHintColorButton->text();
-    indicatorConfigScript["indicatorSearchResultStyle"] = m_indicatorSearchResultStyleComboBox->currentIndex();
-    indicatorConfigScript["indicatorSearchResultColor"] = m_indicatorSearchResultColorButton->text();
-    indicatorConfigScript["indicatorSearchCurrentStyle"] = m_indicatorSearchCurrentStyleComboBox->currentIndex();
-    indicatorConfigScript["indicatorSearchCurrentColor"] = m_indicatorSearchCurrentColorButton->text();
+    indicatorConfigScript["indicatorSearchStyle"] = m_indicatorSearchStyleComboBox->currentIndex();
+    indicatorConfigScript["indicatorSearchColor"] = m_indicatorSearchColorButton->text();
+    indicatorConfigScript["indicatorHighlightStyle"] = m_indicatorHighlightStyleComboBox->currentIndex();
+    indicatorConfigScript["indicatorHighlightColor"] = m_indicatorHighlightColorButton->text();
     return indicatorConfigScript;
 }

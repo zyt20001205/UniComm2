@@ -30,10 +30,10 @@ private:
     QComboBox *m_indicatorHintStyleComboBox{};
     QPushButton *m_indicatorHintColorButton{};
     QsciScintilla *m_diagnosticPreviewEditor{};
-    QComboBox *m_indicatorSearchResultStyleComboBox{};
-    QPushButton *m_indicatorSearchResultColorButton{};
-    QComboBox *m_indicatorSearchCurrentStyleComboBox{};
-    QPushButton *m_indicatorSearchCurrentColorButton{};
+    QComboBox *m_indicatorSearchStyleComboBox{};
+    QPushButton *m_indicatorSearchColorButton{};
+    QComboBox *m_indicatorHighlightStyleComboBox{};
+    QPushButton *m_indicatorHighlightColorButton{};
     QsciScintilla *m_searchPreviewEditor{};
 };
 

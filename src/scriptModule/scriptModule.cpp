@@ -98,15 +98,15 @@ void ScriptModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScrip
         scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHintColor"].toString()), INDICATOR_HINT);
         scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptPage->m_scriptUrl]);
-        // search
-        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchResultStyle"].toInt()),
-                                                    INDICATOR_SEARCH_RESULT);
-        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchResultColor"].toString()), INDICATOR_SEARCH_RESULT);
-        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_RESULT);
-        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchCurrentStyle"].toInt()),
-                                                    INDICATOR_SEARCH_CURRENT);
-        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchCurrentColor"].toString()), INDICATOR_SEARCH_CURRENT);
-        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH_CURRENT);
+        // misc
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()),
+                                                    INDICATOR_SEARCH);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHighlightStyle"].toInt()),
+                                                    INDICATOR_HIGHLIGHT);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
     }
 }
 
@@ -119,10 +119,10 @@ void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript)
     m_scriptConfig["indicatorInfoColor"] = indicatorConfigScript["indicatorInfoColor"].toString();
     m_scriptConfig["indicatorHintStyle"] = indicatorConfigScript["indicatorHintStyle"].toInt();
     m_scriptConfig["indicatorHintColor"] = indicatorConfigScript["indicatorHintColor"].toString();
-    m_scriptConfig["indicatorSearchResultStyle"] = indicatorConfigScript["indicatorSearchResultStyle"].toInt();
-    m_scriptConfig["indicatorSearchResultColor"] = indicatorConfigScript["indicatorSearchResultColor"].toString();
-    m_scriptConfig["indicatorSearchCurrentStyle"] = indicatorConfigScript["indicatorSearchCurrentStyle"].toInt();
-    m_scriptConfig["indicatorSearchCurrentColor"] = indicatorConfigScript["indicatorSearchCurrentColor"].toString();
+    m_scriptConfig["indicatorSearchStyle"] = indicatorConfigScript["indicatorSearchStyle"].toInt();
+    m_scriptConfig["indicatorSearchColor"] = indicatorConfigScript["indicatorSearchColor"].toString();
+    m_scriptConfig["indicatorHighlightStyle"] = indicatorConfigScript["indicatorHighlightStyle"].toInt();
+    m_scriptConfig["indicatorHighlightColor"] = indicatorConfigScript["indicatorHighlightColor"].toString();
 }
 
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
