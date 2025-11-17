@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QJsonArray>
 #include <QMessageBox>
+#include <QProcess>
 #include <QStandardPaths>
 
 #include "globals.h"
@@ -30,26 +31,18 @@ int ConfigModule::mainConfigLoad() {
     const QJsonObject jsonObject = jsonDoc.object();
     auto workspaceUrlStr = jsonObject.value("workspace").toString();
     auto workspaceUrl = QUrl(workspaceUrlStr);
-    QString workspaceDir{};
     if (workspaceUrlStr.isEmpty() || !QFileInfo::exists(workspaceUrl.toLocalFile())) {
-        workspaceDir = QFileDialog::getExistingDirectory(
+        QString workspaceDir = QFileDialog::getExistingDirectory(
             nullptr,
             tr("Open Workspace"),
             QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
         );
-    } else {
-        workspaceDir = QFileDialog::getExistingDirectory(
-            nullptr,
-            tr("Open Workspace"),
-            workspaceUrl.toLocalFile(),
-            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
-        );
+        if (workspaceDir.isEmpty()) {
+            return 1;
+        }
+        workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     }
-    if (workspaceDir.isEmpty()) {
-        return 1;
-    }
-    workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     const QJsonObject json{
         {"version", "1.0.0"},
         {"workspace", workspaceUrl.toString()},
@@ -65,38 +58,6 @@ int ConfigModule::mainConfigLoad() {
     qDebug() << QString("[%1] %2").arg(timestamp, "main config loaded");
 
     return 0;
-}
-
-void ConfigModule::workspaceOpen() {
-    const QString workspaceDir = QFileDialog::getExistingDirectory(
-        g_mainWindow,
-        tr("Open Workspace"),
-        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
-    );
-    if (workspaceDir.isEmpty()) return;
-    if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
-        qDebug() << "same as prev workspace";
-        return;
-    }
-    g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
-    // write to main config
-    const QJsonObject json{
-        {"version", "1.0.0"},
-        {"workspace", g_workspaceUrl.toString()},
-    };
-    const QJsonDocument doc(json);
-    QFile mainConfig(QDir::current().filePath("config.json"));
-    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-    mainConfig.write(doc.toJson(QJsonDocument::Indented));
-    mainConfig.close();
-    // initialize new workspace
-    workspaceInit();
-    // initialize modules
-    emit openWorkspace();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "workspace opened");
 }
 
 void ConfigModule::workspaceInit() {

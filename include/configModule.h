@@ -14,8 +14,6 @@ public:
 
     static int mainConfigLoad();
 
-    void workspaceOpen();
-
     void workspaceInit();
 
     void workspaceConfigSave(QString &filePath);

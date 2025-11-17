@@ -53,9 +53,12 @@ private:
 
     void mainConfigSave();
 
+    void workspaceOpen();
+
     void workspaceSave(QString filePath = QString());
 
     QJsonObject m_mainConfig{};
+    bool m_askForSaving = true;
 
     ConfigModule *m_configModule{};
     LuaLanguageServer *m_llsModule{};

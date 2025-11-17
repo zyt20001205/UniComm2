@@ -64,17 +64,21 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 
 // MainWindow protected
 void MainWindow::closeEvent(QCloseEvent *event) {
-    const QMessageBox::StandardButton reply = QMessageBox::question(
-        this,
-        tr("Exit"),
-        tr("Save and exit?"),
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::Yes);
-    if (reply == QMessageBox::Yes) {
-        workspaceSave();
-        event->accept();
+    if (m_askForSaving) {
+        const QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            tr("Exit"),
+            tr("Save and exit?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::Yes);
+        if (reply == QMessageBox::Yes) {
+            workspaceSave();
+            event->accept();
+        } else {
+            event->ignore();
+        }
     } else {
-        event->ignore();
+        event->accept();
     }
 }
 
@@ -203,7 +207,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_scriptModule, &ScriptModule::openWorkspace, m_configModule, &ConfigModule::workspaceOpen);
+    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {
         const QString scriptName = scriptUrl.fileName();
         m_scriptComboBox->addItem(scriptName, scriptUrl);
@@ -256,7 +260,7 @@ void MainWindow::moduleInit() {
 void MainWindow::shortcutInit() {
     auto shortcutConfig = g_workspaceConfig["shortcutConfig"].toObject();
     m_openWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["openWorkspace"].toString()), this); // NOLINT
-    connect(m_openWorkspaceShortcut, &QShortcut::activated, this, [this] { m_configModule->workspaceOpen(); });
+    connect(m_openWorkspaceShortcut, &QShortcut::activated, this, [this] { workspaceOpen(); });
     m_saveWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspace"].toString()), this); // NOLINT
     connect(m_saveWorkspaceShortcut, &QShortcut::activated, this, [this] { workspaceSave(); });
     m_saveWorkspaceAsShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspaceAs"].toString()), this); // NOLINT
@@ -291,7 +295,7 @@ void MainWindow::menuInit() {
         auto shortcutConfig = g_workspaceConfig["shortcutConfig"].toObject();
         auto *openWorkspaceAction = new QAction(tr("Open Workspace") + "\t" + shortcutConfig["openWorkspace"].toString()); // NOLINT
         fileMenu->addAction(openWorkspaceAction);
-        connect(openWorkspaceAction, &QAction::triggered, this, [this] { m_configModule->workspaceOpen(); });
+        connect(openWorkspaceAction, &QAction::triggered, this, [this] { workspaceOpen(); });
         auto *saveWorkspaceAction = new QAction(tr("Save Workspace") + "\t" + shortcutConfig["saveWorkspace"].toString()); // NOLINT
         fileMenu->addAction(saveWorkspaceAction);
         connect(saveWorkspaceAction, &QAction::triggered, this, [this] { workspaceSave(); });
@@ -487,6 +491,36 @@ void MainWindow::mainConfigSave() {
     const QByteArray layoutData = layoutSaver.serializeLayout();
     m_mainConfig["state"] = QString(layoutData.toBase64());
     g_workspaceConfig["mainConfig"] = m_mainConfig;
+}
+
+void MainWindow::workspaceOpen() {
+    const QString workspaceDir = QFileDialog::getExistingDirectory(
+        g_mainWindow,
+        tr("Open Workspace"),
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+    if (workspaceDir.isEmpty()) return;
+    if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
+        qDebug() << "same as prev workspace";
+        return;
+    }
+    workspaceSave();
+    g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
+    // write to main config
+    const QJsonObject json{
+        {"version", "1.0.0"},
+        {"workspace", g_workspaceUrl.toString()},
+    };
+    const QJsonDocument doc(json);
+    QFile mainConfig(QDir::current().filePath("config.json"));
+    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    mainConfig.write(doc.toJson(QJsonDocument::Indented));
+    mainConfig.close();
+    // restart main process
+    QProcess::startDetached(QCoreApplication::applicationFilePath());
+    m_askForSaving = false;
+    QApplication::quit();
 }
 
 void MainWindow::workspaceSave(QString filePath) {
