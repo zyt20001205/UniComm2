@@ -924,11 +924,9 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     // set markers
     markerDefine(Circle, MARKER_BREAKPOINT);
     setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
-    setMarkerForegroundColor(Qt::red, MARKER_BREAKPOINT);
 
     markerDefine(RightTriangle, MARKER_ARROW);
     setMarkerBackgroundColor(QColor(255, 165, 0), MARKER_ARROW);
-    setMarkerForegroundColor(QColor(255, 165, 0), MARKER_ARROW);
 
     markerDefine(Background, MARKER_ERROR);
     setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
