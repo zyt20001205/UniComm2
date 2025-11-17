@@ -52,13 +52,23 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    // indicator highlight
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorReadStyle"].toInt()), INDICATOR_READ);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorReadColor"].toString()), INDICATOR_READ);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_READ);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWriteColor"].toString()), INDICATOR_WRITE);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_WRITE);
     // indicator misc
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
-    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
-    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
-    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
 
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -240,10 +250,12 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) {
 void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
     // clear previous highlight
     m_scriptEditor->indicatorRemove(INDICATOR_HIGHLIGHT);
+    m_scriptEditor->indicatorRemove(INDICATOR_READ);
+    m_scriptEditor->indicatorRemove(INDICATOR_WRITE);
     // highlight
     for (const auto &highlight: result) {
         const QJsonObject highlightObject = highlight.toObject();
-        // const int kind = highlightObject["kind"].toInt();
+        const int kind = highlightObject["kind"].toInt();
         const QJsonObject highlightRange = highlightObject["range"].toObject();
         const QJsonObject highlightStartPos = highlightRange["start"].toObject();
         const QJsonObject highlightEndPos = highlightRange["end"].toObject();
@@ -252,6 +264,8 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
         const int endLine = highlightEndPos["line"].toInt();
         const int endCharacter = highlightEndPos["character"].toInt();
         m_scriptEditor->indicatorInsert(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
+        if (kind == 2) m_scriptEditor->indicatorInsert(INDICATOR_READ, startLine, startCharacter, endLine, endCharacter);
+        else if (kind == 3) m_scriptEditor->indicatorInsert(INDICATOR_WRITE, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -1267,7 +1281,7 @@ void ScriptEditor::pairHandle(const int ascii) {
 void ScriptEditor::searchHandle() {
     // clear previous highlight
     const int docLength = SendScintilla(SCI_GETLENGTH);
-    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_HIGHLIGHT); // NOLINT
+    SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SELECTION); // NOLINT
     SendScintilla(SCI_INDICATORCLEARRANGE, 0, docLength); // NOLINT
     if (m_searchList.empty()) {
         m_currentIndex = 0;
@@ -1277,7 +1291,7 @@ void ScriptEditor::searchHandle() {
         SendScintilla(SCI_GOTOPOS, m_searchList[m_currentIndex][0]); // NOLINT
         const int line = SendScintilla(SCI_LINEFROMPOSITION, m_searchList[m_currentIndex][0]);
         SendScintilla(SCI_ENSUREVISIBLE, line); // NOLINT
-        SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_HIGHLIGHT); // NOLINT
+        SendScintilla(SCI_SETINDICATORCURRENT, INDICATOR_SELECTION); // NOLINT
         SendScintilla(SCI_INDICATORFILLRANGE, m_searchList[m_currentIndex][0], m_searchList[m_currentIndex][2]); // NOLINT
     }
     emit setStat(m_currentIndex, m_searchList.length());

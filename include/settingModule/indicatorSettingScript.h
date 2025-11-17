@@ -21,6 +21,7 @@ public:
 
 private:
     QStringList m_indicatorStyleList{};
+    // diagnostic
     QComboBox *m_indicatorErrorStyleComboBox{};
     QPushButton *m_indicatorErrorColorButton{};
     QComboBox *m_indicatorWarningStyleComboBox{};
@@ -30,10 +31,19 @@ private:
     QComboBox *m_indicatorHintStyleComboBox{};
     QPushButton *m_indicatorHintColorButton{};
     QsciScintilla *m_diagnosticPreviewEditor{};
-    QComboBox *m_indicatorSearchStyleComboBox{};
-    QPushButton *m_indicatorSearchColorButton{};
+    // highlight
     QComboBox *m_indicatorHighlightStyleComboBox{};
     QPushButton *m_indicatorHighlightColorButton{};
+    QComboBox *m_indicatorReadStyleComboBox{};
+    QPushButton *m_indicatorReadColorButton{};
+    QComboBox *m_indicatorWriteStyleComboBox{};
+    QPushButton *m_indicatorWriteColorButton{};
+    QsciScintilla *m_highlightPreviewEditor{};
+    // misc
+    QComboBox *m_indicatorSearchStyleComboBox{};
+    QPushButton *m_indicatorSearchColorButton{};
+    QComboBox *m_indicatorSelectionStyleComboBox{};
+    QPushButton *m_indicatorSelectionColorButton{};
     QsciScintilla *m_searchPreviewEditor{};
 };
 

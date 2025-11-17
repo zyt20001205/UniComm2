@@ -100,10 +100,16 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
     indicatorConfigScript["indicatorInfoColor"] = settingConfig["indicatorInfoColorScript"].toString();
     indicatorConfigScript["indicatorHintStyle"] = settingConfig["indicatorHintStyleScript"].toInt();
     indicatorConfigScript["indicatorHintColor"] = settingConfig["indicatorHintColorScript"].toString();
-    indicatorConfigScript["indicatorSearchStyle"] = settingConfig["indicatorSearchStyleScript"].toInt();
-    indicatorConfigScript["indicatorSearchColor"] = settingConfig["indicatorSearchColorScript"].toString();
     indicatorConfigScript["indicatorHighlightStyle"] = settingConfig["indicatorHighlightStyleScript"].toInt();
     indicatorConfigScript["indicatorHighlightColor"] = settingConfig["indicatorHighlightColorScript"].toString();
+    indicatorConfigScript["indicatorReadStyle"] = settingConfig["indicatorReadStyleScript"].toInt();
+    indicatorConfigScript["indicatorReadColor"] = settingConfig["indicatorReadColorScript"].toString();
+    indicatorConfigScript["indicatorWriteStyle"] = settingConfig["indicatorWriteStyleScript"].toInt();
+    indicatorConfigScript["indicatorWriteColor"] = settingConfig["indicatorWriteColorScript"].toString();
+    indicatorConfigScript["indicatorSearchStyle"] = settingConfig["indicatorSearchStyleScript"].toInt();
+    indicatorConfigScript["indicatorSearchColor"] = settingConfig["indicatorSearchColorScript"].toString();
+    indicatorConfigScript["indicatorSelectionStyle"] = settingConfig["indicatorSelectionStyleScript"].toInt();
+    indicatorConfigScript["indicatorSelectionColor"] = settingConfig["indicatorSelectionColorScript"].toString();
     m_indicatorSettingScriptWidget->settingImport(indicatorConfigScript);
 }
 

@@ -366,10 +366,16 @@ void MainWindow::menuInit() {
                 {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
                 {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
                 {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
+                {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
+                {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()},
+                {"indicatorReadStyleScript", scriptConfig["indicatorReadStyle"].toInt()},
+                {"indicatorReadColorScript", scriptConfig["indicatorReadColor"].toString()},
+                {"indicatorWriteStyleScript", scriptConfig["indicatorWriteStyle"].toInt()},
+                {"indicatorWriteColorScript", scriptConfig["indicatorWriteColor"].toString()},
                 {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
                 {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
-                {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
-                {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()}
+                {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
+                {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {
