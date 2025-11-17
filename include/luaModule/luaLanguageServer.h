@@ -13,7 +13,7 @@ class LuaLanguageServer final : public QWidget {
 public:
     explicit LuaLanguageServer(QWidget *parent = nullptr);
 
-    ~LuaLanguageServer() override = default;
+    ~LuaLanguageServer() override;
 
     void jsonRequest(const QString &method, const QJsonObject &params);
 

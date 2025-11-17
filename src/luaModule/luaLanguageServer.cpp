@@ -16,6 +16,16 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     initializeNotification();
 }
 
+LuaLanguageServer::~LuaLanguageServer() {
+    if (m_process->state() != QProcess::NotRunning) {
+        m_process->terminate();
+        if (!m_process->waitForFinished(3000)) {
+            m_process->kill();
+            m_process->waitForFinished();
+        }
+    }
+}
+
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
     const QJsonObject textDocument = params["textDocument"].toObject();
     const auto url = QUrl(textDocument["uri"].toString());

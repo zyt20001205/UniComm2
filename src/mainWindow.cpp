@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     shortcutInit();
     menuInit();
     layoutInit();
-    // preload multimedia to avoid lagging on first click
+    // preload multimedia to avoid lagging on port selection
     QThread *worker = QThread::create([] {
         QMediaDevices::videoInputs();
     });
