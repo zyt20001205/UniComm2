@@ -1,5 +1,6 @@
 #include "scriptModule/scriptPage.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QJsonArray>
@@ -18,11 +19,12 @@
 
 // ScriptPage public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
-    : DockWidget(scriptUrl.fileName()),
+    : DockWidget(scriptUrl.toString()),
       m_scriptEditor(new ScriptEditor()),
       m_scriptUrl(scriptUrl),
       m_fileWatcher(new QFileSystemWatcher()),
       m_searchWidget(new SearchWidget()) {
+    setTitle(scriptUrl.fileName());
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
@@ -148,10 +150,17 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         foldingRangeRequest();
         semanticTokensRequest();
         // logging
-        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_scriptUrl.fileName());
+        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_scriptUrl.toString());
     });
+}
+
+void ScriptPage::pathDisambiguation() {
+    const QString scriptPath = m_scriptUrl.toLocalFile();
+    const QString workspacePath = g_workspaceUrl.toLocalFile();
+    const QString relatedPath = QDir(workspacePath).relativeFilePath(scriptPath);
+    setTitle(relatedPath);
 }
 
 void ScriptPage::scriptReload() {
@@ -196,9 +205,9 @@ void ScriptPage::scriptSave() {
     out << m_scriptEditor->text();
     file.close();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_scriptUrl.fileName());
+    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_scriptUrl.toString());
     // restore file watcher signals 1 sec later
     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
 }
@@ -220,9 +229,9 @@ void ScriptPage::scriptClose() {
     emit closeScript(m_scriptUrl);
     deleteLater();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.fileName());
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
 }
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) {
@@ -1169,6 +1178,12 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
             break;
             default: break;
         }
+    } else if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Up || event->key() == Qt::Key_Right || event->key() == Qt::Key_Down) {
+        QsciScintilla::keyPressEvent(event);
+        int line, character;
+        getCursorPosition(&line, &character);
+        emit requestDocumentHighlight(line, character);
+        return;
     }
     QsciScintilla::keyPressEvent(event);
 }

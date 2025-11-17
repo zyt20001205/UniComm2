@@ -22,6 +22,8 @@ public:
 
     ~ScriptPage() override = default;
 
+    void pathDisambiguation();
+
     void scriptReload();
 
     void scriptSave();

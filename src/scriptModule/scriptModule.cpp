@@ -122,6 +122,7 @@ void ScriptModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScrip
 }
 
 void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript) {
+    // diagnostic
     m_scriptConfig["indicatorErrorStyle"] = indicatorConfigScript["indicatorErrorStyle"].toInt();
     m_scriptConfig["indicatorErrorColor"] = indicatorConfigScript["indicatorErrorColor"].toString();
     m_scriptConfig["indicatorWarningStyle"] = indicatorConfigScript["indicatorWarningStyle"].toInt();
@@ -130,6 +131,14 @@ void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript)
     m_scriptConfig["indicatorInfoColor"] = indicatorConfigScript["indicatorInfoColor"].toString();
     m_scriptConfig["indicatorHintStyle"] = indicatorConfigScript["indicatorHintStyle"].toInt();
     m_scriptConfig["indicatorHintColor"] = indicatorConfigScript["indicatorHintColor"].toString();
+    // highlight
+    m_scriptConfig["indicatorHighlightStyle"] = indicatorConfigScript["indicatorHighlightStyle"].toInt();
+    m_scriptConfig["indicatorHighlightColor"] = indicatorConfigScript["indicatorHighlightColor"].toString();
+    m_scriptConfig["indicatorReadStyle"] = indicatorConfigScript["indicatorReadStyle"].toInt();
+    m_scriptConfig["indicatorReadColor"] = indicatorConfigScript["indicatorReadColor"].toString();
+    m_scriptConfig["indicatorWriteStyle"] = indicatorConfigScript["indicatorWriteStyle"].toInt();
+    m_scriptConfig["indicatorWriteColor"] = indicatorConfigScript["indicatorWriteColor"].toString();
+    // misc
     m_scriptConfig["indicatorSearchStyle"] = indicatorConfigScript["indicatorSearchStyle"].toInt();
     m_scriptConfig["indicatorSearchColor"] = indicatorConfigScript["indicatorSearchColor"].toString();
     m_scriptConfig["indicatorSelectionStyle"] = indicatorConfigScript["indicatorSelectionStyle"].toInt();
@@ -142,6 +151,19 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         // create script page
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         scriptPage->setObjectName(scriptUrl.toString());
+        // check same file name
+        bool conflict = false;
+        for (const auto &url: m_scriptPageHash.keys()) {
+            if (url.fileName() == scriptUrl.fileName()) {
+                conflict = true;
+                ScriptPage *conflictPage = m_scriptPageHash[url];
+                conflictPage->pathDisambiguation();
+            }
+        }
+        if (conflict) {
+            scriptPage->pathDisambiguation();
+        }
+        // insert url to hash
         m_scriptPageHash[scriptUrl] = scriptPage;
         connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isFocusedChanged, this, [this, scriptPage](const bool status) {
             scriptFocus(scriptPage, status);

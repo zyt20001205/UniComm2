@@ -213,6 +213,11 @@ void MainWindow::moduleInit() {
             m_scriptComboBox->removeItem(index);
         }
     });
+    connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &scriptUrl) {
+        if (const int index = m_scriptComboBox->findData(scriptUrl); index != -1) {
+            m_scriptComboBox->setCurrentIndex(index);
+        }
+    });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, &PortModule::portInsert);
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, &DatabaseModule::databaseInsert);
