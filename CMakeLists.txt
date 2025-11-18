@@ -28,7 +28,7 @@ set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
 
 set(VISA_DIR "${CMAKE_SOURCE_DIR}/3rd/visa")
 set(VISA_INCLUDE_DIR "${VISA_DIR}/include")
-set(VISA_DLL "${VISA_DIR}/bin/visa64.dll")
+file(GLOB VISA_DLLS "${VISA_DIR}/bin/*.dll")
 
 set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
 set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
@@ -214,7 +214,7 @@ target_link_libraries(UniComm PRIVATE
         ${KDDOCKWIDGETS_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
-        ${VISA_DLL}
+        ${VISA_DLLS}
         ${OPENCV_DLLS}
         ${TESSERACT_DLL}
         ${LEPTONICA_DLL}
@@ -346,12 +346,13 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
-    if (EXISTS "${VISA_DLL}")
+    file(GLOB VISA_DLLS "${VISA_DIR}/bin/*.dll")
+    foreach (DLL ${VISA_DLLS})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${VISA_DLL}"
+                "${DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
+    endforeach ()
 
     file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/*.dll")
     foreach (DLL ${OPENCV_DLLS})

@@ -259,6 +259,8 @@ signals:
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
+    void focusOutEvent(QFocusEvent *event) override;
+
     void keyPressEvent(QKeyEvent *event) override;
 
     void keyReleaseEvent(QKeyEvent *event) override;
@@ -266,7 +268,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
     void mousePressEvent(QMouseEvent *event) override;
-
 
 private slots:
     void pairHandle(int ascii);
