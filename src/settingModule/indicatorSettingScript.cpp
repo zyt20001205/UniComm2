@@ -81,7 +81,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorErrorColorLayout->addWidget(m_indicatorErrorColorButton, 1);
         m_indicatorErrorColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorErrorColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorErrorColorButton->text(), this, tr("Choose Error Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorErrorColorButton->text(), this, tr("Choose Error Foreground Color")); newColor.isValid()) {
                 m_indicatorErrorColorButton->setText(newColor.name());
                 m_diagnosticPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_ERROR);
                 m_diagnosticPreviewEditor->fillIndicatorRange(0, 0, 0, m_diagnosticPreviewEditor->text(0).length(), INDICATOR_ERROR);
@@ -113,7 +113,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorWarningColorLayout->addWidget(m_indicatorWarningColorButton, 1);
         m_indicatorWarningColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorWarningColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorWarningColorButton->text(), this, tr("Choose Warning Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorWarningColorButton->text(), this, tr("Choose Warning Foreground Color")); newColor.isValid()) {
                 m_indicatorWarningColorButton->setText(newColor.name());
                 m_diagnosticPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_WARNING);
                 m_diagnosticPreviewEditor->fillIndicatorRange(1, 0, 1, m_diagnosticPreviewEditor->text(1).length(), INDICATOR_WARNING);
@@ -145,7 +145,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorInfoColorLayout->addWidget(m_indicatorInfoColorButton, 1);
         m_indicatorInfoColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorInfoColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorInfoColorButton->text(), this, tr("Choose Info Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorInfoColorButton->text(), this, tr("Choose Info Foreground Color")); newColor.isValid()) {
                 m_indicatorInfoColorButton->setText(newColor.name());
                 m_diagnosticPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_INFO);
                 m_diagnosticPreviewEditor->fillIndicatorRange(2, 0, 2, m_diagnosticPreviewEditor->text(2).length(), INDICATOR_INFO);
@@ -177,7 +177,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorHintColorLayout->addWidget(m_indicatorHintColorButton, 1);
         m_indicatorHintColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorHintColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorHintColorButton->text(), this, tr("Choose Hint Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorHintColorButton->text(), this, tr("Choose Hint Foreground Color")); newColor.isValid()) {
                 m_indicatorHintColorButton->setText(newColor.name());
                 m_diagnosticPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_HINT);
                 m_diagnosticPreviewEditor->fillIndicatorRange(3, 0, 3, m_diagnosticPreviewEditor->text(3).length(), INDICATOR_HINT);
@@ -231,7 +231,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorHighlightColorLayout->addWidget(m_indicatorHighlightColorButton, 1);
         m_indicatorHighlightColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorHighlightColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorHighlightColorButton->text(), this, tr("Choose Highlight Result Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorHighlightColorButton->text(), this, tr("Choose Highlight Foreground Color")); newColor.isValid()) {
                 m_indicatorHighlightColorButton->setText(newColor.name());
                 m_highlightPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_HIGHLIGHT);
                 m_highlightPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_HIGHLIGHT);
@@ -269,7 +269,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorReadColorLayout->addWidget(m_indicatorReadColorButton, 1);
         m_indicatorReadColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorReadColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorReadColorButton->text(), this, tr("Choose Read Result Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorReadColorButton->text(), this, tr("Choose Read Foreground Color")); newColor.isValid()) {
                 m_indicatorReadColorButton->setText(newColor.name());
                 m_highlightPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_READ);
                 m_highlightPreviewEditor->fillIndicatorRange(1, 6, 1, 11, INDICATOR_READ);
@@ -304,7 +304,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorWriteColorLayout->addWidget(m_indicatorWriteColorButton, 1);
         m_indicatorWriteColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorWriteColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorWriteColorButton->text(), this, tr("Choose Write Result Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorWriteColorButton->text(), this, tr("Choose Write Foreground Color")); newColor.isValid()) {
                 m_indicatorWriteColorButton->setText(newColor.name());
                 m_highlightPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_WRITE);
                 m_highlightPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_WRITE);
@@ -359,7 +359,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorSearchColorLayout->addWidget(m_indicatorSearchColorButton, 1);
         m_indicatorSearchColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorSearchColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorSearchColorButton->text(), this, tr("Choose Search Result Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorSearchColorButton->text(), this, tr("Choose Search Foreground Color")); newColor.isValid()) {
                 m_indicatorSearchColorButton->setText(newColor.name());
                 m_searchPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_SEARCH);
                 m_searchPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_SEARCH);
@@ -395,7 +395,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorSelectionColorLayout->addWidget(m_indicatorSelectionColorButton, 1);
         m_indicatorSelectionColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorSelectionColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorSelectionColorButton->text(), this, tr("Choose Search Current Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorSelectionColorButton->text(), this, tr("Choose Selection Foreground Color")); newColor.isValid()) {
                 m_indicatorSelectionColorButton->setText(newColor.name());
                 m_searchPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_SELECTION);
                 m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SELECTION);
@@ -445,7 +445,7 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         indicatorHyperlinkColorLayout->addWidget(m_indicatorHyperlinkColorButton, 1);
         m_indicatorHyperlinkColorButton->setFont(QFont("Segoe UI", 12));
         connect(m_indicatorHyperlinkColorButton, &QPushButton::clicked, this, [this] {
-            if (const QColor newColor = QColorDialog::getColor(m_indicatorHyperlinkColorButton->text(), this, tr("Choose Hyperlink Result Background")); newColor.isValid()) {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorHyperlinkColorButton->text(), this, tr("Choose Hyperlink Foreground Color")); newColor.isValid()) {
                 m_indicatorHyperlinkColorButton->setText(newColor.name());
                 m_hyperlinkPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_HYPERLINK);
                 m_hyperlinkPreviewEditor->fillIndicatorRange(0, 9, 0, 15, INDICATOR_HYPERLINK);

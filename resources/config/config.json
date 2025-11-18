@@ -41,6 +41,10 @@
     "indicatorWarningStyle": 8,
     "indicatorWriteColor": "#c62828",
     "indicatorWriteStyle": 17,
+    "markerBreakpointColor" : "#ff0000",
+    "markerBreakpointStyle" : 0,
+    "markerDebugColor" : "#ffa500",
+    "markerDebugStyle" : 2,
     "scriptList": [
     ]
   },

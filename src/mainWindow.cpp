@@ -386,7 +386,11 @@ void MainWindow::menuInit() {
                 {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
                 {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
                 {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
-                {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()}
+                {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
+                {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
+                {"markerBreakpointColorScript", scriptConfig["markerBreakpointColor"].toString()},
+                {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
+                {"markerDebugColorScript", scriptConfig["markerDebugColor"].toString()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {

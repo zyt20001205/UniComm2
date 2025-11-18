@@ -7,9 +7,10 @@
 class QStackedWidget;
 class QTreeView;
 
-class IndicatorSettingScript;
 class FontSettingLog;
 class FontSettingScript;
+class IndicatorSettingScript;
+class MarkerSettingScript;
 
 class SettingModule final : public QDialog {
     Q_OBJECT
@@ -34,6 +35,10 @@ signals:
 
     void saveScriptIndicator(const QJsonObject &indicatorConfigScript);
 
+    void reloadScriptMarker(const QJsonObject &markerConfigScript);
+
+    void saveScriptMarker(const QJsonObject &markerConfigScript);
+
 private:
     void settingApply();
 
@@ -45,12 +50,14 @@ private:
     FontSettingLog *m_fontSettingLogWidget{};
     FontSettingScript *m_fontSettingScriptWidget{};
     IndicatorSettingScript *m_indicatorSettingScriptWidget{};
+    MarkerSettingScript *m_markerSettingScriptWidget{};
 
     enum {
         BLANK_SETTING,
         FONT_SETTING_LOG,
         FONT_SETTING_SCRIPT,
-        INDICATOR_SETTING_SCRIPT
+        INDICATOR_SETTING_SCRIPT,
+        MARKER_SETTING_SCRIPT
     };
 };
 

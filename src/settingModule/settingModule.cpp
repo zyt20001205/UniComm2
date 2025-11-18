@@ -11,6 +11,7 @@
 #include "settingModule/fontSettingLog.h"
 #include "settingModule/fontSettingScript.h"
 #include "settingModule/indicatorSettingScript.h"
+#include "settingModule/markerSettingScript.h"
 
 // SettingModule public
 SettingModule::SettingModule(QWidget *parent)
@@ -18,7 +19,8 @@ SettingModule::SettingModule(QWidget *parent)
       m_settingStackedWidget(new QStackedWidget()),
       m_fontSettingLogWidget(new FontSettingLog()),
       m_fontSettingScriptWidget(new FontSettingScript()),
-      m_indicatorSettingScriptWidget(new IndicatorSettingScript()) {
+      m_indicatorSettingScriptWidget(new IndicatorSettingScript()),
+      m_markerSettingScriptWidget(new MarkerSettingScript()) {
     auto *layout = new QVBoxLayout(this); //NOLINT
     auto *splitter = new QSplitter(); // NOLINT
     layout->addWidget(splitter);
@@ -31,14 +33,14 @@ SettingModule::SettingModule(QWidget *parent)
     settingTreeView->setModel(settingTreeModel);
 
     // log setting
-    auto *logSetting = new QStandardItem(tr("Log Setting")); // NOLINT
+    auto *logSetting = new QStandardItem(tr("Log")); // NOLINT
     settingTreeModel->appendRow(logSetting);
     auto *fontSettingLog = new QStandardItem(tr("Font")); // NOLINT
     logSetting->appendRow(fontSettingLog);
     fontSettingLog->setData(FONT_SETTING_LOG, Qt::UserRole + 1);
 
     // script setting
-    auto *scriptSetting = new QStandardItem(tr("Script Setting")); // NOLINT
+    auto *scriptSetting = new QStandardItem(tr("Script")); // NOLINT
     settingTreeModel->appendRow(scriptSetting);
     auto *fontSettingScript = new QStandardItem(tr("Font")); // NOLINT
     scriptSetting->appendRow(fontSettingScript);
@@ -46,6 +48,9 @@ SettingModule::SettingModule(QWidget *parent)
     auto *indicatorSettingScript = new QStandardItem(tr("Indicator")); // NOLINT
     scriptSetting->appendRow(indicatorSettingScript);
     indicatorSettingScript->setData(INDICATOR_SETTING_SCRIPT, Qt::UserRole + 1);
+    auto *markerSettingScript = new QStandardItem(tr("Marker")); // NOLINT
+    scriptSetting->appendRow(markerSettingScript);
+    markerSettingScript->setData(MARKER_SETTING_SCRIPT, Qt::UserRole + 1);
 
     connect(settingTreeView, &QTreeView::clicked, this, [this, settingTreeModel](const QModelIndex &index) {
         const QStandardItem *item = settingTreeModel->itemFromIndex(index);
@@ -58,6 +63,7 @@ SettingModule::SettingModule(QWidget *parent)
     m_settingStackedWidget->addWidget(m_fontSettingLogWidget);
     m_settingStackedWidget->addWidget(m_fontSettingScriptWidget);
     m_settingStackedWidget->addWidget(m_indicatorSettingScriptWidget);
+    m_settingStackedWidget->addWidget(m_markerSettingScriptWidget);
     m_settingStackedWidget->setCurrentIndex(0);
 
     splitter->setStretchFactor(0, 0);
@@ -113,6 +119,12 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
     indicatorConfigScript["indicatorHyperlinkStyle"] = settingConfig["indicatorHyperlinkStyleScript"].toInt();
     indicatorConfigScript["indicatorHyperlinkColor"] = settingConfig["indicatorHyperlinkColorScript"].toString();
     m_indicatorSettingScriptWidget->settingImport(indicatorConfigScript);
+    QJsonObject markerConfigScript = {};
+    markerConfigScript["markerBreakpointStyle"] = settingConfig["markerBreakpointStyleScript"].toInt();
+    markerConfigScript["markerBreakpointColor"] = settingConfig["markerBreakpointColorScript"].toString();
+    markerConfigScript["markerDebugStyle"] = settingConfig["markerDebugStyleScript"].toInt();
+    markerConfigScript["markerDebugColor"] = settingConfig["markerDebugColorScript"].toString();
+    m_markerSettingScriptWidget->settingImport(markerConfigScript);
 }
 
 // SettingModule private
@@ -123,6 +135,8 @@ void SettingModule::settingApply() {
     emit reloadScriptFont(fontConfigScript);
     const QJsonObject indicatorConfigScript = m_indicatorSettingScriptWidget->settingExport();
     emit reloadScriptIndicator(indicatorConfigScript);
+    const QJsonObject markerConfigScript = m_markerSettingScriptWidget->settingExport();
+    emit reloadScriptMarker(markerConfigScript);
 }
 
 void SettingModule::settingCancel() {
@@ -139,5 +153,8 @@ void SettingModule::settingSave() {
     const QJsonObject indicatorConfigScript = m_indicatorSettingScriptWidget->settingExport();
     emit reloadScriptIndicator(indicatorConfigScript);
     emit saveScriptIndicator(indicatorConfigScript);
+    const QJsonObject markerConfigScript = m_markerSettingScriptWidget->settingExport();
+    emit reloadScriptMarker(markerConfigScript);
+    emit saveScriptMarker(markerConfigScript);
     accept();
 }

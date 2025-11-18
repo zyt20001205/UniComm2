@@ -75,6 +75,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+    // marker
+    m_scriptEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
+    m_scriptEditor->setMarkerBackgroundColor(QColor(scriptConfig["markerBreakpointColor"].toString()), MARKER_BREAKPOINT);
+    m_scriptEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerDebugStyle"].toInt()), MARKER_DEBUG);
+    m_scriptEditor->setMarkerBackgroundColor(QColor(scriptConfig["markerDebugColor"].toString()), MARKER_DEBUG);
 
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -926,12 +931,6 @@ ScriptEditor::ScriptEditor(QWidget *parent)
       m_dwellTimer(new QTimer(this)),
       m_typeTimer(new QTimer(this)) {
     // set markers
-    markerDefine(Circle, MARKER_BREAKPOINT);
-    setMarkerBackgroundColor(Qt::red, MARKER_BREAKPOINT);
-
-    markerDefine(RightTriangle, MARKER_ARROW);
-    setMarkerBackgroundColor(QColor(255, 165, 0), MARKER_ARROW);
-
     markerDefine(Background, MARKER_ERROR);
     setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
 

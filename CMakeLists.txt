@@ -88,6 +88,7 @@ qt_add_executable(UniComm WIN32 src/main.cpp
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
         include/settingModule/indicatorSettingScript.h
+        include/settingModule/markerSettingScript.h
         include/settingModule/settingModule.h
         include/suffix.h
         include/undoModule.h
@@ -137,6 +138,7 @@ qt_add_executable(UniComm WIN32 src/main.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
         src/settingModule/indicatorSettingScript.cpp
+        src/settingModule/markerSettingScript.cpp
         src/settingModule/settingModule.cpp
         src/suffix.cpp
         src/undoModule.cpp
