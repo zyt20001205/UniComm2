@@ -44,7 +44,14 @@ set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica.dll")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
 
-qt_add_executable(UniComm WIN32 src/main.cpp
+if (CMAKE_BUILT_TYPE STREQUAL "Release")
+    set(GUI_TYPE WIN32)
+else ()
+    set(GUI_TYPE "")
+endif ()
+
+qt_add_executable(UniComm ${GUI_TYPE}
+        src/main.cpp
         include/mainWindow.h
         include/configModule.h
         include/dataModule/databaseModule.h
