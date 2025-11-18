@@ -171,7 +171,9 @@ QJsonObject MarkerSettingScript::settingExport() const {
     QJsonObject markerConfigScript = {};
     markerConfigScript["markerBreakpointStyle"] = m_markerBreakpointStyleComboBox->currentIndex();
     markerConfigScript["markerBreakpointBackground"] = m_markerBreakpointBackgroundButton->text();
+    markerConfigScript["markerBreakpointForeground"] = m_markerBreakpointForegroundButton->text();
     markerConfigScript["markerDebugStyle"] = m_markerDebugStyleComboBox->currentIndex();
     markerConfigScript["markerDebugBackground"] = m_markerDebugBackgroundButton->text();
+    markerConfigScript["markerDebugForeground"] = m_markerDebugForegroundButton->text();
     return markerConfigScript;
 }
