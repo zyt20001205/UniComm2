@@ -77,9 +77,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
     // marker
     m_scriptEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
-    m_scriptEditor->setMarkerBackgroundColor(QColor(scriptConfig["markerBreakpointColor"].toString()), MARKER_BREAKPOINT);
+    m_scriptEditor->setMarkerBackgroundColor(QColor(scriptConfig["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
+    m_scriptEditor->setMarkerForegroundColor(QColor(scriptConfig["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
     m_scriptEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerDebugStyle"].toInt()), MARKER_DEBUG);
-    m_scriptEditor->setMarkerBackgroundColor(QColor(scriptConfig["markerDebugColor"].toString()), MARKER_DEBUG);
+    m_scriptEditor->setMarkerBackgroundColor(QColor(scriptConfig["markerDebugBackground"].toString()), MARKER_DEBUG);
+    m_scriptEditor->setMarkerForegroundColor(QColor(scriptConfig["markerDebugForeground"].toString()), MARKER_DEBUG);
 
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();

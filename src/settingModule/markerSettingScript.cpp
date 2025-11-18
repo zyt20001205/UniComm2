@@ -19,9 +19,11 @@ MarkerSettingScript::MarkerSettingScript(QWidget *parent)
           tr("Background"), tr("ThreeDots"), tr("ThreeRightArrows"), tr("FullRectangle"), tr("LeftRectangle"), tr("Underline"), tr("Bookmark")
       },
       m_markerBreakpointStyleComboBox(new QComboBox()),
-      m_markerBreakpointColorButton(new QPushButton()),
+      m_markerBreakpointBackgroundButton(new QPushButton()),
+      m_markerBreakpointForegroundButton(new QPushButton()),
       m_markerDebugStyleComboBox(new QComboBox()),
-      m_markerDebugColorButton(new QPushButton()),
+      m_markerDebugBackgroundButton(new QPushButton()),
+      m_markerDebugForegroundButton(new QPushButton()),
       m_markerPreviewEditor(new QsciScintilla()) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
@@ -41,23 +43,39 @@ MarkerSettingScript::MarkerSettingScript(QWidget *parent)
     m_markerBreakpointStyleComboBox->setFont(QFont("Segoe UI", 12));
     connect(m_markerBreakpointStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
         m_markerPreviewEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(style), MARKER_BREAKPOINT);
-        m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerBreakpointColorButton->text()), MARKER_BREAKPOINT);
-        m_markerPreviewEditor->markerAdd(0, MARKER_BREAKPOINT);
+        m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerBreakpointBackgroundButton->text()), MARKER_BREAKPOINT);
+        m_markerPreviewEditor->recolor();
     });
-    auto *markerBreakpointColorWidget = new QWidget(); // NOLINT
-    layout->addWidget(markerBreakpointColorWidget);
-    auto *markerBreakpointColorLayout = new QHBoxLayout(markerBreakpointColorWidget); // NOLINT
-    markerBreakpointColorLayout->setContentsMargins(0, 0, 0, 0);
-    auto *markerBreakpointColorLabel = new QLabel(tr("Breakpoint Color")); // NOLINT
-    markerBreakpointColorLayout->addWidget(markerBreakpointColorLabel, 1);
-    markerBreakpointColorLabel->setFont(QFont("Segoe UI", 12));
-    markerBreakpointColorLayout->addWidget(m_markerBreakpointColorButton, 1);
-    m_markerBreakpointColorButton->setFont(QFont("Segoe UI", 12));
-    connect(m_markerBreakpointColorButton, &QPushButton::clicked, this, [this] {
-        if (const QColor newColor = QColorDialog::getColor(m_markerBreakpointColorButton->text(), this, tr("Choose Breakpoint Background Color")); newColor.isValid()) {
-            m_markerBreakpointColorButton->setText(newColor.name());
-            m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerBreakpointColorButton->text()), MARKER_BREAKPOINT);
-            m_markerPreviewEditor->markerAdd(0, MARKER_BREAKPOINT);
+    auto *markerBreakpointBackgroundWidget = new QWidget(); // NOLINT
+    layout->addWidget(markerBreakpointBackgroundWidget);
+    auto *markerBreakpointBackgroundLayout = new QHBoxLayout(markerBreakpointBackgroundWidget); // NOLINT
+    markerBreakpointBackgroundLayout->setContentsMargins(0, 0, 0, 0);
+    auto *markerBreakpointBackgroundLabel = new QLabel(tr("Breakpoint Background")); // NOLINT
+    markerBreakpointBackgroundLayout->addWidget(markerBreakpointBackgroundLabel, 1);
+    markerBreakpointBackgroundLabel->setFont(QFont("Segoe UI", 12));
+    markerBreakpointBackgroundLayout->addWidget(m_markerBreakpointBackgroundButton, 1);
+    m_markerBreakpointBackgroundButton->setFont(QFont("Segoe UI", 12));
+    connect(m_markerBreakpointBackgroundButton, &QPushButton::clicked, this, [this] {
+        if (const QColor newColor = QColorDialog::getColor(m_markerBreakpointBackgroundButton->text(), this, tr("Choose Breakpoint Background")); newColor.isValid()) {
+            m_markerBreakpointBackgroundButton->setText(newColor.name());
+            m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerBreakpointBackgroundButton->text()), MARKER_BREAKPOINT);
+            m_markerPreviewEditor->recolor();
+        }
+    });
+    auto *markerBreakpointForegroundWidget = new QWidget(); // NOLINT
+    layout->addWidget(markerBreakpointForegroundWidget);
+    auto *markerBreakpointForegroundLayout = new QHBoxLayout(markerBreakpointForegroundWidget); // NOLINT
+    markerBreakpointForegroundLayout->setContentsMargins(0, 0, 0, 0);
+    auto *markerBreakpointForegroundLabel = new QLabel(tr("Breakpoint Foreground")); // NOLINT
+    markerBreakpointForegroundLayout->addWidget(markerBreakpointForegroundLabel, 1);
+    markerBreakpointForegroundLabel->setFont(QFont("Segoe UI", 12));
+    markerBreakpointForegroundLayout->addWidget(m_markerBreakpointForegroundButton, 1);
+    m_markerBreakpointForegroundButton->setFont(QFont("Segoe UI", 12));
+    connect(m_markerBreakpointForegroundButton, &QPushButton::clicked, this, [this] {
+        if (const QColor newColor = QColorDialog::getColor(m_markerBreakpointForegroundButton->text(), this, tr("Choose Breakpoint Foreground")); newColor.isValid()) {
+            m_markerBreakpointForegroundButton->setText(newColor.name());
+            m_markerPreviewEditor->setMarkerForegroundColor(QColor(m_markerBreakpointForegroundButton->text()), MARKER_BREAKPOINT);
+            m_markerPreviewEditor->recolor();
         }
     });
 
@@ -73,23 +91,39 @@ MarkerSettingScript::MarkerSettingScript(QWidget *parent)
     m_markerDebugStyleComboBox->setFont(QFont("Segoe UI", 12));
     connect(m_markerDebugStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
         m_markerPreviewEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(style), MARKER_DEBUG);
-        m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerDebugColorButton->text()), MARKER_DEBUG);
-        m_markerPreviewEditor->markerAdd(1, MARKER_DEBUG);
+        m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerDebugBackgroundButton->text()), MARKER_DEBUG);
+        m_markerPreviewEditor->recolor();
     });
-    auto *markerDebugColorWidget = new QWidget(); // NOLINT
-    layout->addWidget(markerDebugColorWidget);
-    auto *markerDebugColorLayout = new QHBoxLayout(markerDebugColorWidget); // NOLINT
-    markerDebugColorLayout->setContentsMargins(0, 0, 0, 0);
-    auto *markerDebugColorLabel = new QLabel(tr("Debug Color")); // NOLINT
-    markerDebugColorLayout->addWidget(markerDebugColorLabel, 1);
-    markerDebugColorLabel->setFont(QFont("Segoe UI", 12));
-    markerDebugColorLayout->addWidget(m_markerDebugColorButton, 1);
-    m_markerDebugColorButton->setFont(QFont("Segoe UI", 12));
-    connect(m_markerDebugColorButton, &QPushButton::clicked, this, [this] {
-        if (const QColor newColor = QColorDialog::getColor(m_markerDebugColorButton->text(), this, tr("Choose Debug Background Color")); newColor.isValid()) {
-            m_markerDebugColorButton->setText(newColor.name());
-            m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerDebugColorButton->text()), MARKER_DEBUG);
-            m_markerPreviewEditor->markerAdd(1, MARKER_DEBUG);
+    auto *markerDebugBackgroundWidget = new QWidget(); // NOLINT
+    layout->addWidget(markerDebugBackgroundWidget);
+    auto *markerDebugBackgroundLayout = new QHBoxLayout(markerDebugBackgroundWidget); // NOLINT
+    markerDebugBackgroundLayout->setContentsMargins(0, 0, 0, 0);
+    auto *markerDebugBackgroundLabel = new QLabel(tr("Debug Background")); // NOLINT
+    markerDebugBackgroundLayout->addWidget(markerDebugBackgroundLabel, 1);
+    markerDebugBackgroundLabel->setFont(QFont("Segoe UI", 12));
+    markerDebugBackgroundLayout->addWidget(m_markerDebugBackgroundButton, 1);
+    m_markerDebugBackgroundButton->setFont(QFont("Segoe UI", 12));
+    connect(m_markerDebugBackgroundButton, &QPushButton::clicked, this, [this] {
+        if (const QColor newColor = QColorDialog::getColor(m_markerDebugBackgroundButton->text(), this, tr("Choose Debug Background")); newColor.isValid()) {
+            m_markerDebugBackgroundButton->setText(newColor.name());
+            m_markerPreviewEditor->setMarkerBackgroundColor(QColor(m_markerDebugBackgroundButton->text()), MARKER_DEBUG);
+            m_markerPreviewEditor->recolor();
+        }
+    });
+    auto *markerDebugForegroundWidget = new QWidget(); // NOLINT
+    layout->addWidget(markerDebugForegroundWidget);
+    auto *markerDebugForegroundLayout = new QHBoxLayout(markerDebugForegroundWidget); // NOLINT
+    markerDebugForegroundLayout->setContentsMargins(0, 0, 0, 0);
+    auto *markerDebugForegroundLabel = new QLabel(tr("Debug Foreground")); // NOLINT
+    markerDebugForegroundLayout->addWidget(markerDebugForegroundLabel, 1);
+    markerDebugForegroundLabel->setFont(QFont("Segoe UI", 12));
+    markerDebugForegroundLayout->addWidget(m_markerDebugForegroundButton, 1);
+    m_markerDebugForegroundButton->setFont(QFont("Segoe UI", 12));
+    connect(m_markerDebugForegroundButton, &QPushButton::clicked, this, [this] {
+        if (const QColor newColor = QColorDialog::getColor(m_markerDebugForegroundButton->text(), this, tr("Choose Debug Foreground")); newColor.isValid()) {
+            m_markerDebugForegroundButton->setText(newColor.name());
+            m_markerPreviewEditor->setMarkerForegroundColor(QColor(m_markerDebugForegroundButton->text()), MARKER_DEBUG);
+            m_markerPreviewEditor->recolor();
         }
     });
 
@@ -109,17 +143,23 @@ MarkerSettingScript::MarkerSettingScript(QWidget *parent)
 void MarkerSettingScript::settingImport(const QJsonObject &markerConfigScript) const {
     const int markerBreakpointStyle = markerConfigScript["markerBreakpointStyle"].toInt();
     m_markerBreakpointStyleComboBox->setCurrentIndex(markerBreakpointStyle);
-    const QString markerBreakpointColor = markerConfigScript["markerBreakpointColor"].toString();
-    m_markerBreakpointColorButton->setText(markerBreakpointColor);
+    const QString markerBreakpointBackground = markerConfigScript["markerBreakpointBackground"].toString();
+    m_markerBreakpointBackgroundButton->setText(markerBreakpointBackground);
+    const QString markerBreakpointForeground = markerConfigScript["markerBreakpointForeground"].toString();
+    m_markerBreakpointForegroundButton->setText(markerBreakpointForeground);
     const int markerDebugStyle = markerConfigScript["markerDebugStyle"].toInt();
     m_markerDebugStyleComboBox->setCurrentIndex(markerDebugStyle);
-    const QString markerDebugColor = markerConfigScript["markerDebugColor"].toString();
-    m_markerDebugColorButton->setText(markerDebugColor);
+    const QString markerDebugBackground = markerConfigScript["markerDebugBackground"].toString();
+    m_markerDebugBackgroundButton->setText(markerDebugBackground);
+    const QString markerDebugForeground = markerConfigScript["markerDebugForeground"].toString();
+    m_markerDebugForegroundButton->setText(markerDebugForeground);
 
     m_markerPreviewEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
-    m_markerPreviewEditor->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointColor"].toString()), MARKER_BREAKPOINT);
+    m_markerPreviewEditor->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
+    m_markerPreviewEditor->setMarkerForegroundColor(QColor(markerConfigScript["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
     m_markerPreviewEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerDebugStyle"].toInt()), MARKER_DEBUG);
-    m_markerPreviewEditor->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugColor"].toString()), MARKER_DEBUG);
+    m_markerPreviewEditor->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugBackground"].toString()), MARKER_DEBUG);
+    m_markerPreviewEditor->setMarkerForegroundColor(QColor(markerConfigScript["markerDebugForeground"].toString()), MARKER_DEBUG);
     m_markerPreviewEditor->setText(
         "breakpoint marker\n"
         "debug marker\n");
@@ -130,8 +170,8 @@ void MarkerSettingScript::settingImport(const QJsonObject &markerConfigScript) c
 QJsonObject MarkerSettingScript::settingExport() const {
     QJsonObject markerConfigScript = {};
     markerConfigScript["markerBreakpointStyle"] = m_markerBreakpointStyleComboBox->currentIndex();
-    markerConfigScript["markerBreakpointColor"] = m_markerBreakpointColorButton->text();
+    markerConfigScript["markerBreakpointBackground"] = m_markerBreakpointBackgroundButton->text();
     markerConfigScript["markerDebugStyle"] = m_markerDebugStyleComboBox->currentIndex();
-    markerConfigScript["markerDebugColor"] = m_markerDebugColorButton->text();
+    markerConfigScript["markerDebugBackground"] = m_markerDebugBackgroundButton->text();
     return markerConfigScript;
 }

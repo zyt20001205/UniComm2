@@ -118,8 +118,8 @@ void ScriptModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScrip
         scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
         scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
         scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
-        // reload
-        scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptPage->m_scriptUrl]);
+        // recolor
+        scriptPage->m_scriptEditor->recolor();
     }
 }
 
@@ -148,6 +148,28 @@ void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript)
     // hyperlink
     m_scriptConfig["indicatorHyperlinkStyle"] = indicatorConfigScript["indicatorHyperlinkStyle"].toInt();
     m_scriptConfig["indicatorHyperlinkColor"] = indicatorConfigScript["indicatorHyperlinkColor"].toString();
+}
+
+void ScriptModule::scriptMarkerReload(const QJsonObject &markerConfigScript) const {
+    for (const auto &scriptPage: m_scriptPageHash) {
+        scriptPage->m_scriptEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
+        scriptPage->m_scriptEditor->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
+        scriptPage->m_scriptEditor->setMarkerForegroundColor(QColor(markerConfigScript["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
+        scriptPage->m_scriptEditor->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerDebugStyle"].toInt()), MARKER_DEBUG);
+        scriptPage->m_scriptEditor->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugBackground"].toString()), MARKER_DEBUG);
+        scriptPage->m_scriptEditor->setMarkerForegroundColor(QColor(markerConfigScript["markerDebugForeground"].toString()), MARKER_DEBUG);
+        // recolor
+        scriptPage->m_scriptEditor->recolor();
+    }
+}
+
+void ScriptModule::scriptMarkerSave(const QJsonObject &markerConfigScript) {
+    m_scriptConfig["markerBreakpointStyle"] = markerConfigScript["markerBreakpointStyle"].toInt();
+    m_scriptConfig["markerBreakpointBackground"] = markerConfigScript["markerBreakpointBackground"].toString();
+    m_scriptConfig["markerBreakpointForeground"] = markerConfigScript["markerBreakpointForeground"].toString();
+    m_scriptConfig["markerDebugStyle"] = markerConfigScript["markerDebugStyle"].toInt();
+    m_scriptConfig["markerDebugBackground"] = markerConfigScript["markerDebugBackground"].toString();
+    m_scriptConfig["markerDebugForeground"] = markerConfigScript["markerDebugForeground"].toString();
 }
 
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {

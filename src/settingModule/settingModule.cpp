@@ -121,9 +121,11 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
     m_indicatorSettingScriptWidget->settingImport(indicatorConfigScript);
     QJsonObject markerConfigScript = {};
     markerConfigScript["markerBreakpointStyle"] = settingConfig["markerBreakpointStyleScript"].toInt();
-    markerConfigScript["markerBreakpointColor"] = settingConfig["markerBreakpointColorScript"].toString();
+    markerConfigScript["markerBreakpointBackground"] = settingConfig["markerBreakpointBackgroundScript"].toString();
+    markerConfigScript["markerBreakpointForeground"] = settingConfig["markerBreakpointForegroundScript"].toString();
     markerConfigScript["markerDebugStyle"] = settingConfig["markerDebugStyleScript"].toInt();
-    markerConfigScript["markerDebugColor"] = settingConfig["markerDebugColorScript"].toString();
+    markerConfigScript["markerDebugBackground"] = settingConfig["markerDebugBackgroundScript"].toString();
+    markerConfigScript["markerDebugForeground"] = settingConfig["markerDebugForegroundScript"].toString();
     m_markerSettingScriptWidget->settingImport(markerConfigScript);
 }
 

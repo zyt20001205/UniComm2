@@ -40,6 +40,10 @@ public:
 
     void scriptIndicatorSave(const QJsonObject &indicatorConfigScript);
 
+    void scriptMarkerReload(const QJsonObject &markerConfigScript) const;
+
+    void scriptMarkerSave(const QJsonObject &markerConfigScript);
+
     void scriptOpen(const QUrl &scriptUrl);
 
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);

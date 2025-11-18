@@ -22,9 +22,11 @@ public:
 private:
     QStringList m_markerStyleList{};
     QComboBox *m_markerBreakpointStyleComboBox{};
-    QPushButton *m_markerBreakpointColorButton{};
+    QPushButton *m_markerBreakpointBackgroundButton{};
+    QPushButton *m_markerBreakpointForegroundButton{};
     QComboBox *m_markerDebugStyleComboBox{};
-    QPushButton *m_markerDebugColorButton{};
+    QPushButton *m_markerDebugBackgroundButton{};
+    QPushButton *m_markerDebugForegroundButton{};
     QsciScintilla *m_markerPreviewEditor{};
 };
 

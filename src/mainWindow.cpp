@@ -204,6 +204,8 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::saveScriptFont, m_scriptModule, &ScriptModule::scriptFontSave);
     connect(m_settingModule, &SettingModule::reloadScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorReload);
     connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
+    connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
+    connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
@@ -388,9 +390,11 @@ void MainWindow::menuInit() {
                 {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
                 {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
                 {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
-                {"markerBreakpointColorScript", scriptConfig["markerBreakpointColor"].toString()},
+                {"markerBreakpointBackgroundScript", scriptConfig["markerBreakpointBackground"].toString()},
+                {"markerBreakpointForegroundScript", scriptConfig["markerBreakpointForeground"].toString()},
                 {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
-                {"markerDebugColorScript", scriptConfig["markerDebugColor"].toString()}
+                {"markerDebugBackgroundScript", scriptConfig["markerDebugBackground"].toString()},
+                {"markerDebugForegroundScript", scriptConfig["markerDebugForeground"].toString()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {
