@@ -94,6 +94,25 @@ void DatatableModule::datatableInsert(int visualIndex, QString key) {
     qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
 }
 
+void DatatableModule::datatableAnnotate() const {
+    QString annotation;
+    annotation += "--- @meta\n\n";
+    annotation += "--- @alias datatable\n";
+    for (const QString &databaseKey: m_datatableHash.keys()) {
+        annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
+    }
+    annotation += QString("--- | '\"Add New Datatable Key\"'\n");
+    annotation += "\n";
+
+    const QString rootPath = g_workspaceUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/datatable.d.lua");
+    QFile file(annotationPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream stream(&file);
+    stream << annotation;
+    file.close();
+}
+
 bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
     if (!m_datatableHash.contains(key)) return false;
 
@@ -305,23 +324,4 @@ void DatatableModule::datatableRename(const int visualIndex) {
 void DatatableModule::datatableSwap(int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
     const QJsonValue tmp = m_datatableConfig.takeAt(oldVisualIndex);
     m_datatableConfig.insert(newVisualIndex, tmp);
-}
-
-void DatatableModule::datatableAnnotate() const {
-    QString annotation;
-    annotation += "--- @meta\n\n";
-    annotation += "--- @alias datatable\n";
-    for (const QString &databaseKey: m_datatableHash.keys()) {
-        annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
-    }
-    annotation += QString("--- | '\"Add New Datatable Key\"'\n");
-    annotation += "\n";
-
-    const QString rootPath = g_workspaceUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/datatable.d.lua");
-    QFile file(annotationPath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream stream(&file);
-    stream << annotation;
-    file.close();
 }

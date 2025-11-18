@@ -104,6 +104,26 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
     qDebug() << QString("[%1] %2 initialized").arg(timestamp, portName);
 }
 
+void PortModule::portAnnotate() const {
+    QString annotation;
+    annotation += "--- @meta\n\n";
+    annotation += "--- @alias port\n";
+    for (const QString &portName: m_portHash.keys()) {
+        const QString escapedName = QString(portName).replace("\\", "\\\\");
+        annotation += QString("--- | '\"%1\"'\n").arg(escapedName);
+    }
+    annotation += QString("--- | '\"Add New Port\"'\n");
+    annotation += "\n";
+
+    const QString rootPath = g_workspaceUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
+    QFile file(annotationPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream stream(&file);
+    stream << annotation;
+    file.close();
+}
+
 // PortModule protected
 void PortModule::contextMenuEvent(QContextMenuEvent *event) {
     const QPoint globalPos = event->globalPos();
@@ -188,26 +208,6 @@ void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // config
     const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
     m_portConfig.insert(dstIndex, tmp);
-}
-
-void PortModule::portAnnotate() const {
-    QString annotation;
-    annotation += "--- @meta\n\n";
-    annotation += "--- @alias port\n";
-    for (const QString &portName: m_portHash.keys()) {
-        const QString escapedName = QString(portName).replace("\\", "\\\\");
-        annotation += QString("--- | '\"%1\"'\n").arg(escapedName);
-    }
-    annotation += QString("--- | '\"Add New Port\"'\n");
-    annotation += "\n";
-
-    const QString rootPath = g_workspaceUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/port.d.lua");
-    QFile file(annotationPath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream stream(&file);
-    stream << annotation;
-    file.close();
 }
 
 void PortModule::overlayShow() const {

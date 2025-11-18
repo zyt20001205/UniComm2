@@ -50,11 +50,11 @@ signals:
 
     void closeScript(const QUrl &scriptUrl);
 
-    void insertPort(int index, const QJsonObject &portConfig);
+    void insertPort();
 
-    void insertDatabase(int index, const QString &key);
+    void insertDatabase();
 
-    void insertDatatable(int index, const QString &key);
+    void insertDatatable();
 
     void showHoverTooltip(const QString &message);
 

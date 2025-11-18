@@ -29,6 +29,8 @@ public:
 
     void portInsert(int index, QJsonObject portConfig = QJsonObject());
 
+    void portAnnotate() const;
+
     QHash<QString, BasePort *> m_portHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -46,8 +48,6 @@ private:
     void portReload(int index);
 
     void portSwap(int srcIndex, int dstIndex);
-
-    void portAnnotate() const;
 
     void overlayShow() const;
 

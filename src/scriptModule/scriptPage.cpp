@@ -394,15 +394,15 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
         text += ".";
     } else if (kind == "EnumMember") {
         if (text == "\"Add New Port\"") {
-            emit insertPort(-1, QJsonObject());
+            emit insertPort();
             return;
         }
         if (text == "\"Add New Database Key\"") {
-            emit insertDatabase(-1, QString());
+            emit insertDatabase();
             return;
         }
         if (text == "\"Add New Datatable Key\"") {
-            emit insertDatatable(-1, QString());
+            emit insertDatatable();
             return;
         }
         if (text == "\"Position Hint\"") {

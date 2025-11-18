@@ -20,6 +20,8 @@ public:
 
     void databaseInsert(int visualIndex, QString key = QString());
 
+    void databaseAnnotate() const;
+
     bool databaseWrite(const QString &key, const QString &value) const;
 
     void databaseClear() const;
@@ -40,8 +42,6 @@ private:
     void databaseRename(int visualIndex);
 
     void databaseSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex);
-
-    void databaseAnnotate() const;
 
     QJsonArray m_databaseConfig{};
     QTableWidget *m_tableWidget{};

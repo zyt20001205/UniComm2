@@ -225,9 +225,18 @@ void MainWindow::moduleInit() {
         }
     });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, &PortModule::portInsert);
-    connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, &DatabaseModule::databaseInsert);
-    connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, &DatatableModule::datatableInsert);
+    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] {
+        m_portModule->portInsert(-1, QJsonObject());
+        m_portModule->portAnnotate();
+    });
+    connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] {
+        m_databaseModule->databaseInsert(-1, QString());
+        m_databaseModule->databaseAnnotate();
+    });
+    connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, [this] {
+        m_datatableModule->datatableInsert(-1, QString());
+        m_datatableModule->datatableAnnotate();
+    });
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);

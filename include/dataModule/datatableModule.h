@@ -20,6 +20,8 @@ public:
 
     void datatableInsert(int visualIndex, QString key = QString());
 
+    void datatableAnnotate() const;
+
     bool datatableWrite(const QString &key, const QString &value);
 
     bool datatableClear(const QString &key);
@@ -48,8 +50,6 @@ private:
     void datatableRemove(int visualIndex);
 
     void datatableSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex);
-
-    void datatableAnnotate() const;
 
     struct DataMap {
         bool enable;

@@ -76,6 +76,25 @@ void DatabaseModule::databaseInsert(int visualIndex, QString key) {
     qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
 }
 
+void DatabaseModule::databaseAnnotate() const {
+    QString annotation;
+    annotation += "--- @meta\n\n";
+    annotation += "--- @alias database\n";
+    for (const QString &databaseKey: m_databaseHash.keys()) {
+        annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
+    }
+    annotation += QString("--- | '\"Add New Database Key\"'\n");
+    annotation += "\n";
+
+    const QString rootPath = g_workspaceUrl.toLocalFile();
+    const QString annotationPath = QDir(rootPath).filePath("lib/database.d.lua");
+    QFile file(annotationPath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream stream(&file);
+    stream << annotation;
+    file.close();
+}
+
 bool DatabaseModule::databaseWrite(const QString &key, const QString &value) const {
     if (!m_databaseHash.contains(key)) return false;
     m_tableWidget->item(m_databaseHash[key], 0)->setText(value);
@@ -206,23 +225,4 @@ void DatabaseModule::databaseRename(const int visualIndex) {
 void DatabaseModule::databaseSwap(int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
     const QJsonValue tmp = m_databaseConfig.takeAt(oldVisualIndex);
     m_databaseConfig.insert(newVisualIndex, tmp);
-}
-
-void DatabaseModule::databaseAnnotate() const {
-    QString annotation;
-    annotation += "--- @meta\n\n";
-    annotation += "--- @alias database\n";
-    for (const QString &databaseKey: m_databaseHash.keys()) {
-        annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
-    }
-    annotation += QString("--- | '\"Add New Database Key\"'\n");
-    annotation += "\n";
-
-    const QString rootPath = g_workspaceUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/database.d.lua");
-    QFile file(annotationPath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream stream(&file);
-    stream << annotation;
-    file.close();
 }
