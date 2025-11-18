@@ -65,17 +65,14 @@ void ExplorerModule::contextMenuEvent(QContextMenuEvent *event) {
     menu.exec(event->globalPos());
 }
 
-bool ExplorerModule::eventFilter(QObject *obj, QEvent *event) {
-    if (obj == this && event->type() == QEvent::KeyPress) {
-        auto *keyEvent = static_cast<QKeyEvent *>(event);
-        if (keyEvent->key() == Qt::Key_Delete) {
-            if (const QModelIndex index = m_explorerTreeView->currentIndex(); index.isValid()) {
-                scriptDelete(index);
-                return true;
-            }
+void ExplorerModule::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_Delete) {
+        if (const QModelIndex index = m_explorerTreeView->currentIndex(); index.isValid()) {
+            scriptDelete(index);
+            return;
         }
     }
-    return QObject::eventFilter(obj, event);
+    DockWidget::keyPressEvent(event);
 }
 
 // ExplorerModule private

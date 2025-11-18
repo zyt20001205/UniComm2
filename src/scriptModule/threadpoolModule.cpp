@@ -58,7 +58,9 @@ ThreadpoolModule::ThreadpoolModule()
 }
 
 QString ThreadpoolModule::threadExec(const QString &scriptPath, const QString &mode) {
-    const QString fullPath = QDir::current().filePath(g_workspaceUrl.toLocalFile() + "/" + scriptPath);
+    QString relativePath = scriptPath;
+    relativePath = relativePath.replace('.', '/') + ".lua";
+    const QString fullPath = QDir::current().filePath(g_workspaceUrl.toLocalFile() + "/" + relativePath);
     QFile file(fullPath);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);

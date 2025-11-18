@@ -26,7 +26,7 @@ signals:
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
-    bool eventFilter(QObject *obj, QEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     void scriptRun(const QModelIndex &index);
