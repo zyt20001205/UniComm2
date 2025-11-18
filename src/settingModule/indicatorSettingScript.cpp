@@ -37,7 +37,10 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
       m_indicatorSearchColorButton(new QPushButton()),
       m_indicatorSelectionStyleComboBox(new QComboBox()),
       m_indicatorSelectionColorButton(new QPushButton()),
-      m_searchPreviewEditor(new QsciScintilla()) {
+      m_searchPreviewEditor(new QsciScintilla()),
+      m_indicatorHyperlinkStyleComboBox(new QComboBox()),
+      m_indicatorHyperlinkColorButton(new QPushButton()),
+      m_hyperlinkPreviewEditor(new QsciScintilla()) {
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
     setWidgetResizable(true);
@@ -317,9 +320,9 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         m_highlightPreviewEditor->setMarginWidth(1, 0);
         m_highlightPreviewEditor->setReadOnly(true);
     }
-    // misc
+    // search
     {
-        auto *searchLabel = new QLabel(tr("Misc")); // NOLINT
+        auto *searchLabel = new QLabel(tr("Search")); // NOLINT
         layout->addWidget(searchLabel);
         searchLabel->setFont(QFont("Segoe UI", 14, QFont::Bold));
         QFrame *horizontalLine = new QFrame(); // NOLINT
@@ -407,6 +410,56 @@ IndicatorSettingScript::IndicatorSettingScript(QWidget *parent)
         m_searchPreviewEditor->setMarginWidth(1, 0);
         m_searchPreviewEditor->setReadOnly(true);
     }
+    // hyperlink
+    {
+        auto *hyperlinkLabel = new QLabel(tr("Hyperlink")); // NOLINT
+        layout->addWidget(hyperlinkLabel);
+        hyperlinkLabel->setFont(QFont("Segoe UI", 14, QFont::Bold));
+        QFrame *horizontalLine = new QFrame(); // NOLINT
+        layout->addWidget(horizontalLine);
+        horizontalLine->setFrameShape(HLine);
+        horizontalLine->setLineWidth(3);
+
+        auto *indicatorHyperlinkStyleWidget = new QWidget(); // NOLINT
+        layout->addWidget(indicatorHyperlinkStyleWidget);
+        auto *indicatorHyperlinkStyleLayout = new QHBoxLayout(indicatorHyperlinkStyleWidget); // NOLINT
+        indicatorHyperlinkStyleLayout->setContentsMargins(0, 0, 0, 0);
+        auto *indicatorHyperlinkStyleLabel = new QLabel(tr("Hyperlink Style")); // NOLINT
+        indicatorHyperlinkStyleLayout->addWidget(indicatorHyperlinkStyleLabel);
+        indicatorHyperlinkStyleLabel->setFont(QFont("Segoe UI", 12));
+        indicatorHyperlinkStyleLayout->addWidget(m_indicatorHyperlinkStyleComboBox);
+        m_indicatorHyperlinkStyleComboBox->addItems(m_indicatorStyleList);
+        m_indicatorHyperlinkStyleComboBox->setFont(QFont("Segoe UI", 12));
+        connect(m_indicatorHyperlinkStyleComboBox, &QComboBox::currentIndexChanged, this, [this](const int style) {
+            m_hyperlinkPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(style), INDICATOR_HYPERLINK);
+            m_hyperlinkPreviewEditor->setIndicatorForegroundColor(QColor(m_indicatorHyperlinkColorButton->text()), INDICATOR_HYPERLINK);
+            m_hyperlinkPreviewEditor->fillIndicatorRange(0, 9, 0, 15, INDICATOR_HYPERLINK);
+        });
+        auto *indicatorHyperlinkColorWidget = new QWidget(); // NOLINT
+        layout->addWidget(indicatorHyperlinkColorWidget);
+        auto *indicatorHyperlinkColorLayout = new QHBoxLayout(indicatorHyperlinkColorWidget); // NOLINT
+        indicatorHyperlinkColorLayout->setContentsMargins(0, 0, 0, 0);
+        auto *indicatorHyperlinkColorLabel = new QLabel(tr("Hyperlink Color")); // NOLINT
+        indicatorHyperlinkColorLayout->addWidget(indicatorHyperlinkColorLabel, 1);
+        indicatorHyperlinkColorLabel->setFont(QFont("Segoe UI", 12));
+        indicatorHyperlinkColorLayout->addWidget(m_indicatorHyperlinkColorButton, 1);
+        m_indicatorHyperlinkColorButton->setFont(QFont("Segoe UI", 12));
+        connect(m_indicatorHyperlinkColorButton, &QPushButton::clicked, this, [this] {
+            if (const QColor newColor = QColorDialog::getColor(m_indicatorHyperlinkColorButton->text(), this, tr("Choose Hyperlink Result Background")); newColor.isValid()) {
+                m_indicatorHyperlinkColorButton->setText(newColor.name());
+                m_hyperlinkPreviewEditor->setIndicatorForegroundColor(QColor(newColor), INDICATOR_HYPERLINK);
+                m_hyperlinkPreviewEditor->fillIndicatorRange(0, 9, 0, 15, INDICATOR_HYPERLINK);
+            }
+        });
+
+        layout->addWidget(m_hyperlinkPreviewEditor);
+        m_hyperlinkPreviewEditor->setFixedHeight(200);
+        m_hyperlinkPreviewEditor->setFont(QFont("Consolas", 12));
+        m_hyperlinkPreviewEditor->setMarginType(0, QsciScintilla::NumberMargin);
+        m_hyperlinkPreviewEditor->setMarginWidth(0, 16);
+        m_hyperlinkPreviewEditor->setMarginWidth(1, 0);
+        m_hyperlinkPreviewEditor->setReadOnly(true);
+    }
 }
 
 void IndicatorSettingScript::settingImport(const QJsonObject &indicatorConfigScript) const {
@@ -492,7 +545,7 @@ void IndicatorSettingScript::settingImport(const QJsonObject &indicatorConfigScr
         m_highlightPreviewEditor->fillIndicatorRange(0, 6, 0, 11, INDICATOR_WRITE);
         m_highlightPreviewEditor->fillIndicatorRange(3, 4, 3, 9, INDICATOR_WRITE);
     }
-    // misc
+    // search
     {
         const int indicatorSearchStyle = indicatorConfigScript["indicatorSearchStyle"].toInt();
         m_indicatorSearchStyleComboBox->setCurrentIndex(indicatorSearchStyle);
@@ -522,6 +575,21 @@ void IndicatorSettingScript::settingImport(const QJsonObject &indicatorConfigScr
         m_searchPreviewEditor->fillIndicatorRange(3, 12, 3, 17, INDICATOR_SEARCH);
         m_searchPreviewEditor->fillIndicatorRange(2, 10, 2, 15, INDICATOR_SELECTION);
     }
+    // hyperlink
+    {
+        const int indicatorHyperlinkStyle = indicatorConfigScript["indicatorHyperlinkStyle"].toInt();
+        m_indicatorHyperlinkStyleComboBox->setCurrentIndex(indicatorHyperlinkStyle);
+        const QString indicatorHyperlinkColor = indicatorConfigScript["indicatorHyperlinkColor"].toString();
+        m_indicatorHyperlinkColorButton->setText(indicatorHyperlinkColor);
+
+        m_hyperlinkPreviewEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorHyperlinkStyle), INDICATOR_HYPERLINK);
+        m_hyperlinkPreviewEditor->setIndicatorForegroundColor(QColor(indicatorHyperlinkColor), INDICATOR_HYPERLINK);
+        m_hyperlinkPreviewEditor->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+        m_hyperlinkPreviewEditor->setText(
+            "function target()\n"
+            "end");
+        m_hyperlinkPreviewEditor->fillIndicatorRange(0, 9, 0, 15, INDICATOR_HYPERLINK);
+    }
 }
 
 QJsonObject IndicatorSettingScript::settingExport() const {
@@ -544,5 +612,7 @@ QJsonObject IndicatorSettingScript::settingExport() const {
     indicatorConfigScript["indicatorSearchColor"] = m_indicatorSearchColorButton->text();
     indicatorConfigScript["indicatorSelectionStyle"] = m_indicatorSelectionStyleComboBox->currentIndex();
     indicatorConfigScript["indicatorSelectionColor"] = m_indicatorSelectionColorButton->text();
+    indicatorConfigScript["indicatorHyperlinkStyle"] = m_indicatorHyperlinkStyleComboBox->currentIndex();
+    indicatorConfigScript["indicatorHyperlinkColor"] = m_indicatorHyperlinkColorButton->text();
     return indicatorConfigScript;
 }

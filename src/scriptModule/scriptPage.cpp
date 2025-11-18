@@ -64,13 +64,17 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWriteColor"].toString()), INDICATOR_WRITE);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_WRITE);
-    // indicator misc
+    // indicator search
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
+    // indicator hyperlink
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
 
     const QUrl &url(m_scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -949,15 +953,6 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     markerDefine(Background, MARKER_HEATMAP100);
     setMarkerBackgroundColor(QColor(20, 100, 20), MARKER_HEATMAP100);
 
-    // set indicators
-    indicatorDefine(TextColorIndicator, INDICATOR_HYPERLINK_FONT);
-    setIndicatorForegroundColor(QColor(0, 109, 204), INDICATOR_HYPERLINK_FONT);
-    setIndicatorDrawUnder(true, INDICATOR_HYPERLINK_FONT);
-
-    indicatorDefine(PlainIndicator, INDICATOR_HYPERLINK_UNDERLINE);
-    setIndicatorForegroundColor(QColor(0, 109, 204), INDICATOR_HYPERLINK_UNDERLINE);
-    setIndicatorDrawUnder(true, INDICATOR_HYPERLINK_UNDERLINE);
-
     // set margins
     setMarginType(0, NumberMargin);
     QsciScintilla::setMarginWidth(0, 32);
@@ -1195,8 +1190,7 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
 
 void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Control) {
-        indicatorRemove(INDICATOR_HYPERLINK_FONT);
-        indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+        indicatorRemove(INDICATOR_HYPERLINK);
         viewport()->setCursor(Qt::IBeamCursor);
     }
     QsciScintilla::keyReleaseEvent(event);
@@ -1205,8 +1199,7 @@ void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
 void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
     if (event->modifiers() == Qt::ControlModifier) {
         m_dwellTimer->stop();
-        indicatorRemove(INDICATOR_HYPERLINK_FONT);
-        indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+        indicatorRemove(INDICATOR_HYPERLINK);
         viewport()->setCursor(Qt::IBeamCursor);
         const QPoint localPos = mapFromGlobal(QCursor::pos());
         if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y()); charPos != -1) {
@@ -1219,8 +1212,7 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
                 const int indexFrom = wordStart - SendScintilla(SCI_POSITIONFROMLINE, lineFrom);
                 const int lineTo = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
                 const int indexTo = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, lineTo);
-                indicatorInsert(INDICATOR_HYPERLINK_FONT, lineFrom, indexFrom, lineTo, indexTo);
-                indicatorInsert(INDICATOR_HYPERLINK_UNDERLINE, lineFrom, indexFrom, lineTo, indexTo);
+                indicatorInsert(INDICATOR_HYPERLINK, lineFrom, indexFrom, lineTo, indexTo);
                 viewport()->setCursor(Qt::PointingHandCursor);
             }
         }
@@ -1237,8 +1229,7 @@ void ScriptEditor::mousePressEvent(QMouseEvent *event) {
         int line, character;
         getCursorPosition(&line, &character);
         emit requestDefinition(line, character);
-        indicatorRemove(INDICATOR_HYPERLINK_FONT);
-        indicatorRemove(INDICATOR_HYPERLINK_UNDERLINE);
+        indicatorRemove(INDICATOR_HYPERLINK);
         return;
     } else if (event->button() == Qt::LeftButton) {
         QsciScintilla::mousePressEvent(event);

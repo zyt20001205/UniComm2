@@ -107,16 +107,18 @@ void ScriptModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScrip
         scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
         scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWriteColor"].toString()), INDICATOR_WRITE);
         scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_WRITE);
-        // misc
-        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()),
-                                                    INDICATOR_SEARCH);
+        // search
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
         scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
         scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
-        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSelectionStyle"].toInt()),
-                                                    INDICATOR_SELECTION);
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
         scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
         scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
-        //
+        // hyperlink
+        scriptPage->m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
+        scriptPage->m_scriptEditor->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
+        scriptPage->m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+        // reload
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptPage->m_scriptUrl]);
     }
 }
@@ -138,11 +140,14 @@ void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript)
     m_scriptConfig["indicatorReadColor"] = indicatorConfigScript["indicatorReadColor"].toString();
     m_scriptConfig["indicatorWriteStyle"] = indicatorConfigScript["indicatorWriteStyle"].toInt();
     m_scriptConfig["indicatorWriteColor"] = indicatorConfigScript["indicatorWriteColor"].toString();
-    // misc
+    // search
     m_scriptConfig["indicatorSearchStyle"] = indicatorConfigScript["indicatorSearchStyle"].toInt();
     m_scriptConfig["indicatorSearchColor"] = indicatorConfigScript["indicatorSearchColor"].toString();
     m_scriptConfig["indicatorSelectionStyle"] = indicatorConfigScript["indicatorSelectionStyle"].toInt();
     m_scriptConfig["indicatorSelectionColor"] = indicatorConfigScript["indicatorSelectionColor"].toString();
+    // hyperlink
+    m_scriptConfig["indicatorHyperlinkStyle"] = indicatorConfigScript["indicatorHyperlinkStyle"].toInt();
+    m_scriptConfig["indicatorHyperlinkColor"] = indicatorConfigScript["indicatorHyperlinkColor"].toString();
 }
 
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {

@@ -384,7 +384,9 @@ void MainWindow::menuInit() {
                 {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
                 {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
                 {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
-                {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()}
+                {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
+                {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
+                {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()}
             };
             m_settingModule->settingImport(settingConfig);
             if (m_settingModule->exec() == QDialog::Accepted) {

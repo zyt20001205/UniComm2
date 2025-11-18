@@ -110,6 +110,8 @@ void SettingModule::settingImport(const QJsonObject &settingConfig) const {
     indicatorConfigScript["indicatorSearchColor"] = settingConfig["indicatorSearchColorScript"].toString();
     indicatorConfigScript["indicatorSelectionStyle"] = settingConfig["indicatorSelectionStyleScript"].toInt();
     indicatorConfigScript["indicatorSelectionColor"] = settingConfig["indicatorSelectionColorScript"].toString();
+    indicatorConfigScript["indicatorHyperlinkStyle"] = settingConfig["indicatorHyperlinkStyleScript"].toInt();
+    indicatorConfigScript["indicatorHyperlinkColor"] = settingConfig["indicatorHyperlinkColorScript"].toString();
     m_indicatorSettingScriptWidget->settingImport(indicatorConfigScript);
 }
 

@@ -27,6 +27,8 @@
     "indicatorHighlightStyle": 8,
     "indicatorHintColor": "#f5f5f5",
     "indicatorHintStyle": 8,
+    "indicatorHyperlinkColor": "#006dcc",
+    "indicatorHyperlinkStyle": 17,
     "indicatorInfoColor": "#e6f0fa",
     "indicatorInfoStyle": 8,
     "indicatorReadColor": "#005fb8",

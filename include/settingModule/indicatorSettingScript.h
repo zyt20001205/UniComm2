@@ -39,12 +39,16 @@ private:
     QComboBox *m_indicatorWriteStyleComboBox{};
     QPushButton *m_indicatorWriteColorButton{};
     QsciScintilla *m_highlightPreviewEditor{};
-    // misc
+    // search
     QComboBox *m_indicatorSearchStyleComboBox{};
     QPushButton *m_indicatorSearchColorButton{};
     QComboBox *m_indicatorSelectionStyleComboBox{};
     QPushButton *m_indicatorSelectionColorButton{};
     QsciScintilla *m_searchPreviewEditor{};
+    // hyperlink
+    QComboBox *m_indicatorHyperlinkStyleComboBox{};
+    QPushButton *m_indicatorHyperlinkColorButton{};
+    QsciScintilla *m_hyperlinkPreviewEditor{};
 };
 
 #endif //UNICOMM_INDICATORSETTINGSCRIPT_H
