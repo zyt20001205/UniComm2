@@ -305,7 +305,7 @@ void LuaInterpreter::showHeatmap() const {
     for (int line = 1; line < heatlist.size(); ++line) {
         const int hitCount = m_debugData->heatmap[currentUrl][line];
         QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line, hitCount] {
-            g_script->annotationInsert(currentUrl, line, QString("hit count: %1").arg(QString::number(hitCount)));
+            // g_script->annotationInsert(currentUrl, line, QString("hit count: %1").arg(QString::number(hitCount)));
         }, Qt::QueuedConnection);
         if (const float percent = static_cast<float>(hitCount) / maxHit; percent < 0.25) {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
