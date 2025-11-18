@@ -229,6 +229,15 @@ DebugModule::DebugModule()
                     emit insertMarker(scriptUrl, MARKER_HINT, line, 1000);
                 }
             });
+            // load breakpoint
+            for (const auto &url: g_breakpoints.keys()) {
+                const auto breakpointLineHash = g_breakpoints[url];
+                for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
+                    const int line = it.key();
+                    const QVariantHash breakpointInfo = it.value();
+                    breakpointInsert(url, line);
+                }
+            }
         }
     }
     // debug tabview

@@ -34,7 +34,6 @@ ScriptModule::ScriptModule()
             const int line = it.key().toInt();
             const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
             g_breakpoints[url].insert(line, breakpointInfo);
-            emit insertBreakpoint(url, line);
         }
     }
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
