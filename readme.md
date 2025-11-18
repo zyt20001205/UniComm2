@@ -264,7 +264,7 @@ flowchart LR
 | textDocument/codeLens                                              | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
 | [textDocument/completion](#textdocumentcompletion)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 | [textDocument/definition](#textdocumentdefinition)                 | Request      | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |
-| textDocument/documentHighlight                                     | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                     |
+| [textDocument/documentHighlight](#textdocumentHighlight)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 | [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 | [textDocument/foldingRange](#textdocumentfoldingrange)             | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
 | [textDocument/formatting](#textdocumentformatting)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)        |
@@ -289,6 +289,10 @@ flowchart LR
 ### textDocument/definition
 
 ![definition](resources/assets/lsp/definition.gif)
+
+### textDocument/documentHighlight
+
+![documentHighlight](resources/assets/lsp/documentHighlight.png)
 
 ### textDocument/documentSymbol
 

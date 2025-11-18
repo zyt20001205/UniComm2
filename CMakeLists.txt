@@ -44,7 +44,7 @@ set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica.dll")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
 
-if (CMAKE_BUILT_TYPE STREQUAL "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(GUI_TYPE WIN32)
 else ()
     set(GUI_TYPE "")
