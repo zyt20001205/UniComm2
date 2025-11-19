@@ -18,7 +18,7 @@ SignatureHelpTooltip::SignatureHelpTooltip(QWidget *parent)
     m_label->setStyleSheet("QLabel{background-color: white; border: 1px solid #d0d0d0;}");
 }
 
-void SignatureHelpTooltip::showTooltip(const QJsonObject &signature) {
+void SignatureHelpTooltip::tooltipShow(const QJsonObject &signature) {
     QString helpText;
     int index = 0;
     const int activeParameter = signature["activeParameter"].toInt();
@@ -43,7 +43,7 @@ void SignatureHelpTooltip::showTooltip(const QJsonObject &signature) {
     show();
 }
 
-void SignatureHelpTooltip::hideTooltip() {
+void SignatureHelpTooltip::tooltipHide() {
     hide();
 }
 
@@ -60,7 +60,7 @@ bool SignatureHelpTooltip::eventFilter(QObject *obj, QEvent *event) {
             case Qt::Key_Left:
             case Qt::Key_Right:
             case Qt::Key_Escape:
-                hideTooltip();
+                tooltipHide();
                 return false;
             default:
                 return false;

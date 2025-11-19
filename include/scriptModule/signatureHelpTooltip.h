@@ -13,9 +13,9 @@ public:
 
     ~SignatureHelpTooltip() override = default;
 
-    void showTooltip(const QJsonObject &signature);
+    void tooltipShow(const QJsonObject &signature);
 
-    void hideTooltip();
+    void tooltipHide();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

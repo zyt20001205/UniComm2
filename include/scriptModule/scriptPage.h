@@ -88,6 +88,8 @@ signals:
 
     void showHoverTooltip(const QString &message);
 
+    void hideHoverTooltip();
+
     void leaveHoverTooltip();
 
     void showPositionTooltip();
@@ -263,6 +265,8 @@ signals:
     void requestPermission();
 
     void requestIdle();
+
+    void hideHoverTooltip();
 
     void leaveHoverTooltip();
 

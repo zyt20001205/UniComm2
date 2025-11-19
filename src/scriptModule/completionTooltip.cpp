@@ -33,7 +33,7 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     connect(m_tableWidget, &QTableWidget::cellClicked, this, &CompletionTooltip::textReplace);
 }
 
-void CompletionTooltip::showTooltip(const QJsonArray &items) {
+void CompletionTooltip::tooltipShow(const QJsonArray &items) {
     m_tableWidget->setRowCount(0);
     int row = 0;
     for (const auto &value: items) {
@@ -60,11 +60,11 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
     }
 }
 
-void CompletionTooltip::hideTooltip() {
+void CompletionTooltip::tooltipHide() {
     hide();
 }
 
-void CompletionTooltip::fullTooltip(const bool status) {
+void CompletionTooltip::tooltipFull(const bool status) {
     m_fullComplete = status;
 }
 
@@ -78,7 +78,7 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
         switch (keyEvent->key()) {
             case Qt::Key_Tab: {
                 textReplace();
-                hideTooltip();
+                tooltipHide();
             }
                 return true;
             case Qt::Key_Up: {
@@ -94,7 +94,7 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
             case Qt::Key_Backspace:
             case Qt::Key_Left:
             case Qt::Key_Right: {
-                hideTooltip();
+                tooltipHide();
             }
                 return false;
             default:

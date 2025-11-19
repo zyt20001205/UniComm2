@@ -143,6 +143,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestIdle, this, &ScriptPage::idleRequest);
+    connect(m_scriptEditor, &ScriptEditor::hideHoverTooltip, this, &ScriptPage::hideHoverTooltip);
     connect(m_scriptEditor, &ScriptEditor::leaveHoverTooltip, this, &ScriptPage::leaveHoverTooltip);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
@@ -1077,6 +1078,7 @@ void ScriptEditor::focusOutEvent(QFocusEvent *event) {
 
 void ScriptEditor::keyPressEvent(QKeyEvent *event) {
     m_dwellTimer->stop();
+    emit hideHoverTooltip();
     if (isReadOnly()) {
         emit requestPermission();
         event->accept();
@@ -1167,7 +1169,8 @@ void ScriptEditor::mousePressEvent(QMouseEvent *event) {
         emit requestDefinition(line, character);
         indicatorRemove(INDICATOR_HYPERLINK);
         return;
-    } else if (event->button() == Qt::LeftButton) {
+    }
+    if (event->button() == Qt::LeftButton) {
         QsciScintilla::mousePressEvent(event);
         int line, character;
         getCursorPosition(&line, &character);

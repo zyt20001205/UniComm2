@@ -19,18 +19,18 @@ HoverTooltip::HoverTooltip(QWidget *parent)
     m_textBrowser->installEventFilter(this);
 }
 
-void HoverTooltip::leaveTooltip() {
-    if (isVisible() && !geometry().contains(QCursor::pos())) hideTooltip();
+void HoverTooltip::tooltipLeave() {
+    if (isVisible() && !geometry().contains(QCursor::pos())) tooltipHide();
 }
 
-void HoverTooltip::showTooltip(const QString &message) {
+void HoverTooltip::tooltipShow(const QString &message) {
     m_textBrowser->setMarkdown(message);
     adjustSize();
     move(QCursor::pos() + QPoint(10, 10));
     show();
 }
 
-void HoverTooltip::hideTooltip() {
+void HoverTooltip::tooltipHide() {
     hide();
 }
 
@@ -40,6 +40,6 @@ void HoverTooltip::enterEvent(QEnterEvent *event) {
 }
 
 void HoverTooltip::leaveEvent(QEvent *event) {
-    hideTooltip();
+    tooltipHide();
     QWidget::leaveEvent(event);
 }

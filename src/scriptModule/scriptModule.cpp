@@ -213,10 +213,11 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
-        connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::fullTooltip);
-        connect(scriptPage, &ScriptPage::showHoverTooltip, m_hoverTooltip, &HoverTooltip::showTooltip);
-        connect(scriptPage, &ScriptPage::leaveHoverTooltip, m_hoverTooltip, &HoverTooltip::leaveTooltip);
-        connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::showTooltip);
+        connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
+        connect(scriptPage, &ScriptPage::showHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipShow);
+        connect(scriptPage, &ScriptPage::hideHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipHide);
+        connect(scriptPage, &ScriptPage::leaveHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipLeave);
+        connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::tooltipShow);
         scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
@@ -331,7 +332,7 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_completionTooltip->showTooltip(items);
+    m_completionTooltip->tooltipShow(items);
     m_completionTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
@@ -476,7 +477,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 }
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
-    m_hoverTooltip->showTooltip(message);
+    m_hoverTooltip->tooltipShow(message);
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
@@ -526,14 +527,14 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_signatureHelpTooltip->showTooltip(signature);
+    m_signatureHelpTooltip->tooltipShow(signature);
     m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
 // ScriptModule private
 void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
-    m_completionTooltip->hideTooltip();
-    m_signatureHelpTooltip->hideTooltip();
+    m_completionTooltip->tooltipHide();
+    m_signatureHelpTooltip->tooltipHide();
     if (status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);

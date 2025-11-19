@@ -28,12 +28,12 @@ PositionTooltip::PositionTooltip(QWidget *parent)
     });
 }
 
-void PositionTooltip::showTooltip() {
+void PositionTooltip::tooltipShow() {
     this->show();
     m_timer->start();
 }
 
-void PositionTooltip::hideTooltip() {
+void PositionTooltip::tooltipHide() {
     this->hide();
     m_timer->stop();
 }
@@ -47,7 +47,7 @@ bool PositionTooltip::eventFilter(QObject *obj, QEvent *event) {
             GetCursorPos(&physicalPos);
             QString text = QString("%1, %2").arg(QString::number(physicalPos.x), QString::number(physicalPos.y));
             emit replaceText(text, "Text");
-            hideTooltip();
+            tooltipHide();
         }
     }
     return QWidget::eventFilter(obj, event);

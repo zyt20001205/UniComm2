@@ -14,11 +14,11 @@ public:
 
     ~HoverTooltip() override = default;
 
-    void leaveTooltip();
+    void tooltipLeave();
 
-    void showTooltip(const QString &message);
+    void tooltipShow(const QString &message);
 
-    void hideTooltip();
+    void tooltipHide();
 
 protected:
     void enterEvent(QEnterEvent *event) override;

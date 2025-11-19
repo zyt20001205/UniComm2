@@ -13,11 +13,11 @@ public:
 
     ~CompletionTooltip() override = default;
 
-    void showTooltip(const QJsonArray &items);
+    void tooltipShow(const QJsonArray &items);
 
-    void hideTooltip();
+    void tooltipHide();
 
-    void fullTooltip(bool status);
+    void tooltipFull(bool status);
 
 signals:
     void replaceText(QString &text, const QString &kind);

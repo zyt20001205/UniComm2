@@ -13,9 +13,9 @@ public:
 
     ~PositionTooltip() override = default;
 
-    void showTooltip();
+    void tooltipShow();
 
-    void hideTooltip();
+    void tooltipHide();
 
 signals:
     void replaceText(QString &text, const QString &kind);
