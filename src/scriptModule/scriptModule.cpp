@@ -309,17 +309,17 @@ void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArr
 void ScriptModule::completionRequest(const QUrl &scriptUrl, int line, int character) {
     // completion request to lua language server
     const QJsonObject completionParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "position", QJsonObject{
-                    {"line", line},
-                    {"character", character}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
     };
     emit requestJson("textDocument/completion", completionParams);
 }
@@ -340,17 +340,17 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
 void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, const int character) {
     // definition request to lua language server
     const QJsonObject definitionParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "position", QJsonObject{
-                    {"line", line},
-                    {"character", character}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
     };
     emit requestJson("textDocument/definition", definitionParams);
 }
@@ -385,11 +385,11 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
     // document symbol request to lua language server
     const QJsonObject documentSymbolParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        }
     };
     emit requestJson("textDocument/documentSymbol", documentSymbolParams);
 }
@@ -399,17 +399,17 @@ void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
 void ScriptModule::documentHighlightRequest(const QUrl &scriptUrl, const int line, const int character) {
     // document highlight request to lua language server
     const QJsonObject documentHighlightParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "position", QJsonObject{
-                    {"line", line},
-                    {"character", character}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
     };
     emit requestJson("textDocument/documentHighlight", documentHighlightParams);
 }
@@ -421,11 +421,11 @@ void ScriptModule::documentHighlightResponse(const QUrl &scriptUrl, const QJsonA
 void ScriptModule::foldingRangeRequest(const QUrl &scriptUrl) {
     // folding range request to lua language server
     const QJsonObject foldingRangeParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        }
     };
     emit requestJson("textDocument/foldingRange", foldingRangeParams);
 }
@@ -437,19 +437,19 @@ void ScriptModule::foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray 
 void ScriptModule::formattingRequest(const QUrl &scriptUrl) {
     // formatting request to lua language server
     const QJsonObject formattingParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "options", QJsonObject{
-                    {"tabSize", 4},
-                    {"insertSpaces", true},
-                    {"trimTrailingWhitespace", true},
-                    {"insertFinalNewline", true}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "options", QJsonObject{
+                {"tabSize", 4},
+                {"insertSpaces", true},
+                {"trimTrailingWhitespace", true},
+                {"insertFinalNewline", true}
+            }
+        }
     };
     emit requestJson("textDocument/formatting", formattingParams);
 }
@@ -484,17 +484,22 @@ void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) 
 void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {
     // references request to lua language server
     const QJsonObject referencesParams{
-                {
-                    "textDocument", QJsonObject{
-                        {"uri", scriptUrl.toString()}
-                    }
-                },
-                {
-                    "position", QJsonObject{
-                        {"line", line},
-                        {"character", character}
-                    }
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        },
+        {
+            "context", QJsonObject{
+                {"includeDeclaration", false}
+            }
+        }
     };
     emit requestJson("textDocument/references", referencesParams);
 }
@@ -506,11 +511,11 @@ void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &r
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
     // semantic tokens request to lua language server
     const QJsonObject semanticTokensParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        }
     };
     emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
 }
@@ -522,17 +527,17 @@ void ScriptModule::semanticTokensResponse(const QUrl &scriptUrl, const QJsonArra
 void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int character) {
     // signature help request to lua language server
     const QJsonObject signatureHelpParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "position", QJsonObject{
-                    {"line", line},
-                    {"character", character}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
     };
     emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
