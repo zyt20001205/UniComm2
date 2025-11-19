@@ -524,7 +524,7 @@ void ScriptPage::idleRequest() {
     m_scriptEditor->getCursorPosition(&line, &character);
     // lsp request
     didChangeNotification();
-    documentHighlightRequest(line, character);
+    documentHighlightRequest();
     documentSymbolRequest();
     foldingRangeRequest();
     semanticTokensRequest();
@@ -601,138 +601,56 @@ void ScriptPage::didCloseNotification() {
 }
 
 void ScriptPage::completionRequest() {
-    // completion request to lua language server
+    // get cursor position
     int line, character;
     m_scriptEditor->getCursorPosition(&line, &character);
-    const QJsonObject completionParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "position", QJsonObject{
-                {"line", line},
-                {"character", character}
-            }
-        }
-    };
-    emit requestJson("textDocument/completion", completionParams);
+    // completion request to script module
+    emit requestCompletion(m_scriptUrl, line, character);
 }
 
-void ScriptPage::definitionRequest(const int line, const int character) {
-    // definition request to lua language server
-    const QJsonObject definitionParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "position", QJsonObject{
-                {"line", line},
-                {"character", character}
-            }
-        }
-    };
-    emit requestJson("textDocument/definition", definitionParams);
+void ScriptPage::definitionRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // definition request to script module
+    emit requestDefinition(m_scriptUrl, line, character);
 }
 
-void ScriptPage::documentHighlightRequest(const int line, const int character) {
-    // document highlight request to lua language server
-    const QJsonObject documentHighlightParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "position", QJsonObject{
-                {"line", line},
-                {"character", character}
-            }
-        }
-    };
-    emit requestJson("textDocument/documentHighlight", documentHighlightParams);
+void ScriptPage::documentHighlightRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // document highlight request to script module
+    emit requestDocumentHighlight(m_scriptUrl, line, character);
 }
 
 void ScriptPage::documentSymbolRequest() {
-    // document symbol request to lua language server
-    const QJsonObject documentSymbolParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        }
-    };
-    emit requestJson("textDocument/documentSymbol", documentSymbolParams);
+    // document symbol request to script module
+    emit requestDocumentSymbol(m_scriptUrl);
 }
 
 void ScriptPage::foldingRangeRequest() {
-    // folding range request to lua language server
-    const QJsonObject foldingRangeParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        }
-    };
-    emit requestJson("textDocument/foldingRange", foldingRangeParams);
+    // folding range request to script module
+    emit requestFoldingRange(m_scriptUrl);
 }
 
 void ScriptPage::formattingRequest() {
-    // formatting request to lua language server
-    const QJsonObject formattingParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "options", QJsonObject{
-                {"tabSize", m_scriptEditor->tabWidth()},
-                {"insertSpaces", true},
-                {"trimTrailingWhitespace", true},
-                {"insertFinalNewline", true}
-            }
-        }
-    };
-    emit requestJson("textDocument/formatting", formattingParams);
+    // formatting request to script module
+    emit requestFormatting(m_scriptUrl);
 }
 
-void ScriptPage::semanticTokensRequest() {
-    // semantic tokens request to lua language server
-    const QJsonObject semanticTokensParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        }
-    };
-    emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
-}
-
-void ScriptPage::signatureHelpRequest() {
-    // signature help request to lua language server
+void ScriptPage::hoverRequest() {
+    // get mouse position
+    const QPoint globalPos = QCursor::pos();
+    const QPoint localPos = mapFromGlobal(globalPos);
+    if (!rect().contains(localPos)) return;
+    // get cursor position
+    const long charPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+    if (charPos == -1) return;
     int line, character;
-    m_scriptEditor->getCursorPosition(&line, &character);
-    const QJsonObject signatureHelpParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "position", QJsonObject{
-                {"line", line},
-                {"character", character}
-            }
-        }
-    };
-    emit requestJson("textDocument/signatureHelp", signatureHelpParams);
-}
-
-void ScriptPage::hoverRequest(const int line, const int character) {
+    m_scriptEditor->lineIndexFromPosition(charPos, &line, &character);
+    if (line == 0 && character == 0) return;
+    // show diagnostic if exists
     QString markdown = "```lua\n";
     for (const auto &diagnostic: m_scriptDiagnostic) {
         const QJsonObject diagnosticObject = diagnostic.toObject();
@@ -759,21 +677,21 @@ void ScriptPage::hoverRequest(const int line, const int character) {
         emit showHoverTooltip(markdown);
         return;
     }
-    // hover request to lua language server
-    const QJsonObject hoverParams{
-        {
-            "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
-            }
-        },
-        {
-            "position", QJsonObject{
-                {"line", line},
-                {"character", character}
-            }
-        }
-    };
-    emit requestJson("textDocument/hover", hoverParams);
+    // hover request to script module
+    emit requestHover(m_scriptUrl, line, character);
+}
+
+void ScriptPage::semanticTokensRequest() {
+    // semantic tokens request to script module
+    emit requestSemanticTokens(m_scriptUrl);
+}
+
+void ScriptPage::signatureHelpRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // signature help request to script module
+    emit requestSignatureHelp(m_scriptUrl, line, character);
 }
 
 void ScriptPage::positionFill(const int x, const int y) const {
@@ -1274,14 +1192,7 @@ void ScriptEditor::duplicateHandle() {
 }
 
 void ScriptEditor::dwellHandle() {
-    const QPoint localPos = mapFromGlobal(QCursor::pos());
-    if (!rect().contains(localPos)) return;
-    const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
-    if (charPos == -1) return;
-    int line, character;
-    lineIndexFromPosition(charPos, &line, &character);
-    if (line == 0 && character == 0) return;
-    emit requestHover(line, character);
+    emit requestHover();
 }
 
 void ScriptEditor::pairHandle(const int ascii) {

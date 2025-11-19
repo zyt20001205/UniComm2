@@ -68,6 +68,24 @@ signals:
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);
 
+    void requestCompletion(const QUrl &scriptUrl, int line, int character);
+
+    void requestDefinition(const QUrl &scriptUrl, int line, int character);
+
+    void requestDocumentHighlight(const QUrl &scriptUrl, int line, int character);
+
+    void requestDocumentSymbol(const QUrl &scriptUrl);
+
+    void requestFoldingRange(const QUrl &scriptUrl);
+
+    void requestFormatting(const QUrl &scriptUrl);
+
+    void requestHover(const QUrl &scriptUrl, int line, int character);
+
+    void requestSemanticTokens(const QUrl &scriptUrl);
+
+    void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
+
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
@@ -101,9 +119,9 @@ private:
 
     void completionRequest();
 
-    void definitionRequest(int line, int character);
+    void definitionRequest();
 
-    void documentHighlightRequest(int line, int character);
+    void documentHighlightRequest();
 
     void documentSymbolRequest();
 
@@ -111,11 +129,11 @@ private:
 
     void formattingRequest();
 
+    void hoverRequest();
+
     void semanticTokensRequest();
 
     void signatureHelpRequest();
-
-    void hoverRequest(int line, int character);
 
     void positionFill(int x, int y) const;
 
@@ -252,7 +270,7 @@ signals:
 
     void requestFormatting();
 
-    void requestHover(int line, int character);
+    void requestHover();
 
     void setStat(int current, int total);
 

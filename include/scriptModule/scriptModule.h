@@ -64,19 +64,37 @@ public:
 
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
 
+    void completionRequest(const QUrl &scriptUrl, int line, int character);
+
     void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;
+
+    void definitionRequest(const QUrl &scriptUrl, int line, int character);
 
     void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions);
 
+    void documentSymbolRequest(const QUrl &scriptUrl);
+
+    void documentHighlightRequest(const QUrl &scriptUrl, int line, int character);
+
     void documentHighlightResponse(const QUrl &scriptUrl, const QJsonArray &result);
+
+    void foldingRangeRequest(const QUrl &scriptUrl);
 
     void foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const;
 
+    void formattingRequest(const QUrl &scriptUrl);
+
     void formattingResponse(const QUrl &scriptUrl, const QString &newText) const;
+
+    void hoverRequest(const QUrl &scriptUrl, int line, int character);
 
     void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
 
+    void semanticTokensRequest(const QUrl &scriptUrl);
+
     void semanticTokensResponse(const QUrl &scriptUrl, const QJsonArray &data) const;
+
+    void signatureHelpRequest(const QUrl &scriptUrl, int line, int character);
 
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 

@@ -203,6 +203,15 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::removeMarker, this, &ScriptModule::markerRemove);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
+        connect(scriptPage, &ScriptPage::requestCompletion, this, &ScriptModule::completionRequest);
+        connect(scriptPage, &ScriptPage::requestDefinition, this, &ScriptModule::definitionRequest);
+        connect(scriptPage, &ScriptPage::requestDocumentHighlight, this, &ScriptModule::documentHighlightRequest);
+        connect(scriptPage, &ScriptPage::requestDocumentSymbol, this, &ScriptModule::documentSymbolRequest);
+        connect(scriptPage, &ScriptPage::requestFoldingRange, this, &ScriptModule::foldingRangeRequest);
+        connect(scriptPage, &ScriptPage::requestFormatting, this, &ScriptModule::formattingRequest);
+        connect(scriptPage, &ScriptPage::requestHover, this, &ScriptModule::hoverRequest);
+        connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
+        connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::requestJson, this, &ScriptModule::requestJson);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::setFullCompletion, m_completionTooltip, &CompletionTooltip::fullCompleteSet);
@@ -295,6 +304,24 @@ void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArr
     }
 }
 
+void ScriptModule::completionRequest(const QUrl &scriptUrl, int line, int character) {
+    // completion request to lua language server
+    const QJsonObject completionParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "position", QJsonObject{
+                    {"line", line},
+                    {"character", character}
+                }
+            }
+    };
+    emit requestJson("textDocument/completion", completionParams);
+}
+
 void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
@@ -306,6 +333,24 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_completionTooltip->showTooltip(items);
     m_completionTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+}
+
+void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, const int character) {
+    // definition request to lua language server
+    const QJsonObject definitionParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "position", QJsonObject{
+                    {"line", line},
+                    {"character", character}
+                }
+            }
+    };
+    emit requestJson("textDocument/definition", definitionParams);
 }
 
 void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) {
@@ -335,24 +380,137 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     }
 }
 
+void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
+    // document symbol request to lua language server
+    const QJsonObject documentSymbolParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            }
+    };
+    emit requestJson("textDocument/documentSymbol", documentSymbolParams);
+}
+
+// documentSymbolResponse is sent to structure module
+
+void ScriptModule::documentHighlightRequest(const QUrl &scriptUrl, const int line, const int character) {
+    // document highlight request to lua language server
+    const QJsonObject documentHighlightParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "position", QJsonObject{
+                    {"line", line},
+                    {"character", character}
+                }
+            }
+    };
+    emit requestJson("textDocument/documentHighlight", documentHighlightParams);
+}
+
 void ScriptModule::documentHighlightResponse(const QUrl &scriptUrl, const QJsonArray &result) {
     m_scriptPageHash[scriptUrl]->documentHighlightResponse(result);
+}
+
+void ScriptModule::foldingRangeRequest(const QUrl &scriptUrl) {
+    // folding range request to lua language server
+    const QJsonObject foldingRangeParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            }
+    };
+    emit requestJson("textDocument/foldingRange", foldingRangeParams);
 }
 
 void ScriptModule::foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const {
     m_scriptPageHash[scriptUrl]->foldingRangeResponse(result);
 }
 
+void ScriptModule::formattingRequest(const QUrl &scriptUrl) {
+    // formatting request to lua language server
+    const QJsonObject formattingParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "options", QJsonObject{
+                    {"tabSize", 4},
+                    {"insertSpaces", true},
+                    {"trimTrailingWhitespace", true},
+                    {"insertFinalNewline", true}
+                }
+            }
+    };
+    emit requestJson("textDocument/formatting", formattingParams);
+}
+
 void ScriptModule::formattingResponse(const QUrl &scriptUrl, const QString &newText) const {
     m_scriptPageHash[scriptUrl]->formattingResponse(newText);
+}
+
+void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) {
+    if (m_hoverTooltip->isVisible()) return;
+    // hover request to lua language server
+    const QJsonObject hoverParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
+    };
+    emit requestJson("textDocument/hover", hoverParams);
 }
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     m_hoverTooltip->showTooltip(message);
 }
 
+void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
+    // semantic tokens request to lua language server
+    const QJsonObject semanticTokensParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            }
+    };
+    emit requestJson("textDocument/semanticTokens/full", semanticTokensParams);
+}
+
 void ScriptModule::semanticTokensResponse(const QUrl &scriptUrl, const QJsonArray &data) const {
     m_scriptPageHash[scriptUrl]->semanticTokensResponse(data);
+}
+
+void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int character) {
+    // signature help request to lua language server
+    const QJsonObject signatureHelpParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "position", QJsonObject{
+                    {"line", line},
+                    {"character", character}
+                }
+            }
+    };
+    emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
 
 void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {

@@ -18,13 +18,13 @@ public:
 
     void hideTooltip();
 
-signals:
-    void switchDwell(bool status);
+protected:
+    void enterEvent(QEnterEvent *event) override;
+
+    void leaveEvent(QEvent *event) override;
 
 private:
     QTextBrowser *m_textBrowser = nullptr;
-    QPointer<QWidget> m_previousFocus = nullptr;
 };
-
 
 #endif //UNICOMM_HOVERTOOLTIP_H
