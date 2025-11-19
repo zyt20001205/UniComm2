@@ -143,7 +143,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestIdle, this, &ScriptPage::idleRequest);
-    connect(m_scriptEditor, &ScriptEditor::requestLeave, this, &ScriptPage::requestLeave);
+    connect(m_scriptEditor, &ScriptEditor::leaveHoverTooltip, this, &ScriptPage::leaveHoverTooltip);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
@@ -427,12 +427,12 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
     if (kind == "Function") {
         didChangeNotification();
-        emit setFullCompletion(false);
+        emit fullCompletioinTooltip(false);
         completionRequest();
         signatureHelpRequest();
     } else if (kind == "Field") {
         didChangeNotification();
-        emit setFullCompletion(true);
+        emit fullCompletioinTooltip(true);
         completionRequest();
     }
 }
@@ -448,11 +448,11 @@ void ScriptPage::charAdded(const int ch) {
     const QChar character(ch);
     if (character.isLetter() || character == '.' || character == ':') {
         didChangeNotification();
-        emit setFullCompletion(true);
+        emit fullCompletioinTooltip(true);
         completionRequest();
     } else if (character == "(" || character == ",") {
         didChangeNotification();
-        emit setFullCompletion(false);
+        emit fullCompletioinTooltip(false);
         completionRequest();
         signatureHelpRequest();
     }
@@ -1131,7 +1131,7 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
     if (wordStart != m_currentWord.wordStart || wordEnd != m_currentWord.wordEnd) {
         m_currentWord.wordStart = wordStart;
         m_currentWord.wordEnd = wordEnd;
-        emit requestLeave();
+        emit leaveHoverTooltip();
     }
     if (event->modifiers() == Qt::ControlModifier) {
         m_dwellTimer->stop();

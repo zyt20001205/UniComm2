@@ -84,11 +84,11 @@ signals:
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
-    void setFullCompletion(bool status);
+    void fullCompletioinTooltip(bool status);
 
     void showHoverTooltip(const QString &message);
 
-    void requestLeave();
+    void leaveHoverTooltip();
 
     void showPositionTooltip();
 
@@ -264,7 +264,7 @@ signals:
 
     void requestIdle();
 
-    void requestLeave();
+    void leaveHoverTooltip();
 
     void requestDefinition(int line, int character);
 

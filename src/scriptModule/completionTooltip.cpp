@@ -71,7 +71,7 @@ void CompletionTooltip::hideTooltip() {
     this->hide();
 }
 
-void CompletionTooltip::fullCompleteSet(const bool status) {
+void CompletionTooltip::fullTooltip(const bool status) {
     m_fullComplete = status;
 }
 

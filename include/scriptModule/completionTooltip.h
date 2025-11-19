@@ -17,7 +17,7 @@ public:
 
     void hideTooltip();
 
-    void fullCompleteSet(bool status);
+    void fullTooltip(bool status);
 
 signals:
     void replaceText(QString &text, const QString &kind);

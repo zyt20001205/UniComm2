@@ -19,7 +19,7 @@ HoverTooltip::HoverTooltip(QWidget *parent)
     m_textBrowser->installEventFilter(this);
 }
 
-void HoverTooltip::leaveRequest() {
+void HoverTooltip::leaveTooltip() {
     if (isVisible() && !geometry().contains(QCursor::pos())) hideTooltip();
 }
 

@@ -14,7 +14,7 @@ public:
 
     ~HoverTooltip() override = default;
 
-    void leaveRequest();
+    void leaveTooltip();
 
     void showTooltip(const QString &message);
 

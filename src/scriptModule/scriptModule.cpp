@@ -213,9 +213,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
-        connect(scriptPage, &ScriptPage::setFullCompletion, m_completionTooltip, &CompletionTooltip::fullCompleteSet);
+        connect(scriptPage, &ScriptPage::fullCompletioinTooltip, m_completionTooltip, &CompletionTooltip::fullTooltip);
         connect(scriptPage, &ScriptPage::showHoverTooltip, m_hoverTooltip, &HoverTooltip::showTooltip);
-        connect(scriptPage, &ScriptPage::requestLeave, m_hoverTooltip, &HoverTooltip::leaveRequest);
+        connect(scriptPage, &ScriptPage::leaveHoverTooltip, m_hoverTooltip, &HoverTooltip::leaveTooltip);
         connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::showTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
