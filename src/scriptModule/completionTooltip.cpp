@@ -10,7 +10,11 @@
 // CompletionTooltip public
 CompletionTooltip::CompletionTooltip(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
-      m_tableWidget(new QTableWidget(this)) {
+      m_tableWidget(new QTableWidget(this)),
+      m_kindList{
+          "0", "Text", "Method", "Function", "Constructor", "Field", "Variable", "Class", "Interface", "Module", "Property", "Unit", "Value",
+          "Enum", "Keyword", "Snippet", "Color", "File", "Reference", "Folder", "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParameter"
+      } {
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_tableWidget);
@@ -21,16 +25,14 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_tableWidget->setShowGrid(false);
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_tableWidget->setColumnCount(3);
-    m_tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_tableWidget->horizontalHeader()->setVisible(false);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     m_tableWidget->verticalHeader()->setVisible(false);
-    m_kindList = {
-        "0", "Text", "Method", "Function", "Constructor", "Field", "Variable", "Class", "Interface", "Module", "Property", "Unit", "Value", "Enum", "Keyword", "Snippet", "Color",
-        "File", "Reference", "Folder", "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParameter"
-    };
+    connect(m_tableWidget, &QTableWidget::cellClicked, this, [] {
+        qDebug() << "cell clicked";
+    });
 }
 
 void CompletionTooltip::showTooltip(const QJsonArray &items) {
@@ -83,22 +85,26 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
-            case Qt::Key_Tab:
+            case Qt::Key_Tab: {
                 if (!m_insertText.isEmpty()) emit replaceText(m_insertText, m_kind);
                 hideTooltip();
+            }
                 return true;
-            case Qt::Key_Up:
+            case Qt::Key_Up: {
                 moveUp();
+            }
                 return true;
-            case Qt::Key_Down:
+            case Qt::Key_Down: {
                 moveDown();
+            }
                 return true;
             case Qt::Key_Return:
             case Qt::Key_Escape:
             case Qt::Key_Backspace:
             case Qt::Key_Left:
-            case Qt::Key_Right:
+            case Qt::Key_Right: {
                 hideTooltip();
+            }
                 return false;
             default:
                 return false;
