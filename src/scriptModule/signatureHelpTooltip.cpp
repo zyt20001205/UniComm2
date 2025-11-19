@@ -24,6 +24,7 @@ void SignatureHelpTooltip::showTooltip(const QJsonObject &signature) {
     const int activeParameter = signature["activeParameter"].toInt();
     const QString label = signature["label"].toString();
     const QJsonArray parameters = signature["parameters"].toArray();
+    if (parameters.isEmpty()) return;
     for (const QJsonValue &value: parameters) {
         const QJsonObject parameter = value.toObject();
         const QJsonArray range = parameter["label"].toArray();
@@ -39,11 +40,11 @@ void SignatureHelpTooltip::showTooltip(const QJsonObject &signature) {
     }
     helpText.chop(2);
     m_label->setText(helpText);
-    this->show();
+    show();
 }
 
 void SignatureHelpTooltip::hideTooltip() {
-    this->hide();
+    hide();
 }
 
 // SignatureHelpTooltip protected
