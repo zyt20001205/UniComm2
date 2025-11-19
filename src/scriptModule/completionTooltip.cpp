@@ -18,7 +18,7 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_tableWidget);
-    m_tableWidget->setFixedWidth(600);
+    // m_tableWidget->setFixedWidth(600);
     m_tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     m_tableWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_tableWidget->setFont(QFont("Consolas", 12));
@@ -52,9 +52,9 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
         row++;
     }
     if (m_tableWidget->rowCount() > 0) {
-        m_tableWidget->selectRow(0);
-        // m_tableWidget->setFocus();
+        m_tableWidget->resizeColumnsToContents();
         m_tableWidget->resizeRowsToContents();
+        m_tableWidget->selectRow(0);
         adjustSize();
         show();
     }
