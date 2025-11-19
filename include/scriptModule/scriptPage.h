@@ -56,10 +56,6 @@ signals:
 
     void insertDatatable();
 
-    void showHoverTooltip(const QString &message);
-
-    void showPositionTooltip();
-
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
@@ -86,11 +82,15 @@ signals:
 
     void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
 
-    void requestJson(const QString &method, const QJsonObject &params);
-
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void setFullCompletion(bool status);
+
+    void showHoverTooltip(const QString &message);
+
+    void requestLeave();
+
+    void showPositionTooltip();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -264,6 +264,8 @@ signals:
 
     void requestIdle();
 
+    void requestLeave();
+
     void requestDefinition(int line, int character);
 
     void requestDocumentHighlight(int line, int character);
@@ -308,6 +310,12 @@ private:
     QHash<QChar, QChar> m_autoPairHash{};
     QTimer *m_dwellTimer{};
     QTimer *m_typeTimer{};
+
+    struct CurrentWord {
+        long wordStart = -1;
+        long wordEnd = -1;
+    };
+    CurrentWord m_currentWord{};
 };
 
 #endif //UNICOMM_SCRIPTPAGE_H

@@ -143,6 +143,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestIdle, this, &ScriptPage::idleRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestLeave, this, &ScriptPage::requestLeave);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
@@ -1116,6 +1117,22 @@ void ScriptEditor::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
+    // get current word
+    const QPoint globalPos = QCursor::pos();
+    const QPoint localPos = mapFromGlobal(globalPos);
+    if (!rect().contains(localPos)) {
+        m_currentWord.wordStart = -1;
+        m_currentWord.wordEnd = -1;
+        return;
+    };
+    const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+    const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
+    const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
+    if (wordStart != m_currentWord.wordStart || wordEnd != m_currentWord.wordEnd) {
+        m_currentWord.wordStart = wordStart;
+        m_currentWord.wordEnd = wordEnd;
+        emit requestLeave();
+    }
     if (event->modifiers() == Qt::ControlModifier) {
         m_dwellTimer->stop();
         indicatorRemove(INDICATOR_HYPERLINK);

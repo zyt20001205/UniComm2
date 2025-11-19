@@ -8,7 +8,7 @@
 // HoverTooltip public
 HoverTooltip::HoverTooltip(QWidget *parent)
     : QWidget(parent),
-      m_textBrowser(new QTextBrowser(this)){
+      m_textBrowser(new QTextBrowser(this)) {
     setWindowFlags(Qt::ToolTip);
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
@@ -19,6 +19,21 @@ HoverTooltip::HoverTooltip(QWidget *parent)
     m_textBrowser->installEventFilter(this);
 }
 
+void HoverTooltip::leaveRequest() {
+    if (isVisible() && !geometry().contains(QCursor::pos())) hideTooltip();
+}
+
+void HoverTooltip::showTooltip(const QString &message) {
+    m_textBrowser->setMarkdown(message);
+    adjustSize();
+    move(QCursor::pos() + QPoint(10, 10));
+    show();
+}
+
+void HoverTooltip::hideTooltip() {
+    hide();
+}
+
 // HoverTooltip protected
 void HoverTooltip::enterEvent(QEnterEvent *event) {
     QWidget::enterEvent(event);
@@ -27,16 +42,4 @@ void HoverTooltip::enterEvent(QEnterEvent *event) {
 void HoverTooltip::leaveEvent(QEvent *event) {
     hideTooltip();
     QWidget::leaveEvent(event);
-}
-
-// HoverTooltip private
-void HoverTooltip::showTooltip(const QString &message) {
-    m_textBrowser->setMarkdown(message);
-    this->adjustSize();
-    this->move(QCursor::pos() + QPoint(15, 15));
-    this->show();
-}
-
-void HoverTooltip::hideTooltip() {
-    this->hide();
 }
