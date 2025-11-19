@@ -26,15 +26,14 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    void moveUp();
+    void moveUp() const;
 
-    void moveDown();
+    void moveDown() const;
+
+    void textReplace();
 
     QTableWidget *m_tableWidget = nullptr;
     bool m_fullComplete = false;
-    int m_currentRow{};
-    QString m_insertText{};
-    QString m_kind{};
     QList<QString> m_kindList{};
 };
 

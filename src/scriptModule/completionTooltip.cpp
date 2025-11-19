@@ -30,7 +30,8 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     m_tableWidget->verticalHeader()->setVisible(false);
-    connect(m_tableWidget, &QTableWidget::cellClicked, this, [] {
+    connect(m_tableWidget, &QTableWidget::cellClicked, this, [this] {
+        textReplace();
         qDebug() << "cell clicked";
     });
 }
@@ -54,23 +55,16 @@ void CompletionTooltip::showTooltip(const QJsonArray &items) {
         row++;
     }
     if (m_tableWidget->rowCount() > 0) {
-        m_currentRow = 0;
-        m_tableWidget->selectRow(m_currentRow);
-        m_tableWidget->setFocus();
-        m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
-        m_kind = m_tableWidget->item(m_currentRow, 1)->text();
+        m_tableWidget->selectRow(0);
+        // m_tableWidget->setFocus();
         m_tableWidget->resizeRowsToContents();
-        this->adjustSize();
-        this->show();
-    } else {
-        m_currentRow = -1;
-        m_kind.clear();
-        m_insertText.clear();
+        adjustSize();
+        show();
     }
 }
 
 void CompletionTooltip::hideTooltip() {
-    this->hide();
+    hide();
 }
 
 void CompletionTooltip::fullTooltip(const bool status) {
@@ -86,7 +80,7 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
             case Qt::Key_Tab: {
-                if (!m_insertText.isEmpty()) emit replaceText(m_insertText, m_kind);
+                textReplace();
                 hideTooltip();
             }
                 return true;
@@ -114,22 +108,24 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
 }
 
 // CompletionTooltip private
-void CompletionTooltip::moveUp() {
-    if (m_currentRow == -1) return;
-    if (m_currentRow > 0) {
-        m_currentRow--;
-        m_tableWidget->selectRow(m_currentRow);
-        m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
-        m_kind = m_tableWidget->item(m_currentRow, 1)->text();
-    }
+void CompletionTooltip::moveUp() const {
+    int currentRow = m_tableWidget->currentRow();
+    if (currentRow == -1 || currentRow == 0) return;
+    currentRow--;
+    m_tableWidget->selectRow(currentRow);
 }
 
-void CompletionTooltip::moveDown() {
-    if (m_currentRow == -1) return;
-    if (m_currentRow < m_tableWidget->rowCount() - 1) {
-        m_currentRow++;
-        m_tableWidget->selectRow(m_currentRow);
-        m_insertText = m_tableWidget->item(m_currentRow, 0)->text();
-        m_kind = m_tableWidget->item(m_currentRow, 1)->text();
-    }
+void CompletionTooltip::moveDown() const {
+    int currentRow = m_tableWidget->currentRow();
+    if (currentRow == -1 || currentRow == m_tableWidget->rowCount() - 1) return;
+    currentRow++;
+    m_tableWidget->selectRow(currentRow);
+}
+
+void CompletionTooltip::textReplace() {
+    const int currentRow = m_tableWidget->currentRow();
+    if (currentRow == -1) return;
+    QString insertText = m_tableWidget->item(currentRow, 0)->text();
+    const QString kind = m_tableWidget->item(currentRow, 1)->text();
+    if (!insertText.isEmpty() && !kind.isEmpty()) emit replaceText(insertText, kind);
 }
