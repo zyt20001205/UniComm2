@@ -333,12 +333,15 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
         const int startPos = m_scriptEditor->positionFromLineIndex(currentLine, currentChar);
         const int endPos = startPos + length;
         if (startPos < 0 || endPos > m_scriptEditor->length() || length <= 0) {
-            qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
+            qDebug() << "long string skipped" << currentLine << currentChar;
             continue;
         }
         // start styling
         m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos); // NOLINT
         switch (tokenType) {
+            case TOKENTYPE_NAMESPACE:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NAMESPACE); // NOLINT
+                break;
             case TOKENTYPE_CLASS:
                 m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_CLASS); // NOLINT
                 break;
@@ -353,6 +356,9 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
                 break;
             case TOKENTYPE_PROPERTY:
                 m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PROPERTY); // NOLINT
+                break;
+            case TOKENTYPE_ENUMMEMBAER:
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_ENUMMEMBAER); // NOLINT
                 break;
             case TOKENTYPE_FUNCTION:
                 if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
@@ -887,11 +893,13 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     QsciScintilla::setMarginSensitivity(2, true);
     QsciScintilla::setMarginWidth(2, 16);
     // set styles !!!color format is BGR!!!
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NAMESPACE, static_cast<long>(0x808000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_ENUMMEMBAER, static_cast<long>(0x941087)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
