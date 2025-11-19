@@ -90,6 +90,10 @@ public:
 
     void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
 
+    void referencesRequest(const QUrl &scriptUrl, int line, int character);
+
+    void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references);
+
     void semanticTokensRequest(const QUrl &scriptUrl);
 
     void semanticTokensResponse(const QUrl &scriptUrl, const QJsonArray &data) const;

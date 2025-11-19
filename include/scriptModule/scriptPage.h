@@ -78,6 +78,8 @@ signals:
 
     void requestHover(const QUrl &scriptUrl, int line, int character);
 
+    void requestReferences(const QUrl &scriptUrl, int line, int character);
+
     void requestSemanticTokens(const QUrl &scriptUrl);
 
     void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
@@ -132,6 +134,8 @@ private:
     void formattingRequest();
 
     void hoverRequest();
+
+    void referencesRequest();
 
     void semanticTokensRequest();
 
@@ -270,13 +274,15 @@ signals:
 
     void leaveHoverTooltip();
 
-    void requestDefinition(int line, int character);
+    void requestDefinition();
 
-    void requestDocumentHighlight(int line, int character);
+    void requestDocumentHighlight();
 
     void requestFormatting();
 
     void requestHover();
+
+    void requestReferences();
 
     void setStat(int current, int total);
 

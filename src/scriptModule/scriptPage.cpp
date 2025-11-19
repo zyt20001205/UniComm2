@@ -149,6 +149,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_scriptEditor, &ScriptEditor::requestHover, this, &ScriptPage::hoverRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestReferences, this, &ScriptPage::referencesRequest);
     connect(m_scriptEditor, &ScriptEditor::setStat, m_searchWidget, &SearchWidget::statSet);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
     connect(m_searchWidget, &SearchWidget::searchText, m_scriptEditor, &ScriptEditor::textSearch);
@@ -689,6 +690,14 @@ void ScriptPage::hoverRequest() {
     emit requestHover(m_scriptUrl, line, character);
 }
 
+void ScriptPage::referencesRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // references request to script module
+    emit requestReferences(m_scriptUrl, line, character);
+}
+
 void ScriptPage::semanticTokensRequest() {
     // semantic tokens request to script module
     emit requestSemanticTokens(m_scriptUrl);
@@ -1110,9 +1119,7 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
         }
     } else if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Up || event->key() == Qt::Key_Right || event->key() == Qt::Key_Down) {
         QsciScintilla::keyPressEvent(event);
-        int line, character;
-        getCursorPosition(&line, &character);
-        emit requestDocumentHighlight(line, character);
+        emit requestDocumentHighlight();
         return;
     }
     QsciScintilla::keyPressEvent(event);
@@ -1172,17 +1179,14 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
 void ScriptEditor::mousePressEvent(QMouseEvent *event) {
     if (event->modifiers() == Qt::ControlModifier && event->button() == Qt::LeftButton) {
         QsciScintilla::mousePressEvent(event);
-        int line, character;
-        getCursorPosition(&line, &character);
-        emit requestDefinition(line, character);
+        emit requestDefinition();
+        emit requestReferences();
         indicatorRemove(INDICATOR_HYPERLINK);
         return;
     }
     if (event->button() == Qt::LeftButton) {
         QsciScintilla::mousePressEvent(event);
-        int line, character;
-        getCursorPosition(&line, &character);
-        emit requestDocumentHighlight(line, character);
+        emit requestDocumentHighlight();
         return;
     }
     QsciScintilla::mousePressEvent(event);

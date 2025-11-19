@@ -210,6 +210,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestFoldingRange, this, &ScriptModule::foldingRangeRequest);
         connect(scriptPage, &ScriptPage::requestFormatting, this, &ScriptModule::formattingRequest);
         connect(scriptPage, &ScriptPage::requestHover, this, &ScriptModule::hoverRequest);
+        connect(scriptPage, &ScriptPage::requestReferences, this, &ScriptModule::referencesRequest);
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
@@ -478,6 +479,28 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     m_hoverTooltip->tooltipShow(message);
+}
+
+void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {
+    // references request to lua language server
+    const QJsonObject referencesParams{
+                {
+                    "textDocument", QJsonObject{
+                        {"uri", scriptUrl.toString()}
+                    }
+                },
+                {
+                    "position", QJsonObject{
+                        {"line", line},
+                        {"character", character}
+                    }
+                }
+    };
+    emit requestJson("textDocument/references", referencesParams);
+}
+
+void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) {
+    qDebug() << scriptUrl << references;
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {

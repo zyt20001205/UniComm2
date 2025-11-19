@@ -139,6 +139,11 @@ void LuaLanguageServer::jsonResponse() {
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
                 emit responseHover(scriptUrl, value);
+            } else if (method == "textDocument/references") {
+                // references request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                emit responseReferences(scriptUrl, result);
             } else if (method == "textDocument/semanticTokens/full") {
                 // semanticTokens request
                 if (!json["result"].isObject()) return; // null result
