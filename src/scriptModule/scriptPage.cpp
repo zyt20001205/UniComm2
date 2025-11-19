@@ -427,12 +427,12 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
     if (kind == "Function") {
         didChangeNotification();
-        emit fullCompletioinTooltip(false);
+        emit fullCompletionTooltip(false);
         completionRequest();
         signatureHelpRequest();
     } else if (kind == "Field") {
         didChangeNotification();
-        emit fullCompletioinTooltip(true);
+        emit fullCompletionTooltip(true);
         completionRequest();
     }
 }
@@ -448,11 +448,11 @@ void ScriptPage::charAdded(const int ch) {
     const QChar character(ch);
     if (character.isLetter() || character == '.' || character == ':') {
         didChangeNotification();
-        emit fullCompletioinTooltip(true);
+        emit fullCompletionTooltip(true);
         completionRequest();
     } else if (character == "(" || character == ",") {
         didChangeNotification();
-        emit fullCompletioinTooltip(false);
+        emit fullCompletionTooltip(false);
         completionRequest();
         signatureHelpRequest();
     }

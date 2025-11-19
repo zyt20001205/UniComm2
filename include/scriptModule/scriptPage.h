@@ -84,7 +84,7 @@ signals:
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
-    void fullCompletioinTooltip(bool status);
+    void fullCompletionTooltip(bool status);
 
     void showHoverTooltip(const QString &message);
 

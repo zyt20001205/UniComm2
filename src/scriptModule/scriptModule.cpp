@@ -213,7 +213,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
-        connect(scriptPage, &ScriptPage::fullCompletioinTooltip, m_completionTooltip, &CompletionTooltip::fullTooltip);
+        connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::fullTooltip);
         connect(scriptPage, &ScriptPage::showHoverTooltip, m_hoverTooltip, &HoverTooltip::showTooltip);
         connect(scriptPage, &ScriptPage::leaveHoverTooltip, m_hoverTooltip, &HoverTooltip::leaveTooltip);
         connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::showTooltip);
