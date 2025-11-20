@@ -1074,14 +1074,37 @@ void ScriptEditor::markerRemove(const int type, int line) {
 // ScriptEditor protected
 void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
-    menu.addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
-    menu.addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
+    QMenu *foldingMenu = menu.addMenu(tr("Folding"));
+    foldingMenu->addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
+    foldingMenu->addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
+    QMenu *gotoMenu = menu.addMenu(tr("Go To"));
+    gotoMenu->addAction(QIcon(":/icon/definition.svg"), tr("Definition(s)"), this, [this] { emit requestDefinition(); }); // NOLINT
+    gotoMenu->addAction(QIcon(":/icon/reference.svg"), tr("References(s)"), this, [this] { emit requestReferences(); }); // NOLINT
     QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock Position"));
     dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Dock Right"), this, [this] { emit dockRight(); }); // NOLINT
     dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Dock Left"), this, [this] { emit dockLeft(); }); // NOLINT
     dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Dock Top"), this, [this] { emit dockTop(); }); // NOLINT
     dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Dock Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
     menu.addAction(tr("Formatting"), this, &ScriptEditor::requestFormatting);
+
+    const QPoint globalPos = QCursor::pos();
+    const QPoint localPos = mapFromGlobal(globalPos);
+    const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+    const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
+    const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
+    if (charPos != -1 && wordStart < wordEnd) {
+        const int luaToken = SendScintilla(SCI_GETSTYLEAT, charPos);
+        if (luaToken >= LUATOKEN_MACRO || luaToken == 0) {
+            gotoMenu->setEnabled(false);
+        } else {
+            const long line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
+            const long index = SendScintilla(SCI_GETCOLUMN, charPos);
+            setCursorPosition(line, index);
+        }
+    } else {
+        gotoMenu->setEnabled(false);
+    }
+
     menu.exec(event->globalPos());
 }
 
@@ -1154,20 +1177,15 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
         m_dwellTimer->stop();
         indicatorRemove(INDICATOR_HYPERLINK);
         viewport()->setCursor(Qt::IBeamCursor);
-        const QPoint localPos = mapFromGlobal(QCursor::pos());
-        if (const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y()); charPos != -1) {
-            const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
-            const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
-            if (wordStart < wordEnd) {
-                const int luaToken = SendScintilla(SCI_GETSTYLEAT, charPos);
-                if (luaToken >= LUATOKEN_MACRO || luaToken == 0) return;
-                const int lineFrom = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
-                const int indexFrom = wordStart - SendScintilla(SCI_POSITIONFROMLINE, lineFrom);
-                const int lineTo = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
-                const int indexTo = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, lineTo);
-                indicatorInsert(INDICATOR_HYPERLINK, lineFrom, indexFrom, lineTo, indexTo);
-                viewport()->setCursor(Qt::PointingHandCursor);
-            }
+        if (charPos != -1 && wordStart < wordEnd) {
+            const int luaToken = SendScintilla(SCI_GETSTYLEAT, charPos);
+            if (luaToken >= LUATOKEN_MACRO || luaToken == 0) return;
+            const int lineFrom = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
+            const int indexFrom = wordStart - SendScintilla(SCI_POSITIONFROMLINE, lineFrom);
+            const int lineTo = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);
+            const int indexTo = wordEnd - SendScintilla(SCI_POSITIONFROMLINE, lineTo);
+            indicatorInsert(INDICATOR_HYPERLINK, lineFrom, indexFrom, lineTo, indexTo);
+            viewport()->setCursor(Qt::PointingHandCursor);
         }
         event->accept();
         return;
