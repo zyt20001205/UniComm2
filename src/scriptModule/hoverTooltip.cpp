@@ -26,7 +26,6 @@ void HoverTooltip::tooltipLeave() {
 void HoverTooltip::tooltipShow(const QString &message) {
     m_textBrowser->setMarkdown(message);
     adjustSize();
-    move(QCursor::pos() + QPoint(10, 10));
     show();
 }
 

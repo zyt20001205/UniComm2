@@ -26,7 +26,7 @@ protected:
     void leaveEvent(QEvent *event) override;
 
 private:
-    QTextBrowser *m_textBrowser = nullptr;
+    QTextBrowser *m_textBrowser{};
 };
 
 #endif //UNICOMM_HOVERTOOLTIP_H

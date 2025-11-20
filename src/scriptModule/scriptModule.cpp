@@ -6,11 +6,11 @@
 #include <QTableWidget>
 #include <QTextBrowser>
 
-#include "configModule.h"
 #include "globals.h"
 #include "luaModule/luaControl.h"
 #include "portModule/portModule.h"
 #include "scriptModule/completionTooltip.h"
+#include "scriptModule/gotoPopup.h"
 #include "scriptModule/hoverTooltip.h"
 #include "scriptModule/positionTooltip.h"
 #include "scriptModule/scriptPage.h"
@@ -22,6 +22,7 @@ ScriptModule::ScriptModule()
     : m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_completionTooltip(new CompletionTooltip(g_mainWindow)),
+      m_gotoPopup(new GotoPopup(g_mainWindow)),
       m_hoverTooltip(new HoverTooltip(g_mainWindow)),
       m_positionTooltip(new PositionTooltip(g_mainWindow)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow)) {
@@ -41,6 +42,8 @@ ScriptModule::ScriptModule()
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
+    connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
+    connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
     connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::textReplace);
 }
 
@@ -355,31 +358,9 @@ void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, cons
     emit requestJson("textDocument/definition", definitionParams);
 }
 
-void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) {
-    if (definitions.size() != 1) {
-        qDebug() << "multiple definitions WIP";
-        return;
-    }
-    for (const auto &value: definitions) {
-        const QJsonObject definition = value.toObject();
-        // open definition script
-        QString uri = definition["uri"].toString();
-        uri = QUrl::fromPercentEncoding(uri.toUtf8());
-        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) { drive = drive.toUpper(); }
-        const QUrl definitionUrl(uri);
-        scriptOpen(definitionUrl);
-        // show indicator
-        const QJsonObject rangeObject = definition["range"].toObject();
-        const QJsonObject startObject = rangeObject["start"].toObject();
-        const QJsonObject endObject = rangeObject["end"].toObject();
-        const int startLine = startObject["line"].toInt();
-        const int startCharacter = startObject["character"].toInt();
-        const int endLine = endObject["line"].toInt();
-        const int endCharacter = endObject["character"].toInt();
-        indicatorInsert(definitionUrl, INDICATOR_SELECTION, startLine, startCharacter, endLine, endCharacter, 1000);
-        // set cursor
-        cursorPositionSet(definitionUrl, startLine, startCharacter);
-    }
+void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const {
+    m_gotoPopup->popupShowDefinition(definitions);
+    m_gotoPopup->move(QCursor::pos() + QPoint(10, 10));
 }
 
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
@@ -479,6 +460,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     m_hoverTooltip->tooltipShow(message);
+    m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
 }
 
 void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {
@@ -504,8 +486,9 @@ void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int charac
     emit requestJson("textDocument/references", referencesParams);
 }
 
-void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) {
-    qDebug() << scriptUrl << references;
+void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const {
+    m_gotoPopup->popupShowReferences(references);
+    m_gotoPopup->move(QCursor::pos() + QPoint(10, 10));
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {

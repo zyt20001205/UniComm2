@@ -24,8 +24,8 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    QTimer *m_timer = nullptr;
-    QLabel *m_label = nullptr;
+    QTimer *m_timer{};
+    QLabel *m_label{};
 };
 
 #endif //UNICOMM_POSITIONTOOLTIP_H

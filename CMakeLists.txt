@@ -84,6 +84,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/debugModule.h
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
+        include/scriptModule/gotoPopup.h
         include/scriptModule/hoverTooltip.h
         include/scriptModule/positionTooltip.h
         include/scriptModule/scriptModule.h
@@ -134,6 +135,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/debugModule.cpp
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp
+        src/scriptModule/gotoPopup.cpp
         src/scriptModule/hoverTooltip.cpp
         src/scriptModule/positionTooltip.cpp
         src/scriptModule/scriptModule.cpp
@@ -178,6 +180,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/debugStepInto.svg"
         "resources/icon/debugStepOut.svg"
         "resources/icon/debugStepOver.svg"
+        "resources/icon/definition.svg"
         "resources/icon/delete.svg"
         "resources/icon/dock.svg"
         "resources/icon/function.svg"
@@ -185,6 +188,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/matchCase.svg"
         "resources/icon/pause.svg"
         "resources/icon/play.svg"
+        "resources/icon/reference.svg"
         "resources/icon/regExp.svg"
         "resources/icon/save.svg"
         "resources/icon/send.svg"

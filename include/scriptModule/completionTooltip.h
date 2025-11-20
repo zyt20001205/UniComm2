@@ -32,7 +32,7 @@ private:
 
     void textReplace();
 
-    QTableWidget *m_tableWidget = nullptr;
+    QTableWidget *m_tableWidget{};
     bool m_fullComplete = false;
     QList<QString> m_kindList{};
 };

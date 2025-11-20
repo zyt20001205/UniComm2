@@ -14,6 +14,7 @@ class QTextBrowser;
 class ScriptPage;
 class ScriptEditor;
 class CompletionTooltip;
+class GotoPopup;
 class HoverTooltip;
 class PositionTooltip;
 class SignatureHelpTooltip;
@@ -70,7 +71,7 @@ public:
 
     void definitionRequest(const QUrl &scriptUrl, int line, int character);
 
-    void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions);
+    void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const;
 
     void documentSymbolRequest(const QUrl &scriptUrl);
 
@@ -92,7 +93,7 @@ public:
 
     void referencesRequest(const QUrl &scriptUrl, int line, int character);
 
-    void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references);
+    void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const;
 
     void semanticTokensRequest(const QUrl &scriptUrl);
 
@@ -140,6 +141,7 @@ private:
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CompletionTooltip *m_completionTooltip{};
+    GotoPopup *m_gotoPopup{};
     HoverTooltip *m_hoverTooltip{};
     PositionTooltip *m_positionTooltip{};
     SignatureHelpTooltip *m_signatureHelpTooltip{};

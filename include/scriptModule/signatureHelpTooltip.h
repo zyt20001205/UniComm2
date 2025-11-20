@@ -21,7 +21,7 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-    QLabel *m_label = nullptr;
+    QLabel *m_label{};
 };
 
 #endif //UNICOMM_SIGNATUREHELPTOOLTIP_H
