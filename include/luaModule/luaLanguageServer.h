@@ -38,6 +38,8 @@ signals:
 
     void responseHover(const QUrl &scriptUrl, const QString &message);
 
+    void responseOnTypeFormatting(const QUrl &scriptUrl, const QJsonArray &newText);
+
     void responseReferences(const QUrl &scriptUrl, const QJsonArray &ranges);
 
     void responseSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);

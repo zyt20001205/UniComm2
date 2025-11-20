@@ -91,6 +91,10 @@ public:
 
     void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
 
+    void onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character);
+
+    void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonArray &newText) const;
+    
     void referencesRequest(const QUrl &scriptUrl, int line, int character);
 
     void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const;

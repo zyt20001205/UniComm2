@@ -78,6 +78,8 @@ signals:
 
     void requestHover(const QUrl &scriptUrl, int line, int character);
 
+    void requestOnTypeFormatting(const QUrl &scriptUrl, int line, int character);
+
     void requestReferences(const QUrl &scriptUrl, int line, int character);
 
     void requestSemanticTokens(const QUrl &scriptUrl);
@@ -136,6 +138,8 @@ private:
     void hoverRequest();
 
     void referencesRequest();
+
+    void onTypeFormattingRequest();
 
     void semanticTokensRequest();
 
@@ -285,6 +289,8 @@ signals:
     void requestFormatting();
 
     void requestHover();
+
+    void requestOnTypeFormatting();
 
     void requestReferences();
 

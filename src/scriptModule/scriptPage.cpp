@@ -167,6 +167,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_scriptEditor, &ScriptEditor::requestHover, this, &ScriptPage::hoverRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestOnTypeFormatting, this, &ScriptPage::onTypeFormattingRequest);
     connect(m_scriptEditor, &ScriptEditor::requestReferences, this, &ScriptPage::referencesRequest);
     connect(m_scriptEditor, &ScriptEditor::setStat, m_searchWidget, &SearchWidget::statSet);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
@@ -716,6 +717,14 @@ void ScriptPage::referencesRequest() {
     emit requestReferences(m_scriptUrl, line, character);
 }
 
+void ScriptPage::onTypeFormattingRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // on type formatting request to script module
+    emit requestOnTypeFormatting(m_scriptUrl, line, character);
+}
+
 void ScriptPage::semanticTokensRequest() {
     // semantic tokens request to script module
     emit requestSemanticTokens(m_scriptUrl);
@@ -1162,9 +1171,15 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
             break;
             default: break;
         }
-    } else if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Up || event->key() == Qt::Key_Right || event->key() == Qt::Key_Down) {
+    }
+    if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Up || event->key() == Qt::Key_Right || event->key() == Qt::Key_Down) {
         QsciScintilla::keyPressEvent(event);
         emit requestDocumentHighlight();
+        return;
+    }
+    if (event->key() == Qt::Key_Return) {
+        QsciScintilla::keyPressEvent(event);
+        emit requestOnTypeFormatting();
         return;
     }
     QsciScintilla::keyPressEvent(event);

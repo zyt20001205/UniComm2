@@ -213,6 +213,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestFoldingRange, this, &ScriptModule::foldingRangeRequest);
         connect(scriptPage, &ScriptPage::requestFormatting, this, &ScriptModule::formattingRequest);
         connect(scriptPage, &ScriptPage::requestHover, this, &ScriptModule::hoverRequest);
+        connect(scriptPage, &ScriptPage::requestOnTypeFormatting, this, &ScriptModule::onTypeFormattingRequest);
         connect(scriptPage, &ScriptPage::requestReferences, this, &ScriptModule::referencesRequest);
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
@@ -469,6 +470,37 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     m_hoverTooltip->tooltipShow(message);
     m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
+}
+
+void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character) {
+    // on type formatting request to lua language server
+    const QJsonObject onTypeFormattingParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
+            }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        },
+        {"ch", "\n"},
+        {
+            "options", QJsonObject{
+                {"tabSize", 4},
+                {"insertSpaces", true},
+                {"trimTrailingWhitespace", true},
+                {"insertFinalNewline", true}
+            }
+        }
+    };
+    emit requestJson("textDocument/onTypeFormatting", onTypeFormattingParams);
+}
+
+void ScriptModule::onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonArray &newText) const {
+    qDebug() << scriptUrl << newText[0];
 }
 
 void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {

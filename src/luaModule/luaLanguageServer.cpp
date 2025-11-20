@@ -99,6 +99,7 @@ void LuaLanguageServer::jsonResponse() {
             m_urls.remove(id);
             if (method == "initialize") {
                 // initialize request
+                // qDebug() << json;
                 emit initialized();
             } else if (method == "textDocument/completion") {
                 // completion request
@@ -139,6 +140,11 @@ void LuaLanguageServer::jsonResponse() {
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
                 emit responseHover(scriptUrl, value);
+            } else if (method == "textDocument/onTypeFormatting") {
+                // on type formatting request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                emit responseOnTypeFormatting(scriptUrl, result);
             } else if (method == "textDocument/references") {
                 // references request
                 if (!json["result"].isArray()) return; // null result
