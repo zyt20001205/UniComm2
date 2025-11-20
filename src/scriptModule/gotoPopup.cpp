@@ -23,11 +23,13 @@ GotoPopup::GotoPopup(QWidget *parent)
     m_tableWidget->setFont(QFont("Consolas", 12));
     m_tableWidget->setShowGrid(false);
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tableWidget->setColumnCount(3);
+    m_tableWidget->setColumnCount(5);
     m_tableWidget->horizontalHeader()->setVisible(false);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     m_tableWidget->verticalHeader()->setVisible(false);
     connect(m_tableWidget, &QTableWidget::cellClicked, this, [this](const int row) {
         popupGoto(row);
@@ -52,7 +54,9 @@ void GotoPopup::popupShowDefinition(const QJsonArray &definitions) {
         m_tableWidget->insertRow(row);
         auto *iconItem = new QTableWidgetItem(QIcon(":/icon/definition.svg"), ""); // NOLINT
         auto *fileItem = new QTableWidgetItem(definitionUrl.fileName()); // NOLINT
-        auto *rangeItem = new QTableWidgetItem(QString("%1:%2 - %3:%4").arg(QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter))); // NOLINT
+        auto *startItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(startLine + 1), QString::number(startCharacter))); // NOLINT
+        auto *dashItem = new QTableWidgetItem("-"); // NOLINT
+        auto *endItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(endLine + 1), QString::number(endCharacter))); // NOLINT
         iconItem->setData(Qt::UserRole + 1, definitionUrl);
         iconItem->setData(Qt::UserRole + 2, startLine);
         iconItem->setData(Qt::UserRole + 3, startCharacter);
@@ -60,10 +64,14 @@ void GotoPopup::popupShowDefinition(const QJsonArray &definitions) {
         iconItem->setData(Qt::UserRole + 5, endCharacter);
         iconItem->setBackground(m_gotoColor[DIAGNOSTIC]);
         fileItem->setBackground(m_gotoColor[DIAGNOSTIC]);
-        rangeItem->setBackground(m_gotoColor[DIAGNOSTIC]);
+        startItem->setBackground(m_gotoColor[DIAGNOSTIC]);
+        dashItem->setBackground(m_gotoColor[DIAGNOSTIC]);
+        endItem->setBackground(m_gotoColor[DIAGNOSTIC]);
         m_tableWidget->setItem(row, 0, iconItem);
         m_tableWidget->setItem(row, 1, fileItem);
-        m_tableWidget->setItem(row, 2, rangeItem);
+        m_tableWidget->setItem(row, 2, startItem);
+        m_tableWidget->setItem(row, 3, dashItem);
+        m_tableWidget->setItem(row, 4, endItem);
         row++;
     }
     if (m_tableWidget->rowCount() > 0) {
@@ -92,7 +100,9 @@ void GotoPopup::popupShowReferences(const QJsonArray &references) {
         m_tableWidget->insertRow(row);
         auto *iconItem = new QTableWidgetItem(QIcon(":/icon/reference.svg"), ""); // NOLINT
         auto *fileItem = new QTableWidgetItem(referenceUrl.fileName()); // NOLINT
-        auto *rangeItem = new QTableWidgetItem(QString("%1:%2 - %3:%4").arg(QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter))); // NOLINT
+        auto *startItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(startLine + 1), QString::number(startCharacter))); // NOLINT
+        auto *dashItem = new QTableWidgetItem("-"); // NOLINT
+        auto *endItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(endLine + 1), QString::number(endCharacter))); // NOLINT
         iconItem->setData(Qt::UserRole + 1, referenceUrl);
         iconItem->setData(Qt::UserRole + 2, startLine);
         iconItem->setData(Qt::UserRole + 3, startCharacter);
@@ -100,10 +110,14 @@ void GotoPopup::popupShowReferences(const QJsonArray &references) {
         iconItem->setData(Qt::UserRole + 5, endCharacter);
         iconItem->setBackground(m_gotoColor[REFERENCES]);
         fileItem->setBackground(m_gotoColor[REFERENCES]);
-        rangeItem->setBackground(m_gotoColor[REFERENCES]);
+        startItem->setBackground(m_gotoColor[REFERENCES]);
+        dashItem->setBackground(m_gotoColor[REFERENCES]);
+        endItem->setBackground(m_gotoColor[REFERENCES]);
         m_tableWidget->setItem(row, 0, iconItem);
         m_tableWidget->setItem(row, 1, fileItem);
-        m_tableWidget->setItem(row, 2, rangeItem);
+        m_tableWidget->setItem(row, 2, startItem);
+        m_tableWidget->setItem(row, 3, dashItem);
+        m_tableWidget->setItem(row, 4, endItem);
     }
     if (m_tableWidget->rowCount() > 0) {
         m_tableWidget->resizeColumnsToContents();

@@ -359,8 +359,16 @@ void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, cons
 }
 
 void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_gotoPopup->popupShowDefinition(definitions);
-    m_gotoPopup->move(QCursor::pos() + QPoint(10, 10));
+    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
@@ -487,8 +495,16 @@ void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int charac
 }
 
 void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_gotoPopup->popupShowReferences(references);
-    m_gotoPopup->move(QCursor::pos() + QPoint(10, 10));
+    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {

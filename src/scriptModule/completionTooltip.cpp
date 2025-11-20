@@ -27,7 +27,7 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_tableWidget->horizontalHeader()->setVisible(false);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    m_tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     m_tableWidget->verticalHeader()->setVisible(false);
     connect(m_tableWidget, &QTableWidget::cellClicked, this, &CompletionTooltip::textReplace);
 }
