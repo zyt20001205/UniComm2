@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QShortcut>
 #include <QVBoxLayout>
@@ -140,6 +141,23 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 }
             }
         }
+    });
+    connect(m_scriptEditor, &ScriptEditor::openInExplorer, this, [this] {
+        const QString folderPath = QFileInfo(m_scriptUrl.toLocalFile()).absolutePath();
+#ifdef Q_OS_WIN
+        const QString command = "explorer.exe";
+        QStringList args;
+        args << QDir::toNativeSeparators(folderPath);
+        QProcess::startDetached(command, args);
+#endif
+    });
+    connect(m_scriptEditor, &ScriptEditor::openInApplication, this, [this] {
+#ifdef Q_OS_WIN
+        const QString command = "explorer.exe";
+        QStringList args;
+        args << QDir::toNativeSeparators(m_scriptUrl.toLocalFile());
+        QProcess::startDetached(command, args);
+#endif
     });
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestIdle, this, &ScriptPage::idleRequest);
@@ -1073,11 +1091,12 @@ void ScriptEditor::markerRemove(const int type, int line) {
 
 // ScriptEditor protected
 void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
+    m_dwellTimer->stop();
     QMenu menu(this);
     QMenu *foldingMenu = menu.addMenu(tr("Folding"));
     foldingMenu->addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
     foldingMenu->addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
-    QMenu *gotoMenu = menu.addMenu(tr("Go To"));
+    QMenu *gotoMenu = menu.addMenu(QIcon(":/icon/arrowRight.svg"), tr("Go To"));
     gotoMenu->addAction(QIcon(":/icon/definition.svg"), tr("Definition(s)"), this, [this] { emit requestDefinition(); }); // NOLINT
     gotoMenu->addAction(QIcon(":/icon/reference.svg"), tr("References(s)"), this, [this] { emit requestReferences(); }); // NOLINT
     QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock Position"));
@@ -1086,6 +1105,9 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Dock Top"), this, [this] { emit dockTop(); }); // NOLINT
     dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Dock Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
     menu.addAction(tr("Formatting"), this, &ScriptEditor::requestFormatting);
+    QMenu *openMenu = menu.addMenu(QIcon(":/icon/open.svg"), tr("Open In"));
+    openMenu->addAction(QIcon(":/icon/folder.svg"), tr("Explorer"), this, [this] { emit openInExplorer(); }); // NOLINT
+    openMenu->addAction(QIcon(":/icon/apps.svg"), tr("Application"), this, [this] { emit openInApplication(); }); // NOLINT
 
     const QPoint globalPos = QCursor::pos();
     const QPoint localPos = mapFromGlobal(globalPos);
