@@ -918,16 +918,24 @@ ScriptEditor::ScriptEditor(QWidget *parent)
 
     // set margins
     setMarginType(0, NumberMargin);
+    SendScintilla(SCI_STYLESETBACK, STYLE_LINENUMBER, QColor(Qt::white));
     QsciScintilla::setMarginWidth(0, 32);
 
     setMarginType(1, SymbolMargin);
-    QsciScintilla::setMarginSensitivity(1, true);
     QsciScintilla::setMarginWidth(1, 16);
-    QsciScintilla::setFolding(CircledTreeFoldStyle);
+    QsciScintilla::setMarginSensitivity(1, true);
 
     setMarginType(2, SymbolMargin);
-    QsciScintilla::setMarginSensitivity(2, true);
+    SendScintilla(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS); // NOLINT
+    SendScintilla(SCI_SETFOLDMARGINHICOLOUR, true, QColor(Qt::white));
+    SendScintilla(SCI_SETFOLDMARGINCOLOUR, true, QColor(Qt::white));
     QsciScintilla::setMarginWidth(2, 16);
+    QsciScintilla::setMarginSensitivity(2, true);
+    QsciScintilla::setFolding(CircledTreeFoldStyle);
+
+    setMarginType(3, SymbolMarginColor);
+    setMarginBackgroundColor(3, QColor(Qt::black));
+    QsciScintilla::setMarginWidth(3, 1);
     // set styles !!!color format is BGR!!!
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NAMESPACE, static_cast<long>(0x808000)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
