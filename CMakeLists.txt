@@ -14,6 +14,14 @@ set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
 set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
 
+set(ICU4C_DIR "${CMAKE_SOURCE_DIR}/3rd/icu4c-77.1")
+set(ICU4C_INCLUDE_DIR "${ICU4C_DIR}/include")
+file(GLOB ICU4C_DLLS "${ICU4C_DIR}/bin/*.dll")
+
+set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell-5.1.6")
+set(NUSPELL_INCLUDE_DIR "${NUSPELL_DIR}/include")
+set(NUSPELL_DLL "${NUSPELL_DIR}/bin/libnuspell.dll")
+
 set(KDDOCKWIDGETS_DIR "${CMAKE_SOURCE_DIR}/3rd/kddockwidgets-2.3.0")
 set(KDDOCKWIDGETS_INCLUDE_DIR "${KDDOCKWIDGETS_DIR}/include")
 set(KDDOCKWIDGETS_DLL "${KDDOCKWIDGETS_DIR}/bin/libkddockwidgets-qt62.dll")
@@ -86,6 +94,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/explorerModule.h
         include/scriptModule/gotoPopup.h
         include/scriptModule/hoverTooltip.h
+        include/scriptModule/nuspellModule.h
         include/scriptModule/positionTooltip.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
@@ -137,6 +146,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/explorerModule.cpp
         src/scriptModule/gotoPopup.cpp
         src/scriptModule/hoverTooltip.cpp
+        src/scriptModule/nuspellModule.cpp
         src/scriptModule/positionTooltip.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
@@ -229,6 +239,8 @@ target_link_libraries(UniComm PRIVATE
         Qt::Multimedia
         Qt::TextToSpeech
         ${LUA_DLL}
+        ${ICU4C_DLLS}
+        ${NUSPELL_DLL}
         ${KDDOCKWIDGETS_DLL}
         ${QSCINTILLA_DLL}
         ${QCUSTOMPLOT_DLL}
@@ -241,6 +253,8 @@ target_link_libraries(UniComm PRIVATE
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
+        ${ICU4C_INCLUDE_DIR}
+        ${NUSPELL_INCLUDE_DIR}
         ${KDDOCKWIDGETS_INCLUDE_DIR}
         ${QSCINTILLA_INCLUDE_DIR}
         ${QCUSTOMPLOT_INCLUDE_DIR}
@@ -341,6 +355,25 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "${LUA_LANGUAGE_SERVER_DIR}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
+    endif ()
+
+    file(GLOB ICU4C_DLLS "${ICU4C_DIR}/bin/*.dll")
+    foreach (DLL ${ICU4C_DLLS})
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach ()
+    
+    if (EXISTS "${NUSPELL_DLL}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${NUSPELL_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${NUSPELL_DIR}/dict"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/dict")
     endif ()
 
     if (EXISTS "${KDDOCKWIDGETS_DLL}")

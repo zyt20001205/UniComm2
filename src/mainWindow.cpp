@@ -31,6 +31,7 @@
 #include "scriptModule/debugModule.h"
 #include "scriptModule/diagnosticsModule.h"
 #include "scriptModule/explorerModule.h"
+#include "scriptModule/nuspellModule.h"
 #include "scriptModule/scriptModule.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/structureModule.h"
@@ -98,6 +99,11 @@ void MainWindow::moduleInit() {
     // logging
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
+
+    m_nuspellModule = new NuspellModule(this);
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "nuspell module initialized");
 
     m_undoModule = new UndoModule(this);
     // logging

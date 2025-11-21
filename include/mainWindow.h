@@ -10,6 +10,7 @@ class QShortcut;
 class StructureModule;
 class ConfigModule;
 class LuaLanguageServer;
+class NuspellModule;
 class UndoModule;
 class SettingModule;
 class ScriptModule;
@@ -62,6 +63,7 @@ private:
 
     ConfigModule *m_configModule{};
     LuaLanguageServer *m_llsModule{};
+    NuspellModule *m_nuspellModule{};
     UndoModule *m_undoModule{};
     SettingModule *m_settingModule{};
     ScriptModule *m_scriptModule{};
