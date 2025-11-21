@@ -170,8 +170,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_scriptEditor, &ScriptEditor::requestHover, this, &ScriptPage::hoverRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestImplementation, this, &ScriptPage::implementationRequest);
     connect(m_scriptEditor, &ScriptEditor::requestOnTypeFormatting, this, &ScriptPage::onTypeFormattingRequest);
     connect(m_scriptEditor, &ScriptEditor::requestReferences, this, &ScriptPage::referencesRequest);
+    connect(m_scriptEditor, &ScriptEditor::requestTypeDefinition, this, &ScriptPage::typeDefinitionRequest);
     connect(m_scriptEditor, &ScriptEditor::setStat, m_searchWidget, &SearchWidget::statSet);
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
     connect(m_searchWidget, &SearchWidget::searchText, m_scriptEditor, &ScriptEditor::textSearch);
@@ -727,6 +729,14 @@ void ScriptPage::hoverRequest() {
     emit requestHover(m_scriptUrl, line, character);
 }
 
+void ScriptPage::implementationRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // implementation request to script module
+    emit requestImplementation(m_scriptUrl, line, character);
+}
+
 void ScriptPage::referencesRequest() {
     // get cursor position
     int line, character;
@@ -754,6 +764,14 @@ void ScriptPage::signatureHelpRequest() {
     m_scriptEditor->getCursorPosition(&line, &character);
     // signature help request to script module
     emit requestSignatureHelp(m_scriptUrl, line, character);
+}
+
+void ScriptPage::typeDefinitionRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // type definition request to script module
+    emit requestTypeDefinition(m_scriptUrl, line, character);
 }
 
 void ScriptPage::positionFill(const int x, const int y) const {
@@ -1142,11 +1160,13 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     QMenu *gotoMenu = menu.addMenu(QIcon(":/icon/arrowRight.svg"), tr("Go To"));
     gotoMenu->addAction(QIcon(":/icon/definition.svg"), tr("Definition(s)"), this, [this] { emit requestDefinition(); }); // NOLINT
     gotoMenu->addAction(QIcon(":/icon/reference.svg"), tr("References(s)"), this, [this] { emit requestReferences(); }); // NOLINT
-    QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock Position"));
-    dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Dock Right"), this, [this] { emit dockRight(); }); // NOLINT
-    dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Dock Left"), this, [this] { emit dockLeft(); }); // NOLINT
-    dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Dock Top"), this, [this] { emit dockTop(); }); // NOLINT
-    dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Dock Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
+    gotoMenu->addAction(QIcon(":/icon/implementation.svg"), tr("Implementation(s)"), this, [this] { emit requestImplementation(); }); // NOLINT
+    gotoMenu->addAction(QIcon(":/icon/typeDefinition.svg"), tr("Type Definition(s)"), this, [this] { emit requestTypeDefinition(); }); // NOLINT
+    QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock To"));
+    dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Right"), this, [this] { emit dockRight(); }); // NOLINT
+    dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Left"), this, [this] { emit dockLeft(); }); // NOLINT
+    dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Top"), this, [this] { emit dockTop(); }); // NOLINT
+    dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
     menu.addAction(tr("Formatting"), this, &ScriptEditor::requestFormatting);
     QMenu *openMenu = menu.addMenu(QIcon(":/icon/open.svg"), tr("Open In"));
     openMenu->addAction(QIcon(":/icon/folder.svg"), tr("Explorer"), this, [this] { emit openInExplorer(); }); // NOLINT

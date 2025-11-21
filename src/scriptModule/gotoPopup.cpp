@@ -12,8 +12,10 @@ GotoPopup::GotoPopup(QWidget *parent)
     : QWidget(parent, Qt::Popup),
       m_tableWidget(new QTableWidget(this)),
       m_gotoColor{
-          {DIAGNOSTIC, QColor("#e3f2fD")},
-          {REFERENCES, QColor("#e8f5e9")}
+          {DEFINITION, QColor("#e3f2fD")},
+          {IMPLEMENTATION, QColor("#fff3e0")},
+          {REFERENCES, QColor("#e8f5e9")},
+          {TYPEDEFINITION, QColor("#f3e5f5")}
       } {
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
@@ -62,17 +64,62 @@ void GotoPopup::popupShowDefinition(const QJsonArray &definitions) {
         iconItem->setData(Qt::UserRole + 3, startCharacter);
         iconItem->setData(Qt::UserRole + 4, endLine);
         iconItem->setData(Qt::UserRole + 5, endCharacter);
-        iconItem->setBackground(m_gotoColor[DIAGNOSTIC]);
-        fileItem->setBackground(m_gotoColor[DIAGNOSTIC]);
-        startItem->setBackground(m_gotoColor[DIAGNOSTIC]);
-        dashItem->setBackground(m_gotoColor[DIAGNOSTIC]);
-        endItem->setBackground(m_gotoColor[DIAGNOSTIC]);
+        iconItem->setBackground(m_gotoColor[DEFINITION]);
+        fileItem->setBackground(m_gotoColor[DEFINITION]);
+        startItem->setBackground(m_gotoColor[DEFINITION]);
+        dashItem->setBackground(m_gotoColor[DEFINITION]);
+        endItem->setBackground(m_gotoColor[DEFINITION]);
         m_tableWidget->setItem(row, 0, iconItem);
         m_tableWidget->setItem(row, 1, fileItem);
         m_tableWidget->setItem(row, 2, startItem);
         m_tableWidget->setItem(row, 3, dashItem);
         m_tableWidget->setItem(row, 4, endItem);
         row++;
+    }
+    if (m_tableWidget->rowCount() > 0) {
+        m_tableWidget->resizeColumnsToContents();
+        m_tableWidget->resizeRowsToContents();
+        adjustSize();
+        show();
+    }
+}
+
+void GotoPopup::popupShowImplementation(const QJsonArray &implementations) {
+    for (const auto &value: implementations) {
+        const int row = m_tableWidget->rowCount();
+        const QJsonObject implementation = value.toObject();
+        QString uri = implementation["uri"].toString();
+        uri = QUrl::fromPercentEncoding(uri.toUtf8());
+        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) { drive = drive.toUpper(); }
+        const QUrl implementationUrl(uri);
+        const QJsonObject rangeObject = implementation["range"].toObject();
+        const QJsonObject startObject = rangeObject["start"].toObject();
+        const QJsonObject endObject = rangeObject["end"].toObject();
+        const int startLine = startObject["line"].toInt();
+        const int startCharacter = startObject["character"].toInt();
+        const int endLine = endObject["line"].toInt();
+        const int endCharacter = endObject["character"].toInt();
+        m_tableWidget->insertRow(row);
+        auto *iconItem = new QTableWidgetItem(QIcon(":/icon/implementation.svg"), ""); // NOLINT
+        auto *fileItem = new QTableWidgetItem(implementationUrl.fileName()); // NOLINT
+        auto *startItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(startLine + 1), QString::number(startCharacter))); // NOLINT
+        auto *dashItem = new QTableWidgetItem("-"); // NOLINT
+        auto *endItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(endLine + 1), QString::number(endCharacter))); // NOLINT
+        iconItem->setData(Qt::UserRole + 1, implementationUrl);
+        iconItem->setData(Qt::UserRole + 2, startLine);
+        iconItem->setData(Qt::UserRole + 3, startCharacter);
+        iconItem->setData(Qt::UserRole + 4, endLine);
+        iconItem->setData(Qt::UserRole + 5, endCharacter);
+        iconItem->setBackground(m_gotoColor[IMPLEMENTATION]);
+        fileItem->setBackground(m_gotoColor[IMPLEMENTATION]);
+        startItem->setBackground(m_gotoColor[IMPLEMENTATION]);
+        dashItem->setBackground(m_gotoColor[IMPLEMENTATION]);
+        endItem->setBackground(m_gotoColor[IMPLEMENTATION]);
+        m_tableWidget->setItem(row, 0, iconItem);
+        m_tableWidget->setItem(row, 1, fileItem);
+        m_tableWidget->setItem(row, 2, startItem);
+        m_tableWidget->setItem(row, 3, dashItem);
+        m_tableWidget->setItem(row, 4, endItem);
     }
     if (m_tableWidget->rowCount() > 0) {
         m_tableWidget->resizeColumnsToContents();
@@ -113,6 +160,51 @@ void GotoPopup::popupShowReferences(const QJsonArray &references) {
         startItem->setBackground(m_gotoColor[REFERENCES]);
         dashItem->setBackground(m_gotoColor[REFERENCES]);
         endItem->setBackground(m_gotoColor[REFERENCES]);
+        m_tableWidget->setItem(row, 0, iconItem);
+        m_tableWidget->setItem(row, 1, fileItem);
+        m_tableWidget->setItem(row, 2, startItem);
+        m_tableWidget->setItem(row, 3, dashItem);
+        m_tableWidget->setItem(row, 4, endItem);
+    }
+    if (m_tableWidget->rowCount() > 0) {
+        m_tableWidget->resizeColumnsToContents();
+        m_tableWidget->resizeRowsToContents();
+        adjustSize();
+        show();
+    }
+}
+
+void GotoPopup::popupShowTypeDefinition(const QJsonArray &typeDefinitions) {
+    for (const auto &value: typeDefinitions) {
+        const int row = m_tableWidget->rowCount();
+        const QJsonObject typeDefinition = value.toObject();
+        QString uri = typeDefinition["uri"].toString();
+        uri = QUrl::fromPercentEncoding(uri.toUtf8());
+        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) { drive = drive.toUpper(); }
+        const QUrl typeDefinitionUrl(uri);
+        const QJsonObject rangeObject = typeDefinition["range"].toObject();
+        const QJsonObject startObject = rangeObject["start"].toObject();
+        const QJsonObject endObject = rangeObject["end"].toObject();
+        const int startLine = startObject["line"].toInt();
+        const int startCharacter = startObject["character"].toInt();
+        const int endLine = endObject["line"].toInt();
+        const int endCharacter = endObject["character"].toInt();
+        m_tableWidget->insertRow(row);
+        auto *iconItem = new QTableWidgetItem(QIcon(":/icon/typeDefinition.svg"), ""); // NOLINT
+        auto *fileItem = new QTableWidgetItem(typeDefinitionUrl.fileName()); // NOLINT
+        auto *startItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(startLine + 1), QString::number(startCharacter))); // NOLINT
+        auto *dashItem = new QTableWidgetItem("-"); // NOLINT
+        auto *endItem = new QTableWidgetItem(QString("%1:%2").arg(QString::number(endLine + 1), QString::number(endCharacter))); // NOLINT
+        iconItem->setData(Qt::UserRole + 1, typeDefinitionUrl);
+        iconItem->setData(Qt::UserRole + 2, startLine);
+        iconItem->setData(Qt::UserRole + 3, startCharacter);
+        iconItem->setData(Qt::UserRole + 4, endLine);
+        iconItem->setData(Qt::UserRole + 5, endCharacter);
+        iconItem->setBackground(m_gotoColor[TYPEDEFINITION]);
+        fileItem->setBackground(m_gotoColor[TYPEDEFINITION]);
+        startItem->setBackground(m_gotoColor[TYPEDEFINITION]);
+        dashItem->setBackground(m_gotoColor[TYPEDEFINITION]);
+        endItem->setBackground(m_gotoColor[TYPEDEFINITION]);
         m_tableWidget->setItem(row, 0, iconItem);
         m_tableWidget->setItem(row, 1, fileItem);
         m_tableWidget->setItem(row, 2, startItem);

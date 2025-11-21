@@ -91,6 +91,10 @@ public:
 
     void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
 
+    void implementationRequest(const QUrl &scriptUrl, int line, int character);
+
+    void implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const;
+
     void onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character);
 
     void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const;
@@ -106,6 +110,10 @@ public:
     void signatureHelpRequest(const QUrl &scriptUrl, int line, int character);
 
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
+
+    void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
+
+    void typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const;
 
     ScriptPage *m_focusedPage{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};

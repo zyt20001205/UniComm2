@@ -140,6 +140,11 @@ void LuaLanguageServer::jsonResponse() {
                 const QJsonObject contents = result["contents"].toObject();
                 const QString value = contents["value"].toString();
                 emit responseHover(scriptUrl, value);
+            } else if (method == "textDocument/implementation") {
+                // implementation request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                emit responseImplementation(scriptUrl, result);
             } else if (method == "textDocument/onTypeFormatting") {
                 // on type formatting request
                 if (!json["result"].isArray()) return; // null result
@@ -164,7 +169,12 @@ void LuaLanguageServer::jsonResponse() {
                 const QJsonArray signatures = result["signatures"].toArray();
                 const QJsonObject signature = signatures[0].toObject();
                 emit responseSignatureHelp(scriptUrl, signature);
-            }
+            } else if (method == "textDocument/typeDefinition") {
+                // typeDefinition request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                emit responseTypeDefinition(scriptUrl, result);
+            } 
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
             // publish diagnostics notification
             const QJsonObject params = json["params"].toObject();

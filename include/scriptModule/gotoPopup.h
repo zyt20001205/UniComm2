@@ -15,7 +15,11 @@ public:
 
     void popupShowDefinition(const QJsonArray &definitions);
 
+    void popupShowImplementation(const QJsonArray &implementations);
+
     void popupShowReferences(const QJsonArray &references);
+
+    void popupShowTypeDefinition(const QJsonArray &typeDefinitions);
 
     void popupHide();
 
@@ -34,8 +38,10 @@ private:
     QHash<int, QColor> m_gotoColor{};
 
     enum {
-        DIAGNOSTIC,
-        REFERENCES
+        DEFINITION,
+        IMPLEMENTATION,
+        REFERENCES,
+        TYPEDEFINITION
     };
 };
 

@@ -196,10 +196,12 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::responseFoldingRange, m_scriptModule, &ScriptModule::foldingRangeResponse);
     connect(m_llsModule, &LuaLanguageServer::responseFormatting, m_scriptModule, &ScriptModule::formattingResponse);
     connect(m_llsModule, &LuaLanguageServer::responseHover, m_scriptModule, &ScriptModule::hoverResponse);
+    connect(m_llsModule, &LuaLanguageServer::responseImplementation, m_scriptModule, &ScriptModule::implementationResponse);
     connect(m_llsModule, &LuaLanguageServer::responseOnTypeFormatting, m_scriptModule, &ScriptModule::onTypeFormattingResponse);
     connect(m_llsModule, &LuaLanguageServer::responseReferences, m_scriptModule, &ScriptModule::referencesResponse);
     connect(m_llsModule, &LuaLanguageServer::responseSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensResponse);
     connect(m_llsModule, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);
+    connect(m_llsModule, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
     connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);

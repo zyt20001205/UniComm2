@@ -38,6 +38,8 @@ signals:
 
     void responseHover(const QUrl &scriptUrl, const QString &message);
 
+    void responseImplementation(const QUrl &scriptUrl, const QJsonArray &ranges);
+
     void responseOnTypeFormatting(const QUrl &scriptUrl, const QJsonObject &newText);
 
     void responseReferences(const QUrl &scriptUrl, const QJsonArray &ranges);
@@ -45,6 +47,8 @@ signals:
     void responseSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);
 
     void responseSignatureHelp(const QUrl &scriptUrl, const QJsonObject &signature);
+
+    void responseTypeDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
 
 private:
     void initializeNotification();

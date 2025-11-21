@@ -213,10 +213,12 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestFoldingRange, this, &ScriptModule::foldingRangeRequest);
         connect(scriptPage, &ScriptPage::requestFormatting, this, &ScriptModule::formattingRequest);
         connect(scriptPage, &ScriptPage::requestHover, this, &ScriptModule::hoverRequest);
+        connect(scriptPage, &ScriptPage::requestImplementation, this, &ScriptModule::implementationRequest);
         connect(scriptPage, &ScriptPage::requestOnTypeFormatting, this, &ScriptModule::onTypeFormattingRequest);
         connect(scriptPage, &ScriptPage::requestReferences, this, &ScriptModule::referencesRequest);
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
+        connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
         connect(scriptPage, &ScriptPage::showHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipShow);
@@ -472,6 +474,37 @@ void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) 
     m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
 }
 
+void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, const int character) {
+    // implementation request to lua language server
+    const QJsonObject implementationParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "position", QJsonObject{
+                    {"line", line},
+                    {"character", character}
+                }
+            }
+    };
+    emit requestJson("textDocument/implementation", implementationParams);
+}
+
+void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_gotoPopup->popupShowImplementation(implementations);
+    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+}
+
 void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character) {
     // on type formatting request to lua language server
     const QJsonObject onTypeFormattingParams{
@@ -588,6 +621,37 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_signatureHelpTooltip->tooltipShow(signature);
     m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
+}
+
+void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {
+    // type definition request to lua language server
+    const QJsonObject typeDefinitionParams{
+            {
+                "textDocument", QJsonObject{
+                    {"uri", scriptUrl.toString()}
+                }
+            },
+            {
+                "position", QJsonObject{
+                    {"line", line},
+                    {"character", character}
+                }
+            }
+    };
+    emit requestJson("textDocument/typeDefinition", typeDefinitionParams);
+}
+
+void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
+    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    m_gotoPopup->popupShowTypeDefinition(typeDefinitions);
+    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
 }
 
 // ScriptModule private

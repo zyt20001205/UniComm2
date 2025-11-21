@@ -270,13 +270,13 @@ flowchart LR
 | [textDocument/formatting](#textdocumentformatting)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
 | [textDocument/hover](#textdocumenthover)                           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
 | [textDocument/implementation](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/onTypeFormatting                                      | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                      |
+| textDocument/onTypeFormatting                                      | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
 | textDocument/rangeFormatting                                       | Request      | ![Not Planned](https://img.shields.io/badge/Status-Not%20Planned-lightgrey) |
 | [textDocument/references](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
 | textDocument/rename                                                | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                      |
 | [textDocument/semanticTokens](#textdocumentsemantictokens)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
 | [textDocument/signatureHelp](#textdocumentsignaturehelp)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/typeDefinition                                        | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                      |
+| [textDocument/typeDefinition](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
 
 ### textDocument/publishDiagnostics
 

@@ -80,6 +80,8 @@ signals:
 
     void requestHover(const QUrl &scriptUrl, int line, int character);
 
+    void requestImplementation(const QUrl &scriptUrl, int line, int character);
+    
     void requestOnTypeFormatting(const QUrl &scriptUrl, int line, int character);
 
     void requestReferences(const QUrl &scriptUrl, int line, int character);
@@ -88,6 +90,8 @@ signals:
 
     void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
 
+    void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
+    
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void fullCompletionTooltip(bool status);
@@ -139,6 +143,8 @@ private:
 
     void hoverRequest();
 
+    void implementationRequest();
+
     void referencesRequest();
 
     void onTypeFormattingRequest();
@@ -146,6 +152,8 @@ private:
     void semanticTokensRequest();
 
     void signatureHelpRequest();
+
+    void typeDefinitionRequest();
 
     void positionFill(int x, int y) const;
 
@@ -297,9 +305,13 @@ signals:
 
     void requestHover();
 
+    void requestImplementation();
+
     void requestOnTypeFormatting();
 
     void requestReferences();
+
+    void requestTypeDefinition();
 
     void setStat(int current, int total);
 
@@ -332,7 +344,7 @@ private:
 
     QString m_searchText = {};
     int m_searchFlag = 0;
-    QList<QList<int>> m_searchList{};
+    QList<QList<int> > m_searchList{};
     int m_currentIndex = 0;
     QHash<QChar, QChar> m_autoPairHash{};
     QTimer *m_dwellTimer{};
@@ -342,6 +354,7 @@ private:
         long wordStart = -1;
         long wordEnd = -1;
     };
+
     CurrentWord m_currentWord{};
 };
 
