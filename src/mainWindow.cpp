@@ -458,7 +458,6 @@ void MainWindow::menuInit() {
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
                 const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_scriptEditor->text();
-                qDebug() << scriptUrl << script;
                 emit debugThread(scriptUrl, script);
                 m_debugModule->raise();
             }
