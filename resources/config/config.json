@@ -42,7 +42,7 @@
     "indicatorWriteColor": "#c62828",
     "indicatorWriteStyle": 17,
     "markerBreakpointBackground" : "#ff0000",
-    "markerBreakpointForeground" : "#000000",
+    "markerBreakpointForeground" : "#ff0000",
     "markerBreakpointStyle" : 0,
     "markerDebugBackground" : "#ffa500",
     "markerDebugForeground" : "#000000",

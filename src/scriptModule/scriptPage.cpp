@@ -24,7 +24,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_scriptEditor(new ScriptEditor()),
       m_scriptUrl(scriptUrl),
       m_fileWatcher(new QFileSystemWatcher()),
-      m_searchWidget(new SearchWidget()) {
+      m_searchWidget(new SearchWidget()),
+      m_completionTrigger{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
+      m_signatureHelpTrigger{'(', ','},
+      m_onTypeFormattingTrigger{'\n'} {
     setTitle(scriptUrl.fileName());
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
@@ -174,7 +177,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_searchWidget, &SearchWidget::searchText, m_scriptEditor, &ScriptEditor::textSearch);
     connect(m_searchWidget, &SearchWidget::searchPrev, m_scriptEditor, &ScriptEditor::prevSearch);
     connect(m_searchWidget, &SearchWidget::searchNext, m_scriptEditor, &ScriptEditor::nextSearch);
-    connect(m_searchWidget, &SearchWidget::replaceText, m_scriptEditor, &ScriptEditor::textReplace);
+    connect(m_searchWidget, &SearchWidget::replaceText, m_scriptEditor, qOverload<const QString &>(&ScriptEditor::textReplace));
     connect(m_searchWidget, &SearchWidget::replaceAllText, m_scriptEditor, &ScriptEditor::textReplaceAll);
     QTimer::singleShot(0, this, [this] {
         // lsp
@@ -334,6 +337,18 @@ void ScriptPage::formattingResponse(const QString &newText) const {
     m_scriptEditor->setText(newText);
 }
 
+void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
+    const QString text = newText["newText"].toString();
+    const QJsonObject range = newText["range"].toObject();
+    const QJsonObject start = range["start"].toObject();
+    const QJsonObject end = range["end"].toObject();
+    const int startLine = start["line"].toInt();
+    const int startCharacter = start["character"].toInt();
+    const int endLine = end["line"].toInt();
+    const int endCharacter = end["character"].toInt();
+    m_scriptEditor->textReplace(text, startLine, startCharacter, endLine, endCharacter);
+}
+
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
     m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0); // NOLINT
@@ -473,15 +488,18 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 // ScriptPage private slots
 void ScriptPage::charAdded(const int ch) {
     const QChar character(ch);
-    if (character.isLetter() || character == '.' || character == ':') {
+    if (character.isLetter() || m_completionTrigger.contains(character)) {
         didChangeNotification();
         emit fullCompletionTooltip(true);
         completionRequest();
-    } else if (character == "(" || character == ",") {
+    } else if (m_signatureHelpTrigger.contains(character)) {
         didChangeNotification();
         emit fullCompletionTooltip(false);
         completionRequest();
         signatureHelpRequest();
+    } else if (m_onTypeFormattingTrigger.contains(character)) {
+        didChangeNotification();
+        onTypeFormattingRequest();
     }
 }
 
@@ -957,8 +975,9 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     // script scintilla settings
     setScrollWidth(1);
     QsciScintilla::setBraceMatching(SloppyBraceMatch);
-    QsciScintilla::setAutoIndent(true);
     QsciScintilla::setBackspaceUnindents(true);
+    QsciScintilla::setEolMode(EolWindows);
+    // QsciScintilla::setEolVisibility(true);
     QsciScintilla::setIndentationGuides(true);
     QsciScintilla::setTabWidth(4);
     // connect
@@ -1067,6 +1086,13 @@ void ScriptEditor::textReplaceAll(const QString &text) {
     endUndoAction();
     // refresh search list
     textSearch(m_searchText, m_searchFlag);
+}
+
+void ScriptEditor::textReplace(const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
+    beginUndoAction();
+    setSelection(lineFrom, indexFrom, lineTo, indexTo);
+    replaceSelectedText(text);
+    endUndoAction();
 }
 
 void ScriptEditor::indicatorInsert(const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
@@ -1183,11 +1209,6 @@ void ScriptEditor::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Up || event->key() == Qt::Key_Right || event->key() == Qt::Key_Down) {
         QsciScintilla::keyPressEvent(event);
         emit requestDocumentHighlight();
-        return;
-    }
-    if (event->key() == Qt::Key_Return) {
-        QsciScintilla::keyPressEvent(event);
-        emit requestOnTypeFormatting();
         return;
     }
     QsciScintilla::keyPressEvent(event);

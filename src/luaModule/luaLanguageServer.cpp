@@ -144,7 +144,8 @@ void LuaLanguageServer::jsonResponse() {
                 // on type formatting request
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
-                emit responseOnTypeFormatting(scriptUrl, result);
+                const QJsonObject newText = result[0].toObject();
+                emit responseOnTypeFormatting(scriptUrl, newText);
             } else if (method == "textDocument/references") {
                 // references request
                 if (!json["result"].isArray()) return; // null result

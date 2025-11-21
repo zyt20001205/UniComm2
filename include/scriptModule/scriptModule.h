@@ -93,7 +93,7 @@ public:
 
     void onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character);
 
-    void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonArray &newText) const;
+    void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const;
     
     void referencesRequest(const QUrl &scriptUrl, int line, int character);
 

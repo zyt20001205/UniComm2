@@ -499,8 +499,8 @@ void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int 
     emit requestJson("textDocument/onTypeFormatting", onTypeFormattingParams);
 }
 
-void ScriptModule::onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonArray &newText) const {
-    qDebug() << scriptUrl << newText[0];
+void ScriptModule::onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const {
+    m_scriptPageHash[scriptUrl]->onTypeFormattingResponse(newText);
 }
 
 void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {

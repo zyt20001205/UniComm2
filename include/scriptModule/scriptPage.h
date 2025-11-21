@@ -38,6 +38,8 @@ public:
 
     void formattingResponse(const QString &newText) const;
 
+    void onTypeFormattingResponse(const QJsonObject &newText) const;
+
     void semanticTokensResponse(const QJsonArray &data) const;
 
     void textReplace(QString &text, const QString &kind);
@@ -154,6 +156,9 @@ private:
     QByteArray m_scriptHash{};
     QJsonArray m_scriptDiagnostic{};
     int m_version = 1;
+    QSet<QChar> m_completionTrigger{};
+    QSet<QChar> m_signatureHelpTrigger{};
+    QSet<QChar> m_onTypeFormattingTrigger{};
 
     // semantic enum
     enum {
@@ -252,6 +257,8 @@ public:
     void textReplace(const QString &text);
 
     void textReplaceAll(const QString &text);
+
+    void textReplace(const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     void indicatorInsert(int type, int lineFrom, int indexFrom, int lineTo, int indexTo, int time = -1);
 
