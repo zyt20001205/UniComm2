@@ -14,65 +14,60 @@ NuspellModule::NuspellModule(QWidget *parent)
     nuspell::append_default_dir_paths(dirs);
     const auto dictPath = nuspell::search_dirs_for_one_dict(dirs, "en_US");
     m_dict.load_aff_dic(dictPath);
-
-    // try {
-    //     const QString testWord = "speling";          // 故意写错
-    //     auto sugs = std::vector<std::string>();
-    //     bool correct = m_dict.spell(testWord.toStdString());
-    //
-    //     qDebug() << "spelling of" << testWord << "->" << (correct ? "OK" : "MISS");
-    //
-    //     if (!correct) {
-    //         m_dict.suggest(testWord.toStdString(), sugs);
-    //         qDebug() << "suggestions:";
-    //         for (auto &s : sugs)
-    //             qDebug() << QString::fromStdString(s);
-    //     }
-    // } catch (const std::exception &e) {
-    //     qWarning() << "Nuspell test failed:" << e.what();
-    // }
 }
 
-void NuspellModule::spellCheckRequest(const QString &script) {
-    qDebug() << script;
-}
-
-void NuspellModule::spellCheckWordRequest(const QString &word) const {
-    // type check
-    int wordType = PLAIN;
-    QString wordPlain = word;
-    bool isCamel = false;
-    for (int i = 1; i < word.size(); ++i) {
-        if (word[i - 1].isLower() && word[i].isUpper()) {
-            isCamel = true;
-            break;
+void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &script) {
+    QVariantList suggestions{};
+    int currentLine = 0;
+    // 1: separate script to lines
+    const QStringList lines = script.split("\r\n");
+    for (const QString &line: lines) {
+        // qDebug() << line;
+        // 2: separate words to check spelling
+        int currentIndex = 0;
+        while (currentIndex < line.length()) {
+            QChar ch = line[currentIndex];
+            if (!ch.isLetter()) {
+                ++currentIndex;
+                continue;
+            }
+            int indexFrom = currentIndex;
+            ++currentIndex;
+            int indexTo = indexFrom;
+            while (currentIndex < line.length() && line[currentIndex].isLower()) {
+                indexTo = currentIndex;
+                ++currentIndex;
+            }
+            const QString word = line.mid(indexFrom, indexTo - indexFrom + 1);
+            const QVariantList suggestion = spellCheck(word);
+            if (!suggestion.isEmpty()) {
+                QVariantMap map = {};
+                map["line"] = currentLine;
+                map["indexFrom"] = indexFrom;
+                map["indexTo"] = indexTo + 1;
+                map["suggestion"] = suggestion;
+                suggestions.append(map);
+            }
+            // qDebug() << indexFrom << indexTo << line.mid(indexFrom, indexTo - indexFrom + 1);
         }
+        currentLine++;
     }
-    if (isCamel) {
-        wordType = word[0].isUpper() ? UPPERCAMEL : LOWERCAMEL;
-        wordPlain = word.toLower();
-        return; // WIP
-    }
-
-    const QStringList suggestions = spellCheck(word);
-    if (!suggestions.isEmpty()) {
-        qDebug() << suggestions;
-    }
+    emit responseSpellCheck(scriptUrl, suggestions);
 }
 
 // NuspellModule private
-QStringList NuspellModule::spellCheck(const QString &word) const {
+QVariantList NuspellModule::spellCheck(const QString &word) const {
     if (word.isEmpty()) return {};
     // send to nuspell
-    QStringList suggestions{};
+    QVariantList suggestionList{};
     if (!m_dict.spell(word.toStdString())) {
         std::vector<std::string> sugs;
         m_dict.suggest(word.toStdString(), sugs);
         const int count = qMin(sugs.size(), static_cast<size_t>(5));
         for (int i = 0; i < count; ++i) {
             const QString suggestion = QString::fromStdString(sugs[i]);
-            suggestions.append(suggestion);
+            suggestionList.append(suggestion);
         }
     }
-    return suggestions;
+    return suggestionList;
 }

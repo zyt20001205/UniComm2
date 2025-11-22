@@ -58,6 +58,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
     m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorTypoStyle"].toInt()), INDICATOR_TYPO);
+    m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorTypoColor"].toString()), INDICATOR_TYPO);
+    m_scriptEditor->setIndicatorDrawUnder(true, INDICATOR_TYPO);
     // indicator highlight
     m_scriptEditor->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
     m_scriptEditor->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
@@ -434,6 +437,18 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     }
 }
 
+void ScriptPage::spellCheckResponse(const QVariantList &suggestions) {
+    m_scriptEditor->indicatorRemove(INDICATOR_TYPO);
+    for (const auto &value: suggestions) {
+        auto suggestion = value.toMap();
+        const int lineFrom = suggestion["line"].toInt();
+        const int lineTo = suggestion["line"].toInt();
+        const int indexFrom = suggestion["indexFrom"].toInt();
+        const int indexTo = suggestion["indexTo"].toInt();
+        m_scriptEditor->indicatorInsert(INDICATOR_TYPO, lineFrom, indexFrom, lineTo, indexTo);
+    }
+}
+
 void ScriptPage::textReplace(QString &text, const QString &kind) {
     if (kind == "Function") {
         text += "()";
@@ -771,7 +786,7 @@ void ScriptPage::signatureHelpRequest() {
 
 void ScriptPage::spellCheckRequest() {
     // spell check request to script module
-    emit requestSpellCheck(m_scriptEditor->text());
+    emit requestSpellCheck(m_scriptUrl, m_scriptEditor->text());
 }
 
 void ScriptPage::typeDefinitionRequest() {

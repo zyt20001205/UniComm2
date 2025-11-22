@@ -41,6 +41,8 @@ public:
 
     void semanticTokensResponse(const QJsonArray &data) const;
 
+    void spellCheckResponse(const QVariantList &suggestions);
+
     void textReplace(QString &text, const QString &kind);
 
     ScriptEditor *m_scriptEditor{};
@@ -89,7 +91,7 @@ signals:
 
     void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
 
-    void requestSpellCheck(const QString &script);
+    void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
 
     void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
     

@@ -12,20 +12,15 @@ public:
 
     ~NuspellModule() override = default;
 
-    void spellCheckRequest(const QString &script);
+    void spellCheckRequest(const QUrl &scriptUrl, const QString &script);
 
-    void spellCheckWordRequest(const QString &word) const;
+signals:
+    void responseSpellCheck(const QUrl &scriptUrl, const QVariantList &suggestions);
 
 private:
-    QStringList spellCheck(const QString &word) const;
+    QVariantList spellCheck(const QString &word) const;
 
     nuspell::Dictionary m_dict{};
-
-    enum {
-        PLAIN,
-        UPPERCAMEL,
-        LOWERCAMEL
-    };
 };
 
 #endif //UNICOMM_NUSPELLMODULE_H

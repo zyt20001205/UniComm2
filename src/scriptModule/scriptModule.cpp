@@ -478,17 +478,17 @@ void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) 
 void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, const int character) {
     // implementation request to lua language server
     const QJsonObject implementationParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "position", QJsonObject{
-                    {"line", line},
-                    {"character", character}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
     };
     emit requestJson("textDocument/implementation", implementationParams);
 }
@@ -624,23 +624,26 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
-void ScriptModule::spellCheckResponse() {
+void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &suggestions) {
+    if (m_scriptPageHash.contains(scriptUrl)) {
+        m_scriptPageHash[scriptUrl]->spellCheckResponse(suggestions);
+    }
 }
 
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {
     // type definition request to lua language server
     const QJsonObject typeDefinitionParams{
-            {
-                "textDocument", QJsonObject{
-                    {"uri", scriptUrl.toString()}
-                }
-            },
-            {
-                "position", QJsonObject{
-                    {"line", line},
-                    {"character", character}
-                }
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
             }
+        },
+        {
+            "position", QJsonObject{
+                {"line", line},
+                {"character", character}
+            }
+        }
     };
     emit requestJson("textDocument/typeDefinition", typeDefinitionParams);
 }

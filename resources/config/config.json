@@ -37,6 +37,8 @@
     "indicatorSearchStyle": 8,
     "indicatorSelectionColor": "#c47233",
     "indicatorSelectionStyle": 8,
+    "indicatorTypoColor": "#80d1ab",
+    "indicatorTypoStyle": 14,
     "indicatorWarningColor": "#fff5e6",
     "indicatorWarningStyle": 8,
     "indicatorWriteColor": "#c62828",
