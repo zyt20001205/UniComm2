@@ -15,12 +15,12 @@ HoverTooltip::HoverTooltip(QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(m_diagnosticTextBrowser);
-    m_diagnosticTextBrowser->setFixedWidth(600);
+    m_diagnosticTextBrowser->setFixedWidth(800);
     m_diagnosticTextBrowser->setFont(QFont("Consolas", 10));
     m_diagnosticTextBrowser->setOpenExternalLinks(true);
     m_diagnosticTextBrowser->hide();
     layout->addWidget(m_hoverTextBrowser);
-    m_hoverTextBrowser->setFixedWidth(600);
+    m_hoverTextBrowser->setFixedWidth(800);
     m_hoverTextBrowser->setFont(QFont("Consolas", 10));
     m_hoverTextBrowser->setOpenExternalLinks(true);
     m_hoverTextBrowser->hide();

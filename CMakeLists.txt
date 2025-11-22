@@ -45,13 +45,13 @@ set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
 set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
 file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/libopencv_*.dll")
 
-#set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
-#set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
-#set(TESSERACT_DLL "${TESSERACT_DIR}/bin/libtesseract55.dll")
+set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
+set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
+set(TESSERACT_DLL "${TESSERACT_DIR}/bin/libtesseract-5.5.dll")
 
-#set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica-1.85.0")
-#set(LEPTONICA_INCLUDE_DIR "${LEPTONICA_DIR}/include")
-#set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica.dll")
+set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica-1.86.0")
+set(LEPTONICA_INCLUDE_DIR "${LEPTONICA_DIR}/include")
+set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica-6.dll")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
 
@@ -249,8 +249,8 @@ target_link_libraries(UniComm PRIVATE
         ${QCUSTOMPLOT_DLL}
         ${VISA_DLLS}
         ${OPENCV_DLLS}
-#        ${TESSERACT_DLL}
-#        ${LEPTONICA_DLL}
+        ${TESSERACT_DLL}
+        ${LEPTONICA_DLL}
 )
 
 target_include_directories(UniComm PRIVATE
@@ -263,8 +263,8 @@ target_include_directories(UniComm PRIVATE
         ${QCUSTOMPLOT_INCLUDE_DIR}
         ${VISA_INCLUDE_DIR}
         ${OPENCV_INCLUDE_DIR}
-#        ${TESSERACT_INCLUDE_DIR}
-#        ${LEPTONICA_INCLUDE_DIR}
+        ${TESSERACT_INCLUDE_DIR}
+        ${LEPTONICA_INCLUDE_DIR}
 )
 
 target_compile_definitions(UniComm PRIVATE
@@ -424,27 +424,27 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach ()
 
-#    file(GLOB TESSERACT_DLLS "${TESSERACT_DIR}/bin/*.dll")
-#    foreach (DLL ${TESSERACT_DLLS})
-#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#                "${DLL}"
-#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-#    endforeach ()
+    file(GLOB TESSERACT_DLLS "${TESSERACT_DIR}/bin/*.dll")
+    foreach (DLL ${TESSERACT_DLLS})
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach ()
 
-#    file(GLOB TESSDATA_FILES "${TESSERACT_DIR}/lang/*.traineddata")
-#    foreach (TESSDATA ${TESSDATA_FILES})
-#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#                "${TESSDATA}"
-#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-#    endforeach ()
+    file(GLOB TESSDATA_FILES "${TESSERACT_DIR}/lang/*.traineddata")
+    foreach (TESSDATA ${TESSDATA_FILES})
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${TESSDATA}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach ()
 
-#    if (EXISTS "${LEPTONICA_DLL}")
-#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#                "${LEPTONICA_DLL}"
-#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-#    endif ()
+    if (EXISTS "${LEPTONICA_DLL}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${LEPTONICA_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endif ()
 
 endif ()
