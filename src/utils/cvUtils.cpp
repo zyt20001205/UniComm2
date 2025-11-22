@@ -7,7 +7,8 @@
 
 QString ocr(const QPixmap &pixmap, const QString &charset) {
     QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888);
-    const char *tessCharset = charset.isEmpty() ? "eng" : charset.toUtf8().constData();
+    const QByteArray utf8 = charset.isEmpty() ? "eng" : charset.toUtf8();
+    const char *tessCharset = utf8.constData();
     auto *ocr = new tesseract::TessBaseAPI();
     ocr->Init(nullptr, tessCharset);
     ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
