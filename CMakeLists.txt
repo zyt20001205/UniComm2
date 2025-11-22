@@ -99,6 +99,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/hoverTooltip.h
         include/scriptModule/nuspellModule.h
         include/scriptModule/positionTooltip.h
+        include/scriptModule/scriptEditor.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
         include/scriptModule/signatureHelpTooltip.h
@@ -151,6 +152,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/hoverTooltip.cpp
         src/scriptModule/nuspellModule.cpp
         src/scriptModule/positionTooltip.cpp
+        src/scriptModule/scriptEditor.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
         src/scriptModule/signatureHelpTooltip.cpp

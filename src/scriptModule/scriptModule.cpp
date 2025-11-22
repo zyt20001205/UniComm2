@@ -13,6 +13,7 @@
 #include "scriptModule/gotoPopup.h"
 #include "scriptModule/hoverTooltip.h"
 #include "scriptModule/positionTooltip.h"
+#include "scriptModule/scriptEditor.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"

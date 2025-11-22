@@ -32,6 +32,7 @@
 #include "scriptModule/diagnosticsModule.h"
 #include "scriptModule/explorerModule.h"
 #include "scriptModule/nuspellModule.h"
+#include "scriptModule/scriptEditor.h"
 #include "scriptModule/scriptModule.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/structureModule.h"
