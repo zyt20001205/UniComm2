@@ -218,6 +218,8 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
+    connect(m_scriptModule, &ScriptModule::requestSpellCheckFile, m_nuspellModule, &NuspellModule::spellCheckFileRequest);
+    connect(m_scriptModule, &ScriptModule::requestSpellCheckWord, m_nuspellModule, &NuspellModule::spellCheckWordRequest);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {

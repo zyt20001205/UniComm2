@@ -1,23 +1,24 @@
 #include "utils/cvUtils.h"
 
 #include <QUrl>
-#include "baseapi.h"
+// #include "baseapi.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core/mat.hpp"
 
 QString ocr(const QPixmap &pixmap, const QString &charset) {
-    QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888);
-    const char *tessCharset = charset.isEmpty() ? "eng" : charset.toUtf8().constData();
-    auto *ocr = new tesseract::TessBaseAPI();
-    ocr->Init(nullptr, tessCharset);
-    ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
-    char *result = ocr->GetUTF8Text();
-    QString text = QString::fromUtf8(result);
-    delete result;
-    ocr->End();
-    delete ocr;
-    text = text.trimmed();
-    return text.isEmpty() ? "null" : text;
+    // QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888);
+    // const char *tessCharset = charset.isEmpty() ? "eng" : charset.toUtf8().constData();
+    // auto *ocr = new tesseract::TessBaseAPI();
+    // ocr->Init(nullptr, tessCharset);
+    // ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
+    // char *result = ocr->GetUTF8Text();
+    // QString text = QString::fromUtf8(result);
+    // delete result;
+    // ocr->End();
+    // delete ocr;
+    // text = text.trimmed();
+    // return text.isEmpty() ? "null" : text;
+    return {};
 }
 
 QPixmap processGaussianBlur(const QPixmap &pixmap, const int size) {

@@ -90,6 +90,10 @@ signals:
 
     void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
 
+    void requestSpellCheckFile(const QUrl &scriptUrl);
+
+    void requestSpellCheckWord(const QString &word);
+
     void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
     
     void notificationJson(const QString &method, const QJsonObject &params);
@@ -152,6 +156,10 @@ private:
     void semanticTokensRequest();
 
     void signatureHelpRequest();
+
+    void spellCheckFileRequest();
+
+    void spellCheckWordRequest();
 
     void typeDefinitionRequest();
 

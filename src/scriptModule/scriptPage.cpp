@@ -187,6 +187,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         documentSymbolRequest();
         foldingRangeRequest();
         semanticTokensRequest();
+        // nuspell
+        spellCheckFileRequest();
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -576,6 +578,8 @@ void ScriptPage::idleRequest() {
     documentSymbolRequest();
     foldingRangeRequest();
     semanticTokensRequest();
+    // nuspell request
+    spellCheckWordRequest();
     // modification check
     bool modified{};
     if (const QString script = m_scriptEditor->text(); stringHashCalc(script) != m_scriptHash) {
@@ -764,6 +768,24 @@ void ScriptPage::signatureHelpRequest() {
     m_scriptEditor->getCursorPosition(&line, &character);
     // signature help request to script module
     emit requestSignatureHelp(m_scriptUrl, line, character);
+}
+
+void ScriptPage::spellCheckFileRequest() {
+    // spell check file request to script module
+    emit requestSpellCheckFile(m_scriptUrl);
+}
+
+void ScriptPage::spellCheckWordRequest() {
+    // get cursor position
+    int line, character;
+    m_scriptEditor->getCursorPosition(&line, &character);
+    // get word
+    const QString word = m_scriptEditor->wordAtLineIndex(line, character ? character - 1 : 0);
+
+    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // spell check word request to script module
+    emit requestSpellCheckWord(word);
 }
 
 void ScriptPage::typeDefinitionRequest() {
