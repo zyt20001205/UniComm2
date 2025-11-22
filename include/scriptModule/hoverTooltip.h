@@ -16,17 +16,22 @@ public:
 
     void tooltipLeave();
 
-    void tooltipShow(const QString &message);
+    void tooltipShowDiagnostic(const QString &message);
+
+    void tooltipShowHover(const QString &message);
 
     void tooltipHide();
 
 protected:
     void enterEvent(QEnterEvent *event) override;
 
+    void hideEvent(QHideEvent *event) override;
+
     void leaveEvent(QEvent *event) override;
 
 private:
-    QTextBrowser *m_textBrowser{};
+    QTextBrowser *m_diagnosticTextBrowser{};
+    QTextBrowser *m_hoverTextBrowser{};
 };
 
 #endif //UNICOMM_HOVERTOOLTIP_H

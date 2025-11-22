@@ -223,7 +223,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
-        connect(scriptPage, &ScriptPage::showHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipShow);
+        connect(scriptPage, &ScriptPage::showDiagnosticTooltip, m_hoverTooltip, &HoverTooltip::tooltipShowDiagnostic);
         connect(scriptPage, &ScriptPage::hideHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipHide);
         connect(scriptPage, &ScriptPage::leaveHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipLeave);
         connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::tooltipShow);
@@ -453,7 +453,6 @@ void ScriptModule::formattingResponse(const QUrl &scriptUrl, const QString &newT
 }
 
 void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) {
-    if (m_hoverTooltip->isVisible()) return;
     // hover request to lua language server
     const QJsonObject hoverParams{
         {
@@ -472,7 +471,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 }
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
-    m_hoverTooltip->tooltipShow(message);
+    m_hoverTooltip->tooltipShowHover(message);
     m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
 }
 

@@ -726,8 +726,7 @@ void ScriptPage::hoverRequest() {
     }
     if (markdown != "```lua\n") {
         markdown += "\n```";
-        emit showHoverTooltip(markdown);
-        return;
+        emit showDiagnosticTooltip(markdown);
     }
     // hover request to script module
     emit requestHover(m_scriptUrl, line, character);
@@ -1280,6 +1279,7 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
         m_currentWord.wordStart = wordStart;
         m_currentWord.wordEnd = wordEnd;
         emit leaveHoverTooltip();
+        m_dwellTimer->start();
     }
     if (event->modifiers() == Qt::ControlModifier) {
         m_dwellTimer->stop();
@@ -1298,7 +1298,6 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
         event->accept();
         return;
     }
-    m_dwellTimer->start();
     QsciScintilla::mouseMoveEvent(event);
 }
 
