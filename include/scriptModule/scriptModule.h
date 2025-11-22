@@ -111,7 +111,7 @@ public:
 
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
-    void spellCheckFileResponse();
+    void spellCheckResponse();
 
     void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 
@@ -144,9 +144,7 @@ signals:
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
-    void requestSpellCheckFile(const QUrl &scriptUrl);
-
-    void requestSpellCheckWord(const QString &word);
+    void requestSpellCheck(const QString &script);
 
 private:
     void scriptFocus(ScriptPage *scriptPage, bool status);

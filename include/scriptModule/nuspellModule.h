@@ -12,7 +12,7 @@ public:
 
     ~NuspellModule() override = default;
 
-    void spellCheckFileRequest(const QUrl &scriptUrl);
+    void spellCheckRequest(const QString &script);
 
     void spellCheckWordRequest(const QString &word) const;
 

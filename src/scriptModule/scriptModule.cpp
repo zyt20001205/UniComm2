@@ -219,8 +219,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestReferences, this, &ScriptModule::referencesRequest);
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
-        connect(scriptPage, &ScriptPage::requestSpellCheckFile, this, &ScriptModule::requestSpellCheckFile);
-        connect(scriptPage, &ScriptPage::requestSpellCheckWord, this, &ScriptModule::requestSpellCheckWord);
+        connect(scriptPage, &ScriptPage::requestSpellCheck, this, &ScriptModule::requestSpellCheck);
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
@@ -625,7 +624,7 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
-void ScriptModule::spellCheckFileResponse() {
+void ScriptModule::spellCheckResponse() {
 }
 
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {

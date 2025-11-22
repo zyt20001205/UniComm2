@@ -33,8 +33,8 @@ NuspellModule::NuspellModule(QWidget *parent)
     // }
 }
 
-void NuspellModule::spellCheckFileRequest(const QUrl &scriptUrl) {
-    qDebug() << scriptUrl.toString();
+void NuspellModule::spellCheckRequest(const QString &script) {
+    qDebug() << script;
 }
 
 void NuspellModule::spellCheckWordRequest(const QString &word) const {
