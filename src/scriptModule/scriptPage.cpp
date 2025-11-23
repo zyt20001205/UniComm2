@@ -735,7 +735,7 @@ void ScriptPage::hoverRequest() {
         }
     }
     if (markdown != "```lua\n") {
-        markdown += "\n```";
+        markdown += "```";
         emit showDiagnosticTooltip(markdown);
     }
     // hover request to script module

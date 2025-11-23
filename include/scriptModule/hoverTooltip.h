@@ -22,6 +22,8 @@ public:
 
     void tooltipHide();
 
+    void tooltipResize();
+
 protected:
     void enterEvent(QEnterEvent *event) override;
 
