@@ -22,7 +22,6 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
     // 1: separate script to lines
     const QStringList lines = script.split("\r\n");
     for (const QString &line: lines) {
-        // qDebug() << line;
         // 2: separate words to check spelling
         int currentIndex = 0;
         while (currentIndex < line.length()) {
@@ -48,7 +47,6 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
                 map["suggestion"] = suggestion;
                 suggestions.append(map);
             }
-            // qDebug() << indexFrom << indexTo << line.mid(indexFrom, indexTo - indexFrom + 1);
         }
         currentLine++;
     }

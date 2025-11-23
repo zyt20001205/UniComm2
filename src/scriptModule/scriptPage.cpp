@@ -437,7 +437,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     }
 }
 
-void ScriptPage::spellCheckResponse(const QVariantList &suggestions) {
+void ScriptPage::spellCheckResponse(const QVariantList &suggestions) const {
     m_scriptEditor->indicatorRemove(INDICATOR_TYPO);
     for (const auto &value: suggestions) {
         auto suggestion = value.toMap();

@@ -1,11 +1,14 @@
 #include "mainWindow.h"
 
+#include <crashHandler.h>
 #include <QStyleFactory>
 #include <kddockwidgets/Config.h>
 
 #include "configModule.h"
 
 int main(int argc, char *argv[]) {
+    CrashHandler::init();
+
     QApplication app(argc, argv);
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 

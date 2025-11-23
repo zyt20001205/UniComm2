@@ -6,10 +6,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(UNICOMM_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+
 set(STD_DIR "${CMAKE_SOURCE_DIR}/3rd/std")
 file(GLOB STD_DLLS "${STD_DIR}/bin/*.dll")
 
-set(UNICOMM_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(DRMINGW_DIR "${CMAKE_SOURCE_DIR}/3rd/drmingw-0.9.11")
+set(DRMINGW_INCLUDE_DIR "${DRMINGW_DIR}/include")
+file(GLOB DRMINGW_DLLS "${DRMINGW_DIR}/bin/*.dll")
 
 set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
 set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
@@ -65,6 +69,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/main.cpp
         include/mainWindow.h
         include/configModule.h
+        include/crashHandler.h
         include/dataModule/databaseModule.h
         include/dataModule/dataplotModule.h
         include/dataModule/datatableModule.h
@@ -118,6 +123,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/utils/qtUtils.h
         src/mainWindow.cpp
         src/configModule.cpp
+        src/crashHandler.cpp
         src/dataModule/databaseModule.cpp
         src/dataModule/dataplotModule.cpp
         src/dataModule/datatableModule.cpp
@@ -243,6 +249,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::Network
         Qt::Multimedia
         Qt::TextToSpeech
+        ${DRMINGW_DLLS}
         ${LUA_DLL}
         ${ICU4C_DLLS}
         ${NUSPELL_DLL}
@@ -257,6 +264,7 @@ target_link_libraries(UniComm PRIVATE
 
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE_DIR}
+        ${DRMINGW_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
         ${ICU4C_INCLUDE_DIR}
         ${NUSPELL_INCLUDE_DIR}
@@ -272,6 +280,10 @@ target_include_directories(UniComm PRIVATE
 target_compile_definitions(UniComm PRIVATE
         KDDW_FRONTEND_QT
         KDDW_FRONTEND_QTWIDGETS
+)
+
+target_compile_options(UniComm PRIVATE
+        -g
 )
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -356,6 +368,14 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach ()
 
+    file(GLOB DRMINGW_DLLS "${DRMINGW_DIR}/bin/*.dll")
+    foreach (DLL ${DRMINGW_DLLS})
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach ()
+    
     if (EXISTS "${LUA_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -377,7 +397,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${DLL}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach ()
-    
+
     if (EXISTS "${NUSPELL_DLL}")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
