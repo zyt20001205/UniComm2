@@ -18,6 +18,8 @@ public:
 
     void tooltipShowDiagnostic(const QString &message);
 
+    void tooltipShowTypo(const QString &word, const QStringList &suggestions);
+
     void tooltipShowHover(const QString &message);
 
     void tooltipHide();

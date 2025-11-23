@@ -33,10 +33,14 @@ void HoverTooltip::tooltipLeave() {
 }
 
 void HoverTooltip::tooltipShowDiagnostic(const QString &message) {
-    m_diagnosticTextBrowser->setMarkdown(message);
+    m_diagnosticTextBrowser->setText(message);
     m_diagnosticTextBrowser->show();
     tooltipResize();
     show();
+}
+
+void HoverTooltip::tooltipShowTypo(const QString &word, const QStringList &suggestions) {
+    qDebug() << suggestions;
 }
 
 void HoverTooltip::tooltipShowHover(const QString &message) {

@@ -14,14 +14,14 @@ public:
 
     void spellCheckRequest(const QUrl &scriptUrl, const QString &script);
 
+    void spellSuggestRequest(const QUrl &scriptUrl, const QString &word);
+
 signals:
-    void responseSpellCheck(const QUrl &scriptUrl, const QVariantList &misspellings);
+    void responseSpellCheck(const QUrl &scriptUrl, const QVariantList &typos);
+
+    void responseSpellSuggest(const QUrl &scriptUrl, const QString &word, const QStringList &suggestions);
 
 private:
-    bool spellCheck(const QString &word) const;
-
-    QVariantList spellSuggest(const QString &word) const;
-
     nuspell::Dictionary m_dict{};
 };
 

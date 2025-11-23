@@ -63,7 +63,7 @@ public:
 
     void annotationRemove(const QUrl &scriptUrl, int line = -1);
 
-    void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
+    void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
     void completionRequest(const QUrl &scriptUrl, int line, int character);
 
@@ -111,7 +111,9 @@ public:
 
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
-    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &misspellings);
+    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
+
+    void spellSuggestResponse(const QUrl &scriptUrl, const QString &word, const QStringList &suggestions);
 
     void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 
@@ -145,6 +147,8 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
+
+    void requestSpellSuggest(const QUrl &scriptUrl, const QString &word);
 
 private:
     void scriptFocus(ScriptPage *scriptPage, bool status);

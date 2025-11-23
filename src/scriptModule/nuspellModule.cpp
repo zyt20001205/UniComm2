@@ -17,7 +17,7 @@ NuspellModule::NuspellModule(QWidget *parent)
 }
 
 void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &script) {
-    QVariantList misspellings{};
+    QVariantList typos{};
     int currentLine = 0;
     // 1: separate script to lines
     const QStringList lines = script.split("\r\n");
@@ -38,34 +38,29 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
                 ++currentIndex;
             }
             const QString word = line.mid(indexFrom, indexTo - indexFrom + 1);
-            if (!spellCheck(word)) {
+            if (!m_dict.spell(word.toStdString())) {
                 QVariantMap map = {};
                 map["line"] = currentLine;
                 map["indexFrom"] = indexFrom;
                 map["indexTo"] = indexTo + 1;
-                misspellings.append(map);
+                typos.append(map);
             }
         }
         currentLine++;
     }
-    emit responseSpellCheck(scriptUrl, misspellings);
+    emit responseSpellCheck(scriptUrl, typos);
 }
 
-// NuspellModule private
-bool NuspellModule::spellCheck(const QString &word) const {
-    return m_dict.spell(word.toStdString());
-}
-
-QVariantList NuspellModule::spellSuggest(const QString &word) const {
-    if (word.isEmpty()) return {};
+void NuspellModule::spellSuggestRequest(const QUrl &scriptUrl, const QString &word) {
+    if (word.isEmpty()) return;
     // send to nuspell
-    QVariantList suggestionList{};
+    QStringList suggestions{};
     std::vector<std::string> sugs;
     m_dict.suggest(word.toStdString(), sugs);
     const int count = qMin(sugs.size(), static_cast<size_t>(5));
     for (int i = 0; i < count; ++i) {
         const QString suggestion = QString::fromStdString(sugs[i]);
-        suggestionList.append(suggestion);
+        suggestions.append(suggestion);
     }
-    return suggestionList;
+    emit responseSpellSuggest(scriptUrl, word, suggestions);
 }

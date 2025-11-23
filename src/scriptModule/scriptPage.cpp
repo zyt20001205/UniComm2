@@ -272,24 +272,24 @@ void ScriptPage::scriptClose() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
 }
 
-void ScriptPage::diagnosticsResponse(const QJsonArray &diagnosticsArray) {
-    m_scriptDiagnostic = diagnosticsArray;
+void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
+    m_scriptDiagnostic = diagnostics;
     // clear previous diagnostics
     m_scriptEditor->indicatorRemove(INDICATOR_ERROR);
     m_scriptEditor->indicatorRemove(INDICATOR_WARNING);
     m_scriptEditor->indicatorRemove(INDICATOR_INFO);
     m_scriptEditor->indicatorRemove(INDICATOR_HINT);
     // publish diagnostics
-    for (const auto &diagnostic: diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const int severity = diagnosticObject["severity"].toInt();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        const int startLine = diagnosticStartPos["line"].toInt();
-        const int startCharacter = diagnosticStartPos["character"].toInt();
-        const int endLine = diagnosticEndPos["line"].toInt();
-        const int endCharacter = diagnosticEndPos["character"].toInt();
+    for (const auto &value: diagnostics) {
+        const QJsonObject diagnostic = value.toObject();
+        const int severity = diagnostic["severity"].toInt();
+        const QJsonObject range = diagnostic["range"].toObject();
+        const QJsonObject startPos = range["start"].toObject();
+        const QJsonObject endPos = range["end"].toObject();
+        const int startLine = startPos["line"].toInt();
+        const int startCharacter = startPos["character"].toInt();
+        const int endLine = endPos["line"].toInt();
+        const int endCharacter = endPos["character"].toInt();
         m_scriptEditor->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
     }
 }
@@ -432,14 +432,17 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     }
 }
 
-void ScriptPage::spellCheckResponse(const QVariantList &misspellings) const {
+void ScriptPage::spellCheckResponse(const QVariantList &typos) {
+    m_scriptTypo = typos;
+    // clear previous typo
     m_scriptEditor->indicatorRemove(INDICATOR_TYPO);
-    for (const auto &value: misspellings) {
-        auto suggestion = value.toMap();
-        const int lineFrom = suggestion["line"].toInt();
-        const int lineTo = suggestion["line"].toInt();
-        const int indexFrom = suggestion["indexFrom"].toInt();
-        const int indexTo = suggestion["indexTo"].toInt();
+    // publish typo
+    for (const auto &value: typos) {
+        auto typo = value.toMap();
+        const int lineFrom = typo["line"].toInt();
+        const int lineTo = typo["line"].toInt();
+        const int indexFrom = typo["indexFrom"].toInt();
+        const int indexTo = typo["indexTo"].toInt();
         m_scriptEditor->indicatorInsert(INDICATOR_TYPO, lineFrom, indexFrom, lineTo, indexTo);
     }
 }
@@ -713,30 +716,43 @@ void ScriptPage::hoverRequest() {
     m_scriptEditor->lineIndexFromPosition(charPos, &line, &character);
     if (line == 0 && character == 0) return;
     // show diagnostic if exists
-    QString markdown = "```lua\n";
-    for (const auto &diagnostic: m_scriptDiagnostic) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        const int startLine = diagnosticStartPos["line"].toInt();
-        const int startCharacter = diagnosticStartPos["character"].toInt();
-        const int endLine = diagnosticEndPos["line"].toInt();
-        const int endCharacter = diagnosticEndPos["character"].toInt();
+    QString diagnosticText{};
+    for (const auto &value: m_scriptDiagnostic) {
+        const QJsonObject diagnostic = value.toObject();
+        const QJsonObject range = diagnostic["range"].toObject();
+        const QJsonObject startPos = range["start"].toObject();
+        const QJsonObject endPos = range["end"].toObject();
+        const int startLine = startPos["line"].toInt();
+        const int startCharacter = startPos["character"].toInt();
+        const int endLine = endPos["line"].toInt();
+        const int endCharacter = endPos["character"].toInt();
         if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
-            const QString source = diagnosticObject["source"].toString();
-            const QString code = diagnosticObject["code"].toString();
-            const QString message = diagnosticObject["message"].toString();
-            markdown += source;
-            markdown += code;
-            markdown += ": ";
-            markdown += message;
-            markdown += "\n";
+            const QString source = diagnostic["source"].toString();
+            const QString code = diagnostic["code"].toString();
+            const QString message = diagnostic["message"].toString();
+            diagnosticText += source;
+            diagnosticText += code;
+            diagnosticText += ": ";
+            diagnosticText += message;
+            diagnosticText += "\n";
         }
     }
-    if (markdown != "```lua\n") {
-        markdown += "```";
-        emit showDiagnosticTooltip(markdown);
+    if (!diagnosticText.isEmpty()) {
+        emit showDiagnosticTooltip(diagnosticText);
+    }
+    // show typo if exists
+    for (const auto &value: m_scriptTypo) {
+        auto typo = value.toMap();
+        const int lineFrom = typo["line"].toInt();
+        const int lineTo = typo["line"].toInt();
+        const int indexFrom = typo["indexFrom"].toInt();
+        const int indexTo = typo["indexTo"].toInt();
+        if (line >= lineFrom && line <= lineTo && character >= indexFrom && character <= indexTo) {
+            const int startPos = m_scriptEditor->positionFromLineIndex(lineFrom, indexFrom);
+            const int endPos   = m_scriptEditor->positionFromLineIndex(lineTo  , indexTo);
+            const QString word = m_scriptEditor->text(startPos, endPos);
+            emit requestSpellSuggest(m_scriptUrl, word);
+        }
     }
     // hover request to script module
     emit requestHover(m_scriptUrl, line, character);

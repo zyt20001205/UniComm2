@@ -29,7 +29,7 @@ public:
 
     void scriptClose();
 
-    void diagnosticsResponse(const QJsonArray &diagnosticsArray);
+    void diagnosticsResponse(const QJsonArray &diagnostics);
 
     void documentHighlightResponse(const QJsonArray &result) const;
 
@@ -41,7 +41,7 @@ public:
 
     void semanticTokensResponse(const QJsonArray &data) const;
 
-    void spellCheckResponse(const QVariantList &misspellings) const;
+    void spellCheckResponse(const QVariantList &typos);
 
     void textReplace(QString &text, const QString &kind);
 
@@ -92,6 +92,8 @@ signals:
     void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
 
     void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
+
+    void requestSpellSuggest(const QUrl &scriptUrl, const QString &word);
 
     void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
     
@@ -168,6 +170,7 @@ private:
     bool m_modified = false;
     QByteArray m_scriptHash{};
     QJsonArray m_scriptDiagnostic{};
+    QVariantList m_scriptTypo{};
     int m_version = 1;
     QSet<QChar> m_completionTrigger{};
     QSet<QChar> m_signatureHelpTrigger{};

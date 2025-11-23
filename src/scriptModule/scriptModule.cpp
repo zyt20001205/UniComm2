@@ -220,6 +220,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::requestSpellCheck, this, &ScriptModule::requestSpellCheck);
+        connect(scriptPage, &ScriptPage::requestSpellSuggest, this, &ScriptModule::requestSpellSuggest);
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
@@ -307,10 +308,10 @@ void ScriptModule::annotationRemove(const QUrl &scriptUrl, const int line) {
     }
 }
 
-void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
-    m_diagnosticsHash.insert(scriptUrl, diagnosticsArray);
+void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
+    m_diagnosticsHash.insert(scriptUrl, diagnostics);
     if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->diagnosticsResponse(diagnosticsArray);
+        m_scriptPageHash[scriptUrl]->diagnosticsResponse(diagnostics);
     }
 }
 
@@ -624,10 +625,15 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
-void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &misspellings) {
+void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos) {
     if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->spellCheckResponse(misspellings);
+        m_scriptPageHash[scriptUrl]->spellCheckResponse(typos);
     }
+}
+
+void ScriptModule::spellSuggestResponse(const QUrl &scriptUrl, const QString &word, const QStringList &suggestions) {
+    m_hoverTooltip->tooltipShowTypo(word, suggestions);
+    m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
 }
 
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {

@@ -22,7 +22,7 @@ public:
 signals:
     void initialized();
 
-    void notificationPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray);
+    void notificationPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
     void responseCompletion(const QUrl &scriptUrl, const QJsonArray &items);
 

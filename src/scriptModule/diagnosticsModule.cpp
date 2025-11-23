@@ -23,11 +23,11 @@ DiagnosticsModule::DiagnosticsModule()
     connect(m_diagnosticsTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) { diagnosticsClose(index); });
 }
 
-void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
-    if (diagnosticsArray.isEmpty()) {
+void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
+    if (diagnostics.isEmpty()) {
         diagnosticsRemove(scriptUrl);
     } else {
-        diagnosticsPublish(scriptUrl, diagnosticsArray);
+        diagnosticsPublish(scriptUrl, diagnostics);
     }
 }
 
@@ -46,8 +46,8 @@ void DiagnosticsModule::diagnosticsClose(const int index) {
     diagnosticsRemove(scriptUrl);
 }
 
-void DiagnosticsModule::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &diagnosticsArray) {
-    // qDebug() << diagnosticsArray;
+void DiagnosticsModule::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
+    // qDebug() << diagnostics;
     QTableWidget *diagnosticsTable = m_diagnosticsTableHash[scriptUrl];
     // check if tab exists
     if (diagnosticsTable == nullptr) {
@@ -82,22 +82,22 @@ void DiagnosticsModule::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArr
     m_diagnosticsTabWidget->setCurrentWidget(diagnosticsTable);
     diagnosticsTable->setRowCount(0);
     int row = 0;
-    for (const auto &diagnostic: diagnosticsArray) {
-        const QJsonObject diagnosticObject = diagnostic.toObject();
+    for (const auto &value: diagnostics) {
+        const QJsonObject diagnostic = value.toObject();
         // range
-        const QJsonObject diagnosticRange = diagnosticObject["range"].toObject();
-        const QJsonObject diagnosticStartPos = diagnosticRange["start"].toObject();
-        const QJsonObject diagnosticEndPos = diagnosticRange["end"].toObject();
-        const int startLine = diagnosticStartPos["line"].toInt();
-        const int startCharacter = diagnosticStartPos["character"].toInt();
-        const int endLine = diagnosticEndPos["line"].toInt();
-        const int endCharacter = diagnosticEndPos["character"].toInt();
+        const QJsonObject range = diagnostic["range"].toObject();
+        const QJsonObject startPos = range["start"].toObject();
+        const QJsonObject endPos = range["end"].toObject();
+        const int startLine = startPos["line"].toInt();
+        const int startCharacter = startPos["character"].toInt();
+        const int endLine = endPos["line"].toInt();
+        const int endCharacter = endPos["character"].toInt();
         // information
-        const int severity = diagnosticObject["severity"].toInt();
-        const QString source = diagnosticObject["source"].toString();
-        const QString code = diagnosticObject["code"].toString();
-        const QString data = diagnosticObject["data"].toString();
-        const QString message = diagnosticObject["message"].toString();
+        const int severity = diagnostic["severity"].toInt();
+        const QString source = diagnostic["source"].toString();
+        const QString code = diagnostic["code"].toString();
+        const QString data = diagnostic["data"].toString();
+        const QString message = diagnostic["message"].toString();
         diagnosticsTable->insertRow(row);
         auto *sourceItem = new QTableWidgetItem(source); // NOLINT
         auto *codeItem = new QTableWidgetItem(code); // NOLINT

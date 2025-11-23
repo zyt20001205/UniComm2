@@ -178,14 +178,14 @@ void LuaLanguageServer::jsonResponse() {
         } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
             // publish diagnostics notification
             const QJsonObject params = json["params"].toObject();
-            const QJsonArray diagnosticsArray = params["diagnostics"].toArray();
+            const QJsonArray diagnostics = params["diagnostics"].toArray();
             QString uri = params["uri"].toString();
             uri = QUrl::fromPercentEncoding(uri.toUtf8());
             if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
                 drive = drive.toUpper();
             }
             const QUrl scriptUrl(uri);
-            emit notificationPublishDiagnostics(scriptUrl, diagnosticsArray);
+            emit notificationPublishDiagnostics(scriptUrl, diagnostics);
         } else {
             qDebug() << "unknown lsp pack";
             qDebug() << json;
