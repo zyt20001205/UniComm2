@@ -111,7 +111,7 @@ public:
 
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
-    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &suggestions);
+    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &misspellings);
 
     void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 

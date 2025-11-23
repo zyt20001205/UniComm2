@@ -15,10 +15,12 @@ public:
     void spellCheckRequest(const QUrl &scriptUrl, const QString &script);
 
 signals:
-    void responseSpellCheck(const QUrl &scriptUrl, const QVariantList &suggestions);
+    void responseSpellCheck(const QUrl &scriptUrl, const QVariantList &misspellings);
 
 private:
-    QVariantList spellCheck(const QString &word) const;
+    bool spellCheck(const QString &word) const;
+
+    QVariantList spellSuggest(const QString &word) const;
 
     nuspell::Dictionary m_dict{};
 };

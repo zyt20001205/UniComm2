@@ -432,9 +432,9 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     }
 }
 
-void ScriptPage::spellCheckResponse(const QVariantList &suggestions) const {
+void ScriptPage::spellCheckResponse(const QVariantList &misspellings) const {
     m_scriptEditor->indicatorRemove(INDICATOR_TYPO);
-    for (const auto &value: suggestions) {
+    for (const auto &value: misspellings) {
         auto suggestion = value.toMap();
         const int lineFrom = suggestion["line"].toInt();
         const int lineTo = suggestion["line"].toInt();

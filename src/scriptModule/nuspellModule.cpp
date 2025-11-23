@@ -17,8 +17,7 @@ NuspellModule::NuspellModule(QWidget *parent)
 }
 
 void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &script) {
-    int test = 0;
-    QVariantList suggestions{};
+    QVariantList misspellings{};
     int currentLine = 0;
     // 1: separate script to lines
     const QStringList lines = script.split("\r\n");
@@ -39,36 +38,34 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
                 ++currentIndex;
             }
             const QString word = line.mid(indexFrom, indexTo - indexFrom + 1);
-            const QVariantList suggestion = spellCheck(word);
-            test++;
-            if (!suggestion.isEmpty()) {
+            if (!spellCheck(word)) {
                 QVariantMap map = {};
                 map["line"] = currentLine;
                 map["indexFrom"] = indexFrom;
                 map["indexTo"] = indexTo + 1;
-                map["suggestion"] = suggestion;
-                suggestions.append(map);
+                misspellings.append(map);
             }
         }
         currentLine++;
     }
-    emit responseSpellCheck(scriptUrl, suggestions);
-    qDebug() << test;
+    emit responseSpellCheck(scriptUrl, misspellings);
 }
 
 // NuspellModule private
-QVariantList NuspellModule::spellCheck(const QString &word) const {
+bool NuspellModule::spellCheck(const QString &word) const {
+    return m_dict.spell(word.toStdString());
+}
+
+QVariantList NuspellModule::spellSuggest(const QString &word) const {
     if (word.isEmpty()) return {};
     // send to nuspell
     QVariantList suggestionList{};
-    if (!m_dict.spell(word.toStdString())) {
-        std::vector<std::string> sugs;
-        m_dict.suggest(word.toStdString(), sugs);
-        const int count = qMin(sugs.size(), static_cast<size_t>(5));
-        for (int i = 0; i < count; ++i) {
-            const QString suggestion = QString::fromStdString(sugs[i]);
-            suggestionList.append(suggestion);
-        }
+    std::vector<std::string> sugs;
+    m_dict.suggest(word.toStdString(), sugs);
+    const int count = qMin(sugs.size(), static_cast<size_t>(5));
+    for (int i = 0; i < count; ++i) {
+        const QString suggestion = QString::fromStdString(sugs[i]);
+        suggestionList.append(suggestion);
     }
     return suggestionList;
 }

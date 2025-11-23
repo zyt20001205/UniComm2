@@ -624,9 +624,9 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
 }
 
-void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &suggestions) {
+void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &misspellings) {
     if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->spellCheckResponse(suggestions);
+        m_scriptPageHash[scriptUrl]->spellCheckResponse(misspellings);
     }
 }
 

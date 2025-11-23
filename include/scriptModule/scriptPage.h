@@ -41,7 +41,7 @@ public:
 
     void semanticTokensResponse(const QJsonArray &data) const;
 
-    void spellCheckResponse(const QVariantList &suggestions) const;
+    void spellCheckResponse(const QVariantList &misspellings) const;
 
     void textReplace(QString &text, const QString &kind);
 
