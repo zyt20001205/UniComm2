@@ -6,6 +6,7 @@
 
 // CrashHandler public
 void CrashHandler::init() {
+    // SEH
     ExcHndlInit();
     // check if crash report dir exists
     const QString crashReportDirPath = QDir(QCoreApplication::applicationDirPath()).filePath("crashReport");
