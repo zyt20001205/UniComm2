@@ -17,6 +17,7 @@ NuspellModule::NuspellModule(QWidget *parent)
 }
 
 void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &script) {
+    int test = 0;
     QVariantList suggestions{};
     int currentLine = 0;
     // 1: separate script to lines
@@ -39,6 +40,7 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
             }
             const QString word = line.mid(indexFrom, indexTo - indexFrom + 1);
             const QVariantList suggestion = spellCheck(word);
+            test++;
             if (!suggestion.isEmpty()) {
                 QVariantMap map = {};
                 map["line"] = currentLine;
@@ -51,6 +53,7 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
         currentLine++;
     }
     emit responseSpellCheck(scriptUrl, suggestions);
+    qDebug() << test;
 }
 
 // NuspellModule private
