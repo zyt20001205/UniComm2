@@ -43,7 +43,7 @@ ScriptModule::ScriptModule()
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::replaceText, this, qOverload<QString &, const QString &>(&ScriptModule::textReplace));
-    connect(m_hoverTooltip, &HoverTooltip::replaceText, this, qOverload<const QString &, int, int, int, int>(&ScriptModule::textReplace));
+    connect(m_hoverTooltip, &HoverTooltip::replaceText, this, qOverload<const QUrl &, const QString &, int, int, int, int>(&ScriptModule::textReplace));
     connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
     connect(m_positionTooltip, &PositionTooltip::replaceText, this, qOverload<QString &, const QString &>(&ScriptModule::textReplace));
