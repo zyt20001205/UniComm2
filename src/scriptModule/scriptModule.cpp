@@ -689,6 +689,7 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
 
 void ScriptModule::textReplace(QString &text, const QString &kind) const {
     m_focusedPage->textReplace(text, kind);
+
 }
 
 void ScriptModule::textReplace(const QUrl &scriptUrl, const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
