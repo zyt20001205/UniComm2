@@ -8,8 +8,8 @@ set(CMAKE_AUTOUIC ON)
 
 set(UNICOMM_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
-set(STD_DIR "${CMAKE_SOURCE_DIR}/3rd/std")
-file(GLOB STD_DLLS "${STD_DIR}/bin/*.dll")
+set(MISC_DIR "${CMAKE_SOURCE_DIR}/3rd/misc")
+file(GLOB MISC_DLLS "${MISC_DIR}/bin/*.dll")
 
 set(DRMINGW_DIR "${CMAKE_SOURCE_DIR}/3rd/drmingw-0.9.11")
 set(DRMINGW_INCLUDE_DIR "${DRMINGW_DIR}/include")
@@ -360,8 +360,8 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         endforeach ()
     endif ()
 
-    file(GLOB STD_DLLS "${STD_DIR}/bin/*.dll")
-    foreach (DLL ${STD_DLLS})
+    file(GLOB MISC_DLLS "${MISC_DIR}/bin/*.dll")
+    foreach (DLL ${MISC_DLLS})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${DLL}"
