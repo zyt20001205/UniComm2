@@ -716,7 +716,7 @@ void ScriptPage::hoverRequest() {
     m_scriptEditor->lineIndexFromPosition(charPos, &line, &character);
     if (line == 0 && character == 0) return;
     // show diagnostic if exists
-    QString diagnosticText = "<table>";
+    QString diagnosticText = "<table width='100%'>";
     for (const auto &value: m_scriptDiagnostic) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
@@ -765,10 +765,10 @@ void ScriptPage::hoverRequest() {
             const QString word = m_scriptEditor->text(startPos, endPos);
             const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
                 word, QString::number(lineFrom), QString::number(indexFrom), QString::number(lineTo), QString::number(indexTo));
-            diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
+            diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
         }
     }
-    if (diagnosticText != "<table>") {
+    if (diagnosticText != "<table width='100%'>") {
         diagnosticText += "</table>";
         emit showDiagnosticTooltip(diagnosticText);
     }
