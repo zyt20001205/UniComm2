@@ -51,8 +51,8 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
     emit responseSpellCheck(scriptUrl, typos);
 }
 
-void NuspellModule::spellSuggestRequest(const QUrl &scriptUrl, const QString &word) {
-    if (word.isEmpty()) return;
+QStringList NuspellModule::spellSuggestRequest(const QString &word) const {
+    if (word.isEmpty()) return{};
     // send to nuspell
     QStringList suggestions{};
     std::vector<std::string> sugs;
@@ -62,5 +62,5 @@ void NuspellModule::spellSuggestRequest(const QUrl &scriptUrl, const QString &wo
         const QString suggestion = QString::fromStdString(sugs[i]);
         suggestions.append(suggestion);
     }
-    emit responseSpellSuggest(scriptUrl, word, suggestions);
+    return suggestions;
 }

@@ -6,6 +6,7 @@ DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;
 DebugModule *g_debug = nullptr;
 LogModule *g_log = nullptr;
+NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;
 ScriptModule *g_script = nullptr;
 StructureModule *g_structure = nullptr;

@@ -716,7 +716,7 @@ void ScriptPage::hoverRequest() {
     m_scriptEditor->lineIndexFromPosition(charPos, &line, &character);
     if (line == 0 && character == 0) return;
     // show diagnostic if exists
-    QString diagnosticText{};
+    QString diagnosticText = "<table>";
     for (const auto &value: m_scriptDiagnostic) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
@@ -727,18 +727,30 @@ void ScriptPage::hoverRequest() {
         const int endLine = endPos["line"].toInt();
         const int endCharacter = endPos["character"].toInt();
         if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
-            const QString source = diagnostic["source"].toString();
-            const QString code = diagnostic["code"].toString();
+            const int severity = diagnostic["severity"].toInt();
+            QString severityString{};
+            switch (severity) {
+                case 1: {
+                    severityString = "Error";
+                }
+                break;
+                case 2: {
+                    severityString = "Warning";
+                }
+                break;
+                case 3: {
+                    severityString = "Info";
+                }
+                break;
+                case 4: {
+                    severityString = "Hint";
+                }
+                break;
+                default: break;
+            }
             const QString message = diagnostic["message"].toString();
-            diagnosticText += source;
-            diagnosticText += code;
-            diagnosticText += ": ";
-            diagnosticText += message;
-            diagnosticText += "\n";
+            diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td></td></tr>").arg(severityString, message.toHtmlEscaped());
         }
-    }
-    if (!diagnosticText.isEmpty()) {
-        emit showDiagnosticTooltip(diagnosticText);
     }
     // show typo if exists
     for (const auto &value: m_scriptTypo) {
@@ -749,10 +761,16 @@ void ScriptPage::hoverRequest() {
         const int indexTo = typo["indexTo"].toInt();
         if (line >= lineFrom && line <= lineTo && character >= indexFrom && character <= indexTo) {
             const int startPos = m_scriptEditor->positionFromLineIndex(lineFrom, indexFrom);
-            const int endPos   = m_scriptEditor->positionFromLineIndex(lineTo  , indexTo);
+            const int endPos = m_scriptEditor->positionFromLineIndex(lineTo, indexTo);
             const QString word = m_scriptEditor->text(startPos, endPos);
-            emit requestSpellSuggest(m_scriptUrl, word);
+            const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
+                word, QString::number(lineFrom), QString::number(indexFrom), QString::number(lineTo), QString::number(indexTo));
+            diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
         }
+    }
+    if (diagnosticText != "<table>") {
+        diagnosticText += "</table>";
+        emit showDiagnosticTooltip(diagnosticText);
     }
     // hover request to script module
     emit requestHover(m_scriptUrl, line, character);

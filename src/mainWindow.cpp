@@ -210,7 +210,6 @@ void MainWindow::moduleInit() {
     connect(m_llsModule, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);
     connect(m_llsModule, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
-    connect(m_nuspellModule, &NuspellModule::responseSpellSuggest, m_scriptModule, &ScriptModule::spellSuggestResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
     connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);
@@ -222,7 +221,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
-    connect(m_scriptModule, &ScriptModule::requestSpellSuggest, m_nuspellModule, &NuspellModule::spellSuggestRequest);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {
@@ -277,6 +275,7 @@ void MainWindow::moduleInit() {
     g_dataplot = m_dataplotModule;
     g_debug = m_debugModule;
     g_log = m_logModule;
+    g_nuspell = m_nuspellModule;
     g_port = m_portModule;
     g_script = m_scriptModule;
     g_threadpool = m_threadpoolModule;

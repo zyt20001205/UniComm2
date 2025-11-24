@@ -42,10 +42,11 @@ ScriptModule::ScriptModule()
         scriptOpen(QUrl(value.toString()));
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
-    connect(m_completionTooltip, &CompletionTooltip::replaceText, this, &ScriptModule::textReplace);
+    connect(m_completionTooltip, &CompletionTooltip::replaceText, this, qOverload<QString &, const QString &>(&ScriptModule::textReplace));
+    connect(m_hoverTooltip, &HoverTooltip::replaceText, this, qOverload<const QString &, int, int, int, int>(&ScriptModule::textReplace));
     connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
-    connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::textReplace);
+    connect(m_positionTooltip, &PositionTooltip::replaceText, this, qOverload<QString &, const QString &>(&ScriptModule::textReplace));
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -220,7 +221,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSemanticTokens, this, &ScriptModule::semanticTokensRequest);
         connect(scriptPage, &ScriptPage::requestSignatureHelp, this, &ScriptModule::signatureHelpRequest);
         connect(scriptPage, &ScriptPage::requestSpellCheck, this, &ScriptModule::requestSpellCheck);
-        connect(scriptPage, &ScriptPage::requestSpellSuggest, this, &ScriptModule::requestSpellSuggest);
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
@@ -267,6 +267,7 @@ void ScriptModule::cursorPositionGet() const {
         {"character", index}
     };
 }
+
 
 void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
@@ -473,7 +474,6 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     m_hoverTooltip->tooltipShowHover(message);
-    m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
 }
 
 void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, const int character) {
@@ -631,11 +631,6 @@ void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList 
     }
 }
 
-void ScriptModule::spellSuggestResponse(const QUrl &scriptUrl, const QString &word, const QStringList &suggestions) {
-    m_hoverTooltip->tooltipShowTypo(word, suggestions);
-    m_hoverTooltip->move(QCursor::pos() + QPoint(10, 10));
-}
-
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {
     // type definition request to lua language server
     const QJsonObject typeDefinitionParams{
@@ -694,4 +689,10 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
 
 void ScriptModule::textReplace(QString &text, const QString &kind) const {
     m_focusedPage->textReplace(text, kind);
+}
+
+void ScriptModule::textReplace(const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
+    const QUrl scriptUrl = m_focusedPage->m_scriptUrl;
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_scriptEditor->textReplace(text, lineFrom, indexFrom, lineTo, indexTo);
 }

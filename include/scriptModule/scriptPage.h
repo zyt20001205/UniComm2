@@ -93,8 +93,6 @@ signals:
 
     void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
 
-    void requestSpellSuggest(const QUrl &scriptUrl, const QString &word);
-
     void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
     
     void notificationJson(const QString &method, const QJsonObject &params);

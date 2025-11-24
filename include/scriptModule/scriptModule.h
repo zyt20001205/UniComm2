@@ -113,8 +113,6 @@ public:
 
     void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
 
-    void spellSuggestResponse(const QUrl &scriptUrl, const QString &word, const QStringList &suggestions);
-
     void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 
     void typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const;
@@ -156,6 +154,8 @@ private:
     void scriptClose(const QUrl &scriptUrl);
 
     void textReplace(QString &text, const QString &kind) const;
+
+    void textReplace(const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     QJsonObject m_scriptConfig{};
     WelcomePage *m_welcomePage{};
