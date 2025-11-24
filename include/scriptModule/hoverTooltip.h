@@ -1,6 +1,7 @@
 #ifndef UNICOMM_HOVERTOOLTIP_H
 #define UNICOMM_HOVERTOOLTIP_H
 
+#include <QUrl>
 #include <QWidget>
 
 class QTextBrowser;
@@ -15,14 +16,14 @@ public:
 
     void tooltipLeave();
 
-    void tooltipShowDiagnostic(const QString &message);
+    void tooltipShowDiagnostic(const QUrl &scriptUrl, const QString &message);
 
     void tooltipShowHover(const QString &message);
 
     void tooltipHide();
 
 signals:
-    void replaceText(const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
 protected:
     void enterEvent(QEnterEvent *event) override;
@@ -38,6 +39,7 @@ private:
     QTextBrowser *m_hoverTextBrowser{};
     QMenu *m_suggestionMenu{};
 
+    QUrl m_scriptUrl{};
     int m_lineFrom{};
     int m_lineTo{};
     int m_indexFrom{};

@@ -60,7 +60,8 @@ void HoverTooltip::tooltipLeave() {
     });
 }
 
-void HoverTooltip::tooltipShowDiagnostic(const QString &message) {
+void HoverTooltip::tooltipShowDiagnostic(const QUrl &scriptUrl, const QString &message) {
+    m_scriptUrl = scriptUrl;
     m_diagnosticTextBrowser->setHtml(message);
     m_diagnosticTextBrowser->document()->setTextWidth(600);
     m_diagnosticTextBrowser->setFixedWidth(600 + 20);
@@ -113,7 +114,7 @@ void HoverTooltip::toolTipShowSuggestions(const QStringList &suggestions) {
     for (const auto &suggestion: suggestions) {
         const auto suggestionAction = new QAction(suggestion, m_suggestionMenu); // NOLINT
         connect(suggestionAction, &QAction::triggered, this, [this, suggestion] {
-            emit replaceText(suggestion, m_lineFrom, m_indexFrom, m_lineTo, m_indexTo);
+            emit replaceText(m_scriptUrl ,suggestion, m_lineFrom, m_indexFrom, m_lineTo, m_indexTo);
             tooltipHide();
         });
         m_suggestionMenu->addAction(suggestionAction);

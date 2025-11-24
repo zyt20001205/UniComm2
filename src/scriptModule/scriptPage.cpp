@@ -770,7 +770,7 @@ void ScriptPage::hoverRequest() {
     }
     if (diagnosticText != "<table width='100%'>") {
         diagnosticText += "</table>";
-        emit showDiagnosticTooltip(diagnosticText);
+        emit showDiagnosticTooltip(m_scriptUrl, diagnosticText);
     }
     // hover request to script module
     emit requestHover(m_scriptUrl, line, character);

@@ -155,7 +155,7 @@ private:
 
     void textReplace(QString &text, const QString &kind) const;
 
-    void textReplace(const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void textReplace(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     QJsonObject m_scriptConfig{};
     WelcomePage *m_welcomePage{};
