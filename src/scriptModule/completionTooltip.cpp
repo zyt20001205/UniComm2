@@ -28,6 +28,7 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
       m_resetButton(new QPushButton(this)),
       m_completionLabel(new QLabel(nullptr, Qt::ToolTip)) {
     setAttribute(Qt::WA_StyledBackground, true);
+    setWindowFlag(Qt::WindowDoesNotAcceptFocus, true);
     setObjectName("completionTooltip");
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setAlignment(Qt::AlignTop);
@@ -36,7 +37,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     layout->addWidget(m_completionListView);
     m_filterProxyModel->setSourceModel(m_completionModel);
     m_filterProxyModel->setFilterRole(Qt::UserRole + 1);
-    m_completionListView->setFocusPolicy(Qt::NoFocus);
     m_completionListView->setFont(QFont("Consolas", 12));
     m_completionListView->setIconSize(QSize(16, 16));
     m_completionListView->setMinimumWidth(400);
@@ -54,7 +54,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_textButton);
     m_textButton->setCheckable(true);
     m_textButton->setFixedSize(QSize(24, 24));
-    m_textButton->setFocusPolicy(Qt::NoFocus);
     m_textButton->setIcon(QIcon(":/icon/symbolString.svg"));
     m_textButton->setToolTip(tr("text"));
     connect(m_textButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -62,7 +61,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_functionButton);
     m_functionButton->setCheckable(true);
     m_functionButton->setFixedSize(QSize(24, 24));
-    m_functionButton->setFocusPolicy(Qt::NoFocus);
     m_functionButton->setIcon(QIcon(":/icon/symbolMethod.svg"));
     m_functionButton->setToolTip(tr("function"));
     connect(m_functionButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -70,7 +68,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_fieldButton);
     m_fieldButton->setCheckable(true);
     m_fieldButton->setFixedSize(QSize(24, 24));
-    m_fieldButton->setFocusPolicy(Qt::NoFocus);
     m_fieldButton->setIcon(QIcon(":/icon/symbolField.svg"));
     m_fieldButton->setToolTip(tr("field"));
     connect(m_fieldButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -78,7 +75,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_variableButton);
     m_variableButton->setCheckable(true);
     m_variableButton->setFixedSize(QSize(24, 24));
-    m_variableButton->setFocusPolicy(Qt::NoFocus);
     m_variableButton->setIcon(QIcon(":/icon/symbolVariable.svg"));
     m_variableButton->setToolTip(tr("variable"));
     connect(m_variableButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -86,7 +82,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_enumButton);
     m_enumButton->setCheckable(true);
     m_enumButton->setFixedSize(QSize(24, 24));
-    m_enumButton->setFocusPolicy(Qt::NoFocus);
     m_enumButton->setIcon(QIcon(":/icon/symbolEnum.svg"));
     m_enumButton->setToolTip(tr("enum"));
     connect(m_enumButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -94,7 +89,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_keywordButton);
     m_keywordButton->setCheckable(true);
     m_keywordButton->setFixedSize(QSize(24, 24));
-    m_keywordButton->setFocusPolicy(Qt::NoFocus);
     m_keywordButton->setIcon(QIcon(":/icon/symbolKeyword.svg"));
     m_keywordButton->setToolTip(tr("keyword"));
     connect(m_keywordButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -102,7 +96,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addWidget(m_enummemberButton);
     m_enummemberButton->setCheckable(true);
     m_enummemberButton->setFixedSize(QSize(24, 24));
-    m_enummemberButton->setFocusPolicy(Qt::NoFocus);
     m_enummemberButton->setIcon(QIcon(":/icon/symbolEnumMember.svg"));
     m_enummemberButton->setToolTip(tr("enum member"));
     connect(m_enummemberButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
@@ -110,7 +103,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     filterLayout->addStretch();
     filterLayout->addWidget(m_resetButton);
     m_resetButton->setFixedSize(QSize(24, 24));
-    m_resetButton->setFocusPolicy(Qt::NoFocus);
     m_resetButton->setIcon(QIcon(":/icon/reset.svg"));
     m_resetButton->setToolTip(tr("reset filter"));
     connect(m_resetButton, &QPushButton::clicked, this, &CompletionTooltip::filterInit);
@@ -122,7 +114,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
         "#filterWidget QPushButton { border: none; background-color: #fafafa; border-radius: 8px; padding: 4px; }"
         "#filterWidget QPushButton:checked { background-color: #cccccc; }");
     m_completionLabel->setAttribute(Qt::WA_StyledBackground, true);
-    m_completionLabel->setFocusPolicy(Qt::NoFocus);
     m_completionLabel->setFont(QFont("Consolas", 12));
     m_completionLabel->setObjectName("completionLabel");
     m_completionLabel->setStyleSheet("#completionLabel { background-color: white; border: 1px solid #cccccc; border-radius: 10px; padding: 2px; }");
