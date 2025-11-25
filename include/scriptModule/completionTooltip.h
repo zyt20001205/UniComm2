@@ -1,11 +1,13 @@
 #ifndef UNICOMM_COMPLETIONPOPUP_H
 #define UNICOMM_COMPLETIONPOPUP_H
 
-#include <QListView>
-#include <QStandardItemModel>
+#include <QSortFilterProxyModel>
 #include <QWidget>
 
 class QLabel;
+class QListView;
+class QPushButton;
+class QStandardItemModel;
 
 class CompletionTooltip final : public QWidget {
     Q_OBJECT
@@ -36,10 +38,28 @@ private:
 
     void codeComplete();
 
+    void filterClear() const;
+
+    void filterInit();
+
+    void filterSet(bool status);
+
     void labelShow(const QModelIndex &currentIndex, const QModelIndex &previousIndex) const;
 
-    QListView *m_completionListView;
+    QListView *m_completionListView{};
     QStandardItemModel *m_completionModel{};
+    QSortFilterProxyModel *m_filterProxyModel{};
+    QSet<int> m_completionKinds{};
+    QWidget *m_filterWidget{};
+    QHash<int, QPushButton *> m_filterButtonHash{};
+    QPushButton *m_textButton{};
+    QPushButton *m_functionButton{};
+    QPushButton *m_fieldButton{};
+    QPushButton *m_variableButton{};
+    QPushButton *m_enumButton{};
+    QPushButton *m_keywordButton{};
+    QPushButton *m_enummemberButton{};
+    QPushButton *m_resetButton{};
     QLabel *m_completionLabel{};
     bool m_fullComplete = false;
 };

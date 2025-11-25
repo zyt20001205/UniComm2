@@ -343,7 +343,7 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_completionTooltip->tooltipShow(items);
-    m_completionTooltip->move(cursorGlobalPos.x() - 30, cursorGlobalPos.y() + lineHeight);
+    m_completionTooltip->move(cursorGlobalPos.x() - 26, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, const int character) {
@@ -666,6 +666,8 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     if (status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);
+        m_completionTooltip->tooltipHide();
+        m_signatureHelpTooltip->tooltipHide();
         // logging
         // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         // qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
