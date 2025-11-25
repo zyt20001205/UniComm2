@@ -377,53 +377,53 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
         m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos); // NOLINT
         switch (tokenType) {
             case TOKENTYPE_NAMESPACE:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NAMESPACE); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_NAMESPACE); // NOLINT
                 break;
             case TOKENTYPE_CLASS:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_CLASS); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_CLASS); // NOLINT
                 break;
             case TOKENTYPE_TYPE:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_TYPE); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_TYPE); // NOLINT
                 break;
             case TOKENTYPE_PARAMETER:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PARAMETER); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_PARAMETER); // NOLINT
                 break;
             case TOKENTYPE_VARIABLE:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_VARIABLE); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_VARIABLE); // NOLINT
                 break;
             case TOKENTYPE_PROPERTY:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_PROPERTY); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_PROPERTY); // NOLINT
                 break;
             case TOKENTYPE_ENUMMEMBAER:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_ENUMMEMBAER); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_ENUMMEMBAER); // NOLINT
                 break;
             case TOKENTYPE_FUNCTION:
                 if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
-                    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_DECLARATION); // NOLINT
+                    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_DECLARATION); // NOLINT
                 } else {
-                    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_FUNCTION_CALL); // NOLINT
+                    m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_CALL); // NOLINT
                 }
                 break;
             case TOKENTYPE_METHOD:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_METHOD); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_METHOD); // NOLINT
                 break;
             case TOKENTYPE_MACRO:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_MACRO); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_MACRO); // NOLINT
                 break;
             case TOKENTYPE_KEYWORD:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_KEYWORD); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_KEYWORD); // NOLINT
                 break;
             case TOKENTYPE_COMMENT:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_COMMENT); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_COMMENT); // NOLINT
                 break;
             case TOKENTYPE_STRING:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_STRING); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_STRING); // NOLINT
                 break;
             case TOKENTYPE_NUMBER:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_NUMBER); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_NUMBER); // NOLINT
                 break;
             case TOKENTYPE_OPERATOR:
-                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUATOKEN_OPERATOR); // NOLINT
+                m_scriptEditor->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_OPERATOR); // NOLINT
                 break;
             default:
                 qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
@@ -447,12 +447,12 @@ void ScriptPage::spellCheckResponse(const QVariantList &typos) {
     }
 }
 
-void ScriptPage::textReplace(QString &text, const QString &kind) {
-    if (kind == "Function") {
+void ScriptPage::textReplace(QString &text, const int kind) {
+    if (kind == COMPLETION_KIND_FUNCTION) {
         text += "()";
-    } else if (kind == "Field") {
+    } else if (kind == COMPLETION_KIND_FIELD) {
         text += ".";
-    } else if (kind == "EnumMember") {
+    } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
         if (text == "\"Add New Port\"") {
             emit insertPort();
             return;
@@ -476,7 +476,7 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETTARGETRANGE, startPos, currentPos); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_REPLACETARGET, text.length(), text.toUtf8().constData()); // NOLINT
     long cursorPos;
-    if (kind == "Function") {
+    if (kind == COMPLETION_KIND_FUNCTION) {
         cursorPos = startPos + text.length() - 1;
     } else {
         cursorPos = startPos + text.length();
@@ -484,12 +484,12 @@ void ScriptPage::textReplace(QString &text, const QString &kind) {
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
     m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
-    if (kind == "Function") {
+    if (kind == COMPLETION_KIND_FUNCTION) {
         didChangeNotification();
         emit fullCompletionTooltip(false);
         completionRequest();
         signatureHelpRequest();
-    } else if (kind == "Field") {
+    } else if (kind == COMPLETION_KIND_FIELD) {
         didChangeNotification();
         emit fullCompletionTooltip(true);
         completionRequest();

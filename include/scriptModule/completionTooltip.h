@@ -20,7 +20,7 @@ public:
     void tooltipFull(bool status);
 
 signals:
-    void replaceText(QString &text, const QString &kind);
+    void completeCode(QString &text, int kind);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -30,11 +30,10 @@ private:
 
     void moveDown() const;
 
-    void textReplace();
+    void codeComplete();
 
     QTableWidget *m_tableWidget{};
     bool m_fullComplete = false;
-    QList<QString> m_kindList{};
 };
 
 #endif //UNICOMM_COMPLETIONPOPUP_H

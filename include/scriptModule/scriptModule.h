@@ -153,7 +153,7 @@ private:
 
     void scriptClose(const QUrl &scriptUrl);
 
-    void textReplace(QString &text, const QString &kind) const;
+    void codeComplete(QString &text, int kind) const;
 
     void textReplace(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 

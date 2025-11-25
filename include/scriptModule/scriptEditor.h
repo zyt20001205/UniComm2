@@ -17,6 +17,12 @@ public:
 
     void nextSearch();
 
+    void cursorPositionSet(int line, int index);
+
+    void cursorPositionGet(int *line, int *index) const;
+
+    void textInsert(const QString &text, int line = -1, int index = -1);
+
     void textReplace(const QString &text);
 
     void textReplaceAll(const QString &text);

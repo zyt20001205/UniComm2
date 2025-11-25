@@ -60,23 +60,23 @@ ScriptEditor::ScriptEditor(QWidget *parent)
     setMarginBackgroundColor(3, QColor(Qt::black));
     QsciScintilla::setMarginWidth(3, 1);
     // set styles !!!color format is BGR!!!
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NAMESPACE, static_cast<long>(0x808000)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_ENUMMEMBAER, static_cast<long>(0x941087)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUATOKEN_MACRO, 1); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
-    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUATOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_NAMESPACE, static_cast<long>(0x808000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_CLASS, static_cast<long>(0x808000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_TYPE, static_cast<long>(0xB33300)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_PARAMETER, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_VARIABLE, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_PROPERTY, static_cast<long>(0x7A0E66)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_ENUMMEMBAER, static_cast<long>(0x941087)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_FUNCTION_DECLARATION, static_cast<long>(0x7A6200)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_FUNCTION_CALL, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_METHOD, static_cast<long>(0x000000)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_MACRO, static_cast<long>(0x2E541F)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETBOLD, LUA_TOKEN_MACRO, 1); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_KEYWORD, static_cast<long>(0xB33300)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_COMMENT, static_cast<long>(0x8C8C8C)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_STRING, static_cast<long>(0x177D06)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
+    SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
     // script scintilla settings
     setScrollWidth(1);
     QsciScintilla::setBraceMatching(SloppyBraceMatch);
@@ -165,6 +165,22 @@ void ScriptEditor::nextSearch() {
         m_currentIndex++;
     }
     searchHandle();
+}
+
+void ScriptEditor::cursorPositionSet(const int line, const int index) {
+    setCursorPosition(line, index);
+    setFocus();
+}
+
+void ScriptEditor::cursorPositionGet(int *line, int *index) const {
+    getCursorPosition(line, index);
+}
+
+void ScriptEditor::textInsert(const QString &text, const int line, const int index) {
+    const int pos = positionFromLineIndex(line, index);
+    beginUndoAction();
+    SendScintilla(SCI_INSERTTEXT, pos, text.toUtf8().constData()); // NOLINT
+    endUndoAction();
 }
 
 void ScriptEditor::textReplace(const QString &text) {
@@ -265,8 +281,8 @@ void ScriptEditor::contextMenuEvent(QContextMenuEvent *event) {
     const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
     const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
     if (charPos != -1 && wordStart < wordEnd) {
-        const int luaToken = SendScintilla(SCI_GETSTYLEAT, charPos);
-        if (luaToken >= LUATOKEN_MACRO || luaToken == 0) {
+        const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, charPos);
+        if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
             gotoMenu->setEnabled(false);
         } else {
             const long line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
@@ -352,8 +368,8 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
         indicatorRemove(INDICATOR_HYPERLINK);
         viewport()->setCursor(Qt::IBeamCursor);
         if (charPos != -1 && wordStart < wordEnd) {
-            const int luaToken = SendScintilla(SCI_GETSTYLEAT, charPos);
-            if (luaToken >= LUATOKEN_MACRO || luaToken == 0) return;
+            const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, charPos);
+            if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) return;
             const int lineFrom = SendScintilla(SCI_LINEFROMPOSITION, wordStart);
             const int indexFrom = wordStart - SendScintilla(SCI_POSITIONFROMLINE, lineFrom);
             const int lineTo = SendScintilla(SCI_LINEFROMPOSITION, wordEnd);

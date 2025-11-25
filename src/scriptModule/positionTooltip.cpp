@@ -7,6 +7,8 @@
 #include <QVBoxLayout>
 #include <windows.h>
 
+#include "globals.h"
+
 // PositionTooltip public
 PositionTooltip::PositionTooltip(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
@@ -29,12 +31,12 @@ PositionTooltip::PositionTooltip(QWidget *parent)
 }
 
 void PositionTooltip::tooltipShow() {
-    this->show();
+    show();
     m_timer->start();
 }
 
 void PositionTooltip::tooltipHide() {
-    this->hide();
+    hide();
     m_timer->stop();
 }
 
@@ -46,7 +48,7 @@ bool PositionTooltip::eventFilter(QObject *obj, QEvent *event) {
             POINT physicalPos;
             GetCursorPos(&physicalPos);
             QString text = QString("%1, %2").arg(QString::number(physicalPos.x), QString::number(physicalPos.y));
-            emit replaceText(text, "Text");
+            emit replaceText(text, COMPLETION_KIND_TEXT);
             tooltipHide();
         }
     }

@@ -18,7 +18,7 @@ public:
     void tooltipHide();
 
 signals:
-    void replaceText(QString &text, const QString &kind);
+    void replaceText(QString &text, int kind);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

@@ -42,11 +42,11 @@ ScriptModule::ScriptModule()
         scriptOpen(QUrl(value.toString()));
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
-    connect(m_completionTooltip, &CompletionTooltip::replaceText, this, qOverload<QString &, const QString &>(&ScriptModule::textReplace));
+    connect(m_completionTooltip, &CompletionTooltip::completeCode, this, &ScriptModule::codeComplete);
     connect(m_hoverTooltip, &HoverTooltip::replaceText, this, qOverload<const QUrl &, const QString &, int, int, int, int>(&ScriptModule::textReplace));
     connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
-    connect(m_positionTooltip, &PositionTooltip::replaceText, this, qOverload<QString &, const QString &>(&ScriptModule::textReplace));
+    connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::codeComplete);
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -268,7 +268,6 @@ void ScriptModule::cursorPositionGet() const {
     };
 }
 
-
 void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
@@ -344,7 +343,7 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     m_completionTooltip->tooltipShow(items);
-    m_completionTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    m_completionTooltip->move(cursorGlobalPos.x() - 30, cursorGlobalPos.y() + lineHeight);
 }
 
 void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, const int character) {
@@ -687,9 +686,8 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
     emit closeScript(scriptUrl);
 }
 
-void ScriptModule::textReplace(QString &text, const QString &kind) const {
+void ScriptModule::codeComplete(QString &text, const int kind) const {
     m_focusedPage->textReplace(text, kind);
-
 }
 
 void ScriptModule::textReplace(const QUrl &scriptUrl, const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {

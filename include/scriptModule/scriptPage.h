@@ -43,7 +43,7 @@ public:
 
     void spellCheckResponse(const QVariantList &typos);
 
-    void textReplace(QString &text, const QString &kind);
+    void textReplace(QString &text, int kind);
 
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
