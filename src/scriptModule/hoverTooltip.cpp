@@ -80,10 +80,10 @@ void HoverTooltip::tooltipShowHover(const QString &message) {
     m_hoverTextBrowser->setFixedWidth(600 + 20);
     m_hoverTextBrowser->show();
     show();
+    move(QCursor::pos() + QPoint(10, 10));
     QTimer::singleShot(0, this, [this] {
         m_hoverTextBrowser->setFixedHeight(m_hoverTextBrowser->document()->size().height() + 20);
         adjustSize();
-        move(QCursor::pos() + QPoint(10, 10));
     });
 }
 

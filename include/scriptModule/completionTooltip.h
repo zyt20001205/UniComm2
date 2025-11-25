@@ -1,9 +1,11 @@
 #ifndef UNICOMM_COMPLETIONPOPUP_H
 #define UNICOMM_COMPLETIONPOPUP_H
 
+#include <QListView>
+#include <QStandardItemModel>
 #include <QWidget>
 
-class QTableWidget;
+class QLabel;
 
 class CompletionTooltip final : public QWidget {
     Q_OBJECT
@@ -25,14 +27,20 @@ signals:
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
-private:
-    void moveUp() const;
+    void hideEvent(QHideEvent *event) override;
 
-    void moveDown() const;
+private:
+    void moveUp();
+
+    void moveDown();
 
     void codeComplete();
 
-    QTableWidget *m_tableWidget{};
+    void labelShow();
+
+    QListView *m_completionListView;
+    QStandardItemModel *m_completionModel{};
+    QLabel *m_completionLabel{};
     bool m_fullComplete = false;
 };
 

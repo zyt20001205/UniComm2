@@ -2,9 +2,9 @@
 
 #include <QHeaderView>
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QKeyEvent>
-#include <QTableWidget>
+#include <QLabel>
+#include <QListView>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include "globals.h"
@@ -12,33 +12,33 @@
 // CompletionTooltip public
 CompletionTooltip::CompletionTooltip(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
-      m_tableWidget(new QTableWidget(this)) {
+      m_completionListView(new QListView(this)),
+      m_completionModel(new QStandardItemModel(this)),
+      m_completionLabel(new QLabel(nullptr, Qt::ToolTip)) {
     setAttribute(Qt::WA_StyledBackground, true);
     setObjectName("completionTooltip");
     auto *layout = new QVBoxLayout(this); //NOLINT
+    layout->setAlignment(Qt::AlignTop);
     layout->setContentsMargins(5, 5, 5, 5);
-    layout->addWidget(m_tableWidget);
-    m_tableWidget->setMinimumWidth(400);
-    m_tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    m_tableWidget->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    m_tableWidget->setFont(QFont("Consolas", 12));
-    m_tableWidget->setObjectName("tableWidget");
-    m_tableWidget->setShowGrid(false);
-    m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tableWidget->setColumnCount(2);
-    m_tableWidget->horizontalHeader()->setVisible(false);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    m_tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    m_tableWidget->verticalHeader()->setVisible(false);
-    connect(m_tableWidget, &QTableWidget::cellClicked, this, &CompletionTooltip::codeComplete);
+    layout->addWidget(m_completionListView);
+    m_completionListView->setFont(QFont("Consolas", 12));
+    m_completionListView->setIconSize(QSize(16, 16));
+    m_completionListView->setMinimumWidth(400);
+    m_completionListView->setObjectName("completionListView");
+    m_completionListView->setModel(m_completionModel);
+    connect(m_completionListView, &QListView::clicked, this, &CompletionTooltip::codeComplete);
     // stylesheets
     setStyleSheet(
         "#completionTooltip { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
-        "#tableWidget { border: none;}");
+        "#completionListView { border: none;}");
+    m_completionLabel->setAttribute(Qt::WA_StyledBackground, true);
+    m_completionLabel->setFont(QFont("Consolas", 12));
+    m_completionLabel->setObjectName("completionLabel");
+    m_completionLabel->setStyleSheet("#completionLabel { background-color: white; border: 1px solid #cccccc; border-radius: 10px; padding: 2px; }");
 }
 
 void CompletionTooltip::tooltipShow(const QJsonArray &items) {
-    m_tableWidget->setRowCount(0);
+    m_completionModel->clear();
     int row = 0;
     for (const auto &value: items) {
         QJsonObject item = value.toObject();
@@ -46,36 +46,37 @@ void CompletionTooltip::tooltipShow(const QJsonArray &items) {
         if (!m_fullComplete && kind != COMPLETION_KIND_ENUMMEMBER) continue;
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
-        m_tableWidget->insertRow(row);
-        auto *kindItem = new QTableWidgetItem(); // NOLINT
-        kindItem->setData(Qt::UserRole + 1, kind);
+        auto *completionItem = new QStandardItem(insertText); // NOLINT
+        m_completionModel->appendRow(completionItem);
+        completionItem->setData(kind, Qt::UserRole + 1);
+        completionItem->setData(label, Qt::UserRole + 2);
         switch (kind) {
             case COMPLETION_KIND_TEXT: {
-                kindItem->setIcon(QIcon(":/icon/symbolString.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolString.svg"));
             }
             break;
             case COMPLETION_KIND_FUNCTION: {
-                kindItem->setIcon(QIcon(":/icon/symbolMethod.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolMethod.svg"));
             }
             break;
             case COMPLETION_KIND_FIELD: {
-                kindItem->setIcon(QIcon(":/icon/symbolField.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolField.svg"));
             }
             break;
             case COMPLETION_KIND_VARIABLE: {
-                kindItem->setIcon(QIcon(":/icon/symbolVariable.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolVariable.svg"));
             }
             break;
             case COMPLETION_KIND_ENUM: {
-                kindItem->setIcon(QIcon(":/icon/symbolEnum.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolEnum.svg"));
             }
             break;
             case COMPLETION_KIND_KEYWORD: {
-                kindItem->setIcon(QIcon(":/icon/symbolKeyword.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolKeyword.svg"));
             }
             break;
             case COMPLETION_KIND_ENUMMEMBER: {
-                kindItem->setIcon(QIcon(":/icon/symbolEnumMember.svg"));
+                completionItem->setIcon(QIcon(":/icon/symbolEnumMember.svg"));
             }
             break;
             default: {
@@ -83,17 +84,20 @@ void CompletionTooltip::tooltipShow(const QJsonArray &items) {
             }
             break;
         }
-        auto *insertTextItem = new QTableWidgetItem(insertText); // NOLINT
-        m_tableWidget->setItem(row, 0, kindItem);
-        m_tableWidget->setItem(row, 1, insertTextItem);
         row++;
     }
-    if (m_tableWidget->rowCount() > 0) {
-        m_tableWidget->resizeColumnsToContents();
-        m_tableWidget->resizeRowsToContents();
-        m_tableWidget->selectRow(0);
-        adjustSize();
+    if (m_completionModel->rowCount() > 0) {
+        m_completionListView->setCurrentIndex(m_completionModel->index(0, 0));
+        // calc height
+        const int rowHeight = m_completionListView->sizeHintForRow(0);
+        const int rowCount = m_completionModel->rowCount();
+        const int totalHeight = rowHeight * rowCount;
         show();
+        labelShow();
+        QTimer::singleShot(0, this, [this, totalHeight] {
+            m_completionListView->setFixedHeight(totalHeight);
+            adjustSize();
+        });
     }
 }
 
@@ -141,25 +145,45 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
     return QWidget::eventFilter(obj, event);
 }
 
-// CompletionTooltip private
-void CompletionTooltip::moveUp() const {
-    int currentRow = m_tableWidget->currentRow();
-    if (currentRow == -1 || currentRow == 0) return;
-    currentRow--;
-    m_tableWidget->selectRow(currentRow);
+void CompletionTooltip::hideEvent(QHideEvent *event) {
+    m_completionLabel->hide();
+    QWidget::hideEvent(event);
 }
 
-void CompletionTooltip::moveDown() const {
-    int currentRow = m_tableWidget->currentRow();
-    if (currentRow == -1 || currentRow == m_tableWidget->rowCount() - 1) return;
-    currentRow++;
-    m_tableWidget->selectRow(currentRow);
+// CompletionTooltip private
+void CompletionTooltip::moveUp() {
+    const QModelIndex currentIndex = m_completionListView->currentIndex();
+    if (!currentIndex.isValid() || currentIndex.row() == 0) return;
+    const QModelIndex prev = m_completionModel->index(currentIndex.row() - 1, 0);
+    m_completionListView->setCurrentIndex(prev);
+    labelShow();
+}
+
+void CompletionTooltip::moveDown() {
+    const QModelIndex currentIndex = m_completionListView->currentIndex();
+    if (!currentIndex.isValid() || currentIndex.row() == m_completionModel->rowCount() - 1) return;
+    const QModelIndex next = m_completionModel->index(currentIndex.row() + 1, 0);
+    m_completionListView->setCurrentIndex(next);
+    labelShow();
 }
 
 void CompletionTooltip::codeComplete() {
-    const int currentRow = m_tableWidget->currentRow();
-    if (currentRow == -1) return;
-    const int kind = m_tableWidget->item(currentRow, 0)->data(Qt::UserRole + 1).toInt();
-    QString insertText = m_tableWidget->item(currentRow, 1)->text();
+    const QModelIndex currentIndex = m_completionListView->currentIndex();
+    if (!currentIndex.isValid()) return;
+    const int kind = m_completionModel->data(currentIndex, Qt::UserRole + 1).toInt();
+    QString insertText = m_completionModel->data(currentIndex, Qt::DisplayRole).toString();
     if (!insertText.isEmpty()) emit completeCode(insertText, kind);
+}
+
+void CompletionTooltip::labelShow() {
+    const QModelIndex currentIndex = m_completionListView->currentIndex();
+    if (!currentIndex.isValid()) return;
+    const QString label = m_completionModel->data(currentIndex, Qt::UserRole + 2).toString();
+    m_completionLabel->setText(label);
+    m_completionLabel->show();
+    QTimer::singleShot(0, this, [this, currentIndex] {
+        const int y = m_completionListView->visualRect(currentIndex).top() + 4;
+        m_completionLabel->adjustSize();
+        m_completionLabel->move(mapToGlobal(QPoint(width(), y)));
+    });
 }
