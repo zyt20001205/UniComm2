@@ -43,7 +43,6 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_completionListView->setObjectName("completionListView");
     m_completionListView->setModel(m_filterProxyModel);
     connect(m_completionListView, &QListView::doubleClicked, this, &CompletionTooltip::codeComplete);
-    connect(m_completionListView->selectionModel(), &QItemSelectionModel::currentChanged, this, &CompletionTooltip::labelShow);
     layout->addStretch();
     layout->addWidget(m_filterWidget);
     m_filterWidget->setObjectName("filterWidget");
@@ -245,6 +244,7 @@ void CompletionTooltip::moveUp() const {
     if (!currentIndex.isValid() || currentIndex.row() == 0) return;
     const QModelIndex prevIndex = m_filterProxyModel->index(currentIndex.row() - 1, 0);
     m_completionListView->setCurrentIndex(prevIndex);
+    labelShow();
 }
 
 void CompletionTooltip::moveDown() const {
@@ -252,6 +252,7 @@ void CompletionTooltip::moveDown() const {
     if (!currentIndex.isValid() || currentIndex.row() == m_filterProxyModel->rowCount() - 1) return;
     const QModelIndex nextIndex = m_filterProxyModel->index(currentIndex.row() + 1, 0);
     m_completionListView->setCurrentIndex(nextIndex);
+    labelShow();
 }
 
 void CompletionTooltip::codeComplete() {
@@ -299,9 +300,11 @@ void CompletionTooltip::filterSet(const bool status) {
     else regExp = "(?!.*)";
     m_filterProxyModel->setFilterRegularExpression(regExp);
     m_completionListView->setCurrentIndex(m_filterProxyModel->index(0, 0));
+    labelShow();
 }
 
-void CompletionTooltip::labelShow(const QModelIndex &currentIndex, const QModelIndex &previousIndex) const {
+void CompletionTooltip::labelShow() const {
+    const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid()) {
         m_completionLabel->hide();
         return;

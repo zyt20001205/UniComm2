@@ -44,7 +44,7 @@ private:
 
     void filterSet(bool status);
 
-    void labelShow(const QModelIndex &currentIndex, const QModelIndex &previousIndex) const;
+    void labelShow() const;
 
     QListView *m_completionListView{};
     QStandardItemModel *m_completionModel{};
