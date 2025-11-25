@@ -1,7 +1,6 @@
 #include "crashHandler.h"
 
 #include <exchndl.h>
-#include <QCoreApplication>
 #include <QDir>
 
 // CrashHandler public
@@ -9,7 +8,7 @@ void CrashHandler::init() {
     // SEH
     ExcHndlInit();
     // check if crash report dir exists
-    const QString crashReportDirPath = QDir(QCoreApplication::applicationDirPath()).filePath("crashReport");
+    const QString crashReportDirPath = QDir::current().filePath("crashReport");
     if (QDir().mkdir(crashReportDirPath)) {
         // logging
         const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
