@@ -26,7 +26,8 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_completionListView->setMinimumWidth(400);
     m_completionListView->setObjectName("completionListView");
     m_completionListView->setModel(m_completionModel);
-    connect(m_completionListView, &QListView::clicked, this, &CompletionTooltip::codeComplete);
+    connect(m_completionListView, &QListView::doubleClicked, this, &CompletionTooltip::codeComplete);
+    connect(m_completionListView->selectionModel(), &QItemSelectionModel::currentChanged, this, &CompletionTooltip::labelShow);
     // stylesheets
     setStyleSheet(
         "#completionTooltip { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
@@ -93,7 +94,6 @@ void CompletionTooltip::tooltipShow(const QJsonArray &items) {
         const int rowCount = m_completionModel->rowCount();
         const int totalHeight = rowHeight * rowCount;
         show();
-        labelShow();
         QTimer::singleShot(0, this, [this, totalHeight] {
             m_completionListView->setFixedHeight(totalHeight);
             adjustSize();
@@ -142,6 +142,12 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
                 return false;
         }
     }
+    if (event->type() == QEvent::MouseButtonPress) {
+        const auto *mouseEvent = static_cast<QMouseEvent *>(event);
+        if (!geometry().contains(mapFromGlobal(mouseEvent->globalPosition().toPoint()))) {
+            tooltipHide();
+        }
+    }
     return QWidget::eventFilter(obj, event);
 }
 
@@ -151,20 +157,18 @@ void CompletionTooltip::hideEvent(QHideEvent *event) {
 }
 
 // CompletionTooltip private
-void CompletionTooltip::moveUp() {
+void CompletionTooltip::moveUp() const {
     const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid() || currentIndex.row() == 0) return;
     const QModelIndex prev = m_completionModel->index(currentIndex.row() - 1, 0);
     m_completionListView->setCurrentIndex(prev);
-    labelShow();
 }
 
-void CompletionTooltip::moveDown() {
+void CompletionTooltip::moveDown() const {
     const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid() || currentIndex.row() == m_completionModel->rowCount() - 1) return;
     const QModelIndex next = m_completionModel->index(currentIndex.row() + 1, 0);
     m_completionListView->setCurrentIndex(next);
-    labelShow();
 }
 
 void CompletionTooltip::codeComplete() {
@@ -173,16 +177,16 @@ void CompletionTooltip::codeComplete() {
     const int kind = m_completionModel->data(currentIndex, Qt::UserRole + 1).toInt();
     QString insertText = m_completionModel->data(currentIndex, Qt::DisplayRole).toString();
     if (!insertText.isEmpty()) emit completeCode(insertText, kind);
+    tooltipHide();
 }
 
-void CompletionTooltip::labelShow() {
-    const QModelIndex currentIndex = m_completionListView->currentIndex();
+void CompletionTooltip::labelShow(const QModelIndex &currentIndex, const QModelIndex &previousIndex) const {
     if (!currentIndex.isValid()) return;
     const QString label = m_completionModel->data(currentIndex, Qt::UserRole + 2).toString();
     m_completionLabel->setText(label);
     m_completionLabel->show();
-    QTimer::singleShot(0, this, [this, currentIndex] {
-        const int y = m_completionListView->visualRect(currentIndex).top() + 4;
+    const int y = m_completionListView->visualRect(currentIndex).top() + 4;
+    QTimer::singleShot(0, this, [this, y] {
         m_completionLabel->adjustSize();
         m_completionLabel->move(mapToGlobal(QPoint(width(), y)));
     });

@@ -663,8 +663,6 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
 
 // ScriptModule private
 void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
-    m_completionTooltip->tooltipHide();
-    m_signatureHelpTooltip->tooltipHide();
     if (status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);

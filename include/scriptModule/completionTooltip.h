@@ -30,13 +30,13 @@ protected:
     void hideEvent(QHideEvent *event) override;
 
 private:
-    void moveUp();
+    void moveUp() const;
 
-    void moveDown();
+    void moveDown() const;
 
     void codeComplete();
 
-    void labelShow();
+    void labelShow(const QModelIndex &currentIndex, const QModelIndex &previousIndex) const;
 
     QListView *m_completionListView;
     QStandardItemModel *m_completionModel{};
