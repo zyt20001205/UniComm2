@@ -11,17 +11,17 @@
 
 // HoverTooltip public
 HoverTooltip::HoverTooltip(QWidget *parent)
-    : QWidget(parent),
+    : QWidget(parent, Qt::ToolTip),
       m_diagnosticTextBrowser(new QTextBrowser(this)),
       m_hoverTextBrowser(new QTextBrowser(this)),
       m_suggestionMenu(new QMenu(this)) {
     setAttribute(Qt::WA_StyledBackground, true);
     setObjectName("hoverTooltip");
-    setWindowFlags(Qt::ToolTip);
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(1, 1, 1, 1);
     layout->setSpacing(0);
     layout->addWidget(m_diagnosticTextBrowser);
+    m_diagnosticTextBrowser->setFocusPolicy(Qt::NoFocus);
     m_diagnosticTextBrowser->setFont(QFont("Segoe UI", 10));
     m_diagnosticTextBrowser->setObjectName("diagnosticTextBrowser");
     m_diagnosticTextBrowser->setOpenExternalLinks(false);

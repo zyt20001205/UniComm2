@@ -21,6 +21,10 @@ set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
 
 set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
 
+set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark-0.31.1")
+set(CMARK_INCLUDE_DIR "${CMARK_DIR}/include")
+set(CMARK_DLL "${CMARK_DIR}/bin/libcmark.dll")
+
 set(ICU4C_DIR "${CMAKE_SOURCE_DIR}/3rd/icu4c-77.1")
 set(ICU4C_INCLUDE_DIR "${ICU4C_DIR}/include")
 file(GLOB ICU4C_DLLS "${ICU4C_DIR}/bin/*.dll")
@@ -259,6 +263,7 @@ target_link_libraries(UniComm PRIVATE
         Qt::TextToSpeech
         ${DRMINGW_DLLS}
         ${LUA_DLL}
+        ${CMARK_DLL}
         ${ICU4C_DLLS}
         ${NUSPELL_DLL}
         ${KDDOCKWIDGETS_DLL}
@@ -274,6 +279,7 @@ target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE_DIR}
         ${DRMINGW_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
+        ${CMARK_INCLUDE_DIR}
         ${ICU4C_INCLUDE_DIR}
         ${NUSPELL_INCLUDE_DIR}
         ${KDDOCKWIDGETS_INCLUDE_DIR}
@@ -396,6 +402,13 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "${LUA_LANGUAGE_SERVER_DIR}"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
+    endif ()
+
+    if (EXISTS "${CMARK_DLL}")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMARK_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endif ()
 
     file(GLOB ICU4C_DLLS "${ICU4C_DIR}/bin/*.dll")

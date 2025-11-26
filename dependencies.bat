@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set "EXE_PATH=cmake-build-release-mingw64\UniComm.exe"
+set "EXE_PATH=cmake-build-debug-mingw64\UniComm.exe"
 set "MSYS2_PATH=C:\msys64\mingw64\bin"
 set "OUTPUT_PATH=3rd\misc\bin"
 

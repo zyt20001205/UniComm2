@@ -28,8 +28,8 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
       m_resetButton(new QPushButton(this)),
       m_completionLabel(new QLabel(nullptr, Qt::ToolTip)) {
     setAttribute(Qt::WA_StyledBackground, true);
-    setWindowFlag(Qt::WindowDoesNotAcceptFocus, true);
     setObjectName("completionTooltip");
+    setWindowFlag(Qt::WindowDoesNotAcceptFocus, true);
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setAlignment(Qt::AlignTop);
     layout->setContentsMargins(1, 1, 1, 1);
@@ -42,69 +42,73 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_completionListView->setMinimumWidth(400);
     m_completionListView->setObjectName("completionListView");
     m_completionListView->setModel(m_filterProxyModel);
+    connect(m_completionListView, &QListView::clicked, this, &CompletionTooltip::labelShow);
     connect(m_completionListView, &QListView::doubleClicked, this, &CompletionTooltip::codeComplete);
     layout->addStretch();
-    layout->addWidget(m_filterWidget);
-    m_filterWidget->setObjectName("filterWidget");
-    m_filterWidget->setFixedHeight(24);
-    auto *filterLayout = new QHBoxLayout(m_filterWidget); // NOLINT
-    filterLayout->setContentsMargins(0, 0, 0, 0);
-    filterLayout->setSpacing(1);
-    filterLayout->addWidget(m_textButton);
-    m_textButton->setCheckable(true);
-    m_textButton->setFixedSize(QSize(24, 24));
-    m_textButton->setIcon(QIcon(":/icon/symbolString.svg"));
-    m_textButton->setToolTip(tr("text"));
-    connect(m_textButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_TEXT, m_textButton);
-    filterLayout->addWidget(m_functionButton);
-    m_functionButton->setCheckable(true);
-    m_functionButton->setFixedSize(QSize(24, 24));
-    m_functionButton->setIcon(QIcon(":/icon/symbolMethod.svg"));
-    m_functionButton->setToolTip(tr("function"));
-    connect(m_functionButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_FUNCTION, m_functionButton);
-    filterLayout->addWidget(m_fieldButton);
-    m_fieldButton->setCheckable(true);
-    m_fieldButton->setFixedSize(QSize(24, 24));
-    m_fieldButton->setIcon(QIcon(":/icon/symbolField.svg"));
-    m_fieldButton->setToolTip(tr("field"));
-    connect(m_fieldButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_FIELD, m_fieldButton);
-    filterLayout->addWidget(m_variableButton);
-    m_variableButton->setCheckable(true);
-    m_variableButton->setFixedSize(QSize(24, 24));
-    m_variableButton->setIcon(QIcon(":/icon/symbolVariable.svg"));
-    m_variableButton->setToolTip(tr("variable"));
-    connect(m_variableButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_VARIABLE, m_variableButton);
-    filterLayout->addWidget(m_enumButton);
-    m_enumButton->setCheckable(true);
-    m_enumButton->setFixedSize(QSize(24, 24));
-    m_enumButton->setIcon(QIcon(":/icon/symbolEnum.svg"));
-    m_enumButton->setToolTip(tr("enum"));
-    connect(m_enumButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_ENUM, m_enumButton);
-    filterLayout->addWidget(m_keywordButton);
-    m_keywordButton->setCheckable(true);
-    m_keywordButton->setFixedSize(QSize(24, 24));
-    m_keywordButton->setIcon(QIcon(":/icon/symbolKeyword.svg"));
-    m_keywordButton->setToolTip(tr("keyword"));
-    connect(m_keywordButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_KEYWORD, m_keywordButton);
-    filterLayout->addWidget(m_enummemberButton);
-    m_enummemberButton->setCheckable(true);
-    m_enummemberButton->setFixedSize(QSize(24, 24));
-    m_enummemberButton->setIcon(QIcon(":/icon/symbolEnumMember.svg"));
-    m_enummemberButton->setToolTip(tr("enum member"));
-    connect(m_enummemberButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
-    m_filterButtonHash.insert(COMPLETION_KIND_ENUMMEMBER, m_enummemberButton);
-    filterLayout->addStretch();
-    filterLayout->addWidget(m_resetButton);
-    m_resetButton->setFixedSize(QSize(24, 24));
-    m_resetButton->setIcon(QIcon(":/icon/reset.svg"));
-    m_resetButton->setToolTip(tr("reset filter"));
-    connect(m_resetButton, &QPushButton::clicked, this, &CompletionTooltip::filterInit);
+    // completion filter
+    {
+        layout->addWidget(m_filterWidget);
+        m_filterWidget->setObjectName("filterWidget");
+        m_filterWidget->setFixedHeight(24);
+        auto *filterLayout = new QHBoxLayout(m_filterWidget); // NOLINT
+        filterLayout->setContentsMargins(0, 0, 0, 0);
+        filterLayout->setSpacing(1);
+        filterLayout->addWidget(m_textButton);
+        m_textButton->setCheckable(true);
+        m_textButton->setFixedSize(QSize(24, 24));
+        m_textButton->setIcon(QIcon(":/icon/symbolString.svg"));
+        m_textButton->setToolTip(tr("text"));
+        connect(m_textButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_TEXT, m_textButton);
+        filterLayout->addWidget(m_functionButton);
+        m_functionButton->setCheckable(true);
+        m_functionButton->setFixedSize(QSize(24, 24));
+        m_functionButton->setIcon(QIcon(":/icon/symbolMethod.svg"));
+        m_functionButton->setToolTip(tr("function"));
+        connect(m_functionButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_FUNCTION, m_functionButton);
+        filterLayout->addWidget(m_fieldButton);
+        m_fieldButton->setCheckable(true);
+        m_fieldButton->setFixedSize(QSize(24, 24));
+        m_fieldButton->setIcon(QIcon(":/icon/symbolField.svg"));
+        m_fieldButton->setToolTip(tr("field"));
+        connect(m_fieldButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_FIELD, m_fieldButton);
+        filterLayout->addWidget(m_variableButton);
+        m_variableButton->setCheckable(true);
+        m_variableButton->setFixedSize(QSize(24, 24));
+        m_variableButton->setIcon(QIcon(":/icon/symbolVariable.svg"));
+        m_variableButton->setToolTip(tr("variable"));
+        connect(m_variableButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_VARIABLE, m_variableButton);
+        filterLayout->addWidget(m_enumButton);
+        m_enumButton->setCheckable(true);
+        m_enumButton->setFixedSize(QSize(24, 24));
+        m_enumButton->setIcon(QIcon(":/icon/symbolEnum.svg"));
+        m_enumButton->setToolTip(tr("enum"));
+        connect(m_enumButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_ENUM, m_enumButton);
+        filterLayout->addWidget(m_keywordButton);
+        m_keywordButton->setCheckable(true);
+        m_keywordButton->setFixedSize(QSize(24, 24));
+        m_keywordButton->setIcon(QIcon(":/icon/symbolKeyword.svg"));
+        m_keywordButton->setToolTip(tr("keyword"));
+        connect(m_keywordButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_KEYWORD, m_keywordButton);
+        filterLayout->addWidget(m_enummemberButton);
+        m_enummemberButton->setCheckable(true);
+        m_enummemberButton->setFixedSize(QSize(24, 24));
+        m_enummemberButton->setIcon(QIcon(":/icon/symbolEnumMember.svg"));
+        m_enummemberButton->setToolTip(tr("enum member"));
+        connect(m_enummemberButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_ENUMMEMBER, m_enummemberButton);
+        filterLayout->addStretch();
+        filterLayout->addWidget(m_resetButton);
+        m_resetButton->setFixedSize(QSize(24, 24));
+        m_resetButton->setIcon(QIcon(":/icon/reset.svg"));
+        m_resetButton->setToolTip(tr("reset filter"));
+        connect(m_resetButton, &QPushButton::clicked, this, &CompletionTooltip::filterInit);
+    }
     // stylesheets
     setStyleSheet(
         "#completionTooltip { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
@@ -313,7 +317,7 @@ void CompletionTooltip::labelShow() const {
     const QString label = m_completionModel->data(sourceIndex, Qt::UserRole + 2).toString();
     m_completionLabel->setText(label);
     m_completionLabel->show();
-    const int y = m_completionListView->visualRect(currentIndex).top() + 1;
+    const int y = m_completionListView->visualRect(currentIndex).top();
     QTimer::singleShot(0, this, [this, y] {
         m_completionLabel->adjustSize();
         m_completionLabel->move(mapToGlobal(QPoint(width(), y)));
