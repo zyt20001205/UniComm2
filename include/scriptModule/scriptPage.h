@@ -98,7 +98,7 @@ signals:
 
     void leaveDwell();
 
-    void showPositionTooltip();
+    void showPositionWidget();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

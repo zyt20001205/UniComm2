@@ -14,9 +14,6 @@ class QTextBrowser;
 class CodeAssistant;
 class ScriptPage;
 class ScriptEditor;
-class CompletionWidget;
-class GotoPopup;
-class PositionTooltip;
 class SignatureHelpTooltip;
 
 class ScriptModule final : public QObject {
@@ -153,6 +150,8 @@ private:
 
     void scriptClose(const QUrl &scriptUrl);
 
+    void textInsert(const QUrl &scriptUrl, const QString &text, int line, int index);
+
     void textReplace(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     void charAdd(const QUrl &scriptUrl, QChar character) const;
@@ -161,8 +160,6 @@ private:
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};
-    GotoPopup *m_gotoPopup{};
-    PositionTooltip *m_positionTooltip{};
     SignatureHelpTooltip *m_signatureHelpTooltip{};
 };
 

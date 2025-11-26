@@ -109,6 +109,9 @@ CompletionWidget::CompletionWidget(QWidget *parent)
         m_resetButton->setToolTip(tr("reset filter"));
         connect(m_resetButton, &QPushButton::clicked, this, [this] {filterInit(COMPLETION_MODE_FULL);});
     }
+    m_completionLabel->setAttribute(Qt::WA_StyledBackground, true);
+    m_completionLabel->setFont(QFont("Consolas", 12));
+    m_completionLabel->setObjectName("completionLabel");
     // stylesheets
     setStyleSheet(
         "#completionWidget { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
@@ -116,9 +119,6 @@ CompletionWidget::CompletionWidget(QWidget *parent)
         "#filterWidget { background-color: #fafafa; border: none; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; padding: 0px; }"
         "#filterWidget QPushButton { border: none; background-color: #fafafa; border-radius: 8px; padding: 4px; }"
         "#filterWidget QPushButton:checked { background-color: #cccccc; }");
-    m_completionLabel->setAttribute(Qt::WA_StyledBackground, true);
-    m_completionLabel->setFont(QFont("Consolas", 12));
-    m_completionLabel->setObjectName("completionLabel");
     m_completionLabel->setStyleSheet("#completionLabel { background-color: white; border: 1px solid #cccccc; border-radius: 10px; padding: 2px; }");
 }
 
@@ -234,7 +234,12 @@ void CompletionWidget::textReplace() {
             return;
         }
         if (insertText == "\"Position Hint\"") {
-            // emit showPositionTooltip();
+            const QVariantMap gotoSession = {
+                {"scriptUrl", m_completionSession["scriptUrl"].toUrl()},
+                {"line", m_completionSession["line"].toInt()},
+                {"index", m_completionSession["indexFrom"].toInt() + insertText.length() - 1}
+            };
+            emit showPosition(gotoSession);
             return;
         }
         insertText.replace("\\", "\\\\");

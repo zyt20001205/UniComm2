@@ -7,8 +7,6 @@
 #include "globals.h"
 #include "luaModule/luaControl.h"
 #include "portModule/portModule.h"
-#include "scriptModule/gotoPopup.h"
-#include "scriptModule/positionTooltip.h"
 #include "scriptModule/scriptEditor.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/signatureHelpTooltip.h"
@@ -21,8 +19,6 @@ ScriptModule::ScriptModule(QWidget *parent)
       m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)),
-      m_gotoPopup(new GotoPopup(parent)),
-      m_positionTooltip(new PositionTooltip(parent)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(parent)) {
     m_welcomePage->setObjectName("welcomePage");
     const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
@@ -39,15 +35,14 @@ ScriptModule::ScriptModule(QWidget *parent)
         scriptOpen(QUrl(value.toString()));
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
-    connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
-    connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
+    connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
+    connect(m_codeAssistant, &CodeAssistant::insertText, this, &ScriptModule::textInsert);
+    connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
+    connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_codeAssistant, &CodeAssistant::insertPort, this, &ScriptModule::insertPort);
     connect(m_codeAssistant, &CodeAssistant::insertDatabase, this, &ScriptModule::insertDatabase);
     connect(m_codeAssistant, &CodeAssistant::insertDatatable, this, &ScriptModule::insertDatatable);
-    connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
-    connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
-    // connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::nextCompletionRequest);
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -224,8 +219,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::showDiagnosticDwell, m_codeAssistant, &CodeAssistant::dwellShowDiagnostic);
         connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
         connect(scriptPage, &ScriptPage::leaveDwell, m_codeAssistant, &CodeAssistant::dwellLeave);
-        connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::tooltipShow);
-        scriptPage->m_scriptEditor->installEventFilter(m_codeAssistant);
+        qApp->installEventFilter(m_codeAssistant);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
             m_welcomePage->open();
@@ -378,13 +372,18 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // get goto display position
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_gotoPopup->popupShowDefinition(definitions);
-    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    // call goto show
+    const QVariantMap gotoSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->gotoShowDefinition(gotoSession, definitions);
 }
 
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
@@ -507,13 +506,18 @@ void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArra
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // get goto display position
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_gotoPopup->popupShowImplementation(implementations);
-    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    // call goto show
+    const QVariantMap gotoSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->gotoShowImplementation(gotoSession, implementations);
 }
 
 void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character) {
@@ -574,13 +578,18 @@ void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &r
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // get goto display position
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_gotoPopup->popupShowReferences(references);
-    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    // call goto show
+    const QVariantMap gotoSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->gotoShowReferences(gotoSession, references);
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
@@ -662,13 +671,18 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long startPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, startPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, startPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // get goto display position
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_gotoPopup->popupShowTypeDefinition(typeDefinitions);
-    m_gotoPopup->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() + lineHeight);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    // call goto show
+    const QVariantMap gotoSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->gotoShowTypeDefinition(gotoSession, typeDefinitions);
 }
 
 // ScriptModule private
@@ -694,6 +708,12 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
         m_focusedPage = begin.value();
     }
     emit closeScript(scriptUrl);
+}
+
+void ScriptModule::textInsert(const QUrl &scriptUrl, const QString &text, const int line, const int index) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_scriptEditor->textInsert(text, line, index);
 }
 
 void ScriptModule::textReplace(const QUrl &scriptUrl, const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {

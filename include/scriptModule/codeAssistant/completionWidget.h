@@ -40,6 +40,8 @@ signals:
 
     void insertDatatable();
 
+    void showPosition(const QVariantMap &positionSession);
+
 protected:
     void hideEvent(QHideEvent *event) override;
 
