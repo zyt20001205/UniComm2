@@ -99,11 +99,11 @@ signals:
 
     void fullCompletionTooltip(bool status);
 
-    void showDiagnosticTooltip(const QUrl &scriptUrl, const QString &message);
+    void showDiagnosticDwell(const QUrl &scriptUrl, const QString &message);
 
-    void hideHoverTooltip();
+    void hideDwell();
 
-    void leaveHoverTooltip();
+    void leaveDwell();
 
     void showPositionTooltip();
 

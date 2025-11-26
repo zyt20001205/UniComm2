@@ -105,7 +105,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
         include/scriptModule/gotoPopup.h
-        include/scriptModule/hoverTooltip.h
         include/scriptModule/nuspellModule.h
         include/scriptModule/positionTooltip.h
         include/scriptModule/scriptEditor.h
@@ -115,6 +114,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/structureModule.h
         include/scriptModule/threadpoolModule.h
         include/scriptModule/welcomePage.h
+        include/scriptModule/codeAssistant/codeAssistant.h
+        include/scriptModule/codeAssistant/dwellWidget.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
         include/settingModule/indicatorSettingScript.h
@@ -159,7 +160,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp
         src/scriptModule/gotoPopup.cpp
-        src/scriptModule/hoverTooltip.cpp
         src/scriptModule/nuspellModule.cpp
         src/scriptModule/positionTooltip.cpp
         src/scriptModule/scriptEditor.cpp
@@ -169,6 +169,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/structureModule.cpp
         src/scriptModule/threadpoolModule.cpp
         src/scriptModule/welcomePage.cpp
+        src/scriptModule/codeAssistant/codeAssistant.cpp
+        src/scriptModule/codeAssistant/dwellWidget.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
         src/settingModule/indicatorSettingScript.cpp

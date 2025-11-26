@@ -9,22 +9,24 @@
 #include "portModule/portModule.h"
 #include "scriptModule/completionTooltip.h"
 #include "scriptModule/gotoPopup.h"
-#include "scriptModule/hoverTooltip.h"
 #include "scriptModule/positionTooltip.h"
 #include "scriptModule/scriptEditor.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"
+#include "scriptModule/codeAssistant/codeAssistant.h"
+#include "scriptModule/codeAssistant/dwellWidget.h"
 
 // ScriptModule public
-ScriptModule::ScriptModule()
-    : m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
+ScriptModule::ScriptModule(QWidget *parent)
+    : QObject(parent),
+      m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
-      m_completionTooltip(new CompletionTooltip(g_mainWindow)),
-      m_gotoPopup(new GotoPopup(g_mainWindow)),
-      m_hoverTooltip(new HoverTooltip(g_mainWindow)),
-      m_positionTooltip(new PositionTooltip(g_mainWindow)),
-      m_signatureHelpTooltip(new SignatureHelpTooltip(g_mainWindow)) {
+      m_codeAssistant(new CodeAssistant(parent)),
+      m_completionTooltip(new CompletionTooltip(parent)),
+      m_gotoPopup(new GotoPopup(parent)),
+      m_positionTooltip(new PositionTooltip(parent)),
+      m_signatureHelpTooltip(new SignatureHelpTooltip(parent)) {
     m_welcomePage->setObjectName("welcomePage");
     const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
     for (const auto &key: breakpointHash.keys()) {
@@ -41,7 +43,7 @@ ScriptModule::ScriptModule()
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_completionTooltip, &CompletionTooltip::completeCode, this, &ScriptModule::codeComplete);
-    connect(m_hoverTooltip, &HoverTooltip::replaceText, this, qOverload<const QUrl &, const QString &, int, int, int, int>(&ScriptModule::textReplace));
+    connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
     connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
     connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::codeComplete);
@@ -222,9 +224,9 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
-        connect(scriptPage, &ScriptPage::showDiagnosticTooltip, m_hoverTooltip, &HoverTooltip::tooltipShowDiagnostic);
-        connect(scriptPage, &ScriptPage::hideHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipHide);
-        connect(scriptPage, &ScriptPage::leaveHoverTooltip, m_hoverTooltip, &HoverTooltip::tooltipLeave);
+        connect(scriptPage, &ScriptPage::showDiagnosticDwell, m_codeAssistant, &CodeAssistant::dwellShowDiagnostic);
+        connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
+        connect(scriptPage, &ScriptPage::leaveDwell, m_codeAssistant, &CodeAssistant::dwellLeave);
         connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::tooltipShow);
         scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
@@ -470,7 +472,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 }
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
-    m_hoverTooltip->tooltipShowHover(message);
+    m_codeAssistant->dwellShowHover(message);
 }
 
 void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, const int character) {

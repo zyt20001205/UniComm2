@@ -171,8 +171,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scriptEditor, &ScriptEditor::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestIdle, this, &ScriptPage::idleRequest);
-    connect(m_scriptEditor, &ScriptEditor::hideHoverTooltip, this, &ScriptPage::hideHoverTooltip);
-    connect(m_scriptEditor, &ScriptEditor::leaveHoverTooltip, this, &ScriptPage::leaveHoverTooltip);
+    connect(m_scriptEditor, &ScriptEditor::hideDwellWidget, this, &ScriptPage::hideDwell);
+    connect(m_scriptEditor, &ScriptEditor::leaveDwellWidget, this, &ScriptPage::leaveDwell);
     connect(m_scriptEditor, &ScriptEditor::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_scriptEditor, &ScriptEditor::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_scriptEditor, &ScriptEditor::requestFormatting, this, &ScriptPage::formattingRequest);
@@ -782,7 +782,7 @@ void ScriptPage::hoverRequest() {
     }
     if (diagnosticText != "<table width='100%'>") {
         diagnosticText += "</table>";
-        emit showDiagnosticTooltip(m_scriptUrl, diagnosticText);
+        emit showDiagnosticDwell(m_scriptUrl, diagnosticText);
     }
     // hover request to script module
     emit requestHover(m_scriptUrl, line, character);

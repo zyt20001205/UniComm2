@@ -1,26 +1,26 @@
-#ifndef UNICOMM_HOVERTOOLTIP_H
-#define UNICOMM_HOVERTOOLTIP_H
+#ifndef UNICOMM_DWELLWIDGET_H
+#define UNICOMM_DWELLWIDGET_H
 
 #include <QUrl>
 #include <QWidget>
 
 class QTextBrowser;
 
-class HoverTooltip final : public QWidget {
+class DwellWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit HoverTooltip(QWidget *parent = nullptr);
+    explicit DwellWidget(QWidget *parent = nullptr);
 
-    ~HoverTooltip() override = default;
+    ~DwellWidget() override = default;
 
-    void tooltipLeave();
+    void dwellLeave();
 
-    void tooltipShowDiagnostic(const QUrl &scriptUrl, const QString &message);
+    void dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message);
 
-    void tooltipShowHover(const QString &message);
+    void dwellShowHover(const QString &message);
 
-    void tooltipHide();
+    void dwellHide();
 
 signals:
     void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
@@ -32,9 +32,9 @@ protected:
 
     void leaveEvent(QEvent *event) override;
 
-    void toolTipShowSuggestions(const QStringList &suggestions);
-
 private:
+    void dwellShowSuggestions(const QStringList &suggestions);
+
     QTextBrowser *m_diagnosticTextBrowser{};
     QTextBrowser *m_hoverTextBrowser{};
     QMenu *m_suggestionMenu{};
@@ -46,4 +46,4 @@ private:
     int m_indexTo{};
 };
 
-#endif //UNICOMM_HOVERTOOLTIP_H
+#endif //UNICOMM_DWELLWIDGET_H

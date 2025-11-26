@@ -54,9 +54,9 @@ signals:
 
     void requestIdle();
 
-    void hideHoverTooltip();
+    void hideDwellWidget();
 
-    void leaveHoverTooltip();
+    void leaveDwellWidget();
 
     void requestDefinition();
 

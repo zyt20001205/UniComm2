@@ -1,6 +1,5 @@
-#include "scriptModule/hoverTooltip.h"
+#include "scriptModule/codeAssistant/dwellWidget.h"
 
-#include <QEvent>
 #include <QMenu>
 #include <QTextBrowser>
 #include <QTimer>
@@ -9,14 +8,14 @@
 #include "globals.h"
 #include "scriptModule/nuspellModule.h"
 
-// HoverTooltip public
-HoverTooltip::HoverTooltip(QWidget *parent)
+// DwellWidget public
+DwellWidget::DwellWidget(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
       m_diagnosticTextBrowser(new QTextBrowser(this)),
       m_hoverTextBrowser(new QTextBrowser(this)),
       m_suggestionMenu(new QMenu(this)) {
     setAttribute(Qt::WA_StyledBackground, true);
-    setObjectName("hoverTooltip");
+    setObjectName("dwellWidget");
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setContentsMargins(1, 1, 1, 1);
     layout->setSpacing(0);
@@ -38,7 +37,7 @@ HoverTooltip::HoverTooltip(QWidget *parent)
             m_lineTo = arguments[3].toInt();
             m_indexTo = arguments[4].toInt();
             const QStringList suggestions = g_nuspell->spellSuggestRequest(word);
-            toolTipShowSuggestions(suggestions);
+            dwellShowSuggestions(suggestions);
         }
     });
     layout->addWidget(m_hoverTextBrowser);
@@ -49,18 +48,18 @@ HoverTooltip::HoverTooltip(QWidget *parent)
     m_hoverTextBrowser->hide();
     // stylesheets
     setStyleSheet(
-        "#hoverTooltip { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
+        "#dwellWidget { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
         "#diagnosticTextBrowser { background-color: white; border: none; border-top-left-radius: 9px; border-top-right-radius: 9px; padding: 10px;}"
         "#hoverTextBrowser { background-color: #fafafa; border: none; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; padding: 10px; }");
 }
 
-void HoverTooltip::tooltipLeave() {
+void DwellWidget::dwellLeave() {
     QTimer::singleShot(200, this, [this] {
-        if (isVisible() && !geometry().contains(QCursor::pos())) tooltipHide();
+        if (isVisible() && !geometry().contains(QCursor::pos())) dwellHide();
     });
 }
 
-void HoverTooltip::tooltipShowDiagnostic(const QUrl &scriptUrl, const QString &message) {
+void DwellWidget::dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message) {
     m_scriptUrl = scriptUrl;
     m_diagnosticTextBrowser->setHtml(message);
     m_diagnosticTextBrowser->document()->setTextWidth(600);
@@ -74,7 +73,7 @@ void HoverTooltip::tooltipShowDiagnostic(const QUrl &scriptUrl, const QString &m
     });
 }
 
-void HoverTooltip::tooltipShowHover(const QString &message) {
+void DwellWidget::dwellShowHover(const QString &message) {
     m_hoverTextBrowser->setMarkdown(message);
     m_hoverTextBrowser->document()->setTextWidth(600);
     m_hoverTextBrowser->setFixedWidth(600 + 20);
@@ -87,35 +86,35 @@ void HoverTooltip::tooltipShowHover(const QString &message) {
     });
 }
 
-void HoverTooltip::tooltipHide() {
+void DwellWidget::dwellHide() {
     hide();
 }
 
-// HoverTooltip protected
-void HoverTooltip::enterEvent(QEnterEvent *event) {
+// DwellWidget protected
+void DwellWidget::enterEvent(QEnterEvent *event) {
     QWidget::enterEvent(event);
 }
 
-void HoverTooltip::hideEvent(QHideEvent *event) {
+void DwellWidget::hideEvent(QHideEvent *event) {
     m_diagnosticTextBrowser->hide();
     m_hoverTextBrowser->hide();
     QWidget::hideEvent(event);
 }
 
-void HoverTooltip::leaveEvent(QEvent *event) {
+void DwellWidget::leaveEvent(QEvent *event) {
     if (m_suggestionMenu->isVisible()) return;
-    tooltipHide();
+    dwellHide();
     QWidget::leaveEvent(event);
 }
 
-// HoverTooltip private
-void HoverTooltip::toolTipShowSuggestions(const QStringList &suggestions) {
+// DwellWidget private
+void DwellWidget::dwellShowSuggestions(const QStringList &suggestions) {
     m_suggestionMenu->clear();
     for (const auto &suggestion: suggestions) {
         const auto suggestionAction = new QAction(suggestion, m_suggestionMenu); // NOLINT
         connect(suggestionAction, &QAction::triggered, this, [this, suggestion] {
             emit replaceText(m_scriptUrl ,suggestion, m_lineFrom, m_indexFrom, m_lineTo, m_indexTo);
-            tooltipHide();
+            dwellHide();
         });
         m_suggestionMenu->addAction(suggestionAction);
     }

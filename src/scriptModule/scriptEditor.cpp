@@ -306,7 +306,7 @@ void ScriptEditor::focusOutEvent(QFocusEvent *event) {
 
 void ScriptEditor::keyPressEvent(QKeyEvent *event) {
     m_dwellTimer->stop();
-    emit hideHoverTooltip();
+    emit hideDwellWidget();
     if (isReadOnly()) {
         emit requestPermission();
         event->accept();
@@ -360,7 +360,7 @@ void ScriptEditor::mouseMoveEvent(QMouseEvent *event) {
     if (wordStart != m_currentWord.wordStart || wordEnd != m_currentWord.wordEnd) {
         m_currentWord.wordStart = wordStart;
         m_currentWord.wordEnd = wordEnd;
-        emit leaveHoverTooltip();
+        emit leaveDwellWidget();
         m_dwellTimer->start();
     }
     if (event->modifiers() == Qt::ControlModifier) {

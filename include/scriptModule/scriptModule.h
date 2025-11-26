@@ -11,11 +11,11 @@ class QTableWidget;
 class QTabWidget;
 class QTextBrowser;
 
+class CodeAssistant;
 class ScriptPage;
 class ScriptEditor;
 class CompletionTooltip;
 class GotoPopup;
-class HoverTooltip;
 class PositionTooltip;
 class SignatureHelpTooltip;
 
@@ -23,7 +23,7 @@ class ScriptModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit ScriptModule();
+    explicit ScriptModule(QWidget *parent = nullptr);
 
     ~ScriptModule() override = default;
 
@@ -98,7 +98,7 @@ public:
     void onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character);
 
     void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const;
-    
+
     void referencesRequest(const QUrl &scriptUrl, int line, int character);
 
     void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const;
@@ -160,9 +160,9 @@ private:
     QJsonObject m_scriptConfig{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
+    CodeAssistant *m_codeAssistant{};
     CompletionTooltip *m_completionTooltip{};
     GotoPopup *m_gotoPopup{};
-    HoverTooltip *m_hoverTooltip{};
     PositionTooltip *m_positionTooltip{};
     SignatureHelpTooltip *m_signatureHelpTooltip{};
 };
