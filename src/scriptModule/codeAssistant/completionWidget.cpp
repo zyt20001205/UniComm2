@@ -237,7 +237,7 @@ void CompletionWidget::textReplace() {
             const QVariantMap gotoSession = {
                 {"scriptUrl", m_completionSession["scriptUrl"].toUrl()},
                 {"line", m_completionSession["line"].toInt()},
-                {"index", m_completionSession["indexFrom"].toInt() + insertText.length() - 1}
+                {"index", m_completionSession["indexFrom"].toInt()}
             };
             emit showPosition(gotoSession);
             return;
