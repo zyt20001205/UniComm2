@@ -760,7 +760,7 @@ void ScriptPage::hoverRequest() {
             // remove <p>             </p>\n
             QString parsed = QString::fromUtf8(html);
             parsed = parsed.mid(3, parsed.size() - 7 - 1);
-            qDebug() << message << parsed;
+            // qDebug() << message << parsed;
             diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td></td></tr>").arg(severityString, parsed);
         }
     }
