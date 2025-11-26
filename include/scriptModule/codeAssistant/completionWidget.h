@@ -9,43 +9,50 @@ class QListView;
 class QPushButton;
 class QStandardItemModel;
 
-class CompletionTooltip final : public QWidget {
+class CompletionWidget final : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CompletionTooltip(QWidget *parent = nullptr);
+    explicit CompletionWidget(QWidget *parent = nullptr);
 
-    ~CompletionTooltip() override = default;
+    ~CompletionWidget() override = default;
 
-    void tooltipShow(const QJsonArray &items);
+    void completionShow(const QVariantMap &completionSession, const QJsonArray &items);
 
-    void tooltipHide();
+    void completionHide();
 
-    void tooltipFull(bool status);
+    void completionPrev() const;
+
+    void completionNext() const;
+
+    void textReplace();
 
 signals:
-    void completeCode(QString &text, int kind);
+    void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
+
+    void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+
+    void addChar(const QUrl &scriptUrl, QChar character);
+
+    void insertPort();
+
+    void insertDatabase();
+
+    void insertDatatable();
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
     void hideEvent(QHideEvent *event) override;
 
 private:
-    void moveUp() const;
-
-    void moveDown() const;
-
-    void codeComplete();
-
     void filterClear() const;
 
-    void filterInit();
+    void filterInit(int mode);
 
     void filterSet(bool status);
 
     void labelShow() const;
 
+    QVariantMap m_completionSession{};
     QListView *m_completionListView{};
     QStandardItemModel *m_completionModel{};
     QSortFilterProxyModel *m_filterProxyModel{};
@@ -61,7 +68,11 @@ private:
     QPushButton *m_enummemberButton{};
     QPushButton *m_resetButton{};
     QLabel *m_completionLabel{};
-    bool m_fullComplete = false;
+
+    enum {
+        COMPLETION_MODE_FULL,
+        COMPLETION_MODE_SIMPLE
+    };
 };
 
 #endif //UNICOMM_COMPLETIONPOPUP_H

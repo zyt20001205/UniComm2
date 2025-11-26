@@ -140,6 +140,11 @@ enum {
 };
 
 enum {
+    COMPLETION_MODE_FUNCTION,
+    COMPLETION_MODE_ARGUMENT,
+};
+
+enum {
     RAW,
     GAUSSIANBLUR,
     THRESHOLD,

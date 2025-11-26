@@ -100,7 +100,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
         include/portModule/visa.h
-        include/scriptModule/completionTooltip.h
         include/scriptModule/debugModule.h
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
@@ -115,6 +114,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/threadpoolModule.h
         include/scriptModule/welcomePage.h
         include/scriptModule/codeAssistant/codeAssistant.h
+        include/scriptModule/codeAssistant/completionWidget.h
         include/scriptModule/codeAssistant/dwellWidget.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
@@ -155,7 +155,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
         src/portModule/visa.cpp
-        src/scriptModule/completionTooltip.cpp
         src/scriptModule/debugModule.cpp
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp
@@ -170,6 +169,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/threadpoolModule.cpp
         src/scriptModule/welcomePage.cpp
         src/scriptModule/codeAssistant/codeAssistant.cpp
+        src/scriptModule/codeAssistant/completionWidget.cpp
         src/scriptModule/codeAssistant/dwellWidget.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp

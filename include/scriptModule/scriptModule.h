@@ -14,7 +14,7 @@ class QTextBrowser;
 class CodeAssistant;
 class ScriptPage;
 class ScriptEditor;
-class CompletionTooltip;
+class CompletionWidget;
 class GotoPopup;
 class PositionTooltip;
 class SignatureHelpTooltip;
@@ -153,15 +153,14 @@ private:
 
     void scriptClose(const QUrl &scriptUrl);
 
-    void codeComplete(QString &text, int kind) const;
-
     void textReplace(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+
+    void charAdd(const QUrl &scriptUrl, QChar character) const;
 
     QJsonObject m_scriptConfig{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};
-    CompletionTooltip *m_completionTooltip{};
     GotoPopup *m_gotoPopup{};
     PositionTooltip *m_positionTooltip{};
     SignatureHelpTooltip *m_signatureHelpTooltip{};

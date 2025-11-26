@@ -1,4 +1,4 @@
-#include "scriptModule/completionTooltip.h"
+#include "scriptModule/codeAssistant/completionWidget.h"
 
 #include <QHeaderView>
 #include <QJsonArray>
@@ -11,8 +11,8 @@
 
 #include "globals.h"
 
-// CompletionTooltip public
-CompletionTooltip::CompletionTooltip(QWidget *parent)
+// CompletionWidget public
+CompletionWidget::CompletionWidget(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
       m_completionListView(new QListView(this)),
       m_completionModel(new QStandardItemModel(this)),
@@ -28,7 +28,7 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
       m_resetButton(new QPushButton(this)),
       m_completionLabel(new QLabel(nullptr, Qt::ToolTip)) {
     setAttribute(Qt::WA_StyledBackground, true);
-    setObjectName("completionTooltip");
+    setObjectName("completionWidget");
     setWindowFlag(Qt::WindowDoesNotAcceptFocus, true);
     auto *layout = new QVBoxLayout(this); //NOLINT
     layout->setAlignment(Qt::AlignTop);
@@ -42,8 +42,8 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_completionListView->setMinimumWidth(400);
     m_completionListView->setObjectName("completionListView");
     m_completionListView->setModel(m_filterProxyModel);
-    connect(m_completionListView, &QListView::clicked, this, &CompletionTooltip::labelShow);
-    connect(m_completionListView, &QListView::doubleClicked, this, &CompletionTooltip::codeComplete);
+    connect(m_completionListView, &QListView::clicked, this, &CompletionWidget::labelShow);
+    connect(m_completionListView, &QListView::doubleClicked, this, &CompletionWidget::textReplace);
     layout->addStretch();
     // completion filter
     {
@@ -58,60 +58,60 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
         m_textButton->setFixedSize(QSize(24, 24));
         m_textButton->setIcon(QIcon(":/icon/symbolString.svg"));
         m_textButton->setToolTip(tr("text"));
-        connect(m_textButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_textButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_TEXT, m_textButton);
         filterLayout->addWidget(m_functionButton);
         m_functionButton->setCheckable(true);
         m_functionButton->setFixedSize(QSize(24, 24));
         m_functionButton->setIcon(QIcon(":/icon/symbolMethod.svg"));
         m_functionButton->setToolTip(tr("function"));
-        connect(m_functionButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_functionButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_FUNCTION, m_functionButton);
         filterLayout->addWidget(m_fieldButton);
         m_fieldButton->setCheckable(true);
         m_fieldButton->setFixedSize(QSize(24, 24));
         m_fieldButton->setIcon(QIcon(":/icon/symbolField.svg"));
         m_fieldButton->setToolTip(tr("field"));
-        connect(m_fieldButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_fieldButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_FIELD, m_fieldButton);
         filterLayout->addWidget(m_variableButton);
         m_variableButton->setCheckable(true);
         m_variableButton->setFixedSize(QSize(24, 24));
         m_variableButton->setIcon(QIcon(":/icon/symbolVariable.svg"));
         m_variableButton->setToolTip(tr("variable"));
-        connect(m_variableButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_variableButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_VARIABLE, m_variableButton);
         filterLayout->addWidget(m_enumButton);
         m_enumButton->setCheckable(true);
         m_enumButton->setFixedSize(QSize(24, 24));
         m_enumButton->setIcon(QIcon(":/icon/symbolEnum.svg"));
         m_enumButton->setToolTip(tr("enum"));
-        connect(m_enumButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_enumButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_ENUM, m_enumButton);
         filterLayout->addWidget(m_keywordButton);
         m_keywordButton->setCheckable(true);
         m_keywordButton->setFixedSize(QSize(24, 24));
         m_keywordButton->setIcon(QIcon(":/icon/symbolKeyword.svg"));
         m_keywordButton->setToolTip(tr("keyword"));
-        connect(m_keywordButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_keywordButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_KEYWORD, m_keywordButton);
         filterLayout->addWidget(m_enummemberButton);
         m_enummemberButton->setCheckable(true);
         m_enummemberButton->setFixedSize(QSize(24, 24));
         m_enummemberButton->setIcon(QIcon(":/icon/symbolEnumMember.svg"));
         m_enummemberButton->setToolTip(tr("enum member"));
-        connect(m_enummemberButton, &QPushButton::clicked, this, &CompletionTooltip::filterSet);
+        connect(m_enummemberButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_ENUMMEMBER, m_enummemberButton);
         filterLayout->addStretch();
         filterLayout->addWidget(m_resetButton);
         m_resetButton->setFixedSize(QSize(24, 24));
         m_resetButton->setIcon(QIcon(":/icon/reset.svg"));
         m_resetButton->setToolTip(tr("reset filter"));
-        connect(m_resetButton, &QPushButton::clicked, this, &CompletionTooltip::filterInit);
+        connect(m_resetButton, &QPushButton::clicked, this, [this] {filterInit(COMPLETION_MODE_FULL);});
     }
     // stylesheets
     setStyleSheet(
-        "#completionTooltip { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
+        "#completionWidget { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
         "#completionListView { background: transparent; border: none;}"
         "#filterWidget { background-color: #fafafa; border: none; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; padding: 0px; }"
         "#filterWidget QPushButton { border: none; background-color: #fafafa; border-radius: 8px; padding: 4px; }"
@@ -122,17 +122,19 @@ CompletionTooltip::CompletionTooltip(QWidget *parent)
     m_completionLabel->setStyleSheet("#completionLabel { background-color: white; border: 1px solid #cccccc; border-radius: 10px; padding: 2px; }");
 }
 
-void CompletionTooltip::tooltipShow(const QJsonArray &items) {
+void CompletionWidget::completionShow(const QVariantMap &completionSession, const QJsonArray &items) {
+    m_completionSession = completionSession;
     m_completionModel->clear();
     m_completionKinds.clear();
     int row = 0;
+    int completionMode = COMPLETION_MODE_FULL;
     for (const auto &value: items) {
         QJsonObject item = value.toObject();
         const int kind = item["kind"].toInt();
-        if (!m_fullComplete && kind != COMPLETION_KIND_ENUMMEMBER) continue;
         m_completionKinds.insert(kind);
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
+        if (insertText == "_ENV") completionMode = COMPLETION_MODE_SIMPLE;
         auto *completionItem = new QStandardItem(insertText); // NOLINT
         m_completionModel->appendRow(completionItem);
         completionItem->setData(kind, Qt::UserRole + 1);
@@ -174,12 +176,13 @@ void CompletionTooltip::tooltipShow(const QJsonArray &items) {
         row++;
     }
     if (m_completionModel->rowCount() > 0) {
-        filterInit();
+        filterInit(completionMode);
         // calc height
         const int rowHeight = m_completionListView->sizeHintForRow(0);
-        const int rowCount = m_completionModel->rowCount();
-        const int totalHeight = rowHeight * rowCount;
+        const int rowCount = m_filterProxyModel->rowCount();
+        const int totalHeight = qMin(300, rowHeight * rowCount);
         show();
+        move(m_completionSession["position"].toPoint());
         QTimer::singleShot(0, this, [this, totalHeight] {
             m_completionListView->setFixedHeight(totalHeight);
             adjustSize();
@@ -187,57 +190,11 @@ void CompletionTooltip::tooltipShow(const QJsonArray &items) {
     }
 }
 
-void CompletionTooltip::tooltipHide() {
+void CompletionWidget::completionHide() {
     hide();
 }
 
-void CompletionTooltip::tooltipFull(const bool status) {
-    m_fullComplete = status;
-}
-
-// CompletionTooltip protected
-bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
-    if (!this->isVisible()) {
-        return QWidget::eventFilter(obj, event);
-    }
-    if (event->type() == QEvent::KeyPress) {
-        const auto *keyEvent = static_cast<QKeyEvent *>(event);
-        switch (keyEvent->key()) {
-            case Qt::Key_Tab: {
-                codeComplete();
-                tooltipHide();
-            }
-                return true;
-            case Qt::Key_Up: {
-                moveUp();
-            }
-                return true;
-            case Qt::Key_Down: {
-                moveDown();
-            }
-                return true;
-            case Qt::Key_Return:
-            case Qt::Key_Escape:
-            case Qt::Key_Backspace:
-            case Qt::Key_Left:
-            case Qt::Key_Right: {
-                tooltipHide();
-            }
-                return false;
-            default:
-                return false;
-        }
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
-void CompletionTooltip::hideEvent(QHideEvent *event) {
-    m_completionLabel->hide();
-    QWidget::hideEvent(event);
-}
-
-// CompletionTooltip private
-void CompletionTooltip::moveUp() const {
+void CompletionWidget::completionPrev() const {
     const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid() || currentIndex.row() == 0) return;
     const QModelIndex prevIndex = m_filterProxyModel->index(currentIndex.row() - 1, 0);
@@ -245,7 +202,7 @@ void CompletionTooltip::moveUp() const {
     labelShow();
 }
 
-void CompletionTooltip::moveDown() const {
+void CompletionWidget::completionNext() const {
     const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid() || currentIndex.row() == m_filterProxyModel->rowCount() - 1) return;
     const QModelIndex nextIndex = m_filterProxyModel->index(currentIndex.row() + 1, 0);
@@ -253,17 +210,67 @@ void CompletionTooltip::moveDown() const {
     labelShow();
 }
 
-void CompletionTooltip::codeComplete() {
+void CompletionWidget::textReplace() {
     const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid()) return;
     const QModelIndex sourceIndex = m_filterProxyModel->mapToSource(currentIndex);
     const int kind = m_completionModel->data(sourceIndex, Qt::UserRole + 1).toInt();
     QString insertText = m_completionModel->data(sourceIndex, Qt::DisplayRole).toString();
-    if (!insertText.isEmpty()) emit completeCode(insertText, kind);
-    tooltipHide();
+    if (kind == COMPLETION_KIND_FUNCTION) {
+        insertText += "()";
+    } else if (kind == COMPLETION_KIND_FIELD) {
+        insertText += ".";
+    } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
+        if (insertText == "\"Add New Port\"") {
+            emit insertPort();
+            return;
+        }
+        if (insertText == "\"Add New Database Key\"") {
+            emit insertDatabase();
+            return;
+        }
+        if (insertText == "\"Add New Datatable Key\"") {
+            emit insertDatatable();
+            return;
+        }
+        if (insertText == "\"Position Hint\"") {
+            // emit showPositionTooltip();
+            return;
+        }
+        insertText.replace("\\", "\\\\");
+    }
+    emit replaceText(
+        m_completionSession["scriptUrl"].toUrl(),
+        insertText,
+        m_completionSession["line"].toInt(),
+        m_completionSession["indexFrom"].toInt(),
+        m_completionSession["line"].toInt(),
+        m_completionSession["indexTo"].toInt());
+    int cursorPosition = 0;
+    if (kind == COMPLETION_KIND_FUNCTION) {
+        cursorPosition = m_completionSession["indexFrom"].toInt() + insertText.length() - 1;
+    } else {
+        cursorPosition = m_completionSession["indexFrom"].toInt() + insertText.length();
+    }
+    emit setCursorPosition(
+        m_completionSession["scriptUrl"].toUrl(),
+        m_completionSession["line"].toInt(),
+        cursorPosition);
+    if (kind == COMPLETION_KIND_FUNCTION) {
+        emit addChar(m_completionSession["scriptUrl"].toUrl(), '(');
+    } else if (kind == COMPLETION_KIND_FIELD) {
+        emit addChar(m_completionSession["scriptUrl"].toUrl(), '.');
+    }
 }
 
-void CompletionTooltip::filterClear() const {
+// CompletionWidget protected
+void CompletionWidget::hideEvent(QHideEvent *event) {
+    m_completionLabel->hide();
+    QWidget::hideEvent(event);
+}
+
+// CompletionWidget private
+void CompletionWidget::filterClear() const {
     m_textButton->setChecked(false);
     m_functionButton->setChecked(false);
     m_fieldButton->setChecked(false);
@@ -273,20 +280,25 @@ void CompletionTooltip::filterClear() const {
     m_enummemberButton->setChecked(false);
 }
 
-void CompletionTooltip::filterInit() {
+void CompletionWidget::filterInit(const int mode) {
     filterClear();
-    for (auto it = m_filterButtonHash.begin(); it != m_filterButtonHash.end(); ++it) {
-        if (m_completionKinds.contains(it.key())) {
-            it.value()->setEnabled(true);
-            it.value()->setChecked(true);
-        } else {
-            it.value()->setEnabled(false);
+    if (mode == COMPLETION_MODE_FULL) {
+        for (auto it = m_filterButtonHash.begin(); it != m_filterButtonHash.end(); ++it) {
+            if (m_completionKinds.contains(it.key())) {
+                it.value()->setEnabled(true);
+                it.value()->setChecked(true);
+            } else {
+                it.value()->setEnabled(false);
+            }
         }
+    }
+    else if (mode == COMPLETION_MODE_SIMPLE) {
+        m_enummemberButton->setChecked(true);
     }
     filterSet(true);
 }
 
-void CompletionTooltip::filterSet(const bool status) {
+void CompletionWidget::filterSet(const bool status) {
     QString regExp{};
     for (auto it = m_filterButtonHash.begin(); it != m_filterButtonHash.end(); ++it) {
         if (it.value()->isChecked()) {
@@ -301,7 +313,7 @@ void CompletionTooltip::filterSet(const bool status) {
     labelShow();
 }
 
-void CompletionTooltip::labelShow() const {
+void CompletionWidget::labelShow() const {
     const QModelIndex currentIndex = m_completionListView->currentIndex();
     if (!currentIndex.isValid()) {
         m_completionLabel->hide();

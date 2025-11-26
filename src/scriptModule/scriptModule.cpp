@@ -7,7 +7,6 @@
 #include "globals.h"
 #include "luaModule/luaControl.h"
 #include "portModule/portModule.h"
-#include "scriptModule/completionTooltip.h"
 #include "scriptModule/gotoPopup.h"
 #include "scriptModule/positionTooltip.h"
 #include "scriptModule/scriptEditor.h"
@@ -15,7 +14,6 @@
 #include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"
 #include "scriptModule/codeAssistant/codeAssistant.h"
-#include "scriptModule/codeAssistant/dwellWidget.h"
 
 // ScriptModule public
 ScriptModule::ScriptModule(QWidget *parent)
@@ -23,7 +21,6 @@ ScriptModule::ScriptModule(QWidget *parent)
       m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)),
-      m_completionTooltip(new CompletionTooltip(parent)),
       m_gotoPopup(new GotoPopup(parent)),
       m_positionTooltip(new PositionTooltip(parent)),
       m_signatureHelpTooltip(new SignatureHelpTooltip(parent)) {
@@ -42,11 +39,15 @@ ScriptModule::ScriptModule(QWidget *parent)
         scriptOpen(QUrl(value.toString()));
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
-    connect(m_completionTooltip, &CompletionTooltip::completeCode, this, &ScriptModule::codeComplete);
+    connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
     connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
+    connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
+    connect(m_codeAssistant, &CodeAssistant::insertPort, this, &ScriptModule::insertPort);
+    connect(m_codeAssistant, &CodeAssistant::insertDatabase, this, &ScriptModule::insertDatabase);
+    connect(m_codeAssistant, &CodeAssistant::insertDatatable, this, &ScriptModule::insertDatatable);
     connect(m_gotoPopup, &GotoPopup::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_gotoPopup, &GotoPopup::setCursorPosition, this, &ScriptModule::cursorPositionSet);
-    connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::codeComplete);
+    // connect(m_positionTooltip, &PositionTooltip::replaceText, this, &ScriptModule::nextCompletionRequest);
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -201,9 +202,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         });
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
-        connect(scriptPage, &ScriptPage::insertPort, this, &ScriptModule::insertPort);
-        connect(scriptPage, &ScriptPage::insertDatabase, this, &ScriptModule::insertDatabase);
-        connect(scriptPage, &ScriptPage::insertDatatable, this, &ScriptModule::insertDatatable);
         connect(scriptPage, &ScriptPage::insertMarker, this, &ScriptModule::markerInsert);
         connect(scriptPage, &ScriptPage::removeMarker, this, &ScriptModule::markerRemove);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
@@ -223,12 +221,11 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSpellCheck, this, &ScriptModule::requestSpellCheck);
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
-        connect(scriptPage, &ScriptPage::fullCompletionTooltip, m_completionTooltip, &CompletionTooltip::tooltipFull);
         connect(scriptPage, &ScriptPage::showDiagnosticDwell, m_codeAssistant, &CodeAssistant::dwellShowDiagnostic);
         connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
         connect(scriptPage, &ScriptPage::leaveDwell, m_codeAssistant, &CodeAssistant::dwellLeave);
         connect(scriptPage, &ScriptPage::showPositionTooltip, m_positionTooltip, &PositionTooltip::tooltipShow);
-        scriptPage->m_scriptEditor->installEventFilter(m_completionTooltip);
+        scriptPage->m_scriptEditor->installEventFilter(m_codeAssistant);
         scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
             m_welcomePage->open();
@@ -338,12 +335,25 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const long wordEndPos = editor->SendScintilla(QsciScintilla::SCI_WORDENDPOSITION, currentPos, true);
+    // get completion replace range
+    const int line = editor->SendScintilla(QsciScintilla::SCI_LINEFROMPOSITION, wordStartPos);
+    const int indexFrom = wordStartPos - editor->SendScintilla(QsciScintilla::SCI_POSITIONFROMLINE, line);
+    const int indexTo = wordEndPos - editor->SendScintilla(QsciScintilla::SCI_POSITIONFROMLINE, line);
+    // get completion display position
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 26;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_completionTooltip->tooltipShow(items);
-    m_completionTooltip->move(cursorGlobalPos.x() - 26, cursorGlobalPos.y() + lineHeight);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    // call completion show
+    const QVariantMap completionSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position},
+        {"line", line},
+        {"indexFrom", indexFrom},
+        {"indexTo", indexTo}
+    };
+    m_codeAssistant->completionShow(completionSession, items);
 }
 
 void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, const int character) {
@@ -666,7 +676,7 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     if (status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);
-        m_completionTooltip->tooltipHide();
+        m_codeAssistant->completionHide();
         m_signatureHelpTooltip->tooltipHide();
         // logging
         // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -686,12 +696,12 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
     emit closeScript(scriptUrl);
 }
 
-void ScriptModule::codeComplete(QString &text, const int kind) const {
-    m_focusedPage->textReplace(text, kind);
-}
-
 void ScriptModule::textReplace(const QUrl &scriptUrl, const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_scriptEditor->textReplace(text, lineFrom, indexFrom, lineTo, indexTo);
+}
+
+void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {
+    m_scriptPageHash[scriptUrl]->charAdded(character.toLatin1());
 }

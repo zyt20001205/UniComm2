@@ -43,21 +43,16 @@ public:
 
     void spellCheckResponse(const QVariantList &typos);
 
-    void textReplace(QString &text, int kind);
-
     ScriptEditor *m_scriptEditor{};
     QUrl m_scriptUrl{};
+
+public slots:
+    void charAdded(int ch);
 
 signals:
     void appendLog(const QString &message, const QString &level);
 
     void closeScript(const QUrl &scriptUrl);
-
-    void insertPort();
-
-    void insertDatabase();
-
-    void insertDatatable();
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
@@ -97,8 +92,6 @@ signals:
     
     void notificationJson(const QString &method, const QJsonObject &params);
 
-    void fullCompletionTooltip(bool status);
-
     void showDiagnosticDwell(const QUrl &scriptUrl, const QString &message);
 
     void hideDwell();
@@ -111,8 +104,6 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void charAdded(int ch);
-
     void marginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:

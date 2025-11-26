@@ -451,52 +451,19 @@ void ScriptPage::spellCheckResponse(const QVariantList &typos) {
     }
 }
 
-void ScriptPage::textReplace(QString &text, const int kind) {
-    if (kind == COMPLETION_KIND_FUNCTION) {
-        text += "()";
-    } else if (kind == COMPLETION_KIND_FIELD) {
-        text += ".";
-    } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
-        if (text == "\"Add New Port\"") {
-            emit insertPort();
-            return;
-        }
-        if (text == "\"Add New Database Key\"") {
-            emit insertDatabase();
-            return;
-        }
-        if (text == "\"Add New Datatable Key\"") {
-            emit insertDatatable();
-            return;
-        }
-        if (text == "\"Position Hint\"") {
-            emit showPositionTooltip();
-            return;
-        }
-        text.replace("\\", "\\\\");
-    }
-    const long currentPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long startPos = m_scriptEditor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETTARGETRANGE, startPos, currentPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_REPLACETARGET, text.length(), text.toUtf8().constData()); // NOLINT
-    long cursorPos;
-    if (kind == COMPLETION_KIND_FUNCTION) {
-        cursorPos = startPos + text.length() - 1;
-    } else {
-        cursorPos = startPos + text.length();
-    }
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
-    m_scriptEditor->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
-    if (kind == COMPLETION_KIND_FUNCTION) {
+// ScriptPage public slots
+void ScriptPage::charAdded(const int ch) {
+    const QChar character(ch);
+    if (character.isLetter() || m_completionTrigger.contains(character)) {
         didChangeNotification();
-        emit fullCompletionTooltip(false);
+        completionRequest();
+    } else if (m_signatureHelpTrigger.contains(character)) {
+        didChangeNotification();
         completionRequest();
         signatureHelpRequest();
-    } else if (kind == COMPLETION_KIND_FIELD) {
+    } else if (m_onTypeFormattingTrigger.contains(character)) {
         didChangeNotification();
-        emit fullCompletionTooltip(true);
-        completionRequest();
+        onTypeFormattingRequest();
     }
 }
 
@@ -507,23 +474,6 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 }
 
 // ScriptPage private slots
-void ScriptPage::charAdded(const int ch) {
-    const QChar character(ch);
-    if (character.isLetter() || m_completionTrigger.contains(character)) {
-        didChangeNotification();
-        emit fullCompletionTooltip(true);
-        completionRequest();
-    } else if (m_signatureHelpTrigger.contains(character)) {
-        didChangeNotification();
-        emit fullCompletionTooltip(false);
-        completionRequest();
-        signatureHelpRequest();
-    } else if (m_onTypeFormattingTrigger.contains(character)) {
-        didChangeNotification();
-        onTypeFormattingRequest();
-    }
-}
-
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
         if (m_scriptEditor->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
