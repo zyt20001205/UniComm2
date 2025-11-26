@@ -228,12 +228,6 @@ bool CompletionTooltip::eventFilter(QObject *obj, QEvent *event) {
                 return false;
         }
     }
-    if (event->type() == QEvent::MouseButtonPress) {
-        const auto *mouseEvent = static_cast<QMouseEvent *>(event);
-        if (!geometry().contains(mapFromGlobal(mouseEvent->globalPosition().toPoint()))) {
-            tooltipHide();
-        }
-    }
     return QWidget::eventFilter(obj, event);
 }
 

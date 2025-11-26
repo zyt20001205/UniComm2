@@ -1,9 +1,7 @@
 #include "scriptModule/scriptModule.h"
 
 #include <QFileInfo>
-#include <QHBoxLayout>
 #include <QShortcut>
-#include <QTableWidget>
 #include <QTextBrowser>
 
 #include "globals.h"
