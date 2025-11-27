@@ -14,7 +14,7 @@ class QTextBrowser;
 class CodeAssistant;
 class ScriptPage;
 class ScriptEditor;
-class SignatureHelpTooltip;
+class SignatureWidget;
 
 class ScriptModule final : public QObject {
     Q_OBJECT
@@ -160,7 +160,6 @@ private:
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};
-    SignatureHelpTooltip *m_signatureHelpTooltip{};
 };
 
 #endif //UNICOMM_SCRIPT_H

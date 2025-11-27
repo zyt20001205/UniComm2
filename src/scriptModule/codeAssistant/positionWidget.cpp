@@ -14,7 +14,6 @@ PositionWidget::PositionWidget(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
       m_timer(new QTimer(this)),
       m_label(new QLabel(this)) {
-    qApp->installEventFilter(this);
     setAttribute(Qt::WA_StyledBackground, true);
     setObjectName("positionWidget");
     auto *layout = new QVBoxLayout(this); //NOLINT

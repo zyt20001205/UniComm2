@@ -9,7 +9,6 @@
 #include "portModule/portModule.h"
 #include "scriptModule/scriptEditor.h"
 #include "scriptModule/scriptPage.h"
-#include "scriptModule/signatureHelpTooltip.h"
 #include "scriptModule/welcomePage.h"
 #include "scriptModule/codeAssistant/codeAssistant.h"
 
@@ -18,8 +17,7 @@ ScriptModule::ScriptModule(QWidget *parent)
     : QObject(parent),
       m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
-      m_codeAssistant(new CodeAssistant(parent)),
-      m_signatureHelpTooltip(new SignatureHelpTooltip(parent)) {
+      m_codeAssistant(new CodeAssistant(parent)){
     m_welcomePage->setObjectName("welcomePage");
     const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
     for (const auto &key: breakpointHash.keys()) {
@@ -220,7 +218,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
         connect(scriptPage, &ScriptPage::leaveDwell, m_codeAssistant, &CodeAssistant::dwellLeave);
         qApp->installEventFilter(m_codeAssistant);
-        scriptPage->m_scriptEditor->installEventFilter(m_signatureHelpTooltip);
         if (m_focusedPage == nullptr) {
             m_welcomePage->open();
             m_welcomePage->addDockWidgetAsTab(scriptPage);
@@ -629,18 +626,19 @@ void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int cha
 void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_scriptEditor);
-    long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    while (true) {
-        const int prevChar = editor->SendScintilla(QsciScintilla::SCI_GETCHARAT, currentPos - 1);
-        if (prevChar == '(') break;
-        currentPos--;
-    }
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, currentPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, currentPos);
-    const QPoint cursorGlobalPos = editor->mapToGlobal(QPoint(x, y));
+    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // get signature display position
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    m_signatureHelpTooltip->tooltipShow(signature);
-    m_signatureHelpTooltip->move(cursorGlobalPos.x() - 2, cursorGlobalPos.y() - lineHeight);
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) - lineHeight - 5;
+    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    // call signature show
+    const QVariantMap signatureSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->signatureShow(signatureSession, signature);
 }
 
 void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos) {
@@ -690,8 +688,6 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     if (status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);
-        m_codeAssistant->completionHide();
-        m_signatureHelpTooltip->tooltipHide();
         // logging
         // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         // qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");

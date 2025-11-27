@@ -107,7 +107,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/scriptEditor.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
-        include/scriptModule/signatureHelpTooltip.h
         include/scriptModule/structureModule.h
         include/scriptModule/threadpoolModule.h
         include/scriptModule/welcomePage.h
@@ -116,6 +115,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeAssistant/dwellWidget.h
         include/scriptModule/codeAssistant/gotoWidget.h
         include/scriptModule/codeAssistant/positionWidget.h
+        include/scriptModule/codeAssistant/signatureWidget.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
         include/settingModule/indicatorSettingScript.h
@@ -162,7 +162,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/scriptEditor.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
-        src/scriptModule/signatureHelpTooltip.cpp
         src/scriptModule/structureModule.cpp
         src/scriptModule/threadpoolModule.cpp
         src/scriptModule/welcomePage.cpp
@@ -171,6 +170,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeAssistant/dwellWidget.cpp
         src/scriptModule/codeAssistant/gotoWidget.cpp
         src/scriptModule/codeAssistant/positionWidget.cpp
+        src/scriptModule/codeAssistant/signatureWidget.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
         src/settingModule/indicatorSettingScript.cpp

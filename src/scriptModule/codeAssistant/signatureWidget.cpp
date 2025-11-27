@@ -1,4 +1,4 @@
-#include "scriptModule/signatureHelpTooltip.h"
+#include "scriptModule/codeAssistant/signatureWidget.h"
 
 #include <QEvent>
 #include <QJsonArray>
@@ -7,18 +7,22 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-// SignatureHelpTooltip public
-SignatureHelpTooltip::SignatureHelpTooltip(QWidget *parent)
+// SignatureWidget public
+SignatureWidget::SignatureWidget(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
       m_label(new QLabel()) {
+    setAttribute(Qt::WA_StyledBackground, true);
+    setObjectName("signatureWidget");
     auto *layout = new QVBoxLayout(this); //NOLINT
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(5, 5, 5, 5);
     layout->addWidget(m_label);
     m_label->setFont(QFont("consolas", 12));
-    m_label->setStyleSheet("QLabel{background-color: white; border: 1px solid #d0d0d0;}");
+    setStyleSheet(
+    "#signatureWidget { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }");
 }
 
-void SignatureHelpTooltip::tooltipShow(const QJsonObject &signature) {
+void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) {
+    m_signatureSession = signatureSession;
     QString helpText;
     int index = 0;
     const int activeParameter = signature["activeParameter"].toInt();
@@ -41,30 +45,9 @@ void SignatureHelpTooltip::tooltipShow(const QJsonObject &signature) {
     helpText.chop(2);
     m_label->setText(helpText);
     show();
+    move(m_signatureSession["position"].toPoint());
 }
 
-void SignatureHelpTooltip::tooltipHide() {
+void SignatureWidget::signatureHide() {
     hide();
-}
-
-// SignatureHelpTooltip protected
-bool SignatureHelpTooltip::eventFilter(QObject *obj, QEvent *event) {
-    if (!this->isVisible()) {
-        return QWidget::eventFilter(obj, event);
-    }
-    if (event->type() == QEvent::KeyPress) {
-        auto *keyEvent = static_cast<QKeyEvent *>(event);
-        switch (keyEvent->key()) {
-            case Qt::Key_Up:
-            case Qt::Key_Down:
-            case Qt::Key_Left:
-            case Qt::Key_Right:
-            case Qt::Key_Escape:
-                tooltipHide();
-                return false;
-            default:
-                return false;
-        }
-    }
-    return QWidget::eventFilter(obj, event);
 }

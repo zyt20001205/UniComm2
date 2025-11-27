@@ -6,6 +6,7 @@
 #include "scriptModule/codeAssistant/dwellWidget.h"
 #include "scriptModule/codeAssistant/gotoWidget.h"
 #include "scriptModule/codeAssistant/positionWidget.h"
+#include "scriptModule/codeAssistant/signatureWidget.h"
 
 // CodeAssistant public
 CodeAssistant::CodeAssistant(QWidget *parent)
@@ -13,7 +14,8 @@ CodeAssistant::CodeAssistant(QWidget *parent)
       m_completionWidget(new CompletionWidget(parent)),
       m_dwellWidget(new DwellWidget(parent)),
       m_gotoWidget(new GotoWidget(parent)),
-      m_positionWidget(new PositionWidget(parent)) {
+      m_positionWidget(new PositionWidget(parent)),
+      m_signatureWidget(new SignatureWidget(parent)) {
     connect(m_completionWidget, &CompletionWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
     connect(m_completionWidget, &CompletionWidget::replaceText, this, &CodeAssistant::replaceText);
     connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
@@ -69,6 +71,10 @@ void CodeAssistant::gotoShowTypeDefinition(const QVariantMap &gotoSession, const
 
 void CodeAssistant::positionShow(const QVariantMap &positionSession) const {
     m_positionWidget->positionShow(positionSession);
+}
+
+void CodeAssistant::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const {
+    m_signatureWidget->signatureShow(signatureSession, signature);
 }
 
 // CodeAssistant protected
@@ -138,6 +144,21 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     }
-
+    if (m_signatureWidget->isVisible()) {
+        if (event->type() == QEvent::KeyPress) {
+            auto *keyEvent = static_cast<QKeyEvent *>(event);
+            switch (keyEvent->key()) {
+                case Qt::Key_Up:
+                case Qt::Key_Down:
+                case Qt::Key_Left:
+                case Qt::Key_Right:
+                case Qt::Key_Escape:
+                    m_signatureWidget->signatureHide();
+                    return false;
+                default:
+                    return false;
+            }
+        }
+    }
     return QObject::eventFilter(obj, event);
 }

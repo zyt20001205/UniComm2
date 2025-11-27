@@ -6,6 +6,7 @@ class CompletionWidget;
 class DwellWidget;
 class GotoWidget;
 class PositionWidget;
+class SignatureWidget;
 
 class CodeAssistant final: public QObject {
     Q_OBJECT
@@ -37,6 +38,8 @@ public:
 
     void positionShow(const QVariantMap &positionSession) const;
 
+    void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const;
+
 signals:
     void addChar(const QUrl &scriptUrl, QChar character);
 
@@ -62,6 +65,7 @@ private:
     DwellWidget *m_dwellWidget{};
     GotoWidget *m_gotoWidget{};
     PositionWidget *m_positionWidget{};
+    SignatureWidget *m_signatureWidget{};
 };
 
 #endif //UNICOMM_CODEASSISTANT_H

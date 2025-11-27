@@ -107,7 +107,7 @@ CompletionWidget::CompletionWidget(QWidget *parent)
         m_resetButton->setFixedSize(QSize(24, 24));
         m_resetButton->setIcon(QIcon(":/icon/reset.svg"));
         m_resetButton->setToolTip(tr("reset filter"));
-        connect(m_resetButton, &QPushButton::clicked, this, [this] {filterInit(COMPLETION_MODE_FULL);});
+        connect(m_resetButton, &QPushButton::clicked, this, [this] { filterInit(COMPLETION_MODE_FULL); });
     }
     m_completionLabel->setAttribute(Qt::WA_StyledBackground, true);
     m_completionLabel->setFont(QFont("Consolas", 12));
@@ -177,16 +177,6 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
     }
     if (m_completionModel->rowCount() > 0) {
         filterInit(completionMode);
-        // calc height
-        const int rowHeight = m_completionListView->sizeHintForRow(0);
-        const int rowCount = m_filterProxyModel->rowCount();
-        const int totalHeight = qMin(300, rowHeight * rowCount);
-        show();
-        move(m_completionSession["position"].toPoint());
-        QTimer::singleShot(0, this, [this, totalHeight] {
-            m_completionListView->setFixedHeight(totalHeight);
-            adjustSize();
-        });
     }
 }
 
@@ -296,8 +286,7 @@ void CompletionWidget::filterInit(const int mode) {
                 it.value()->setEnabled(false);
             }
         }
-    }
-    else if (mode == COMPLETION_MODE_SIMPLE) {
+    } else if (mode == COMPLETION_MODE_SIMPLE) {
         m_enummemberButton->setChecked(true);
     }
     filterSet(true);
@@ -314,8 +303,22 @@ void CompletionWidget::filterSet(const bool status) {
     if (!regExp.isEmpty()) regExp.chop(1);
     else regExp = "(?!.*)";
     m_filterProxyModel->setFilterRegularExpression(regExp);
-    m_completionListView->setCurrentIndex(m_filterProxyModel->index(0, 0));
-    labelShow();
+    if (m_filterProxyModel->rowCount() > 0) {
+        m_completionListView->setCurrentIndex(m_filterProxyModel->index(0, 0));
+        // calc height
+        const int rowHeight = m_completionListView->sizeHintForRow(0);
+        const int rowCount = m_filterProxyModel->rowCount();
+        const int totalHeight = qMin(300, rowHeight * rowCount);
+        show();
+        labelShow();
+        move(m_completionSession["position"].toPoint());
+        QTimer::singleShot(0, this, [this, totalHeight] {
+            m_completionListView->setFixedHeight(totalHeight);
+            adjustSize();
+        });
+    } else {
+        completionHide();
+    }
 }
 
 void CompletionWidget::labelShow() const {
