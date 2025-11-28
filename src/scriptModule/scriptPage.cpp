@@ -15,11 +15,8 @@
 #include "globals.h"
 #include "scriptModule/codeEditor/editorWidget.h"
 #include "scriptModule/codeEditor/searchWidget.h"
+#include "utils/cmarkUtils.h"
 #include "utils/qtUtils.h"
-
-extern "C" {
-#include "cmark.h"
-}
 
 // ScriptPage public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
@@ -701,18 +698,11 @@ void ScriptPage::hoverRequest() {
                 break;
                 default: break;
             }
-            // extract md message
-            const QByteArray message = diagnostic["message"].toString().toHtmlEscaped().toUtf8();
-            const char *md = message.constData();
-            // parse to html
-            char *html = cmark_markdown_to_html(md, strlen(md), CMARK_OPT_DEFAULT);
-            // remove <p>             </p>\n
-            QString parsed = QString::fromUtf8(html);
-            parsed = parsed.mid(3, parsed.size() - 7 - 1);
+            const QString message = diagnostic["message"].toString();
             // qDebug() << message << parsed;
             const QString commandLine = QString("requestcodeaction://codeAction/%2/%3/%4/%5").arg(
                 QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-            diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, parsed, commandLine);
+            diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, md2html(message), commandLine);
         }
     }
     // show typo if exists

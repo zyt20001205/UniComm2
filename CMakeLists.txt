@@ -124,6 +124,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/settingModule/settingModule.h
         include/suffix.h
         include/undoModule.h
+        include/utils/cmarkUtils.h
         include/utils/cvUtils.h
         include/utils/luaUtils.h
         include/utils/qtUtils.h
@@ -180,6 +181,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/settingModule/settingModule.cpp
         src/suffix.cpp
         src/undoModule.cpp
+        src/utils/cmarkUtils.cpp
         src/utils/cvUtils.cpp
         src/utils/luaUtils.cpp
         src/utils/qtUtils.cpp
