@@ -575,7 +575,7 @@ void ScriptPage::didOpenNotification() {
 
 void ScriptPage::didChangeNotification() {
     // did change notification to lua language server
-    const QString m_scriptBuffer = m_editorWidget->text();
+    m_scriptBuffer = m_editorWidget->text();
     const QJsonObject didChangeParams{
         {
             "textDocument", QJsonObject{
