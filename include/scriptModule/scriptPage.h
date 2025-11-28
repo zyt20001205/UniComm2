@@ -161,7 +161,6 @@ private:
     QJsonArray m_scriptDiagnostic{};
     QVariantList m_scriptTypo{};
     int m_version = 1;
-    QString m_scriptBuffer{};
     QSet<QChar> m_completionTrigger{};
     QSet<QChar> m_signatureHelpTrigger{};
     QSet<QChar> m_onTypeFormattingTrigger{};
