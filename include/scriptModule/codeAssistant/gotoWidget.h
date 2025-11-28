@@ -29,6 +29,8 @@ public:
 
     void gotoNext();
 
+    void gotoResponse(const QString &hint) const;
+
 signals:
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
 
@@ -44,7 +46,7 @@ protected:
 private:
     void gotoJump(const QModelIndex &index);
 
-    void labelShow();
+    void gotoRequest();
 
     QVariantMap m_gotoSession{};
     QListView *m_gotoListView{};

@@ -28,11 +28,12 @@ GotoWidget::GotoWidget(QWidget *parent)
     m_gotoListView->setMinimumWidth(400);
     m_gotoListView->setObjectName("gotoListView");
     m_gotoListView->setModel(m_gotoModel);
-    connect(m_gotoListView, &QListView::clicked, this, &GotoWidget::labelShow);
+    connect(m_gotoListView, &QListView::clicked, this, &GotoWidget::gotoRequest);
     connect(m_gotoListView, &QListView::doubleClicked, this, &GotoWidget::gotoJump);
     m_gotoLabel->setAttribute(Qt::WA_StyledBackground, true);
     m_gotoLabel->setFont(QFont("Consolas", 12));
     m_gotoLabel->setObjectName("gotoLabel");
+    m_gotoLabel->setTextFormat(Qt::RichText);
     // stylesheets
     setStyleSheet(
         "#gotoWidget { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }"
@@ -72,7 +73,7 @@ void GotoWidget::gotoShowDefinition(const QVariantMap &gotoSession, const QJsonA
         const int rowCount = m_gotoModel->rowCount();
         const int totalHeight = qMin(300, rowHeight * rowCount);
         show();
-        labelShow();
+        gotoRequest();
         move(m_gotoSession["position"].toPoint());
         QTimer::singleShot(0, this, [this, totalHeight] {
             m_gotoListView->setFixedHeight(totalHeight);
@@ -113,7 +114,7 @@ void GotoWidget::gotoShowImplementation(const QVariantMap &gotoSession, const QJ
         const int rowCount = m_gotoModel->rowCount();
         const int totalHeight = qMin(300, rowHeight * rowCount);
         show();
-        labelShow();
+        gotoRequest();
         move(m_gotoSession["position"].toPoint());
         QTimer::singleShot(0, this, [this, totalHeight] {
             m_gotoListView->setFixedHeight(totalHeight);
@@ -154,7 +155,7 @@ void GotoWidget::gotoShowReferences(const QVariantMap &gotoSession, const QJsonA
         const int rowCount = m_gotoModel->rowCount();
         const int totalHeight = qMin(300, rowHeight * rowCount);
         show();
-        labelShow();
+        gotoRequest();
         move(m_gotoSession["position"].toPoint());
         QTimer::singleShot(0, this, [this, totalHeight] {
             m_gotoListView->setFixedHeight(totalHeight);
@@ -195,7 +196,7 @@ void GotoWidget::gotoShowTypeDefinition(const QVariantMap &gotoSession, const QJ
         const int rowCount = m_gotoModel->rowCount();
         const int totalHeight = qMin(300, rowHeight * rowCount);
         show();
-        labelShow();
+        gotoRequest();
         move(m_gotoSession["position"].toPoint());
         QTimer::singleShot(0, this, [this, totalHeight] {
             m_gotoListView->setFixedHeight(totalHeight);
@@ -213,7 +214,7 @@ void GotoWidget::gotoPrev() {
     if (!currentIndex.isValid() || currentIndex.row() == 0) return;
     const QModelIndex prevIndex = m_gotoModel->index(currentIndex.row() - 1, 0);
     m_gotoListView->setCurrentIndex(prevIndex);
-    labelShow();
+    gotoRequest();
 }
 
 void GotoWidget::gotoNext() {
@@ -221,7 +222,28 @@ void GotoWidget::gotoNext() {
     if (!currentIndex.isValid() || currentIndex.row() == m_gotoModel->rowCount() - 1) return;
     const QModelIndex nextIndex = m_gotoModel->index(currentIndex.row() + 1, 0);
     m_gotoListView->setCurrentIndex(nextIndex);
-    labelShow();
+    gotoRequest();
+}
+
+void GotoWidget::gotoResponse(const QString &hint) const {
+    const QModelIndex index = m_gotoListView->currentIndex();
+    if (!index.isValid()) {
+        m_gotoLabel->hide();
+        return;
+    }
+    const int indexFrom = m_gotoModel->data(index, Qt::UserRole + 3).toInt();
+    const int indexTo = m_gotoModel->data(index, Qt::UserRole + 5).toInt();
+    const auto hintText = QString("<span style='white-space: pre;'>%1<span style='color: orange;'>%2</span>%3</span>").arg(
+        hint.left(indexFrom).toHtmlEscaped(),
+        hint.mid(indexFrom, indexTo - indexFrom).toHtmlEscaped(),
+        hint.mid(indexTo).toHtmlEscaped());
+    m_gotoLabel->setText(hintText);
+    m_gotoLabel->show();
+    const int y = m_gotoListView->visualRect(index).top();
+    QTimer::singleShot(0, this, [this, y] {
+        m_gotoLabel->adjustSize();
+        m_gotoLabel->move(mapToGlobal(QPoint(width(), y)));
+    });
 }
 
 // GotoWidget protected
@@ -248,7 +270,7 @@ void GotoWidget::gotoJump(const QModelIndex &index) {
     gotoHide();
 }
 
-void GotoWidget::labelShow() {
+void GotoWidget::gotoRequest() {
     const QModelIndex index = m_gotoListView->currentIndex();
     if (!index.isValid()) {
         m_gotoLabel->hide();
@@ -257,14 +279,4 @@ void GotoWidget::labelShow() {
     const QUrl scriptUrl = m_gotoModel->data(index, Qt::UserRole + 1).toUrl();
     const int lineFrom = m_gotoModel->data(index, Qt::UserRole + 2).toInt();
     emit getText(scriptUrl, lineFrom, -1, -1, -1);
-    const int indexFrom = m_gotoModel->data(index, Qt::UserRole + 3).toInt();
-    const int indexTo = m_gotoModel->data(index, Qt::UserRole + 5).toInt();
-    const QString label = QString("%1: %2-%3").arg(QString::number(lineFrom), QString::number(indexFrom), QString::number(indexTo));
-    m_gotoLabel->setText(label);
-    m_gotoLabel->show();
-    const int y = m_gotoListView->visualRect(index).top();
-    QTimer::singleShot(0, this, [this, y] {
-        m_gotoLabel->adjustSize();
-        m_gotoLabel->move(mapToGlobal(QPoint(width(), y)));
-    });
 }

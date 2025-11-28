@@ -36,6 +36,8 @@ public:
 
     void gotoShowTypeDefinition(const QVariantMap &gotoSession, const QJsonArray &typeDefinitions) const;
 
+    void gotoResponse(const QString &hint) const;
+
     void positionShow(const QVariantMap &positionSession) const;
 
     void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const;

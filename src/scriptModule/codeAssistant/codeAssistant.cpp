@@ -70,6 +70,10 @@ void CodeAssistant::gotoShowTypeDefinition(const QVariantMap &gotoSession, const
     m_gotoWidget->gotoShowTypeDefinition(gotoSession, typeDefinitions);
 }
 
+void CodeAssistant::gotoResponse(const QString &hint) const {
+    m_gotoWidget->gotoResponse(hint);
+}
+
 void CodeAssistant::positionShow(const QVariantMap &positionSession) const {
     m_positionWidget->positionShow(positionSession);
 }

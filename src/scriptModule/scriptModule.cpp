@@ -263,6 +263,7 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
     if (m_scriptPageHash.contains(scriptUrl)) {
         const auto *scriptPage = m_scriptPageHash[scriptUrl];
         script = scriptPage->m_editorWidget->text();
+        script.replace("\r\n", "\n");
     }
     // get text from file
     else {
@@ -278,10 +279,12 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
         return script;
     }
     // split script into lines
-    const QStringList lines = script.split("\r\n");
-    // get full line if start character is l -1
+    const QStringList lines = script.split("\n");
+    // get full line if start character is -1
     if (startCharacter == -1) {
-        return lines[startLine];
+        const QString &line = lines[startLine];
+        m_codeAssistant->gotoResponse(line);
+        return line;
     }
     // WIP: cover other conditions
     return {};
