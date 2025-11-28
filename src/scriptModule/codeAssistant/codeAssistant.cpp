@@ -4,7 +4,7 @@
 
 #include "scriptModule/codeAssistant/completionWidget.h"
 #include "scriptModule/codeAssistant/dwellWidget.h"
-#include "scriptModule/codeAssistant/gotoWidget.h"
+#include "scriptModule/codeAssistant/navigationWidget.h"
 #include "scriptModule/codeAssistant/positionWidget.h"
 #include "scriptModule/codeAssistant/signatureWidget.h"
 
@@ -13,7 +13,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     : QObject(parent),
       m_completionWidget(new CompletionWidget(parent)),
       m_dwellWidget(new DwellWidget(parent)),
-      m_gotoWidget(new GotoWidget(parent)),
+      m_navigationWidget(new NavigationWidget(parent)),
       m_positionWidget(new PositionWidget(parent)),
       m_signatureWidget(new SignatureWidget(parent)) {
     connect(m_completionWidget, &CompletionWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
@@ -24,9 +24,9 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_completionWidget, &CompletionWidget::insertDatatable, this, &CodeAssistant::insertDatatable);
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
     connect(m_dwellWidget, &DwellWidget::replaceText, this, &CodeAssistant::replaceText);
-    connect(m_gotoWidget, &GotoWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
-    connect(m_gotoWidget, &GotoWidget::getText, this, &CodeAssistant::getText);
-    connect(m_gotoWidget, &GotoWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
+    connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
+    connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
+    connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
     connect(m_positionWidget, &PositionWidget::insertText, this, &CodeAssistant::insertText);
 }
 
@@ -54,24 +54,12 @@ void CodeAssistant::dwellLeave() const {
     m_dwellWidget->dwellLeave();
 }
 
-void CodeAssistant::gotoShowDefinition(const QVariantMap &gotoSession, const QJsonArray &definitions) const {
-    m_gotoWidget->gotoShowDefinition(gotoSession, definitions);
+void CodeAssistant::navigationShow(const QVariantMap &navigationSession, const QJsonArray &navigations) const {
+    m_navigationWidget->navigationShow(navigationSession, navigations);
 }
 
-void CodeAssistant::gotoShowImplementation(const QVariantMap &gotoSession, const QJsonArray &implementations) const {
-    m_gotoWidget->gotoShowImplementation(gotoSession, implementations);
-}
-
-void CodeAssistant::gotoShowReferences(const QVariantMap &gotoSession, const QJsonArray &references) const {
-    m_gotoWidget->gotoShowReferences(gotoSession, references);
-}
-
-void CodeAssistant::gotoShowTypeDefinition(const QVariantMap &gotoSession, const QJsonArray &typeDefinitions) const {
-    m_gotoWidget->gotoShowTypeDefinition(gotoSession, typeDefinitions);
-}
-
-void CodeAssistant::gotoResponse(const QString &hint) const {
-    m_gotoWidget->gotoResponse(hint);
+void CodeAssistant::navigationResponse(const QString &hint) const {
+    m_navigationWidget->navigationResponse(hint);
 }
 
 void CodeAssistant::positionShow(const QVariantMap &positionSession) const {
@@ -114,16 +102,16 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     }
-    if (m_gotoWidget->isVisible()) {
+    if (m_navigationWidget->isVisible()) {
         if (event->type() == QEvent::KeyPress) {
             const auto *keyEvent = static_cast<QKeyEvent *>(event);
             switch (keyEvent->key()) {
                 case Qt::Key_Up: {
-                    m_gotoWidget->gotoPrev();
+                    m_navigationWidget->navigationPrev();
                 }
                     return true;
                 case Qt::Key_Down: {
-                    m_gotoWidget->gotoNext();
+                    m_navigationWidget->navigationNext();
                 }
                     return true;
                 case Qt::Key_Return:
@@ -131,7 +119,7 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
                 case Qt::Key_Backspace:
                 case Qt::Key_Left:
                 case Qt::Key_Right: {
-                    m_gotoWidget->gotoHide();
+                    m_navigationWidget->navigationHide();
                 }
                     return false;
                 default:

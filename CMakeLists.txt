@@ -112,7 +112,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeAssistant/codeAssistant.h
         include/scriptModule/codeAssistant/completionWidget.h
         include/scriptModule/codeAssistant/dwellWidget.h
-        include/scriptModule/codeAssistant/gotoWidget.h
+        include/scriptModule/codeAssistant/navigationWidget.h
         include/scriptModule/codeAssistant/positionWidget.h
         include/scriptModule/codeAssistant/signatureWidget.h
         include/scriptModule/codeEditor/editorWidget.h
@@ -168,7 +168,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeAssistant/codeAssistant.cpp
         src/scriptModule/codeAssistant/completionWidget.cpp
         src/scriptModule/codeAssistant/dwellWidget.cpp
-        src/scriptModule/codeAssistant/gotoWidget.cpp
+        src/scriptModule/codeAssistant/navigationWidget.cpp
         src/scriptModule/codeAssistant/positionWidget.cpp
         src/scriptModule/codeAssistant/signatureWidget.cpp
         src/scriptModule/codeEditor/editorWidget.cpp

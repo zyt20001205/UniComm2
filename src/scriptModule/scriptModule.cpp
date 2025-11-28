@@ -283,7 +283,7 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
     // get full line if start character is -1
     if (startCharacter == -1) {
         const QString &line = lines[startLine];
-        m_codeAssistant->gotoResponse(line);
+        m_codeAssistant->navigationResponse(line);
         return line;
     }
     // WIP: cover other conditions
@@ -404,17 +404,18 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get goto display position
+    // get navigation display position
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
-    // call goto show
-    const QVariantMap gotoSession = {
+    // call navigation show
+    const QVariantMap navigationSession = {
+        {"type", "definition"},
         {"scriptUrl", scriptUrl},
         {"position", position}
     };
-    m_codeAssistant->gotoShowDefinition(gotoSession, definitions);
+    m_codeAssistant->navigationShow(navigationSession, definitions);
 }
 
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
@@ -538,17 +539,18 @@ void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArra
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get goto display position
+    // get navigation display position
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
-    // call goto show
-    const QVariantMap gotoSession = {
+    // call navigation show
+    const QVariantMap navigationSession = {
+        {"type", "implementation"},
         {"scriptUrl", scriptUrl},
         {"position", position}
     };
-    m_codeAssistant->gotoShowImplementation(gotoSession, implementations);
+    m_codeAssistant->navigationShow(navigationSession, implementations);
 }
 
 void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character) {
@@ -610,17 +612,18 @@ void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &r
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get goto display position
+    // get navigation display position
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
-    // call goto show
-    const QVariantMap gotoSession = {
+    // call navigation show
+    const QVariantMap navigationSession = {
+        {"type", "reference"},
         {"scriptUrl", scriptUrl},
         {"position", position}
     };
-    m_codeAssistant->gotoShowReferences(gotoSession, references);
+    m_codeAssistant->navigationShow(navigationSession, references);
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
@@ -704,17 +707,18 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get goto display position
+    // get navigation display position
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
-    // call goto show
-    const QVariantMap gotoSession = {
+    // call navigation show
+    const QVariantMap navigationSession = {
+        {"type", "typeDefinition"},
         {"scriptUrl", scriptUrl},
         {"position", position}
     };
-    m_codeAssistant->gotoShowTypeDefinition(gotoSession, typeDefinitions);
+    m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
 }
 
 // ScriptModule private

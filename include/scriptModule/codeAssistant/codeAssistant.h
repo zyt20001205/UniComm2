@@ -4,7 +4,7 @@
 
 class CompletionWidget;
 class DwellWidget;
-class GotoWidget;
+class NavigationWidget;
 class PositionWidget;
 class SignatureWidget;
 
@@ -28,15 +28,9 @@ public:
 
     void dwellLeave() const;
 
-    void gotoShowDefinition(const QVariantMap &gotoSession, const QJsonArray &definitions) const;
+    void navigationShow(const QVariantMap &navigationSession, const QJsonArray &navigations) const;
 
-    void gotoShowImplementation(const QVariantMap &gotoSession, const QJsonArray &implementations) const;
-
-    void gotoShowReferences(const QVariantMap &gotoSession, const QJsonArray &references) const;
-
-    void gotoShowTypeDefinition(const QVariantMap &gotoSession, const QJsonArray &typeDefinitions) const;
-
-    void gotoResponse(const QString &hint) const;
+    void navigationResponse(const QString &hint) const;
 
     void positionShow(const QVariantMap &positionSession) const;
 
@@ -67,7 +61,7 @@ protected:
 private:
     CompletionWidget *m_completionWidget{};
     DwellWidget *m_dwellWidget{};
-    GotoWidget *m_gotoWidget{};
+    NavigationWidget *m_navigationWidget{};
     PositionWidget *m_positionWidget{};
     SignatureWidget *m_signatureWidget{};
 };
