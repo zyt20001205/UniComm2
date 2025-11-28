@@ -64,6 +64,8 @@ public:
 
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
+    void codeActionRequest(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);
+
     void completionRequest(const QUrl &scriptUrl, int line, int character);
 
     void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;
@@ -142,6 +144,8 @@ signals:
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
+
+    void responseCodeAction(const QUrl &scriptUrl, const QJsonArray &result);
 
     void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
 

@@ -195,6 +195,7 @@ void MainWindow::moduleInit() {
     connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
     connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
+    connect(m_llsModule, &LuaLanguageServer::responseCodeAction, m_scriptModule, &ScriptModule::responseCodeAction);
     connect(m_llsModule, &LuaLanguageServer::responseCompletion, m_scriptModule, &ScriptModule::completionResponse);
     connect(m_llsModule, &LuaLanguageServer::responseDefinition, m_scriptModule, &ScriptModule::definitionResponse);
     connect(m_llsModule, &LuaLanguageServer::responseDocumentHighlight, m_scriptModule, &ScriptModule::documentHighlightResponse);

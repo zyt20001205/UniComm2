@@ -33,12 +33,14 @@ ScriptModule::ScriptModule(QWidget *parent)
         scriptOpen(QUrl(value.toString()));
     }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
+    connect(this, &ScriptModule::responseCodeAction, m_codeAssistant, &CodeAssistant::dwellShowCodeAction);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
     connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
     connect(m_codeAssistant, &CodeAssistant::getText, this, &ScriptModule::textGet);
     connect(m_codeAssistant, &CodeAssistant::insertText, this, &ScriptModule::textInsert);
     connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorInsert);
+    connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &ScriptModule::codeActionRequest);
     connect(m_codeAssistant, &CodeAssistant::insertPort, this, &ScriptModule::insertPort);
     connect(m_codeAssistant, &CodeAssistant::insertDatabase, this, &ScriptModule::insertDatabase);
     connect(m_codeAssistant, &CodeAssistant::insertDatatable, this, &ScriptModule::insertDatatable);
@@ -336,6 +338,55 @@ void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArr
         m_scriptPageHash[scriptUrl]->diagnosticsResponse(diagnostics);
     }
 }
+
+void ScriptModule::codeActionRequest(const QUrl &scriptUrl, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
+    QJsonArray diagnosticArray{};
+    for (const auto &value: m_diagnosticsHash[scriptUrl]) {
+        const QJsonObject diagnostic = value.toObject();
+        const QJsonObject range = diagnostic["range"].toObject();
+        const QJsonObject startPos = range["start"].toObject();
+        const QJsonObject endPos = range["end"].toObject();
+        const int startLine = startPos["line"].toInt();
+        const int startCharacter = startPos["character"].toInt();
+        const int endLine = endPos["line"].toInt();
+        const int endCharacter = endPos["character"].toInt();
+        if (lineFrom == startLine && lineTo == endLine && indexFrom == startCharacter && indexTo == endCharacter) {
+            diagnosticArray.append(diagnostic);
+        }
+    }
+    // code action request to lua language server
+    const QJsonObject codeActionParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
+            }
+        },
+        {
+            "range", QJsonObject{
+                {
+                    "start", QJsonObject{
+                        {"line", lineFrom},
+                        {"character", indexFrom}
+                    }
+                },
+                {
+                    "end", QJsonObject{
+                        {"line", lineTo},
+                        {"character", indexTo}
+                    }
+                }
+            }
+        },
+        {
+            "context", QJsonObject{
+                {"diagnostics", diagnosticArray}
+            }
+        }
+    };
+    emit requestJson("textDocument/codeAction", codeActionParams);
+}
+
+// codeActionResponse is sent to codeAssistant module
 
 void ScriptModule::completionRequest(const QUrl &scriptUrl, int line, int character) {
     // completion request to lua language server

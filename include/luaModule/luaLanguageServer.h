@@ -24,6 +24,8 @@ signals:
 
     void notificationPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
+    void responseCodeAction(const QUrl &scriptUrl, const QJsonArray &result);
+
     void responseCompletion(const QUrl &scriptUrl, const QJsonArray &items);
 
     void responseDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);

@@ -24,6 +24,8 @@ public:
 
     void dwellShowHover(const QString &message) const;
 
+    void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
+
     void dwellHide() const;
 
     void dwellLeave() const;
@@ -48,6 +50,8 @@ signals:
     void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+
+    void requestCodeAction(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     void insertPort();
 

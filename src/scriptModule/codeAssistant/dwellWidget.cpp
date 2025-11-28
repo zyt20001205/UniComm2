@@ -29,13 +29,20 @@ DwellWidget::DwellWidget(QWidget *parent)
     m_diagnosticTextBrowser->hide();
     connect(m_diagnosticTextBrowser, &QTextBrowser::anchorClicked, this, [this](const QUrl &commandLine) {
         const QString command = commandLine.scheme();
-        if (command == "requestspellsuggest") {
+        if (command == "requestcodeaction") {
+            const QStringList arguments = commandLine.path().split('/');
+            m_diagnosticLineFrom = arguments[1].toInt();
+            m_diagnosticIndexFrom = arguments[2].toInt();
+            m_diagnosticLineTo = arguments[3].toInt();
+            m_diagnosticIndexTo = arguments[4].toInt();
+            emit requestCodeAction(m_scriptUrl, m_diagnosticLineFrom, m_diagnosticIndexFrom, m_diagnosticLineTo, m_diagnosticIndexTo);
+        } else if (command == "requestspellsuggest") {
             const QString word = commandLine.host();
             const QStringList arguments = commandLine.path().split('/');
-            m_lineFrom = arguments[1].toInt();
-            m_indexFrom = arguments[2].toInt();
-            m_lineTo = arguments[3].toInt();
-            m_indexTo = arguments[4].toInt();
+            m_typoLineFrom = arguments[1].toInt();
+            m_typoIndexFrom = arguments[2].toInt();
+            m_typoLineTo = arguments[3].toInt();
+            m_typoIndexTo = arguments[4].toInt();
             const QStringList suggestions = g_nuspell->spellSuggestRequest(word);
             dwellShowSuggestions(suggestions);
         }
@@ -86,6 +93,10 @@ void DwellWidget::dwellShowHover(const QString &message) {
     });
 }
 
+void DwellWidget::dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const {
+    qDebug() << result;
+}
+
 void DwellWidget::dwellHide() {
     hide();
 }
@@ -113,7 +124,7 @@ void DwellWidget::dwellShowSuggestions(const QStringList &suggestions) {
     for (const auto &suggestion: suggestions) {
         const auto suggestionAction = new QAction(suggestion, m_suggestionMenu); // NOLINT
         connect(suggestionAction, &QAction::triggered, this, [this, suggestion] {
-            emit replaceText(m_scriptUrl ,suggestion, m_lineFrom, m_indexFrom, m_lineTo, m_indexTo);
+            emit replaceText(m_scriptUrl, suggestion, m_typoLineFrom, m_typoIndexFrom, m_typoLineTo, m_typoIndexTo);
             dwellHide();
         });
         m_suggestionMenu->addAction(suggestionAction);

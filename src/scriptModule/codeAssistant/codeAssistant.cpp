@@ -24,6 +24,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_completionWidget, &CompletionWidget::insertDatatable, this, &CodeAssistant::insertDatatable);
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
     connect(m_dwellWidget, &DwellWidget::replaceText, this, &CodeAssistant::replaceText);
+    connect(m_dwellWidget, &DwellWidget::requestCodeAction, this, &CodeAssistant::requestCodeAction);
     connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
@@ -44,6 +45,10 @@ void CodeAssistant::dwellShowDiagnostic(const QUrl &scriptUrl, const QString &me
 
 void CodeAssistant::dwellShowHover(const QString &message) const {
     m_dwellWidget->dwellShowHover(message);
+}
+
+void CodeAssistant::dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const {
+    m_dwellWidget->dwellShowCodeAction(scriptUrl, result);
 }
 
 void CodeAssistant::dwellHide() const {

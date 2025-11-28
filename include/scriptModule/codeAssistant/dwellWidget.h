@@ -20,10 +20,14 @@ public:
 
     void dwellShowHover(const QString &message);
 
+    void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
+
     void dwellHide();
 
 signals:
     void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+
+    void requestCodeAction(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
 protected:
     void enterEvent(QEnterEvent *event) override;
@@ -40,10 +44,14 @@ private:
     QMenu *m_suggestionMenu{};
 
     QUrl m_scriptUrl{};
-    int m_lineFrom{};
-    int m_lineTo{};
-    int m_indexFrom{};
-    int m_indexTo{};
+    int m_diagnosticLineFrom{};
+    int m_diagnosticLineTo{};
+    int m_diagnosticIndexFrom{};
+    int m_diagnosticIndexTo{};
+    int m_typoLineFrom{};
+    int m_typoLineTo{};
+    int m_typoIndexFrom{};
+    int m_typoIndexTo{};
 };
 
 #endif //UNICOMM_DWELLWIDGET_H
