@@ -104,7 +104,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/diagnosticsModule.h
         include/scriptModule/explorerModule.h
         include/scriptModule/nuspellModule.h
-        include/scriptModule/scriptEditor.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
         include/scriptModule/structureModule.h
@@ -116,6 +115,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeAssistant/gotoWidget.h
         include/scriptModule/codeAssistant/positionWidget.h
         include/scriptModule/codeAssistant/signatureWidget.h
+        include/scriptModule/codeEditor/editorWidget.h
+        include/scriptModule/codeEditor/searchWidget.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
         include/settingModule/indicatorSettingScript.h
@@ -159,7 +160,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/diagnosticsModule.cpp
         src/scriptModule/explorerModule.cpp
         src/scriptModule/nuspellModule.cpp
-        src/scriptModule/scriptEditor.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
         src/scriptModule/structureModule.cpp
@@ -171,6 +171,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeAssistant/gotoWidget.cpp
         src/scriptModule/codeAssistant/positionWidget.cpp
         src/scriptModule/codeAssistant/signatureWidget.cpp
+        src/scriptModule/codeEditor/editorWidget.cpp
+        src/scriptModule/codeEditor/searchWidget.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
         src/settingModule/indicatorSettingScript.cpp

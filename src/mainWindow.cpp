@@ -32,7 +32,7 @@
 #include "scriptModule/diagnosticsModule.h"
 #include "scriptModule/explorerModule.h"
 #include "scriptModule/nuspellModule.h"
-#include "scriptModule/scriptEditor.h"
+#include "scriptModule/codeEditor/editorWidget.h"
 #include "scriptModule/scriptModule.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/structureModule.h"
@@ -449,7 +449,7 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_scriptEditor->text();
+                const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_editorWidget->text();
                 emit runThread(scriptUrl, script);
                 m_logModule->raise();
             }
@@ -469,7 +469,7 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_scriptEditor->text();
+                const QString script = m_scriptModule->m_scriptPageHash[scriptUrl]->m_editorWidget->text();
                 emit debugThread(scriptUrl, script);
                 m_debugModule->raise();
             }

@@ -13,7 +13,7 @@ class QTextBrowser;
 
 class CodeAssistant;
 class ScriptPage;
-class ScriptEditor;
+class EditorWidget;
 class SignatureWidget;
 
 class ScriptModule final : public QObject {
