@@ -17,7 +17,7 @@ ScriptModule::ScriptModule(QWidget *parent)
     : QObject(parent),
       m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
-      m_codeAssistant(new CodeAssistant(parent)){
+      m_codeAssistant(new CodeAssistant(parent)) {
     m_welcomePage->setObjectName("welcomePage");
     const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
     for (const auto &key: breakpointHash.keys()) {
@@ -35,6 +35,7 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
     connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
+    connect(m_codeAssistant, &CodeAssistant::getText, this, &ScriptModule::textGet);
     connect(m_codeAssistant, &CodeAssistant::insertText, this, &ScriptModule::textInsert);
     connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorInsert);
@@ -254,6 +255,36 @@ void ScriptModule::cursorPositionGet() const {
         {"line", line + 1},
         {"character", index}
     };
+}
+
+QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    QString script{};
+    // get text from editor
+    if (m_scriptPageHash.contains(scriptUrl)) {
+        const auto *scriptPage = m_scriptPageHash[scriptUrl];
+        script = scriptPage->m_editorWidget->text();
+    }
+    // get text from file
+    else {
+        QFile file(scriptUrl.toLocalFile());
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in(&file);
+            script = in.readAll();
+            file.close();
+        }
+    }
+    // get full script if start line is -1
+    if (startLine == -1) {
+        return script;
+    }
+    // split script into lines
+    const QStringList lines = script.split("\r\n");
+    // get full line if start character is l -1
+    if (startCharacter == -1) {
+        return lines[startLine];
+    }
+    // WIP: cover other conditions
+    return {};
 }
 
 void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {

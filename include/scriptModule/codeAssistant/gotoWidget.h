@@ -25,14 +25,16 @@ public:
 
     void gotoHide();
 
-    void gotoPrev() const;
+    void gotoPrev();
 
-    void gotoNext() const;
+    void gotoNext();
 
 signals:
-    void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
-
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
+
+    void getText(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+
+    void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 protected:
     void hideEvent(QHideEvent *event) override;
@@ -42,7 +44,7 @@ protected:
 private:
     void gotoJump(const QModelIndex &index);
 
-    void labelShow() const;
+    void labelShow();
 
     QVariantMap m_gotoSession{};
     QListView *m_gotoListView{};

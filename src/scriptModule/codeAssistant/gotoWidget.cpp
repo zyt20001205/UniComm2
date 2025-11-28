@@ -208,7 +208,7 @@ void GotoWidget::gotoHide() {
     hide();
 }
 
-void GotoWidget::gotoPrev() const {
+void GotoWidget::gotoPrev() {
     const QModelIndex currentIndex = m_gotoListView->currentIndex();
     if (!currentIndex.isValid() || currentIndex.row() == 0) return;
     const QModelIndex prevIndex = m_gotoModel->index(currentIndex.row() - 1, 0);
@@ -216,7 +216,7 @@ void GotoWidget::gotoPrev() const {
     labelShow();
 }
 
-void GotoWidget::gotoNext() const {
+void GotoWidget::gotoNext() {
     const QModelIndex currentIndex = m_gotoListView->currentIndex();
     if (!currentIndex.isValid() || currentIndex.row() == m_gotoModel->rowCount() - 1) return;
     const QModelIndex nextIndex = m_gotoModel->index(currentIndex.row() + 1, 0);
@@ -248,13 +248,15 @@ void GotoWidget::gotoJump(const QModelIndex &index) {
     gotoHide();
 }
 
-void GotoWidget::labelShow() const {
+void GotoWidget::labelShow() {
     const QModelIndex index = m_gotoListView->currentIndex();
     if (!index.isValid()) {
         m_gotoLabel->hide();
         return;
     }
+    const QUrl scriptUrl = m_gotoModel->data(index, Qt::UserRole + 1).toUrl();
     const int lineFrom = m_gotoModel->data(index, Qt::UserRole + 2).toInt();
+    emit getText(scriptUrl, lineFrom, -1, -1, -1);
     const int indexFrom = m_gotoModel->data(index, Qt::UserRole + 3).toInt();
     const int indexTo = m_gotoModel->data(index, Qt::UserRole + 5).toInt();
     const QString label = QString("%1: %2-%3").arg(QString::number(lineFrom), QString::number(indexFrom), QString::number(indexTo));

@@ -45,6 +45,8 @@ signals:
 
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
 
+    void getText(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+
     void insertText(const QUrl &scriptUrl, const QString &text, int line, int index);
 
     void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
