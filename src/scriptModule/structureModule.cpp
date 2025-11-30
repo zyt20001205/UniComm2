@@ -39,8 +39,8 @@ void StructureModule::scriptFocus(const QUrl &scriptUrl) {
 }
 
 void StructureModule::markerInsert(const int row) {
-    // const int line = m_documentSymbolAbstractModel->item(row,0)->data(Qt::UserRole + 1).toInt();
-    // emit insertMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
+    const int line = m_documentSymbolAbstractModel->item(row,0)->data(Qt::UserRole + 1).toInt();
+    emit insertMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
 }
 
 // StructureModule private
@@ -58,37 +58,37 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
             case SYMBOLKIND_FUNCTION: {
                 item->setData(name + detail.mid(9), Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::UserRole + 1);
+                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOLKIND_NUMBER: {
                 item->setData(name + " = " + detail, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::UserRole + 1);
+                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOLKIND_CONSTANT: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolConstant.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::UserRole + 1);
+                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOLKIND_STRING: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolString.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::UserRole + 1);
+                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOLKIND_OBJECT: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::UserRole + 1);
+                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             default: {
                 item->setText(name);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::UserRole + 1);
+                item->setData(line, Qt::WhatsThisRole);
                 qDebug() << "WIP structure kind:" << kind << name << detail;
             }
             break;

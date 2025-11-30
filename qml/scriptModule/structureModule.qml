@@ -88,7 +88,7 @@ Rectangle {
                     TapHandler {
                         acceptedButtons: Qt.LeftButton
                         onSingleTapped: {
-                            structureModule.markerInsert(row)
+                            structureModule.markerInsert(model.whatsThis)
                         }
                     }
 
