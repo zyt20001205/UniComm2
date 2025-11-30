@@ -147,6 +147,13 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/utils/qtUtils.cpp
 )
 
+qt_add_resources(UniComm "qml_resources"
+        PREFIX "/qml"
+        BASE "qml"
+        FILES
+        "qml/scriptModule/structureModule.qrc"
+)
+
 qt_add_resources(UniComm "icon_resources"
         PREFIX "/icon"
         BASE "resources/icon"
