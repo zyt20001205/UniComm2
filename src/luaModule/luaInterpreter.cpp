@@ -309,23 +309,23 @@ void LuaInterpreter::showHeatmap() const {
         }, Qt::QueuedConnection);
         if (const float percent = static_cast<float>(hitCount) / maxHit; percent < 0.25) {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-                g_script->markerInsert(currentUrl, MARKER_HEATMAP0, line);
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP0, line - 1);
             }, Qt::QueuedConnection);
         } else if (percent < 0.5) {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-                g_script->markerInsert(currentUrl, MARKER_HEATMAP25, line);
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP25, line - 1);
             }, Qt::QueuedConnection);
         } else if (percent < 0.75) {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-                g_script->markerInsert(currentUrl, MARKER_HEATMAP50, line);
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP50, line - 1);
             }, Qt::QueuedConnection);
         } else if (percent < 1) {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-                g_script->markerInsert(currentUrl, MARKER_HEATMAP75, line);
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP75, line - 1);
             }, Qt::QueuedConnection);
         } else {
             QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-                g_script->markerInsert(currentUrl, MARKER_HEATMAP100, line);
+                g_script->markerInsert(currentUrl, MARKER_HEATMAP100, line - 1);
             }, Qt::QueuedConnection);
         }
     }
@@ -441,7 +441,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // line handle
             QMetaObject::invokeMethod(g_mainWindow, [debugData, currentLine] {
-                g_script->markerInsert(debugData->currentUrl, MARKER_DEBUG, currentLine);
+                g_script->markerInsert(debugData->currentUrl, MARKER_DEBUG, currentLine - 1);
             }, Qt::BlockingQueuedConnection);
             // var tree
             {
@@ -599,7 +599,7 @@ void LuaInterpreter::handleError() const {
     if (const auto match = re.match(errorMessage); match.hasMatch()) errorLine = match.captured(1).toInt();
     QUrl scriptUrl = m_scriptUrl;
     QMetaObject::invokeMethod(g_mainWindow, [scriptUrl, errorLine, errorMessage] {
-        g_script->markerInsert(scriptUrl, MARKER_ERROR, errorLine);
+        g_script->markerInsert(scriptUrl, MARKER_ERROR, errorLine - 1);
         g_log->logAppend(errorMessage, "error");
     }, Qt::QueuedConnection);
     lua_pop(L, 1);

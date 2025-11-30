@@ -235,7 +235,6 @@ void EditorWidget::indicatorRemove(const int type, const int lineFrom, const int
 }
 
 void EditorWidget::markerInsert(const int type, int line, const int time) {
-    line--;
     markerAdd(line, type);
     ensureLineVisible(line);
     if (time == -1) return;
@@ -248,7 +247,6 @@ void EditorWidget::markerRemove(const int type, int line) {
     if (line == -1) {
         markerDeleteAll(type);
     } else {
-        line--;
         markerDelete(line, type);
     }
 }

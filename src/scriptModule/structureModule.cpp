@@ -4,6 +4,7 @@
 #include <QQmlContext>
 #include <QQuickWidget>
 #include <QStandardItemModel>
+#include <QTimer>
 #include <QTreeView>
 
 #include "globals.h"
@@ -14,6 +15,7 @@ StructureModule::StructureModule()
       m_structureWidget(new QQuickWidget()),
       m_documentSymbolAbstractModel(new QStandardItemModel()) {
     setWidget(m_structureWidget);
+    m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("filterModel", m_documentSymbolAbstractModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/structureModule.qml"));
@@ -36,45 +38,58 @@ void StructureModule::scriptFocus(const QUrl &scriptUrl) {
     }
 }
 
+void StructureModule::markerInsert(const int row) {
+    // const int line = m_documentSymbolAbstractModel->item(row,0)->data(Qt::UserRole + 1).toInt();
+    // emit insertMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
+}
+
 // StructureModule private
 void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const {
     for (const auto &value: result) {
         const auto symbol = value.toObject();
         auto *item = new QStandardItem(); // NOLINT
         const auto kind = symbol["kind"].toInt();
+        const auto detail = symbol["detail"].toString();
+        const auto name = symbol["name"].toString();
+        const auto range = symbol["range"].toObject();
+        const auto start = range["start"].toObject();
+        const int line = start["line"].toInt();
         switch (kind) {
             case SYMBOLKIND_FUNCTION: {
-                const auto detail = symbol["detail"].toString();
-                const auto name = symbol["name"].toString();
-                const auto range = symbol["range"].toObject();
-                const auto start = range["start"].toObject();
-                const int line = start["line"].toInt();
-                item->setText(name + detail.mid(9));
+                item->setData(name + detail.mid(9), Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::UserRole + 1);
             }
             break;
             case SYMBOLKIND_NUMBER: {
-                const auto detail = symbol["detail"].toString();
-                const auto name = symbol["name"].toString();
-                const auto range = symbol["range"].toObject();
-                const auto start = range["start"].toObject();
-                const int line = start["line"].toInt();
-                item->setText(name + " = " + detail);
+                item->setData(name + " = " + detail, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::UserRole + 1);
             }
             break;
+            case SYMBOLKIND_CONSTANT: {
+                item->setData(name, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolConstant.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::UserRole + 1);
+            }
+            break;
+            case SYMBOLKIND_STRING: {
+                item->setData(name, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolString.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::UserRole + 1);
+            }
+            break;
+            case SYMBOLKIND_OBJECT: {
+                item->setData(name, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::UserRole + 1);
+            }
+            break;
             default: {
-                const auto detail = symbol["detail"].toString();
-                const auto name = symbol["name"].toString();
-                const auto range = symbol["range"].toObject();
-                const auto start = range["start"].toObject();
-                const int line = start["line"].toInt();
                 item->setText(name);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::UserRole + 1);
-                qDebug() << "WIP completion kind:" << kind << name << detail;
+                qDebug() << "WIP structure kind:" << kind << name << detail;
             }
             break;
         }

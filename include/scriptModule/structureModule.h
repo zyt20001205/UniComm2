@@ -21,6 +21,8 @@ public:
 
     void scriptFocus(const QUrl &scriptUrl);
 
+    Q_INVOKABLE void markerInsert(int row);
+
 signals:
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
@@ -39,7 +41,7 @@ private:
         SYMBOLKIND_PACKAGE,
         SYMBOLKIND_CLASS,
         SYMBOLKIND_METHOD,
-        SYMBOLKIND_SYMBOLKIND_PROPERTY,
+        SYMBOLKIND_PROPERTY,
         SYMBOLKIND_FIELD,
         SYMBOLKIND_CONSTRUCTOR,
         SYMBOLKIND_ENUM,
@@ -58,7 +60,7 @@ private:
         SYMBOLKIND_STRUCT,
         SYMBOLKIND_EVENT,
         SYMBOLKIND_OPERATOR,
-        SYMBOLKIND_KINDPARAMETER
+        SYMBOLKIND_TYPEPARAMETER
     };
 };
 
