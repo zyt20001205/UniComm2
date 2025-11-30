@@ -1,6 +1,7 @@
 #include "mainWindow.h"
 
 #include <crashHandler.h>
+#include <QQuickStyle>
 #include <QStyleFactory>
 #include <kddockwidgets/Config.h>
 
@@ -12,6 +13,7 @@ int main(int argc, char *argv[]) {
     // application style init
     QApplication app(argc, argv);
     QApplication::setStyle(QStyleFactory::create("Fusion"));
+    QQuickStyle::setStyle("FluentWinUI3");
     // kddw init
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
     auto flags = KDDockWidgets::Config::self().flags();

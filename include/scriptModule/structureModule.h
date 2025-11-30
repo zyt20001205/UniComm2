@@ -1,9 +1,10 @@
 #ifndef UNICOMM_STRUCTUREMODULE_H
 #define UNICOMM_STRUCTUREMODULE_H
 
-#include <QUrl>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+
+class QQuickWidget;
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
@@ -26,9 +27,9 @@ signals:
 private:
     void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const;
 
-    QUrl m_currentScriptUrl;
-    QTreeView *m_documentSymbolTreeView{};
-    QStandardItemModel *m_documentSymbolTreeModel{};
+    QUrl m_currentScriptUrl{};
+    QQuickWidget *m_structureWidget{};
+    QStandardItemModel *m_documentSymbolAbstractModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
 
     enum {

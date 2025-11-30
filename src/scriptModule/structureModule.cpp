@@ -1,80 +1,91 @@
 #include "scriptModule/structureModule.h"
 
 #include <QJsonArray>
-#include <QJsonObject>
+#include <QQmlContext>
+#include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QTreeView>
-#include <QVBoxLayout>
 
 #include "globals.h"
 
 // StructureModule public
 StructureModule::StructureModule()
     : DockWidget("structure"),
-      m_documentSymbolTreeView(new QTreeView()),
-      m_documentSymbolTreeModel(new QStandardItemModel()) {
-    auto *widget = new QWidget(); // NOLINT
-    setWidget(widget);
-    auto *layout = new QVBoxLayout(widget); // NOLINT
-    layout->addWidget(m_documentSymbolTreeView);
-    layout->setContentsMargins(0, 0, 0, 0);
-    m_documentSymbolTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_documentSymbolTreeView->setHeaderHidden(true);
-    m_documentSymbolTreeView->setModel(m_documentSymbolTreeModel);
-    connect(m_documentSymbolTreeView, &QTreeView::clicked, this, [this](const QModelIndex &index) {
-        const int line = index.data(Qt::UserRole + 1).toInt() + 1;
-        emit insertMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
-    });
+      m_structureWidget(new QQuickWidget()),
+      m_documentSymbolAbstractModel(new QStandardItemModel()) {
+    setWidget(m_structureWidget);
+    m_structureWidget->rootContext()->setContextProperty("filterModel", m_documentSymbolAbstractModel);
+    m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/structureModule.qml"));
 }
 
 void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
-        m_documentSymbolTreeModel->clear();
+        m_documentSymbolAbstractModel->clear();
         documentSymbolPublish(result, nullptr);
-        m_documentSymbolTreeView->expandAll();
     }
 }
 
 void StructureModule::scriptFocus(const QUrl &scriptUrl) {
+    if (m_currentScriptUrl == scriptUrl) return;
     m_currentScriptUrl = scriptUrl;
-    m_documentSymbolTreeModel->clear();
+    m_documentSymbolAbstractModel->clear();
     if (m_documentSymbolHash.contains(scriptUrl)) {
         documentSymbolPublish(m_documentSymbolHash[scriptUrl], nullptr);
-        m_documentSymbolTreeView->expandAll();
     }
 }
 
 // StructureModule private
 void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const {
     for (const auto &value: result) {
-        const auto symbolObject = value.toObject();
-        QString displayText{};
-        int line = 0;
-        switch (symbolObject["kind"].toInt()) {
+        const auto symbol = value.toObject();
+        auto *item = new QStandardItem(); // NOLINT
+        const auto kind = symbol["kind"].toInt();
+        switch (kind) {
             case SYMBOLKIND_FUNCTION: {
-                const auto detail = symbolObject["detail"].toString();
-                const auto name = symbolObject["name"].toString();
-                displayText = name + detail.mid(9);
-                const auto rangeObject = symbolObject["range"].toObject();
-                const auto startObject = rangeObject["start"].toObject();
-                line = startObject["line"].toInt();
+                const auto detail = symbol["detail"].toString();
+                const auto name = symbol["name"].toString();
+                const auto range = symbol["range"].toObject();
+                const auto start = range["start"].toObject();
+                const int line = start["line"].toInt();
+                item->setText(name + detail.mid(9));
+                item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::UserRole + 1);
             }
             break;
-            default: break;
+            case SYMBOLKIND_NUMBER: {
+                const auto detail = symbol["detail"].toString();
+                const auto name = symbol["name"].toString();
+                const auto range = symbol["range"].toObject();
+                const auto start = range["start"].toObject();
+                const int line = start["line"].toInt();
+                item->setText(name + " = " + detail);
+                item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::UserRole + 1);
+            }
+            break;
+            default: {
+                const auto detail = symbol["detail"].toString();
+                const auto name = symbol["name"].toString();
+                const auto range = symbol["range"].toObject();
+                const auto start = range["start"].toObject();
+                const int line = start["line"].toInt();
+                item->setText(name);
+                item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::UserRole + 1);
+                qDebug() << "WIP completion kind:" << kind << name << detail;
+            }
+            break;
         }
-        if (!displayText.isEmpty()) {
-            auto *item = new QStandardItem(displayText); // NOLINT
-            item->setData(line, Qt::UserRole + 1);
-            if (parentItem) {
-                parentItem->appendRow(item);
-            } else {
-                m_documentSymbolTreeModel->appendRow(item);
-            }
-            if (symbolObject.contains("children")) {
-                QJsonArray children = symbolObject["children"].toArray();
-                documentSymbolPublish(children, item);
-            }
+        if (parentItem) {
+            parentItem->appendRow(item);
+        } else {
+            m_documentSymbolAbstractModel->appendRow(item);
+        }
+        if (symbol.contains("children")) {
+            QJsonArray children = symbol["children"].toArray();
+            documentSymbolPublish(children, item);
         }
     }
 }
