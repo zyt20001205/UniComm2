@@ -91,12 +91,6 @@ Rectangle {
                             structureModule.markerInsert(model.whatsThis)
                         }
                     }
-
-                    background: Rectangle {
-                        color: "transparent"
-                        border.color: "red"
-                        border.width: 1
-                    }
                 }
             }
         }
