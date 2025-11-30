@@ -1,7 +1,7 @@
 #include "utils/cvUtils.h"
 
 #include <QUrl>
-#include "baseapi.h"
+#include "tesseract/baseapi.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core/mat.hpp"
 

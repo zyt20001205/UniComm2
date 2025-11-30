@@ -6,62 +6,22 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(UNICOMM_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
-
-set(MISC_DIR "${CMAKE_SOURCE_DIR}/3rd/misc")
-file(GLOB MISC_DLLS "${MISC_DIR}/bin/*.dll")
-
-set(DRMINGW_DIR "${CMAKE_SOURCE_DIR}/3rd/drmingw-0.9.11")
-set(DRMINGW_INCLUDE_DIR "${DRMINGW_DIR}/include")
-file(GLOB DRMINGW_DLLS "${DRMINGW_DIR}/bin/*.dll")
-
-set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
-set(LUA_INCLUDE_DIR "${LUA_DIR}/include")
-set(LUA_DLL "${LUA_DIR}/bin/lua54.dll")
-
-set(LUA_LANGUAGE_SERVER_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
-
-set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark-0.31.1")
-set(CMARK_INCLUDE_DIR "${CMARK_DIR}/include")
-set(CMARK_DLL "${CMARK_DIR}/bin/libcmark.dll")
-
-set(ICU4C_DIR "${CMAKE_SOURCE_DIR}/3rd/icu4c-77.1")
-set(ICU4C_INCLUDE_DIR "${ICU4C_DIR}/include")
-file(GLOB ICU4C_DLLS "${ICU4C_DIR}/bin/*.dll")
-
-set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell-5.1.6")
-set(NUSPELL_INCLUDE_DIR "${NUSPELL_DIR}/include")
-set(NUSPELL_DLL "${NUSPELL_DIR}/bin/libnuspell.dll")
-
-set(KDDOCKWIDGETS_DIR "${CMAKE_SOURCE_DIR}/3rd/kddockwidgets-2.3.0")
-set(KDDOCKWIDGETS_INCLUDE_DIR "${KDDOCKWIDGETS_DIR}/include")
-set(KDDOCKWIDGETS_DLL "${KDDOCKWIDGETS_DIR}/bin/libkddockwidgets-qt62.dll")
-
-set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/qscintilla-2.14.1")
-set(QSCINTILLA_INCLUDE_DIR "${QSCINTILLA_DIR}/include")
-set(QSCINTILLA_DLL "${QSCINTILLA_DIR}/bin/qscintilla2_qt6.dll")
-
-set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/3rd/qcustomplot-2.1.1")
-set(QCUSTOMPLOT_INCLUDE_DIR "${QCUSTOMPLOT_DIR}/include")
-set(QCUSTOMPLOT_DLL "${QCUSTOMPLOT_DIR}/bin/libqcustomplot.dll")
-
-set(VISA_DIR "${CMAKE_SOURCE_DIR}/3rd/visa")
-set(VISA_INCLUDE_DIR "${VISA_DIR}/include")
-file(GLOB VISA_DLLS "${VISA_DIR}/bin/*.dll")
-
-set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
-set(OPENCV_INCLUDE_DIR "${OPENCV_DIR}/include")
-file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/libopencv_*.dll")
-
-set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
-set(TESSERACT_INCLUDE_DIR "${TESSERACT_DIR}/include")
-set(TESSERACT_DLL "${TESSERACT_DIR}/bin/libtesseract-5.5.dll")
-
-set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica-1.86.0")
-set(LEPTONICA_INCLUDE_DIR "${LEPTONICA_DIR}/include")
-set(LEPTONICA_DLL "${LEPTONICA_DIR}/bin/libleptonica-6.dll")
-
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
+find_package(Qt6 REQUIRED COMPONENTS
+        Core
+        Core5Compat
+        Gui
+        Multimedia
+        Network
+        PrintSupport
+        Qml
+        Quick
+        QuickControls2
+        QuickWidgets
+        SerialPort
+        Svg
+        TextToSpeech
+        Widgets
+)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(GUI_TYPE WIN32)
@@ -187,11 +147,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/utils/qtUtils.cpp
 )
 
-qt_add_resources(UniComm "readme_resources"
-        FILES
-        "readme.md"
-)
-
 qt_add_resources(UniComm "icon_resources"
         PREFIX "/icon"
         BASE "resources/icon"
@@ -257,44 +212,135 @@ qt_add_resources(UniComm "config_resources"
         "resources/config/lib.d.lua"
 )
 
-target_link_libraries(UniComm PRIVATE
-        Qt::Core
-        Qt::Gui
-        Qt::Widgets
-        Qt::Svg
-        Qt::PrintSupport
-        Qt::SerialPort
-        Qt::Network
-        Qt::Multimedia
-        Qt::TextToSpeech
-        ${DRMINGW_DLLS}
-        ${LUA_DLL}
-        ${CMARK_DLL}
-        ${ICU4C_DLLS}
-        ${NUSPELL_DLL}
-        ${KDDOCKWIDGETS_DLL}
-        ${QSCINTILLA_DLL}
-        ${QCUSTOMPLOT_DLL}
-        ${VISA_DLLS}
-        ${OPENCV_DLLS}
-        ${TESSERACT_DLL}
-        ${LEPTONICA_DLL}
-)
+set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
+
+set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt-6.10.1")
+set(QT_BIN "${QT_DIR}/bin")
+set(QT_PLUGINS
+        "generic"
+        "iconengines"
+        "imageformats"
+        "multimedia"
+        "networkinformation"
+        "platforms"
+        "styles"
+        "texttospeech"
+        "tls"
+        "translations")
+
+set(MISC_DIR "${CMAKE_SOURCE_DIR}/3rd/misc")
+set(MISC_BIN "${MISC_DIR}/bin")
+
+#3rd alphabetical order
+set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark-0.31.1")
+set(CMARK_INCLUDE "${CMARK_DIR}/include")
+file(GLOB CMARK_LIB "${CMARK_DIR}/lib/*.a")
+set(CMARK_BIN "${CMARK_DIR}/bin")
+
+set(DRMINGW_DIR "${CMAKE_SOURCE_DIR}/3rd/drmingw-0.9.11")
+set(DRMINGW_INCLUDE "${DRMINGW_DIR}/include")
+file(GLOB DRMINGW_LIB "${DRMINGW_DIR}/lib/*.a")
+set(DRMINGW_BIN "${DRMINGW_DIR}/bin")
+
+set(ICU_DIR "${CMAKE_SOURCE_DIR}/3rd/icu-78.1")
+set(ICU_INCLUDE "${ICU_DIR}/include")
+file(GLOB ICU_LIB "${ICU_DIR}/lib/*.a")
+set(ICU_BIN "${ICU_DIR}/bin")
+
+set(KDDW_DIR "${CMAKE_SOURCE_DIR}/3rd/kddw-2.4.0")
+set(KDDW_INCLUDE "${KDDW_DIR}/include")
+file(GLOB KDDW_LIB "${KDDW_DIR}/lib/*.a")
+set(KDDW_BIN "${KDDW_DIR}/bin")
+
+set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica-1.86.0")
+set(LEPTONICA_INCLUDE "${LEPTONICA_DIR}/include")
+file(GLOB LEPTONICA_LIB "${LEPTONICA_DIR}/lib/*.a")
+set(LEPTONICA_BIN "${LEPTONICA_DIR}/bin")
+
+set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
+set(LUA_INCLUDE "${LUA_DIR}/include")
+file(GLOB LUA_LIB "${LUA_DIR}/lib/*.a")
+set(LUA_BIN "${LUA_DIR}/bin")
+
+set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.15.0")
+
+set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell-5.1.6")
+set(NUSPELL_INCLUDE "${NUSPELL_DIR}/include")
+file(GLOB NUSPELL_LIB "${NUSPELL_DIR}/lib/*.a")
+set(NUSPELL_BIN "${NUSPELL_DIR}/bin")
+set(NUSPELL_DICT "${NUSPELL_DIR}/dict")
+
+set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
+set(OPENCV_INCLUDE "${OPENCV_DIR}/include")
+file(GLOB OPENCV_LIB "${OPENCV_DIR}/lib/*.a")
+set(OPENCV_BIN "${OPENCV_DIR}/bin")
+
+set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/3rd/qcustomplot-2.1.1")
+set(QCUSTOMPLOT_INCLUDE "${QCUSTOMPLOT_DIR}/include")
+file(GLOB QCUSTOMPLOT_LIB "${QCUSTOMPLOT_DIR}/lib/*.a")
+set(QCUSTOMPLOT_BIN "${QCUSTOMPLOT_DIR}/bin")
+
+set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/qscintilla-2.14.1")
+set(QSCINTILLA_INCLUDE "${QSCINTILLA_DIR}/include")
+file(GLOB QSCINTILLA_LIB "${QSCINTILLA_DIR}/lib/*.a")
+set(QSCINTILLA_BIN "${QSCINTILLA_DIR}/bin")
+
+set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
+set(TESSERACT_INCLUDE "${TESSERACT_DIR}/include")
+file(GLOB TESSERACT_LIB "${TESSERACT_DIR}/lib/*.a")
+set(TESSERACT_BIN "${TESSERACT_DIR}/bin")
+set(TESSERACT_LANG "${TESSERACT_DIR}/lang")
+
+#???
+set(VISA_DIR "${CMAKE_SOURCE_DIR}/3rd/visa")
+set(VISA_INCLUDE "${VISA_DIR}/include")
+file(GLOB VISA_LIB "${VISA_DIR}/bin/*.dll")
+set(VISA_BIN "${VISA_DIR}/bin")
 
 target_include_directories(UniComm PRIVATE
-        ${UNICOMM_INCLUDE_DIR}
-        ${DRMINGW_INCLUDE_DIR}
-        ${LUA_INCLUDE_DIR}
-        ${CMARK_INCLUDE_DIR}
-        ${ICU4C_INCLUDE_DIR}
-        ${NUSPELL_INCLUDE_DIR}
-        ${KDDOCKWIDGETS_INCLUDE_DIR}
-        ${QSCINTILLA_INCLUDE_DIR}
-        ${QCUSTOMPLOT_INCLUDE_DIR}
-        ${VISA_INCLUDE_DIR}
-        ${OPENCV_INCLUDE_DIR}
-        ${TESSERACT_INCLUDE_DIR}
-        ${LEPTONICA_INCLUDE_DIR}
+        ${UNICOMM_INCLUDE}
+        ${CMARK_INCLUDE}
+        ${DRMINGW_INCLUDE}
+        ${ICU_INCLUDE}
+        ${KDDW_INCLUDE}
+        ${LEPTONICA_INCLUDE}
+        ${LUA_INCLUDE}
+        ${NUSPELL_INCLUDE}
+        ${OPENCV_INCLUDE}
+        ${QCUSTOMPLOT_INCLUDE}
+        ${QSCINTILLA_INCLUDE}
+        ${TESSERACT_INCLUDE}
+        ${VISA_INCLUDE}
+)
+
+target_link_libraries(UniComm PRIVATE
+        Qt6::Core
+        Qt6::Core5Compat
+        Qt6::Gui
+        Qt6::Multimedia
+        Qt6::Network
+        Qt6::PrintSupport
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2
+        Qt6::QuickWidgets
+        Qt6::SerialPort
+        Qt6::Svg
+        Qt6::TextToSpeech
+        Qt6::Widgets
+        ${CMARK_LIB}
+        ${DRMINGW_LIB}
+        ${ICU_LIB}
+        ${KDDW_LIB}
+        ${LEPTONICA_LIB}
+        ${LUA_LIB}
+        ${NUSPELL_LIB}
+        ${OPENCV_LIB}
+        ${QCUSTOMPLOT_LIB}
+        ${QSCINTILLA_LIB}
+        ${TESSERACT_LIB}
+        #???
+        ${VISA_LIB}
 )
 
 target_compile_definitions(UniComm PRIVATE
@@ -306,194 +352,116 @@ target_compile_options(UniComm PRIVATE
         -g
 )
 
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(DEBUG_SUFFIX)
-    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
-        set(DEBUG_SUFFIX "d")
-    endif ()
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        endif ()
-    endif ()
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    endif ()
-    foreach (QT_LIB Core Gui Widgets Svg PrintSupport SerialPort Network Multimedia TextToSpeech)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach (QT_LIB)
+#auto deploy(do not use)
+#add_custom_command(TARGET UniComm POST_BUILD
+#        COMMAND Qt6::windeployqt
+#        --qmldir "${CMAKE_SOURCE_DIR}/qml"
+#        "$<TARGET_FILE:UniComm>")
+#qt-6.10.1
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${QT_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "QT BIN COPIED")
+foreach(QT_PLUGIN ${QT_PLUGINS})
+    add_custom_command(TARGET UniComm POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_DIR}/${QT_PLUGIN}"
+            "${CMAKE_BINARY_DIR}/${QT_PLUGIN}"
+            COMMENT "${QT_PLUGIN} PLUGIN COPIED")
+endforeach ()
 
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/imageformats/qsvg${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-    endif ()
-
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/imageformats/qico${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-    endif ()
-
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/multimedia")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
-        file(GLOB QT_MM_BACKENDS "${QT_INSTALL_PATH}/plugins/multimedia/*.dll")
-        foreach (DLL ${QT_MM_BACKENDS})
-            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "${DLL}"
-                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/multimedia/")
-        endforeach ()
-    endif ()
-
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/texttospeech")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/texttospeech/")
-        file(GLOB QT_MM_BACKENDS "${QT_INSTALL_PATH}/plugins/texttospeech/*.dll")
-        foreach (DLL ${QT_MM_BACKENDS})
-            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "${DLL}"
-                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/texttospeech/")
-        endforeach ()
-    endif ()
-
-    file(GLOB MISC_DLLS "${MISC_DIR}/bin/*.dll")
-    foreach (DLL ${MISC_DLLS})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-
-    file(GLOB DRMINGW_DLLS "${DRMINGW_DIR}/bin/*.dll")
-    foreach (DLL ${DRMINGW_DLLS})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-    
-    if (EXISTS "${LUA_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${LUA_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
-
-    if (EXISTS "${LUA_LANGUAGE_SERVER_DIR}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${LUA_LANGUAGE_SERVER_DIR}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/lua-language-server")
-    endif ()
-
-    if (EXISTS "${CMARK_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CMARK_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
-
-    file(GLOB ICU4C_DLLS "${ICU4C_DIR}/bin/*.dll")
-    foreach (DLL ${ICU4C_DLLS})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-
-    if (EXISTS "${NUSPELL_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${NUSPELL_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${NUSPELL_DIR}/dict"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/dict")
-    endif ()
-
-    if (EXISTS "${KDDOCKWIDGETS_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${KDDOCKWIDGETS_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
-
-    if (EXISTS "${QSCINTILLA_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${QSCINTILLA_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
-
-    if (EXISTS "${QCUSTOMPLOT_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${QCUSTOMPLOT_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
-
-    file(GLOB VISA_DLLS "${VISA_DIR}/bin/*.dll")
-    foreach (DLL ${VISA_DLLS})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-
-    file(GLOB OPENCV_DLLS "${OPENCV_DIR}/bin/*.dll")
-    foreach (DLL ${OPENCV_DLLS})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-
-    file(GLOB TESSERACT_DLLS "${TESSERACT_DIR}/bin/*.dll")
-    foreach (DLL ${TESSERACT_DLLS})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-
-    file(GLOB TESSDATA_FILES "${TESSERACT_DIR}/lang/*.traineddata")
-    foreach (TESSDATA ${TESSDATA_FILES})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${TESSDATA}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach ()
-
-    if (EXISTS "${LEPTONICA_DLL}")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${LEPTONICA_DLL}"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endif ()
-
-endif ()
+#misc
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${MISC_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "MISC BIN COPIED")
+#cmark-0.31.1
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMARK_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "CMARK BIN COPIED")
+#drmingw-0.9.11
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${DRMINGW_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "DRMINGW BIN COPIED")
+#icu-78.1
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${ICU_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "ICU BIN COPIED")
+#kddw-2.4.0
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${KDDW_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "KDDW BIN COPIED")
+#leptonica-1.86.0
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${LEPTONICA_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "LEPTONICA BIN COPIED")
+#lua-5.4.8
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${LUA_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "LUA BIN COPIED")
+#lua-language-server-3.15.0
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${LUALS_DIR}"
+        "${CMAKE_BINARY_DIR}/lua-language-server"
+        COMMENT "LUALS DIR COPIED")
+#nuspell-5.1.6
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${NUSPELL_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "NUSPELL BIN COPIED")
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${NUSPELL_DICT}"
+        "${CMAKE_BINARY_DIR}/dict"
+        COMMENT "NUSPELL DICT COPIED")
+#opencv-4.12.0
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OPENCV_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "OPENCV BIN COPIED")
+#qcustomplot-2.1.1
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${QCUSTOMPLOT_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "QCUSTOMPLOT BIN COPIED")
+#qscintilla-5.4.8
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${QSCINTILLA_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "QSCINTILLA BIN COPIED")
+#tesseract-5.5.1
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${TESSERACT_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "TESSERACT BIN COPIED")
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${TESSERACT_LANG}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "TESSERACT LANG COPIED")
+#visa
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${VISA_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "VISA BIN COPIED")
