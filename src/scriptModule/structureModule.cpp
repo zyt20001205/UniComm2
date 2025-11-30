@@ -39,8 +39,7 @@ void StructureModule::scriptFocus(const QUrl &scriptUrl) {
 }
 
 void StructureModule::markerInsert(const int row) {
-    const int line = m_documentSymbolAbstractModel->item(row,0)->data(Qt::UserRole + 1).toInt();
-    emit insertMarker(m_currentScriptUrl, MARKER_HINT, line, 1000);
+    emit insertMarker(m_currentScriptUrl, MARKER_HINT, row, 1000);
 }
 
 // StructureModule private
