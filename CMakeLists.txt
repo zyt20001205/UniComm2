@@ -151,6 +151,7 @@ qt_add_resources(UniComm "qml_resources"
         PREFIX "/qml"
         BASE "qml"
         FILES
+        "qml/scriptModule/explorerModule.qml"
         "qml/scriptModule/structureModule.qml"
 )
 
@@ -179,7 +180,10 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/definition.svg"
         "resources/icon/delete.svg"
         "resources/icon/dock.svg"
+        "resources/icon/document.svg"
+        "resources/icon/documentAdd.svg"
         "resources/icon/folder.svg"
+        "resources/icon/folderAdd.svg"
         "resources/icon/function.svg"
         "resources/icon/implementation.svg"
         "resources/icon/lockClosed.svg"

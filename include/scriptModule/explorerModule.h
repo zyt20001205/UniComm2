@@ -4,6 +4,7 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QFileSystemModel;
+class QQuickWidget;
 class QTreeView;
 
 class ExplorerModule final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -14,6 +15,22 @@ public:
 
     ~ExplorerModule() override = default;
 
+    Q_INVOKABLE void scriptRun(const QString &scriptPath);
+
+    Q_INVOKABLE void scriptDebug(const QString &scriptPath);
+
+    Q_INVOKABLE void scriptOpen(const QString &scriptPath);
+
+    Q_INVOKABLE void scriptNew(QString rootPath = QString());
+
+    Q_INVOKABLE static void scriptDelete(const QString &scriptPath);
+
+    Q_INVOKABLE void folderNew(QString rootPath = QString());
+
+    Q_INVOKABLE static void folderDelete(const QString &folderPath);
+
+    Q_INVOKABLE void scriptOpenInExplorer() const;
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -23,30 +40,10 @@ signals:
 
     void debugScript(const QUrl &scriptUrl, const QString &script);
 
-protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
-    void keyPressEvent(QKeyEvent *event) override;
-
 private:
-    void scriptRun(const QModelIndex &index);
-
-    void scriptDebug(const QModelIndex &index);
-
-    void scriptOpen(const QModelIndex &index);
-
-    void scriptNew(QString rootPath = QString());
-
-    void scriptDelete(const QModelIndex &index);
-
-    void folderNew(QString rootPath = QString());
-
-    void folderDelete(const QModelIndex &index);
-
-    void scriptOpenInExplorer() const;
-
+    QQuickWidget *m_explorerWidget{};
+    QFileSystemModel *m_explorerFileModel{};
     QTreeView *m_explorerTreeView{};
-    QFileSystemModel *m_explorerTreeModel{};
 };
 
 #endif //UNICOMM_EXPLORER_H
