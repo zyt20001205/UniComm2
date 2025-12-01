@@ -6,6 +6,7 @@
 
 class QQuickWidget;
 class QTextBrowser;
+class QTextDocument;
 
 class LogModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -25,13 +26,23 @@ public:
 
     Q_INVOKABLE void timestampToggle(bool status);
 
+    Q_INVOKABLE QString heightRead();
+
+    Q_INVOKABLE void heightWrite(const QString &height);
+
     Q_INVOKABLE void logSave(const QUrl &fileUrl);
+
+    Q_INVOKABLE static void urlCopy(const QUrl &fileUrl);
+
+    Q_INVOKABLE static void openInExplorer(const QUrl &fileUrl);
+
+    Q_INVOKABLE static void openInApplication(const QUrl &fileUrl);
 
 private:
     QJsonObject m_logConfig{};
     QQuickWidget *m_logWidget{};
     QObject *m_logTextArea{};
-    QTextBrowser *m_logTextBrowser{};
+    QTextDocument *m_logTextDocument{};
 };
 
 #endif //UNICOMM_LOG_H

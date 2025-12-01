@@ -13,6 +13,7 @@ TreeView {
     }
 
     delegate: Item {
+        implicitWidth: treeView.width; implicitHeight: 24
         required property TreeView treeView
         required property bool isTreeNode
         required property bool expanded
@@ -20,8 +21,6 @@ TreeView {
         required property int depth
         required property int row
         required property int column
-
-        implicitWidth: treeView.width; implicitHeight: 24
 
         Item {
             id: indicator
@@ -39,9 +38,7 @@ TreeView {
 
                 TapHandler {
                     enabled: indicator.visible
-                    onSingleTapped: {
-                        treeView.toggleExpanded(row)
-                    }
+                    onSingleTapped: treeView.toggleExpanded(row)
                 }
             }
         }
@@ -68,6 +65,10 @@ TreeView {
         }
 
         TapHandler {
+            onDoubleTapped: explorerModule.scriptOpen(model.filePath)
+        }
+
+        TapHandler {
             acceptedButtons: Qt.RightButton
             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
             onSingleTapped: {
@@ -84,31 +85,26 @@ TreeView {
             MenuItem {
                 text: qsTr("New Script")
                 icon.source: "qrc:/icon/documentAdd.svg"
-                onTriggered: {
-                    explorerModule.scriptNew(model.filePath)
-                }
+                icon.width: 16; icon.height: 16
+                onTriggered: explorerModule.scriptNew(model.filePath)
             }
             MenuItem {
                 text: qsTr("New Folder")
                 icon.source: "qrc:/icon/folderAdd.svg"
-                onTriggered: {
-                    explorerModule.folderNew(model.filePath)
-                }
+                icon.width: 16; icon.height: 16
+                onTriggered: explorerModule.folderNew(model.filePath)
             }
             MenuItem {
+                text: qsTr("Delete Folder")
+                icon.source: "qrc:/icon/delete.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: folderDeleteDialog.open()
+
                 MessageDialog {
                     id: folderDeleteDialog
                     text: qsTr("Are you sure to delete folder %1 and all its contents?").arg(model.fileName)
                     buttons: MessageDialog.Yes | MessageDialog.No
-                    onAccepted: {
-                        explorerModule.folderDelete(model.filePath)
-                    }
-                }
-
-                text: qsTr("Delete Folder")
-                icon.source: "qrc:/icon/delete.svg"
-                onTriggered: {
-                    folderDeleteDialog.open()
+                    onAccepted: explorerModule.folderDelete(model.filePath)
                 }
             }
         }
@@ -118,38 +114,32 @@ TreeView {
             MenuItem {
                 text: qsTr("Run Script")
                 icon.source: "qrc:/icon/play.svg"
-                onTriggered: {
-                    explorerModule.scriptRun(model.filePath)
-                }
+                icon.width: 16; icon.height: 16
+                onTriggered: explorerModule.scriptRun(model.filePath)
             }
             MenuItem {
                 text: qsTr("Debug Script")
                 icon.source: "qrc:/icon/bug.svg"
-                onTriggered: {
-                    explorerModule.scriptDebug(model.filePath)
-                }
+                icon.width: 16; icon.height: 16
+                onTriggered: explorerModule.scriptDebug(model.filePath)
             }
             MenuItem {
                 text: qsTr("Open Script")
                 icon.source: "qrc:/icon/open.svg"
-                onTriggered: {
-                    explorerModule.scriptOpen(model.filePath)
-                }
+                icon.width: 16; icon.height: 16
+                onTriggered: explorerModule.scriptOpen(model.filePath)
             }
             MenuItem {
+                text: qsTr("Delete Script")
+                icon.source: "qrc:/icon/delete.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: scriptDeleteDialog.open()
+
                 MessageDialog {
                     id: scriptDeleteDialog
                     text: qsTr("Are you sure to delete script %1?").arg(model.fileName)
                     buttons: MessageDialog.Yes | MessageDialog.No
-                    onAccepted: {
-                        explorerModule.scriptDelete(model.filePath)
-                    }
-                }
-
-                text: qsTr("Delete Script")
-                icon.source: "qrc:/icon/delete.svg"
-                onTriggered: {
-                    scriptDeleteDialog.open()
+                    onAccepted: explorerModule.scriptDelete(model.filePath)
                 }
             }
         }
@@ -157,9 +147,7 @@ TreeView {
 
     TapHandler {
         acceptedButtons: Qt.RightButton
-        onSingleTapped: {
-            rootMenu.popup()
-        }
+        onSingleTapped: rootMenu.popup()
     }
 
     Menu {
@@ -167,17 +155,20 @@ TreeView {
         MenuItem {
             text: qsTr("New Script")
             icon.source: "qrc:/icon/documentAdd.svg"
+            icon.width: 16; icon.height: 16
             onTriggered: explorerModule.scriptNew()
         }
         MenuItem {
             text: qsTr("New Folder")
             icon.source: "qrc:/icon/folderAdd.svg"
+            icon.width: 16; icon.height: 16
             onTriggered: explorerModule.folderNew()
         }
         MenuItem {
             text: qsTr("Open In Explorer")
             icon.source: "qrc:/icon/open.svg"
-            onTriggered: explorerModule.scriptOpenInExplorer()
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModule.openInExplorer()
         }
     }
 }

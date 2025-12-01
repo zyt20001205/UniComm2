@@ -8,6 +8,7 @@ TreeView {
     model: standardModel
 
     delegate: Item {
+        implicitWidth: treeView.width; implicitHeight: 24
         required property TreeView treeView
         required property bool isTreeNode
         required property bool expanded
@@ -15,8 +16,6 @@ TreeView {
         required property int depth
         required property int row
         required property int column
-
-        implicitWidth: treeView.width; implicitHeight: 24
 
         Item {
             id: indicator
@@ -34,9 +33,7 @@ TreeView {
 
                 TapHandler {
                     enabled: indicator.visible
-                    onSingleTapped: {
-                        treeView.toggleExpanded(row)
-                    }
+                    onSingleTapped: treeView.toggleExpanded(row)
                 }
             }
         }
@@ -72,9 +69,7 @@ TreeView {
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
-                onSingleTapped: {
-                    structureModule.markerInsert(model.whatsThis)
-                }
+                onSingleTapped: structureModule.markerInsert(model.whatsThis)
             }
         }
     }

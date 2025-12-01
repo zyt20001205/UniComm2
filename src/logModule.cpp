@@ -1,18 +1,16 @@
 #include "logModule.h"
 
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QHBoxLayout>
-#include <QInputDialog>
 #include <QMessageBox>
 #include <QPrinter>
-#include <QPushButton>
+#include <QProcess>
 #include <QQmlContext>
-#include <QQuickItem>
+#include <QQuickTextDocument>
 #include <QQuickWidget>
 #include <QStandardPaths>
-#include <QTextDocumentWriter>
-#include <QTextBrowser>
 
 #include "globals.h"
 // LogModule public
@@ -20,70 +18,23 @@ LogModule::LogModule()
     : DockWidget("log"),
       m_logConfig(g_workspaceConfig["logConfig"].toObject()),
       m_logWidget(new QQuickWidget()),
-      m_logTextBrowser(new QTextBrowser()) {
+      m_logTextDocument(new QTextDocument()) {
     setWidget(m_logWidget);
     m_logWidget->rootContext()->setContextProperty("logModule", this);
     m_logWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_logWidget->setSource(QUrl("qrc:/qml/logModule.qml"));
     const QQuickItem *rootObject = m_logWidget->rootObject();
     m_logTextArea = rootObject->findChild<QObject *>("logTextArea");
+    // set font
     const auto logFont = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
     m_logTextArea->setProperty("font", logFont);
+    // set timestamp
     auto *timestampButton = rootObject->findChild<QObject *>("timestampButton");
     timestampButton->setProperty("checked", m_logConfig["timestamp"].toBool());
-
-    // auto *widget = new QWidget(); // NOLINT
-    // auto *layout = new QHBoxLayout(widget); // NOLINT
-    // setWidget(widget);
-
-    // auto *ctrlWidget = new QWidget(); // NOLINT
-    // layout->addWidget(ctrlWidget);
-    // auto *ctrlLayout = new QVBoxLayout(ctrlWidget); // NOLINT
-    // ctrlLayout->setContentsMargins(0, 0, 0, 0);
-    // ctrlLayout->setAlignment(Qt::AlignTop);
-    // auto *timestampButton = new QPushButton(); // NOLINT
-    // ctrlLayout->addWidget(timestampButton);
-    // timestampButton->setFixedSize(24, 24);
-    // timestampButton->setIcon(QIcon(":/icon/clock.svg"));
-    // timestampButton->setToolTip(tr("timestamp"));
-    // timestampButton->setCheckable(true);
-    // timestampButton->setChecked(m_logConfig["timestamp"].toBool());
-    // connect(timestampButton, &QPushButton::clicked, this, [this,timestampButton] {
-    //     m_logConfig["timestamp"] = timestampButton->isChecked();
-    // });
-    // auto *heightButton = new QPushButton(); // NOLINT
-    // ctrlLayout->addWidget(heightButton);
-    // heightButton->setFixedSize(24, 24);
-    // heightButton->setIcon(QIcon(":/icon/autoFitHeight.svg"));
-    // heightButton->setToolTip(tr("maximum line count"));
-    // connect(heightButton, &QPushButton::clicked, this, [this] {
-    //     bool ok = false;
-    //     const int height = QInputDialog::getInt(nullptr, "Log Setting", "maximum line count:", m_logConfig["height"].toInt(), 1, 10000, 1, &ok);
-    //     if (ok) {
-    //         m_logTextBrowser->document()->setMaximumBlockCount(height);
-    //         m_logConfig["height"] = height;
-    //     }
-    // });
-    // auto *saveButton = new QPushButton(); // NOLINT
-    // ctrlLayout->addWidget(saveButton);
-    // saveButton->setFixedSize(24, 24);
-    // saveButton->setIcon(QIcon(":/icon/save.svg"));
-    // saveButton->setToolTip(tr("save log"));
-    // connect(saveButton, &QPushButton::clicked, this, &LogModule::logSave);
-    // auto *clearButton = new QPushButton(); // NOLINT
-    // ctrlLayout->addWidget(clearButton);
-    // clearButton->setFixedSize(24, 24);
-    // clearButton->setIcon(QIcon(":/icon/delete.svg"));
-    // clearButton->setToolTip(tr("clear log"));
-    // connect(clearButton, &QPushButton::clicked, this, &LogModule::logClear);
-    //
-    // layout->addWidget(m_logTextBrowser);
-    // const auto logFont = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
-    // m_logTextBrowser->setFont(logFont);
-    // m_logTextBrowser->setOpenExternalLinks(false);
-    // m_logTextBrowser->setOpenLinks(false);
-    // m_logTextBrowser->document()->setMaximumBlockCount(m_logConfig["height"].toInt());
-    // connect(m_logTextBrowser, &QTextBrowser::anchorClicked, this, [](const QUrl &link) { QDesktopServices::openUrl(link); });
+    // set height
+    const auto *quickTextDocument = qvariant_cast<QQuickTextDocument *>(m_logTextArea->property("textDocument"));
+    m_logTextDocument = quickTextDocument->textDocument();
+    m_logTextDocument->setMaximumBlockCount(m_logConfig["height"].toInt());
 }
 
 void LogModule::logConfigSave() const {
@@ -93,7 +44,6 @@ void LogModule::logConfigSave() const {
 void LogModule::logFontReload(const QJsonObject &fontConfigLog) const {
     const auto logFont = QFont(fontConfigLog["fontFamily"].toString(), fontConfigLog["fontSize"].toInt());
     m_logTextArea->setProperty("font", logFont);
-    m_logTextBrowser->setFont(logFont);
 }
 
 void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
@@ -123,11 +73,19 @@ void LogModule::logAppend(const QString &message, const QString &level) {
         f_message = QString("<span style='background-color:lightgreen;'>%1</span>").arg(f_message);
     // append log
     QMetaObject::invokeMethod(m_logTextArea, "append", Q_ARG(QString, f_message));
-    m_logTextBrowser->append(f_message);
 }
 
 void LogModule::timestampToggle(const bool status) {
     m_logConfig["timestamp"] = status;
+}
+
+QString LogModule::heightRead() {
+    return QString::number(m_logConfig["height"].toInt());
+}
+
+void LogModule::heightWrite(const QString &height) {
+    m_logConfig["height"] = height.toInt();
+    m_logTextDocument->setMaximumBlockCount(height.toInt());
 }
 
 void LogModule::logSave(const QUrl &fileUrl) {
@@ -145,7 +103,7 @@ void LogModule::logSave(const QUrl &fileUrl) {
             QTextStream stream(&file);
             stream << document.toPlainText();
             file.close();
-            logAppend(QString("log saved to %1").arg(filePath), "info");
+            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
@@ -161,7 +119,7 @@ void LogModule::logSave(const QUrl &fileUrl) {
         printer.setOutputFileName(filePath);
         document.print(&printer);
         if (QFile::exists(filePath)) {
-            logAppend(QString("log saved to %1").arg(filePath), "info");
+            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
@@ -177,7 +135,7 @@ void LogModule::logSave(const QUrl &fileUrl) {
             QTextStream stream(&file);
             stream << document.toHtml();
             file.close();
-            logAppend(QString("log saved to %1").arg(filePath), "info");
+            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
@@ -188,4 +146,28 @@ void LogModule::logSave(const QUrl &fileUrl) {
             qDebug() << QString("[%1] log save failed").arg(timestamp);
         }
     }
+}
+
+void LogModule::urlCopy(const QUrl &fileUrl) {
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(fileUrl.toString());
+}
+
+void LogModule::openInExplorer(const QUrl &fileUrl) {
+    const QString folderPath = QFileInfo(fileUrl.toLocalFile()).absolutePath();
+#ifdef Q_OS_WIN
+    const QString command = "explorer.exe";
+    QStringList args;
+    args << QDir::toNativeSeparators(folderPath);
+    QProcess::startDetached(command, args);
+#endif
+}
+
+void LogModule::openInApplication(const QUrl &fileUrl) {
+#ifdef Q_OS_WIN
+    const QString command = "explorer.exe";
+    QStringList args;
+    args << QDir::toNativeSeparators(fileUrl.toLocalFile());
+    QProcess::startDetached(command, args);
+#endif
 }

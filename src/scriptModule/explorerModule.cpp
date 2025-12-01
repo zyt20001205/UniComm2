@@ -129,7 +129,7 @@ void ExplorerModule::folderDelete(const QString &folderPath) {
     dir.removeRecursively();
 }
 
-void ExplorerModule::scriptOpenInExplorer() const {
+void ExplorerModule::openInExplorer() const {
     const QDir folderPath = m_explorerFileModel->rootPath();
     const QString folderAbsolutePath = folderPath.absolutePath();
 #ifdef Q_OS_WIN

@@ -124,7 +124,7 @@ void LuaLanguageServer::jsonResponse() {
                 emit responseDocumentHighlight(scriptUrl, result);
             } else if (method == "textDocument/documentSymbol") {
                 // document symbol request
-                if (!json["result"].isArray()) return; // null result
+                // if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
                 emit responseDocumentSymbol(scriptUrl, result);
             } else if (method == "textDocument/foldingRange") {
