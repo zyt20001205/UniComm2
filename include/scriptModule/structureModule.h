@@ -31,7 +31,7 @@ private:
 
     QUrl m_currentScriptUrl{};
     QQuickWidget *m_structureWidget{};
-    QStandardItemModel *m_documentSymbolAbstractModel{};
+    QStandardItemModel *m_structureStandardModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
 
     enum {

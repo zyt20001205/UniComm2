@@ -13,10 +13,10 @@
 StructureModule::StructureModule()
     : DockWidget("structure"),
       m_structureWidget(new QQuickWidget()),
-      m_documentSymbolAbstractModel(new QStandardItemModel()) {
+      m_structureStandardModel(new QStandardItemModel()) {
     setWidget(m_structureWidget);
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
-    m_structureWidget->rootContext()->setContextProperty("filterModel", m_documentSymbolAbstractModel);
+    m_structureWidget->rootContext()->setContextProperty("standardModel", m_structureStandardModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/structureModule.qml"));
 }
@@ -24,15 +24,15 @@ StructureModule::StructureModule()
 void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
-        m_documentSymbolAbstractModel->clear();
+        m_structureStandardModel->clear();
         documentSymbolPublish(result, nullptr);
     }
 }
 
 void StructureModule::scriptFocus(const QUrl &scriptUrl) {
-    if (m_currentScriptUrl == scriptUrl) return;
+    if (scriptUrl == m_currentScriptUrl) return;
     m_currentScriptUrl = scriptUrl;
-    m_documentSymbolAbstractModel->clear();
+    m_structureStandardModel->clear();
     if (m_documentSymbolHash.contains(scriptUrl)) {
         documentSymbolPublish(m_documentSymbolHash[scriptUrl], nullptr);
     }
@@ -95,7 +95,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         if (parentItem) {
             parentItem->appendRow(item);
         } else {
-            m_documentSymbolAbstractModel->appendRow(item);
+            m_structureStandardModel->appendRow(item);
         }
         if (symbol.contains("children")) {
             QJsonArray children = symbol["children"].toArray();
