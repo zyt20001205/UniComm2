@@ -29,6 +29,7 @@ LuaLanguageServer::~LuaLanguageServer() {
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
     const QJsonObject textDocument = params["textDocument"].toObject();
     const auto url = QUrl(textDocument["uri"].toString());
+    if (method != "initialize" && !textDocument["uri"].toString().endsWith(".lua")) return;
     m_methods.insert(m_id, method);
     m_urls.insert(m_id, url);
     const QJsonObject msg = {

@@ -273,6 +273,7 @@ void ScriptPage::scriptClose() {
 }
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
+    if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_scriptDiagnostic = diagnostics;
     // clear previous diagnostics
     m_editorWidget->indicatorRemove(INDICATOR_ERROR);
@@ -767,6 +768,7 @@ void ScriptPage::signatureHelpRequest() {
 }
 
 void ScriptPage::spellCheckRequest() {
+    if (!m_scriptUrl.toString().endsWith(".lua")) return;
     // spell check request to script module
     emit requestSpellCheck(m_scriptUrl, m_editorWidget->text());
 }
