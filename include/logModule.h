@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QQuickWidget;
 class QTextBrowser;
 
 class LogModule final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -22,12 +23,14 @@ public:
 
     void logAppend(const QString &message, const QString &level);
 
+    Q_INVOKABLE void timestampToggle(bool status);
+
+    Q_INVOKABLE void logSave();
+
 private:
-    void logSave();
-
-    void logClear() const;
-
     QJsonObject m_logConfig{};
+    QQuickWidget *m_logWidget{};
+    QObject *m_logTextArea{};
     QTextBrowser *m_logTextBrowser{};
 };
 

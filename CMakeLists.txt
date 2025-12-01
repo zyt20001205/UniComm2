@@ -151,6 +151,7 @@ qt_add_resources(UniComm "qml_resources"
         PREFIX "/qml"
         BASE "qml"
         FILES
+        "qml/logModule.qml"
         "qml/scriptModule/explorerModule.qml"
         "qml/scriptModule/structureModule.qml"
 )
