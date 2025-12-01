@@ -25,7 +25,7 @@ public:
 
     Q_INVOKABLE void timestampToggle(bool status);
 
-    Q_INVOKABLE void logSave();
+    Q_INVOKABLE void logSave(const QUrl &fileUrl);
 
 private:
     QJsonObject m_logConfig{};

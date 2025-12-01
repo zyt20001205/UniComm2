@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import QtQuick.Layouts
 
 RowLayout {
@@ -20,9 +21,7 @@ RowLayout {
             icon.source: "qrc:/icon/clock.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: {
-                logModule.timestampToggle(checked)
-            }
+            onClicked: logModule.timestampToggle(checked)
         }
 
         Button {
@@ -42,8 +41,15 @@ RowLayout {
             icon.source: "qrc:/icon/save.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: {
-                logModule.logSave()
+            onClicked: fileDialog.open()
+
+            FileDialog {
+                id: fileDialog
+                currentFolder: StandardPaths.standardLocations(StandardPaths.DesktopLocation)
+                fileMode: FileDialog.SaveFile
+                nameFilters: ["Plain Text (*.txt)", "PDF (*.pdf)", "Rich Text (*.html)"]
+                selectedFile: "log_" + Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
+                onAccepted: logModule.logSave(selectedFile)
             }
         }
 
@@ -55,9 +61,7 @@ RowLayout {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: {
-                logTextArea.clear()
-            }
+            onClicked: logTextArea.clear()
         }
     }
 

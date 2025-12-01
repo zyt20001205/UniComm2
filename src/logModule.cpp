@@ -130,23 +130,20 @@ void LogModule::timestampToggle(const bool status) {
     m_logConfig["timestamp"] = status;
 }
 
-void LogModule::logSave() {
-    if (m_logTextBrowser->toPlainText().isEmpty()) {
+void LogModule::logSave(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    QTextDocument document;
+    document.setHtml(m_logTextArea->property("text").toString());
+    if (document.toPlainText().isEmpty()) {
         QMessageBox::warning(nullptr, "Warning", tr("Log is empty."));
         return;
     }
-    const QString defaultName = "log_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-    QString filePath = QFileDialog::getSaveFileName(
-        nullptr,
-        tr("Save Log File"),
-        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/" + defaultName,
-        "Plain Text (*.txt);;PDF (*.pdf);;Rich Text (*.html);;OpenDocument Text (*.odt)"
-    );
+
     if (filePath.endsWith(".txt", Qt::CaseInsensitive)) {
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream stream(&file);
-            stream << m_logTextBrowser->toPlainText();
+            stream << document.toPlainText();
             file.close();
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
@@ -162,7 +159,7 @@ void LogModule::logSave() {
         QPrinter printer(QPrinter::HighResolution);
         printer.setOutputFormat(QPrinter::PdfFormat);
         printer.setOutputFileName(filePath);
-        m_logTextBrowser->document()->print(&printer);
+        document.print(&printer);
         if (QFile::exists(filePath)) {
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
@@ -178,22 +175,8 @@ void LogModule::logSave() {
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream stream(&file);
-            stream << m_logTextBrowser->toHtml();
+            stream << document.toHtml();
             file.close();
-            logAppend(QString("log saved to %1").arg(filePath), "info");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
-        } else {
-            logAppend("log save failed", "info");
-            // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log save failed").arg(timestamp);
-        }
-    } else {
-        QTextDocumentWriter writer(filePath);
-        writer.setFormat("odf");
-        if (writer.write(m_logTextBrowser->document())) {
             logAppend(QString("log saved to %1").arg(filePath), "info");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -206,4 +189,3 @@ void LogModule::logSave() {
         }
     }
 }
-
