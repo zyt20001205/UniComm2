@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QQuickWidget;
 class QTableWidget;
 class QTabWidget;
 
@@ -31,6 +32,8 @@ private:
 
     void diagnosticsRemove(const QUrl &scriptUrl);
 
+    QQuickWidget *m_diagnosticsWidget{};
+    QQuickItem *m_diagnosticsRoot{};
     QTabWidget *m_diagnosticsTabWidget{};
     QHash<int, QColor> m_diagnosticsColor{};
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};

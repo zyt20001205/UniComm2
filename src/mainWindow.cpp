@@ -8,11 +8,13 @@
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QQuickWidget>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QThread>
 #include <QToolBar>
-#include <qtoolbutton.h>
+#include <QToolButton>
+#include <QWidgetAction>
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
@@ -29,13 +31,13 @@
 #include "portModule/portModule.h"
 #include "portModule/sendModule.h"
 #include "scriptModule/debugModule.h"
-#include "scriptModule/diagnosticsModule.h"
-#include "scriptModule/explorerModule.h"
 #include "scriptModule/nuspellModule.h"
-#include "scriptModule/codeEditor/editorWidget.h"
 #include "scriptModule/scriptModule.h"
-#include "scriptModule/structureModule.h"
 #include "scriptModule/threadpoolModule.h"
+#include "scriptModule/codeEditor/editorWidget.h"
+#include "scriptModule/codeEditor/explorerModule.h"
+#include "scriptModule/codeAssistant/diagnosticsModule.h"
+#include "scriptModule/codeAssistant/structureModule.h"
 #include "settingModule/settingModule.h"
 
 // MainWindow public

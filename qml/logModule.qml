@@ -107,7 +107,6 @@ RowLayout {
             property alias logTextDocument: logTextArea.textDocument
 
             HoverHandler {
-                id: hoverHandler
                 cursorShape: logTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
             }
 

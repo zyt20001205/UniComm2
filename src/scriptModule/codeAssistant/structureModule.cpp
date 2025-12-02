@@ -1,4 +1,4 @@
-#include "scriptModule/structureModule.h"
+#include "scriptModule/codeAssistant/structureModule.h"
 
 #include <QJsonArray>
 #include <QQmlContext>
@@ -18,7 +18,7 @@ StructureModule::StructureModule()
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardModel", m_structureStandardModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/structureModule.qml"));
+    m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/structureModule.qml"));
 }
 
 void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {

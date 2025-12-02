@@ -64,6 +64,30 @@ TreeView {
             text: model.fileName
         }
 
+        Rectangle {
+            id: highlightRect
+            anchors.fill: parent
+            z: -1
+            radius: 2
+            color: "#f5f5f5"
+            opacity: 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 150
+                }
+            }
+        }
+
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) {
+                    highlightRect.opacity = 1
+                } else {
+                    highlightRect.opacity = 0
+                }
+            }
+        }
+
         TapHandler {
             onDoubleTapped: explorerModule.scriptOpen(model.filePath)
         }

@@ -1,4 +1,4 @@
-#include "scriptModule/explorerModule.h"
+#include "scriptModule/codeEditor/explorerModule.h"
 
 #include <QFileSystemModel>
 #include <QInputDialog>
@@ -26,7 +26,7 @@ ExplorerModule::ExplorerModule()
     m_explorerWidget->rootContext()->setContextProperty("fileRootIndex", fileRootIndex);
     m_explorerWidget->rootContext()->setContextProperty("fileModel", m_explorerFileModel);
     m_explorerWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_explorerWidget->setSource(QUrl("qrc:/qml/scriptModule/explorerModule.qml"));
+    m_explorerWidget->setSource(QUrl("qrc:/qml/scriptModule/codeEditor/explorerModule.qml"));
 }
 
 void ExplorerModule::scriptRun(const QString &scriptPath) {

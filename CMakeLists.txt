@@ -61,21 +61,21 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/portModule/udpSocket.h
         include/portModule/visa.h
         include/scriptModule/debugModule.h
-        include/scriptModule/diagnosticsModule.h
-        include/scriptModule/explorerModule.h
         include/scriptModule/nuspellModule.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
-        include/scriptModule/structureModule.h
         include/scriptModule/threadpoolModule.h
         include/scriptModule/welcomePage.h
         include/scriptModule/codeAssistant/codeAssistant.h
         include/scriptModule/codeAssistant/completionWidget.h
+        include/scriptModule/codeAssistant/diagnosticsModule.h
         include/scriptModule/codeAssistant/dwellWidget.h
         include/scriptModule/codeAssistant/navigationWidget.h
         include/scriptModule/codeAssistant/positionWidget.h
         include/scriptModule/codeAssistant/signatureWidget.h
+        include/scriptModule/codeAssistant/structureModule.h
         include/scriptModule/codeEditor/editorWidget.h
+        include/scriptModule/codeEditor/explorerModule.h
         include/scriptModule/codeEditor/searchWidget.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
@@ -118,21 +118,21 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/portModule/udpSocket.cpp
         src/portModule/visa.cpp
         src/scriptModule/debugModule.cpp
-        src/scriptModule/diagnosticsModule.cpp
-        src/scriptModule/explorerModule.cpp
         src/scriptModule/nuspellModule.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
-        src/scriptModule/structureModule.cpp
         src/scriptModule/threadpoolModule.cpp
         src/scriptModule/welcomePage.cpp
         src/scriptModule/codeAssistant/codeAssistant.cpp
         src/scriptModule/codeAssistant/completionWidget.cpp
+        src/scriptModule/codeAssistant/diagnosticsModule.cpp
         src/scriptModule/codeAssistant/dwellWidget.cpp
         src/scriptModule/codeAssistant/navigationWidget.cpp
         src/scriptModule/codeAssistant/positionWidget.cpp
         src/scriptModule/codeAssistant/signatureWidget.cpp
+        src/scriptModule/codeAssistant/structureModule.cpp
         src/scriptModule/codeEditor/editorWidget.cpp
+        src/scriptModule/codeEditor/explorerModule.cpp
         src/scriptModule/codeEditor/searchWidget.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
@@ -152,8 +152,9 @@ qt_add_resources(UniComm "qml_resources"
         BASE "qml"
         FILES
         "qml/logModule.qml"
-        "qml/scriptModule/explorerModule.qml"
-        "qml/scriptModule/structureModule.qml"
+        "qml/scriptModule/codeAssistant/diagnosticsModule.qml"
+        "qml/scriptModule/codeAssistant/structureModule.qml"
+        "qml/scriptModule/codeEditor/explorerModule.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"
