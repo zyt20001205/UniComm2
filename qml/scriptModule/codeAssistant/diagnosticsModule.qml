@@ -38,7 +38,6 @@ Item {
             Layout.fillWidth: true; Layout.fillHeight: true
             property var diagnostics: []
 
-
             HorizontalHeaderView {
                 id: horizontalHeaderView
                 anchors.left: parent.left; anchors.right: parent.right
@@ -50,7 +49,7 @@ Item {
             TableView {
                 id: tableView
                 anchors.left: parent.left; anchors.right: parent.right
-                anchors.top: horizontalHeaderView.bottom
+                anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
                 clip: true
                 model: tableModel
 
