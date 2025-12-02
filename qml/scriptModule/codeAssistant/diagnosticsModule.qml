@@ -38,27 +38,41 @@ Item {
             Layout.fillWidth: true; Layout.fillHeight: true
             property var diagnostics: []
 
+
+            HorizontalHeaderView {
+                id: horizontalHeaderView
+                anchors.left: parent.left; anchors.right: parent.right
+                anchors.top: parent.top
+                syncView: tableView
+                clip: true
+            }
+
             TableView {
-                anchors.fill: parent
+                id: tableView
+                anchors.left: parent.left; anchors.right: parent.right
+                anchors.top: horizontalHeaderView.bottom
                 clip: true
                 model: tableModel
 
                 TableModel {
                     id: tableModel
                     TableModelColumn {
-                        display: "severity"; }
+                        display: "severity"
+                    }
                     TableModelColumn {
-                        display: "source"; }
+                        display: "source"
+                    }
                     TableModelColumn {
-                        display: "code"; }
+                        display: "code"
+                    }
                     TableModelColumn {
-                        display: "data"; }
+                        display: "data"
+                    }
                     TableModelColumn {
-                        display: "message"; }
+                        display: "message"
+                    }
 
                     Component.onCompleted: {
-                        tableModel.clear()
-
                         if (diagnostics.length > 0) {
                             for (var i = 0; i < diagnostics.length; i++) {
                                 var diagnostic = diagnostics[i]
@@ -75,35 +89,15 @@ Item {
                 }
 
                 delegate: Item {
-                    implicitWidth: stackLayout.width; implicitHeight: 24
+                    implicitWidth: stackLayout.width / 5; implicitHeight: 24
 
                     RowLayout {
                         anchors.fill: parent
 
                         Text {
                             Layout.preferredWidth: 80; Layout.fillHeight: true
-                            text: severity
+                            text: display
                         }
-
-                        // Text {
-                        //     Layout.preferredWidth: 80; Layout.fillHeight: true
-                        //     text: display
-                        // }
-                        //
-                        // Text {
-                        //     Layout.preferredWidth: 80; Layout.fillHeight: true
-                        //     text: whatsThis
-                        // }
-                        //
-                        // Text {
-                        //     Layout.preferredWidth: 80; Layout.fillHeight: true
-                        //     text: display
-                        // }
-                        //
-                        // Text {
-                        //     Layout.preferredWidth: 80; Layout.fillHeight: true
-                        //     text: display
-                        // }
                     }
                 }
             }

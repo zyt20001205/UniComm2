@@ -83,10 +83,10 @@ void DiagnosticsModule::diagnosticsPublish(const QUrl &scriptUrl, const QJsonArr
             {"code", code},
             {"data", data},
             {"message", message},
-            {"startLine", startLine},
-            {"startCharacter", startCharacter},
-            {"endLine", endLine},
-            {"endCharacter", endCharacter}
+            // {"startLine", startLine},
+            // {"startCharacter", startCharacter},
+            // {"endLine", endLine},
+            // {"endCharacter", endCharacter}
         });
     }
     QMetaObject::invokeMethod(m_diagnosticsRoot, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, diagnosticsParsed));
