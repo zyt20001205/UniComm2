@@ -42,6 +42,7 @@ Item {
                 id: horizontalHeaderView
                 anchors.left: parent.left; anchors.right: parent.right
                 anchors.top: parent.top
+                height: 32
                 syncView: tableView
                 clip: true
 
@@ -54,31 +55,27 @@ Item {
                         border.width: 0
                     }
 
-                    contentItem: RowLayout {
+                    contentItem: Text {
                         anchors.fill: parent
+                        clip: true
+                        font.family: "Segoe UI"
+                        font.pointSize: 10
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
 
-                        Text {
-                            clip: true
-                            font.family: "Segoe UI"
-                            font.pointSize: 10
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-
-                            text: {
-                                switch (horizontalDelegate.index) {
-                                    case 0:
-                                        return ""
-                                    case 1:
-                                        return qsTr("Source")
-                                    case 2:
-                                        return qsTr("Code")
-                                    case 3:
-                                        return qsTr("Data")
-                                    case 4:
-                                        return qsTr("Message")
-                                    default:
-                                        return ""
-                                }
+                        text: {
+                            switch (horizontalDelegate.index) {
+                                case 0:
+                                    return ""
+                                case 1:
+                                    return qsTr("Source")
+                                case 2:
+                                    return qsTr("Code")
+                                case 3:
+                                    return qsTr("Data")
+                                case 4:
+                                    return qsTr("Message")
+                                default:
+                                    return ""
                             }
                         }
                     }
