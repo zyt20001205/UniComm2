@@ -91,7 +91,7 @@ Item {
                 anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
                 alternatingRows: false
                 clip: true
-                editTriggers :TableView.NoEditTriggers
+                editTriggers: TableView.NoEditTriggers
                 rowSpacing: 1
                 model: parent.model
                 property string diagnostic: ""
@@ -164,6 +164,10 @@ Item {
                                     horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
                                     text: model.display
+
+                                    ToolTip.visible: hoverHandler.hovered
+                                    ToolTip.delay: 500
+                                    ToolTip.text: qsTr("Line: %1\nClick to view details").arg(tableView.viewrowGet(tableCell.row) + 1)
                                 }
 
                                 Rectangle {
@@ -220,8 +224,12 @@ Item {
                     }
                 }
 
+                function viewrowGet(row) {
+                    return model.data(model.index(row, 0), Qt.WhatsThisRole).startLine
+                }
+
                 function indicatorInsert(row) {
-                    var index = model.index(row, 0);
+                    const index = model.index(row, 0);
                     diagnosticsModule.indicatorInsert(model.data(index, Qt.WhatsThisRole))
                 }
             }
