@@ -27,7 +27,7 @@ Item {
         id: tabButtonComponent
 
         TabButton {
-            width: contentItem.implicitWidth + 20; height: 24
+            width: contentItem.implicitWidth + 24; height: 24
         }
     }
 
@@ -36,7 +36,7 @@ Item {
 
         Item {
             Layout.fillWidth: true; Layout.fillHeight: true
-            property var diagnostics: []
+            property var model: null
 
             HorizontalHeaderView {
                 id: horizontalHeaderView
@@ -44,58 +44,163 @@ Item {
                 anchors.top: parent.top
                 syncView: tableView
                 clip: true
+
+                delegate: HorizontalHeaderViewDelegate {
+                    id: horizontalDelegate
+                    required property int index
+
+                    background: Rectangle {
+                        color: "transparent"
+                        border.width: 0
+                    }
+
+                    contentItem: RowLayout {
+                        anchors.fill: parent
+
+                        Text {
+                            clip: true
+                            font.family: "Segoe UI"
+                            font.pointSize: 10
+                            Layout.fillWidth: true; Layout.fillHeight: true
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+
+                            text: {
+                                switch (horizontalDelegate.index) {
+                                    case 0:
+                                        return ""
+                                    case 1:
+                                        return qsTr("Source")
+                                    case 2:
+                                        return qsTr("Code")
+                                    case 3:
+                                        return qsTr("Data")
+                                    case 4:
+                                        return qsTr("Message")
+                                    default:
+                                        return ""
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             TableView {
                 id: tableView
                 anchors.left: parent.left; anchors.right: parent.right
                 anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
+                alternatingRows: false
                 clip: true
-                model: tableModel
+                editTriggers :TableView.NoEditTriggers
+                rowSpacing: 1
+                model: parent.model
+                property string diagnostic: ""
 
-                TableModel {
-                    id: tableModel
-                    TableModelColumn {
-                        display: "severity"
-                    }
-                    TableModelColumn {
-                        display: "source"
-                    }
-                    TableModelColumn {
-                        display: "code"
-                    }
-                    TableModelColumn {
-                        display: "data"
-                    }
-                    TableModelColumn {
-                        display: "message"
-                    }
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#e0e0e0"
+                    z: -1
+                }
 
-                    Component.onCompleted: {
-                        if (diagnostics.length > 0) {
-                            for (var i = 0; i < diagnostics.length; i++) {
-                                var diagnostic = diagnostics[i]
-                                tableModel.appendRow({
-                                    "severity": diagnostic.severity,
-                                    "source": diagnostic.source,
-                                    "code": diagnostic.code,
-                                    "data": diagnostic.data,
-                                    "message": diagnostic.message
-                                })
+                delegate: TableViewDelegate {
+                    id: tableCell
+                    implicitWidth: {
+                        switch (tableCell.column) {
+                            case 0:
+                                return 24;
+                            case 1:
+                                return 160;
+                            case 2:
+                                return 100;
+                            case 3:
+                                return 60;
+                            case 4:
+                                return tableView.width - 344;
+                            default:
+                                return 0;
+                        }
+                    }
+                    implicitHeight: 24
+
+                    contentItem: Loader {
+                        sourceComponent: {
+                            switch (column) {
+                                case 0:
+                                    return iconDelegate;
+                                default:
+                                    return textDelegate;
+                            }
+                        }
+
+                        Component {
+                            id: iconDelegate
+
+                            Rectangle {
+                                anchors.fill: parent
+                                color: "white"
+
+                                Image {
+                                    width: 16; height: 16
+                                    anchors.centerIn: parent
+                                    source: model.decoration
+                                }
+                            }
+                        }
+
+                        Component {
+                            id: textDelegate
+
+                            Rectangle {
+                                anchors.fill: parent
+                                color: "white"
+
+                                Text {
+                                    anchors.fill: parent
+                                    z: 2
+                                    clip: true
+                                    font.family: "Segoe UI"
+                                    font.pointSize: 10
+                                    horizontalAlignment: Text.AlignLeft
+                                    verticalAlignment: Text.AlignVCenter
+                                    text: model.display
+                                }
+
+                                Rectangle {
+                                    id: highlightRect
+                                    anchors.fill: parent
+                                    z: 1
+                                    radius: 2
+                                    color: "#f5f5f5"
+                                    opacity: hoverHandler.hovered ? 1 : 0
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: 150
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                }
 
-                delegate: Item {
-                    implicitWidth: stackLayout.width / 5; implicitHeight: 24
+                    HoverHandler {
+                        id: hoverHandler
+                    }
 
-                    RowLayout {
-                        anchors.fill: parent
+                    TapHandler {
+                        acceptedButtons: Qt.RightButton
+                        onTapped: {
+                            tableView.diagnostic = model.display
+                            diagnosticMenu.popup()
+                        }
+                    }
 
-                        Text {
-                            Layout.preferredWidth: 80; Layout.fillHeight: true
-                            text: display
+                    Menu {
+                        id: diagnosticMenu
+                        MenuItem {
+                            text: qsTr("Copy")
+                            icon.source: "qrc:/icon/copy.svg"
+                            icon.width: 16; icon.height: 16
+                            onTriggered: diagnosticsModule.diagnosticCopy(tableView.diagnostic)
                         }
                     }
                 }
@@ -103,12 +208,12 @@ Item {
         }
     }
 
-    function append(name, diagnostics) {
-        var tabButton = tabButtonComponent.createObject(tabBar, {
+    function append(name, model) {
+        const tabButton = tabButtonComponent.createObject(tabBar, {
             "text": name
         });
-        var page = pageComponent.createObject(stackLayout, {
-            "diagnostics": diagnostics
+        const page = pageComponent.createObject(stackLayout, {
+            "model": model
         });
     }
 }

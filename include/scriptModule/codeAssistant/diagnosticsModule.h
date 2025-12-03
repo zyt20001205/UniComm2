@@ -5,6 +5,7 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QQuickWidget;
+class QStandardItemModel;
 class QTableWidget;
 class QTabWidget;
 
@@ -18,6 +19,7 @@ public:
 
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
+    Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
 signals:
     void openScript(const QUrl &scriptUrl);
 
@@ -26,16 +28,9 @@ signals:
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
-    void diagnosticsClose(int index);
-
-    void diagnosticsPublish(const QUrl &scriptUrl, const QJsonArray &diagnostics);
-
-    void diagnosticsRemove(const QUrl &scriptUrl);
-
     QQuickWidget *m_diagnosticsWidget{};
     QQuickItem *m_diagnosticsRoot{};
-    QTabWidget *m_diagnosticsTabWidget{};
-    QHash<int, QColor> m_diagnosticsColor{};
+    QHash<QUrl, QStandardItemModel *> m_diagnosticsModelHash{};
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 
     enum {
