@@ -54,18 +54,24 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         const auto start = range["start"].toObject();
         const int line = start["line"].toInt();
         switch (kind) {
+            case SYMBOLKIND_PACKAGE: {
+                item->setData(name, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolPackage.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::WhatsThisRole);
+            }
+                break;
             case SYMBOLKIND_FUNCTION: {
                 item->setData(name + detail.mid(9), Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_NUMBER: {
-                item->setData(name + " = " + detail, Qt::DisplayRole);
-                item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
+            case SYMBOLKIND_VARIABLE: {
+                item->setData(name, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolVariable.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
-            break;
+                break;
             case SYMBOLKIND_CONSTANT: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolConstant.svg"), Qt::DecorationRole);
@@ -75,6 +81,12 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
             case SYMBOLKIND_STRING: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolString.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::WhatsThisRole);
+            }
+            break;
+            case SYMBOLKIND_NUMBER: {
+                item->setData(name + " = " + detail, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;

@@ -226,7 +226,7 @@ DebugModule::DebugModule()
                     const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
                     emit openScript(scriptUrl);
                     const int line = index.data(Qt::UserRole + 2).toInt();
-                    emit insertMarker(scriptUrl, MARKER_HINT, line, 1000);
+                    emit insertMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
                 }
             });
             // load breakpoint
@@ -394,7 +394,7 @@ DebugPage::DebugPage(LuaInterpreter *interpreter, QWidget *parent)
             const QUrl scriptUrl = index.data(Qt::UserRole + 1).toUrl();
             emit openScript(scriptUrl);
             const int line = index.data(Qt::UserRole + 2).toInt();
-            emit insertMarker(scriptUrl, MARKER_HINT, line, 1000);
+            emit insertMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
         }
     });
 }
