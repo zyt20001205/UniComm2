@@ -20,6 +20,9 @@ public:
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
     Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
+
+    Q_INVOKABLE void indicatorInsert(const QVariantMap &position);
+
 signals:
     void openScript(const QUrl &scriptUrl);
 

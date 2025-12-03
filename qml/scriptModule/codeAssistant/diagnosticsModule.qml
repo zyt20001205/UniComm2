@@ -95,6 +95,7 @@ Item {
                 rowSpacing: 1
                 model: parent.model
                 property string diagnostic: ""
+                property int viewrow: 0
 
                 Rectangle {
                     anchors.fill: parent
@@ -187,9 +188,17 @@ Item {
                     }
 
                     TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: {
+                            tableView.indicatorInsert(tableCell.row)
+                        }
+                    }
+
+                    TapHandler {
                         acceptedButtons: Qt.RightButton
                         onTapped: {
                             tableView.diagnostic = model.display
+                            tableView.viewrow = tableCell.row
                             diagnosticMenu.popup()
                         }
                     }
@@ -202,7 +211,18 @@ Item {
                             icon.width: 16; icon.height: 16
                             onTriggered: diagnosticsModule.diagnosticCopy(tableView.diagnostic)
                         }
+                        MenuItem {
+                            text: qsTr("View")
+                            icon.source: "qrc:/icon/eye.svg"
+                            icon.width: 16; icon.height: 16
+                            onTriggered: tableView.indicatorInsert(tableView.viewrow)
+                        }
                     }
+                }
+
+                function indicatorInsert(row) {
+                    var index = model.index(row, 0);
+                    diagnosticsModule.indicatorInsert(model.data(index, Qt.WhatsThisRole))
                 }
             }
         }

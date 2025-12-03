@@ -36,10 +36,13 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QJsonObject range = diagnostic["range"].toObject();
         const QJsonObject startPos = range["start"].toObject();
         const QJsonObject endPos = range["end"].toObject();
-        const int startLine = startPos["line"].toInt();
-        const int startCharacter = startPos["character"].toInt();
-        const int endLine = endPos["line"].toInt();
-        const int endCharacter = endPos["character"].toInt();
+        const QVariantMap position = {
+            {"scriptUrl", scriptUrl},
+            {"startLine",startPos["line"].toInt()},
+            {"startCharacter",startPos["character"].toInt()},
+            {"endLine",endPos["line"].toInt()},
+            {"endCharacter",endPos["character"].toInt()}
+        };
         // information
         const int severity = diagnostic["severity"].toInt();
         const QString source = diagnostic["source"].toString();
@@ -66,6 +69,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
             break;
             default: break;
         }
+        severityItem->setData(position, Qt::WhatsThisRole);
         auto *sourceItem = new QStandardItem(source); // NOLINT
         auto *codeItem = new QStandardItem(code); // NOLINT
         auto *dataItem = new QStandardItem(data); // NOLINT
@@ -84,4 +88,15 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
 void DiagnosticsModule::diagnosticCopy(const QString &diagnostic) {
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setText(diagnostic);
+}
+
+void DiagnosticsModule::indicatorInsert(const QVariantMap &position) {
+    emit insertIndicator(
+        position["scriptUrl"].toUrl(),
+        INDICATOR_SELECTION,
+        position["startLine"].toInt(),
+        position["startCharacter"].toInt(),
+        position["endLine"].toInt(),
+        position["endCharacter"].toInt(),
+        1000);
 }
