@@ -9,6 +9,7 @@ Item {
 
     Item {
         anchors.fill: parent
+        visible: tabBar.currentIndex === -1
 
         RowLayout {
             anchors.centerIn: parent
@@ -57,18 +58,21 @@ Item {
                 function onRowsInserted() {
                     tabButton.width = contentItem.implicitWidth + 24
                     tabButton.visible = true
+                    tabBar.currentIndex = tabButton.TabBar.index
                 }
 
                 function onModelReset() {
                     tabButton.width = 0
                     tabButton.visible = false
+                    let showIndex = -1
                     for (let i = 0; i < tabBar.count; i++) {
                         const item = tabBar.itemAt(i)
                         if (item && item.visible) {
-                            tabBar.currentIndex = i
+                            showIndex = i
                             break
                         }
                     }
+                    tabBar.currentIndex = showIndex
                 }
             }
         }
@@ -271,5 +275,6 @@ Item {
             "horizontalHeader": horizontalHeader,
             "diagnosticsModel": diagnosticsModel
         });
+        tabBar.currentIndex = tabBar.count - 1
     }
 }

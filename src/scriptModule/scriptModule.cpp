@@ -243,6 +243,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
 }
 
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
+    scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_editorWidget->setCursorPosition(startLine, startCharacter);
     scriptPage->m_editorWidget->setFocus();
