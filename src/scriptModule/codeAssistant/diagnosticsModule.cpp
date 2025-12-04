@@ -14,7 +14,7 @@
 // DiagnosticsModule public
 DiagnosticsModule::DiagnosticsModule()
     : DockWidget("diagnostics"),
-      m_diagnosticsWidget(new QQuickWidget()){
+      m_diagnosticsWidget(new QQuickWidget()) {
     setWidget(m_diagnosticsWidget);
     m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticsModule", this);
     m_diagnosticsWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -38,10 +38,10 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QJsonObject endPos = range["end"].toObject();
         const QVariantMap position = {
             {"scriptUrl", scriptUrl},
-            {"startLine",startPos["line"].toInt()},
-            {"startCharacter",startPos["character"].toInt()},
-            {"endLine",endPos["line"].toInt()},
-            {"endCharacter",endPos["character"].toInt()}
+            {"startLine", startPos["line"].toInt()},
+            {"startCharacter", startPos["character"].toInt()},
+            {"endLine", endPos["line"].toInt()},
+            {"endCharacter", endPos["character"].toInt()}
         };
         // information
         const int severity = diagnostic["severity"].toInt();
@@ -78,8 +78,8 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
     }
     if (!m_diagnosticsModelHash.contains(scriptUrl)) {
         m_diagnosticsModelHash.insert(scriptUrl, diagnosticsModel);
-        m_diagnosticsWidget->rootContext()->setContextProperty(scriptUrl.toString(), diagnosticsModel);
-        QMetaObject::invokeMethod(m_diagnosticsRoot, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
+        const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
+        QMetaObject::invokeMethod(m_diagnosticsRoot, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant,horizontalHeader), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
     } else {
         m_diagnosticsModelHash[scriptUrl] = diagnosticsModel;
     }

@@ -7,6 +7,25 @@ Item {
     objectName: "diagnosticsRoot"
     anchors.fill: parent
 
+    Item {
+        anchors.fill: parent
+
+        RowLayout {
+            anchors.centerIn: parent
+
+            Label {
+                text: qsTr("No errors found.")
+                font.pixelSize: 16
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Image {
+                source: "qrc:/icon/checkmarkCircle.svg"
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -27,7 +46,31 @@ Item {
         id: tabButtonComponent
 
         TabButton {
+            id: tabButton
             width: contentItem.implicitWidth + 24; height: 24
+            property var diagnosticsModel: null
+
+            Connections {
+                target: tabButton.diagnosticsModel
+                enabled: tabButton.diagnosticsModel !== null
+
+                function onRowsInserted() {
+                    tabButton.width = contentItem.implicitWidth + 24
+                    tabButton.visible = true
+                }
+
+                function onModelReset() {
+                    tabButton.width = 0
+                    tabButton.visible = false
+                    for (let i = 0; i < tabBar.count; i++) {
+                        const item = tabBar.itemAt(i)
+                        if (item && item.visible) {
+                            tabBar.currentIndex = i
+                            break
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -35,8 +78,10 @@ Item {
         id: pageComponent
 
         Item {
+            id: pageItem
             Layout.fillWidth: true; Layout.fillHeight: true
-            property var model: null
+            property var horizontalHeader: null
+            property var diagnosticsModel: null
 
             HorizontalHeaderView {
                 id: horizontalHeaderView
@@ -61,22 +106,7 @@ Item {
                         font.family: "Segoe UI"
                         font.pointSize: 10
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: {
-                            switch (horizontalDelegate.index) {
-                                case 0:
-                                    return ""
-                                case 1:
-                                    return qsTr("Source")
-                                case 2:
-                                    return qsTr("Code")
-                                case 3:
-                                    return qsTr("Data")
-                                case 4:
-                                    return qsTr("Message")
-                                default:
-                                    return ""
-                            }
-                        }
+                        text: pageItem.horizontalHeader[horizontalDelegate.index]
                     }
                 }
             }
@@ -89,7 +119,7 @@ Item {
                 clip: true
                 editTriggers: TableView.NoEditTriggers
                 rowSpacing: 1
-                model: parent.model
+                model: pageItem.diagnosticsModel
                 property string diagnostic: ""
                 property int viewrow: 0
 
@@ -232,12 +262,14 @@ Item {
         }
     }
 
-    function append(name, model) {
+    function append(name, horizontalHeader, diagnosticsModel) {
         const tabButton = tabButtonComponent.createObject(tabBar, {
-            "text": name
+            "text": name,
+            "diagnosticsModel": diagnosticsModel
         });
         const page = pageComponent.createObject(stackLayout, {
-            "model": model
+            "horizontalHeader": horizontalHeader,
+            "diagnosticsModel": diagnosticsModel
         });
     }
 }
