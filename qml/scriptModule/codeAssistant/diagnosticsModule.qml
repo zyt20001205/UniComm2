@@ -61,7 +61,6 @@ Item {
                         font.family: "Segoe UI"
                         font.pointSize: 10
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-
                         text: {
                             switch (horizontalDelegate.index) {
                                 case 0:

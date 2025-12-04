@@ -59,7 +59,6 @@ void LogModule::logAppend(const QString &message, const QString &level) {
     }
     // logging
     QString f_message = QString("%1%2").arg(timestamp, message);
-    // }
     // check level
     if (level == "info")
         f_message = QString("<span style='color:black'>%1</span>").arg(f_message);
@@ -68,9 +67,11 @@ void LogModule::logAppend(const QString &message, const QString &level) {
     else if (level == "error")
         f_message = QString("<span style='color:red'>%1</span>").arg(f_message);
     else if (level == "tx")
-        f_message = QString("<span style='background-color:cyan;'>%1</span>").arg(f_message);
+        // f_message = QString("<span style='background-color:cyan;'>%1</span>").arg(f_message);
+        f_message = QString("%1").arg(f_message);
     else //(level == "rx")
-        f_message = QString("<span style='background-color:lightgreen;'>%1</span>").arg(f_message);
+        // f_message = QString("<span style='background-color:lightgreen;'>%1</span>").arg(f_message);
+        f_message = QString("%1").arg(f_message);
     // append log
     QMetaObject::invokeMethod(m_logTextArea, "append", Q_ARG(QString, f_message));
 }
