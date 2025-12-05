@@ -94,6 +94,7 @@ Item {
                 height: 32
                 syncView: tableView
                 clip: true
+                interactive: false
 
                 delegate: HorizontalHeaderViewDelegate {
                     id: horizontalDelegate
@@ -124,6 +125,7 @@ Item {
                 editTriggers: TableView.NoEditTriggers
                 rowSpacing: 1
                 model: pageItem.diagnosticsModel
+                contentWidth: width
                 property string diagnostic: ""
                 property int viewrow: 0
 
@@ -136,22 +138,26 @@ Item {
                 delegate: TableViewDelegate {
                     id: tableCell
                     implicitWidth: {
-                        switch (tableCell.column) {
-                            case 0:
-                                return 24;
-                            case 1:
-                                return 160;
-                            case 2:
-                                return 100;
-                            case 3:
-                                return 60;
-                            case 4:
-                                return tableView.width - 344;
-                            default:
-                                return 0;
+                        if (tableCell.column === 0) {
+                            return 24
                         }
+                        if (tableCell.column === tableView.columns - 1) {
+                            let usedWidth = 0
+                            for (let i = 0; i < tableView.columns - 1; i++) {
+                                usedWidth += tableView.columnWidth(i)
+                            }
+                            return tableView.width - usedWidth
+                        }
+                        return Math.max(cellTextMetrics.width + 16, 60)
                     }
                     implicitHeight: 24
+                    
+                    TextMetrics {
+                        id: cellTextMetrics
+                        font.family: "Segoe UI"
+                        font.pointSize: 10
+                        text: model.display || ""
+                    }
 
                     contentItem: Loader {
                         sourceComponent: {
@@ -188,16 +194,16 @@ Item {
                                 Text {
                                     anchors.fill: parent
                                     z: 2
-                                    clip: true
                                     font.family: "Segoe UI"
                                     font.pointSize: 10
                                     horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
                                     text: model.display
+                                    elide: Text.ElideRight
 
                                     ToolTip.visible: hoverHandler.hovered
                                     ToolTip.delay: 500
-                                    ToolTip.text: qsTr("Line: %1\nClick to view details").arg(tableView.viewrowGet(tableCell.row) + 1)
+                                    ToolTip.text: model.display
                                 }
 
                                 Rectangle {
@@ -275,6 +281,5 @@ Item {
             "horizontalHeader": horizontalHeader,
             "diagnosticsModel": diagnosticsModel
         });
-        tabBar.currentIndex = tabBar.count - 1
     }
 }
