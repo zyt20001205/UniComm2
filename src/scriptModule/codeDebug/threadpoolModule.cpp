@@ -97,6 +97,12 @@ bool ThreadpoolModule::threadStop(const QString &threadId) {
             return false;
         }
         m_threadHash[threadId]->requestInterruption();
+        for (int row = 0; row < m_threadpoolModel->rowCount(); ++row) {
+            if (m_threadpoolModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == threadId) {
+                m_threadpoolModel->item(row, THREADID_COL)->setText(threadId + " (Terminating)");
+                break;
+            }
+        }
         return true;
     }
     return false;
@@ -128,17 +134,18 @@ void ThreadpoolModule::threadAppend(const int status, const QString &name, const
     m_threadHash.insert(threadId, worker);
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
-    const QString text = status == THREAD_RUN ? tr(" (Running)") : tr(" (Debugging)");
+    const QString text = status == THREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
     auto *nameItem = new QStandardItem(name + text); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
     spawnItem->setData(QVariant::fromValue(currentTime), Qt::UserRole + 1);
     auto *threadIdItem = new QStandardItem(threadId); // NOLINT
+    threadIdItem->setData(threadId, Qt::UserRole + 1);
     m_threadpoolModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
 
     connect(worker, &QThread::finished, this, [this, worker] {
         const QString id = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
         for (int row = 0; row < m_threadpoolModel->rowCount(); ++row) {
-            if (m_threadpoolModel->item(row, THREADID_COL)->text() == id) {
+            if (m_threadpoolModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == id) {
                 m_threadpoolModel->removeRow(row);
                 break;
             }
