@@ -4,6 +4,8 @@
 #include <QJsonArray>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QStandardItemModel;
+class QQuickWidget;
 class QTableWidget;
 
 class DatabaseModule final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -44,6 +46,8 @@ private:
     void databaseSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex);
 
     QJsonArray m_databaseConfig{};
+    QQuickWidget *m_databaseWidget{};
+    QStandardItemModel *m_databaseModel{};
     QTableWidget *m_tableWidget{};
     int m_version = 1;
 };

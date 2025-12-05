@@ -6,6 +6,9 @@
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
+#include <QQmlContext>
+#include <QQuickWidget>
+#include <QStandardItemModel>
 #include <QTableWidget>
 
 #include "globals.h"
@@ -13,8 +16,22 @@
 // DatabaseModule public
 DatabaseModule::DatabaseModule()
     : DockWidget("database"),
+      m_databaseWidget(new QQuickWidget()),
+      m_databaseModel(new QStandardItemModel(this)),
       m_tableWidget(new QTableWidget()) {
-    setWidget(m_tableWidget);
+    setWidget(m_databaseWidget);
+    const QVariantList verticalHeader = {"111", "222", "333", "444"};
+    m_databaseWidget->rootContext()->setContextProperty("databaseModule", this);
+    m_databaseWidget->rootContext()->setContextProperty("verticalHeader", verticalHeader);
+    m_databaseWidget->rootContext()->setContextProperty("databaseModel", m_databaseModel);
+    m_databaseWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml"));
+    m_databaseModel->appendRow(new QStandardItem("1111"));
+    m_databaseModel->appendRow(new QStandardItem("2222"));
+    m_databaseModel->appendRow(new QStandardItem("3333"));
+    m_databaseModel->appendRow(new QStandardItem("4444"));
+
+    // setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->setColumnCount(1);
     m_tableWidget->horizontalHeader()->setVisible(false);
@@ -54,22 +71,26 @@ void DatabaseModule::databaseInsert(int visualIndex, QString key) {
         bool ok = false;
         key = QInputDialog::getText(this, tr("Input Name"), "", QLineEdit::Normal, "", &ok);
         if (!ok) return;
-        if (m_databaseHash.contains(key)) {
-            QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
-            return;
-        }
+        // if (m_databaseHash.contains(key)) {
+        //     QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
+        //     return;
+        // }
     }
-    // frontend
-    m_tableWidget->insertRow(visualIndex);
-    m_tableWidget->setVerticalHeaderItem(visualIndex, new QTableWidgetItem(key));
-    m_tableWidget->setItem(visualIndex, 0, new QTableWidgetItem(""));
-    // backend
-    m_databaseConfig.insert(visualIndex, key);
-    m_databaseHash.clear();
-    for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
-        const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
-        m_databaseHash.insert(headerItem->text(), index);
-    }
+    m_databaseModel->appendRow(new QStandardItem("1111"));
+    // m_databaseHash.insert(key, m_databaseHash.size() - 1);
+
+
+    // // frontend
+    // m_tableWidget->insertRow(visualIndex);
+    // m_tableWidget->setVerticalHeaderItem(visualIndex, new QTableWidgetItem(key));
+    // m_tableWidget->setItem(visualIndex, 0, new QTableWidgetItem(""));
+    // // backend
+    // m_databaseConfig.insert(visualIndex, key);
+    // m_databaseHash.clear();
+    // for (int index = 0; index < m_tableWidget->rowCount(); ++index) {
+    //     const QTableWidgetItem *headerItem = m_tableWidget->verticalHeaderItem(index);
+    //     m_databaseHash.insert(headerItem->text(), index);
+    // }
     // logging
     emit appendLog(QString("%1 inserted").arg(key), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

@@ -112,8 +112,7 @@ Item {
                     z: 2
                     font.family: "Segoe UI"
                     font.pointSize: 10
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                     text: model.display
                     elide: Text.ElideRight
 

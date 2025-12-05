@@ -152,6 +152,7 @@ qt_add_resources(UniComm "qml_resources"
         BASE "qml"
         FILES
         "qml/logModule.qml"
+        "qml/dataModule/databaseModule.qml"
         "qml/scriptModule/codeAssistant/diagnosticsModule.qml"
         "qml/scriptModule/codeAssistant/structureModule.qml"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"
