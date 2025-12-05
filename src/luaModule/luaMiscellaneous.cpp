@@ -4,7 +4,7 @@
 
 #include "globals.h"
 #include "logModule.h"
-#include "scriptModule/threadpoolModule.h"
+#include "scriptModule/codeDebug/threadpoolModule.h"
 
 int lua_exec(lua_State *L) {
     // check arguments

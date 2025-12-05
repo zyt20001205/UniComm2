@@ -84,13 +84,12 @@ Item {
         Item {
             id: pageItem
             Layout.fillWidth: true; Layout.fillHeight: true
-            property var horizontalHeader: null
             property var diagnosticsModel: null
 
             HorizontalHeaderView {
                 id: horizontalHeaderView
-                anchors.left: parent.left; anchors.right: parent.right
                 anchors.top: parent.top
+                width: parent.width
                 height: 32
                 syncView: tableView
                 clip: true
@@ -111,15 +110,15 @@ Item {
                         font.family: "Segoe UI"
                         font.pointSize: 10
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: pageItem.horizontalHeader[horizontalDelegate.index]
+                        text: horizontalHeader[horizontalDelegate.index]
                     }
                 }
             }
 
             TableView {
                 id: tableView
-                anchors.left: parent.left; anchors.right: parent.right
                 anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
+                width: parent.width
                 alternatingRows: false
                 clip: true
                 editTriggers: TableView.NoEditTriggers
@@ -135,133 +134,121 @@ Item {
                     z: -1
                 }
 
-                delegate: TableViewDelegate {
-                    id: tableCell
-                    implicitWidth: {
-                        if (tableCell.column === 0) {
-                            return 24
-                        }
-                        if (tableCell.column === tableView.columns - 1) {
-                            let usedWidth = 0
-                            for (let i = 0; i < tableView.columns - 1; i++) {
-                                usedWidth += tableView.columnWidth(i)
-                            }
-                            return tableView.width - usedWidth
-                        }
-                        return Math.max(cellTextMetrics.width + 16, 60)
+                delegate: DelegateChooser {
+                    DelegateChoice {
+                        column: 0
+                        delegate: iconCellDelegate
                     }
-                    implicitHeight: 24
-                    
-                    TextMetrics {
-                        id: cellTextMetrics
-                        font.family: "Segoe UI"
-                        font.pointSize: 10
-                        text: model.display || ""
+                    DelegateChoice {
+                        delegate: textCellDelegate
                     }
+                }
 
-                    contentItem: Loader {
-                        sourceComponent: {
-                            switch (column) {
-                                case 0:
-                                    return iconDelegate;
-                                default:
-                                    return textDelegate;
-                            }
-                        }
+                Component {
+                    id: iconCellDelegate
 
-                        Component {
-                            id: iconDelegate
+                    Rectangle {
+                        implicitWidth: 24
+                        implicitHeight: 24
+                        color: "white"
 
-                            Rectangle {
-                                anchors.fill: parent
-                                color: "white"
-
-                                Image {
-                                    width: 16; height: 16
-                                    anchors.centerIn: parent
-                                    source: model.decoration
-                                }
-                            }
-                        }
-
-                        Component {
-                            id: textDelegate
-
-                            Rectangle {
-                                anchors.fill: parent
-                                color: "white"
-
-                                Text {
-                                    anchors.fill: parent
-                                    z: 2
-                                    font.family: "Segoe UI"
-                                    font.pointSize: 10
-                                    horizontalAlignment: Text.AlignLeft
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: model.display
-                                    elide: Text.ElideRight
-
-                                    ToolTip.visible: hoverHandler.hovered
-                                    ToolTip.delay: 500
-                                    ToolTip.text: model.display
-                                }
-
-                                Rectangle {
-                                    id: highlightRect
-                                    anchors.fill: parent
-                                    z: 1
-                                    radius: 2
-                                    color: "#f5f5f5"
-                                    opacity: hoverHandler.hovered ? 1 : 0
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 150
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    HoverHandler {
-                        id: hoverHandler
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.LeftButton
-                        onTapped: {
-                            tableView.indicatorInsert(tableCell.row)
-                        }
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.RightButton
-                        onTapped: {
-                            tableView.diagnostic = model.display
-                            tableView.viewrow = tableCell.row
-                            diagnosticMenu.popup()
-                        }
-                    }
-
-                    Menu {
-                        id: diagnosticMenu
-                        MenuItem {
-                            text: qsTr("Copy")
-                            icon.source: "qrc:/icon/copy.svg"
-                            icon.width: 16; icon.height: 16
-                            onTriggered: diagnosticsModule.diagnosticCopy(tableView.diagnostic)
-                        }
-                        MenuItem {
-                            text: qsTr("View")
-                            icon.source: "qrc:/icon/eye.svg"
-                            icon.width: 16; icon.height: 16
-                            onTriggered: tableView.indicatorInsert(tableView.viewrow)
+                        Image {
+                            width: 16; height: 16
+                            anchors.centerIn: parent
+                            source: model.decoration
                         }
                     }
                 }
 
-                function viewrowGet(row) {
-                    return model.data(model.index(row, 0), Qt.WhatsThisRole).startLine
+                Component {
+                    id: textCellDelegate
+
+                    Rectangle {
+                        id: textCell
+                        required property int column
+                        required property int row
+                        
+                        implicitWidth: {
+                            if (textCell.column === tableView.columns - 1) {
+                                let usedWidth = 0
+                                for (let i = 0; i < tableView.columns - 1; i++) {
+                                    usedWidth += tableView.columnWidth(i)
+                                }
+                                return tableView.width - usedWidth
+                            }
+                            return Math.max(textMetrics.width + 16, 60)
+                        }
+                        implicitHeight: 24
+                        color: "white"
+
+                        TextMetrics {
+                            id: textMetrics
+                            font.family: "Segoe UI"
+                            font.pointSize: 10
+                            text: model.display || ""
+                        }
+
+                        Text {
+                            anchors.fill: parent
+                            z: 2
+                            font.family: "Segoe UI"
+                            font.pointSize: 10
+                            horizontalAlignment: Text.AlignLeft
+                            verticalAlignment: Text.AlignVCenter
+                            text: model.display
+                            elide: Text.ElideRight
+
+                            ToolTip.visible: hoverHandler.hovered
+                            ToolTip.delay: 500
+                            ToolTip.text: model.display
+                        }
+
+                        Rectangle {
+                            id: highlightRect
+                            anchors.fill: parent
+                            z: 1
+                            radius: 2
+                            color: "#f5f5f5"
+                            opacity: hoverHandler.hovered ? 1 : 0
+                            Behavior on opacity {
+                                NumberAnimation { duration: 150 }
+                            }
+                        }
+
+                        HoverHandler {
+                            id: hoverHandler
+                        }
+
+                        TapHandler {
+                            acceptedButtons: Qt.LeftButton
+                            onTapped: tableView.indicatorInsert(textCell.row)
+                        }
+
+                        TapHandler {
+                            acceptedButtons: Qt.RightButton
+                            onTapped: {
+                                tableView.diagnostic = model.display
+                                tableView.viewrow = textCell.row
+                                diagnosticMenu.popup()
+                            }
+                        }
+
+                        Menu {
+                            id: diagnosticMenu
+                            MenuItem {
+                                text: qsTr("Copy")
+                                icon.source: "qrc:/icon/copy.svg"
+                                icon.width: 16; icon.height: 16
+                                onTriggered: diagnosticsModule.diagnosticCopy(tableView.diagnostic)
+                            }
+                            MenuItem {
+                                text: qsTr("View")
+                                icon.source: "qrc:/icon/eye.svg"
+                                icon.width: 16; icon.height: 16
+                                onTriggered: tableView.indicatorInsert(tableView.viewrow)
+                            }
+                        }
+                    }
                 }
 
                 function indicatorInsert(row) {
@@ -272,13 +259,12 @@ Item {
         }
     }
 
-    function append(name, horizontalHeader, diagnosticsModel) {
+    function append(name, diagnosticsModel) {
         const tabButton = tabButtonComponent.createObject(tabBar, {
             "text": name,
             "diagnosticsModel": diagnosticsModel
         });
         const page = pageComponent.createObject(stackLayout, {
-            "horizontalHeader": horizontalHeader,
             "diagnosticsModel": diagnosticsModel
         });
     }

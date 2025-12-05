@@ -1,10 +1,11 @@
 #ifndef UNICOMM_THREADPOOL_H
 #define UNICOMM_THREADPOOL_H
 
-#include <QUrl>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QStandardItemModel;
 class QTableWidget;
+class QQuickWidget;
 
 class LuaInterpreter;
 
@@ -22,9 +23,11 @@ public:
 
     QString threadDebug(const QUrl &scriptUrl, const QString &script);
 
-    bool threadStop(const QString &threadId);
+    Q_INVOKABLE bool threadStop(const QString &threadId);
 
     bool threadWait(const QString &threadId);
+
+    Q_INVOKABLE QString lifetimeCalc(int row) const;
 
 signals:
     void startDebug(const QString &threadId, LuaInterpreter *interpreter);
@@ -34,19 +37,16 @@ signals:
 private:
     void threadAppend(int status, const QString &name, const QString &threadId, QThread *worker);
 
-    void timeRefresh() const;
-
-    QTimer *m_runtimeTimer{};
-    QTableWidget *m_threadpoolTableWidget{};
-    QHash<int, QColor> m_threadpoolColor{};
     QHash<QString, QThread *> m_threadHash{};
+    QQuickWidget *m_threadpoolWidget{};
+    QStandardItemModel *m_threadpoolModel{};
 
     enum {
-        STATUS_COL,
-        TIMER_COL,
-        SOURCE_COL,
-        THREAD_COL,
-        STOP_COL
+        ICON_COL,
+        NAME_COL,
+        SPAWN_COL,
+        ALIVE_COL,
+        THREADID_COL
     };
 };
 

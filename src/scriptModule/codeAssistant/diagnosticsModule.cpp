@@ -16,7 +16,9 @@ DiagnosticsModule::DiagnosticsModule()
     : DockWidget("diagnostics"),
       m_diagnosticsWidget(new QQuickWidget()) {
     setWidget(m_diagnosticsWidget);
+    const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
     m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticsModule", this);
+    m_diagnosticsWidget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
     m_diagnosticsWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_diagnosticsWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/diagnosticsModule.qml"));
     m_diagnosticsRoot = m_diagnosticsWidget->rootObject();
@@ -78,9 +80,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
     }
     if (!m_diagnosticsModelHash.contains(scriptUrl)) {
         m_diagnosticsModelHash.insert(scriptUrl, diagnosticsModel);
-        const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
-        QMetaObject::invokeMethod(m_diagnosticsRoot, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, horizontalHeader),
-                                  Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
+        QMetaObject::invokeMethod(m_diagnosticsRoot, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
     } else {
         m_diagnosticsModelHash[scriptUrl] = diagnosticsModel;
     }
