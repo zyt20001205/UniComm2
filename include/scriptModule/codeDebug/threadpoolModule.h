@@ -40,12 +40,12 @@ private:
     QHash<QString, QThread *> m_threadHash{};
     QQuickWidget *m_threadpoolWidget{};
     QStandardItemModel *m_threadpoolModel{};
+    QString m_lifetime{};
 
     enum {
         ICON_COL,
         NAME_COL,
         SPAWN_COL,
-        ALIVE_COL,
         THREADID_COL
     };
 };

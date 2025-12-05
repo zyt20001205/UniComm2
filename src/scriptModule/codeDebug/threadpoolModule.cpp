@@ -92,6 +92,10 @@ QString ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &scri
 
 bool ThreadpoolModule::threadStop(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
+        if (m_threadHash[threadId]->isInterruptionRequested()) {
+            qDebug() << "terminate request has been sent";
+            return false;
+        }
         m_threadHash[threadId]->requestInterruption();
         return true;
     }
@@ -124,7 +128,7 @@ void ThreadpoolModule::threadAppend(const int status, const QString &name, const
     m_threadHash.insert(threadId, worker);
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
-    const QString text = status == THREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
+    const QString text = status == THREAD_RUN ? tr(" (Running)") : tr(" (Debugging)");
     auto *nameItem = new QStandardItem(name + text); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
     spawnItem->setData(QVariant::fromValue(currentTime), Qt::UserRole + 1);

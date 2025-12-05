@@ -159,7 +159,7 @@ Item {
                         icon.source: "qrc:/icon/stop.svg"
                         icon.width: 16; icon.height: 16
                         onTriggered: {
-                            const index = tableView.model.index(tableView.selectedRow, 4);
+                            const index = tableView.model.index(tableView.selectedRow, 3);
                             threadpoolModule.threadStop(tableView.model.data(index, Qt.DisplayRole))
                         }
                     }
