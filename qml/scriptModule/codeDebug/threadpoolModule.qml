@@ -1,9 +1,29 @@
 import QtQuick
 import QtQuick.Controls
-import Qt.labs.qmlmodels
+import QtQuick.Layouts
 
 Item {
     anchors.fill: parent
+
+    Item {
+        id: hintItem
+        anchors.fill: parent
+
+        RowLayout {
+            anchors.centerIn: parent
+
+            Label {
+                text: qsTr("No active threads.")
+                font.pixelSize: 16
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Image {
+                source: "qrc:/icon/snooze.svg"
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+    }
 
     HorizontalHeaderView {
         id: horizontalHeaderView
@@ -14,7 +34,7 @@ Item {
         interactive: false
 
         delegate: HorizontalHeaderViewDelegate {
-            id: horizontalDelegate
+            id: horizontalHeaderViewDelegate
             required property int index
 
             background: Rectangle {
@@ -28,7 +48,7 @@ Item {
                 font.family: "Segoe UI"
                 font.pointSize: 10
                 horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                text: horizontalHeader[horizontalDelegate.index]
+                text: horizontalHeader[horizontalHeaderViewDelegate.index]
             }
         }
     }
@@ -117,7 +137,6 @@ Item {
                     elide: Text.ElideRight
 
                     ToolTip.visible: hoverHandler.hovered
-                    ToolTip.delay: 500
                     ToolTip.text: tableView.lifetime
                 }
 
@@ -139,7 +158,25 @@ Item {
                     id: hoverHandler
 
                     onHoveredChanged: {
+                        if (hovered) {
+                            lifetimeCalc()
+                            hoverTimer.start()
+                        } else {
+                            hoverTimer.stop()
+                        }
+                    }
+
+                    function lifetimeCalc() {
                         tableView.lifetime = threadpoolModule.lifetimeCalc(textCell.row)
+                    }
+                }
+
+                Timer {
+                    id: hoverTimer
+                    interval: 1000
+                    repeat: true
+                    onTriggered: {
+                        hoverHandler.lifetimeCalc()
                     }
                 }
 
@@ -163,6 +200,24 @@ Item {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    Connections {
+        target: threadpoolModel
+
+        function onRowsInserted() {
+            hintItem.visible = false
+            horizontalHeaderView.visible = true
+            tableView.visible = true
+        }
+
+        function onRowsRemoved() {
+            if (threadpoolModel.rowCount() === 0){
+                hintItem.visible = true
+                horizontalHeaderView.visible = false
+                tableView.visible = false
             }
         }
     }

@@ -123,7 +123,9 @@ bool ThreadpoolModule::threadWait(const QString &threadId) {
 }
 
 QString ThreadpoolModule::lifetimeCalc(const int row) const {
-    const auto baseTime = m_threadpoolModel->item(row, SPAWN_COL)->data(Qt::UserRole + 1).toDateTime();
+    const auto item = m_threadpoolModel->item(row, SPAWN_COL);
+    if (!item) return{};
+    const auto baseTime = item->data(Qt::UserRole + 1).toDateTime();
     const qint64 elapsedMs = baseTime.msecsTo(QDateTime::currentDateTime());
     const QTime elapsedTime = QTime::fromMSecsSinceStartOfDay(elapsedMs);
     return "Lifetime: " + elapsedTime.toString("HH:mm:ss");
