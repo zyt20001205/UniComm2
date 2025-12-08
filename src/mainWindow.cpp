@@ -257,8 +257,7 @@ void MainWindow::moduleInit() {
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_explorerModule, &ExplorerModule::runScript, m_threadpoolModule, &ThreadpoolModule::threadRun);
-    connect(m_explorerModule, &ExplorerModule::debugScript, m_threadpoolModule, &ThreadpoolModule::threadDebug);
+    // connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int>(&ThreadpoolModule::threadStart));
     connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
@@ -270,6 +269,7 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &DiagnosticsModule::insertIndicator, m_scriptModule, &ScriptModule::indicatorInsert);
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
 
     g_database = m_databaseModule;
@@ -451,8 +451,8 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                const QString script = m_scriptModule->textGet(scriptUrl);
-                emit runThread(scriptUrl, script);
+                QString threadId;
+                emit startThread(scriptUrl, LUATHREAD_RUN, threadId);
                 m_logModule->raise();
             }
         };
@@ -464,15 +464,14 @@ void MainWindow::menuInit() {
         connect(runButton, &QToolButton::clicked, this, runScript);
         const auto *runShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F10), this); // NOLINT
         connect(runShortcut, &QShortcut::activated, this, runScript);
-        connect(this, &MainWindow::runThread, m_threadpoolModule, &ThreadpoolModule::threadRun);
 
         auto debugScript = [this] {
             if (m_scriptModule->m_scriptPageHash.isEmpty()) {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                const QString script = m_scriptModule->textGet(scriptUrl);
-                emit debugThread(scriptUrl, script);
+                QString threadId;
+                emit startThread(scriptUrl, LUATHREAD_DEBUG, threadId);
                 m_debugModule->raise();
             }
         };
@@ -484,7 +483,8 @@ void MainWindow::menuInit() {
         connect(debugButton, &QToolButton::clicked, this, debugScript);
         const auto *debugShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F9), this); // NOLINT
         connect(debugShortcut, &QShortcut::activated, this, debugScript);
-        connect(this, &MainWindow::debugThread, m_threadpoolModule, &ThreadpoolModule::threadDebug);
+
+        connect(this, &MainWindow::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
     }
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

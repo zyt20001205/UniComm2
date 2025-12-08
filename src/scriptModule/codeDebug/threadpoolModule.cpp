@@ -14,6 +14,7 @@
 
 #include "globals.h"
 #include "luaModule/luaInterpreter.h"
+#include "scriptModule/scriptModule.h"
 
 // ThreadpoolModule public
 ThreadpoolModule::ThreadpoolModule()
@@ -29,65 +30,42 @@ ThreadpoolModule::ThreadpoolModule()
     m_threadpoolWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/threadpoolModule.qml"));
 }
 
-QString ThreadpoolModule::threadExec(const QString &scriptPath, const QString &mode) {
-    QString relativePath = scriptPath;
-    relativePath = relativePath.replace('.', '/') + ".lua";
-    const QString fullPath = QDir::current().filePath(g_workspaceUrl.toLocalFile() + "/" + relativePath);
-    QFile file(fullPath);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    QTextStream in(&file);
-    in.setEncoding(QStringConverter::Utf8);
-    const QString script = in.readAll();
-    file.close();
-    if (mode == "run") {
-        const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
-        return threadRun(scriptUrl, script);
+void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QString &threadId) {
+    const QString script = g_script->textGet(scriptUrl);
+    QVariantMap luaSession{};
+    luaSession.insert("mode", mode);
+    luaSession.insert("scriptUrl", scriptUrl);
+    if (mode == LUATHREAD_DEBUG) {
+        luaSession.insert("state", DEBUG_RESUME);
     }
-    const QUrl scriptUrl = QUrl::fromLocalFile(fullPath);
-    return threadDebug(scriptUrl, script);
-}
-
-QString ThreadpoolModule::threadRun(const QUrl &scriptUrl, const QString &script) {
-    // launch lua interpreter thread
     auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(g_workspaceUrl, scriptUrl); // NOLINT
+    auto *interpreter = new LuaInterpreter(g_workspaceUrl, scriptUrl, luaSession); // NOLINT
+    connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
+    connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
+    connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
+    connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     connect(worker, &QThread::started, [interpreter, script] {
-        interpreter->run(script);
+        interpreter->start(script);
         QThread::currentThread()->quit();
     });
     worker->start();
-    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    threadAppend(THREAD_RUN, scriptUrl.fileName(), threadId, worker);
-    return threadId;
+    threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    threadAppend(mode, scriptUrl.fileName(), threadId, worker);
+    if (mode == LUATHREAD_DEBUG) {
+        emit startDebug(threadId, interpreter);
+    }
 }
 
-QString ThreadpoolModule::threadDebug(const QUrl &scriptUrl, const QString &script) {
-    // launch lua interpreter thread
-    auto *worker = new QThread(); // NOLINT
-    const QString threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    DebugData debugData{
-        scriptUrl,
-        threadId,
-        0,
-        0,
-        DEBUG_RESUME,
-        {}
-    };
-    auto *interpreter = new LuaInterpreter(g_workspaceUrl, scriptUrl); // NOLINT
-    interpreter->moveToThread(worker);
-    connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
-    connect(worker, &QThread::finished, worker, &QObject::deleteLater);
-    connect(worker, &QThread::started, [interpreter, script, debugData] {
-        interpreter->debug(script, debugData);
-        QThread::currentThread()->quit();
-    });
-    worker->start();
-    threadAppend(THREAD_DEBUG, scriptUrl.fileName(), threadId, worker);
-    emit startDebug(threadId, interpreter);
-    return threadId;
+void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QString &threadId) {
+    QString relativePath = scriptPath;
+    relativePath = relativePath.replace('.', '/') + ".lua";
+    const QString fullPath = QDir::current().filePath(g_workspaceUrl.toLocalFile() + "/" + relativePath);
+    const auto scriptUrl = QUrl::fromLocalFile(fullPath);
+    threadStart(scriptUrl, mode, threadId);
 }
 
 bool ThreadpoolModule::threadStop(const QString &threadId) {
@@ -136,7 +114,7 @@ void ThreadpoolModule::threadAppend(const int status, const QString &name, const
     m_threadHash.insert(threadId, worker);
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
-    const QString text = status == THREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
+    const QString text = status == LUATHREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
     auto *nameItem = new QStandardItem(name + text); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
     spawnItem->setData(QVariant::fromValue(currentTime), Qt::UserRole + 1);

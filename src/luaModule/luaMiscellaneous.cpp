@@ -7,28 +7,28 @@
 #include "scriptModule/codeDebug/threadpoolModule.h"
 
 int lua_exec(lua_State *L) {
-    // check arguments
-    if (lua_gettop(L) != 1)
-        luaL_error(L, "unexpected number of arguments");
-    // extract arguments
-    const char *param1 = luaL_checkstring(L, 1);
-    // start operation
-    const QString scriptPath = QString::fromUtf8(param1);
-    QString threadId = "null";
-    if (const auto ptrHolder = static_cast<void **>(lua_getextraspace(L)); *ptrHolder == nullptr) {
-        // run mode
-        QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
-            threadId = g_threadpool->threadExec(scriptPath, "run");
-        }, Qt::BlockingQueuedConnection);
-        lua_pushstring(L, threadId.toUtf8().constData());
-        return 1;
-    }
-    // debug mode
-    QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
-        threadId = g_threadpool->threadExec(scriptPath, "debug");
-    }, Qt::BlockingQueuedConnection);
-    lua_pushstring(L, threadId.toUtf8().constData());
-    return 1;
+    // // check arguments
+    // if (lua_gettop(L) != 1)
+    //     luaL_error(L, "unexpected number of arguments");
+    // // extract arguments
+    // const char *param1 = luaL_checkstring(L, 1);
+    // // start operation
+    // const QString scriptPath = QString::fromUtf8(param1);
+    // QString threadId = "null";
+    // if (const auto ptrHolder = static_cast<void **>(lua_getextraspace(L)); *ptrHolder == nullptr) {
+    //     // run mode
+    //     QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
+    //         threadId = g_threadpool->threadStart(scriptPath, "run");
+    //     }, Qt::BlockingQueuedConnection);
+    //     lua_pushstring(L, threadId.toUtf8().constData());
+    //     return 1;
+    // }
+    // // debug mode
+    // QMetaObject::invokeMethod(g_mainWindow, [scriptPath, &threadId] {
+    //     threadId = g_threadpool->threadStart(scriptPath, "debug");
+    // }, Qt::BlockingQueuedConnection);
+    // lua_pushstring(L, threadId.toUtf8().constData());
+    // return 1;
 }
 
 int lua_stop(lua_State *L) {

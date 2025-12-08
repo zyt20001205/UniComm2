@@ -28,17 +28,33 @@
 --- | '"Y"'
 --- | '"Z"'
 
---- Executes a Lua script file in a new dedicated thread.
---- @param filename string Path to the Lua script.
+io = {}
+--- Logging.
+---@param ... any
+function io.log(...) end
+
+thread = {}
+--- Spawns a thread using the given file path.
+--- @param filepath string Path to the Lua script.
 --- @return string threadId Unique identifier for the spawned thread.
 ---
-function exec(filename) end
+function thread.start(filepath) end
 
---- Stops the specified thread by sending a termination **request**.
+--- Stops the specified thread by sending a **termination request**.
 --- @param threadId string The identifier of the thread to stop.
---- @return boolean success If the thread exists and stop request was sent.
+--- @return nil
 ---
-function stop(threadId) end
+function thread.stop(threadId) end
+
+--- Suspends the current thread for a specified amount of time.
+--- @param ms integer The number of milliseconds to sleep.
+--- @return nil
+---
+--- @usage — Sleep for 1 second.
+---
+--- sleep(1000)
+function thread.sleep(ms) end
+
 
 --- Blocks the current thread until the specified thread terminates.
 --- @param threadId string The identifier of the thread to wait for.
@@ -53,18 +69,6 @@ function wait(threadId) end
 ---
 --- local command = input()
 function input() end
-
---- The output has been redirected to the logging system.
-function print(...) end
-
---- Suspends the current thread for a specified amount of time.
---- @param ms integer The number of milliseconds to sleep.
---- @return nil
----
---- @usage — Sleep for 1 second.
----
---- sleep(1000)
-function sleep(ms) end
 
 --- Converts text to speech and outputs it through the audio system.
 --- @param text string The text content to be spoken (use "help" to list available voices/languages).

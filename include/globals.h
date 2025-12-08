@@ -52,9 +52,8 @@ enum {
 };
 
 enum {
-    THREAD_RUN,
-    THREAD_DEBUG,
-    THREAD_STOP
+    LUATHREAD_RUN,
+    LUATHREAD_DEBUG
 };
 
 enum {

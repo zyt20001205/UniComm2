@@ -37,7 +37,7 @@ void ExplorerModule::scriptRun(const QString &scriptPath) {
     in.setEncoding(QStringConverter::Utf8);
     const QString script = in.readAll();
     file.close();
-    emit runScript(scriptUrl, script);
+    emit startThread(scriptUrl, LUATHREAD_RUN);
 }
 
 void ExplorerModule::scriptDebug(const QString &scriptPath) {
@@ -48,7 +48,7 @@ void ExplorerModule::scriptDebug(const QString &scriptPath) {
     in.setEncoding(QStringConverter::Utf8);
     const QString script = in.readAll();
     file.close();
-    emit debugScript(scriptUrl, script);
+    emit startThread(scriptUrl, LUATHREAD_DEBUG);
 }
 
 void ExplorerModule::scriptOpen(const QString &scriptPath) {

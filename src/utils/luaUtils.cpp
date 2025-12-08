@@ -1,6 +1,43 @@
 #include "utils/luaUtils.h"
 
 #include <QVariant>
+#include <sol/object.hpp>
+#include <sol/variadic_args.hpp>
+
+QVariantList lua2qt(sol::variadic_args args) {
+    QVariantList parsedList{};
+    for (sol::object arg: args) {
+        QVariant parsed{};
+        switch (arg.get_type()) {
+            case sol::type::string: {
+                parsed = QString::fromStdString(arg.as<std::string>());
+            }
+            break;
+            case sol::type::number: {
+                if (arg.is<int>()) {
+                    parsed = arg.as<int>();
+                } else if (arg.is<double>()) {
+                    parsed = arg.as<double>();
+                } else {
+                    qDebug() << "Unsupported Number Type";
+                    parsed = "";
+                }
+            }
+            break;
+            case sol::type::boolean: {
+                parsed = arg.as<bool>();
+            }
+            break;
+            default: {
+                qDebug() << "Unsupported Number Type";
+                parsed = "";
+            }
+            break;
+        }
+        parsedList.append(parsed);
+    }
+    return parsedList;
+}
 
 QString lua_toqstring(lua_State *L, const int idx) {
     switch (lua_type(L, idx)) {

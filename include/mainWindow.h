@@ -36,9 +36,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void runThread(const QUrl &scriptUrl, const QString &script);
-
-    void debugThread(const QUrl &scriptUrl, const QString &script);
+    void startThread(const QUrl &scriptUrl, int mode, QString &threadId);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

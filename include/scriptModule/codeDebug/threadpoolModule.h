@@ -17,11 +17,9 @@ public:
 
     ~ThreadpoolModule() override = default;
 
-    QString threadExec(const QString &scriptPath, const QString &mode);
+    void threadStart(const QUrl &scriptUrl, int mode, QString &threadId);
 
-    QString threadRun(const QUrl &scriptUrl, const QString &script);
-
-    QString threadDebug(const QUrl &scriptUrl, const QString &script);
+    void threadStart(const QString &scriptPath, int mode, QString &threadId);
 
     Q_INVOKABLE bool threadStop(const QString &threadId);
 
@@ -30,6 +28,12 @@ public:
     Q_INVOKABLE QString lifetimeCalc(int row) const;
 
 signals:
+    void appendLog(const QString &message, const QString &level);
+
+    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+
+    void removeMarker(const QUrl &scriptUrl, int type, int line);
+
     void startDebug(const QString &threadId, LuaInterpreter *interpreter);
 
     void threadStopped(const QString &threadId);

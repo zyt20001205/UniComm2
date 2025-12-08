@@ -144,6 +144,10 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
                 completionItem->setIcon(QIcon(":/icon/symbolString.svg"));
             }
             break;
+            case COMPLETION_KIND_METHOD: {
+                completionItem->setIcon(QIcon(":/icon/symbolMethod.svg"));
+            }
+            break;
             case COMPLETION_KIND_FUNCTION: {
                 completionItem->setIcon(QIcon(":/icon/symbolMethod.svg"));
             }
@@ -169,6 +173,7 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
             }
             break;
             default: {
+                completionItem->setIcon(QIcon(":/icon/symbolMisc.svg"));
                 qDebug() << "WIP completion kind:" << kind << insertText;
             }
             break;
