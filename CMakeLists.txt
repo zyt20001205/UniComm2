@@ -315,6 +315,9 @@ set(QSCINTILLA_INCLUDE "${QSCINTILLA_DIR}/include")
 file(GLOB QSCINTILLA_LIB "${QSCINTILLA_DIR}/lib/*.a")
 set(QSCINTILLA_BIN "${QSCINTILLA_DIR}/bin")
 
+set(SOL2_DIR "${CMAKE_SOURCE_DIR}/3rd/sol2-3.5.0")
+set(SOL2_INCLUDE "${SOL2_DIR}/include")
+
 set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
 set(TESSERACT_INCLUDE "${TESSERACT_DIR}/include")
 file(GLOB TESSERACT_LIB "${TESSERACT_DIR}/lib/*.a")
@@ -339,6 +342,7 @@ target_include_directories(UniComm PRIVATE
         ${OPENCV_INCLUDE}
         ${QCUSTOMPLOT_INCLUDE}
         ${QSCINTILLA_INCLUDE}
+        ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
 )
