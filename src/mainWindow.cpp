@@ -279,6 +279,7 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
 
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;

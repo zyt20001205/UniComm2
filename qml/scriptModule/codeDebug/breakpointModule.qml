@@ -69,6 +69,47 @@ TreeView {
                     }
                 }
             }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                onSingleTapped: {
+                    if (isTreeNode && hasChildren) {
+                        scriptMenu.popup()
+                    } else {
+                        lineMenu.popup()
+                    }
+                }
+            }
+
+            Menu {
+                id: scriptMenu
+                MenuItem {
+                    text: qsTr("New Script")
+                    icon.source: "qrc:/icon/documentAdd.svg"
+                    icon.width: 16; icon.height: 16
+                    // onTriggered: explorerModule.scriptNew(model.filePath)
+                }
+            }
+
+            Menu {
+                id: lineMenu
+                MenuItem {
+                    text: qsTr("View Breakpoint")
+                    icon.source: "qrc:/icon/eye.svg"
+                    icon.width: 16; icon.height: 16
+                    onTriggered: breakpointModule.markerInsert(model.whatsThis, model.display)
+                }
+                MenuItem {
+                    text: qsTr("Delete Breakpoint")
+                    icon.source: "qrc:/icon/delete.svg"
+                    icon.width: 16; icon.height: 16
+                    onTriggered: {
+                        breakpointModule.markerRemove(model.whatsThis, model.display)
+                        breakpointModule.breakpointRemove(model.whatsThis, model.display)
+                    }
+                }
+            }
         }
 
         Rectangle {

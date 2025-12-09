@@ -474,12 +474,9 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
         if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
-            g_breakpoints[m_scriptUrl].remove(line + 1);
-            if (g_breakpoints[m_scriptUrl].isEmpty()) g_breakpoints.remove(m_scriptUrl);
             emit removeBreakpoint(m_scriptUrl, line + 1);
             emit removeMarker(m_scriptUrl, MARKER_BREAKPOINT, line);
         } else {
-            g_breakpoints[m_scriptUrl][line + 1]["expr"] = "";
             emit insertBreakpoint(m_scriptUrl, line + 1);
             emit insertMarker(m_scriptUrl, MARKER_BREAKPOINT, line, -1);
         }

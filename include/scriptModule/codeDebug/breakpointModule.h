@@ -16,16 +16,20 @@ public:
 
     void breakpointInsert(const QUrl &scriptUrl, int line) const;
 
-    void breakpointRemove(const QUrl &scriptUrl, int line) const;
+    Q_INVOKABLE void breakpointRemove(const QUrl &scriptUrl, int line) const;
 
     Q_INVOKABLE void scriptOpen(const QUrl &scriptUrl);
 
     Q_INVOKABLE void markerInsert(const QUrl &scriptUrl, int line);
 
+    Q_INVOKABLE void markerRemove(const QUrl &scriptUrl, int line);
+
 signals:
     void openScript(const QUrl &scriptUrl);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+
+    void removeMarker(const QUrl &scriptUrl, int type, int line);
 
 private:
     QQuickWidget *m_breakpointWidget{};
