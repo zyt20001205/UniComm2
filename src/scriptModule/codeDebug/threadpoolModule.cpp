@@ -38,6 +38,8 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     luaSession.insert("scriptUrl", scriptUrl);
     if (mode == LUATHREAD_DEBUG) {
         luaSession.insert("state", DEBUG_RESUME);
+        luaSession.insert("baseDepth", 0);
+        luaSession.insert("currentDepth", 0);
     }
     auto *worker = new QThread(); // NOLINT
     auto *interpreter = new LuaInterpreter(luaSession); // NOLINT

@@ -33,6 +33,10 @@ io = {}
 ---@param ... any
 function io.log(...) end
 
+--- Converts text to speech and outputs it through the audio system.
+--- @param text string The text content to be spoken.
+function io.speak(text) end
+
 thread = {}
 --- Spawns a thread using the given file path.
 --- @param filepath string Path to the Lua script.
@@ -68,10 +72,6 @@ function thread.join(threadId) end
 ---
 --- local command = input()
 function input() end
-
---- Converts text to speech and outputs it through the audio system.
---- @param text string The text content to be spoken (use "help" to list available voices/languages).
-function speak(text) end
 
 control = {}
 --- Simulates a left mouse button click at specified coordinates.

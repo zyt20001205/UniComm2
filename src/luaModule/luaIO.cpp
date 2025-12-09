@@ -1,5 +1,7 @@
 #include "luaModule/luaIO.h"
 
+#include <QEventLoop>
+#include <QTextToSpeech>
 #include <QVariant>
 #include <sol/object.hpp>
 #include <sol/variadic_args.hpp>
@@ -38,4 +40,29 @@ void LuaIO::log(const sol::variadic_args &args) {
     for (const auto &parsed: parsedList) {
         logging(parsed);
     }
+}
+
+// std::string LuaIO::inputDialog() {
+//     bool ok = false;
+//     QString input;
+//     QMetaObject::invokeMethod(qApp, [&ok, &input] {
+//         QWidget *parent = QApplication::activeWindow();
+//         input = QInputDialog::getText(parent, "Input Dialog", "input:", QLineEdit::Normal, QString(), &ok);
+//     }, Qt::BlockingQueuedConnection);
+//     if (!ok) return "";
+//     return input.toStdString();
+// }
+
+void LuaIO::speak(const std::string &text) {
+    QTextToSpeech tts;
+    if (tts.engine().isEmpty()) {
+        throw sol::error(tr("No TTS engine found").toStdString());
+    }
+    tts.setLocale(QLocale::English);
+    tts.setRate(0.0);
+    tts.setVolume(1.0);
+    QEventLoop loop;
+    connect(&tts, &QTextToSpeech::stateChanged, [&](const QTextToSpeech::State state) {if (state == QTextToSpeech::Ready) loop.quit();});
+    tts.say(QString::fromStdString(text));
+    loop.exec();
 }

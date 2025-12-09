@@ -17,6 +17,10 @@ public:
 
     void log(const sol::variadic_args &args);
 
+    // std::string inputDialog();
+
+    void speak(const std::string &text);
+
 signals:
     void appendLog(const QString &message, const QString &level);
 };

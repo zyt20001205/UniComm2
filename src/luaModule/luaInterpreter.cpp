@@ -10,7 +10,6 @@
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaIO.h"
 #include "luaModule/luaPort.h"
-#include "luaModule/luaMiscellaneous.h"
 #include "luaModule/luaModbus.h"
 #include "luaModule/luaThread.h"
 #include "scriptModule/debugModule.h"
@@ -34,6 +33,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaIO lib
     sol::table io = m_lua.create_table();
     io.set_function("log", [this](const sol::variadic_args &args) { m_luaIO->log(args); });
+    io.set_function("speak", [this](const std::string &text) { m_luaIO->speak(text); });
     m_lua["io"] = io;
     connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
     // LuaThread lib
@@ -47,18 +47,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
     connect(m_luaThread, &LuaThread::joinThread, this, &LuaInterpreter::joinThread);
 
-    // // init lua interpreter
-    // L = luaL_newstate();
-    // if (L) {
-    //     auto *ptrHolder = static_cast<void **>(lua_getextraspace(L));
-    //     *ptrHolder = nullptr;
-    // }
-    // luaL_openlibs(L);
-    // lua_getglobal(L, "package");
-    // // set workspace
-    // const QString rootPath = QString("%1/?.lua").arg(workspaceUrl.toLocalFile());
-    // lua_pushstring(L, rootPath.toUtf8().constData());
-    // lua_setfield(L, -2, "path");
     // // register C++ functions
     // lua_register(L, "exec", lua_exec);
     // lua_register(L, "stop", lua_stop);
@@ -164,10 +152,10 @@ void LuaInterpreter::start(const QString &script) {
 }
 
 void LuaInterpreter::debugStateSet(const int state) const {
-    // m_luaSessionPointer->state = state;
-    // if (state == DEBUG_STEPOVER || state == DEBUG_STEPOUT) {
-    //     m_debugData->baseDepth = m_debugData->depth;
-    // }
+    m_luaSession["state"] = state;
+    if (state == DEBUG_STEPOVER || state == DEBUG_STEPOUT) {
+        m_luaSession["baseDepth"] = m_luaSession["currentDepth"];
+    }
 }
 
 void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const {
