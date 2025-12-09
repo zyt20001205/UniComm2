@@ -21,9 +21,7 @@ public:
 
     void threadStart(const QString &scriptPath, int mode, QString &threadId);
 
-    Q_INVOKABLE bool threadStop(const QString &threadId);
-
-    bool threadJoin(const QString &threadId);
+    Q_INVOKABLE void threadStop(const QString &threadId);
 
     Q_INVOKABLE QString lifetimeCalc(int row) const;
 
@@ -34,12 +32,12 @@ signals:
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
-    void startDebug(const QString &threadId, LuaInterpreter *interpreter);
+    void startDebug(const QString &threadId);
 
-    void threadStopped(const QString &threadId);
+    void stopDebug(const QString &threadId);
 
 private:
-    void threadAppend(int status, const QString &name, const QString &threadId, QThread *worker);
+    void threadAppend(int status, const QString &name, const QString &threadId);
 
     QHash<QString, QThread *> m_threadHash{};
     QQuickWidget *m_threadpoolWidget{};

@@ -4,7 +4,9 @@
 #include <QSortFilterProxyModel>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QQuickWidget;
 class QStandardItemModel;
+class QStringListModel;
 class QTableView;
 class QTabWidget;
 class QTreeView;
@@ -21,11 +23,9 @@ public:
 
     ~DebugModule() override = default;
 
-    void breakpointInsert(const QUrl &scriptUrl, int line) const;
+    void debugStart(const QString &threadId) const;
 
-    void breakpointRemove(const QUrl &scriptUrl, int line) const;
-
-    void debugStart(const QString &threadId, LuaInterpreter *interpreter);
+    void debugStop(const QString &threadId) const;
 
     void debugEnd(const QString &threadId, const DebugPage *debugPage);
 
@@ -49,6 +49,9 @@ private:
     void overlayHide() const;
 
     void overlayResize() const;
+
+    QQuickWidget *m_debugWidget{};
+    QStringListModel *m_threadStringListModel{};
 
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QStandardItemModel *m_debugBreakpointsTableModel{};

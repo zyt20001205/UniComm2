@@ -31,36 +31,43 @@ ThreadpoolModule::ThreadpoolModule()
 }
 
 void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QString &threadId) {
-    const QString script = g_script->textGet(scriptUrl);
+    auto *worker = new QThread(); // NOLINT
+    threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    // preload thread with lua session
     QVariantMap luaSession{};
     luaSession.insert("mode", mode);
     luaSession.insert("workspaceUrl", g_workspaceUrl);
     luaSession.insert("scriptUrl", scriptUrl);
     if (mode == LUATHREAD_DEBUG) {
+        luaSession.insert("threadId", threadId);
+        luaSession.insert("currentUrl", scriptUrl);
         luaSession.insert("state", DEBUG_RESUME);
         luaSession.insert("baseDepth", 0);
         luaSession.insert("currentDepth", 0);
     }
-    auto *worker = new QThread(); // NOLINT
     auto *interpreter = new LuaInterpreter(luaSession); // NOLINT
     connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
     connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
-    connect(interpreter, &LuaInterpreter::joinThread, this, &ThreadpoolModule::threadJoin, Qt::BlockingQueuedConnection);
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
+    // load thread with script
+    const QString script = g_script->textGet(scriptUrl);
     connect(worker, &QThread::started, [interpreter, script] {
         interpreter->start(script);
         QThread::currentThread()->quit();
     });
+    // start thread
     worker->start();
-    threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
-    threadAppend(mode, scriptUrl.fileName(), threadId, worker);
+    m_threadHash.insert(threadId, worker);
+    connect(worker, &QThread::finished, this, [this, threadId] {m_threadHash.remove(threadId);});
+    threadAppend(mode, scriptUrl.fileName(), threadId);
     if (mode == LUATHREAD_DEBUG) {
-        emit startDebug(threadId, interpreter);
+        emit startDebug(threadId);
+        connect(worker, &QThread::finished, this, [this, threadId] {emit stopDebug(threadId);});
     }
 }
 
@@ -72,11 +79,11 @@ void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QS
     threadStart(scriptUrl, mode, threadId);
 }
 
-bool ThreadpoolModule::threadStop(const QString &threadId) {
+void ThreadpoolModule::threadStop(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
         if (m_threadHash[threadId]->isInterruptionRequested()) {
             qDebug() << "terminate request has been sent";
-            return false;
+            return;
         }
         m_threadHash[threadId]->requestInterruption();
         for (int row = 0; row < m_threadpoolModel->rowCount(); ++row) {
@@ -85,23 +92,7 @@ bool ThreadpoolModule::threadStop(const QString &threadId) {
                 break;
             }
         }
-        return true;
     }
-    return false;
-}
-
-bool ThreadpoolModule::threadJoin(const QString &threadId) {
-    if (m_threadHash.contains(threadId)) {
-        QEventLoop loop;
-        connect(this, &ThreadpoolModule::threadStopped, &loop, [&loop, threadId](const QString &id) {
-            if (threadId == id) {
-                loop.quit();
-            }
-        });
-        loop.exec();
-        return true;
-    }
-    return false;
 }
 
 QString ThreadpoolModule::lifetimeCalc(const int row) const {
@@ -114,8 +105,7 @@ QString ThreadpoolModule::lifetimeCalc(const int row) const {
 }
 
 // ThreadpoolModule private
-void ThreadpoolModule::threadAppend(const int status, const QString &name, const QString &threadId, QThread *worker) {
-    m_threadHash.insert(threadId, worker);
+void ThreadpoolModule::threadAppend(const int status, const QString &name, const QString &threadId) {
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
     const QString text = status == LUATHREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
@@ -126,16 +116,13 @@ void ThreadpoolModule::threadAppend(const int status, const QString &name, const
     threadIdItem->setData(threadId, Qt::UserRole + 1);
     m_threadpoolModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
 
-    connect(worker, &QThread::finished, this, [this, worker] {
-        const QString id = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    const auto* worker = m_threadHash[threadId];
+    connect(worker, &QThread::finished, this, [this, threadId] {
         for (int row = 0; row < m_threadpoolModel->rowCount(); ++row) {
-            if (m_threadpoolModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == id) {
+            if (m_threadpoolModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == threadId) {
                 m_threadpoolModel->removeRow(row);
                 break;
             }
         }
-        m_threadHash.remove(id);
-        emit threadStopped(id);
-        // qDebug() << m_threadHash;
     });
 }
