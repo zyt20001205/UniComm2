@@ -67,6 +67,7 @@ private:
     QPushButton *m_variableButton{};
     QPushButton *m_enumButton{};
     QPushButton *m_keywordButton{};
+    QPushButton *m_fileButton{};
     QPushButton *m_enummemberButton{};
     QPushButton *m_resetButton{};
     QLabel *m_completionLabel{};

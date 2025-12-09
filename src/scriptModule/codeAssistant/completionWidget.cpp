@@ -24,6 +24,7 @@ CompletionWidget::CompletionWidget(QWidget *parent)
       m_variableButton(new QPushButton(this)),
       m_enumButton(new QPushButton(this)),
       m_keywordButton(new QPushButton(this)),
+      m_fileButton(new QPushButton(this)),
       m_enummemberButton(new QPushButton(this)),
       m_resetButton(new QPushButton(this)),
       m_completionLabel(new QLabel(nullptr, Qt::ToolTip)) {
@@ -95,6 +96,13 @@ CompletionWidget::CompletionWidget(QWidget *parent)
         m_keywordButton->setToolTip(tr("keyword"));
         connect(m_keywordButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
         m_filterButtonHash.insert(COMPLETION_KIND_KEYWORD, m_keywordButton);
+        filterLayout->addWidget(m_fileButton);
+        m_fileButton->setCheckable(true);
+        m_fileButton->setFixedSize(QSize(24, 24));
+        m_fileButton->setIcon(QIcon(":/icon/symbolFile.svg"));
+        m_fileButton->setToolTip(tr("enum member"));
+        connect(m_fileButton, &QPushButton::clicked, this, &CompletionWidget::filterSet);
+        m_filterButtonHash.insert(COMPLETION_KIND_FILE, m_fileButton);
         filterLayout->addWidget(m_enummemberButton);
         m_enummemberButton->setCheckable(true);
         m_enummemberButton->setFixedSize(QSize(24, 24));
@@ -166,6 +174,10 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
             break;
             case COMPLETION_KIND_KEYWORD: {
                 completionItem->setIcon(QIcon(":/icon/symbolKeyword.svg"));
+            }
+            break;
+            case COMPLETION_KIND_FILE: {
+                completionItem->setIcon(QIcon(":/icon/symbolFile.svg"));
             }
             break;
             case COMPLETION_KIND_ENUMMEMBER: {
