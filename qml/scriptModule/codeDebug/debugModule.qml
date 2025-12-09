@@ -40,7 +40,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Pause")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 2)
             }
 
             Button {
@@ -50,7 +50,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Step Over")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 3)
             }
 
             Button {
@@ -60,7 +60,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Step Into")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 4)
             }
 
             Button {
@@ -70,7 +70,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Step Out")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 5)
             }
 
             Button {
@@ -80,7 +80,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Run To Cursor")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 6)
             }
         }
 
