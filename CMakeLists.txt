@@ -61,7 +61,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
         include/portModule/visa.h
-        include/scriptModule/debugModule.h
         include/scriptModule/nuspellModule.h
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
@@ -75,6 +74,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeAssistant/signatureWidget.h
         include/scriptModule/codeAssistant/structureModule.h
         include/scriptModule/codeDebug/breakpointModule.h
+        include/scriptModule/codeDebug/debugModule.h
         include/scriptModule/codeDebug/threadpoolModule.h
         include/scriptModule/codeEditor/editorWidget.h
         include/scriptModule/codeEditor/explorerModule.h
@@ -120,7 +120,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
         src/portModule/visa.cpp
-        src/scriptModule/debugModule.cpp
         src/scriptModule/nuspellModule.cpp
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
@@ -134,6 +133,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeAssistant/signatureWidget.cpp
         src/scriptModule/codeAssistant/structureModule.cpp
         src/scriptModule/codeDebug/breakpointModule.cpp
+        src/scriptModule/codeDebug/debugModule.cpp
         src/scriptModule/codeDebug/threadpoolModule.cpp
         src/scriptModule/codeEditor/editorWidget.cpp
         src/scriptModule/codeEditor/explorerModule.cpp
@@ -159,6 +159,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/scriptModule/codeAssistant/diagnosticsModule.qml"
         "qml/scriptModule/codeAssistant/structureModule.qml"
         "qml/scriptModule/codeDebug/breakpointModule.qml"
+        "qml/scriptModule/codeDebug/debugModule.qml"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"
         "qml/scriptModule/codeEditor/explorerModule.qml"
 )

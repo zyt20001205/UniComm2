@@ -1,4 +1,4 @@
-#include "scriptModule/debugModule.h"
+#include "scriptModule/codeDebug/debugModule.h"
 
 #include <QHBoxLayout>
 #include <QHeaderView>
