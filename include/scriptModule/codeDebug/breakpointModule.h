@@ -16,11 +16,15 @@ public:
 
     void breakpointInsert(const QUrl &scriptUrl, int line) const;
 
-    void breakpointRemove(const QUrl &scriptUrl, int line);
+    void breakpointRemove(const QUrl &scriptUrl, int line) const;
 
-    Q_INVOKABLE void markerInsert(const QVariantHash &position);
+    Q_INVOKABLE void scriptOpen(const QUrl &scriptUrl);
+
+    Q_INVOKABLE void markerInsert(const QUrl &scriptUrl, int line);
 
 signals:
+    void openScript(const QUrl &scriptUrl);
+
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
 private:

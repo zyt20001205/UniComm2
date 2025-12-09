@@ -20,14 +20,14 @@ BreakpointModule::BreakpointModule()
 
 void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line) const {
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-    lineItem->setData(QVariantHash{{"scriptUrl", scriptUrl}, {"line", line}}, Qt::WhatsThisRole);
+    lineItem->setData(scriptUrl, Qt::WhatsThisRole);
     const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
         if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
-                if (auto position = indent2->data(Qt::WhatsThisRole).toHash(); line < position["line"].toInt()) {
+                if (line < indent2->text().toInt()) {
                     indent1->insertRow(j, lineItem);
                     return;
                 }
@@ -42,14 +42,30 @@ void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line) c
     m_breakpointStandardModel->appendRow(urlItem);
 }
 
-void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) {
-    qDebug() << "remove" << scriptUrl << line;
+void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) const {
+    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    for (int i = 0; i < indent0->rowCount(); ++i) {
+        auto *indent1 = indent0->child(i);
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+            for (int j = 0; j < indent1->rowCount(); ++j) {
+                const auto *indent2 = indent1->child(j);
+                if (line == indent2->text().toInt()) {
+                    indent1->removeRow(j);
+                    if (indent1->rowCount() == 0) {
+                        m_breakpointStandardModel->removeRow(i);
+                    }
+                    return;
+                }
+            }
+        }
+    }
 }
 
-void BreakpointModule::markerInsert(const QVariantHash &position) {
-    emit insertMarker(
-        position["scriptUrl"].toUrl(),
-        MARKER_HINT,
-        position["line"].toInt() - 1,
-        1000);
+void BreakpointModule::scriptOpen(const QUrl &scriptUrl) {
+    emit openScript(scriptUrl);
+}
+
+void BreakpointModule::markerInsert(const QUrl &scriptUrl, const int line) {
+    emit openScript(scriptUrl);
+    emit insertMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
 }

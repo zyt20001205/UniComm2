@@ -63,9 +63,9 @@ TreeView {
                 acceptedButtons: Qt.LeftButton
                 onSingleTapped: {
                     if (isTreeNode && hasChildren) {
-                        console.log(model.whatsThis)
+                        breakpointModule.scriptOpen(model.whatsThis)
                     } else {
-                        breakpointModule.markerInsert(model.whatsThis)
+                        breakpointModule.markerInsert(model.whatsThis, model.display)
                     }
                 }
             }
