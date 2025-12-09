@@ -24,6 +24,7 @@ class LogModule;
 class DiagnosticsModule;
 class DebugModule;
 class ThreadpoolModule;
+class BreakpointModule;
 
 class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
@@ -76,6 +77,7 @@ private:
     DiagnosticsModule *m_diagnosticsModule{};
     DebugModule *m_debugModule{};
     ThreadpoolModule *m_threadpoolModule{};
+    BreakpointModule *m_breakpointModule{};
 
     QShortcut *m_openWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceShortcut{};

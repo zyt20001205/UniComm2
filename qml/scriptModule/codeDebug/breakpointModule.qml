@@ -25,7 +25,7 @@ TreeView {
             Image {
                 width: 16; height: 16
                 anchors.right: parent.right
-                anchors.rightMargin : 4
+                anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
                 visible: isTreeNode && hasChildren
                 source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
@@ -37,29 +37,22 @@ TreeView {
             }
         }
 
-        Item {
-            id: icon
-            width: 24; height: 24
-            anchors.left: indicator.right
-            anchors.verticalCenter: parent.verticalCenter
-
-            Image {
-                width: 16; height: 16
-                anchors.centerIn: parent
-                source: model.decoration
-            }
-        }
-
         Label {
             id: text
-            anchors.left: icon.right; anchors.right: parent.right
+            anchors.left: indicator.right; anchors.right: parent.right
             anchors.leftMargin: 4
             anchors.verticalCenter: parent.verticalCenter
             text: model.display
 
             ToolTip.visible: hoverHandler.hovered
             ToolTip.delay: 500
-            ToolTip.text: qsTr("Line: %1\nClick to view details").arg(model.whatsThis + 1)
+            ToolTip.text: {
+                if (isTreeNode && hasChildren) {
+                    qsTr("Click to view file")
+                } else{
+                    qsTr("Click to view line")
+                }
+            }
 
             HoverHandler {
                 id: hoverHandler
@@ -68,7 +61,13 @@ TreeView {
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
-                onSingleTapped: structureModule.markerInsert(model.whatsThis)
+                onSingleTapped: {
+                    if (isTreeNode && hasChildren) {
+                        console.log(model.whatsThis)
+                    } else {
+                        breakpointModule.markerInsert(model.whatsThis)
+                    }
+                }
             }
         }
 
@@ -80,7 +79,9 @@ TreeView {
             color: "#f5f5f5"
             opacity: 0
             Behavior on opacity {
-                NumberAnimation { duration: 150 }
+                NumberAnimation {
+                    duration: 150
+                }
             }
         }
 

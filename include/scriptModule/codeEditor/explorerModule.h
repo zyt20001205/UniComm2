@@ -36,7 +36,7 @@ signals:
 
     void openScript(const QUrl &scriptUrl);
 
-    void startThread(const QUrl &scriptUrl, int mode);
+    void startThread(const QUrl &scriptUrl, int mode, QString &threadId);
 
 private:
     QQuickWidget *m_explorerWidget{};

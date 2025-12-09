@@ -3,7 +3,6 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
-
 class QQuickWidget;
 class QStandardItem;
 class QStandardItemModel;

@@ -14,7 +14,6 @@
 #include <QThread>
 #include <QToolBar>
 #include <QToolButton>
-#include <QWidgetAction>
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
@@ -35,6 +34,7 @@
 #include "scriptModule/scriptModule.h"
 #include "scriptModule/codeEditor/editorWidget.h"
 #include "scriptModule/codeEditor/explorerModule.h"
+#include "scriptModule/codeDebug/breakpointModule.h"
 #include "scriptModule/codeDebug/threadpoolModule.h"
 #include "scriptModule/codeAssistant/diagnosticsModule.h"
 #include "scriptModule/codeAssistant/structureModule.h"
@@ -189,6 +189,12 @@ void MainWindow::moduleInit() {
     timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "threadpool module initialized");
 
+    m_breakpointModule = new BreakpointModule();
+    m_breakpointModule->setObjectName("breakpointModule");
+    // logging
+    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "breakpoint module initialized");
+
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptComboBox, &QComboBox::activated, m_scriptModule, [this] {
         const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
@@ -252,12 +258,12 @@ void MainWindow::moduleInit() {
         m_datatableModule->datatableInsert(-1, QString());
         m_datatableModule->datatableAnnotate();
     });
-    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_debugModule, &DebugModule::breakpointInsert);
-    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_debugModule, &DebugModule::breakpointRemove);
+    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
+    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    // connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int>(&ThreadpoolModule::threadStart));
+    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
     connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
@@ -271,6 +277,7 @@ void MainWindow::moduleInit() {
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
+    connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
 
     g_database = m_databaseModule;
     g_datatable = m_datatableModule;
@@ -381,6 +388,8 @@ void MainWindow::menuInit() {
         m_debugModule->toggleAction()->setText(tr("Debug"));
         viewMenu->addAction(m_threadpoolModule->toggleAction());
         m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
+        viewMenu->addAction(m_breakpointModule->toggleAction());
+        m_breakpointModule->toggleAction()->setText(tr("Breakpoint"));
     }
     // setting menu
     {
@@ -451,7 +460,7 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                QString threadId;
+                QString threadId{};
                 emit startThread(scriptUrl, LUATHREAD_RUN, threadId);
                 m_logModule->raise();
             }
@@ -470,7 +479,7 @@ void MainWindow::menuInit() {
                 QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
             } else {
                 const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                QString threadId;
+                QString threadId{};
                 emit startThread(scriptUrl, LUATHREAD_DEBUG, threadId);
                 m_debugModule->raise();
             }
