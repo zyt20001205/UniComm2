@@ -86,6 +86,30 @@ void BreakpointModule::markerInsert(const QUrl &scriptUrl, const int line) {
     emit insertMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
 }
 
-void BreakpointModule::markerRemove(const QUrl &scriptUrl, const int line) {
+void BreakpointModule::breakpointDelete(const QUrl &scriptUrl, const int line) {
+    breakpointRemove(scriptUrl, line);
     emit removeMarker(scriptUrl, MARKER_BREAKPOINT, line - 1);
+}
+
+void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
+    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    for (int i = 0; i < indent0->rowCount(); ++i) {
+        auto *indent1 = indent0->child(i);
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+            for (int j = indent1->rowCount() - 1; j >= 0; --j) {
+                const auto *indent2 = indent1->child(j);
+                const auto line = indent2->text().toInt();
+                breakpointDelete(scriptUrl, line);
+            }
+        }
+    }
+}
+
+void BreakpointModule::allDelete() {
+    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    for (int i = indent0->rowCount() - 1; i >= 0; --i) {
+        auto *indent1 = indent0->child(i);
+        const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
+        breakpointsDelete(scriptUrl);
+    }
 }

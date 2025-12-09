@@ -49,7 +49,7 @@ TreeView {
             ToolTip.text: {
                 if (isTreeNode && hasChildren) {
                     qsTr("Click to view file")
-                } else{
+                } else {
                     qsTr("Click to view line")
                 }
             }
@@ -85,10 +85,10 @@ TreeView {
             Menu {
                 id: scriptMenu
                 MenuItem {
-                    text: qsTr("New Script")
-                    icon.source: "qrc:/icon/documentAdd.svg"
+                    text: qsTr("Delete Breakpoints")
+                    icon.source: "qrc:/icon/delete.svg"
                     icon.width: 16; icon.height: 16
-                    // onTriggered: explorerModule.scriptNew(model.filePath)
+                    onTriggered: breakpointModule.breakpointsDelete(model.whatsThis)
                 }
             }
 
@@ -104,10 +104,7 @@ TreeView {
                     text: qsTr("Delete Breakpoint")
                     icon.source: "qrc:/icon/delete.svg"
                     icon.width: 16; icon.height: 16
-                    onTriggered: {
-                        breakpointModule.markerRemove(model.whatsThis, model.display)
-                        breakpointModule.breakpointRemove(model.whatsThis, model.display)
-                    }
+                    onTriggered: breakpointModule.breakpointDelete(model.whatsThis, model.display)
                 }
             }
         }
@@ -134,6 +131,21 @@ TreeView {
                     highlightRect.opacity = 0
                 }
             }
+        }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        onSingleTapped: rootMenu.popup()
+    }
+
+    Menu {
+        id: rootMenu
+        MenuItem {
+            text: qsTr("Delete All")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: breakpointModule.allDelete()
         }
     }
 }
