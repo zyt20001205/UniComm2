@@ -23,7 +23,7 @@ public:
 
     Q_INVOKABLE bool threadStop(const QString &threadId);
 
-    bool threadWait(const QString &threadId);
+    bool threadJoin(const QString &threadId);
 
     Q_INVOKABLE QString lifetimeCalc(int row) const;
 

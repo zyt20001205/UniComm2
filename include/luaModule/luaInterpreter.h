@@ -13,7 +13,7 @@ class LuaInterpreter final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaInterpreter(const QUrl &workspaceUrl, const QUrl &scriptUrl, const QVariantMap &luaSession , QObject *parent = nullptr);
+    explicit LuaInterpreter(const QVariantMap &luaSession , QObject *parent = nullptr);
 
     void start(const QString &script);
 
@@ -35,6 +35,8 @@ signals:
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
     void stopThread(const QString &threadId);
+
+    void joinThread(const QString &threadId);
 
 private:
     static void luaRunHook(lua_State *L, lua_Debug *ar);

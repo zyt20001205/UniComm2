@@ -2,38 +2,67 @@
 
 #include <QVariant>
 #include <sol/object.hpp>
+#include "sol/table_core.hpp"
 #include <sol/variadic_args.hpp>
 
-QVariantList lua2qt(sol::variadic_args args) {
-    QVariantList parsedList{};
-    for (sol::object arg: args) {
-        QVariant parsed{};
-        switch (arg.get_type()) {
-            case sol::type::string: {
-                parsed = QString::fromStdString(arg.as<std::string>());
-            }
-            break;
-            case sol::type::number: {
-                if (arg.is<int>()) {
-                    parsed = arg.as<int>();
-                } else if (arg.is<double>()) {
-                    parsed = arg.as<double>();
-                } else {
-                    qDebug() << "Unsupported Number Type";
-                    parsed = "";
-                }
-            }
-            break;
-            case sol::type::boolean: {
-                parsed = arg.as<bool>();
-            }
-            break;
-            default: {
-                qDebug() << "Unsupported Number Type";
-                parsed = "";
-            }
-            break;
+QVariant lua2qvar(sol::object object) {
+    QVariant parsed{};
+    switch (object.get_type()) {
+        case sol::type::nil: {
+            parsed = "nil";
         }
+        break;
+        case sol::type::string: {
+            parsed = QString::fromStdString(object.as<std::string>());
+        }
+        break;
+        case sol::type::number: {
+            if (object.is<int>()) {
+                parsed = object.as<int>();
+            } else if (object.is<double>()) {
+                parsed = object.as<double>();
+            } else {
+                qDebug() << "Unsupported Number Type";
+                parsed = "?";
+            }
+        }
+        break;
+        case sol::type::boolean: {
+            parsed = object.as<bool>();
+        }
+        break;
+        case sol::type::table: {
+            const auto table = object.as<sol::table>();
+            QVariantMap map;
+            for (const auto &[key, value]: table) {
+                QString key_str;
+                if (key.is<std::string>()) {
+                    key_str = QString::fromStdString(key.as<std::string>());
+                } else if (key.is<int>()) {
+                    key_str = QString::number(key.as<int>());
+                } else if (key.is<double>()) {
+                    key_str = QString::number(key.as<double>());
+                } else {
+                    continue;
+                }
+                map[key_str] = lua2qvar(value);
+            }
+            parsed = QVariant::fromValue(map);
+        }
+        break;
+        default: {
+            qDebug() << "Unsupported Lua Type";
+            parsed = "?";
+        }
+        break;
+    }
+    return parsed;
+}
+
+QVariantList lua2qvarlist(sol::variadic_args args) {
+    QVariantList parsedList{};
+    for (const sol::object arg: args) {
+        QVariant parsed = lua2qvar(arg);
         parsedList.append(parsed);
     }
     return parsedList;

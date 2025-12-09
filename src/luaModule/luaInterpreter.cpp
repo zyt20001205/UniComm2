@@ -18,13 +18,15 @@
 #include "utils/luaUtils.h"
 
 // LuaInterpreter public
-LuaInterpreter::LuaInterpreter(const QUrl &workspaceUrl, const QUrl &scriptUrl, const QVariantMap &luaSession, QObject *parent)
+LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
       m_luaIO(new LuaIO(this)),
       m_luaThread(new LuaThread(this)) {
     // standard lib
     m_lua.open_libraries();
+    // search path
+
     // LuaIO lib
     sol::table io = m_lua.create_table();
     io.set_function("log", [this](const sol::variadic_args &args) { m_luaIO->log(args); });
@@ -35,9 +37,11 @@ LuaInterpreter::LuaInterpreter(const QUrl &workspaceUrl, const QUrl &scriptUrl, 
     thread.set_function("start", [this](const std::string &scriptPath) { return m_luaThread->start(scriptPath); });
     thread.set_function("stop", [this](const std::string &threadId) { m_luaThread->stop(threadId); });
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
+    thread.set_function("join", [this](const std::string &threadId) { m_luaThread->join(threadId); });
     m_lua["thread"] = thread;
     connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
     connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
+    connect(m_luaThread, &LuaThread::joinThread, this, &LuaInterpreter::joinThread);
 
     // // init lua interpreter
     // L = luaL_newstate();
@@ -137,7 +141,6 @@ void LuaInterpreter::start(const QString &script) {
         // set debug hook
         lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     }
-
     // lua start preparation
     emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
     emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);

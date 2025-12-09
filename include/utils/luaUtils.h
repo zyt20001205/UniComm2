@@ -3,12 +3,15 @@
 
 #include <QString>
 #include <lua.hpp>
+#include "sol/object.hpp"
 
 namespace sol {
     struct variadic_args;
 }
 
-QVariantList lua2qt(sol::variadic_args args);
+QVariant lua2qvar(sol::object object);
+
+QVariantList lua2qvarlist(sol::variadic_args args);
 
 QString lua_toqstring(lua_State *L, int idx);
 

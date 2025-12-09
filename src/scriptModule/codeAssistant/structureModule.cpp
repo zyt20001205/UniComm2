@@ -90,6 +90,12 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
+            case SYMBOLKIND_ARRAY: {
+                item->setData(name, Qt::DisplayRole);
+                item->setData(QUrl("qrc:/icon/symbolArray.svg"), Qt::DecorationRole);
+                item->setData(line, Qt::WhatsThisRole);
+            }
+            break;
             case SYMBOLKIND_OBJECT: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);

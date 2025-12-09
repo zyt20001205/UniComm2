@@ -55,12 +55,11 @@ function thread.stop(threadId) end
 --- sleep(1000)
 function thread.sleep(ms) end
 
-
 --- Blocks the current thread until the specified thread terminates.
 --- @param threadId string The identifier of the thread to wait for.
---- @return boolean success If the thread exists and terminated successfully.
+--- @return nil
 ---
-function wait(threadId) end
+function thread.join(threadId) end
 
 --- Shows an input dialog for variable assignment.
 --- @return string

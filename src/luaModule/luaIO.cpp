@@ -11,8 +11,31 @@ LuaIO::LuaIO(QObject *parent)
 }
 
 void LuaIO::log(const sol::variadic_args &args) {
-    QVariantList parsedList = lua2qt(args);
+    std::function<void(const QVariant&)> logging = [&](const QVariant& var) {
+        if (var.typeId() == QMetaType::QVariantMap) {
+            QVariantMap map = var.toMap();
+            if (map.isEmpty()) {
+                emit appendLog("{}", "info");
+                return;
+            }
+            for (auto it = map.begin(); it != map.end(); ++it) {
+                QString key = it.key();
+                const QVariant& value = it.value();
+                if (value.typeId() == QMetaType::QVariantMap) {
+                    emit appendLog(QString("%1: {").arg(key), "info");
+                    logging(value);
+                    emit appendLog("}", "info");
+                } else {
+                    emit appendLog(QString("%1: %2").arg(key).arg(value.toString()), "info");
+                }
+            }
+        } else {
+            emit appendLog(var.toString(), "info");
+        }
+    };
+
+    QVariantList parsedList = lua2qvarlist(args);
     for (const auto &parsed: parsedList) {
-        emit appendLog(parsed.toString(), "info");
+        logging(parsed);
     }
 }

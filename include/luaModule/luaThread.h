@@ -17,10 +17,14 @@ public:
 
     void sleep(int ms);
 
+    void join(const std::string &threadId);
+
 signals:
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
     void stopThread(const QString &threadId);
+
+    void joinThread(const QString &threadId);
 };
 
 #endif //UNICOMM_LUATHREAD_H

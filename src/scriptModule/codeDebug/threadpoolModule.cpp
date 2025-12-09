@@ -34,17 +34,19 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     const QString script = g_script->textGet(scriptUrl);
     QVariantMap luaSession{};
     luaSession.insert("mode", mode);
+    luaSession.insert("workspaceUrl", g_workspaceUrl);
     luaSession.insert("scriptUrl", scriptUrl);
     if (mode == LUATHREAD_DEBUG) {
         luaSession.insert("state", DEBUG_RESUME);
     }
     auto *worker = new QThread(); // NOLINT
-    auto *interpreter = new LuaInterpreter(g_workspaceUrl, scriptUrl, luaSession); // NOLINT
+    auto *interpreter = new LuaInterpreter(luaSession); // NOLINT
     connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
     connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
+    connect(interpreter, &LuaInterpreter::joinThread, this, &ThreadpoolModule::threadJoin, Qt::BlockingQueuedConnection);
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
@@ -86,7 +88,7 @@ bool ThreadpoolModule::threadStop(const QString &threadId) {
     return false;
 }
 
-bool ThreadpoolModule::threadWait(const QString &threadId) {
+bool ThreadpoolModule::threadJoin(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
         QEventLoop loop;
         connect(this, &ThreadpoolModule::threadStopped, &loop, [&loop, threadId](const QString &id) {

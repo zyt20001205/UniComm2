@@ -21,3 +21,7 @@ void LuaThread::stop(const std::string &threadId) {
 void LuaThread::sleep(const int ms) {
     QThread::msleep(ms);
 }
+
+void LuaThread::join(const std::string &threadId) {
+    emit joinThread(QString::fromStdString(threadId));
+}
