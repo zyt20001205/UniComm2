@@ -25,6 +25,8 @@ public:
 
     Q_INVOKABLE QString lifetimeCalc(int row) const;
 
+    void stateSet(const QString &threadId, int state);
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -40,6 +42,7 @@ private:
     void threadAppend(int status, const QString &name, const QString &threadId);
 
     QHash<QString, QThread *> m_threadHash{};
+    QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QQuickWidget *m_threadpoolWidget{};
     QStandardItemModel *m_threadpoolModel{};
     QString m_lifetime{};

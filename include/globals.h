@@ -57,6 +57,7 @@ enum {
 };
 
 enum {
+    DEBUG_TERMINATE,
     DEBUG_RESUME,
     DEBUG_PAUSE,
     DEBUG_STEPOVER,

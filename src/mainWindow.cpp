@@ -275,6 +275,7 @@ void MainWindow::moduleInit() {
     connect(m_diagnosticsModule, &DiagnosticsModule::insertIndicator, m_scriptModule, &ScriptModule::indicatorInsert);
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);

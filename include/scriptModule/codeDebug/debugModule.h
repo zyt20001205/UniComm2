@@ -27,18 +27,18 @@ public:
 
     void debugStop(const QString &threadId) const;
 
-    void debugEnd(const QString &threadId, const DebugPage *debugPage);
+    Q_INVOKABLE void stateSet(const QString &threadId, int state);
 
     void varReturn(const QString &threadId, QStandardItemModel *varTree);
 
     void callReturn(const QString &threadId, QStandardItemModel *callTable);
 
 signals:
-    void resume(const QString &threadId);
-
     void openScript(const QUrl &scriptUrl);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+
+    void setState(const QString &threadId, int state);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

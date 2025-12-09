@@ -48,13 +48,8 @@ void DebugModule::debugStop(const QString &threadId) const {
     m_threadStringListModel->setStringList(threads);
 }
 
-void DebugModule::debugEnd(const QString &threadId, const DebugPage *debugPage) {
-    // const int index = m_debugTabWidget->indexOf(debugPage);
-    // if (index != -1) m_debugTabWidget->removeTab(index);
-    // delete debugPage;
-    // m_interpreterHash.remove(threadId);
-    // m_debugPageHash.remove(threadId);
-    // if (m_debugPageHash.isEmpty()) overlayShow();
+void DebugModule::stateSet(const QString &threadId, const int state) {
+    emit setState(threadId, state);
 }
 
 void DebugModule::varReturn(const QString &threadId, QStandardItemModel *varTree) {

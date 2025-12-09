@@ -17,7 +17,7 @@ public:
 
     void start(const QString &script);
 
-    void debugStateSet(int state) const;
+    void stateSet(int state);
 
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 

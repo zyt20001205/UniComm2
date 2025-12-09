@@ -20,7 +20,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Terminate")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 0)
             }
 
             Button {
@@ -30,7 +30,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Resume")
                 ToolTip.visible: hovered
-                // onClicked: logModule.timestampToggle(checked)
+                onClicked: debugModule.stateSet(combobox.currentText, 1)
             }
 
             Button {

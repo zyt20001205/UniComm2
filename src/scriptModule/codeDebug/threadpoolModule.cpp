@@ -39,7 +39,6 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     luaSession.insert("workspaceUrl", g_workspaceUrl);
     luaSession.insert("scriptUrl", scriptUrl);
     if (mode == LUATHREAD_DEBUG) {
-        luaSession.insert("threadId", threadId);
         luaSession.insert("currentUrl", scriptUrl);
         luaSession.insert("state", DEBUG_RESUME);
         luaSession.insert("baseDepth", 0);
@@ -63,11 +62,13 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     // start thread
     worker->start();
     m_threadHash.insert(threadId, worker);
-    connect(worker, &QThread::finished, this, [this, threadId] {m_threadHash.remove(threadId);});
+    m_interpreterHash.insert(threadId, interpreter);
+    connect(worker, &QThread::finished, this, [this, threadId] { m_threadHash.remove(threadId); });
+    connect(worker, &QThread::finished, this, [this, threadId] { m_interpreterHash.remove(threadId); });
     threadAppend(mode, scriptUrl.fileName(), threadId);
     if (mode == LUATHREAD_DEBUG) {
         emit startDebug(threadId);
-        connect(worker, &QThread::finished, this, [this, threadId] {emit stopDebug(threadId);});
+        connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
     }
 }
 
@@ -97,11 +98,22 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
 
 QString ThreadpoolModule::lifetimeCalc(const int row) const {
     const auto item = m_threadpoolModel->item(row, SPAWN_COL);
-    if (!item) return{};
+    if (!item) return {};
     const auto baseTime = item->data(Qt::UserRole + 1).toDateTime();
     const qint64 elapsedMs = baseTime.msecsTo(QDateTime::currentDateTime());
     const QTime elapsedTime = QTime::fromMSecsSinceStartOfDay(elapsedMs);
     return "Lifetime: " + elapsedTime.toString("HH:mm:ss");
+}
+
+void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
+    if (m_interpreterHash.contains(threadId)) {
+        if (state == DEBUG_TERMINATE) {
+            m_threadHash[threadId]->requestInterruption();
+        } else {
+            auto *interpreter = m_interpreterHash[threadId];
+            QMetaObject::invokeMethod(interpreter, [interpreter, state] { interpreter->stateSet(state); }, Qt::BlockingQueuedConnection);
+        }
+    }
 }
 
 // ThreadpoolModule private
@@ -116,7 +128,7 @@ void ThreadpoolModule::threadAppend(const int status, const QString &name, const
     threadIdItem->setData(threadId, Qt::UserRole + 1);
     m_threadpoolModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
 
-    const auto* worker = m_threadHash[threadId];
+    const auto *worker = m_threadHash[threadId];
     connect(worker, &QThread::finished, this, [this, threadId] {
         for (int row = 0; row < m_threadpoolModel->rowCount(); ++row) {
             if (m_threadpoolModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == threadId) {
