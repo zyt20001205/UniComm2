@@ -1,9 +1,9 @@
 #ifndef UNICOMM_LUAINTERPRETER_H
 #define UNICOMM_LUAINTERPRETER_H
 
+#include <QMap>
 #include <QObject>
 #include <QUrl>
-#include <QMap>
 #include <sol/state.hpp>
 
 class LuaIO;
@@ -21,22 +21,20 @@ public:
 
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 
-    void showHeatmap() const;
-
-    void hideHeatmap() const;
-
 signals:
+    void appendLog(const QString &message, const QString &level);
+
+    void openScript(const QUrl &scriptUrl);
+
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
-
-    void appendLog(const QString &message, const QString &level);
 
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
     void stopThread(const QString &threadId);
 
-    void joinThread(const QString &threadId);
+    void quitLoop();
 
 private:
     static void luaRunHook(lua_State *L, lua_Debug *ar);

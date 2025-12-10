@@ -45,9 +45,10 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
         luaSession.insert("currentDepth", 0);
     }
     auto *interpreter = new LuaInterpreter(luaSession); // NOLINT
+    connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
+    connect(interpreter, &LuaInterpreter::openScript, this, &ThreadpoolModule::openScript);
     connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
     connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
-    connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     interpreter->moveToThread(worker);
@@ -109,10 +110,9 @@ void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
     if (m_interpreterHash.contains(threadId)) {
         if (state == DEBUG_TERMINATE) {
             m_threadHash[threadId]->requestInterruption();
-        } else {
-            auto *interpreter = m_interpreterHash[threadId];
-            QMetaObject::invokeMethod(interpreter, [interpreter, state] { interpreter->stateSet(state); }, Qt::BlockingQueuedConnection);
         }
+        auto *interpreter = m_interpreterHash[threadId];
+        QMetaObject::invokeMethod(interpreter, [interpreter, state] { interpreter->stateSet(state); }, Qt::BlockingQueuedConnection);
     }
 }
 

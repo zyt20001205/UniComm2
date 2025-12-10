@@ -124,27 +124,40 @@ void LuaInterpreter::start(const QString &script) {
     lua_State *L = m_lua.lua_state();
     // load session
     m_lua["session"] = &m_luaSession;
+    // set hook
     if (m_luaSession["mode"] == LUATHREAD_RUN) {
         // set run hook
         lua_sethook(L, &luaRunHook, LUA_MASKCOUNT, 100);
     } else {
+        m_luaSession.insert("this", QVariant::fromValue(this));
         // set debug hook
         lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     }
-    // lua start preparation
+    // frontend
     emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
     emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
-    // lua start
+
     const QString filePath = "@" + m_luaSession["scriptUrl"].toUrl().toLocalFile();
-    const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
-    if (load_result == LUA_OK) {
-        const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
-        if (pcall_result != LUA_OK) {
-            handleError();
-        }
-    } else {
-        handleError();
+    const sol::protected_function_result result = m_lua.safe_script(
+        script.toStdString(),
+        sol::script_pass_on_error,
+        filePath.toStdString()
+    );
+    if (!result.valid()) {
+        const sol::error err = result;
+        emit appendLog(QString::fromStdString(err.what()), "error");
     }
+    // lua start
+    // const QString filePath = "@" + m_luaSession["scriptUrl"].toUrl().toLocalFile();
+    // const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
+    // if (load_result == LUA_OK) {
+    //     const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
+    //     if (pcall_result != LUA_OK) {
+    //         handleError();
+    //     }
+    // } else {
+    //     handleError();
+    // }
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
 }
@@ -154,6 +167,7 @@ void LuaInterpreter::stateSet(const int state) {
     if (state == DEBUG_STEPOVER || state == DEBUG_STEPOUT) {
         m_luaSession["baseDepth"] = m_luaSession["currentDepth"].toInt();
     }
+    if (state != DEBUG_PAUSE) emit quitLoop();
 }
 
 void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const {
@@ -259,57 +273,6 @@ void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, 
     }
 }
 
-void LuaInterpreter::showHeatmap() const {
-    // const QUrl currentUrl = m_debugData->currentUrl;
-    // const QList<int> heatlist = m_debugData->heatmap[currentUrl];
-    // int maxHit = 0;
-    // for (const int hitCount: heatlist) {
-    //     if (hitCount > maxHit) {
-    //         maxHit = hitCount;
-    //     }
-    // }
-    // if (maxHit == 0) return;
-    // for (int line = 1; line < heatlist.size(); ++line) {
-    //     const int hitCount = m_debugData->heatmap[currentUrl][line];
-    //     QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line, hitCount] {
-    //         // g_script->annotationInsert(currentUrl, line, QString("hit count: %1").arg(QString::number(hitCount)));
-    //     }, Qt::QueuedConnection);
-    //     if (const float percent = static_cast<float>(hitCount) / maxHit; percent < 0.25) {
-    //         QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-    //             g_script->markerInsert(currentUrl, MARKER_HEATMAP0, line - 1);
-    //         }, Qt::QueuedConnection);
-    //     } else if (percent < 0.5) {
-    //         QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-    //             g_script->markerInsert(currentUrl, MARKER_HEATMAP25, line - 1);
-    //         }, Qt::QueuedConnection);
-    //     } else if (percent < 0.75) {
-    //         QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-    //             g_script->markerInsert(currentUrl, MARKER_HEATMAP50, line - 1);
-    //         }, Qt::QueuedConnection);
-    //     } else if (percent < 1) {
-    //         QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-    //             g_script->markerInsert(currentUrl, MARKER_HEATMAP75, line - 1);
-    //         }, Qt::QueuedConnection);
-    //     } else {
-    //         QMetaObject::invokeMethod(g_mainWindow, [currentUrl, line] {
-    //             g_script->markerInsert(currentUrl, MARKER_HEATMAP100, line - 1);
-    //         }, Qt::QueuedConnection);
-    //     }
-    // }
-}
-
-void LuaInterpreter::hideHeatmap() const {
-    // const QUrl currentUrl = m_debugData->currentUrl;
-    // QMetaObject::invokeMethod(g_mainWindow, [currentUrl] {
-    //     g_script->annotationRemove(currentUrl);
-    //     g_script->markerRemove(currentUrl, MARKER_HEATMAP0);
-    //     g_script->markerRemove(currentUrl, MARKER_HEATMAP25);
-    //     g_script->markerRemove(currentUrl, MARKER_HEATMAP50);
-    //     g_script->markerRemove(currentUrl, MARKER_HEATMAP75);
-    //     g_script->markerRemove(currentUrl, MARKER_HEATMAP100);
-    // }, Qt::QueuedConnection);
-}
-
 // LuaInterpreter private
 void LuaInterpreter::luaRunHook(lua_State *L, lua_Debug *ar) {
     // check if thread interruption is requested
@@ -321,9 +284,8 @@ void LuaInterpreter::luaRunHook(lua_State *L, lua_Debug *ar) {
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     sol::state_view lua(L);
     QVariantMap &session = *lua["session"].get<QVariantMap *>();
-    QMetaObject::invokeMethod(g_mainWindow, [&session] {
-        g_script->markerRemove(session["currentUrl"].toUrl(), MARKER_DEBUG);
-    }, Qt::BlockingQueuedConnection);
+    auto *This = qvariant_cast<LuaInterpreter *>(session["this"]);
+    emit This->removeMarker(session["currentUrl"].toUrl(), MARKER_DEBUG, -1);
     if (ar->event == LUA_HOOKCALL) {
         session["currentDepth"] = session["currentDepth"].toInt() + 1;
     } else if (ar->event == LUA_HOOKRET) {
@@ -336,11 +298,6 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
         const int currentLine = ar->currentline;
-        //     QList<int> &heatlist = debugData->heatmap[currentUrl];
-        //     if (currentLine >= heatlist.size()) {
-        //         heatlist.resize(currentLine + 1);
-        //     }
-        //     heatlist[currentLine]++;
         // debug state machine
         if (session["state"].toInt() == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(currentLine)) {
@@ -394,17 +351,13 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         else if (session["state"].toInt() == DEBUG_RUNTOCURSOR && g_cursorPosition["url"].toUrl() == currentUrl && g_cursorPosition["line"].toInt() == currentLine)
             session["state"] = DEBUG_PAUSE;
         if (session["state"].toInt() == DEBUG_PAUSE) {
-            // src handle
+            // url handle
             if (currentUrl != session["currentUrl"].toUrl()) {
-                QMetaObject::invokeMethod(g_mainWindow, [currentUrl] {
-                    g_script->scriptOpen(currentUrl);
-                }, Qt::BlockingQueuedConnection);
+                emit This->openScript(currentUrl);
                 session["currentUrl"] = currentUrl;
             }
             // line handle
-            QMetaObject::invokeMethod(g_mainWindow, [session, currentLine] {
-                g_script->markerInsert(session["currentUrl"].toUrl(), MARKER_DEBUG, currentLine - 1);
-            }, Qt::BlockingQueuedConnection);
+            emit This->insertMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
             // var tree
             // {
             //     // init var tree
@@ -539,13 +492,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
 
             // hold thread
             QEventLoop loop;
-            // interruption check
-            QTimer timer;
-            timer.setInterval(100);
-            connect(&timer, &QTimer::timeout, [&loop, &session] {
-                if (QThread::currentThread()->isInterruptionRequested() || session["state"].toInt() != DEBUG_PAUSE) loop.quit();
-            });
-            timer.start();
+            connect(This, &LuaInterpreter::quitLoop, [&loop] {loop.quit(); });
             loop.exec();
         }
         if (QThread::currentThread()->isInterruptionRequested()) {

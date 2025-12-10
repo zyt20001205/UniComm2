@@ -30,6 +30,8 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
+    void openScript(const QUrl &scriptUrl);
+
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
