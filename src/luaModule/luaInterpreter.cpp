@@ -147,17 +147,9 @@ void LuaInterpreter::start(const QString &script) {
         const sol::error err = result;
         emit appendLog(QString::fromStdString(err.what()), "error");
     }
-    // lua start
-    // const QString filePath = "@" + m_luaSession["scriptUrl"].toUrl().toLocalFile();
-    // const int load_result = luaL_loadbuffer(L, script.toUtf8().constData(), script.size(), filePath.toUtf8().constData());
-    // if (load_result == LUA_OK) {
-    //     const int pcall_result = lua_pcall(L, 0, LUA_MULTRET, 0);
-    //     if (pcall_result != LUA_OK) {
-    //         handleError();
-    //     }
-    // } else {
-    //     handleError();
-    // }
+    // frontend
+    emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
 }
@@ -492,18 +484,11 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
 
             // hold thread
             QEventLoop loop;
-            connect(This, &LuaInterpreter::quitLoop, [&loop] {loop.quit(); });
+            connect(This, &LuaInterpreter::quitLoop, &loop, &QEventLoop::quit);
             loop.exec();
         }
         if (QThread::currentThread()->isInterruptionRequested()) {
             luaL_error(L, "terminated");
         }
     }
-}
-
-void LuaInterpreter::handleError() {
-    lua_State *L = m_lua.lua_state();
-    const QString errorMessage = lua_tostring(L, -1);
-    emit appendLog(errorMessage, "error");
-    lua_pop(L, 1);
 }

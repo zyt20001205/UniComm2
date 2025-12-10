@@ -21,14 +21,14 @@ void LuaIO::log(const sol::variadic_args &args) {
                 return;
             }
             for (auto it = map.begin(); it != map.end(); ++it) {
-                QString key = it.key();
+                const QString& key = it.key();
                 const QVariant& value = it.value();
                 if (value.typeId() == QMetaType::QVariantMap) {
                     emit appendLog(QString("%1: {").arg(key), "info");
                     logging(value);
                     emit appendLog("}", "info");
                 } else {
-                    emit appendLog(QString("%1: %2").arg(key).arg(value.toString()), "info");
+                    emit appendLog(QString("%1: %2").arg(key, value.toString()), "info");
                 }
             }
         } else {

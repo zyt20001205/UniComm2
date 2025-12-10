@@ -41,8 +41,6 @@ private:
 
     static void luaDebugHook(lua_State *L, lua_Debug *ar);
 
-    void handleError();
-
     sol::state m_lua{};
     QVariantMap m_luaSession{};
     LuaIO *m_luaIO{};
