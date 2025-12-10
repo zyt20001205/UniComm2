@@ -37,66 +37,6 @@ function io.log(...) end
 --- @param text string The text content to be spoken.
 function io.speak(text) end
 
-thread = {}
---- Spawns a thread using the given file path.
---- @param filepath string Path to the Lua script.
---- @return string threadId Unique identifier for the spawned thread.
----
-function thread.start(filepath) end
-
---- Stops the specified thread by sending a **termination request**.
---- @param threadId string The identifier of the thread to stop.
---- @return nil
----
-function thread.stop(threadId) end
-
---- Suspends the current thread for a specified amount of time.
---- @param ms integer The number of milliseconds to sleep.
---- @return nil
----
---- @usage — Sleep for 1 second.
----
---- sleep(1000)
-function thread.sleep(ms) end
-
---- Shows an input dialog for variable assignment.
---- @return string
----
---- @usage — Display input dialog and assign to variable.
----
---- local command = input()
-function input() end
-
-control = {}
---- Simulates a left mouse button click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.leftClick(x, y) end
-
---- Simulates a left mouse button double click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.leftDoubleClick(x, y) end
-
---- Simulates a right mouse button click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.rightClick(x, y) end
-
---- Simulates a right mouse button double click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.rightDoubleClick(x, y) end
-
---- Simulates pressing a keyboard key.
---- @param key key Key name.
---- @return nil
-function control.keyPress(key) end
-
 port = {}
 --- Retrieves a list of all available communication ports.
 --- @return table
@@ -175,6 +115,66 @@ function port.write(name, data, peerIp) end
 ---
 --- port.read("COM3", 100)
 function port.read(name, timeout, length, peerIp) end
+
+thread = {}
+--- Spawns a thread using the given file path.
+--- @param filepath string Path to the Lua script.
+--- @return string threadId Unique identifier for the spawned thread.
+---
+function thread.start(filepath) end
+
+--- Stops the specified thread by sending a **termination request**.
+--- @param threadId string The identifier of the thread to stop.
+--- @return nil
+---
+function thread.stop(threadId) end
+
+--- Suspends the current thread for a specified amount of time.
+--- @param ms integer The number of milliseconds to sleep.
+--- @return nil
+---
+--- @usage — Sleep for 1 second.
+---
+--- sleep(1000)
+function thread.sleep(ms) end
+
+--- Shows an input dialog for variable assignment.
+--- @return string
+---
+--- @usage — Display input dialog and assign to variable.
+---
+--- local command = input()
+function input() end
+
+control = {}
+--- Simulates a left mouse button click at specified coordinates.
+--- @param x integer | "Position Hint" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.leftClick(x, y) end
+
+--- Simulates a left mouse button double click at specified coordinates.
+--- @param x integer | "Position Hint" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.leftDoubleClick(x, y) end
+
+--- Simulates a right mouse button click at specified coordinates.
+--- @param x integer | "Position Hint" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.rightClick(x, y) end
+
+--- Simulates a right mouse button double click at specified coordinates.
+--- @param x integer | "Position Hint" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function control.rightDoubleClick(x, y) end
+
+--- Simulates pressing a keyboard key.
+--- @param key key Key name.
+--- @return nil
+function control.keyPress(key) end
 
 modbusRtu = {}
 --- Reads data from multiple holding registers of a Modbus RTU device.

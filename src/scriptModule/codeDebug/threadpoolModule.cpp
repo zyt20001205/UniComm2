@@ -45,12 +45,13 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
         luaSession.insert("currentDepth", 0);
     }
     auto *interpreter = new LuaInterpreter(luaSession); // NOLINT
-    connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::openScript, this, &ThreadpoolModule::openScript);
     connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
     connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
+    connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
+    connect(interpreter, &LuaInterpreter::listPort, this, &ThreadpoolModule::listPort, Qt::BlockingQueuedConnection);
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);

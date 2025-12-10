@@ -25,7 +25,7 @@ public:
 
     BasePort* currentPort() const;
 
-    QVariantList portList() const;
+    void portList(std::vector<std::string> &portList) const;
 
     void portInsert(int index, QJsonObject portConfig = QJsonObject());
 

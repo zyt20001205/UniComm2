@@ -28,8 +28,6 @@ public:
     void stateSet(const QString &threadId, int state);
 
 signals:
-    void appendLog(const QString &message, const QString &level);
-
     void openScript(const QUrl &scriptUrl);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
@@ -39,6 +37,10 @@ signals:
     void startDebug(const QString &threadId);
 
     void stopDebug(const QString &threadId);
+
+    void appendLog(const QString &message, const QString &level);
+
+    void listPort(std::vector<std::string> &portList);
 
 private:
     void threadAppend(int status, const QString &name, const QString &threadId);

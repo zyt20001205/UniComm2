@@ -7,6 +7,7 @@
 #include <sol/state.hpp>
 
 class LuaIO;
+class LuaPort;
 class LuaThread;
 
 class LuaInterpreter final : public QObject {
@@ -22,13 +23,15 @@ public:
     void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
 
 signals:
-    void appendLog(const QString &message, const QString &level);
-
     void openScript(const QUrl &scriptUrl);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
+
+    void appendLog(const QString &message, const QString &level);
+
+    void listPort(std::vector<std::string> &portList);
 
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
@@ -44,6 +47,7 @@ private:
     sol::state m_lua{};
     QVariantMap m_luaSession{};
     LuaIO *m_luaIO{};
+    LuaPort *m_luaPort{};
     LuaThread *m_luaThread{};
 };
 

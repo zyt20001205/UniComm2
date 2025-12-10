@@ -1,26 +1,20 @@
 #ifndef UNICOMM_LUAPORT_H
 #define UNICOMM_LUAPORT_H
 
-#include <lua.hpp>
+#include <QObject>
 
-int lua_portList(lua_State *L);
+class LuaPort final : public QObject {
+    Q_OBJECT
 
-int lua_portOpen(lua_State *L);
+public:
+    explicit LuaPort(QObject *parent = nullptr);
 
-int lua_portClose(lua_State *L);
+    ~LuaPort() override = default;
 
-int lua_portInfo(lua_State *L);
+    std::vector<std::string> list();
 
-int lua_portWrite(lua_State *L);
-
-int lua_portRead(lua_State *L);
-
-int lua_portWriteData(lua_State *L);
-
-int lua_portWriteText(lua_State *L);
-
-int lua_portReadData(lua_State *L);
-
-int lua_portReadText(lua_State *L);
+signals:
+    void listPort(std::vector<std::string> &portList);
+};
 
 #endif //UNICOMM_LUAPORT_H

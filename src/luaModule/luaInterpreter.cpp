@@ -5,7 +5,6 @@
 #include <sol/sol.hpp>
 
 #include "globals.h"
-#include "logModule.h"
 #include "luaModule/luaControl.h"
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaIO.h"
@@ -13,7 +12,6 @@
 #include "luaModule/luaModbus.h"
 #include "luaModule/luaThread.h"
 #include "scriptModule/scriptModule.h"
-#include "scriptModule/codeDebug/debugModule.h"
 #include "utils/luaUtils.h"
 
 // LuaInterpreter public
@@ -21,6 +19,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
       m_luaIO(new LuaIO(this)),
+      m_luaPort(new LuaPort(this)),
       m_luaThread(new LuaThread(this)) {
     // standard lib
     m_lua.open_libraries();
@@ -36,6 +35,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     io.set_function("speak", [this](const std::string &text) { m_luaIO->speak(text); });
     m_lua["io"] = io;
     connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
+    // LuaPort lib
+    sol::table port = m_lua.create_table();
+    port.set_function("list", [this] { return sol::as_table(m_luaPort->list()); });
+    m_lua["port"] = port;
+    connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
     // LuaThread lib
     sol::table thread = m_lua.create_table();
     thread.set_function("start", [this](const std::string &scriptPath) { return m_luaThread->start(scriptPath); });

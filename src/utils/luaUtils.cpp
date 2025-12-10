@@ -51,7 +51,7 @@ QVariant lua2qvar(sol::object object) {
         }
         break;
         default: {
-            qDebug() << "Unsupported Lua Type";
+            qDebug() << "Unsupported Lua Type" << static_cast<int>(object.get_type());;
             parsed = "?";
         }
         break;

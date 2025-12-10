@@ -68,12 +68,10 @@ BasePort *PortModule::currentPort() const {
     return nullptr;
 }
 
-QVariantList PortModule::portList() const {
-    QVariantList portList{};
+void PortModule::portList(std::vector<std::string> &portList) const {
     for (const QString &portName: m_portHash.keys()) {
-        portList.append(portName);
+        portList.push_back(portName.toStdString());
     }
-    return portList;
 }
 
 void PortModule::portInsert(int index, QJsonObject portConfig) {
