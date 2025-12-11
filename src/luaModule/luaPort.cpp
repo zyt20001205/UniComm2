@@ -47,15 +47,14 @@ void LuaPort::write(const std::string &portName, const std::string_view &data, c
     }
 }
 
-std::string_view LuaPort::read(const std::string &portName, int timeout, int length, const std::string &peerIp) {
+std::string LuaPort::read(const std::string &portName, int timeout, int length, const std::string &peerIp) {
     bool status = false;
     QByteArray rxData{};
     emit readPort(QString::fromStdString(portName), timeout, length, QString::fromStdString(peerIp), status, rxData);
     if (!status) {
-        throw sol::error("failed to write port: " + portName);
+        throw sol::error("failed to read port: " + portName);
     }
-    const std::string_view data(rxData.constData(), rxData.size());
-    return data;
+    return std::string(rxData.constData(), rxData.size());
 }
 
 // int lua_portRead(lua_State *L) {

@@ -25,7 +25,7 @@ public:
 
     void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
 
-    std::string_view read(const std::string &portName, int timeout, int length, const std::string &peerIp);
+    std::string read(const std::string &portName, int timeout, int length, const std::string &peerIp);
 
 signals:
     void listPort(std::vector<std::string> &portList);
