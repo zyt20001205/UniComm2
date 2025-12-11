@@ -3,6 +3,10 @@
 
 #include <QObject>
 
+namespace sol {
+    struct this_state;
+}
+
 class LuaThread final : public QObject {
     Q_OBJECT
 
@@ -11,7 +15,7 @@ public:
 
     ~LuaThread() override = default;
 
-    std::string start(const std::string &scriptPath);
+    std::string start(sol::this_state ts, const std::string &scriptPath);
 
     void stop(const std::string &threadId);
 

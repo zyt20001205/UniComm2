@@ -42,7 +42,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
     // LuaThread lib
     sol::table thread = m_lua.create_table();
-    thread.set_function("start", [this](const std::string &scriptPath) { return m_luaThread->start(scriptPath); });
+    thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_luaThread->start(ts, scriptPath); });
     thread.set_function("stop", [this](const std::string &threadId) { m_luaThread->stop(threadId); });
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
     m_lua["thread"] = thread;
