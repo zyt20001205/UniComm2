@@ -44,7 +44,7 @@ function port.list() end
 
 --- Opens a port connection for communication.
 --- @param name port Target port name.
---- @return boolean status The status of the open operation.
+--- @return nil
 ---
 --- @usage — Open port COM3.
 ---

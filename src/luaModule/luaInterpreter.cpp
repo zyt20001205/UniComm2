@@ -41,11 +41,19 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     port.set_function("info", [this](const std::string &portName) { return sol::as_table(m_luaPort->info(portName)); });
     port.set_function("open", [this](const std::string &portName) { m_luaPort->open(portName); });
     port.set_function("close", [this](const std::string &portName) { m_luaPort->close(portName); });
+    port.set_function("write", [this](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
+        m_luaPort->write(portName, data, peerIp.value_or(""));
+    });
+    port.set_function("read", [this](const std::string &portName, const sol::optional<int> timeout, const sol::optional<int> length, const sol::optional<std::string> &peerIp) {
+        m_luaPort->read(portName, timeout.value_or(0), length.value_or(0), peerIp.value_or(""));
+    });
     m_lua["port"] = port;
     connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
     connect(m_luaPort, &LuaPort::infoPort, this, &LuaInterpreter::infoPort);
     connect(m_luaPort, &LuaPort::openPort, this, &LuaInterpreter::openPort);
     connect(m_luaPort, &LuaPort::closePort, this, &LuaInterpreter::closePort);
+    connect(m_luaPort, &LuaPort::writePort, this, &LuaInterpreter::writePort);
+    connect(m_luaPort, &LuaPort::readPort, this, &LuaInterpreter::readPort);
     // LuaThread lib
     sol::table thread = m_lua.create_table();
     thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_luaThread->start(ts, scriptPath); });

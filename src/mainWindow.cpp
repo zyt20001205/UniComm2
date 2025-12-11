@@ -286,6 +286,8 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::infoPort, m_portModule, &PortModule::portInfo);
     connect(m_threadpoolModule, &ThreadpoolModule::openPort, m_portModule, &PortModule::portOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::closePort, m_portModule, &PortModule::portClose);
+    connect(m_threadpoolModule, &ThreadpoolModule::writePort, m_portModule, &PortModule::portWrite);
+    connect(m_threadpoolModule, &ThreadpoolModule::readPort, m_portModule, &PortModule::portRead);
     connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);

@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+#include "globals.h"
 #include "suffix.h"
 
 // TcpServer public
@@ -18,6 +19,10 @@ TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent)
       m_rxFormat(portConfig["rxFormat"].toString()) {
 }
 
+int TcpServer::type() {
+    return TCPSERVER;
+}
+
 void TcpServer::reload(const QJsonObject &portConfig) {
     m_tcpServerLocalAddress = portConfig["tcpServerLocalAddress"].toString();
     m_tcpServerLocalPort = portConfig["tcpServerLocalPort"].toInt();
@@ -27,8 +32,7 @@ void TcpServer::reload(const QJsonObject &portConfig) {
 }
 
 std::unordered_map<std::string, std::string> TcpServer::info() {
-    if (m_tcpServer == nullptr) return {};
-    const std::string status = m_tcpServer->isListening() ? "opened" : "closed";
+    const std::string status = m_tcpServer && m_tcpServer->isListening() ? "opened" : "closed";
     const std::string localAddress = m_tcpServerLocalAddress.toStdString();
     const std::string localPort = QString::number(m_tcpServerLocalPort).toStdString();
     // QVariantList peerList;

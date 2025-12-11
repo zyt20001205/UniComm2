@@ -38,41 +38,26 @@ void LuaPort::close(const std::string &portName) {
     }
 }
 
+void LuaPort::write(const std::string &portName, const std::string_view &data, const std::string &peerIp) {
+    const QByteArray txData(data.data(), static_cast<qsizetype>(data.size()));
+    bool status = false;
+    emit writePort(QString::fromStdString(portName), txData, QString::fromStdString(peerIp), status);
+    if (!status) {
+        throw sol::error("failed to write port: " + portName);
+    }
+}
 
-// int lua_portWrite(lua_State *L) {
-//     // check arguments
-//     if (lua_gettop(L) != 2 && lua_gettop(L) != 3)
-//         luaL_error(L, "unexpected number of arguments");
-//     // convert arguments
-//     const char *param1 = luaL_checkstring(L, 1);
-//     size_t len2;
-//     const char *param2 = luaL_checklstring(L, 2, &len2);
-//     const char *param3 = luaL_optstring(L, 3, nullptr);
-//     // start operation
-//     const QString portName = QString::fromUtf8(param1);
-//     if (!g_port->m_portHash.contains(portName)) {
-//         luaL_error(L, "port '%s' does not exist", portName.toUtf8().constData());
-//     } else {
-//         bool status = false;
-//         auto *portObject = g_port->m_portHash[portName];
-//         const QByteArray txData(param2, static_cast<qsizetype>(len2));
-//         if (param3) {
-//             const QString peerIp = QString::fromUtf8(param3);
-//             QMetaObject::invokeMethod(portObject, [&status, portObject, txData, peerIp] {
-//                 status = portObject->write(txData, peerIp, "", "");
-//             }, Qt::BlockingQueuedConnection);
-//         } else {
-//             QMetaObject::invokeMethod(portObject, [&status, portObject, txData] {
-//                 status = portObject->write(txData, "", "");
-//             }, Qt::BlockingQueuedConnection);
-//         }
-//         if (!status) {
-//             luaL_error(L, "port write failed");
-//         }
-//         return 0;
-//     }
-// }
-//
+std::string_view LuaPort::read(const std::string &portName, int timeout, int length, const std::string &peerIp) {
+    bool status = false;
+    QByteArray rxData{};
+    emit readPort(QString::fromStdString(portName), timeout, length, QString::fromStdString(peerIp), status, rxData);
+    if (!status) {
+        throw sol::error("failed to write port: " + portName);
+    }
+    const std::string_view data(rxData.constData(), rxData.size());
+    return data;
+}
+
 // int lua_portRead(lua_State *L) {
 //     // check arguments
 //     if (lua_gettop(L) != 1 && lua_gettop(L) != 2 && lua_gettop(L) != 3 && lua_gettop(L) != 4)

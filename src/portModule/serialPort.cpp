@@ -5,6 +5,7 @@
 #include <QSerialPort>
 #include <QThread>
 
+#include "globals.h"
 #include "suffix.h"
 
 // SerialPort public
@@ -20,6 +21,10 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
       m_rxFormat(portConfig["rxFormat"].toString()) {
 }
 
+int SerialPort::type() {
+    return SERIALPORT;
+}
+
 void SerialPort::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
     m_baudRate = portConfig["baudRate"].toInt();
@@ -32,8 +37,7 @@ void SerialPort::reload(const QJsonObject &portConfig) {
 }
 
 std::unordered_map<std::string, std::string> SerialPort::info() {
-    if (m_serialPort == nullptr) return {};
-    const std::string status = m_serialPort->isOpen() ? "opened" : "closed";
+    const std::string status = m_serialPort && m_serialPort->isOpen() ? "opened" : "closed";
     const std::string portName = m_portName.toStdString();
     const std::string baudRate = QString::number(m_baudRate).toStdString();
     const std::string dataBits = QString::number(m_dataBits).toStdString();

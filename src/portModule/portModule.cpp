@@ -83,16 +83,35 @@ void PortModule::portInfo(const QString &portName, std::unordered_map<std::strin
 
 void PortModule::portOpen(const QString &portName, bool &status) {
     if (m_portHash.contains(portName)) {
-        if (m_portHash[portName]->open()) {
-            status = true;
-        }
+        status = m_portHash[portName]->open();
     }
 }
 
 void PortModule::portClose(const QString &portName, bool &status) {
     if (m_portHash.contains(portName)) {
-        m_portHash[portName]->close();
         status = true;
+        m_portHash[portName]->close();
+    }
+}
+
+void PortModule::portWrite(const QString &portName, const QByteArray &txData, const QString &peerIp, bool &status) {
+    if (m_portHash.contains(portName)) {
+        if (m_portHash[portName]->type() == TCPSERVER) {
+            status = m_portHash[portName]->write(txData, peerIp, "", "");
+        } else {
+            status = m_portHash[portName]->write(txData, "", "");
+        }
+    }
+}
+
+void PortModule::portRead(const QString &portName, const int timeout, const int length, const QString &peerIp, bool &status, QByteArray &rxData) {
+    if (m_portHash.contains(portName)) {
+        status = true;
+        if (m_portHash[portName]->type() == TCPSERVER) {
+            rxData = m_portHash[portName]->read(timeout, length, "", peerIp);
+        } else {
+            rxData = m_portHash[portName]->read(timeout, length, "");
+        }
     }
 }
 

@@ -4,6 +4,7 @@
 #include <QScopedValueRollback>
 #include <QTcpSocket>
 
+#include "globals.h"
 #include "suffix.h"
 
 // TcpClient public
@@ -17,6 +18,10 @@ TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)
       m_rxFormat(portConfig["rxFormat"].toString()) {
 }
 
+int TcpClient::type() {
+    return TCPCLIENT;
+}
+
 void TcpClient::reload(const QJsonObject &portConfig) {
     m_tcpClientRemoteAddress = portConfig["tcpClientRemoteAddress"].toString();
     m_tcpClientRemotePort = portConfig["tcpClientRemotePort"].toInt();
@@ -26,22 +31,25 @@ void TcpClient::reload(const QJsonObject &portConfig) {
 }
 
 std::unordered_map<std::string, std::string> TcpClient::info() {
-    if (m_tcpClient == nullptr) return{};
     std::string status;
-    switch (m_tcpClient->state()) {
-        case QAbstractSocket::UnconnectedState: status = "unconnected";
-            break;
-        case QAbstractSocket::HostLookupState: status = "looking up host";
-            break;
-        case QAbstractSocket::ConnectingState: status = "connecting";
-            break;
-        case QAbstractSocket::ConnectedState: status = "connected";
-            break;
-        case QAbstractSocket::ClosingState: status = "closing";
-            break;
-        case QAbstractSocket::BoundState: status = "bound to local address";
-            break;
-        default: status = "unknown";
+    if (m_tcpClient == nullptr) {
+        status = "unconnected";
+    } else {
+        switch (m_tcpClient->state()) {
+            case QAbstractSocket::UnconnectedState: status = "unconnected";
+                break;
+            case QAbstractSocket::HostLookupState: status = "looking up host";
+                break;
+            case QAbstractSocket::ConnectingState: status = "connecting";
+                break;
+            case QAbstractSocket::ConnectedState: status = "connected";
+                break;
+            case QAbstractSocket::ClosingState: status = "closing";
+                break;
+            case QAbstractSocket::BoundState: status = "bound to local address";
+                break;
+            default: status = "unknown";
+        }
     }
     const std::string localAddress = m_tcpClientLocalAddress.toStdString();
     const std::string localPort = QString::number(m_tcpClientLocalPort).toStdString();

@@ -11,6 +11,8 @@ public:
 
     ~BasePort() override;
 
+    virtual int type() = 0;
+
     virtual void reload(const QJsonObject &portConfig) =0;
 
     virtual std::unordered_map<std::string, std::string> info() = 0;

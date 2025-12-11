@@ -12,6 +12,8 @@ class Visa final : public BasePort {
 public:
     explicit Visa(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    int type() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     std::unordered_map<std::string, std::string> info() override;

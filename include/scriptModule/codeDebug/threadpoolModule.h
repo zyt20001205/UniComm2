@@ -48,6 +48,10 @@ signals:
 
     void closePort(const QString &portName, bool &status);
 
+    void writePort(const QString &portName, const QByteArray &txData, const QString &peerIp, bool &status);
+
+    void readPort(const QString &portName, int timeout, int length, const QString &peerIp, bool &status, QByteArray &rxData);
+
 private:
     void threadAppend(int status, const QString &name, const QString &threadId);
 

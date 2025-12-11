@@ -23,6 +23,10 @@ public:
 
     void close(const std::string &portName);
 
+    void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
+
+    std::string_view read(const std::string &portName, int timeout, int length, const std::string &peerIp);
+
 signals:
     void listPort(std::vector<std::string> &portList);
 
@@ -31,6 +35,10 @@ signals:
     void openPort(const QString &portName, bool &status);
 
     void closePort(const QString &portName, bool &status);
+
+    void writePort(const QString &portName, const QByteArray &txData, const QString &peerIp, bool &status);
+
+    void readPort(const QString &portName, int timeout, int length, const QString &peerIp, bool &status, QByteArray &rxData);
 };
 
 #endif //UNICOMM_LUAPORT_H

@@ -13,6 +13,8 @@ class UdpSocket final : public BasePort {
 public:
     explicit UdpSocket(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    int type() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     std::unordered_map<std::string, std::string> info() override;

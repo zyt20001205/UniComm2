@@ -4,6 +4,7 @@
 #include <QScopedValueRollback>
 #include <QUdpSocket>
 
+#include "globals.h"
 #include "suffix.h"
 
 // UdpSocket public
@@ -19,6 +20,10 @@ UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)
       m_rxFormat(portConfig["rxFormat"].toString()) {
 }
 
+int UdpSocket::type() {
+    return UDPSOCKET;
+}
+
 void UdpSocket::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
     m_udpSocketLocalAddress = portConfig["udpSocketLocalAddress"].toString();
@@ -31,8 +36,7 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
 }
 
 std::unordered_map<std::string, std::string> UdpSocket::info() {
-    if (m_udpSocket == nullptr) return {};
-    const std::string status = m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
+    const std::string status = m_udpSocket && m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
     const std::string localAddress = m_udpSocketLocalAddress.toStdString();
     const std::string localPort = QString::number(m_udpSocketLocalPort).toStdString();
     const std::string remoteAddress = m_udpSocketRemoteAddress.toStdString();

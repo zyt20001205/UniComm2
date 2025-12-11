@@ -14,6 +14,10 @@ Screen::Screen(const QJsonObject &portConfig, QObject *parent)
       m_areaList(portConfig["areaList"].toArray()) {
 }
 
+int Screen::type() {
+    return SCREEN;
+}
+
 void Screen::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
     m_charset = portConfig["charset"].toString();

@@ -12,6 +12,10 @@ Visa::Visa(const QJsonObject &portConfig, QObject *parent)
       m_portName(portConfig["portName"].toString()) {
 }
 
+int Visa::type() {
+    return VISA;
+}
+
 void Visa::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
 }

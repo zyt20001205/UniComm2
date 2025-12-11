@@ -13,6 +13,8 @@ class Camera final : public BasePort {
 public:
     explicit Camera(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    int type() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     bool open() override;

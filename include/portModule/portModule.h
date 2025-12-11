@@ -33,6 +33,10 @@ public:
 
     void portClose(const QString &portName, bool &status);
 
+    void portWrite(const QString &portName, const QByteArray &txData, const QString &peerIp, bool &status);
+
+    void portRead(const QString &portName, int timeout, int length, const QString &peerIp, bool &status, QByteArray &rxData);
+
     void portInsert(int index, QJsonObject portConfig = QJsonObject());
 
     void portAnnotate() const;

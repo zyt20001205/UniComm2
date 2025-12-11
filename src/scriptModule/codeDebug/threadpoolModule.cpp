@@ -55,6 +55,8 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(interpreter, &LuaInterpreter::infoPort, this, &ThreadpoolModule::infoPort, Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::openPort, this, &ThreadpoolModule::openPort, Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::closePort, this, &ThreadpoolModule::closePort, Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::writePort, this, &ThreadpoolModule::writePort, Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::readPort, this, &ThreadpoolModule::readPort, Qt::BlockingQueuedConnection);
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);

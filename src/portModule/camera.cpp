@@ -18,6 +18,10 @@ Camera::Camera(const QJsonObject &portConfig, QObject *parent)
       m_areaList(portConfig["areaList"].toArray()) {
 }
 
+int Camera::type() {
+    return CAMERA;
+}
+
 void Camera::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
     m_charset = portConfig["charset"].toString();
