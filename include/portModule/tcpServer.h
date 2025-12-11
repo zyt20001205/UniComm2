@@ -20,7 +20,7 @@ public:
 
     void close() override;
 
-    QVariantMap info() override;
+    std::unordered_map<std::string, std::string> info() override;
 
     bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 

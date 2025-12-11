@@ -20,7 +20,7 @@ public:
 
     void close() override;
 
-    QVariantMap info() override;
+    std::unordered_map<std::string, std::string> info() override;
 
     QByteArray read(int timeout, int length, const QString &rxFormat) override;
 

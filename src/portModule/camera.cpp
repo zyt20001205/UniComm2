@@ -44,7 +44,7 @@ void Camera::close() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
 }
 
-QVariantMap Camera::info() {
+std::unordered_map<std::string, std::string> Camera::info() {
     return {};
 }
 

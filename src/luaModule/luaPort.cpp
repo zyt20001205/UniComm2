@@ -1,7 +1,10 @@
 #include "luaModule/luaPort.h"
 
+#include <sol/sol.hpp>
+
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
+
 
 LuaPort::LuaPort(QObject *parent)
     : QObject(parent) {
@@ -13,70 +16,29 @@ std::vector<std::string> LuaPort::list() {
     return portList;
 }
 
+std::unordered_map<std::string, std::string> LuaPort::info(const std::string &portName) {
+    std::unordered_map<std::string, std::string> portInfo{};
+    emit infoPort(QString::fromStdString(portName), portInfo);
+    return portInfo;
+}
+
+void LuaPort::open(const std::string &portName) {
+    bool status = false;
+    emit openPort(QString::fromStdString(portName), status);
+    if (!status) {
+        throw sol::error("failed to open port: " + portName);
+    }
+}
+
+void LuaPort::close(const std::string &portName) {
+    bool status = false;
+    emit closePort(QString::fromStdString(portName), status);
+    if (!status) {
+        throw sol::error("failed to close port: " + portName);
+    }
+}
 
 
-
-// int lua_portOpen(lua_State *L) {
-//     // check arguments
-//     if (lua_gettop(L) != 1)
-//         luaL_error(L, "unexpected number of arguments");
-//     // convert arguments
-//     const char *param1 = luaL_checkstring(L, 1);
-//     // start operation
-//     const QString portName = QString::fromUtf8(param1);
-//     if (!g_port->m_portHash.contains(portName)) {
-//         luaL_error(L, "port '%s' does not exist", portName.toUtf8().constData());
-//     } else {
-//         bool status;
-//         auto *portObject = g_port->m_portHash[portName];
-//         QMetaObject::invokeMethod(portObject, [&status, portObject] {
-//             status = portObject->open();
-//         }, Qt::BlockingQueuedConnection);
-//         lua_pushboolean(L, status);
-//         return 1;
-//     }
-// }
-//
-// int lua_portClose(lua_State *L) {
-//     // check arguments
-//     if (lua_gettop(L) != 1)
-//         luaL_error(L, "unexpected number of arguments");
-//     // convert arguments
-//     const char *param1 = luaL_checkstring(L, 1);
-//     // start operation
-//     const QString portName = QString::fromUtf8(param1);
-//     if (!g_port->m_portHash.contains(portName)) {
-//         luaL_error(L, "port '%s' does not exist", portName.toUtf8().constData());
-//     } else {
-//         auto *portObject = g_port->m_portHash[portName];
-//         QMetaObject::invokeMethod(portObject, [portObject] {
-//             portObject->close();
-//         }, Qt::BlockingQueuedConnection);
-//         return 0;
-//     }
-// }
-//
-// int lua_portInfo(lua_State *L) {
-//     // check arguments
-//     if (lua_gettop(L) != 1)
-//         luaL_error(L, "unexpected number of arguments");
-//     // convert arguments
-//     const char *param1 = luaL_checkstring(L, 1);
-//     // start operation
-//     const QString portName = QString::fromUtf8(param1);
-//     if (!g_port->m_portHash.contains(portName)) {
-//         luaL_error(L, "port '%s' does not exist", portName.toUtf8().constData());
-//     } else {
-//         QVariantMap infoMap{};
-//         auto *portObject = g_port->m_portHash[portName];
-//         QMetaObject::invokeMethod(portObject, [&infoMap, portObject] {
-//             infoMap = portObject->info();
-//         }, Qt::BlockingQueuedConnection);
-//         lua_pushqvariant(L, infoMap);
-//         return 1;
-//     }
-// }
-//
 // int lua_portWrite(lua_State *L) {
 //     // check arguments
 //     if (lua_gettop(L) != 2 && lua_gettop(L) != 3)

@@ -41,7 +41,7 @@ void Screen::close() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
 }
 
-QVariantMap Screen::info() {
+std::unordered_map<std::string, std::string> Screen::info() {
     return {};
 }
 

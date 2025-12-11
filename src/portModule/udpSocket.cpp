@@ -30,25 +30,21 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QVariantMap UdpSocket::info() {
+std::unordered_map<std::string, std::string> UdpSocket::info() {
     if (m_udpSocket == nullptr) return {};
-    bool status;
-    if (m_udpSocket->state() == QAbstractSocket::ConnectedState)
-        status = true;
-    else
-        status = false;
-    const QString localAddress = m_udpSocketLocalAddress;
-    const QString localPort = QString::number(m_udpSocketLocalPort);
-    const QString remoteAddress = m_udpSocketRemoteAddress;
-    const QString remotePort = QString::number(m_udpSocketRemotePort);
+    const std::string status = m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
+    const std::string localAddress = m_udpSocketLocalAddress.toStdString();
+    const std::string localPort = QString::number(m_udpSocketLocalPort).toStdString();
+    const std::string remoteAddress = m_udpSocketRemoteAddress.toStdString();
+    const std::string remotePort = QString::number(m_udpSocketRemotePort).toStdString();
 
-    QVariantMap infoMap;
-    infoMap["status"] = status;
-    infoMap["localAddress"] = localAddress;
-    infoMap["localPort"] = localPort;
-    infoMap["remoteAddress"] = remoteAddress;
-    infoMap["remotePort"] = remotePort;
-    return infoMap;
+    std::unordered_map<std::string, std::string> infoHash{};
+    infoHash["status"] = status;
+    infoHash["localAddress"] = localAddress;
+    infoHash["localPort"] = localPort;
+    infoHash["remoteAddress"] = remoteAddress;
+    infoHash["remotePort"] = remotePort;
+    return infoHash;
 }
 
 bool UdpSocket::open() {

@@ -31,13 +31,13 @@ void SerialPort::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QVariantMap SerialPort::info() {
+std::unordered_map<std::string, std::string> SerialPort::info() {
     if (m_serialPort == nullptr) return {};
-    const bool status = m_serialPort->isOpen();
-    const QString portName = m_portName;
-    const QString baudRate = QString::number(m_baudRate);
-    const QString dataBits = QString::number(m_dataBits);
-    QString parity;
+    const std::string status = m_serialPort->isOpen() ? "opened" : "closed";
+    const std::string portName = m_portName.toStdString();
+    const std::string baudRate = QString::number(m_baudRate).toStdString();
+    const std::string dataBits = QString::number(m_dataBits).toStdString();
+    std::string parity;
     switch (m_parity) {
         case 0: parity = "no";
             break;
@@ -49,9 +49,9 @@ QVariantMap SerialPort::info() {
             break;
         case 5: parity = "mark";
             break;
-        default: parity = "unknown";
+        default: parity = "?";
     }
-    QString stopBits;
+    std::string stopBits;
     switch (m_stopBits) {
         case 1: stopBits = "1";
             break;
@@ -59,17 +59,17 @@ QVariantMap SerialPort::info() {
             break;
         case 2: stopBits = "2";
             break;
-        default: stopBits = "unknown";
+        default: stopBits = "?";
     }
 
-    QVariantMap infoMap;
-    infoMap["status"] = status;
-    infoMap["portName"] = portName;
-    infoMap["baudRate"] = baudRate;
-    infoMap["dataBits"] = dataBits;
-    infoMap["parity"] = parity;
-    infoMap["stopBits"] = stopBits;
-    return infoMap;
+    std::unordered_map<std::string, std::string> infoHash{};
+    infoHash["status"] = status;
+    infoHash["portName"] = portName;
+    infoHash["baudRate"] = baudRate;
+    infoHash["dataBits"] = dataBits;
+    infoHash["parity"] = parity;
+    infoHash["stopBits"] = stopBits;
+    return infoHash;
 }
 
 bool SerialPort::open() {

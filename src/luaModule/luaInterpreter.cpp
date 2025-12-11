@@ -38,8 +38,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaPort lib
     sol::table port = m_lua.create_table();
     port.set_function("list", [this] { return sol::as_table(m_luaPort->list()); });
+    port.set_function("info", [this](const std::string &portName) { return sol::as_table(m_luaPort->info(portName)); });
+    port.set_function("open", [this](const std::string &portName) { m_luaPort->open(portName); });
+    port.set_function("close", [this](const std::string &portName) { m_luaPort->close(portName); });
     m_lua["port"] = port;
     connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
+    connect(m_luaPort, &LuaPort::infoPort, this, &LuaInterpreter::infoPort);
+    connect(m_luaPort, &LuaPort::openPort, this, &LuaInterpreter::openPort);
+    connect(m_luaPort, &LuaPort::closePort, this, &LuaInterpreter::closePort);
     // LuaThread lib
     sol::table thread = m_lua.create_table();
     thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_luaThread->start(ts, scriptPath); });

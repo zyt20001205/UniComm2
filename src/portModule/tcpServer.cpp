@@ -26,25 +26,25 @@ void TcpServer::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QVariantMap TcpServer::info() {
+std::unordered_map<std::string, std::string> TcpServer::info() {
     if (m_tcpServer == nullptr) return {};
-    const bool status = m_tcpServer->isListening();
-    const QString localAddress = m_tcpServerLocalAddress;
-    const QString localPort = QString::number(m_tcpServerLocalPort);
-    QVariantList peerList;
-    for (const QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
-        QMap<QString, QVariant> peerInfo;
-        peerInfo["peerAddress"] = tcpServerPeer->peerAddress().toString();
-        peerInfo["peerPort"] = tcpServerPeer->peerPort();
-        peerList.append(peerInfo);
-    }
+    const std::string status = m_tcpServer->isListening() ? "opened" : "closed";
+    const std::string localAddress = m_tcpServerLocalAddress.toStdString();
+    const std::string localPort = QString::number(m_tcpServerLocalPort).toStdString();
+    // QVariantList peerList;
+    // for (const QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
+    //     QMap<QString, QVariant> peerInfo;
+    //     peerInfo["peerAddress"] = tcpServerPeer->peerAddress().toString();
+    //     peerInfo["peerPort"] = tcpServerPeer->peerPort();
+    //     peerList.append(peerInfo);
+    // }
 
-    QVariantMap infoMap;
-    infoMap["status"] = status;
-    infoMap["localAddress"] = localAddress;
-    infoMap["localPort"] = localPort;
-    infoMap["peerList"] = peerList;
-    return infoMap;
+    std::unordered_map<std::string, std::string> infoHash{};
+    infoHash["status"] = status;
+    infoHash["localAddress"] = localAddress;
+    infoHash["localPort"] = localPort;
+    // infoMap["peerList"] = peerList;
+    return infoHash;
 }
 
 bool TcpServer::open() {

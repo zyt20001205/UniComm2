@@ -25,9 +25,9 @@ void TcpClient::reload(const QJsonObject &portConfig) {
     m_rxFormat = portConfig["rxFormat"].toString();
 }
 
-QVariantMap TcpClient::info() {
+std::unordered_map<std::string, std::string> TcpClient::info() {
     if (m_tcpClient == nullptr) return{};
-    QString status;
+    std::string status;
     switch (m_tcpClient->state()) {
         case QAbstractSocket::UnconnectedState: status = "unconnected";
             break;
@@ -43,18 +43,18 @@ QVariantMap TcpClient::info() {
             break;
         default: status = "unknown";
     }
-    const QString localAddress = m_tcpClientLocalAddress;
-    const QString localPort = QString::number(m_tcpClientLocalPort);
-    const QString remoteAddress = m_tcpClientRemoteAddress;
-    const QString remotePort = QString::number(m_tcpClientRemotePort);
+    const std::string localAddress = m_tcpClientLocalAddress.toStdString();
+    const std::string localPort = QString::number(m_tcpClientLocalPort).toStdString();
+    const std::string remoteAddress = m_tcpClientRemoteAddress.toStdString();
+    const std::string remotePort = QString::number(m_tcpClientRemotePort).toStdString();
 
-    QVariantMap infoMap;
-    infoMap["status"] = status;
-    infoMap["localAddress"] = localAddress;
-    infoMap["localPort"] = localPort;
-    infoMap["remoteAddress"] = remoteAddress;
-    infoMap["remotePort"] = remotePort;
-    return infoMap;
+    std::unordered_map<std::string, std::string> infoHash{};
+    infoHash["status"] = status;
+    infoHash["localAddress"] = localAddress;
+    infoHash["localPort"] = localPort;
+    infoHash["remoteAddress"] = remoteAddress;
+    infoHash["remotePort"] = remotePort;
+    return infoHash;
 }
 
 bool TcpClient::open() {

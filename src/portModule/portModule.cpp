@@ -12,6 +12,7 @@
 #include <QVBoxLayout>
 
 #include "globals.h"
+#include "portModule/basePort.h"
 #include "portModule/portPage.h"
 #include "portModule/portSetting.h"
 
@@ -71,6 +72,27 @@ BasePort *PortModule::currentPort() const {
 void PortModule::portList(std::vector<std::string> &portList) const {
     for (const QString &portName: m_portHash.keys()) {
         portList.push_back(portName.toStdString());
+    }
+}
+
+void PortModule::portInfo(const QString &portName, std::unordered_map<std::string, std::string> &portInfo) const {
+    if (m_portHash.contains(portName)) {
+        portInfo = m_portHash[portName]->info();
+    }
+}
+
+void PortModule::portOpen(const QString &portName, bool &status) {
+    if (m_portHash.contains(portName)) {
+        if (m_portHash[portName]->open()) {
+            status = true;
+        }
+    }
+}
+
+void PortModule::portClose(const QString &portName, bool &status) {
+    if (m_portHash.contains(portName)) {
+        m_portHash[portName]->close();
+        status = true;
     }
 }
 

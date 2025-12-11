@@ -10,10 +10,10 @@ LuaThread::LuaThread(QObject *parent)
 }
 
 std::string LuaThread::start(const sol::this_state ts, const std::string &scriptPath) {
-    QString threadId{};
     sol::state_view lua(ts);
     const auto session = lua["session"].get<QVariantMap *>();
     const int mode = (*session)["mode"].toInt();
+    QString threadId{};
     emit startThread(QString::fromStdString(scriptPath), mode, threadId);
     return threadId.toStdString();
 }

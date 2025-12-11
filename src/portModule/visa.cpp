@@ -16,7 +16,7 @@ void Visa::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
 }
 
-QVariantMap Visa::info() {
+std::unordered_map<std::string, std::string> Visa::info() {
     return {};
 }
 
