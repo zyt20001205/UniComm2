@@ -27,16 +27,6 @@ public:
 
     void portList(std::vector<std::string> &portList) const;
 
-    void portInfo(const QString &portName, std::unordered_map<std::string, std::string> &portInfo) const;
-
-    void portOpen(const QString &portName, bool &status);
-
-    void portClose(const QString &portName, bool &status);
-
-    void portWrite(const QString &portName, const QByteArray &txData, const QString &peerIp, bool &status);
-
-    void portRead(const QString &portName, int timeout, int length, const QString &peerIp, bool &status, QByteArray &rxData);
-
     void portInsert(int index, QJsonObject portConfig = QJsonObject());
 
     void portAnnotate() const;

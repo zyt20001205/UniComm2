@@ -28,9 +28,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
 
             m_port = new SerialPort(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
-            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
-                m_portToggleButton->setChecked(status);
-            });
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {m_portToggleButton->setChecked(status);});
             break;
         }
         case VISA: {
@@ -39,9 +37,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
 
             m_port = new Visa(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
-            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
-                m_portToggleButton->setChecked(status);
-            });
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {m_portToggleButton->setChecked(status);});
             break;
         }
         case TCPCLIENT: {
@@ -50,9 +46,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
 
             m_port = new TcpClient(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
-            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
-                m_portToggleButton->setChecked(status);
-            });
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {m_portToggleButton->setChecked(status);});
             break;
         }
         case TCPSERVER: {
@@ -61,9 +55,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
 
             m_port = new TcpServer(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
-            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
-                m_portToggleButton->setChecked(status);
-            });
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {m_portToggleButton->setChecked(status);});
             break;
         }
         case UDPSOCKET: {
@@ -72,9 +64,7 @@ PortPage::PortPage(const QJsonObject &portConfig, QWidget *parent)
 
             m_port = new UdpSocket(portConfig);
             connect(m_port, &BasePort::appendLog, this, &PortPage::appendLog);
-            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
-                m_portToggleButton->setChecked(status);
-            });
+            connect(m_port, &BasePort::togglePort, this, [this](const bool status) {m_portToggleButton->setChecked(status);});
             break;
         }
         case SCREEN: {

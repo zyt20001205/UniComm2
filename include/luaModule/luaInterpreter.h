@@ -33,16 +33,6 @@ signals:
 
     void listPort(std::vector<std::string> &portList);
 
-    void infoPort(const QString &portName, std::unordered_map<std::string, std::string> &portInfo);
-
-    void openPort(const QString &portName, bool &status);
-
-    void closePort(const QString &portName, bool &status);
-
-    void writePort(const QString &portName, const QByteArray &txData, const QString &peerIp, bool &status);
-
-    void readPort(const QString &portName, int timeout, int length, const QString &peerIp, bool &status, QByteArray &rxData);
-
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
     void stopThread(const QString &threadId);

@@ -2,6 +2,7 @@
 
 #include <sol/sol.hpp>
 
+#include "globals.h"
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
 
@@ -18,22 +19,37 @@ std::vector<std::string> LuaPort::list() {
 
 std::unordered_map<std::string, std::string> LuaPort::info(const std::string &portName) {
     std::unordered_map<std::string, std::string> portInfo{};
-    emit infoPort(QString::fromStdString(portName), portInfo);
+    if (g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+        QMetaObject::invokeMethod(port, [&port, &portInfo] {
+            portInfo = port->info();
+        }, Qt::BlockingQueuedConnection);
+    } else {
+        throw sol::error("failed to find port: " + portName);
+    }
     return portInfo;
 }
 
 void LuaPort::open(const std::string &portName) {
     bool status = false;
-    emit openPort(QString::fromStdString(portName), status);
+    if (g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+        QMetaObject::invokeMethod(port, [&port, &status] {
+            status = port->open();
+        }, Qt::BlockingQueuedConnection);
+    }
     if (!status) {
         throw sol::error("failed to open port: " + portName);
     }
 }
 
 void LuaPort::close(const std::string &portName) {
-    bool status = false;
-    emit closePort(QString::fromStdString(portName), status);
-    if (!status) {
+    if (g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+        QMetaObject::invokeMethod(port, [&port] {
+            port->close();
+        }, Qt::BlockingQueuedConnection);
+    } else {
         throw sol::error("failed to close port: " + portName);
     }
 }
@@ -41,18 +57,41 @@ void LuaPort::close(const std::string &portName) {
 void LuaPort::write(const std::string &portName, const std::string_view &data, const std::string &peerIp) {
     const QByteArray txData(data.data(), static_cast<qsizetype>(data.size()));
     bool status = false;
-    emit writePort(QString::fromStdString(portName), txData, QString::fromStdString(peerIp), status);
+    if (g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+        if (port->type() == TCPSERVER) {
+            QMetaObject::invokeMethod(port, [&port, &txData, &peerIp, &status] {
+                status = port->write(txData, QString::fromStdString(peerIp), "", "");
+            }, Qt::BlockingQueuedConnection);
+        } else {
+            QMetaObject::invokeMethod(port, [&port, &txData, &status] {
+                status = port->write(txData, "", "");
+            }, Qt::BlockingQueuedConnection);
+        }
+    }
     if (!status) {
         throw sol::error("failed to write port: " + portName);
     }
 }
 
-std::string LuaPort::read(const std::string &portName, int timeout, int length, const std::string &peerIp) {
+std::string LuaPort::read(const std::string &portName, const int timeout, const int length, const std::string &peerIp) {
     bool status = false;
     QByteArray rxData{};
-    emit readPort(QString::fromStdString(portName), timeout, length, QString::fromStdString(peerIp), status, rxData);
+    if (g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        status = true;
+        auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+        if (port->type() == TCPSERVER) {
+            QMetaObject::invokeMethod(port, [&port, &timeout, &length, &peerIp, &rxData] {
+                rxData = port->read(timeout, length, "", QString::fromStdString(peerIp));
+            }, Qt::BlockingQueuedConnection);
+        } else {
+            QMetaObject::invokeMethod(port, [&port, &timeout, &length, &rxData] {
+                rxData = port->read(timeout, length, "");
+            }, Qt::BlockingQueuedConnection);
+        }
+    }
     if (!status) {
         throw sol::error("failed to read port: " + portName);
     }
-    return std::string(rxData.constData(), rxData.size());
+    return {rxData.constData(), static_cast<std::string::size_type>(rxData.size())};
 }
