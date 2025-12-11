@@ -13,7 +13,22 @@ QVariant lua2qvar(sol::object object) {
         }
         break;
         case sol::type::string: {
-            parsed = QString::fromStdString(object.as<std::string>());
+            const std::string str = object.as<std::string>();
+            // QString string{};
+            // // try utf-8
+            // string = QString::fromUtf8(str.data(), static_cast<qsizetype>(str.size()));
+            // if (!string.contains(QChar::VisualTabCharacter)) {
+            //     parsed = string;
+            //     break;
+            // }
+            // // try ascii
+            // string = QString::fromLatin1(str.data(), static_cast<qsizetype>(str.size()));
+            // if (!string.contains(QChar::ReplacementCharacter)) {
+            //     parsed = string;
+            //     break;
+            // }
+            QByteArray byteArray(str.data(), static_cast<qsizetype>(str.size()));
+            parsed = byteArray.toHex(' ').toUpper();
         }
         break;
         case sol::type::number: {
