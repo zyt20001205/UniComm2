@@ -5,7 +5,11 @@
 #include "sol/table_core.hpp"
 #include <sol/variadic_args.hpp>
 
-QVariant lua2qvar(sol::object object) {
+QVariant lua2qvar(sol::object object, int depth) {
+    constexpr int MAX_DEPTH = 100;
+    if (depth > MAX_DEPTH) {
+        throw sol::error("Maximum recursion depth exceeded");
+    }
     QVariant parsed{};
     switch (object.get_type()) {
         case sol::type::nil: {
@@ -67,7 +71,7 @@ QVariant lua2qvar(sol::object object) {
                 } else {
                     continue;
                 }
-                map[key_str] = lua2qvar(value);
+                map[key_str] = lua2qvar(value, depth + 1);
             }
             parsed = QVariant::fromValue(map);
         }

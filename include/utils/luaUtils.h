@@ -9,7 +9,7 @@ namespace sol {
     struct variadic_args;
 }
 
-QVariant lua2qvar(sol::object object);
+QVariant lua2qvar(sol::object object, int depth = 0);
 
 QVariantList lua2qvarlist(sol::variadic_args args);
 
