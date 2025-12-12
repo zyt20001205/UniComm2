@@ -58,8 +58,11 @@ void LuaIO::speak(const std::string &text) {
     if (tts.engine().isEmpty()) {
         throw sol::error(tr("No TTS engine found").toStdString());
     }
-    tts.setLocale(QLocale::English);
-    // tts.setLocale(QLocale::Chinese);
+    if (text.empty()) {
+        return;
+    }
+    // tts.setLocale(QLocale::English);
+    tts.setLocale(QLocale::Chinese);
     tts.setRate(0.0);
     tts.setVolume(1.0);
     QEventLoop loop;
