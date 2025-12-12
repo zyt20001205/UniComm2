@@ -9,7 +9,7 @@
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaIO.h"
 #include "luaModule/luaPort.h"
-#include "luaModule/luaModbus.h"
+#include "luaModule/luaModbusRtu.h"
 #include "luaModule/luaThread.h"
 #include "scriptModule/scriptModule.h"
 #include "utils/luaUtils.h"

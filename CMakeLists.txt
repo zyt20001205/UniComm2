@@ -44,7 +44,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaInterpreter.h
         include/luaModule/luaIO.h
         include/luaModule/luaLanguageServer.h
-        include/luaModule/luaModbus.h
+        include/luaModule/luaModbusRtu.h
         include/luaModule/luaPort.h
         include/luaModule/luaThread.h
         include/portModule/areaSelection.h
@@ -103,7 +103,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaInterpreter.cpp
         src/luaModule/luaIO.cpp
         src/luaModule/luaLanguageServer.cpp
-        src/luaModule/luaModbus.cpp
+        src/luaModule/luaModbusRtu.cpp
         src/luaModule/luaPort.cpp
         src/luaModule/luaThread.cpp
         src/portModule/areaSelection.cpp
