@@ -37,6 +37,25 @@ function io.log(...) end
 --- @param text string The text content to be spoken.
 function io.speak(text) end
 
+modbusRtu = {}
+--- Reads data from multiple holding registers of a Modbus RTU device.
+--- @param name port Target port name.
+--- @param slaveAddr integer The slave address (1-247) of the target device on the network.
+--- @param startAddr integer The starting address of the first register to write to.
+--- @param quantity integer Number of registers to read.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @return string
+function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
+
+--- Writes data to multiple holding registers to a Modbus RTU device.
+--- @param name port Target port name.
+--- @param slaveAddr integer The slave address (1-247) of the target device on the network.
+--- @param startAddr integer The starting address of the first register to write to.
+--- @param data string **Binary string** containing the raw data to be written.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
+function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
+
 port = {}
 --- Retrieves a list of all available communication ports.
 --- @return table
@@ -176,27 +195,8 @@ function control.rightDoubleClick(x, y) end
 --- @return nil
 function control.keyPress(key) end
 
-modbusRtu = {}
---- Reads data from multiple holding registers of a Modbus RTU device.
---- @param name port Target port name.
---- @param slaveAddr integer The slave address (1-247) of the target device on the network.
---- @param startAddr integer The starting address of the first register to write to.
---- @param quantity integer Number of registers to read.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @return string
-function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
-
---- Writes data to multiple holding registers to a Modbus RTU device.
---- @param name port Target port name.
---- @param slaveAddr integer The slave address (1-247) of the target device on the network.
---- @param startAddr integer The starting address of the first register to write to.
---- @param data string **Binary string** containing the raw data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @return nil
-function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
-
-modbusAscii = {}
-function modbusAscii.readHoldingRegisters() end
+--modbusAscii = {}
+--function modbusAscii.readHoldingRegisters() end
 
 database = {}
 --- Retrieves a list of all available database keys.
