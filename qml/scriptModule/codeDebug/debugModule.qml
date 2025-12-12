@@ -92,6 +92,91 @@ Item {
             model: stringListModel
             textRole: "display"
         }
+
+        TableView {
+            id: tableView
+            anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
+            width: parent.width
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            rowSpacing: 1
+            model:
+            contentWidth: width
+            property string diagnostic: ""
+            property int viewrow: 0
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#e0e0e0"
+                z: -1
+            }
+
+            delegate: Rectangle {
+                    id: textCell
+                    required property int column
+                    required property int row
+
+                    implicitWidth: {
+                        if (textCell.column === tableView.columns - 1) {
+                            let usedWidth = 0
+                            for (let i = 0; i < tableView.columns - 1; i++) {
+                                usedWidth += tableView.columnWidth(i)
+                            }
+                            return tableView.width - usedWidth
+                        }
+                        return Math.max(textMetrics.width + 16, 60)
+                    }
+                    implicitHeight: 24
+                    color: "white"
+
+                    TextMetrics {
+                        id: textMetrics
+                        font.family: "Segoe UI"
+                        font.pointSize: 10
+                        text: model.display || ""
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        z: 2
+                        font.family: "Segoe UI"
+                        font.pointSize: 10
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+
+                        ToolTip.visible: hoverHandler.hovered
+                        ToolTip.delay: 500
+                        ToolTip.text: model.display
+                    }
+
+                    Rectangle {
+                        id: highlightRect
+                        anchors.fill: parent
+                        z: 1
+                        radius: 2
+                        color: "#f5f5f5"
+                        opacity: hoverHandler.hovered ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
+                        }
+                    }
+
+                    HoverHandler {
+                        id: hoverHandler
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: tableView.indicatorInsert(textCell.row)
+                    }
+                }
+            }
+        }
     }
 
     Connections {

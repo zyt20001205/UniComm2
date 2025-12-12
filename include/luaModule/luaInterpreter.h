@@ -6,6 +6,8 @@
 #include <QUrl>
 #include <sol/state.hpp>
 
+class QStandardItemModel;
+
 class LuaIO;
 class LuaModbusRtu;
 class LuaPort;
@@ -29,6 +31,8 @@ signals:
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
+
+    void insertCallStack(const QString &threadId, const QStandardItemModel *callStackModel);
 
     void appendLog(const QString &message, const QString &level);
 

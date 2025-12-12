@@ -39,6 +39,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     luaSession.insert("workspaceUrl", g_workspaceUrl);
     luaSession.insert("scriptUrl", scriptUrl);
     if (mode == LUATHREAD_DEBUG) {
+        luaSession.insert("threadId", threadId);
         luaSession.insert("currentUrl", scriptUrl);
         luaSession.insert("state", DEBUG_RESUME);
         luaSession.insert("baseDepth", 0);
@@ -48,6 +49,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(interpreter, &LuaInterpreter::openScript, this, &ThreadpoolModule::openScript);
     connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
     connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
+    connect(interpreter, &LuaInterpreter::insertCallStack, this, &ThreadpoolModule::insertCallStack);
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);

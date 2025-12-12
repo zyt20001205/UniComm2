@@ -348,25 +348,24 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             // line handle
             emit This->insertMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
             // call stack handle
-            {
-                auto *callStackModel = new QStandardItemModel(); // NOLINT
-                int level = 0;
-                while (lua_getstack(L, level, ar)) {
-                    lua_getinfo(L, "nSl", ar);
-                    const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
-                    const int line = ar->currentline;
-                    const QVariantHash position = {
-                        {"scriptUrl", scriptUrl},
-                        {"line", line}
-                    };
-                    auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
-                    fileItem->setData(position, Qt::WhatsThisRole);
-                    auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-                    auto *nameItem = new QStandardItem(ar->name ? ar->name : "?"); // NOLINT
-                    callStackModel->insertRow(0, {fileItem, lineItem, nameItem});
-                    level++;
-                }
+            auto *callStackModel = new QStandardItemModel(); // NOLINT
+            int level = 0;
+            while (lua_getstack(L, level, ar)) {
+                lua_getinfo(L, "nSl", ar);
+                const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
+                const int line = ar->currentline;
+                const QVariantHash position = {
+                    {"scriptUrl", scriptUrl},
+                    {"line", line}
+                };
+                auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
+                fileItem->setData(position, Qt::WhatsThisRole);
+                auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
+                auto *nameItem = new QStandardItem(ar->name ? ar->name : "?"); // NOLINT
+                callStackModel->insertRow(0, {fileItem, lineItem, nameItem});
+                level++;
             }
+            emit This->insertCallStack(session["threadId"].toString(), callStackModel);
             // TODO: var handle
             {
                 // var tree
