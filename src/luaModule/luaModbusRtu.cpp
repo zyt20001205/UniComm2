@@ -35,7 +35,7 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
         status = port->write(txData, "raw", "null");
         rxData = port->read(timeout, length, "raw");
     }, Qt::BlockingQueuedConnection);
-    if (!status) {
+    if (!status || rxData.isEmpty()) {
         throw sol::error("modbus rtu read holding registers failed");
     }
     if (static_cast<quint8>(rxData.at(0)) != slaveAddr) {
@@ -76,7 +76,7 @@ void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int sl
         status = port->write(txData, "raw", "null");
         rxData = port->read(timeout, 8, "raw");
     }, Qt::BlockingQueuedConnection);
-    if (!status) {
+    if (!status || rxData.isEmpty()) {
         throw sol::error("modbus rtu write single register failed");
     }
     if (static_cast<quint8>(rxData.at(0)) != slaveAddr) {
@@ -124,7 +124,7 @@ void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int
         status = port->write(txData, "raw", "null");
         rxData = port->read(timeout, 8, "raw");
     }, Qt::BlockingQueuedConnection);
-    if (!status) {
+    if (!status || rxData.isEmpty()) {
         throw sol::error("modbus rtu write multiple registers failed");
     }
     if (static_cast<quint8>(rxData.at(0)) != slaveAddr) {
