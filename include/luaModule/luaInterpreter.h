@@ -32,7 +32,7 @@ signals:
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
-    void insertCallStack(const QString &threadId, const QStandardItemModel *callStackModel);
+    void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 
     void appendLog(const QString &message, const QString &level);
 

@@ -29,7 +29,7 @@ public:
 
     Q_INVOKABLE void stateSet(const QString &threadId, int state);
 
-    void callStackInsert(const QString &threadId, const QStandardItemModel *callStackModel);
+    void callStackInsert(const QString &threadId, QStandardItemModel *callStackModel);
 
 signals:
     void openScript(const QUrl &scriptUrl);

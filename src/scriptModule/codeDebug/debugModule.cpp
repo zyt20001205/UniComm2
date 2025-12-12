@@ -47,8 +47,12 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
     emit setState(threadId, state);
 }
 
-void DebugModule::callStackInsert(const QString &threadId, const QStandardItemModel *callStackModel) {
+void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {
     m_callStackModelHash[threadId] = callStackModel;
+    qDebug() << callStackModel->item(0, 0)->text();
+    qDebug() << callStackModel->item(0, 1)->text();
+    qDebug() << callStackModel->item(0, 2)->text();
+    m_debugWidget->rootContext()->setContextProperty("standardItemModel", callStackModel);
     // if (!m_debugPageHash.contains(threadId)) return;
     // m_debugPageHash[threadId]->callLoad(callTable);
 }

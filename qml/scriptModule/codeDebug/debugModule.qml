@@ -95,16 +95,13 @@ Item {
 
         TableView {
             id: tableView
-            anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
-            width: parent.width
+            Layout.fillWidth: true; Layout.fillHeight: true;
             alternatingRows: false
             clip: true
             editTriggers: TableView.NoEditTriggers
             rowSpacing: 1
-            model:
+            model: standardItemModel
             contentWidth: width
-            property string diagnostic: ""
-            property int viewrow: 0
 
             Rectangle {
                 anchors.fill: parent
@@ -176,7 +173,6 @@ Item {
                     }
                 }
             }
-        }
     }
 
     Connections {
