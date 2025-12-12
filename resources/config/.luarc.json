@@ -2,6 +2,11 @@
   "completion": {
     "keywordSnippet": "Disable"
   },
+  "runtime": {
+    "special" : {
+      "thread.start": "require"
+    }
+  },
   "semantic": {
     "keyword": true
   }
