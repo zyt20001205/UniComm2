@@ -92,7 +92,6 @@ Item {
             model: stringListModel
             textRole: "display"
             onCurrentTextChanged: {
-                console.log(currentText)
                 debugModule.callStackSwitch(currentText)
             }
         }
@@ -182,17 +181,5 @@ Item {
                 debugModule.markerInsert(model.data(index, Qt.WhatsThisRole))
             }
         }
-    }
-
-    Connections {
-        target: stringListModel
-
-        // function onRowsInserted() {
-        //     combobox.currentIndex = stringListModel.rowCount() - 1
-        // }
-        //
-        // function onRowsRemoved() {
-        //     combobox.currentIndex = stringListModel.rowCount() - 1
-        // }
     }
 }

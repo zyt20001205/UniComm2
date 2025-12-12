@@ -27,6 +27,7 @@ DebugModule::DebugModule()
     setWidget(m_debugWidget);
     m_debugWidget->rootContext()->setContextProperty("debugModule", this);
     m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);
+    m_debugWidget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());
     m_debugWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_debugWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/debugModule.qml"));
 }
@@ -51,7 +52,12 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
 }
 
 void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {
-    m_callStackModelHash[threadId] = callStackModel;
+    if (!m_callStackModelHash.contains(threadId)) {
+        m_callStackModelHash.insert(threadId, callStackModel);
+    } else {
+        m_callStackModelHash[threadId] = callStackModel;
+        m_debugWidget->rootContext()->setContextProperty("standardItemModel", callStackModel);
+    }
 }
 
 void DebugModule::callStackSwitch(const QString &threadId) const {
