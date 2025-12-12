@@ -19,6 +19,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
       m_luaIO(new LuaIO(this)),
+      m_luaModbusRtu(new LuaModbusRtu(this)),
       m_luaPort(new LuaPort(this)),
       m_luaThread(new LuaThread(this)) {
     // standard lib
@@ -35,6 +36,15 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     io.set_function("speak", [this](const std::string &text) { m_luaIO->speak(text); });
     m_lua["io"] = io;
     connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
+    // LuaModbusRtu lib
+    sol::table modbusRtu = m_lua.create_table();
+    modbusRtu.set_function("readHoldingRegisters", [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const int timeout) {
+        return m_luaModbusRtu->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout);
+    });
+    modbusRtu.set_function("writeMultipleRegisters", [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const int timeout) {
+        m_luaModbusRtu->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout);
+    });
+    m_lua["modbusRtu"] = modbusRtu;
     // LuaPort lib
     sol::table port = m_lua.create_table();
     port.set_function("list", [this] { return sol::as_table(m_luaPort->list()); });

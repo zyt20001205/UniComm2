@@ -7,6 +7,7 @@
 #include <sol/state.hpp>
 
 class LuaIO;
+class LuaModbusRtu;
 class LuaPort;
 class LuaThread;
 
@@ -47,6 +48,7 @@ private:
     sol::state m_lua{};
     QVariantMap m_luaSession{};
     LuaIO *m_luaIO{};
+    LuaModbusRtu *m_luaModbusRtu{};
     LuaPort *m_luaPort{};
     LuaThread *m_luaThread{};
 };
