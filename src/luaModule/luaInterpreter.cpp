@@ -38,15 +38,18 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
     // LuaModbusRtu lib
     sol::table modbusRtu = m_lua.create_table();
-    modbusRtu.set_function("readHoldingRegisters", [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-        return m_luaModbusRtu->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
-    });
-    modbusRtu.set_function("writeSingleRegister", [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
-            m_luaModbusRtu->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
-        });
-    modbusRtu.set_function("writeMultipleRegisters", [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
-        m_luaModbusRtu->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
-    });
+    modbusRtu.set_function("readHoldingRegisters",
+                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
+                               return m_luaModbusRtu->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                           });
+    modbusRtu.set_function("writeSingleRegister",
+                           [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                               m_luaModbusRtu->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                           });
+    modbusRtu.set_function("writeMultipleRegisters",
+                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                               m_luaModbusRtu->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                           });
     m_lua["modbusRtu"] = modbusRtu;
     // LuaPort lib
     sol::table port = m_lua.create_table();
@@ -69,81 +72,46 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
     m_lua["thread"] = thread;
     connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
-    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
-
-    // // register C++ functions
-    // lua_register(L, "exec", lua_exec);
-    // lua_register(L, "stop", lua_stop);
-    // lua_register(L, "wait", lua_wait);
-    // lua_register(L, "input", lua_input);
-    // lua_register(L, "print", lua_print);
-    // lua_register(L, "sleep", lua_sleep);
-    // lua_register(L, "speak", lua_speak);
-    // // register control class
-    // lua_newtable(L);
-    // lua_pushcfunction(L, lua_leftClick);
-    // lua_setfield(L, -2, "leftClick");
-    // lua_pushcfunction(L, lua_leftDoubleClick);
-    // lua_setfield(L, -2, "leftDoubleClick");
-    // lua_pushcfunction(L, lua_rightClick);
-    // lua_setfield(L, -2, "rightClick");
-    // lua_pushcfunction(L, lua_rightDoubleClick);
-    // lua_setfield(L, -2, "rightDoubleClick");
-    // lua_pushcfunction(L, lua_keyPress);
-    // lua_setfield(L, -2, "keyPress");
-    // lua_setglobal(L, "control");
-    // // register port class
-    // lua_newtable(L);
-    // lua_pushcfunction(L, lua_portList);
-    // lua_setfield(L, -2, "list");
-    // lua_pushcfunction(L, lua_portOpen);
-    // lua_setfield(L, -2, "open");
-    // lua_pushcfunction(L, lua_portClose);
-    // lua_setfield(L, -2, "close");
-    // lua_pushcfunction(L, lua_portInfo);
-    // lua_setfield(L, -2, "info");
-    // lua_pushcfunction(L, lua_portWrite);
-    // lua_setfield(L, -2, "write");
-    // lua_pushcfunction(L, lua_portRead);
-    // lua_setfield(L, -2, "read");
-    // lua_setglobal(L, "port");
-    // // register modbus rtu class
-    // lua_newtable(L);
-    // lua_pushcfunction(L, lua_modbusRtuReadHoldingRegisters);
-    // lua_setfield(L, -2, "readHoldingRegisters");
-    // lua_pushcfunction(L, lua_modbusRtuWriteMultipleRegisters);
-    // lua_setfield(L, -2, "writeMultipleRegisters");
-    // lua_setglobal(L, "modbusRtu");
-    // // register modbus ascii class
-    // // lua_newtable(L);
-    // // lua_pushcfunction(L, lua_modbusAsciiReadHoldingRegisters);
-    // // lua_setfield(L, -2, "readHoldingRegisters");
-    // // lua_setglobal(L, "modbusAscii");
-    // // register database class
-    // lua_newtable(L);
-    // lua_pushcfunction(L, lua_databaseList);
-    // lua_setfield(L, -2, "list");
-    // lua_pushcfunction(L, lua_databaseWrite);
-    // lua_setfield(L, -2, "write");
-    // lua_pushcfunction(L, lua_databaseClear);
-    // lua_setfield(L, -2, "clear");
-    // lua_setglobal(L, "database");
-    // // register datatable class
-    // lua_newtable(L);
-    // lua_pushcfunction(L, lua_datatableList);
-    // lua_setfield(L, -2, "list");
-    // lua_pushcfunction(L, lua_datatableWrite);
-    // lua_setfield(L, -2, "write");
-    // lua_pushcfunction(L, lua_datatableClear);
-    // lua_setfield(L, -2, "clear");
-    // lua_pushcfunction(L, lua_datatableExport);
-    // lua_setfield(L, -2, "export");
-    // lua_setglobal(L, "datatable");
-    // // register dataplot class
-    // lua_newtable(L);
-    // lua_pushcfunction(L, lua_dataplotAppend);
-    // lua_setfield(L, -2, "append");
-    // lua_setglobal(L, "dataplot");
+    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread); {
+        // // register control class
+        // lua_newtable(L);
+        // lua_pushcfunction(L, lua_leftClick);
+        // lua_setfield(L, -2, "leftClick");
+        // lua_pushcfunction(L, lua_leftDoubleClick);
+        // lua_setfield(L, -2, "leftDoubleClick");
+        // lua_pushcfunction(L, lua_rightClick);
+        // lua_setfield(L, -2, "rightClick");
+        // lua_pushcfunction(L, lua_rightDoubleClick);
+        // lua_setfield(L, -2, "rightDoubleClick");
+        // lua_pushcfunction(L, lua_keyPress);
+        // lua_setfield(L, -2, "keyPress");
+        // lua_setglobal(L, "control");
+        // // register database class
+        // lua_newtable(L);
+        // lua_pushcfunction(L, lua_databaseList);
+        // lua_setfield(L, -2, "list");
+        // lua_pushcfunction(L, lua_databaseWrite);
+        // lua_setfield(L, -2, "write");
+        // lua_pushcfunction(L, lua_databaseClear);
+        // lua_setfield(L, -2, "clear");
+        // lua_setglobal(L, "database");
+        // // register datatable class
+        // lua_newtable(L);
+        // lua_pushcfunction(L, lua_datatableList);
+        // lua_setfield(L, -2, "list");
+        // lua_pushcfunction(L, lua_datatableWrite);
+        // lua_setfield(L, -2, "write");
+        // lua_pushcfunction(L, lua_datatableClear);
+        // lua_setfield(L, -2, "clear");
+        // lua_pushcfunction(L, lua_datatableExport);
+        // lua_setfield(L, -2, "export");
+        // lua_setglobal(L, "datatable");
+        // // register dataplot class
+        // lua_newtable(L);
+        // lua_pushcfunction(L, lua_dataplotAppend);
+        // lua_setfield(L, -2, "append");
+        // lua_setglobal(L, "dataplot");
+    }
 }
 
 void LuaInterpreter::start(const QString &script) {
@@ -320,48 +288,51 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         if (session["state"].toInt() == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(currentLine)) {
                 session["state"] = DEBUG_PAUSE;
-                // QString expression = g_breakpoints[currentUrl][currentLine]["expr"].toString();
-                // const int base = lua_gettop(L);
-                // if (expression.isEmpty()) {
-                //     debugData->state = DEBUG_PAUSE;
-                // } else {
-                //     if (!expression.trimmed().startsWith("return ")) expression = "return " + expression;
-                //     // create env table
-                //     lua_newtable(L);
-                //     const int env = lua_gettop(L);
-                //     // load locals into env table
-                //     const char *name = nullptr;
-                //     int i = 1;
-                //     while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
-                //         lua_setfield(L, env, name);
-                //     }
-                //     // load expression
-                //     if (const int load_result = luaL_loadstring(L, expression.toUtf8().constData()); load_result == LUA_OK) {
-                //         // overwrite _ENV with env table
-                //         lua_pushvalue(L, env);
-                //         lua_setupvalue(L, -2, 1);
-                //         // judge expression
-                //         const int pcall_result = lua_pcall(L, 0, 1, 0);
-                //         if (pcall_result == LUA_OK) {
-                //             const bool result = lua_toboolean(L, -1);
-                //             lua_pop(L, 1);
-                //             if (result) debugData->state = DEBUG_PAUSE;
-                //         } else {
-                //             const QString error = lua_tostring(L, -1);
-                //             QMetaObject::invokeMethod(g_mainWindow, [error] {
-                //                 g_log->logAppend(error, "error");
-                //             }, Qt::BlockingQueuedConnection);
-                //             lua_pop(L, 1);
-                //         }
-                //     } else {
-                //         const QString error = lua_tostring(L, -1);
-                //         QMetaObject::invokeMethod(g_mainWindow, [error] {
-                //             g_log->logAppend(error, "error");
-                //         }, Qt::BlockingQueuedConnection);
-                //         lua_pop(L, 1);
-                //     }
-                //     lua_settop(L, base);
-                // }
+                // TODO: conditional/log/count
+                {
+                    // QString expression = g_breakpoints[currentUrl][currentLine]["expr"].toString();
+                    // const int base = lua_gettop(L);
+                    // if (expression.isEmpty()) {
+                    //     debugData->state = DEBUG_PAUSE;
+                    // } else {
+                    //     if (!expression.trimmed().startsWith("return ")) expression = "return " + expression;
+                    //     // create env table
+                    //     lua_newtable(L);
+                    //     const int env = lua_gettop(L);
+                    //     // load locals into env table
+                    //     const char *name = nullptr;
+                    //     int i = 1;
+                    //     while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
+                    //         lua_setfield(L, env, name);
+                    //     }
+                    //     // load expression
+                    //     if (const int load_result = luaL_loadstring(L, expression.toUtf8().constData()); load_result == LUA_OK) {
+                    //         // overwrite _ENV with env table
+                    //         lua_pushvalue(L, env);
+                    //         lua_setupvalue(L, -2, 1);
+                    //         // judge expression
+                    //         const int pcall_result = lua_pcall(L, 0, 1, 0);
+                    //         if (pcall_result == LUA_OK) {
+                    //             const bool result = lua_toboolean(L, -1);
+                    //             lua_pop(L, 1);
+                    //             if (result) debugData->state = DEBUG_PAUSE;
+                    //         } else {
+                    //             const QString error = lua_tostring(L, -1);
+                    //             QMetaObject::invokeMethod(g_mainWindow, [error] {
+                    //                 g_log->logAppend(error, "error");
+                    //             }, Qt::BlockingQueuedConnection);
+                    //             lua_pop(L, 1);
+                    //         }
+                    //     } else {
+                    //         const QString error = lua_tostring(L, -1);
+                    //         QMetaObject::invokeMethod(g_mainWindow, [error] {
+                    //             g_log->logAppend(error, "error");
+                    //         }, Qt::BlockingQueuedConnection);
+                    //         lua_pop(L, 1);
+                    //     }
+                    //     lua_settop(L, base);
+                    // }
+                }
             }
         } else if (session["state"].toInt() == DEBUG_STEPOVER && session["currentDepth"].toInt() == session["baseDepth"].toInt()) session["state"] = DEBUG_PAUSE;
         else if (session["state"].toInt() == DEBUG_STEPOUT && session["currentDepth"].toInt() < session["baseDepth"].toInt()) session["state"] = DEBUG_PAUSE;
@@ -376,138 +347,135 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             // line handle
             emit This->insertMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
-            // var tree
-            // {
-            //     // init var tree
-            //     auto *varTree = new QStandardItemModel(); // NOLINT
-            //     varTree->setHorizontalHeaderLabels({tr("Name"), tr("Type"), tr("Value")});
-            //     // table recursion lambda
-            //     auto appendTable = [](lua_State *L, QStandardItem *parentNameItem, const QString &parentVarname, const QString &parentVarScope, const int tableIndex,
-            //                           auto &&self) -> void {
-            //         lua_pushnil(L);
-            //         while (lua_next(L, tableIndex) != 0) {
-            //             lua_pushvalue(L, -2);
-            //             QString varName = lua_tostring(L, -1);
-            //             lua_pop(L, 1);
-            //             QString varType = lua_typename(L, lua_type(L, -1));
-            //             lua_pushvalue(L, -1);
-            //             QString varValue = lua_toqstring(L, -1);
-            //             lua_pop(L, 1);
-            //
-            //             auto *localNameItem = new QStandardItem(varName); // NOLINT
-            //             localNameItem->setEditable(false);
-            //             auto *localTypeItem = new QStandardItem(varType); // NOLINT
-            //             localTypeItem->setEditable(false);
-            //             QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
-            //
-            //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-            //                 valueItem->setData(parentVarScope, Qt::UserRole + 1);
-            //                 valueItem->setData(parentVarname + "." + varName, Qt::UserRole + 2);
-            //             } else if (lua_type(L, -1) == LUA_TTABLE) {
-            //                 valueItem->setEditable(false);
-            //                 self(L, localNameItem, parentVarname + "." + varName, parentVarScope, lua_gettop(L), self);
-            //             } else {
-            //                 valueItem->setEditable(false);
-            //             }
-            //             parentNameItem->appendRow({localNameItem, localTypeItem, valueItem});
-            //             lua_pop(L, 1);
-            //         }
-            //     };
-            //     // local var
-            //     auto *localVar = new QStandardItem("local"); // NOLINT
-            //     localVar->setEditable(false);
-            //     varTree->appendRow(localVar);
-            //     int i = 1;
-            //     QString localVarName;
-            //     while ((localVarName = lua_getlocal(L, ar, i)) != nullptr) {
-            //         if (localVarName[0] != '(') {
-            //             QString localVarType = lua_typename(L, lua_type(L, -1));
-            //             QString localVarValue = lua_toqstring(L, -1);
-            //
-            //             QStandardItem *localNameItem = new QStandardItem(localVarName); // NOLINT
-            //             localNameItem->setEditable(false);
-            //             QStandardItem *localTypeItem = new QStandardItem(localVarType); // NOLINT
-            //             localTypeItem->setEditable(false);
-            //             QStandardItem *localValueItem = new QStandardItem(localVarValue); // NOLINT
-            //
-            //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-            //                 localValueItem->setData("local", Qt::UserRole + 1);
-            //                 localValueItem->setData(localVarName, Qt::UserRole + 2);
-            //             } else if (lua_type(L, -1) == LUA_TTABLE) {
-            //                 localValueItem->setEditable(false);
-            //                 appendTable(L, localNameItem, localVarName, "local", lua_gettop(L), appendTable);
-            //             } else {
-            //                 localValueItem->setEditable(false);
-            //             }
-            //             localVar->appendRow({localNameItem, localTypeItem, localValueItem});
-            //         }
-            //         lua_pop(L, 1);
-            //         i++;
-            //     }
-            //     // up var
-            //     auto *upVar = new QStandardItem("up"); // NOLINT
-            //     upVar->setEditable(false);
-            //     varTree->appendRow(upVar);
-            //     lua_getinfo(L, "f", ar);
-            //     i = 1;
-            //     QString upVarName;
-            //     while ((upVarName = lua_getupvalue(L, -1, i)) != nullptr) {
-            //         if (upVarName[0] != '(' && upVarName[0] != '_') {
-            //             QString upVarType = lua_typename(L, lua_type(L, -1));
-            //             QString upVarValue = lua_toqstring(L, -1);
-            //
-            //             QStandardItem *upNameItem = new QStandardItem(upVarName); // NOLINT
-            //             upNameItem->setEditable(false);
-            //             QStandardItem *upTypeItem = new QStandardItem(upVarType); // NOLINT
-            //             upTypeItem->setEditable(false);
-            //             QStandardItem *upValueItem = new QStandardItem(upVarValue); // NOLINT
-            //
-            //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-            //                 upValueItem->setData("up", Qt::UserRole + 1);
-            //                 upValueItem->setData(upVarName, Qt::UserRole + 2);
-            //             } else if (lua_type(L, -1) == LUA_TTABLE) {
-            //                 upValueItem->setEditable(false);
-            //                 appendTable(L, upNameItem, upVarName, "up", lua_gettop(L), appendTable);
-            //             } else {
-            //                 upValueItem->setEditable(false);
-            //             }
-            //             upVar->appendRow({upNameItem, upTypeItem, upValueItem});
-            //         }
-            //         lua_pop(L, 1);
-            //         i++;
-            //     }
-            //     lua_pop(L, 1);
-            //     // send to debug module
-            //     QMetaObject::invokeMethod(g_mainWindow, [debugData, varTree] {
-            //         g_debug->varReturn(debugData->threadId, varTree);
-            //     }, Qt::BlockingQueuedConnection);
-            // }
-            // call table
-            // {
-            //     // init call table
-            //     auto *callTable = new QStandardItemModel(); // NOLINT
-            //     callTable->setHorizontalHeaderLabels({tr("Script"), tr("Line"), tr("Name"), tr("View")});
-            //     // get call stack
-            //     int level = 0;
-            //     while (lua_getstack(L, level, ar)) {
-            //         lua_getinfo(L, "nSl", ar);
-            //         const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
-            //         callTable->insertRow(0);
-            //         callTable->setItem(0, 0, new QStandardItem(scriptUrl.fileName()));
-            //         callTable->setItem(0, 1, new QStandardItem(QString::number(ar->currentline)));
-            //         callTable->setItem(0, 2, new QStandardItem(ar->name ? ar->name : "?"));
-            //         auto *viewItem = new QStandardItem(QIcon(":/icon/arrowRight.svg"), ""); // NOLINT
-            //         viewItem->setData(QVariant(scriptUrl), Qt::UserRole + 1);
-            //         viewItem->setData(QVariant(ar->currentline), Qt::UserRole + 2);
-            //         callTable->setItem(0, 3, viewItem);
-            //         level++;
-            //     }
-            //     // send to debug module
-            //     QMetaObject::invokeMethod(g_mainWindow, [debugData, callTable] {
-            //         g_debug->callReturn(debugData->threadId, callTable);
-            //     }, Qt::BlockingQueuedConnection);
-            // }
-
+            // call stack handle
+            {
+                auto *callStackModel = new QStandardItemModel(); // NOLINT
+                int level = 0;
+                while (lua_getstack(L, level, ar)) {
+                    lua_getinfo(L, "nSl", ar);
+                    const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
+                    const int line = ar->currentline;
+                    const QVariantHash position = {
+                        {"scriptUrl", scriptUrl},
+                        {"line", line}
+                    };
+                    auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
+                    fileItem->setData(position, Qt::WhatsThisRole);
+                    auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
+                    auto *nameItem = new QStandardItem(ar->name ? ar->name : "?"); // NOLINT
+                    callStackModel->insertRow(0, {fileItem, lineItem, nameItem});
+                    level++;
+                }
+            }
+            // TODO: var handle
+            {
+                // var tree
+                // {
+                //     // init var tree
+                //     auto *varTree = new QStandardItemModel(); // NOLINT
+                //     varTree->setHorizontalHeaderLabels({tr("Name"), tr("Type"), tr("Value")});
+                //     // table recursion lambda
+                //     auto appendTable = [](lua_State *L, QStandardItem *parentNameItem, const QString &parentVarname, const QString &parentVarScope, const int tableIndex,
+                //                           auto &&self) -> void {
+                //         lua_pushnil(L);
+                //         while (lua_next(L, tableIndex) != 0) {
+                //             lua_pushvalue(L, -2);
+                //             QString varName = lua_tostring(L, -1);
+                //             lua_pop(L, 1);
+                //             QString varType = lua_typename(L, lua_type(L, -1));
+                //             lua_pushvalue(L, -1);
+                //             QString varValue = lua_toqstring(L, -1);
+                //             lua_pop(L, 1);
+                //
+                //             auto *localNameItem = new QStandardItem(varName); // NOLINT
+                //             localNameItem->setEditable(false);
+                //             auto *localTypeItem = new QStandardItem(varType); // NOLINT
+                //             localTypeItem->setEditable(false);
+                //             QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
+                //
+                //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
+                //                 valueItem->setData(parentVarScope, Qt::UserRole + 1);
+                //                 valueItem->setData(parentVarname + "." + varName, Qt::UserRole + 2);
+                //             } else if (lua_type(L, -1) == LUA_TTABLE) {
+                //                 valueItem->setEditable(false);
+                //                 self(L, localNameItem, parentVarname + "." + varName, parentVarScope, lua_gettop(L), self);
+                //             } else {
+                //                 valueItem->setEditable(false);
+                //             }
+                //             parentNameItem->appendRow({localNameItem, localTypeItem, valueItem});
+                //             lua_pop(L, 1);
+                //         }
+                //     };
+                //     // local var
+                //     auto *localVar = new QStandardItem("local"); // NOLINT
+                //     localVar->setEditable(false);
+                //     varTree->appendRow(localVar);
+                //     int i = 1;
+                //     QString localVarName;
+                //     while ((localVarName = lua_getlocal(L, ar, i)) != nullptr) {
+                //         if (localVarName[0] != '(') {
+                //             QString localVarType = lua_typename(L, lua_type(L, -1));
+                //             QString localVarValue = lua_toqstring(L, -1);
+                //
+                //             QStandardItem *localNameItem = new QStandardItem(localVarName); // NOLINT
+                //             localNameItem->setEditable(false);
+                //             QStandardItem *localTypeItem = new QStandardItem(localVarType); // NOLINT
+                //             localTypeItem->setEditable(false);
+                //             QStandardItem *localValueItem = new QStandardItem(localVarValue); // NOLINT
+                //
+                //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
+                //                 localValueItem->setData("local", Qt::UserRole + 1);
+                //                 localValueItem->setData(localVarName, Qt::UserRole + 2);
+                //             } else if (lua_type(L, -1) == LUA_TTABLE) {
+                //                 localValueItem->setEditable(false);
+                //                 appendTable(L, localNameItem, localVarName, "local", lua_gettop(L), appendTable);
+                //             } else {
+                //                 localValueItem->setEditable(false);
+                //             }
+                //             localVar->appendRow({localNameItem, localTypeItem, localValueItem});
+                //         }
+                //         lua_pop(L, 1);
+                //         i++;
+                //     }
+                //     // up var
+                //     auto *upVar = new QStandardItem("up"); // NOLINT
+                //     upVar->setEditable(false);
+                //     varTree->appendRow(upVar);
+                //     lua_getinfo(L, "f", ar);
+                //     i = 1;
+                //     QString upVarName;
+                //     while ((upVarName = lua_getupvalue(L, -1, i)) != nullptr) {
+                //         if (upVarName[0] != '(' && upVarName[0] != '_') {
+                //             QString upVarType = lua_typename(L, lua_type(L, -1));
+                //             QString upVarValue = lua_toqstring(L, -1);
+                //
+                //             QStandardItem *upNameItem = new QStandardItem(upVarName); // NOLINT
+                //             upNameItem->setEditable(false);
+                //             QStandardItem *upTypeItem = new QStandardItem(upVarType); // NOLINT
+                //             upTypeItem->setEditable(false);
+                //             QStandardItem *upValueItem = new QStandardItem(upVarValue); // NOLINT
+                //
+                //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
+                //                 upValueItem->setData("up", Qt::UserRole + 1);
+                //                 upValueItem->setData(upVarName, Qt::UserRole + 2);
+                //             } else if (lua_type(L, -1) == LUA_TTABLE) {
+                //                 upValueItem->setEditable(false);
+                //                 appendTable(L, upNameItem, upVarName, "up", lua_gettop(L), appendTable);
+                //             } else {
+                //                 upValueItem->setEditable(false);
+                //             }
+                //             upVar->appendRow({upNameItem, upTypeItem, upValueItem});
+                //         }
+                //         lua_pop(L, 1);
+                //         i++;
+                //     }
+                //     lua_pop(L, 1);
+                //     // send to debug module
+                //     QMetaObject::invokeMethod(g_mainWindow, [debugData, varTree] {
+                //         g_debug->varReturn(debugData->threadId, varTree);
+                //     }, Qt::BlockingQueuedConnection);
+                // }
+            }
             // hold thread
             QEventLoop loop;
             connect(This, &LuaInterpreter::quitLoop, &loop, &QEventLoop::quit);

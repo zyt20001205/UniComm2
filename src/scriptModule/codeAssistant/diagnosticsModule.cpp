@@ -38,7 +38,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QJsonObject range = diagnostic["range"].toObject();
         const QJsonObject startPos = range["start"].toObject();
         const QJsonObject endPos = range["end"].toObject();
-        const QVariantMap position = {
+        const QVariantHash position = {
             {"scriptUrl", scriptUrl},
             {"startLine", startPos["line"].toInt()},
             {"startCharacter", startPos["character"].toInt()},
@@ -91,7 +91,7 @@ void DiagnosticsModule::diagnosticCopy(const QString &diagnostic) {
     clipboard->setText(diagnostic);
 }
 
-void DiagnosticsModule::indicatorInsert(const QVariantMap &position) {
+void DiagnosticsModule::indicatorInsert(const QVariantHash &position) {
     emit setCursorPosition(
         position["scriptUrl"].toUrl(),
         position["startLine"].toInt(),

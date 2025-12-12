@@ -21,7 +21,7 @@ public:
 
     Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
 
-    Q_INVOKABLE void indicatorInsert(const QVariantMap &position);
+    Q_INVOKABLE void indicatorInsert(const QVariantHash &position);
 
 signals:
     void openScript(const QUrl &scriptUrl);

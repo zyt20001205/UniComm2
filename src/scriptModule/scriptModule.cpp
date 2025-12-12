@@ -289,7 +289,7 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
         m_codeAssistant->navigationResponse(line);
         return line;
     }
-    // WIP: cover other conditions
+    // TODO: cover other conditions
     return {};
 }
 
