@@ -53,6 +53,48 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
     return {regData.constData(), static_cast<std::string::size_type>(regData.size())};
 }
 
+void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const int timeout) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        throw sol::error(portName + " does not exist");
+    }
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    constexpr int funcCode = 0x06;
+    const QByteArray regData(data.data(), static_cast<qsizetype>(data.size()));
+
+    QByteArray txData{};
+    txData.append(static_cast<qint8>(slaveAddr));
+    txData.append(funcCode);
+    txData.append(static_cast<qint8>(regAddr >> 8 & 0xFF));
+    txData.append(static_cast<qint8>(regAddr & 0xFF));
+    txData += regData;
+    txData += modbusCRC(txData);
+
+    QByteArray rxData{};
+    bool status = false;
+
+    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+        status = port->write(txData, "raw", "null");
+        rxData = port->read(timeout, 8, "raw");
+    }, Qt::BlockingQueuedConnection);
+    if (!status) {
+        throw sol::error("modbus rtu write single register failed");
+    }
+    if (static_cast<quint8>(rxData.at(0)) != slaveAddr) {
+        throw sol::error("modbus rtu write single register slave address inconsistent");
+    }
+    if (static_cast<quint8>(rxData.at(1)) != funcCode) {
+        throw sol::error("modbus rtu write single register function code inconsistent");
+    }
+    if ((static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3))) != regAddr) {
+        throw sol::error("modbus rtu write single register register address inconsistent");
+    }
+    const QByteArray checksum = rxData.right(2);
+    rxData.chop(2);
+    if (checksum != modbusCRC(rxData)) {
+        throw sol::error("modbus rtu write single register checksum error");
+    }
+}
+
 void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
@@ -91,10 +133,10 @@ void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int
     if (static_cast<quint8>(rxData.at(1)) != funcCode) {
         throw sol::error("modbus rtu write multiple registers function code inconsistent");
     }
-    if (static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3)) != startAddr) {
+    if ((static_cast<quint8>(rxData.at(2)) << 8 | static_cast<quint8>(rxData.at(3))) != startAddr) {
         throw sol::error("modbus rtu write multiple registers start address inconsistent");
     }
-    if (static_cast<quint8>(rxData.at(4)) << 8 | static_cast<quint8>(rxData.at(5)) != regCount) {
+    if ((static_cast<quint8>(rxData.at(4)) << 8 | static_cast<quint8>(rxData.at(5))) != regCount) {
         throw sol::error("modbus rtu write multiple registers register count inconsistent");
     }
     const QByteArray checksum = rxData.right(2);

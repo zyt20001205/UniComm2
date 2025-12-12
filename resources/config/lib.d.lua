@@ -47,6 +47,15 @@ modbusRtu = {}
 --- @return string
 function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
+--- Writes data to write single register to a Modbus RTU device.
+--- @param name port Target port name.
+--- @param slaveAddr integer The slave address (1-247) of the target device on the network.
+--- @param regAddr integer The address of the register to write to.
+--- @param data string **Binary string** containing the raw data to be written.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
+function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
+
 --- Writes data to multiple holding registers to a Modbus RTU device.
 --- @param name port Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.

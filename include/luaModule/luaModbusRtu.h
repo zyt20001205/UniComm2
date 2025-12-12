@@ -13,6 +13,8 @@ public:
 
     std::string readHoldingRegisters(const std::string &portName, int slaveAddr, int startAddr, int quantity, int timeout);
 
+    void writeSingleRegister(const std::string &portName, int slaveAddr, int regAddr, const std::string_view &data, int timeout);
+
     void writeMultipleRegisters(const std::string &portName, int slaveAddr, int startAddr, const std::string_view &data, int timeout);
 };
 

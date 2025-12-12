@@ -41,6 +41,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     modbusRtu.set_function("readHoldingRegisters", [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
         return m_luaModbusRtu->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
     });
+    modbusRtu.set_function("writeSingleRegister", [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+            m_luaModbusRtu->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+        });
     modbusRtu.set_function("writeMultipleRegisters", [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
         m_luaModbusRtu->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
     });
