@@ -6,7 +6,6 @@
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
 
-
 LuaPort::LuaPort(QObject *parent)
     : QObject(parent) {
 }
