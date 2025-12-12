@@ -132,6 +132,7 @@ QByteArray TcpServer::read(const int timeout, const int length, const QString &r
     // async mode
     if (timeout == 0) {
         rxData = m_rxBuffer;
+        m_rxBuffer = {};
     }
     // sync mode
     else {
@@ -153,6 +154,7 @@ QByteArray TcpServer::read(const int timeout, const int length, const QString &p
     // async mode
     if (timeout == 0) {
         rxData = m_rxBuffer;
+        m_rxBuffer = {};
     }
     // sync mode
     else {

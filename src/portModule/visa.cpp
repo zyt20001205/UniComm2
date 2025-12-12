@@ -75,6 +75,7 @@ QByteArray Visa::read(const int timeout, const int length, const QString &rxForm
     // async mode
     if (timeout == 0) {
         rxData = m_rxBuffer;
+        m_rxBuffer = {};
     }
     // sync mode
     else {

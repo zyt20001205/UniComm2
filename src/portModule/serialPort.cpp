@@ -137,6 +137,7 @@ QByteArray SerialPort::read(const int timeout, const int length, const QString &
     // async mode
     if (timeout == 0) {
         rxData = m_rxBuffer;
+        m_rxBuffer = {};
     }
     // sync mode
     else {
