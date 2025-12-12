@@ -7,7 +7,8 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 0
+        anchors.margins: 5
+        spacing: 5
 
         RowLayout {
             Layout.fillWidth: true; Layout.preferredHeight: 24
