@@ -2,6 +2,7 @@
 #define UNICOMM_DEBUG_H
 
 #include <QSortFilterProxyModel>
+#include <qstandarditemmodel.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QQuickWidget;
@@ -25,11 +26,15 @@ public:
 
     void debugStart(const QString &threadId) const;
 
-    void debugStop(const QString &threadId) const;
+    void debugStop(const QString &threadId);
 
     Q_INVOKABLE void stateSet(const QString &threadId, int state);
 
     void callStackInsert(const QString &threadId, QStandardItemModel *callStackModel);
+
+    Q_INVOKABLE void callStackSwitch(const QString &threadId) const;
+
+    Q_INVOKABLE void markerInsert(const QVariantHash &position);
 
 signals:
     void openScript(const QUrl &scriptUrl);
@@ -41,7 +46,7 @@ signals:
 private:
     QQuickWidget *m_debugWidget{};
     QStringListModel *m_threadStringListModel{};
-    QHash<QString, const QStandardItemModel *> m_callStackModelHash{};
+    QHash<QString, QStandardItemModel *> m_callStackModelHash{};
 };
 
 #endif //UNICOMM_DEBUG_H

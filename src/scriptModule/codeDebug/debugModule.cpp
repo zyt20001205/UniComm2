@@ -23,7 +23,7 @@
 DebugModule::DebugModule()
     : DockWidget("debug"),
       m_debugWidget(new QQuickWidget()),
-      m_threadStringListModel(new QStringListModel()){
+      m_threadStringListModel(new QStringListModel()) {
     setWidget(m_debugWidget);
     m_debugWidget->rootContext()->setContextProperty("debugModule", this);
     m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);
@@ -32,15 +32,18 @@ DebugModule::DebugModule()
 }
 
 void DebugModule::debugStart(const QString &threadId) const {
-    const int row = m_threadStringListModel->rowCount();
-    m_threadStringListModel->insertRow(row);
-    m_threadStringListModel->setData(m_threadStringListModel->index(row), threadId);
+    QStringList threads = m_threadStringListModel->stringList();
+    threads.append(threadId);
+    m_threadStringListModel->setStringList(threads);
 }
 
-void DebugModule::debugStop(const QString &threadId) const {
+void DebugModule::debugStop(const QString &threadId) {
+    // string list model
     QStringList threads = m_threadStringListModel->stringList();
     threads.removeOne(threadId);
     m_threadStringListModel->setStringList(threads);
+    // standard item model
+    m_callStackModelHash.remove(threadId);
 }
 
 void DebugModule::stateSet(const QString &threadId, const int state) {
@@ -49,10 +52,26 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
 
 void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {
     m_callStackModelHash[threadId] = callStackModel;
-    qDebug() << callStackModel->item(0, 0)->text();
-    qDebug() << callStackModel->item(0, 1)->text();
-    qDebug() << callStackModel->item(0, 2)->text();
+}
+
+void DebugModule::callStackSwitch(const QString &threadId) const {
+    if (threadId.isEmpty()) {
+        m_debugWidget->rootContext()->setContextProperty("standardItemModel", nullptr);
+        return;
+    }
+    auto *callStackModel = m_callStackModelHash.value(threadId, nullptr);
+    if (!callStackModel) {
+        m_debugWidget->rootContext()->setContextProperty("standardItemModel", nullptr);
+        return;
+    }
     m_debugWidget->rootContext()->setContextProperty("standardItemModel", callStackModel);
-    // if (!m_debugPageHash.contains(threadId)) return;
-    // m_debugPageHash[threadId]->callLoad(callTable);
+}
+
+void DebugModule::markerInsert(const QVariantHash &position) {
+    emit openScript(position["scriptUrl"].toUrl());
+    emit insertMarker(
+        position["scriptUrl"].toUrl(),
+        MARKER_HINT,
+        position["line"].toInt() - 1,
+        1000);
 }

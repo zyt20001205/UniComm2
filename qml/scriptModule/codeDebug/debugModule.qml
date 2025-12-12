@@ -91,6 +91,10 @@ Item {
             Layout.alignment: Qt.AlignTop
             model: stringListModel
             textRole: "display"
+            onCurrentTextChanged: {
+                console.log(currentText)
+                debugModule.callStackSwitch(currentText)
+            }
         }
 
         TableView {
@@ -110,80 +114,85 @@ Item {
             }
 
             delegate: Rectangle {
-                    id: textCell
-                    required property int column
-                    required property int row
+                id: textCell
+                required property int column
+                required property int row
 
-                    implicitWidth: {
-                        if (textCell.column === tableView.columns - 1) {
-                            let usedWidth = 0
-                            for (let i = 0; i < tableView.columns - 1; i++) {
-                                usedWidth += tableView.columnWidth(i)
-                            }
-                            return tableView.width - usedWidth
+                implicitWidth: {
+                    if (textCell.column === tableView.columns - 1) {
+                        let usedWidth = 0
+                        for (let i = 0; i < tableView.columns - 1; i++) {
+                            usedWidth += tableView.columnWidth(i)
                         }
-                        return Math.max(textMetrics.width + 16, 60)
+                        return tableView.width - usedWidth
                     }
-                    implicitHeight: 24
-                    color: "white"
+                    return Math.max(textMetrics.width + 16, 60)
+                }
+                implicitHeight: 24
+                color: "white"
 
-                    TextMetrics {
-                        id: textMetrics
-                        font.family: "Segoe UI"
-                        font.pointSize: 10
-                        text: model.display || ""
-                    }
+                TextMetrics {
+                    id: textMetrics
+                    font.family: "Segoe UI"
+                    font.pointSize: 10
+                    text: model.display || ""
+                }
 
-                    Text {
-                        anchors.fill: parent
-                        z: 2
-                        font.family: "Segoe UI"
-                        font.pointSize: 10
-                        horizontalAlignment: Text.AlignLeft
-                        verticalAlignment: Text.AlignVCenter
-                        text: model.display
-                        elide: Text.ElideRight
+                Text {
+                    anchors.fill: parent
+                    z: 2
+                    font.family: "Segoe UI"
+                    font.pointSize: 10
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                    text: model.display
+                    elide: Text.ElideRight
 
-                        ToolTip.visible: hoverHandler.hovered
-                        ToolTip.delay: 500
-                        ToolTip.text: model.display
-                    }
+                    ToolTip.visible: hoverHandler.hovered
+                    ToolTip.delay: 500
+                    ToolTip.text: qsTr("Click to view")
+                }
 
-                    Rectangle {
-                        id: highlightRect
-                        anchors.fill: parent
-                        z: 1
-                        radius: 2
-                        color: "#f5f5f5"
-                        opacity: hoverHandler.hovered ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 150
-                            }
+                Rectangle {
+                    id: highlightRect
+                    anchors.fill: parent
+                    z: 1
+                    radius: 2
+                    color: "#f5f5f5"
+                    opacity: hoverHandler.hovered ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
                         }
-                    }
-
-                    HoverHandler {
-                        id: hoverHandler
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.LeftButton
-                        onTapped: tableView.indicatorInsert(textCell.row)
                     }
                 }
+
+                HoverHandler {
+                    id: hoverHandler
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    onTapped: tableView.markerInsert(textCell.row)
+                }
             }
+
+            function markerInsert(row) {
+                const index = model.index(row, 0);
+                debugModule.markerInsert(model.data(index, Qt.WhatsThisRole))
+            }
+        }
     }
 
     Connections {
         target: stringListModel
 
-        function onRowsInserted() {
-            combobox.currentIndex = stringListModel.rowCount() - 1
-        }
-
-        function onRowsRemoved() {
-            combobox.currentIndex = stringListModel.rowCount() - 1
-        }
+        // function onRowsInserted() {
+        //     combobox.currentIndex = stringListModel.rowCount() - 1
+        // }
+        //
+        // function onRowsRemoved() {
+        //     combobox.currentIndex = stringListModel.rowCount() - 1
+        // }
     }
 }
