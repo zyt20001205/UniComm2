@@ -72,7 +72,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
     m_lua["thread"] = thread;
     connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
-    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread); {
+    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
+    {
         // // register control class
         // lua_newtable(L);
         // lua_pushcfunction(L, lua_leftClick);
@@ -341,10 +342,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             session["state"] = DEBUG_PAUSE;
         if (session["state"].toInt() == DEBUG_PAUSE) {
             // url handle
-            if (currentUrl != session["currentUrl"].toUrl()) {
-                emit This->openScript(currentUrl);
-                session["currentUrl"] = currentUrl;
-            }
+            emit This->openScript(currentUrl);
+            if (currentUrl != session["currentUrl"].toUrl()) session["currentUrl"] = currentUrl;
             // line handle
             emit This->insertMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
             // call stack handle
