@@ -156,6 +156,7 @@ qt_add_resources(UniComm "qml_resources"
         BASE "qml"
         FILES
         "qml/logModule.qml"
+        "qml/mainWindow.qml"
         "qml/scriptModule/codeAssistant/diagnosticsModule.qml"
         "qml/scriptModule/codeAssistant/structureModule.qml"
         "qml/scriptModule/codeDebug/breakpointModule.qml"
