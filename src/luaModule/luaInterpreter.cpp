@@ -360,7 +360,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
                 fileItem->setData(position, Qt::WhatsThisRole);
                 auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-                auto *nameItem = new QStandardItem(ar->name ? ar->name : "?"); // NOLINT
+                auto *nameItem = new QStandardItem(ar->name ? ar->name : "main"); // NOLINT
                 callStackModel->insertRow(0, {fileItem, lineItem, nameItem});
                 level++;
             }
