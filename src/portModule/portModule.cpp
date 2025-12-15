@@ -21,6 +21,7 @@ PortModule::PortModule()
     : DockWidget("port"),
       m_portTabWidget(new QTabWidget()),
       m_portTabOverlay(new QWidget(m_portTabWidget)) {
+    setObjectName("portModule");
     setMinimumHeight(100);
     setWidget(m_portTabWidget);
     m_portTabWidget->setTabPosition(QTabWidget::West);

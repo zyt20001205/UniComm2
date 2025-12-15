@@ -7,9 +7,11 @@
 class QComboBox;
 class QShortcut;
 
+class LuaLanguageServer;
+
 class StructureModule;
 class ConfigModule;
-class LuaLanguageServer;
+
 class NuspellModule;
 class UndoModule;
 class SettingModule;
@@ -60,24 +62,25 @@ private:
     QJsonObject m_mainConfig{};
     bool m_askForSaving = true;
 
-    ConfigModule *m_configModule{};
-    LuaLanguageServer *m_llsModule{};
-    NuspellModule *m_nuspellModule{};
-    UndoModule *m_undoModule{};
-    SettingModule *m_settingModule{};
-    ScriptModule *m_scriptModule{};
-    PortModule *m_portModule{};
-    ExplorerModule *m_explorerModule{};
-    StructureModule *m_structureModule{};
-    SendModule *m_sendModule{};
-    DatabaseModule *m_databaseModule{};
-    DatatableModule *m_datatableModule{};
-    DataplotModule *m_dataplotModule{};
-    LogModule *m_logModule{};
-    DiagnosticsModule *m_diagnosticsModule{};
-    DebugModule *m_debugModule{};
-    ThreadpoolModule *m_threadpoolModule{};
+    LuaLanguageServer *m_luals{};
+
     BreakpointModule *m_breakpointModule{};
+    ConfigModule *m_configModule{};
+    DatabaseModule *m_databaseModule{};
+    DataplotModule *m_dataplotModule{};
+    DatatableModule *m_datatableModule{};
+    DebugModule *m_debugModule{};
+    DiagnosticsModule *m_diagnosticsModule{};
+    ExplorerModule *m_explorerModule{};
+    LogModule *m_logModule{};
+    NuspellModule *m_nuspellModule{};
+    PortModule *m_portModule{};
+    ScriptModule *m_scriptModule{};
+    SendModule *m_sendModule{};
+    SettingModule *m_settingModule{};
+    StructureModule *m_structureModule{};
+    ThreadpoolModule *m_threadpoolModule{};
+    UndoModule *m_undoModule{};
 
     QShortcut *m_openWorkspaceShortcut{};
     QShortcut *m_saveWorkspaceShortcut{};

@@ -23,13 +23,10 @@ extern MainWindow *g_mainWindow;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
-extern DebugModule *g_debug;
-extern LogModule *g_log;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;
 extern ScriptModule *g_script;
 extern StructureModule *g_structure;
-extern ThreadpoolModule *g_threadpool;
 extern UndoModule *g_undo;
 
 extern QUrl g_workspaceUrl;

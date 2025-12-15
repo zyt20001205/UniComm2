@@ -21,6 +21,7 @@ ThreadpoolModule::ThreadpoolModule()
     : DockWidget("threadpool"),
       m_threadpoolWidget(new QQuickWidget()),
       m_threadpoolModel(new QStandardItemModel(this)) {
+    setObjectName("threadpoolModule");
     setWidget(m_threadpoolWidget);
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};
     m_threadpoolWidget->rootContext()->setContextProperty("threadpoolModule", this);

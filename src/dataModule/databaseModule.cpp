@@ -19,6 +19,7 @@ DatabaseModule::DatabaseModule()
       m_databaseWidget(new QQuickWidget()),
       m_databaseModel(new QStandardItemModel(this)),
       m_tableWidget(new QTableWidget()) {
+    setObjectName("databaseModule");
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->setColumnCount(1);

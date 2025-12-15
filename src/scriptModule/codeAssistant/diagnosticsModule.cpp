@@ -15,6 +15,7 @@
 DiagnosticsModule::DiagnosticsModule()
     : DockWidget("diagnostics"),
       m_diagnosticsWidget(new QQuickWidget()) {
+    setObjectName("diagnosticsModule");
     setWidget(m_diagnosticsWidget);
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
     m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticsModule", this);

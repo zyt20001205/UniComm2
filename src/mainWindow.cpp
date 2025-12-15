@@ -91,132 +91,59 @@ void MainWindow::moduleInit() {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
-    m_configModule = new ConfigModule(this);
-    m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "config module initialized");
-
-    m_llsModule = new LuaLanguageServer(this);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "lls module initialized");
-
-    m_nuspellModule = new NuspellModule(this);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "nuspell module initialized");
-
-    m_undoModule = new UndoModule(this);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "undo module initialized");
-
-    m_settingModule = new SettingModule(this);
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "setting module initialized");
-
-    m_scriptModule = new ScriptModule();
-    m_scriptModule->setObjectName("scriptModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "script module initialized");
-
-    m_portModule = new PortModule();
-    m_portModule->setObjectName("portModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "port module initialized");
-
-    m_explorerModule = new ExplorerModule();
-    m_explorerModule->setObjectName("explorerModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "explorer module initialized");
-
-    m_structureModule = new StructureModule();
-    m_structureModule->setObjectName("structureModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "structure module initialized");
-
-    m_sendModule = new SendModule();
-    m_sendModule->setObjectName("sendModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "send module initialized");
-
-    m_databaseModule = new DatabaseModule();
-    m_databaseModule->setObjectName("databaseModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "database module initialized");
-
-    m_datatableModule = new DatatableModule();
-    m_datatableModule->setObjectName("datatableModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "datatable module initialized");
-
-    m_dataplotModule = new DataplotModule();
-    m_dataplotModule->setObjectName("dataplotModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "dataplot module initialized");
-
-    m_logModule = new LogModule();
-    m_logModule->setObjectName("logModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "log module initialized");
-
-    m_diagnosticsModule = new DiagnosticsModule();
-    m_diagnosticsModule->setObjectName("diagnosticsModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "diagnostics module initialized");
-
-    m_debugModule = new DebugModule();
-    m_debugModule->setObjectName("debugModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "debug module initialized");
-
-    m_threadpoolModule = new ThreadpoolModule();
-    m_threadpoolModule->setObjectName("threadpoolModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "threadpool module initialized");
+    m_luals = new LuaLanguageServer(this);
 
     m_breakpointModule = new BreakpointModule();
-    m_breakpointModule->setObjectName("breakpointModule");
-    // logging
-    timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "breakpoint module initialized");
+    m_configModule = new ConfigModule(this);
+    m_databaseModule = new DatabaseModule();
+    m_dataplotModule = new DataplotModule();
+    m_datatableModule = new DatatableModule();
+    m_debugModule = new DebugModule();
+    m_diagnosticsModule = new DiagnosticsModule();
+    m_explorerModule = new ExplorerModule();
+    m_logModule = new LogModule();
+    m_nuspellModule = new NuspellModule(this);
+    m_portModule = new PortModule();
+    m_scriptModule = new ScriptModule();
+    m_sendModule = new SendModule();
+    m_settingModule = new SettingModule(this);
+    m_structureModule = new StructureModule();
+    m_threadpoolModule = new ThreadpoolModule();
+    m_undoModule = new UndoModule(this);
+
+    m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
+    g_database = m_databaseModule;
+    g_datatable = m_datatableModule;
+    g_dataplot = m_dataplotModule;
+    g_nuspell = m_nuspellModule;
+    g_port = m_portModule;
+    g_script = m_scriptModule;
+    g_undo = m_undoModule;
+
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
+
     connect(m_scriptComboBox, &QComboBox::activated, m_scriptModule, [this] {
         const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
         m_scriptModule->scriptOpen(scriptUrl);
     });
     connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
-    connect(m_llsModule, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
-    connect(m_llsModule, &LuaLanguageServer::responseCodeAction, m_scriptModule, &ScriptModule::responseCodeAction);
-    connect(m_llsModule, &LuaLanguageServer::responseCompletion, m_scriptModule, &ScriptModule::completionResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseDefinition, m_scriptModule, &ScriptModule::definitionResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseDocumentHighlight, m_scriptModule, &ScriptModule::documentHighlightResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseDocumentSymbol, m_structureModule, &StructureModule::documentSymbolResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseFoldingRange, m_scriptModule, &ScriptModule::foldingRangeResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseFormatting, m_scriptModule, &ScriptModule::formattingResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseHover, m_scriptModule, &ScriptModule::hoverResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseImplementation, m_scriptModule, &ScriptModule::implementationResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseOnTypeFormatting, m_scriptModule, &ScriptModule::onTypeFormattingResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseReferences, m_scriptModule, &ScriptModule::referencesResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);
-    connect(m_llsModule, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
+    connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
+    connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
+    connect(m_luals, &LuaLanguageServer::responseCodeAction, m_scriptModule, &ScriptModule::responseCodeAction);
+    connect(m_luals, &LuaLanguageServer::responseCompletion, m_scriptModule, &ScriptModule::completionResponse);
+    connect(m_luals, &LuaLanguageServer::responseDefinition, m_scriptModule, &ScriptModule::definitionResponse);
+    connect(m_luals, &LuaLanguageServer::responseDocumentHighlight, m_scriptModule, &ScriptModule::documentHighlightResponse);
+    connect(m_luals, &LuaLanguageServer::responseDocumentSymbol, m_structureModule, &StructureModule::documentSymbolResponse);
+    connect(m_luals, &LuaLanguageServer::responseFoldingRange, m_scriptModule, &ScriptModule::foldingRangeResponse);
+    connect(m_luals, &LuaLanguageServer::responseFormatting, m_scriptModule, &ScriptModule::formattingResponse);
+    connect(m_luals, &LuaLanguageServer::responseHover, m_scriptModule, &ScriptModule::hoverResponse);
+    connect(m_luals, &LuaLanguageServer::responseImplementation, m_scriptModule, &ScriptModule::implementationResponse);
+    connect(m_luals, &LuaLanguageServer::responseOnTypeFormatting, m_scriptModule, &ScriptModule::onTypeFormattingResponse);
+    connect(m_luals, &LuaLanguageServer::responseReferences, m_scriptModule, &ScriptModule::referencesResponse);
+    connect(m_luals, &LuaLanguageServer::responseSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensResponse);
+    connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);
+    connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
@@ -226,8 +153,8 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
     connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
     connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
-    connect(m_scriptModule, &ScriptModule::requestJson, m_llsModule, &LuaLanguageServer::jsonRequest);
-    connect(m_scriptModule, &ScriptModule::notificationJson, m_llsModule, &LuaLanguageServer::jsonNotification);
+    connect(m_scriptModule, &ScriptModule::requestJson, m_luals, &LuaLanguageServer::jsonRequest);
+    connect(m_scriptModule, &ScriptModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
@@ -287,17 +214,6 @@ void MainWindow::moduleInit() {
     connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
-
-    g_database = m_databaseModule;
-    g_datatable = m_datatableModule;
-    g_dataplot = m_dataplotModule;
-    g_debug = m_debugModule;
-    g_log = m_logModule;
-    g_nuspell = m_nuspellModule;
-    g_port = m_portModule;
-    g_script = m_scriptModule;
-    g_threadpool = m_threadpoolModule;
-    g_undo = m_undoModule;
 }
 
 void MainWindow::shortcutInit() {
@@ -510,24 +426,19 @@ void MainWindow::menuInit() {
 }
 
 void MainWindow::layoutInit() {
-    if (!m_mainConfig["geometry"].toString().isEmpty()) {
-        const QByteArray geometry = QByteArray::fromBase64(m_mainConfig["geometry"].toString().toLatin1());
-        restoreGeometry(geometry);
-    }
-    if (m_mainConfig["state"].toString().isEmpty()) {
-        addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
-        addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
-        addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
-        addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
-        addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, m_scriptModule->welcomePage(), KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-        addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
-        m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
-        m_logModule->addDockWidgetAsTab(m_debugModule);
-        m_logModule->raise();
-        addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
-    } else {
+    addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
+    addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
+    addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
+    addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
+    addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, m_scriptModule->welcomePage(), KDDockWidgets::InitialVisibilityOption::StartHidden);
+    addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
+    addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
+    addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
+    m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
+    m_logModule->addDockWidgetAsTab(m_debugModule);
+    m_logModule->raise();
+    addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
+    if (!m_mainConfig["state"].toString().isEmpty()) {
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
         layoutSaver.restoreLayout(layoutData);
@@ -538,7 +449,6 @@ void MainWindow::layoutInit() {
 }
 
 void MainWindow::mainConfigSave() {
-    m_mainConfig["geometry"] = QString(saveGeometry().toBase64());
     const KDDockWidgets::LayoutSaver layoutSaver;
     const QByteArray layoutData = layoutSaver.serializeLayout();
     m_mainConfig["state"] = QString(layoutData.toBase64());
