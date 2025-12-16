@@ -1,9 +1,6 @@
 #ifndef UNICOMM_GLOBALS_H
 #define UNICOMM_GLOBALS_H
 
-#include <QJsonObject>
-#include <QUrl>
-#include <QVariantMap>
 #include <visa.h>
 
 #include "mainWindow.h"
@@ -20,7 +17,6 @@ class ThreadpoolModule;
 class UndoModule;
 
 extern MainWindow *g_mainWindow;
-extern QQuickItem *g_rootObject;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;

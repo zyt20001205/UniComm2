@@ -52,6 +52,11 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
     QWidget::resize(1600, 900);
 
+    moduleInit();
+    shortcutInit();
+    menuInit();
+    layoutInit();
+
     m_overlay = new QQuickWidget(this);
     m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_overlay->setClearColor(Qt::transparent);
@@ -60,16 +65,12 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     QSurfaceFormat format;
     format.setAlphaBufferSize(8);
     m_overlay->setFormat(format);
-    m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
-    m_overlay->hide();
-
-    moduleInit();
-    shortcutInit();
-    menuInit();
-    layoutInit();
 
     propertySet();
-    propertyGet();
+    m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
+    m_overlay->resize(size());
+    m_overlay->hide();
+
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
@@ -84,11 +85,15 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
-    g_rootObject = m_overlay->rootObject();
+    m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
 }
 
-void MainWindow::propertyGet() {
-    m_closeDialog = g_rootObject->findChild<QObject *>("mainWindowCloseDialog");
+void MainWindow::propertyGet(const QVariantMap &objects) {
+    m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
+    const QVariantMap logObjects = {
+        {"logModuleHeightDialog", objects["logModuleHeightDialog"]}
+    };
+    m_logModule->propertySet(logObjects);
 }
 
 void MainWindow::overlayShow() const {

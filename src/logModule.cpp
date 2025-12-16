@@ -13,6 +13,7 @@
 #include <QStandardPaths>
 
 #include "globals.h"
+
 // LogModule public
 LogModule::LogModule()
     : DockWidget("log"),
@@ -20,17 +21,24 @@ LogModule::LogModule()
       m_logWidget(new QQuickWidget()),
       m_logTextDocument(new QTextDocument()) {
     setWidget(m_logWidget);
+}
+
+void LogModule::propertySet(const QVariantMap &objects) {
+    m_heightDialog = qvariant_cast<QObject *>(objects["logModuleHeightDialog"]);
     m_logWidget->rootContext()->setContextProperty("logModule", this);
+    m_logWidget->rootContext()->setContextProperty("heightDialog", m_heightDialog);
     m_logWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_logWidget->setSource(QUrl("qrc:/qml/logModule.qml"));
-    const QQuickItem *rootObject = m_logWidget->rootObject();
-    m_logTextArea = rootObject->findChild<QObject *>("logTextArea");
+}
+
+void LogModule::propertyGet(const QVariantMap &objects) {
+    // set timestamp
+    auto *timestampButton = qvariant_cast<QObject *>(objects["timestampButton"]);
+    timestampButton->setProperty("checked", m_logConfig["timestamp"].toBool());
     // set font
+    m_logTextArea = qvariant_cast<QObject *>(objects["textArea"]);
     const auto logFont = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
     m_logTextArea->setProperty("font", logFont);
-    // set timestamp
-    auto *timestampButton = rootObject->findChild<QObject *>("timestampButton");
-    timestampButton->setProperty("checked", m_logConfig["timestamp"].toBool());
     // set height
     const auto *quickTextDocument = qvariant_cast<QQuickTextDocument *>(m_logTextArea->property("textDocument"));
     m_logTextDocument = quickTextDocument->textDocument();

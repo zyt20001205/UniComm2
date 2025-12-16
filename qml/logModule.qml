@@ -16,7 +16,6 @@ RowLayout {
 
         Button {
             id: timestampButton
-            objectName: "timestampButton"
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             checkable: true
@@ -27,43 +26,15 @@ RowLayout {
         }
 
         Button {
-            id: heightButton
-            objectName: "heightButton"
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/autoFitHeight.svg"
             icon.width: 16; icon.height: 16
 
             onClicked: heightDialog.open()
-
-            Dialog {
-                id: heightDialog
-                width: 200; height: 80
-                modal: true
-                onAccepted: logModule.heightWrite(heightInput.text)
-
-                ColumnLayout {
-                    Layout.fillWidth: true; Layout.fillHeight: true
-
-                    Label {
-                        Layout.fillWidth: true; Layout.preferredHeight: 24
-                        text: qsTr("Max Line Count")
-                    }
-
-                    TextField {
-                        id: heightInput
-                        objectName: "heightInput"
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                        Component.onCompleted: text = logModule.heightRead()
-                        Keys.onReturnPressed: heightDialog.accept()
-                    }
-                }
-            }
         }
 
         Button {
-            id: saveButton
-            objectName: "saveButton"
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/save.svg"
@@ -82,14 +53,12 @@ RowLayout {
         }
 
         Button {
-            id: clearButton
-            objectName: "clearButton"
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: logTextArea.clear()
+            onClicked: textArea.clear()
         }
     }
 
@@ -99,22 +68,21 @@ RowLayout {
         Layout.topMargin: 4; Layout.rightMargin: 4; Layout.bottomMargin: 4
 
         TextArea {
-            id: logTextArea
-            objectName: "logTextArea"
+            id: textArea
             textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
             property url fileUrl: ""
-            property alias logTextDocument: logTextArea.textDocument
+            property alias logTextDocument: textArea.textDocument
 
             HoverHandler {
-                cursorShape: logTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                cursorShape: textArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
             }
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
                 onTapped: {
-                    if (logTextArea.hoveredLink) {
-                        Qt.openUrlExternally(logTextArea.hoveredLink)
+                    if (textArea.hoveredLink) {
+                        Qt.openUrlExternally(textArea.hoveredLink)
                     }
                 }
             }
@@ -122,8 +90,8 @@ RowLayout {
             TapHandler {
                 acceptedButtons: Qt.RightButton
                 onTapped: {
-                    if (logTextArea.hoveredLink) {
-                        logTextArea.fileUrl = logTextArea.hoveredLink
+                    if (textArea.hoveredLink) {
+                        textArea.fileUrl = textArea.hoveredLink
                         linkMenu.popup()
                     }
                 }
@@ -135,7 +103,7 @@ RowLayout {
                     text: qsTr("Copy URL")
                     icon.source: "qrc:/icon/copy.svg"
                     icon.width: 16; icon.height: 16
-                    onTriggered: logModule.urlCopy(logTextArea.fileUrl)
+                    onTriggered: logModule.urlCopy(textArea.fileUrl)
                 }
 
                 Menu {
@@ -146,14 +114,22 @@ RowLayout {
 
                     MenuItem {
                         text: qsTr("Explorer")
-                        onTriggered: logModule.openInExplorer(logTextArea.fileUrl)
+                        onTriggered: logModule.openInExplorer(textArea.fileUrl)
                     }
                     MenuItem {
                         text: qsTr("Application")
-                        onTriggered: logModule.openInApplication(logTextArea.fileUrl)
+                        onTriggered: logModule.openInApplication(textArea.fileUrl)
                     }
                 }
             }
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "timestampButton": timestampButton,
+            "textArea": textArea
+        };
+        logModule.propertyGet(objects)
     }
 }

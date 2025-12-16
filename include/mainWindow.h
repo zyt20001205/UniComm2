@@ -40,7 +40,7 @@ public:
 
     void propertySet();
 
-    void propertyGet();
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
     Q_INVOKABLE void overlayShow() const;
 

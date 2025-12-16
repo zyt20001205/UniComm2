@@ -16,6 +16,10 @@ public:
 
     ~LogModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
     void logConfigSave() const;
 
     void logFontReload(const QJsonObject &fontConfigLog) const;
@@ -41,6 +45,7 @@ public:
 private:
     QJsonObject m_logConfig{};
     QQuickWidget *m_logWidget{};
+    QObject *m_heightDialog{};
     QObject *m_logTextArea{};
     QTextDocument *m_logTextDocument{};
 };
