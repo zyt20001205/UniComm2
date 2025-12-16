@@ -11,7 +11,6 @@ BreakpointModule::BreakpointModule()
     : DockWidget("breakpoint"),
       m_breakpointWidget(new QQuickWidget()),
       m_breakpointStandardModel(new QStandardItemModel()) {
-    setObjectName("breakpointModule");
     setWidget(m_breakpointWidget);
     // load breakpoints
     for (const auto &url: g_breakpoints.keys()) {

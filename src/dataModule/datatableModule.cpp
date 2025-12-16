@@ -17,7 +17,6 @@
 DatatableModule::DatatableModule()
     : DockWidget("data table"),
       m_tableWidget(new QTableWidget()) {
-    setObjectName("datatableModule");
     setWidget(m_tableWidget);
     m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_tableWidget->horizontalHeader()->setMinimumHeight(30);

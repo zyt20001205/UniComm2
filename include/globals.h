@@ -20,6 +20,7 @@ class ThreadpoolModule;
 class UndoModule;
 
 extern MainWindow *g_mainWindow;
+extern QQuickItem *g_rootObject;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;

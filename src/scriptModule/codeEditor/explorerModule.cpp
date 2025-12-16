@@ -17,7 +17,6 @@ ExplorerModule::ExplorerModule()
       m_explorerWidget(new QQuickWidget()),
       m_explorerFileModel(new QFileSystemModel()),
       m_explorerTreeView(new QTreeView()) {
-    setObjectName("explorerModule");
     setWidget(m_explorerWidget);
     const auto rootPath = g_workspaceUrl.toLocalFile();
     m_explorerFileModel->setRootPath(rootPath);

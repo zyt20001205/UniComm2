@@ -15,7 +15,6 @@ DataplotModule::DataplotModule()
           QColor("#d1c7ae"),
           QColor("#e5d9da")
       } {
-    setObjectName("dataplotModule");
     resize(1200, 600);
     setWidget(m_plot);
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);

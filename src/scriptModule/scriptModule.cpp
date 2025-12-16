@@ -18,7 +18,6 @@ ScriptModule::ScriptModule(QWidget *parent)
       m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
-    setObjectName("scriptModule");
     m_welcomePage->setObjectName("welcomePage");
     const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
     for (const auto &key: breakpointHash.keys()) {

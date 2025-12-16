@@ -1,6 +1,7 @@
 #include "globals.h"
 
 MainWindow *g_mainWindow = nullptr;
+QQuickItem *g_rootObject = nullptr;
 DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;

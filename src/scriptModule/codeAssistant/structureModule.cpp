@@ -14,7 +14,6 @@ StructureModule::StructureModule()
     : DockWidget("structure"),
       m_structureWidget(new QQuickWidget()),
       m_structureStandardModel(new QStandardItemModel()) {
-    setObjectName("structureModule");
     setWidget(m_structureWidget);
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardModel", m_structureStandardModel);

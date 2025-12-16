@@ -24,7 +24,6 @@ DebugModule::DebugModule()
     : DockWidget("debug"),
       m_debugWidget(new QQuickWidget()),
       m_threadStringListModel(new QStringListModel()) {
-    setObjectName("debugModule");
     setWidget(m_debugWidget);
     m_debugWidget->rootContext()->setContextProperty("debugModule", this);
     m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);

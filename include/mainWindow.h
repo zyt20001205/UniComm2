@@ -2,8 +2,10 @@
 #define UNICOMM_MAINWINDOW_H
 
 #include <QJsonObject>
+#include <QQuickWidget>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
+class QQuickWidget;
 class QComboBox;
 class QShortcut;
 
@@ -36,6 +38,16 @@ public:
 
     ~MainWindow() override = default;
 
+    void propertySet();
+
+    void propertyGet();
+
+    Q_INVOKABLE void overlayShow() const;
+
+    Q_INVOKABLE void overlayHide() const;
+
+    Q_INVOKABLE void quit();
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -43,6 +55,8 @@ signals:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void moduleInit();
@@ -60,6 +74,8 @@ private:
     void workspaceSave(QString filePath = QString());
 
     QJsonObject m_mainConfig{};
+    QQuickWidget *m_overlay{};
+    QObject *m_closeDialog{};
     bool m_askForSaving = true;
 
     LuaLanguageServer *m_luals{};

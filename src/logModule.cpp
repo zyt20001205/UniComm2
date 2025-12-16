@@ -19,7 +19,6 @@ LogModule::LogModule()
       m_logConfig(g_workspaceConfig["logConfig"].toObject()),
       m_logWidget(new QQuickWidget()),
       m_logTextDocument(new QTextDocument()) {
-    setObjectName("logModule");
     setWidget(m_logWidget);
     m_logWidget->rootContext()->setContextProperty("logModule", this);
     m_logWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);

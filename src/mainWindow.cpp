@@ -8,6 +8,8 @@
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickWidget>
 #include <QShortcut>
 #include <QStandardPaths>
@@ -49,14 +51,29 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     QWidget::setWindowTitle("UniComm");
     QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
     QWidget::resize(1600, 900);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
+
+    m_overlay = new QQuickWidget(this);
+    m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_overlay->setClearColor(Qt::transparent);
+    m_overlay->setAttribute(Qt::WA_TranslucentBackground);
+    m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
+    QSurfaceFormat format;
+    format.setAlphaBufferSize(8);
+    m_overlay->setFormat(format);
+    m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
+    m_overlay->hide();
 
     moduleInit();
     shortcutInit();
     menuInit();
     layoutInit();
+
+    propertySet();
+    propertyGet();
+    // logging
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
+
     // preload multimedia to avoid lagging on port selection
     QThread *worker = QThread::create([] {
         QMediaDevices::videoInputs();
@@ -65,23 +82,55 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
 }
 
+void MainWindow::propertySet() {
+    m_overlay->rootContext()->setContextProperty("mainWindow", this);
+    g_rootObject = m_overlay->rootObject();
+}
+
+void MainWindow::propertyGet() {
+    m_closeDialog = g_rootObject->findChild<QObject *>("mainWindowCloseDialog");
+}
+
+void MainWindow::overlayShow() const {
+    m_overlay->show();
+}
+
+void MainWindow::overlayHide() const {
+    m_overlay->hide();
+}
+
+void MainWindow::quit() {
+    workspaceSave();
+    m_askForSaving = false;
+    close();
+}
+
 // MainWindow protected
 void MainWindow::closeEvent(QCloseEvent *event) {
     if (m_askForSaving) {
-        const QMessageBox::StandardButton reply = QMessageBox::question(
-            this,
-            tr("Exit"),
-            tr("Save and exit?"),
-            QMessageBox::Yes | QMessageBox::No,
-            QMessageBox::Yes);
-        if (reply == QMessageBox::Yes) {
-            workspaceSave();
-            event->accept();
-        } else {
-            event->ignore();
-        }
+        event->ignore();
+        QMetaObject::invokeMethod(m_closeDialog, "open");
+        // const QMessageBox::StandardButton reply = QMessageBox::question(
+        //     this,
+        //     tr("Exit"),
+        //     tr("Save and exit?"),
+        //     QMessageBox::Yes | QMessageBox::No,
+        //     QMessageBox::Yes);
+        // if (reply == QMessageBox::Yes) {
+        //     workspaceSave();
+        //     event->accept();
+        // } else {
+        //     event->ignore();
+        // }
     } else {
         event->accept();
+    }
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event) {
+    KDDockWidgets::QtWidgets::MainWindow::resizeEvent(event);
+    if (m_overlay) {
+        m_overlay->resize(size());
     }
 }
 
