@@ -75,36 +75,13 @@ TreeView {
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
                 onSingleTapped: {
                     if (isTreeNode && hasChildren) {
-                        scriptMenu.popup()
+                        fileMenu.url = model.whatsThis
+                        fileMenu.popup()
                     } else {
+                        lineMenu.url = model.whatsThis
+                        lineMenu.line = model.display
                         lineMenu.popup()
                     }
-                }
-            }
-
-            Menu {
-                id: scriptMenu
-                MenuItem {
-                    text: qsTr("Delete Breakpoints")
-                    icon.source: "qrc:/icon/delete.svg"
-                    icon.width: 16; icon.height: 16
-                    onTriggered: breakpointModule.breakpointsDelete(model.whatsThis)
-                }
-            }
-
-            Menu {
-                id: lineMenu
-                MenuItem {
-                    text: qsTr("View Breakpoint")
-                    icon.source: "qrc:/icon/eye.svg"
-                    icon.width: 16; icon.height: 16
-                    onTriggered: breakpointModule.markerInsert(model.whatsThis, model.display)
-                }
-                MenuItem {
-                    text: qsTr("Delete Breakpoint")
-                    icon.source: "qrc:/icon/delete.svg"
-                    icon.width: 16; icon.height: 16
-                    onTriggered: breakpointModule.breakpointDelete(model.whatsThis, model.display)
                 }
             }
         }
@@ -137,15 +114,5 @@ TreeView {
     TapHandler {
         acceptedButtons: Qt.RightButton
         onSingleTapped: rootMenu.popup()
-    }
-
-    Menu {
-        id: rootMenu
-        MenuItem {
-            text: qsTr("Delete All")
-            icon.source: "qrc:/icon/delete.svg"
-            icon.width: 16; icon.height: 16
-            onTriggered: breakpointModule.allDelete()
-        }
     }
 }

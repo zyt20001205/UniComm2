@@ -32,7 +32,7 @@ endif ()
 qt_add_executable(UniComm ${GUI_TYPE}
         src/main.cpp
         include/mainWindow.h
-        include/configModule.h
+        include/configManager.h
         include/crashHandler.h
         include/dataModule/databaseModule.h
         include/dataModule/dataplotModule.h
@@ -91,7 +91,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/utils/luaUtils.h
         include/utils/qtUtils.h
         src/mainWindow.cpp
-        src/configModule.cpp
+        src/configManager.cpp
         src/crashHandler.cpp
         src/dataModule/databaseModule.cpp
         src/dataModule/dataplotModule.cpp

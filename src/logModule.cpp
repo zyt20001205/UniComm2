@@ -25,8 +25,8 @@ LogModule::LogModule()
 
 void LogModule::propertySet(const QVariantMap &objects) {
     m_heightDialog = qvariant_cast<QObject *>(objects["logModuleHeightDialog"]);
-    m_logWidget->rootContext()->setContextProperty("logModule", this);
     m_logWidget->rootContext()->setContextProperty("heightDialog", m_heightDialog);
+    m_logWidget->rootContext()->setContextProperty("logModule", this);
     m_logWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_logWidget->setSource(QUrl("qrc:/qml/logModule.qml"));
 }
@@ -88,11 +88,11 @@ void LogModule::timestampToggle(const bool status) {
     m_logConfig["timestamp"] = status;
 }
 
-QString LogModule::heightRead() {
-    return QString::number(m_logConfig["height"].toInt());
+int LogModule::heightGet() {
+    return m_logConfig["height"].toInt();
 }
 
-void LogModule::heightWrite(const QString &height) {
+void LogModule::heightSet(const QString &height) {
     m_logConfig["height"] = height.toInt();
     m_logTextDocument->setMaximumBlockCount(height.toInt());
 }

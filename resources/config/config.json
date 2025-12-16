@@ -1,4 +1,6 @@
 {
+  "breakpointConfig": {
+  },
   "databaseConfig": [
   ],
   "datatableConfig": [
@@ -15,8 +17,6 @@
   "portConfig": [
   ],
   "scriptConfig": {
-    "breakpointHash": {
-    },
     "fontFamily": "Consolas",
     "fontSize": 12,
     "formatting": "Ctrl+Alt+L",

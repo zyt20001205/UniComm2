@@ -20,7 +20,7 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
-#include "configModule.h"
+#include "configManager.h"
 #include "globals.h"
 #include "logModule.h"
 #include "undoModule.h"
@@ -56,20 +56,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     shortcutInit();
     menuInit();
     layoutInit();
-
-    m_overlay = new QQuickWidget(this);
-    m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_overlay->setClearColor(Qt::transparent);
-    m_overlay->setAttribute(Qt::WA_TranslucentBackground);
-    m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
-    QSurfaceFormat format;
-    format.setAlphaBufferSize(8);
-    m_overlay->setFormat(format);
-
-    propertySet();
-    m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
-    m_overlay->resize(size());
-    m_overlay->hide();
+    overlayInit();
 
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -85,11 +72,19 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
+    m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
+    const QVariantMap breakpointObjects = {
+        {"breakpointModuleConditionDialog", objects["breakpointModuleConditionDialog"]},
+        {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
+        {"breakpointModuleFileMenu", objects["breakpointModuleFileMenu"]},
+        {"breakpointModuleRootMenu", objects["breakpointModuleRootMenu"]}
+    };
+    m_breakpointModule->propertySet(breakpointObjects);
     const QVariantMap logObjects = {
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]}
     };
@@ -98,6 +93,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
 void MainWindow::overlayShow() const {
     m_overlay->show();
+    m_overlay->setFocus();
 }
 
 void MainWindow::overlayHide() const {
@@ -133,10 +129,10 @@ void MainWindow::moduleInit() {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
+    m_configManager = new ConfigManager(this);
     m_luals = new LuaLanguageServer(this);
 
     m_breakpointModule = new BreakpointModule();
-    m_configModule = new ConfigModule(this);
     m_databaseModule = new DatabaseModule();
     m_dataplotModule = new DataplotModule();
     m_datatableModule = new DatatableModule();
@@ -162,14 +158,12 @@ void MainWindow::moduleInit() {
     g_script = m_scriptModule;
     g_undo = m_undoModule;
 
-
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
-
     connect(m_scriptComboBox, &QComboBox::activated, m_scriptModule, [this] {
         const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
         m_scriptModule->scriptOpen(scriptUrl);
     });
-    connect(m_configModule, &ConfigModule::appendLog, m_logModule, &LogModule::logAppend);
+
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::responseCodeAction, m_scriptModule, &ScriptModule::responseCodeAction);
@@ -186,6 +180,13 @@ void MainWindow::moduleInit() {
     connect(m_luals, &LuaLanguageServer::responseSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensResponse);
     connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);
     connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
+
+    connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
+
+    connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
+
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
@@ -253,9 +254,6 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
-    connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
-    connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
 }
 
 void MainWindow::shortcutInit() {
@@ -490,6 +488,22 @@ void MainWindow::layoutInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "layout initialized");
 }
 
+void MainWindow::overlayInit() {
+    m_overlay = new QQuickWidget(this);
+    m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_overlay->setClearColor(Qt::transparent);
+    m_overlay->setAttribute(Qt::WA_TranslucentBackground);
+    m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
+    QSurfaceFormat format;
+    format.setAlphaBufferSize(8);
+    m_overlay->setFormat(format);
+
+    propertySet();
+    m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
+    m_overlay->resize(size());
+    m_overlay->hide();
+}
+
 void MainWindow::mainConfigSave() {
     const KDDockWidgets::LayoutSaver layoutSaver;
     const QByteArray layoutData = layoutSaver.serializeLayout();
@@ -529,11 +543,12 @@ void MainWindow::workspaceOpen() {
 
 void MainWindow::workspaceSave(QString filePath) {
     m_scriptModule->scriptConfigSave();
+    m_breakpointModule->breakpointConfigSave();
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
     m_databaseModule->databaseConfigSave();
     m_datatableModule->datatableConfigSave();
     m_logModule->logConfigSave();
     mainConfigSave();
-    m_configModule->workspaceConfigSave(filePath);
+    m_configManager->workspaceConfigSave(filePath);
 }

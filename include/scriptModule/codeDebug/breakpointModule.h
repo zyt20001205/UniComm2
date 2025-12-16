@@ -1,6 +1,7 @@
 #ifndef UNICOMM_BREAKPOINTMODULE_H
 #define UNICOMM_BREAKPOINTMODULE_H
 
+#include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QQuickWidget;
@@ -14,6 +15,10 @@ public:
 
     ~BreakpointModule() override = default;
 
+    void breakpointConfigSave();
+
+    void propertySet(const QVariantMap &objects);
+
     void breakpointInsert(const QUrl &scriptUrl, int line) const;
 
     void breakpointRemove(const QUrl &scriptUrl, int line) const;
@@ -26,6 +31,10 @@ public:
 
     Q_INVOKABLE void breakpointsDelete(const QUrl &scriptUrl);
 
+    Q_INVOKABLE QString conditionGet(const QUrl &scriptUrl, int line);
+
+    Q_INVOKABLE void conditionSet(const QUrl &scriptUrl, int line, const QString &condition);
+
     Q_INVOKABLE void allDelete();
 
 signals:
@@ -36,7 +45,12 @@ signals:
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
 private:
+    QJsonObject m_breakpointConfig{};
     QQuickWidget *m_breakpointWidget{};
+    QObject *m_conditionDialog{};
+    QObject *m_lineMenu{};
+    QObject *m_fileMenu{};
+    QObject *m_rootMenu{};
     QStandardItemModel *m_breakpointStandardModel{};
 };
 

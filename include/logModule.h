@@ -30,9 +30,9 @@ public:
 
     Q_INVOKABLE void timestampToggle(bool status);
 
-    Q_INVOKABLE QString heightRead();
+    Q_INVOKABLE int heightGet();
 
-    Q_INVOKABLE void heightWrite(const QString &height);
+    Q_INVOKABLE void heightSet(const QString &height);
 
     Q_INVOKABLE void logSave(const QUrl &fileUrl);
 

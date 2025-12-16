@@ -12,7 +12,7 @@ class QShortcut;
 class LuaLanguageServer;
 
 class StructureModule;
-class ConfigModule;
+class ConfigManager;
 
 class NuspellModule;
 class UndoModule;
@@ -67,6 +67,8 @@ private:
 
     void layoutInit();
 
+    void overlayInit();
+
     void mainConfigSave();
 
     void workspaceOpen();
@@ -81,7 +83,7 @@ private:
     LuaLanguageServer *m_luals{};
 
     BreakpointModule *m_breakpointModule{};
-    ConfigModule *m_configModule{};
+    ConfigManager *m_configManager{};
     DatabaseModule *m_databaseModule{};
     DataplotModule *m_dataplotModule{};
     DatatableModule *m_datatableModule{};

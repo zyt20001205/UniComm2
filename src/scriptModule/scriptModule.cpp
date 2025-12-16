@@ -19,16 +19,6 @@ ScriptModule::ScriptModule(QWidget *parent)
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     m_welcomePage->setObjectName("welcomePage");
-    const auto breakpointHash = m_scriptConfig["breakpointHash"].toObject();
-    for (const auto &key: breakpointHash.keys()) {
-        const QUrl url(key);
-        const auto breakpointLineHash = breakpointHash[key].toObject();
-        for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
-            const int line = it.key().toInt();
-            const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
-            g_breakpoints[url].insert(line, breakpointInfo);
-        }
-    }
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
         scriptOpen(QUrl(value.toString()));
     }
@@ -55,18 +45,6 @@ void ScriptModule::scriptConfigSave() {
         scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
-
-    auto breakpointHash = QJsonObject();
-    for (const auto &url: g_breakpoints.keys()) {
-        auto breakpointLineHash = QJsonObject();
-        for (auto it = g_breakpoints[url].begin(); it != g_breakpoints[url].end(); ++it) {
-            const int line = it.key();
-            const QVariantHash &info = it.value();
-            breakpointLineHash.insert(QString::number(line), QJsonObject::fromVariantHash(info));
-        }
-        breakpointHash.insert(url.toString(), breakpointLineHash);
-    }
-    m_scriptConfig["breakpointHash"] = breakpointHash;
 
     g_workspaceConfig["scriptConfig"] = m_scriptConfig;
 }

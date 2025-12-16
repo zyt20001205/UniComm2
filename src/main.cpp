@@ -5,7 +5,7 @@
 #include <QStyleFactory>
 #include <kddockwidgets/Config.h>
 
-#include "configModule.h"
+#include "configManager.h"
 
 int main(int argc, char *argv[]) {
     // crash handler init
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
     // config init
-    if (ConfigModule::mainConfigLoad()) return 1;
+    if (ConfigManager::mainConfigLoad()) return 1;
     auto *mainWindow = new MainWindow();
     mainWindow->show();
     // application exec
