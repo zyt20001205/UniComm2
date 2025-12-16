@@ -291,7 +291,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 session["state"] = DEBUG_PAUSE;
                 // TODO: conditional/log/count
                 {
-                    // QString expression = g_breakpoints[currentUrl][currentLine]["expr"].toString();
+                    // QString expression = g_breakpoints[currentUrl][currentLine]["condition"].toString();
                     // const int base = lua_gettop(L);
                     // if (expression.isEmpty()) {
                     //     debugData->state = DEBUG_PAUSE;

@@ -25,6 +25,7 @@ Item {
         id: breakpointModuleConditionDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
+        width: 400
         modal: true
         title: qsTr("Enter Condition")
         standardButtons: Dialog.Ok
@@ -33,14 +34,15 @@ Item {
         property string url
         property int line
 
-        onAccepted: logModule.conditionSet(breakpointModuleConditionTextInput.test)
+        onAccepted: logModule.conditionSet(breakpointModuleConditionTextField.text)
         onAboutToShow: {
-            breakpointModuleConditionTextInput.text = breakpointModule.conditionGet(url, line)
-            breakpointModuleConditionTextInput.forceActiveFocus()
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(url, line)
+            breakpointModuleConditionTextField.forceActiveFocus()
         }
 
-        TextInput {
-            id: breakpointModuleConditionTextInput
+        TextField {
+            id: breakpointModuleConditionTextField
+            width: parent.width
 
             Keys.onReturnPressed: dialog.accept()
             Keys.onEnterPressed: dialog.accept()
@@ -65,6 +67,16 @@ Item {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
             onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
+        }
+        MenuItem {
+            text: qsTr("Conditional Breakpoint")
+            icon.source: "qrc:/icon/equalCircle.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: {
+                breakpointModuleConditionDialog.url = breakpointModuleLineMenu.url
+                breakpointModuleConditionDialog.line = breakpointModuleLineMenu.line
+                breakpointModuleConditionDialog.open()
+            }
         }
     }
 
@@ -100,6 +112,7 @@ Item {
         id: logModuleHeightDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
+        width: 400
         modal: true
         title: qsTr("Set Max Line Count")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -114,6 +127,7 @@ Item {
 
         SpinBox {
             id: logModuleHeightSpinBox
+            width: parent.width
             from: 1000
             to: 10000
             stepSize: 1000

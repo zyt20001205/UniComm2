@@ -31,9 +31,9 @@ public:
 
     Q_INVOKABLE void breakpointsDelete(const QUrl &scriptUrl);
 
-    Q_INVOKABLE QString conditionGet(const QUrl &scriptUrl, int line);
+    Q_INVOKABLE static QString conditionGet(const QUrl &scriptUrl, int line);
 
-    Q_INVOKABLE void conditionSet(const QUrl &scriptUrl, int line, const QString &condition);
+    Q_INVOKABLE static void conditionSet(const QUrl &scriptUrl, int line, const QString &condition);
 
     Q_INVOKABLE void allDelete();
 
@@ -47,7 +47,6 @@ signals:
 private:
     QJsonObject m_breakpointConfig{};
     QQuickWidget *m_breakpointWidget{};
-    QObject *m_conditionDialog{};
     QObject *m_lineMenu{};
     QObject *m_fileMenu{};
     QObject *m_rootMenu{};

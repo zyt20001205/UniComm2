@@ -40,7 +40,6 @@ void BreakpointModule::breakpointConfigSave() {
 }
 
 void BreakpointModule::propertySet(const QVariantMap &objects) {
-    m_conditionDialog = qvariant_cast<QObject *>(objects["breakpointModuleConditionDialog"]);
     m_lineMenu = qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]);
     m_fileMenu = qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]);
     m_rootMenu = qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]);
@@ -55,7 +54,7 @@ void BreakpointModule::propertySet(const QVariantMap &objects) {
 
 void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line) const {
     // update g_breakpoints
-    g_breakpoints[scriptUrl][line]["expr"] = "";
+    g_breakpoints[scriptUrl][line]["condition"] = "";
     // update model
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
     lineItem->setData(scriptUrl, Qt::WhatsThisRole);
@@ -131,10 +130,12 @@ void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
     }
 }
 
-QString BreakpointModule::conditionGet(const QUrl &scriptUrl, int line) {
+QString BreakpointModule::conditionGet(const QUrl &scriptUrl, const int line) {
+    return g_breakpoints[scriptUrl][line]["condition"].toString();
 }
 
-void BreakpointModule::conditionSet(const QUrl &scriptUrl, int line, const QString &condition) {
+void BreakpointModule::conditionSet(const QUrl &scriptUrl, const int line, const QString &condition) {
+    g_breakpoints[scriptUrl][line]["condition"] = condition;
 }
 
 void BreakpointModule::allDelete() {
