@@ -110,18 +110,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     if (m_askForSaving) {
         event->ignore();
         QMetaObject::invokeMethod(m_closeDialog, "open");
-        // const QMessageBox::StandardButton reply = QMessageBox::question(
-        //     this,
-        //     tr("Exit"),
-        //     tr("Save and exit?"),
-        //     QMessageBox::Yes | QMessageBox::No,
-        //     QMessageBox::Yes);
-        // if (reply == QMessageBox::Yes) {
-        //     workspaceSave();
-        //     event->accept();
-        // } else {
-        //     event->ignore();
-        // }
     } else {
         event->accept();
     }
