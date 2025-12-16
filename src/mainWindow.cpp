@@ -86,7 +86,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_breakpointModule->propertySet(breakpointObjects);
     const QVariantMap logObjects = {
-        {"logModuleHeightDialog", objects["logModuleHeightDialog"]}
+        {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
+        {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };
     m_logModule->propertySet(logObjects);
 }

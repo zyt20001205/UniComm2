@@ -71,7 +71,6 @@ RowLayout {
             id: textArea
             textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
-            property url fileUrl: ""
             property alias logTextDocument: textArea.textDocument
 
             HoverHandler {
@@ -91,34 +90,8 @@ RowLayout {
                 acceptedButtons: Qt.RightButton
                 onTapped: {
                     if (textArea.hoveredLink) {
-                        textArea.fileUrl = textArea.hoveredLink
+                        linkMenu.url = textArea.hoveredLink
                         linkMenu.popup()
-                    }
-                }
-            }
-
-            Menu {
-                id: linkMenu
-                MenuItem {
-                    text: qsTr("Copy URL")
-                    icon.source: "qrc:/icon/copy.svg"
-                    icon.width: 16; icon.height: 16
-                    onTriggered: logModule.urlCopy(textArea.fileUrl)
-                }
-
-                Menu {
-                    id: openSubMenu
-                    title: qsTr("Open In")
-                    icon.source: "qrc:/icon/open.svg"
-                    icon.width: 16; icon.height: 16
-
-                    MenuItem {
-                        text: qsTr("Explorer")
-                        onTriggered: logModule.openInExplorer(textArea.fileUrl)
-                    }
-                    MenuItem {
-                        text: qsTr("Application")
-                        onTriggered: logModule.openInApplication(textArea.fileUrl)
                     }
                 }
             }

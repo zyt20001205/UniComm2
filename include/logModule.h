@@ -46,6 +46,7 @@ private:
     QJsonObject m_logConfig{};
     QQuickWidget *m_logWidget{};
     QObject *m_heightDialog{};
+    QObject *m_linkMenu{};
     QObject *m_logTextArea{};
     QTextDocument *m_logTextDocument{};
 };

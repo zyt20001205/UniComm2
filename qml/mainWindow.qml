@@ -137,6 +137,39 @@ Item {
         }
     }
 
+    Menu {
+        id: logModuleLinkMenu
+        onOpened: mainWindow.overlayShow()
+        onClosed: mainWindow.overlayHide()
+        property string url
+
+        MenuItem {
+            text: qsTr("Copy URL")
+            icon.source: "qrc:/icon/copy.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: logModule.urlCopy(logModuleLinkMenu.url)
+        }
+
+        Menu {
+            title: qsTr("Open In")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Explorer")
+                icon.source: "qrc:/icon/folder.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: logModule.openInExplorer(logModuleLinkMenu.url)
+            }
+            MenuItem {
+                text: qsTr("Application")
+                icon.source: "qrc:/icon/apps.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: logModule.openInApplication(logModuleLinkMenu.url)
+            }
+        }
+    }
+
     Component.onCompleted: {
         const objects = {
             "mainWindowCloseDialog": mainWindowCloseDialog,
@@ -144,7 +177,8 @@ Item {
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
-            "logModuleHeightDialog": logModuleHeightDialog
+            "logModuleHeightDialog": logModuleHeightDialog,
+            "logModuleLinkMenu": logModuleLinkMenu
         };
         mainWindow.propertyGet(objects)
     }
