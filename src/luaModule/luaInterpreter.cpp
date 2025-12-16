@@ -290,23 +290,29 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 // conditional breakpoint
                 {
                     QString condition = g_breakpoints[currentUrl][currentLine]["condition"].toString();
-                    const int base = lua_gettop(L);
                     if (condition.isEmpty()) {
                         session["state"] = DEBUG_PAUSE;
                     } else {
+                        const int base = lua_gettop(L);
                         if (!condition.trimmed().startsWith("return ")) condition = "return " + condition;
                         // create env table
-                        lua_newtable(L);
-                        const int env = lua_gettop(L);
+                        sol::environment env(lua, sol::create);
+                        sol::table mt = lua.create_table();
+                        mt[sol::meta_function::index] = lua.globals();
+                        env[sol::metatable_key] = mt;
                         // load locals into env table
                         const char *name = nullptr;
                         int i = 1;
                         while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
-                            lua_setfield(L, env, name);
+                            if (name[0] != '(') {
+                                env[name] = sol::object(L, -1);
+                            }
+                            lua_pop(L, 1);
                         }
                         // judge condition
                         const sol::protected_function_result condition_result = lua.safe_script(
                             condition.toStdString(),
+                            env,
                             sol::script_pass_on_error
                         );
                         if (condition_result.valid()) {
