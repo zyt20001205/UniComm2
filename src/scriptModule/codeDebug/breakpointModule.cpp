@@ -18,9 +18,8 @@ BreakpointModule::BreakpointModule()
         const auto breakpointLineHash = m_breakpointConfig[key].toObject();
         for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
             const int line = it.key().toInt();
-            const QVariantHash breakpointInfo = it.value().toObject().toVariantHash();
-            g_breakpoints[url].insert(line, breakpointInfo);
-            breakpointInsert(url, line);
+            const QVariantHash session = it.value().toObject().toVariantHash();
+            breakpointInsert(url, line, session);
         }
     }
 }
@@ -31,8 +30,8 @@ void BreakpointModule::breakpointConfigSave() {
         auto breakpointLineHash = QJsonObject();
         for (auto it = g_breakpoints[url].begin(); it != g_breakpoints[url].end(); ++it) {
             const int line = it.key();
-            const QVariantHash &info = it.value();
-            breakpointLineHash.insert(QString::number(line), QJsonObject::fromVariantHash(info));
+            const QVariantHash &session = it.value();
+            breakpointLineHash.insert(QString::number(line), QJsonObject::fromVariantHash(session));
         }
         breakpointHash.insert(url.toString(), breakpointLineHash);
     }
@@ -52,9 +51,9 @@ void BreakpointModule::propertySet(const QVariantMap &objects) {
     m_breakpointWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/breakpointModule.qml"));
 }
 
-void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line) const {
+void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, const QVariantHash &session) const {
     // update g_breakpoints
-    g_breakpoints[scriptUrl][line]["condition"] = "";
+    g_breakpoints[scriptUrl][line] = session;
     // update model
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
     lineItem->setData(scriptUrl, Qt::WhatsThisRole);

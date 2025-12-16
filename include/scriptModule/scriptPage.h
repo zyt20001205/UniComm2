@@ -58,7 +58,7 @@ signals:
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
-    void insertBreakpoint(const QUrl &scriptUrl, int line);
+    void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);
 

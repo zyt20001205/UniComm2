@@ -477,7 +477,7 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
             emit removeBreakpoint(m_scriptUrl, line + 1);
             emit removeMarker(m_scriptUrl, MARKER_BREAKPOINT, line);
         } else {
-            emit insertBreakpoint(m_scriptUrl, line + 1);
+            emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
             emit insertMarker(m_scriptUrl, MARKER_BREAKPOINT, line, -1);
         }
     }

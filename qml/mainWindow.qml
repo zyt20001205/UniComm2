@@ -34,9 +34,9 @@ Item {
         property string url
         property int line
 
-        onAccepted: logModule.conditionSet(breakpointModuleConditionTextField.text)
+        onAccepted: breakpointModule.conditionSet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line, breakpointModuleConditionTextField.text)
         onAboutToShow: {
-            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(url, line)
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
         }
 
@@ -44,8 +44,8 @@ Item {
             id: breakpointModuleConditionTextField
             width: parent.width
 
-            Keys.onReturnPressed: dialog.accept()
-            Keys.onEnterPressed: dialog.accept()
+            Keys.onReturnPressed: breakpointModuleConditionDialog.accept()
+            Keys.onEnterPressed: breakpointModuleConditionDialog.accept()
         }
     }
 
@@ -132,8 +132,8 @@ Item {
             to: 10000
             stepSize: 1000
 
-            Keys.onReturnPressed: dialog.accept()
-            Keys.onEnterPressed: dialog.accept()
+            Keys.onReturnPressed: logModuleHeightDialog.accept()
+            Keys.onEnterPressed: logModuleHeightDialog.accept()
         }
     }
 

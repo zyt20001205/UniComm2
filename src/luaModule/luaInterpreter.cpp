@@ -72,8 +72,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
     m_lua["thread"] = thread;
     connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
-    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
-    {
+    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread); {
         // // register control class
         // lua_newtable(L);
         // lua_pushcfunction(L, lua_leftClick);
@@ -288,52 +287,39 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         // debug state machine
         if (session["state"].toInt() == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(currentLine)) {
-                session["state"] = DEBUG_PAUSE;
-                // TODO: conditional/log/count
+                // conditional breakpoint
                 {
-                    // QString expression = g_breakpoints[currentUrl][currentLine]["condition"].toString();
-                    // const int base = lua_gettop(L);
-                    // if (expression.isEmpty()) {
-                    //     debugData->state = DEBUG_PAUSE;
-                    // } else {
-                    //     if (!expression.trimmed().startsWith("return ")) expression = "return " + expression;
-                    //     // create env table
-                    //     lua_newtable(L);
-                    //     const int env = lua_gettop(L);
-                    //     // load locals into env table
-                    //     const char *name = nullptr;
-                    //     int i = 1;
-                    //     while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
-                    //         lua_setfield(L, env, name);
-                    //     }
-                    //     // load expression
-                    //     if (const int load_result = luaL_loadstring(L, expression.toUtf8().constData()); load_result == LUA_OK) {
-                    //         // overwrite _ENV with env table
-                    //         lua_pushvalue(L, env);
-                    //         lua_setupvalue(L, -2, 1);
-                    //         // judge expression
-                    //         const int pcall_result = lua_pcall(L, 0, 1, 0);
-                    //         if (pcall_result == LUA_OK) {
-                    //             const bool result = lua_toboolean(L, -1);
-                    //             lua_pop(L, 1);
-                    //             if (result) debugData->state = DEBUG_PAUSE;
-                    //         } else {
-                    //             const QString error = lua_tostring(L, -1);
-                    //             QMetaObject::invokeMethod(g_mainWindow, [error] {
-                    //                 g_log->logAppend(error, "error");
-                    //             }, Qt::BlockingQueuedConnection);
-                    //             lua_pop(L, 1);
-                    //         }
-                    //     } else {
-                    //         const QString error = lua_tostring(L, -1);
-                    //         QMetaObject::invokeMethod(g_mainWindow, [error] {
-                    //             g_log->logAppend(error, "error");
-                    //         }, Qt::BlockingQueuedConnection);
-                    //         lua_pop(L, 1);
-                    //     }
-                    //     lua_settop(L, base);
-                    // }
+                    QString condition = g_breakpoints[currentUrl][currentLine]["condition"].toString();
+                    const int base = lua_gettop(L);
+                    if (condition.isEmpty()) {
+                        session["state"] = DEBUG_PAUSE;
+                    } else {
+                        if (!condition.trimmed().startsWith("return ")) condition = "return " + condition;
+                        // create env table
+                        lua_newtable(L);
+                        const int env = lua_gettop(L);
+                        // load locals into env table
+                        const char *name = nullptr;
+                        int i = 1;
+                        while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
+                            lua_setfield(L, env, name);
+                        }
+                        // judge condition
+                        const sol::protected_function_result condition_result = lua.safe_script(
+                            condition.toStdString(),
+                            sol::script_pass_on_error
+                        );
+                        if (condition_result.valid()) {
+                            const sol::object result = condition_result;
+                            if (result.as<bool>()) session["state"] = DEBUG_PAUSE;
+                        } else {
+                            const sol::error err = condition_result;
+                            emit This->appendLog(QString::fromStdString(err.what()), "error");
+                        }
+                        lua_settop(L, base);
+                    }
                 }
+                // TODO: log/count
             }
         } else if (session["state"].toInt() == DEBUG_STEPOVER && session["currentDepth"].toInt() == session["baseDepth"].toInt()) session["state"] = DEBUG_PAUSE;
         else if (session["state"].toInt() == DEBUG_STEPOUT && session["currentDepth"].toInt() < session["baseDepth"].toInt()) session["state"] = DEBUG_PAUSE;
