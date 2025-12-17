@@ -571,6 +571,8 @@ Item {
 
         MenuItem {
             text: qsTr("Formatting")
+            icon.source: "qrc:/icon/brush.svg"
+            icon.width: 16; icon.height: 16
         }
 
         Menu {
