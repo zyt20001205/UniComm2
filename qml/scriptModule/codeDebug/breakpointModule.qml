@@ -5,7 +5,7 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: standardModel.rowCount() > 0
+    property bool modelVisible: standardItemModel.rowCount() > 0
 
     Item {
         id: hintItem
@@ -147,14 +147,14 @@ Item {
     }
 
     Connections {
-        target: standardModel
+        target: standardItemModel
 
         function onRowsInserted() {
             modelVisible = true
         }
 
         function onRowsRemoved() {
-            modelVisible = standardModel.rowCount() > 0
+            modelVisible = standardItemModel.rowCount() > 0
         }
 
         function onModelReset() {
