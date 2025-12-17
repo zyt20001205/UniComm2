@@ -25,6 +25,9 @@ DebugModule::DebugModule()
       m_debugWidget(new QQuickWidget()),
       m_threadStringListModel(new QStringListModel()) {
     setWidget(m_debugWidget);
+}
+
+void DebugModule::propertySet(const QVariantMap &objects) {
     m_debugWidget->rootContext()->setContextProperty("debugModule", this);
     m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);
     m_debugWidget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());

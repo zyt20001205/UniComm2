@@ -24,6 +24,8 @@ public:
 
     ~DebugModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void debugStart(const QString &threadId) const;
 
     void debugStop(const QString &threadId);

@@ -73,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
+    // m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
 }
@@ -85,6 +86,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"breakpointModuleRootMenu", objects["breakpointModuleRootMenu"]}
     };
     m_breakpointModule->propertySet(breakpointObjects);
+    const QVariantMap debugObjects = {
+    };
+    m_debugModule->propertySet(debugObjects);
     const QVariantMap explorerObjects = {
         {"explorerModuleScriptErrorDialog", objects["explorerModuleScriptErrorDialog"]},
         {"explorerModuleFolderErrorDialog", objects["explorerModuleFolderErrorDialog"]},
