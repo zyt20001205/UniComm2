@@ -125,8 +125,6 @@ Item {
                 rowSpacing: 1
                 model: pageItem.diagnosticsModel
                 contentWidth: width
-                property string diagnostic: ""
-                property int viewrow: 0
 
                 Rectangle {
                     anchors.fill: parent
@@ -221,39 +219,22 @@ Item {
 
                         TapHandler {
                             acceptedButtons: Qt.LeftButton
-                            onTapped: tableView.indicatorInsert(textCell.row)
+                            onTapped: {
+                                const index = tableView.model.index(row, 0);
+                                diagnosticsModule.indicatorInsert(tableView.model.data(index, Qt.WhatsThisRole))
+                            }
                         }
 
                         TapHandler {
                             acceptedButtons: Qt.RightButton
                             onTapped: {
-                                tableView.diagnostic = model.display
-                                tableView.viewrow = textCell.row
+                                diagnosticMenu.diagnostic = model.display
+                                const index = tableView.model.index(row, 0);
+                                diagnosticMenu.position = tableView.model.data(index, Qt.WhatsThisRole)
                                 diagnosticMenu.popup()
                             }
                         }
-
-                        Menu {
-                            id: diagnosticMenu
-                            MenuItem {
-                                text: qsTr("Copy")
-                                icon.source: "qrc:/icon/copy.svg"
-                                icon.width: 16; icon.height: 16
-                                onTriggered: diagnosticsModule.diagnosticCopy(tableView.diagnostic)
-                            }
-                            MenuItem {
-                                text: qsTr("View")
-                                icon.source: "qrc:/icon/eye.svg"
-                                icon.width: 16; icon.height: 16
-                                onTriggered: tableView.indicatorInsert(tableView.viewrow)
-                            }
-                        }
                     }
-                }
-
-                function indicatorInsert(row) {
-                    const index = model.index(row, 0);
-                    diagnosticsModule.indicatorInsert(model.data(index, Qt.WhatsThisRole))
                 }
             }
         }

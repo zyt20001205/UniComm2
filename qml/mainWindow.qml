@@ -144,6 +144,32 @@ Item {
         }
     }
 
+    // debug module
+
+    // diagnostics module
+    Menu {
+        id: diagnosticsModuleDiagnosticMenu
+        property string diagnostic
+        property var position
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Copy")
+            icon.source: "qrc:/icon/copy.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: diagnosticsModule.diagnosticCopy(diagnosticsModuleDiagnosticMenu.diagnostic)
+        }
+
+        MenuItem {
+            text: qsTr("View")
+            icon.source: "qrc:/icon/eye.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: diagnosticsModule.indicatorInsert(diagnosticsModuleDiagnosticMenu.position)
+        }
+    }
+
     // explorer module
     Dialog {
         id: explorerModuleScriptDeleteDialog
@@ -456,6 +482,8 @@ Item {
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
+
+            "diagnosticsModuleDiagnosticMenu" : diagnosticsModuleDiagnosticMenu,
 
             "explorerModuleScriptErrorDialog": explorerModuleScriptErrorDialog,
             "explorerModuleFolderErrorDialog": explorerModuleFolderErrorDialog,

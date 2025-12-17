@@ -17,6 +17,8 @@ public:
 
     ~DiagnosticsModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
     Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
