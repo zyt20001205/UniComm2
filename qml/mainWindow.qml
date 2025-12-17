@@ -4,6 +4,26 @@ import QtQuick.Controls
 Item {
     anchors.centerIn: parent
 
+    // overlay control
+    property int widgetCount: 0
+
+    onWidgetCountChanged: {
+        console.log("current count:", widgetCount);
+
+        if (widgetCount === 0) {
+            overlayTimer.restart();
+        } else {
+            overlayTimer.stop();
+            mainWindow.overlayShow()
+        }
+    }
+
+    Timer {
+        id: overlayTimer
+        interval: 50
+        onTriggered: mainWindow.overlayHide()
+    }
+
     // main window
     Dialog {
         id: mainWindowCloseDialog
@@ -12,12 +32,10 @@ Item {
         modal: true
         title: qsTr("Save and Exit?")
         standardButtons: Dialog.Yes | Dialog.No
-        onAboutToShow: mainWindow.overlayShow()
-        onClosed: mainWindow.overlayHide()
 
-        onAccepted: {
-            mainWindow.quit()
-        }
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+        onAccepted: mainWindow.quit()
     }
 
     ToolTip {
@@ -41,15 +59,15 @@ Item {
         modal: true
         title: qsTr("Enter Condition")
         standardButtons: Dialog.Ok
-        onAboutToShow: {
-            mainWindow.overlayShow()
-            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
-            breakpointModuleConditionTextField.forceActiveFocus()
-        }
-        onClosed: mainWindow.overlayHide()
         property string url
         property int line
 
+        onAboutToShow: {
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
+            breakpointModuleConditionTextField.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
         onAccepted: breakpointModule.conditionSet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line, breakpointModuleConditionTextField.text)
 
         TextField {
@@ -63,10 +81,11 @@ Item {
 
     Menu {
         id: breakpointModuleLineMenu
-        onAboutToShow: mainWindow.overlayShow()
-        onClosed: mainWindow.overlayHide()
         property string url
         property int line
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
 
         MenuItem {
             text: qsTr("View Breakpoint")
@@ -74,12 +93,14 @@ Item {
             icon.width: 16; icon.height: 16
             onTriggered: breakpointModule.markerInsert(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
+
         MenuItem {
             text: qsTr("Delete Breakpoint")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
             onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
+
         MenuItem {
             text: qsTr("Conditional Breakpoint")
             icon.source: "qrc:/icon/equalCircle.svg"
@@ -94,9 +115,10 @@ Item {
 
     Menu {
         id: breakpointModuleFileMenu
-        onAboutToShow: mainWindow.overlayShow()
-        onClosed: mainWindow.overlayHide()
         property string url
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
 
         MenuItem {
             text: qsTr("Delete Breakpoints")
@@ -108,14 +130,240 @@ Item {
 
     Menu {
         id: breakpointModuleRootMenu
-        onAboutToShow: mainWindow.overlayShow()
-        onClosed: mainWindow.overlayHide()
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
 
         MenuItem {
             text: qsTr("Delete All")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
             onTriggered: breakpointModule.allDelete()
+        }
+    }
+
+    // explorer module
+    Dialog {
+        id: explorerModuleScriptDeleteDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Delete Script")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string path
+        property string name
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+        onAccepted: explorerModule.scriptDelete(explorerModuleScriptDeleteDialog.path)
+
+        Label {
+            text: qsTr('Are you sure to delete script "%1"?').arg(explorerModuleScriptDeleteDialog.name)
+        }
+    }
+
+    Dialog {
+        id: explorerModuleScriptErrorDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Script Already Exists")
+        standardButtons: Dialog.Ok
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+    }
+
+    Dialog {
+        id: explorerModuleScriptNewDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("New Script")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string path
+
+        onAboutToShow: {
+            explorerModuleScriptNameTextField.clear()
+            explorerModuleScriptNameTextField.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: explorerModule.scriptNew(explorerModuleScriptNewDialog.path, explorerModuleScriptNameTextField.text)
+
+        TextField {
+            id: explorerModuleScriptNameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter script name:")
+
+            Keys.onReturnPressed: explorerModuleScriptNewDialog.accept()
+            Keys.onEnterPressed: explorerModuleScriptNewDialog.accept()
+            Keys.onEscapePressed: explorerModuleScriptNewDialog.reject()
+        }
+    }
+
+    Dialog {
+        id: explorerModuleFolderDeleteDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Delete Folder")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string path
+        property string name
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+        onAccepted: explorerModule.folderDelete(explorerModuleFolderDeleteDialog.path)
+
+        Label {
+            text: qsTr('Are you sure to delete folder "%1" and all its contents?').arg(explorerModuleFolderDeleteDialog.name)
+        }
+    }
+
+    Dialog {
+        id: explorerModuleFolderErrorDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Folder Already Exists")
+        standardButtons: Dialog.Ok
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+    }
+
+    Dialog {
+        id: explorerModuleFolderNewDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("New Folder")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string path
+
+        onAboutToShow: {
+            explorerModuleFolderNameTextField.clear()
+            explorerModuleFolderNameTextField.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: explorerModule.folderNew(explorerModuleFolderNewDialog.path, explorerModuleFolderNameTextField.text)
+
+        TextField {
+            id: explorerModuleFolderNameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter folder name:")
+
+            Keys.onReturnPressed: explorerModuleFolderNewDialog.accept()
+            Keys.onEnterPressed: explorerModuleFolderNewDialog.accept()
+            Keys.onEscapePressed: explorerModuleFolderNewDialog.reject()
+        }
+    }
+
+    Menu {
+        id: explorerModuleScriptMenu
+        property string path
+        property string name
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Run Script")
+            icon.source: "qrc:/icon/play.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModule.scriptRun(treeView.filePath)
+        }
+
+        MenuItem {
+            text: qsTr("Debug Script")
+            icon.source: "qrc:/icon/bug.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModule.scriptDebug(treeView.filePath)
+        }
+
+        MenuItem {
+            text: qsTr("Open Script")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModule.scriptOpen(treeView.filePath)
+        }
+
+        MenuItem {
+            text: qsTr("Delete Script")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModuleScriptDeleteDialog.open()
+        }
+    }
+
+    Menu {
+        id: explorerModuleFolderMenu
+        property string path
+        property string name
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("New Script")
+            icon.source: "qrc:/icon/documentAdd.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModuleScriptNewDialog.open()
+        }
+
+        MenuItem {
+            text: qsTr("New Folder")
+            icon.source: "qrc:/icon/folderAdd.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModuleFolderNewDialog.open()
+        }
+
+        MenuItem {
+            text: qsTr("Delete Folder")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModuleFolderDeleteDialog.open()
+        }
+    }
+
+    Menu {
+        id: explorerModuleRootMenu
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("New Script")
+            icon.source: "qrc:/icon/documentAdd.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: {
+                explorerModuleScriptNewDialog.path = ""
+                explorerModuleScriptNewDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("New Folder")
+            icon.source: "qrc:/icon/folderAdd.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: {
+                explorerModuleFolderNewDialog.path = ""
+                explorerModuleFolderNewDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Open In Explorer")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: explorerModule.openInExplorer()
         }
     }
 
@@ -128,13 +376,13 @@ Item {
         modal: true
         title: qsTr("Set Max Line Count")
         standardButtons: Dialog.Ok | Dialog.Cancel
+
         onAboutToShow: {
-            mainWindow.overlayShow()
             logModuleHeightSpinBox.value = logModule.heightGet()
             logModuleHeightSpinBox.forceActiveFocus()
+            widgetCount += 1
         }
-        onClosed: mainWindow.overlayHide()
-
+        onClosed: widgetCount -= 1
         onAccepted: logModule.heightSet(logModuleHeightSpinBox.value)
 
         SpinBox {
@@ -151,9 +399,10 @@ Item {
 
     Menu {
         id: logModuleLinkMenu
-        onAboutToShow: mainWindow.overlayShow()
-        onClosed: mainWindow.overlayHide()
         property string url
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
 
         MenuItem {
             text: qsTr("Copy URL")
@@ -173,6 +422,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 onTriggered: logModule.openInExplorer(logModuleLinkMenu.url)
             }
+
             MenuItem {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
@@ -186,10 +436,17 @@ Item {
         const objects = {
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainTooltip": mainTooltip,
-            "breakpointModuleConditionDialog": breakpointModuleConditionDialog,
+
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
+
+            "explorerModuleScriptErrorDialog": explorerModuleScriptErrorDialog,
+            "explorerModuleFolderErrorDialog": explorerModuleFolderErrorDialog,
+            "explorerModuleScriptMenu": explorerModuleScriptMenu,
+            "explorerModuleFolderMenu": explorerModuleFolderMenu,
+            "explorerModuleRootMenu": explorerModuleRootMenu,
+
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu
         };

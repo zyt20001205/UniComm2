@@ -39,12 +39,10 @@ void BreakpointModule::breakpointConfigSave() {
 }
 
 void BreakpointModule::propertySet(const QVariantMap &objects) {
-    m_lineMenu = qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]);
-    m_fileMenu = qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]);
-    m_rootMenu = qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]);
-    m_breakpointWidget->rootContext()->setContextProperty("lineMenu", m_lineMenu);
-    m_breakpointWidget->rootContext()->setContextProperty("fileMenu", m_fileMenu);
-    m_breakpointWidget->rootContext()->setContextProperty("rootMenu", m_rootMenu);
+    m_breakpointWidget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
+    m_breakpointWidget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));
+    m_breakpointWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));
+
     m_breakpointWidget->rootContext()->setContextProperty("breakpointModule", this);
     m_breakpointWidget->rootContext()->setContextProperty("standardModel", m_breakpointStandardModel);
     m_breakpointWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);

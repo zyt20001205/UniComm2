@@ -15,17 +15,19 @@ public:
 
     ~ExplorerModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     Q_INVOKABLE void scriptRun(const QString &scriptPath);
 
     Q_INVOKABLE void scriptDebug(const QString &scriptPath);
 
     Q_INVOKABLE void scriptOpen(const QString &scriptPath);
 
-    Q_INVOKABLE void scriptNew(QString rootPath = QString());
+    Q_INVOKABLE void scriptNew(const QString &rootPath, const QString &scriptName);
 
     Q_INVOKABLE static void scriptDelete(const QString &scriptPath);
 
-    Q_INVOKABLE void folderNew(QString rootPath = QString());
+    Q_INVOKABLE void folderNew(const QString &rootPath, const QString &folderName);
 
     Q_INVOKABLE static void folderDelete(const QString &folderPath);
 
@@ -40,7 +42,9 @@ signals:
 
 private:
     QQuickWidget *m_explorerWidget{};
-    QFileSystemModel *m_explorerFileModel{};
+    QObject* m_scriptErrorDialog{};
+    QObject* m_folderErrorDialog{};
+    QFileSystemModel *m_explorerFileSystemModel{};
     QTreeView *m_explorerTreeView{};
 };
 

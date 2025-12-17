@@ -15,15 +15,24 @@
 ExplorerModule::ExplorerModule()
     : DockWidget("explorer"),
       m_explorerWidget(new QQuickWidget()),
-      m_explorerFileModel(new QFileSystemModel()),
+      m_explorerFileSystemModel(new QFileSystemModel()),
       m_explorerTreeView(new QTreeView()) {
     setWidget(m_explorerWidget);
+}
+
+void ExplorerModule::propertySet(const QVariantMap &objects) {
+    m_scriptErrorDialog = qvariant_cast<QObject *>(objects["explorerModuleScriptErrorDialog"]);
+    m_folderErrorDialog = qvariant_cast<QObject *>(objects["explorerModuleFolderErrorDialog"]);
+    m_explorerWidget->rootContext()->setContextProperty("scriptMenu", qvariant_cast<QObject *>(objects["explorerModuleScriptMenu"]));
+    m_explorerWidget->rootContext()->setContextProperty("folderMenu", qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]));
+    m_explorerWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
+
     const auto rootPath = g_workspaceUrl.toLocalFile();
-    m_explorerFileModel->setRootPath(rootPath);
-    const QModelIndex fileRootIndex = m_explorerFileModel->index(rootPath);
+    m_explorerFileSystemModel->setRootPath(rootPath);
+    const QModelIndex fileRootIndex = m_explorerFileSystemModel->index(rootPath);
     m_explorerWidget->rootContext()->setContextProperty("explorerModule", this);
     m_explorerWidget->rootContext()->setContextProperty("fileRootIndex", fileRootIndex);
-    m_explorerWidget->rootContext()->setContextProperty("fileModel", m_explorerFileModel);
+    m_explorerWidget->rootContext()->setContextProperty("fileSystemModel", m_explorerFileSystemModel);
     m_explorerWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_explorerWidget->setSource(QUrl("qrc:/qml/scriptModule/codeEditor/explorerModule.qml"));
 }
@@ -57,29 +66,16 @@ void ExplorerModule::scriptOpen(const QString &scriptPath) {
     emit openScript(scriptUrl);
 }
 
-void ExplorerModule::scriptNew(QString rootPath) {
-    bool ok;
-    QString fileName = QInputDialog::getText(nullptr, tr("New Script"), tr("script name:"), QLineEdit::Normal, "new script", &ok);
-    if (!ok || fileName.isEmpty()) {
-        return;
-    }
-    fileName += ".lua";
-
+void ExplorerModule::scriptNew(const QString &rootPath, const QString &scriptName) {
+    QString filePath{};
     if (rootPath.isEmpty()) {
-        rootPath = m_explorerFileModel->rootPath();
+        filePath = QDir(m_explorerFileSystemModel->rootPath()).filePath(scriptName + ".lua");
+    } else {
+        filePath = QDir(rootPath).filePath(scriptName + ".lua");
     }
-    const QString filePath = QDir(rootPath).filePath(fileName);
-
     if (QFile::exists(filePath)) {
-        const QMessageBox::StandardButton reply = QMessageBox::question(
-            nullptr,
-            tr("File Exists"),
-            tr("File already exists. Overwrite?"),
-            QMessageBox::Yes | QMessageBox::No,
-            QMessageBox::No);
-        if (reply != QMessageBox::Yes) {
-            return;
-        }
+        QMetaObject::invokeMethod(m_scriptErrorDialog, "open");
+        return;
     }
 
     QFile file(filePath);
@@ -87,12 +83,12 @@ void ExplorerModule::scriptNew(QString rootPath) {
     QTextStream out(&file);
     file.close();
 
-    emit appendLog(QString("%1 created").arg(fileName), "info");
+    emit appendLog(QString("%1 created").arg(scriptName), "info");
     const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
     emit openScript(scriptUrl);
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 created").arg(timestamp, fileName);
+    qDebug() << QString("[%1] %2 created").arg(timestamp, scriptName);
 }
 
 void ExplorerModule::scriptDelete(const QString &scriptPath) {
@@ -100,23 +96,17 @@ void ExplorerModule::scriptDelete(const QString &scriptPath) {
     file.remove();
 }
 
-void ExplorerModule::folderNew(QString rootPath) {
-    bool ok;
-    const QString folderName = QInputDialog::getText(nullptr, tr("New Folder"), tr("folder name:"), QLineEdit::Normal, "new folder", &ok);
-    if (!ok || folderName.isEmpty()) {
-        return;
-    }
-
+void ExplorerModule::folderNew(const QString &rootPath, const QString &folderName) {
+    QString folderPath{};
     if (rootPath.isEmpty()) {
-        rootPath = m_explorerFileModel->rootPath();
+        folderPath = QDir(m_explorerFileSystemModel->rootPath()).filePath(folderName);
+    } else {
+        folderPath = QDir(rootPath).filePath(folderName);
     }
-    const QString folderPath = QDir(rootPath).filePath(folderName);
-
     if (QFile::exists(folderPath)) {
-        QMessageBox::critical(this, tr("Error"), tr("Folder already exists."));
+        QMetaObject::invokeMethod(m_folderErrorDialog, "open");
         return;
     }
-
     if (QDir().mkdir(folderPath)) {
         emit appendLog(QString("%1 created").arg(folderName), "info");
         // logging
@@ -131,7 +121,7 @@ void ExplorerModule::folderDelete(const QString &folderPath) {
 }
 
 void ExplorerModule::openInExplorer() const {
-    const QDir folderPath = m_explorerFileModel->rootPath();
+    const QDir folderPath = m_explorerFileSystemModel->rootPath();
     const QString folderAbsolutePath = folderPath.absolutePath();
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";

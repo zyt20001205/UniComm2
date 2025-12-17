@@ -73,18 +73,26 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
+    m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
     const QVariantMap breakpointObjects = {
-        {"breakpointModuleConditionDialog", objects["breakpointModuleConditionDialog"]},
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
         {"breakpointModuleFileMenu", objects["breakpointModuleFileMenu"]},
         {"breakpointModuleRootMenu", objects["breakpointModuleRootMenu"]}
     };
     m_breakpointModule->propertySet(breakpointObjects);
+    const QVariantMap explorerObjects = {
+        {"explorerModuleScriptErrorDialog", objects["explorerModuleScriptErrorDialog"]},
+        {"explorerModuleFolderErrorDialog", objects["explorerModuleFolderErrorDialog"]},
+        {"explorerModuleScriptMenu", objects["explorerModuleScriptMenu"]},
+        {"explorerModuleFolderMenu", objects["explorerModuleFolderMenu"]},
+        {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}
+    };
+    m_explorerModule->propertySet(explorerObjects);
     const QVariantMap logObjects = {
         {"mainTooltip", objects["mainTooltip"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
@@ -170,6 +178,8 @@ void MainWindow::moduleInit() {
         m_scriptModule->scriptOpen(scriptUrl);
     });
 
+    connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
+
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::responseCodeAction, m_scriptModule, &ScriptModule::responseCodeAction);
@@ -191,7 +201,9 @@ void MainWindow::moduleInit() {
     connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
 
-    connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
@@ -237,9 +249,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
     connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);

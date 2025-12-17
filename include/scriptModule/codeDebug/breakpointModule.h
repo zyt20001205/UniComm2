@@ -47,9 +47,6 @@ signals:
 private:
     QJsonObject m_breakpointConfig{};
     QQuickWidget *m_breakpointWidget{};
-    QObject *m_lineMenu{};
-    QObject *m_fileMenu{};
-    QObject *m_rootMenu{};
     QStandardItemModel *m_breakpointStandardModel{};
 };
 
