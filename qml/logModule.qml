@@ -58,15 +58,21 @@ RowLayout {
             }
         }
 
-        Button {
+        DelayButton {
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
-            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-            icon.source: "qrc:/icon/delete.svg"
-            icon.width: 16; icon.height: 16
+            leftPadding: 4; rightPadding: 4; topPadding: 4; bottomPadding: 4
+            contentItem: Image {
+                source: "qrc:/icon/delete.svg"
+                width: 16; height: 16
+            }
+            delay: 1000
             ToolTip.text: qsTr("Clear")
             ToolTip.visible: hovered
 
-            onClicked: textArea.clear()
+            onActivated: {
+                progress = 0
+                textArea.clear()
+            }
         }
     }
 
