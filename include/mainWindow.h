@@ -46,6 +46,8 @@ public:
 
     Q_INVOKABLE void overlayHide() const;
 
+    Q_INVOKABLE void overlayPenetrate(bool status) const;
+
     Q_INVOKABLE void quit();
 
 signals:

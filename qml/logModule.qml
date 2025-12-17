@@ -21,6 +21,8 @@ RowLayout {
             checkable: true
             icon.source: "qrc:/icon/clock.svg"
             icon.width: 16; icon.height: 16
+            ToolTip.text: checked ? qsTr("Hide Timestamp") : qsTr("Show Timestamp")
+            ToolTip.visible: hovered
 
             onClicked: logModule.timestampToggle(checked)
         }
@@ -30,6 +32,8 @@ RowLayout {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/autoFitHeight.svg"
             icon.width: 16; icon.height: 16
+            ToolTip.text: qsTr("Maximum Line Count")
+            ToolTip.visible: hovered
 
             onClicked: heightDialog.open()
         }
@@ -39,6 +43,8 @@ RowLayout {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/save.svg"
             icon.width: 16; icon.height: 16
+            ToolTip.text: qsTr("Save")
+            ToolTip.visible: hovered
 
             onClicked: fileDialog.open()
 
@@ -57,13 +63,14 @@ RowLayout {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
+            ToolTip.text: qsTr("Clear")
+            ToolTip.visible: hovered
 
             onClicked: textArea.clear()
         }
     }
 
     ScrollView {
-        id: view
         Layout.fillWidth: true; Layout.fillHeight: true
         Layout.topMargin: 4; Layout.rightMargin: 4; Layout.bottomMargin: 4
 
@@ -74,11 +81,21 @@ RowLayout {
             property alias logTextDocument: textArea.textDocument
 
             HoverHandler {
+                id: hoverHandler
                 cursorShape: textArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+            }
+
+            ToolTip {
+                id: tooltip
+                visible: textArea.hoveredLink
+                text: "Ctrl+Left Click to open link"
+                x: hoverHandler.point.position.x
+                y: hoverHandler.point.position.y + 10
             }
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
+                acceptedModifiers: Qt.ControlModifier
                 onTapped: {
                     if (textArea.hoveredLink) {
                         Qt.openUrlExternally(textArea.hoveredLink)

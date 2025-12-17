@@ -12,11 +12,23 @@ Item {
         modal: true
         title: qsTr("Save and Exit?")
         standardButtons: Dialog.Yes | Dialog.No
-        onOpened: mainWindow.overlayShow()
+        onAboutToShow: mainWindow.overlayShow()
         onClosed: mainWindow.overlayHide()
 
         onAccepted: {
             mainWindow.quit()
+        }
+    }
+
+    ToolTip {
+        id: mainTooltip
+        onOpened: {
+            mainWindow.overlayPenetrate(true)
+            mainWindow.overlayShow()
+        }
+        onClosed: {
+            mainWindow.overlayPenetrate(false)
+            mainWindow.overlayHide()
         }
     }
 
@@ -29,16 +41,16 @@ Item {
         modal: true
         title: qsTr("Enter Condition")
         standardButtons: Dialog.Ok
-        onOpened: mainWindow.overlayShow()
+        onAboutToShow: {
+            mainWindow.overlayShow()
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
+            breakpointModuleConditionTextField.forceActiveFocus()
+        }
         onClosed: mainWindow.overlayHide()
         property string url
         property int line
 
         onAccepted: breakpointModule.conditionSet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line, breakpointModuleConditionTextField.text)
-        onAboutToShow: {
-            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
-            breakpointModuleConditionTextField.forceActiveFocus()
-        }
 
         TextField {
             id: breakpointModuleConditionTextField
@@ -51,7 +63,7 @@ Item {
 
     Menu {
         id: breakpointModuleLineMenu
-        onOpened: mainWindow.overlayShow()
+        onAboutToShow: mainWindow.overlayShow()
         onClosed: mainWindow.overlayHide()
         property string url
         property int line
@@ -82,7 +94,7 @@ Item {
 
     Menu {
         id: breakpointModuleFileMenu
-        onOpened: mainWindow.overlayShow()
+        onAboutToShow: mainWindow.overlayShow()
         onClosed: mainWindow.overlayHide()
         property string url
 
@@ -96,7 +108,7 @@ Item {
 
     Menu {
         id: breakpointModuleRootMenu
-        onOpened: mainWindow.overlayShow()
+        onAboutToShow: mainWindow.overlayShow()
         onClosed: mainWindow.overlayHide()
 
         MenuItem {
@@ -116,14 +128,14 @@ Item {
         modal: true
         title: qsTr("Set Max Line Count")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        onOpened: mainWindow.overlayShow()
-        onClosed: mainWindow.overlayHide()
-
-        onAccepted: logModule.heightSet(logModuleHeightSpinBox.value)
         onAboutToShow: {
+            mainWindow.overlayShow()
             logModuleHeightSpinBox.value = logModule.heightGet()
             logModuleHeightSpinBox.forceActiveFocus()
         }
+        onClosed: mainWindow.overlayHide()
+
+        onAccepted: logModule.heightSet(logModuleHeightSpinBox.value)
 
         SpinBox {
             id: logModuleHeightSpinBox
@@ -139,7 +151,7 @@ Item {
 
     Menu {
         id: logModuleLinkMenu
-        onOpened: mainWindow.overlayShow()
+        onAboutToShow: mainWindow.overlayShow()
         onClosed: mainWindow.overlayHide()
         property string url
 
@@ -173,6 +185,7 @@ Item {
     Component.onCompleted: {
         const objects = {
             "mainWindowCloseDialog": mainWindowCloseDialog,
+            "mainTooltip": mainTooltip,
             "breakpointModuleConditionDialog": breakpointModuleConditionDialog,
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,

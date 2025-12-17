@@ -86,6 +86,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_breakpointModule->propertySet(breakpointObjects);
     const QVariantMap logObjects = {
+        {"mainTooltip", objects["mainTooltip"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };
@@ -99,6 +100,10 @@ void MainWindow::overlayShow() const {
 
 void MainWindow::overlayHide() const {
     m_overlay->hide();
+}
+
+void MainWindow::overlayPenetrate(const bool status) const {
+    m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents, status);
 }
 
 void MainWindow::quit() {
