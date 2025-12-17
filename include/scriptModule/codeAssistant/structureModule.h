@@ -16,6 +16,8 @@ public:
 
     ~StructureModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
 
     void scriptFocus(const QUrl &scriptUrl);
@@ -30,7 +32,7 @@ private:
 
     QUrl m_currentScriptUrl{};
     QQuickWidget *m_structureWidget{};
-    QStandardItemModel *m_structureStandardModel{};
+    QStandardItemModel *m_structureStandardItemModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
 
     enum {

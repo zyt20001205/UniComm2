@@ -4,7 +4,7 @@ import QtQuick.Controls
 TreeView {
     anchors.fill: parent
     clip: true
-    model: standardModel
+    model: standardItemModel
 
     delegate: Item {
         implicitWidth: treeView.width; implicitHeight: 24

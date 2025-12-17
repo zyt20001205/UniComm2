@@ -47,7 +47,7 @@ signals:
 private:
     QJsonObject m_breakpointConfig{};
     QQuickWidget *m_breakpointWidget{};
-    QStandardItemModel *m_breakpointStandardModel{};
+    QStandardItemModel *m_breakpointStandardItemModel{};
 };
 
 #endif //UNICOMM_BREAKPOINTMODULE_H

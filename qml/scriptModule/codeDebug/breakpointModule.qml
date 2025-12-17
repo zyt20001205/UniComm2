@@ -32,7 +32,7 @@ Item {
         id: treeView
         anchors.fill: parent
         clip: true
-        model: standardModel
+        model: standardItemModel
         visible: modelVisible
 
         delegate: Item {

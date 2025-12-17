@@ -83,12 +83,12 @@ void ExplorerModule::scriptNew(const QString &rootPath, const QString &scriptNam
         QTextStream out(&file);
         file.close();
         const auto fileUrl = QUrl::fromLocalFile(filePath);
-        emit appendLog(QString("<a href='%1'>%2</a> created").arg(fileUrl.toString(), fileUrl.toString()), "info");
+        emit appendLog(QString("script created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
         const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
         emit openScript(scriptUrl);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 created").arg(timestamp, fileUrl.toString());
+        qDebug() << QString("[%1] script created at %2").arg(timestamp, fileUrl.toString());
     }
 }
 
@@ -110,10 +110,10 @@ void ExplorerModule::folderNew(const QString &rootPath, const QString &folderNam
     }
     if (QDir().mkdir(folderPath)) {
         const auto fileUrl = QUrl::fromLocalFile(folderPath);
-        emit appendLog(QString("<a href='%1'>%2</a> created").arg(fileUrl.toString(), fileUrl.toString()), "info");
+        emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 created").arg(timestamp, fileUrl.toString());
+        qDebug() << QString("[%1] folder created at %2").arg(timestamp, fileUrl.toString());
     }
 }
 

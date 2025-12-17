@@ -77,6 +77,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
+    // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
@@ -88,6 +89,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_breakpointModule->propertySet(breakpointObjects);
     const QVariantMap debugObjects = {
+        //
     };
     m_debugModule->propertySet(debugObjects);
     const QVariantMap diagnosticsObjects = {
@@ -108,6 +110,10 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };
     m_logModule->propertySet(logObjects);
+    const QVariantMap structureObjects = {
+        //
+    };
+    m_structureModule->propertySet(structureObjects);
 }
 
 void MainWindow::overlayShow() const {
@@ -222,6 +228,8 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
 
+    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
@@ -266,7 +274,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);

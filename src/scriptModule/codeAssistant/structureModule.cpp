@@ -13,10 +13,13 @@
 StructureModule::StructureModule()
     : DockWidget("structure"),
       m_structureWidget(new QQuickWidget()),
-      m_structureStandardModel(new QStandardItemModel()) {
+      m_structureStandardItemModel(new QStandardItemModel()) {
     setWidget(m_structureWidget);
+}
+
+void StructureModule::propertySet(const QVariantMap &objects) {
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
-    m_structureWidget->rootContext()->setContextProperty("standardModel", m_structureStandardModel);
+    m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/structureModule.qml"));
 }
@@ -24,7 +27,7 @@ StructureModule::StructureModule()
 void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
     m_documentSymbolHash[scriptUrl] = result;
     if (scriptUrl == m_currentScriptUrl) {
-        m_structureStandardModel->clear();
+        m_structureStandardItemModel->clear();
         documentSymbolPublish(result, nullptr);
     }
 }
@@ -32,7 +35,7 @@ void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonA
 void StructureModule::scriptFocus(const QUrl &scriptUrl) {
     if (scriptUrl == m_currentScriptUrl) return;
     m_currentScriptUrl = scriptUrl;
-    m_structureStandardModel->clear();
+    m_structureStandardItemModel->clear();
     if (m_documentSymbolHash.contains(scriptUrl)) {
         documentSymbolPublish(m_documentSymbolHash[scriptUrl], nullptr);
     }
@@ -113,7 +116,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         if (parentItem) {
             parentItem->appendRow(item);
         } else {
-            m_structureStandardModel->appendRow(item);
+            m_structureStandardItemModel->appendRow(item);
         }
         if (symbol.contains("children")) {
             QJsonArray children = symbol["children"].toArray();

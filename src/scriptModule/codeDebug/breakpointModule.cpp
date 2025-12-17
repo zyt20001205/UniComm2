@@ -11,7 +11,7 @@ BreakpointModule::BreakpointModule()
     : DockWidget("breakpoint"),
       m_breakpointConfig(g_workspaceConfig["breakpointConfig"].toObject()),
       m_breakpointWidget(new QQuickWidget()),
-      m_breakpointStandardModel(new QStandardItemModel()) {
+      m_breakpointStandardItemModel(new QStandardItemModel()) {
     setWidget(m_breakpointWidget);
     for (const auto &key: m_breakpointConfig.keys()) {
         const QUrl url(key);
@@ -44,7 +44,7 @@ void BreakpointModule::propertySet(const QVariantMap &objects) {
     m_breakpointWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));
 
     m_breakpointWidget->rootContext()->setContextProperty("breakpointModule", this);
-    m_breakpointWidget->rootContext()->setContextProperty("standardModel", m_breakpointStandardModel);
+    m_breakpointWidget->rootContext()->setContextProperty("standardItemModel", m_breakpointStandardItemModel);
     m_breakpointWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_breakpointWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/breakpointModule.qml"));
 }
@@ -55,7 +55,7 @@ void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, c
     // update model
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
     lineItem->setData(scriptUrl, Qt::WhatsThisRole);
-    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
         if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
@@ -73,7 +73,7 @@ void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, c
     auto *urlItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
     urlItem->setData(scriptUrl, Qt::WhatsThisRole);
     urlItem->appendRow(lineItem);
-    m_breakpointStandardModel->appendRow(urlItem);
+    m_breakpointStandardItemModel->appendRow(urlItem);
 }
 
 void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) const {
@@ -81,7 +81,7 @@ void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) c
     g_breakpoints[scriptUrl].remove(line);
     if (g_breakpoints[scriptUrl].isEmpty()) g_breakpoints.remove(scriptUrl);
     // update model
-    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
         if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
@@ -90,7 +90,7 @@ void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) c
                 if (line == indent2->text().toInt()) {
                     indent1->removeRow(j);
                     if (indent1->rowCount() == 0) {
-                        m_breakpointStandardModel->removeRow(i);
+                        m_breakpointStandardItemModel->removeRow(i);
                     }
                     return;
                 }
@@ -114,7 +114,7 @@ void BreakpointModule::breakpointDelete(const QUrl &scriptUrl, const int line) {
 }
 
 void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
-    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
         if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
@@ -136,7 +136,7 @@ void BreakpointModule::conditionSet(const QUrl &scriptUrl, const int line, const
 }
 
 void BreakpointModule::allDelete() {
-    const auto *indent0 = m_breakpointStandardModel->invisibleRootItem();
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = indent0->rowCount() - 1; i >= 0; --i) {
         auto *indent1 = indent0->child(i);
         const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
