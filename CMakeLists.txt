@@ -170,6 +170,7 @@ qt_add_resources(UniComm "icon_resources"
         BASE "resources/icon"
         FILES
         "resources/icon/icon.ico"
+        "resources/icon/activateBreakpoints.svg"
         "resources/icon/add.svg"
         "resources/icon/apps.svg"
         "resources/icon/arrowClockwise.svg"
