@@ -73,9 +73,11 @@ Item {
         TextField {
             id: breakpointModuleConditionTextField
             width: parent.width
+            placeholderText: qsTr("true")
 
             Keys.onReturnPressed: breakpointModuleConditionDialog.accept()
             Keys.onEnterPressed: breakpointModuleConditionDialog.accept()
+            Keys.onEscapePressed: breakpointModuleConditionDialog.reject()
         }
     }
 
@@ -88,21 +90,21 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
-            text: qsTr("View Breakpoint")
+            text: qsTr("View")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
             onTriggered: breakpointModule.markerInsert(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
 
         MenuItem {
-            text: qsTr("Delete Breakpoint")
+            text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
             onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
 
         MenuItem {
-            text: qsTr("Conditional Breakpoint")
+            text: qsTr("Condition")
             icon.source: "qrc:/icon/equalCircle.svg"
             icon.width: 16; icon.height: 16
             onTriggered: {
@@ -275,28 +277,28 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
-            text: qsTr("Run Script")
+            text: qsTr("Run")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
             onTriggered: explorerModule.scriptRun(explorerModuleScriptMenu.filePath)
         }
 
         MenuItem {
-            text: qsTr("Debug Script")
+            text: qsTr("Debug")
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
             onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
         }
 
         MenuItem {
-            text: qsTr("Open Script")
+            text: qsTr("Open")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
             onTriggered: explorerModule.scriptOpen(explorerModuleScriptMenu.filePath)
         }
 
         MenuItem {
-            text: qsTr("Delete Script")
+            text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
             onTriggered: {
@@ -336,7 +338,7 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Delete Folder")
+            text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
             onTriggered: {
