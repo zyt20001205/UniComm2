@@ -89,7 +89,7 @@ RowLayout {
                 id: tooltip
                 visible: textArea.hoveredLink
                 text: "Ctrl+Left Click to open link"
-                x: hoverHandler.point.position.x
+                x: hoverHandler.point.position.x + 10
                 y: hoverHandler.point.position.y + 10
             }
 
