@@ -196,13 +196,14 @@ void ConfigManager::workspaceConfigSave(QString &filePath) {
         filePath = QDir(workspacePath).filePath("config.json");
     }
     if (QFile workspaceConfig(filePath); workspaceConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        const auto fileUrl = QUrl::fromLocalFile(filePath);
         const QJsonDocument doc(g_workspaceConfig);
         workspaceConfig.write(doc.toJson(QJsonDocument::Indented));
         workspaceConfig.close();
-        emit appendLog(QString("workspace saved to %1").arg(filePath), "info");
+        emit appendLog(QString("workspace saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] workspace saved to %2").arg(timestamp, filePath);
+        qDebug() << QString("[%1] workspace saved to %2").arg(timestamp, fileUrl.toString());
     } else {
         emit appendLog("workspace save failed", "info");
         // logging
