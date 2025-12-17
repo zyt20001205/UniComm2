@@ -17,6 +17,8 @@ public:
 
     ~ThreadpoolModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void threadStart(const QUrl &scriptUrl, int mode, QString &threadId);
 
     void threadStart(const QString &scriptPath, int mode, QString &threadId);
@@ -50,7 +52,7 @@ private:
     QHash<QString, QThread *> m_threadHash{};
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QQuickWidget *m_threadpoolWidget{};
-    QStandardItemModel *m_threadpoolModel{};
+    QStandardItemModel *m_threadpoolStandardItemModel{};
     QString m_lifetime{};
 
     enum {

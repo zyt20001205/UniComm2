@@ -78,6 +78,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
+    m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
@@ -114,6 +115,10 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         //
     };
     m_structureModule->propertySet(structureObjects);
+    const QVariantMap threadpoolObjects = {
+        {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}
+    };
+    m_threadpoolModule->propertySet(threadpoolObjects);
 }
 
 void MainWindow::overlayShow() const {
@@ -230,6 +235,15 @@ void MainWindow::moduleInit() {
 
     connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
 
+    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
+    connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
+    connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
+    connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
+    connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
+
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
@@ -279,14 +293,6 @@ void MainWindow::moduleInit() {
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
     connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
     connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
-    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
-    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
-    connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
-    connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
-    connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
-    connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
 }
 
 void MainWindow::shortcutInit() {

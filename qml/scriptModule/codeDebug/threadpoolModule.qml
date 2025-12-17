@@ -4,10 +4,12 @@ import QtQuick.Layouts
 
 Item {
     anchors.fill: parent
+    property bool modelVisible: standardItemModel.rowCount() > 0
 
     Item {
         id: hintItem
         anchors.fill: parent
+        visible: !modelVisible
 
         RowLayout {
             anchors.centerIn: parent
@@ -32,6 +34,7 @@ Item {
         syncView: tableView
         clip: true
         interactive: false
+        visible: modelVisible
 
         delegate: HorizontalHeaderViewDelegate {
             id: horizontalHeaderViewDelegate
@@ -61,9 +64,9 @@ Item {
         clip: true
         editTriggers: TableView.NoEditTriggers
         rowSpacing: 1
-        model: threadpoolModel
+        model: standardItemModel
+        visible: modelVisible
         contentWidth: width
-        property int selectedRow: 0
         property string lifetime: ""
 
         Rectangle {
@@ -183,21 +186,9 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.RightButton
                     onTapped: {
-                        tableView.selectedRow = textCell.row
-                        threadpoolMenu.popup()
-                    }
-                }
-
-                Menu {
-                    id: threadpoolMenu
-                    MenuItem {
-                        text: qsTr("Terminate")
-                        icon.source: "qrc:/icon/stop.svg"
-                        icon.width: 16; icon.height: 16
-                        onTriggered: {
-                            const index = tableView.model.index(tableView.selectedRow, 3);
-                            threadpoolModule.threadStop(tableView.model.data(index, Qt.DisplayRole))
-                        }
+                        const index = tableView.model.index(tableView.selectedRow, 3);
+                        threadMenu.threadId = tableView.model.data(index, Qt.DisplayRole)
+                        threadMenu.popup()
                     }
                 }
             }
@@ -205,20 +196,18 @@ Item {
     }
 
     Connections {
-        target: threadpoolModel
+        target: standardItemModel
 
         function onRowsInserted() {
-            hintItem.visible = false
-            horizontalHeaderView.visible = true
-            tableView.visible = true
+            modelVisible = true
         }
 
         function onRowsRemoved() {
-            if (threadpoolModel.rowCount() === 0){
-                hintItem.visible = true
-                horizontalHeaderView.visible = false
-                tableView.visible = false
-            }
+            modelVisible = standardItemModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            modelVisible = false
         }
     }
 }

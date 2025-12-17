@@ -474,6 +474,22 @@ Item {
         }
     }
 
+    // threadpool module
+    Menu {
+        id: threadpoolModuleThreadMenu
+        property string threadId
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Terminate")
+            icon.source: "qrc:/icon/stop.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: threadpoolModule.threadStop(threadpoolModuleThreadMenu.threadId)
+        }
+    }
+
     Component.onCompleted: {
         const objects = {
             "mainWindowCloseDialog": mainWindowCloseDialog,
@@ -492,7 +508,9 @@ Item {
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
             "logModuleHeightDialog": logModuleHeightDialog,
-            "logModuleLinkMenu": logModuleLinkMenu
+            "logModuleLinkMenu": logModuleLinkMenu,
+
+            "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu
         };
         mainWindow.propertyGet(objects)
     }
