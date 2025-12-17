@@ -151,15 +151,15 @@ Item {
         modal: true
         title: qsTr("Delete Script")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string path
-        property string name
+        property string filePath
+        property string fileName
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
-        onAccepted: explorerModule.scriptDelete(explorerModuleScriptDeleteDialog.path)
+        onAccepted: explorerModule.scriptDelete(explorerModuleScriptDeleteDialog.filePath)
 
         Label {
-            text: qsTr('Are you sure to delete script "%1"?').arg(explorerModuleScriptDeleteDialog.name)
+            text: qsTr('Are you sure to delete script "%1"?').arg(explorerModuleScriptDeleteDialog.fileName)
         }
     }
 
@@ -184,7 +184,7 @@ Item {
         modal: true
         title: qsTr("New Script")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string path
+        property string filePath
 
         onAboutToShow: {
             explorerModuleScriptNameTextField.clear()
@@ -192,7 +192,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: explorerModule.scriptNew(explorerModuleScriptNewDialog.path, explorerModuleScriptNameTextField.text)
+        onAccepted: explorerModule.scriptNew(explorerModuleScriptNewDialog.filePath, explorerModuleScriptNameTextField.text)
 
         TextField {
             id: explorerModuleScriptNameTextField
@@ -213,15 +213,15 @@ Item {
         modal: true
         title: qsTr("Delete Folder")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string path
-        property string name
+        property string filePath
+        property string fileName
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
-        onAccepted: explorerModule.folderDelete(explorerModuleFolderDeleteDialog.path)
+        onAccepted: explorerModule.folderDelete(explorerModuleFolderDeleteDialog.filePath)
 
         Label {
-            text: qsTr('Are you sure to delete folder "%1" and all its contents?').arg(explorerModuleFolderDeleteDialog.name)
+            text: qsTr('Are you sure to delete folder "%1" and all its contents?').arg(explorerModuleFolderDeleteDialog.fileName)
         }
     }
 
@@ -245,7 +245,7 @@ Item {
         modal: true
         title: qsTr("New Folder")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string path
+        property string filePath
 
         onAboutToShow: {
             explorerModuleFolderNameTextField.clear()
@@ -253,7 +253,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: explorerModule.folderNew(explorerModuleFolderNewDialog.path, explorerModuleFolderNameTextField.text)
+        onAccepted: explorerModule.folderNew(explorerModuleFolderNewDialog.filePath, explorerModuleFolderNameTextField.text)
 
         TextField {
             id: explorerModuleFolderNameTextField
@@ -268,8 +268,8 @@ Item {
 
     Menu {
         id: explorerModuleScriptMenu
-        property string path
-        property string name
+        property string filePath
+        property string fileName
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -278,35 +278,39 @@ Item {
             text: qsTr("Run Script")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModule.scriptRun(treeView.filePath)
+            onTriggered: explorerModule.scriptRun(explorerModuleScriptMenu.filePath)
         }
 
         MenuItem {
             text: qsTr("Debug Script")
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModule.scriptDebug(treeView.filePath)
+            onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
         }
 
         MenuItem {
             text: qsTr("Open Script")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModule.scriptOpen(treeView.filePath)
+            onTriggered: explorerModule.scriptOpen(explorerModuleScriptMenu.filePath)
         }
 
         MenuItem {
             text: qsTr("Delete Script")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModuleScriptDeleteDialog.open()
+            onTriggered: {
+                explorerModuleScriptDeleteDialog.filePath = explorerModuleScriptMenu.filePath
+                explorerModuleScriptDeleteDialog.fileName = explorerModuleScriptMenu.fileName
+                explorerModuleScriptDeleteDialog.open()
+            }
         }
     }
 
     Menu {
         id: explorerModuleFolderMenu
-        property string path
-        property string name
+        property string filePath
+        property string fileName
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -315,21 +319,31 @@ Item {
             text: qsTr("New Script")
             icon.source: "qrc:/icon/documentAdd.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModuleScriptNewDialog.open()
+            onTriggered: {
+                explorerModuleScriptNewDialog.filePath = explorerModuleFolderMenu.filePath
+                explorerModuleScriptNewDialog.open()
+            }
         }
 
         MenuItem {
             text: qsTr("New Folder")
             icon.source: "qrc:/icon/folderAdd.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModuleFolderNewDialog.open()
+            onTriggered: {
+                explorerModuleFolderNewDialog.filePath = explorerModuleFolderMenu.filePath
+                explorerModuleFolderNewDialog.open()
+            }
         }
 
         MenuItem {
             text: qsTr("Delete Folder")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModuleFolderDeleteDialog.open()
+            onTriggered: {
+                explorerModuleFolderDeleteDialog.filePath = explorerModuleFolderMenu.filePath
+                explorerModuleFolderDeleteDialog.fileName = explorerModuleFolderMenu.fileName
+                explorerModuleFolderDeleteDialog.open()
+            }
         }
     }
 
@@ -344,7 +358,7 @@ Item {
             icon.source: "qrc:/icon/documentAdd.svg"
             icon.width: 16; icon.height: 16
             onTriggered: {
-                explorerModuleScriptNewDialog.path = ""
+                explorerModuleScriptNewDialog.filePath = ""
                 explorerModuleScriptNewDialog.open()
             }
         }
@@ -354,7 +368,7 @@ Item {
             icon.source: "qrc:/icon/folderAdd.svg"
             icon.width: 16; icon.height: 16
             onTriggered: {
-                explorerModuleFolderNewDialog.path = ""
+                explorerModuleFolderNewDialog.filePath = ""
                 explorerModuleFolderNewDialog.open()
             }
         }

@@ -97,12 +97,12 @@ TreeView {
             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
             onSingleTapped: {
                 if (isTreeNode && hasChildren) {
-                    folderMenu.path = model.filePath
-                    folderMenu.name = model.fileName
+                    folderMenu.filePath = model.filePath
+                    folderMenu.fileName = model.fileName
                     folderMenu.popup()
                 } else {
-                    scriptMenu.path = model.filePath
-                    scriptMenu.name = model.fileName
+                    scriptMenu.filePath = model.filePath
+                    scriptMenu.fileName = model.fileName
                     scriptMenu.popup()
                 }
             }
