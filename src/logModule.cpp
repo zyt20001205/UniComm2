@@ -24,10 +24,9 @@ LogModule::LogModule()
 }
 
 void LogModule::propertySet(const QVariantMap &objects) {
-    m_heightDialog = qvariant_cast<QObject *>(objects["logModuleHeightDialog"]);
-    m_linkMenu = qvariant_cast<QObject *>(objects["logModuleLinkMenu"]);
-    m_logWidget->rootContext()->setContextProperty("heightDialog", m_heightDialog);
-    m_logWidget->rootContext()->setContextProperty("linkMenu", m_linkMenu);
+    m_logWidget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
+    m_logWidget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
+
     m_logWidget->rootContext()->setContextProperty("logModule", this);
     m_logWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_logWidget->setSource(QUrl("qrc:/qml/logModule.qml"));

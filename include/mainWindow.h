@@ -82,10 +82,10 @@ private:
     QObject *m_closeDialog{};
     bool m_askForSaving = true;
 
+    ConfigManager *m_configManager{};
     LuaLanguageServer *m_luals{};
 
     BreakpointModule *m_breakpointModule{};
-    ConfigManager *m_configManager{};
     DatabaseModule *m_databaseModule{};
     DataplotModule *m_dataplotModule{};
     DatatableModule *m_datatableModule{};
