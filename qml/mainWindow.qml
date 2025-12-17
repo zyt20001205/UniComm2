@@ -8,18 +8,18 @@ Item {
     property int widgetCount: 0
 
     onWidgetCountChanged: {
-        console.log("current count:", widgetCount);
+        // console.log("current count:", widgetCount);
 
         if (widgetCount === 0) {
-            overlayTimer.restart();
+            overlayHideTimer.restart();
         } else {
-            overlayTimer.stop();
-            mainWindow.overlayShow()
+            overlayHideTimer.stop();
+            Qt.callLater(mainWindow.overlayShow)
         }
     }
 
     Timer {
-        id: overlayTimer
+        id: overlayHideTimer
         interval: 50
         onTriggered: mainWindow.overlayHide()
     }
