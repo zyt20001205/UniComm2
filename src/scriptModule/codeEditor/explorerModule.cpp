@@ -79,16 +79,17 @@ void ExplorerModule::scriptNew(const QString &rootPath, const QString &scriptNam
     }
 
     QFile file(filePath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    file.close();
-
-    emit appendLog(QString("%1 created").arg(scriptName), "info");
-    const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
-    emit openScript(scriptUrl);
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 created").arg(timestamp, scriptName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        file.close();
+        const auto fileUrl = QUrl::fromLocalFile(filePath);
+        emit appendLog(QString("<a href='%1'>%2</a> created").arg(fileUrl.toString(), fileUrl.toString()), "info");
+        const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
+        emit openScript(scriptUrl);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 created").arg(timestamp, fileUrl.toString());
+    }
 }
 
 void ExplorerModule::scriptDelete(const QString &scriptPath) {
@@ -108,10 +109,11 @@ void ExplorerModule::folderNew(const QString &rootPath, const QString &folderNam
         return;
     }
     if (QDir().mkdir(folderPath)) {
-        emit appendLog(QString("%1 created").arg(folderName), "info");
+        const auto fileUrl = QUrl::fromLocalFile(folderPath);
+        emit appendLog(QString("<a href='%1'>%2</a> created").arg(fileUrl.toString(), fileUrl.toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 created").arg(timestamp, folderName);
+        qDebug() << QString("[%1] %2 created").arg(timestamp, fileUrl.toString());
     }
 }
 
