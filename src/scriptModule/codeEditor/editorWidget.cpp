@@ -17,6 +17,7 @@ EditorWidget::EditorWidget(QWidget *parent)
       },
       m_dwellTimer(new QTimer(this)),
       m_typeTimer(new QTimer(this)) {
+    setContextMenuPolicy(Qt::NoContextMenu);
     // set markers
     markerDefine(Background, MARKER_ERROR);
     setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
@@ -252,47 +253,31 @@ void EditorWidget::markerRemove(const int type, int line) {
 }
 
 // EditorWidget protected
-void EditorWidget::contextMenuEvent(QContextMenuEvent *event) {
-    m_dwellTimer->stop();
-    QMenu menu(this);
-    QMenu *foldingMenu = menu.addMenu(tr("Folding"));
-    foldingMenu->addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
-    foldingMenu->addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
-    QMenu *gotoMenu = menu.addMenu(QIcon(":/icon/arrowRight.svg"), tr("Go To"));
-    gotoMenu->addAction(QIcon(":/icon/definition.svg"), tr("Definition(s)"), this, [this] { emit requestDefinition(); }); // NOLINT
-    gotoMenu->addAction(QIcon(":/icon/reference.svg"), tr("References(s)"), this, [this] { emit requestReferences(); }); // NOLINT
-    gotoMenu->addAction(QIcon(":/icon/implementation.svg"), tr("Implementation(s)"), this, [this] { emit requestImplementation(); }); // NOLINT
-    gotoMenu->addAction(QIcon(":/icon/typeDefinition.svg"), tr("Type Definition(s)"), this, [this] { emit requestTypeDefinition(); }); // NOLINT
-    QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock To"));
-    dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Right"), this, [this] { emit dockRight(); }); // NOLINT
-    dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Left"), this, [this] { emit dockLeft(); }); // NOLINT
-    dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Top"), this, [this] { emit dockTop(); }); // NOLINT
-    dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
-    menu.addAction(tr("Formatting"), this, &EditorWidget::requestFormatting);
-    QMenu *openMenu = menu.addMenu(QIcon(":/icon/open.svg"), tr("Open In"));
-    openMenu->addAction(QIcon(":/icon/folder.svg"), tr("Explorer"), this, [this] { emit openInExplorer(); }); // NOLINT
-    openMenu->addAction(QIcon(":/icon/apps.svg"), tr("Application"), this, [this] { emit openInApplication(); }); // NOLINT
-
-    const QPoint globalPos = QCursor::pos();
-    const QPoint localPos = mapFromGlobal(globalPos);
-    const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
-    const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
-    const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
-    if (charPos != -1 && wordStart < wordEnd) {
-        const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, charPos);
-        if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
-            gotoMenu->setEnabled(false);
-        } else {
-            const long line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
-            const long index = SendScintilla(SCI_GETCOLUMN, charPos);
-            setCursorPosition(line, index);
-        }
-    } else {
-        gotoMenu->setEnabled(false);
-    }
-
-    menu.exec(event->globalPos());
-}
+// void EditorWidget::contextMenuEvent(QContextMenuEvent *event) {
+//     m_dwellTimer->stop();
+//     QMenu menu(this);
+//     QMenu *foldingMenu = menu.addMenu(tr("Folding"));
+//     foldingMenu->addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
+//     foldingMenu->addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
+//     QMenu *gotoMenu = menu.addMenu(QIcon(":/icon/arrowRight.svg"), tr("Go To"));
+//     gotoMenu->addAction(QIcon(":/icon/definition.svg"), tr("Definition(s)"), this, [this] { emit requestDefinition(); }); // NOLINT
+//     gotoMenu->addAction(QIcon(":/icon/reference.svg"), tr("References(s)"), this, [this] { emit requestReferences(); }); // NOLINT
+//     gotoMenu->addAction(QIcon(":/icon/implementation.svg"), tr("Implementation(s)"), this, [this] { emit requestImplementation(); }); // NOLINT
+//     gotoMenu->addAction(QIcon(":/icon/typeDefinition.svg"), tr("Type Definition(s)"), this, [this] { emit requestTypeDefinition(); }); // NOLINT
+//     QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock To"));
+//     dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Right"), this, [this] { emit dockRight(); }); // NOLINT
+//     dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Left"), this, [this] { emit dockLeft(); }); // NOLINT
+//     dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Top"), this, [this] { emit dockTop(); }); // NOLINT
+//     dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
+//     menu.addAction(tr("Formatting"), this, &EditorWidget::requestFormatting);
+//     QMenu *openMenu = menu.addMenu(QIcon(":/icon/open.svg"), tr("Open In"));
+//     openMenu->addAction(QIcon(":/icon/folder.svg"), tr("Explorer"), this, [this] { emit openInExplorer(); }); // NOLINT
+//     openMenu->addAction(QIcon(":/icon/apps.svg"), tr("Application"), this, [this] { emit openInApplication(); }); // NOLINT
+//
+//
+//
+//     menu.exec(event->globalPos());
+// }
 
 void EditorWidget::focusOutEvent(QFocusEvent *event) {
     // clear highlight
@@ -392,6 +377,29 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         QsciScintilla::mousePressEvent(event);
         emit requestDocumentHighlight();
+        return;
+    }
+    if (event->button() == Qt::RightButton) {
+        m_dwellTimer->stop();
+        bool gotoMenu = true;
+        const QPoint globalPos = QCursor::pos();
+        const QPoint localPos = mapFromGlobal(globalPos);
+        const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+        const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
+        const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
+        if (charPos != -1 && wordStart < wordEnd) {
+            const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, charPos);
+            if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
+                gotoMenu = false;
+            } else {
+                const long line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
+                const long index = SendScintilla(SCI_GETCOLUMN, charPos);
+                setCursorPosition(line, index);
+            }
+        } else {
+            gotoMenu = false;
+        }
+        emit showMenu(gotoMenu);
         return;
     }
     QsciScintilla::mousePressEvent(event);

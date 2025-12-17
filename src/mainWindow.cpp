@@ -78,6 +78,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
+    m_overlay->rootContext()->setContextProperty("scriptModule", m_scriptModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
 }
 
@@ -111,6 +112,10 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };
     m_logModule->propertySet(logObjects);
+    const QVariantMap scriptObjects = {
+        {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]}
+    };
+    m_scriptModule->propertySet(scriptObjects);
     const QVariantMap structureObjects = {
         //
     };
@@ -233,26 +238,6 @@ void MainWindow::moduleInit() {
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
 
-    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
-
-    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
-    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
-    connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
-    connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
-    connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
-    connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
-
-    connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
-    connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
-    connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
-    connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);
-    connect(m_settingModule, &SettingModule::saveScriptFont, m_scriptModule, &ScriptModule::scriptFontSave);
-    connect(m_settingModule, &SettingModule::reloadScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorReload);
-    connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
-    connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
-    connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
     connect(m_scriptModule, &ScriptModule::requestJson, m_luals, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
@@ -287,6 +272,27 @@ void MainWindow::moduleInit() {
     });
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
+
+    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+
+    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
+    connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
+    connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
+    connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
+    connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
+
+    connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
+    connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
+    connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
+    connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);
+    connect(m_settingModule, &SettingModule::saveScriptFont, m_scriptModule, &ScriptModule::scriptFontSave);
+    connect(m_settingModule, &SettingModule::reloadScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorReload);
+    connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
+    connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
+    connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);

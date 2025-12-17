@@ -24,6 +24,17 @@ BreakpointModule::BreakpointModule()
     }
 }
 
+void BreakpointModule::propertySet(const QVariantMap &objects) {
+    m_breakpointWidget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
+    m_breakpointWidget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));
+    m_breakpointWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));
+
+    m_breakpointWidget->rootContext()->setContextProperty("breakpointModule", this);
+    m_breakpointWidget->rootContext()->setContextProperty("standardItemModel", m_breakpointStandardItemModel);
+    m_breakpointWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_breakpointWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/breakpointModule.qml"));
+}
+
 void BreakpointModule::breakpointConfigSave() {
     auto breakpointHash = QJsonObject();
     for (const auto &url: g_breakpoints.keys()) {
@@ -36,17 +47,6 @@ void BreakpointModule::breakpointConfigSave() {
         breakpointHash.insert(url.toString(), breakpointLineHash);
     }
     g_workspaceConfig["breakpointConfig"] = breakpointHash;
-}
-
-void BreakpointModule::propertySet(const QVariantMap &objects) {
-    m_breakpointWidget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
-    m_breakpointWidget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));
-    m_breakpointWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));
-
-    m_breakpointWidget->rootContext()->setContextProperty("breakpointModule", this);
-    m_breakpointWidget->rootContext()->setContextProperty("standardItemModel", m_breakpointStandardItemModel);
-    m_breakpointWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_breakpointWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/breakpointModule.qml"));
 }
 
 void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, const QVariantHash &session) const {

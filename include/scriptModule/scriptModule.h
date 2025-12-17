@@ -24,6 +24,8 @@ public:
 
     ~ScriptModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     KDDockWidgets::QtWidgets::DockWidget *welcomePage() const {
         return m_welcomePage;
     }
@@ -43,6 +45,10 @@ public:
     void scriptMarkerSave(const QJsonObject &markerConfigScript);
 
     void scriptOpen(const QUrl &scriptUrl);
+
+    Q_INVOKABLE void collapseAll(const QUrl &scriptUrl);
+
+    Q_INVOKABLE void expandAll(const QUrl &scriptUrl);
 
     void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
 
@@ -156,6 +162,8 @@ private:
 
     void scriptClose(const QUrl &scriptUrl);
 
+    void menuShow(const QUrl &scriptUrl, bool gotoMenu) const;
+
     void textInsert(const QUrl &scriptUrl, const QString &text, int line, int index);
 
     void textReplace(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
@@ -163,6 +171,7 @@ private:
     void charAdd(const QUrl &scriptUrl, QChar character) const;
 
     QJsonObject m_scriptConfig{};
+    QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};

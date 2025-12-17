@@ -38,6 +38,8 @@ public:
     void markerRemove(int type, int line = -1);
 
 signals:
+    void showMenu(bool gotoMenu);
+
     void dockRight();
 
     void dockLeft();
@@ -77,8 +79,6 @@ signals:
     void setStat(int current, int total);
 
 protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
     void focusOutEvent(QFocusEvent *event) override;
 
     void keyPressEvent(QKeyEvent *event) override;

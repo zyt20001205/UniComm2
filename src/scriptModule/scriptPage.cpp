@@ -108,6 +108,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // connect signals
     connect(m_editorWidget, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_editorWidget, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
+    connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const bool gotoMenu) {emit showMenu(m_scriptUrl, gotoMenu);});
     connect(m_editorWidget, &EditorWidget::dockRight, this, [this] {
         const auto controller = dockWidget();
         if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {

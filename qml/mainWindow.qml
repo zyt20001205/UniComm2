@@ -474,6 +474,126 @@ Item {
         }
     }
 
+    // script module
+    Menu {
+        id: scriptModuleEditorMenu
+        property string scriptUrl
+        property bool gotoMenu
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        Menu {
+            title: qsTr("Folding")
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/textCollapse.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/textExpand.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
+            }
+        }
+
+        Menu {
+            title: qsTr("Goto")
+            icon.source: "qrc:/icon/arrowRight.svg"
+            icon.width: 16; icon.height: 16
+            enabled: scriptModuleEditorMenu.gotoMenu
+
+            MenuItem {
+                text: qsTr("Definition(s)")
+                icon.source: "qrc:/icon/definition.svg"
+                icon.width: 8; icon.height: 8
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("References(s)")
+                icon.source: "qrc:/icon/reference.svg"
+                icon.width: 8; icon.height: 8
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Implementation(s)")
+                icon.source: "qrc:/icon/implementation.svg"
+                icon.width: 8; icon.height: 8
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Type Definition(s)")
+                icon.source: "qrc:/icon/typeDefinition.svg"
+                icon.width: 8; icon.height: 8
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+        }
+
+        Menu {
+            title: qsTr("Dock")
+            icon.source: "qrc:/icon/dock.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Right")
+                icon.source: "qrc:/icon/splitRight.svg"
+                icon.width: 16; icon.height: 16
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Left")
+                icon.source: "qrc:/icon/splitLeft.svg"
+                icon.width: 16; icon.height: 16
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Top")
+                icon.source: "qrc:/icon/splitUp.svg"
+                icon.width: 16; icon.height: 16
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Bottom")
+                icon.source: "qrc:/icon/splitDown.svg"
+                icon.width: 16; icon.height: 16
+                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Formatting")
+        }
+
+        Menu {
+            title: qsTr("Open In")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Explorer")
+                icon.source: "qrc:/icon/folder.svg"
+                icon.width: 16; icon.height: 16
+                // onTriggered: logModule.openInExplorer(logModuleLinkMenu.url)
+            }
+
+            MenuItem {
+                text: qsTr("Application")
+                icon.source: "qrc:/icon/apps.svg"
+                icon.width: 16; icon.height: 16
+                // onTriggered: logModule.openInApplication(logModuleLinkMenu.url)
+            }
+        }
+    }
+
     // threadpool module
     Menu {
         id: threadpoolModuleThreadMenu
@@ -499,7 +619,7 @@ Item {
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
 
-            "diagnosticsModuleDiagnosticMenu" : diagnosticsModuleDiagnosticMenu,
+            "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
             "explorerModuleScriptErrorDialog": explorerModuleScriptErrorDialog,
             "explorerModuleFolderErrorDialog": explorerModuleFolderErrorDialog,
@@ -509,6 +629,8 @@ Item {
 
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
+
+            "scriptModuleEditorMenu": scriptModuleEditorMenu,
 
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu
         };

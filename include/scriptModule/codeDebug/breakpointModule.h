@@ -15,9 +15,9 @@ public:
 
     ~BreakpointModule() override = default;
 
-    void breakpointConfigSave();
-
     void propertySet(const QVariantMap &objects);
+
+    void breakpointConfigSave();
 
     void breakpointInsert(const QUrl &scriptUrl, int line, const QVariantHash &session) const;
 

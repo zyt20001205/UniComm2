@@ -36,6 +36,10 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::insertDatatable, this, &ScriptModule::insertDatatable);
 }
 
+void ScriptModule::propertySet(const QVariantMap &objects) {
+    m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
+}
+
 void ScriptModule::scriptConfigSave() {
     // save config
     auto scriptList = QJsonArray();
@@ -176,6 +180,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         });
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
+        connect(scriptPage, &ScriptPage::showMenu,this,&ScriptModule::menuShow);
         connect(scriptPage, &ScriptPage::insertMarker, this, &ScriptModule::markerInsert);
         connect(scriptPage, &ScriptPage::removeMarker, this, &ScriptModule::markerRemove);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
@@ -218,6 +223,16 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     } else {
         m_scriptPageHash[scriptUrl]->raise();
     }
+}
+
+void ScriptModule::collapseAll(const QUrl &scriptUrl) {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_editorWidget->SendScintilla(QsciScintillaBase::SCI_FOLDALL, QsciScintillaBase::SC_FOLDACTION_CONTRACT); // NOLINT
+}
+
+void ScriptModule::expandAll(const QUrl &scriptUrl) {
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    scriptPage->m_editorWidget->SendScintilla(QsciScintillaBase::SCI_FOLDALL, QsciScintillaBase::SC_FOLDACTION_EXPAND); // NOLINT
 }
 
 void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
@@ -772,6 +787,12 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
         m_focusedPage = begin.value();
     }
     emit closeScript(scriptUrl);
+}
+
+void ScriptModule::menuShow(const QUrl &scriptUrl, const bool gotoMenu) const {
+    m_editorMenu->setProperty("scriptUrl", scriptUrl);
+    m_editorMenu->setProperty("gotoMenu", gotoMenu);
+    QMetaObject::invokeMethod(m_editorMenu, "popup");
 }
 
 void ScriptModule::textInsert(const QUrl &scriptUrl, const QString &text, const int line, const int index) {
