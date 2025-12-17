@@ -126,17 +126,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_threadpoolModule->propertySet(threadpoolObjects);
 }
 
-void MainWindow::overlayShow() const {
-    m_overlay->show();
-    m_overlay->setFocus();
-}
-
-void MainWindow::overlayHide() const {
-    m_overlay->hide();
-}
-
-void MainWindow::overlayPenetrate(const bool status) const {
+void MainWindow::overlayActive(const bool status) const {
     m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents, status);
+    if (status) m_overlay->setFocus();
 }
 
 void MainWindow::quit() {
@@ -537,8 +529,9 @@ void MainWindow::overlayInit() {
     m_overlay = new QQuickWidget(this);
     m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_overlay->setClearColor(Qt::transparent);
-    m_overlay->setAttribute(Qt::WA_TranslucentBackground);
     m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
+    m_overlay->setAttribute(Qt::WA_TranslucentBackground);
+    m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents);
     QSurfaceFormat format;
     format.setAlphaBufferSize(8);
     m_overlay->setFormat(format);
@@ -546,7 +539,7 @@ void MainWindow::overlayInit() {
     propertySet();
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
     m_overlay->resize(size());
-    m_overlay->hide();
+    m_overlay->show();
 }
 
 void MainWindow::mainConfigSave() {

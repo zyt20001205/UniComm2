@@ -42,11 +42,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void overlayShow() const;
-
-    Q_INVOKABLE void overlayHide() const;
-
-    Q_INVOKABLE void overlayPenetrate(bool status) const;
+    Q_INVOKABLE void overlayActive(bool status) const;
 
     Q_INVOKABLE void quit();
 
