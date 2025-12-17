@@ -8,7 +8,7 @@ Item {
     property int widgetCount: 0
 
     onWidgetCountChanged: {
-        console.log("current count:", widgetCount);
+        // console.log("current count:", widgetCount);
 
         if (widgetCount === 0) {
             mainWindow.overlayActive(true)
