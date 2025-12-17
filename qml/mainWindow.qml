@@ -11,9 +11,9 @@ Item {
         // console.log("current count:", widgetCount);
 
         if (widgetCount === 0) {
-            mainWindow.overlayActive(true)
+            mainWindow.overlayTransparent(true)
         } else {
-            mainWindow.overlayActive(false)
+            mainWindow.overlayTransparent(false)
         }
     }
 

@@ -126,9 +126,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_threadpoolModule->propertySet(threadpoolObjects);
 }
 
-void MainWindow::overlayActive(const bool status) const {
+void MainWindow::overlayTransparent(const bool status) const {
     m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents, status);
-    if (status) m_overlay->setFocus();
+    if (!status) m_overlay->setFocus();
 }
 
 void MainWindow::quit() {
