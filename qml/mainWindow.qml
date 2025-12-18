@@ -44,7 +44,7 @@ Item {
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
-        onRejected: launcherModule.processTerminate()
+        onRejected: systemModule.processTerminate()
 
         ProgressBar {
             width: parent.width
@@ -369,14 +369,14 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: launcherModule.openInExplorer("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: systemModule.openInExplorer("file:///" + explorerModuleScriptMenu.filePath)
             }
 
             MenuItem {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: launcherModule.openInApplication("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: systemModule.openInApplication("file:///" + explorerModuleScriptMenu.filePath)
             }
         }
 
@@ -460,7 +460,7 @@ Item {
             text: qsTr("Open In Explorer")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: launcherModule.openInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+            onTriggered: systemModule.openInExplorer("file:///" + explorerModuleFolderMenu.filePath)
         }
 
         MenuItem {
@@ -601,7 +601,7 @@ Item {
             text: qsTr("Copy URL")
             icon.source: "qrc:/icon/copy.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: launcherModule.copyToClipboard(logModuleLinkMenu.url)
+            onTriggered: systemModule.copyToClipboard(logModuleLinkMenu.url)
         }
 
         Menu {
@@ -613,14 +613,14 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: launcherModule.openInExplorer(logModuleLinkMenu.url)
+                onTriggered: systemModule.openInExplorer(logModuleLinkMenu.url)
             }
 
             MenuItem {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: launcherModule.openInApplication(logModuleLinkMenu.url)
+                onTriggered: systemModule.openInApplication(logModuleLinkMenu.url)
             }
         }
     }
@@ -740,14 +740,14 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: launcherModule.openInExplorer(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.openInExplorer(scriptModuleEditorMenu.scriptUrl)
             }
 
             MenuItem {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: launcherModule.openInApplication(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.openInApplication(scriptModuleEditorMenu.scriptUrl)
             }
         }
     }

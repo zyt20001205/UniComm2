@@ -1,4 +1,4 @@
-#include "launcherModule.h"
+#include "systemModule.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -7,23 +7,23 @@
 #include <QProcess>
 #include <QUrl>
 
-// LauncherModule public
-LauncherModule::LauncherModule(QObject *parent)
+// SystemModule public
+SystemModule::SystemModule(QObject *parent)
     : QObject(parent),
       m_process(new QProcess(this)) {
 }
 
-void LauncherModule::propertySet(const QVariantMap &objects) {
+void SystemModule::propertySet(const QVariantMap &objects) {
     m_busyDialog = qvariant_cast<QObject *>(objects["mainWindowBusyDialog"]);
 }
 
-void LauncherModule::processTerminate() const {
+void SystemModule::processTerminate() const {
     const auto state = m_process->state();
     qDebug() << state;
     m_process->terminate();
 }
 
-void LauncherModule::openInExplorer(const QUrl &fileUrl) {
+void SystemModule::openInExplorer(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
     QStringList args;
@@ -46,7 +46,7 @@ void LauncherModule::openInExplorer(const QUrl &fileUrl) {
     m_process->start(command, args);
 }
 
-void LauncherModule::openInApplication(const QUrl &fileUrl) {
+void SystemModule::openInApplication(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     QStringList args;
 #ifdef Q_OS_WIN
@@ -64,7 +64,7 @@ void LauncherModule::openInApplication(const QUrl &fileUrl) {
     m_process->start(command, args);
 }
 
-void LauncherModule::copyToClipboard(const QUrl &fileUrl) {
+void SystemModule::copyToClipboard(const QUrl &fileUrl) {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(fileUrl.toString());
 }

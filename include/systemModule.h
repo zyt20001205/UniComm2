@@ -1,17 +1,17 @@
-#ifndef UNICOMM_LAUNCHERMODULE_H
-#define UNICOMM_LAUNCHERMODULE_H
+#ifndef UNICOMM_SYSTEMMODULE_H
+#define UNICOMM_SYSTEMMODULE_H
 
 #include <QObject>
 
 class QProcess;
 
-class LauncherModule final : public QObject {
+class SystemModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LauncherModule(QObject *parent = nullptr);
+    explicit SystemModule(QObject *parent = nullptr);
 
-    ~LauncherModule() override = default;
+    ~SystemModule() override = default;
 
     void propertySet(const QVariantMap &objects);
 
@@ -28,4 +28,4 @@ private:
     QProcess* m_process{};
 };
 
-#endif //UNICOMM_LAUNCHERMODULE_H
+#endif //UNICOMM_SYSTEMMODULE_H

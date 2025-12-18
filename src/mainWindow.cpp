@@ -22,7 +22,7 @@
 
 #include "configManager.h"
 #include "globals.h"
-#include "launcherModule.h"
+#include "systemModule.h"
 #include "logModule.h"
 #include "undoModule.h"
 #include "dataModule/databaseModule.h"
@@ -77,10 +77,10 @@ void MainWindow::propertySet() {
     // m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
-    m_overlay->rootContext()->setContextProperty("launcherModule", m_launcherModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
     m_overlay->rootContext()->setContextProperty("scriptModule", m_scriptModule);
+    m_overlay->rootContext()->setContextProperty("systemModule", m_systemModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
 }
 
@@ -108,10 +108,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}
     };
     m_explorerModule->propertySet(explorerObjects);
-    const QVariantMap launcherObjects = {
-        {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
-    };
-    m_launcherModule->propertySet(launcherObjects);
     const QVariantMap logObjects = {
         {"logModuleEmptyDialog", objects["logModuleEmptyDialog"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
@@ -126,6 +122,10 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         //
     };
     m_structureModule->propertySet(structureObjects);
+    const QVariantMap systemObjects = {
+        {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
+    };
+    m_systemModule->propertySet(systemObjects);
     const QVariantMap threadpoolObjects = {
         {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}
     };
@@ -176,7 +176,6 @@ void MainWindow::moduleInit() {
     m_debugModule = new DebugModule();
     m_diagnosticsModule = new DiagnosticsModule();
     m_explorerModule = new ExplorerModule();
-    m_launcherModule = new LauncherModule();
     m_logModule = new LogModule();
     m_nuspellModule = new NuspellModule(this);
     m_portModule = new PortModule();
@@ -184,6 +183,7 @@ void MainWindow::moduleInit() {
     m_sendModule = new SendModule();
     m_settingModule = new SettingModule(this);
     m_structureModule = new StructureModule();
+    m_systemModule = new SystemModule();
     m_threadpoolModule = new ThreadpoolModule();
     m_undoModule = new UndoModule(this);
 

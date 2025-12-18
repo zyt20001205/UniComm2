@@ -16,10 +16,10 @@ class BreakpointModule;
 class DebugModule;
 class DiagnosticsModule;
 class ExplorerModule;
-class LauncherModule;
 class LogModule;
 class NuspellModule;
 class StructureModule;
+class SystemModule;
 class ThreadpoolModule;
 
 class UndoModule;
@@ -89,7 +89,7 @@ private:
     DebugModule *m_debugModule{};
     DiagnosticsModule *m_diagnosticsModule{};
     ExplorerModule *m_explorerModule{};
-    LauncherModule *m_launcherModule{};
+    SystemModule *m_systemModule{};
     LogModule *m_logModule{};
     NuspellModule *m_nuspellModule{};
     PortModule *m_portModule{};
