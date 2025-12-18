@@ -477,7 +477,7 @@ Item {
 
     Menu {
         id: explorerModuleRootMenu
-        property url url
+        property url rootUrl
         property var treeView
 
         onAboutToShow: widgetCount += 1
@@ -543,7 +543,7 @@ Item {
             text: qsTr("Open In Explorer")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModule.openInExplorer()
+            onTriggered: systemModule.openInExplorer(explorerModuleRootMenu.rootUrl)
         }
     }
 

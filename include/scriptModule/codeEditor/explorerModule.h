@@ -31,8 +31,6 @@ public:
 
     Q_INVOKABLE static void folderDelete(const QString &folderPath);
 
-    Q_INVOKABLE void openInExplorer() const;
-
 signals:
     void appendLog(const QString &message, const QString &level);
 

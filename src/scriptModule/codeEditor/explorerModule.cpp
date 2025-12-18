@@ -29,9 +29,10 @@ void ExplorerModule::propertySet(const QVariantMap &objects) {
 
     const auto rootPath = g_workspaceUrl.toLocalFile();
     m_explorerFileSystemModel->setRootPath(rootPath);
-    const QModelIndex fileRootIndex = m_explorerFileSystemModel->index(rootPath);
+    const QModelIndex modelRootIndex = m_explorerFileSystemModel->index(rootPath);
     m_explorerWidget->rootContext()->setContextProperty("explorerModule", this);
-    m_explorerWidget->rootContext()->setContextProperty("fileRootIndex", fileRootIndex);
+    m_explorerWidget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
+    m_explorerWidget->rootContext()->setContextProperty("modelRootUrl", g_workspaceUrl);
     m_explorerWidget->rootContext()->setContextProperty("fileSystemModel", m_explorerFileSystemModel);
     m_explorerWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_explorerWidget->setSource(QUrl("qrc:/qml/scriptModule/codeEditor/explorerModule.qml"));
@@ -120,18 +121,4 @@ void ExplorerModule::folderNew(const QString &rootPath, const QString &folderNam
 void ExplorerModule::folderDelete(const QString &folderPath) {
     QDir dir(folderPath);
     dir.removeRecursively();
-}
-
-void ExplorerModule::openInExplorer() const {
-    const QDir folderPath = m_explorerFileSystemModel->rootPath();
-    const QString folderAbsolutePath = folderPath.absolutePath();
-#ifdef Q_OS_WIN
-    const QString command = "explorer.exe";
-    QStringList args;
-    args << QDir::toNativeSeparators(folderAbsolutePath);
-    QProcess::startDetached(command, args);
-#endif
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "opened in explorer");
 }
