@@ -368,7 +368,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.openInExplorer("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleScriptMenu.filePath)
             }
 
             MenuItem {
@@ -376,7 +376,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.openInApplication("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: systemModule.fileOpenInApplication("file:///" + explorerModuleScriptMenu.filePath)
             }
         }
 
@@ -390,7 +390,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    explorerModule.scriptDelete(explorerModuleScriptMenu.filePath)
+                    systemModule.fileDelete("file:///" + explorerModuleScriptMenu.filePath)
                     progress = 0
                     explorerModuleScriptMenu.close()
                 }
@@ -471,7 +471,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.openInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
         }
 
         Menu {
@@ -484,7 +484,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    explorerModule.folderDelete(explorerModuleFolderMenu.filePath)
+                    systemModule.fileDelete("file:///" + explorerModuleFolderMenu.filePath)
                     progress = 0
                     explorerModuleFolderMenu.close()
                 }
@@ -565,7 +565,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.openInExplorer(explorerModuleRootMenu.rootUrl)
+            onTriggered: systemModule.fileOpenInExplorer(explorerModuleRootMenu.rootUrl)
         }
     }
 
@@ -637,7 +637,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.openInExplorer(logModuleLinkMenu.url)
+                onTriggered: systemModule.fileOpenInExplorer(logModuleLinkMenu.url)
             }
 
             MenuItem {
@@ -645,7 +645,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.openInApplication(logModuleLinkMenu.url)
+                onTriggered: systemModule.fileOpenInApplication(logModuleLinkMenu.url)
             }
         }
     }
@@ -740,7 +740,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.openInExplorer(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.fileOpenInExplorer(scriptModuleEditorMenu.scriptUrl)
             }
 
             MenuItem {
@@ -748,7 +748,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.openInApplication(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.fileOpenInApplication(scriptModuleEditorMenu.scriptUrl)
             }
         }
     }

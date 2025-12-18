@@ -23,7 +23,19 @@ void SystemModule::processTerminate() const {
     m_process->terminate();
 }
 
-void SystemModule::openInExplorer(const QUrl &fileUrl) {
+void SystemModule::fileDelete(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    if (fileInfo.isFile()) {
+        QFile file(filePath);
+        file.remove();
+    } else if (fileInfo.isDir()) {
+        QDir dir(filePath);
+        dir.removeRecursively();
+    }
+}
+
+void SystemModule::fileOpenInExplorer(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
     QStringList args;
@@ -46,7 +58,7 @@ void SystemModule::openInExplorer(const QUrl &fileUrl) {
     m_process->start(command, args);
 }
 
-void SystemModule::openInApplication(const QUrl &fileUrl) {
+void SystemModule::fileOpenInApplication(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     QStringList args;
 #ifdef Q_OS_WIN

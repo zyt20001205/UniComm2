@@ -25,11 +25,7 @@ public:
 
     Q_INVOKABLE void scriptNew(const QString &rootPath, const QString &scriptName);
 
-    Q_INVOKABLE static void scriptDelete(const QString &scriptPath);
-
     Q_INVOKABLE void folderNew(const QString &rootPath, const QString &folderName);
-
-    Q_INVOKABLE static void folderDelete(const QString &folderPath);
 
 signals:
     void appendLog(const QString &message, const QString &level);

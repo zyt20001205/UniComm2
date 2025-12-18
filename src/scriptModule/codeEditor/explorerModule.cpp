@@ -93,11 +93,6 @@ void ExplorerModule::scriptNew(const QString &rootPath, const QString &scriptNam
     }
 }
 
-void ExplorerModule::scriptDelete(const QString &scriptPath) {
-    QFile file(scriptPath);
-    file.remove();
-}
-
 void ExplorerModule::folderNew(const QString &rootPath, const QString &folderName) {
     QString folderPath{};
     if (rootPath.isEmpty()) {
@@ -116,9 +111,4 @@ void ExplorerModule::folderNew(const QString &rootPath, const QString &folderNam
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] folder created at %2").arg(timestamp, fileUrl.toString());
     }
-}
-
-void ExplorerModule::folderDelete(const QString &folderPath) {
-    QDir dir(folderPath);
-    dir.removeRecursively();
 }
