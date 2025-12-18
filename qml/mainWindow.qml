@@ -112,14 +112,6 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Delete")
-            icon.source: "qrc:/icon/delete.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
-        }
-
-        MenuItem {
             text: qsTr("Condition")
             icon.source: "qrc:/icon/equalCircle.svg"
             icon.width: 16; icon.height: 16
@@ -128,6 +120,23 @@ Item {
                 breakpointModuleConditionDialog.url = breakpointModuleLineMenu.url
                 breakpointModuleConditionDialog.line = breakpointModuleLineMenu.line
                 breakpointModuleConditionDialog.open()
+            }
+        }
+
+        Menu {
+            title: qsTr("Delete")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
+                    progress = 0
+                    breakpointModuleLineMenu.close()
+                }
             }
         }
     }
@@ -139,12 +148,21 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
-        MenuItem {
-            text: qsTr("Delete Breakpoints")
+        Menu {
+            title: qsTr("Delete Breakpoints")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.breakpointsDelete(breakpointModuleFileMenu.url)
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    breakpointModule.breakpointsDelete(breakpointModuleFileMenu.url)
+                    progress = 0
+                    breakpointModuleFileMenu.close()
+                }
+            }
         }
     }
 
@@ -154,12 +172,21 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
-        MenuItem {
-            text: qsTr("Delete All")
+        Menu {
+            title: qsTr("Delete All")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.allDelete()
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    breakpointModule.allDelete()
+                    progress = 0
+                    breakpointModuleRootMenu.close()
+                }
+            }
         }
     }
 
@@ -192,26 +219,6 @@ Item {
     }
 
     // explorer module
-    Dialog {
-        id: explorerModuleScriptDeleteDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 400
-        modal: true
-        title: qsTr("Delete Script")
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        property string filePath
-        property string fileName
-
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
-        onAccepted: explorerModule.scriptDelete(explorerModuleScriptDeleteDialog.filePath)
-
-        Label {
-            text: qsTr('Are you sure to delete script "%1"?').arg(explorerModuleScriptDeleteDialog.fileName)
-        }
-    }
-
     Dialog {
         id: explorerModuleScriptErrorDialog
         parent: Overlay.overlay
@@ -251,26 +258,6 @@ Item {
             Keys.onReturnPressed: explorerModuleScriptNewDialog.accept()
             Keys.onEnterPressed: explorerModuleScriptNewDialog.accept()
             Keys.onEscapePressed: explorerModuleScriptNewDialog.reject()
-        }
-    }
-
-    Dialog {
-        id: explorerModuleFolderDeleteDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 400
-        modal: true
-        title: qsTr("Delete Folder")
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        property string filePath
-        property string fileName
-
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
-        onAccepted: explorerModule.folderDelete(explorerModuleFolderDeleteDialog.filePath)
-
-        Label {
-            text: qsTr('Are you sure to delete folder "%1" and all its contents?').arg(explorerModuleFolderDeleteDialog.fileName)
         }
     }
 
@@ -393,15 +380,20 @@ Item {
             }
         }
 
-        MenuItem {
-            text: qsTr("Delete")
+        Menu {
+            title: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                explorerModuleScriptDeleteDialog.filePath = explorerModuleScriptMenu.filePath
-                explorerModuleScriptDeleteDialog.fileName = explorerModuleScriptMenu.fileName
-                explorerModuleScriptDeleteDialog.open()
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    explorerModule.scriptDelete(explorerModuleScriptMenu.filePath)
+                    progress = 0
+                    explorerModuleScriptMenu.close()
+                }
             }
         }
     }
@@ -482,15 +474,20 @@ Item {
             onTriggered: systemModule.openInExplorer("file:///" + explorerModuleFolderMenu.filePath)
         }
 
-        MenuItem {
-            text: qsTr("Delete")
+        Menu {
+            title: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                explorerModuleFolderDeleteDialog.filePath = explorerModuleFolderMenu.filePath
-                explorerModuleFolderDeleteDialog.fileName = explorerModuleFolderMenu.fileName
-                explorerModuleFolderDeleteDialog.open()
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    explorerModule.folderDelete(explorerModuleFolderMenu.filePath)
+                    progress = 0
+                    explorerModuleFolderMenu.close()
+                }
             }
         }
     }
