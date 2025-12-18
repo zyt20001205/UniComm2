@@ -320,7 +320,7 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
 }
 
 void ScriptPage::formattingResponse(const QString &newText) const {
-    m_editorWidget->setText(newText);
+    m_editorWidget->textSet(newText);
 }
 
 void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {

@@ -177,6 +177,10 @@ void EditorWidget::cursorPositionGet(int *line, int *index) const {
     getCursorPosition(line, index);
 }
 
+void EditorWidget::textSet(const QString &text) {
+    setText(text);
+}
+
 void EditorWidget::textInsert(const QString &text, const int line, const int index) {
     const int pos = positionFromLineIndex(line, index);
     beginUndoAction();
