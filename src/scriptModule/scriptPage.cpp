@@ -149,23 +149,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             }
         }
     });
-    connect(m_editorWidget, &EditorWidget::openInExplorer, this, [this] {
-        const QString folderPath = QFileInfo(m_scriptUrl.toLocalFile()).absolutePath();
-#ifdef Q_OS_WIN
-        const QString command = "explorer.exe";
-        QStringList args;
-        args << QDir::toNativeSeparators(folderPath);
-        QProcess::startDetached(command, args);
-#endif
-    });
-    connect(m_editorWidget, &EditorWidget::openInApplication, this, [this] {
-#ifdef Q_OS_WIN
-        const QString command = "explorer.exe";
-        QStringList args;
-        args << QDir::toNativeSeparators(m_scriptUrl.toLocalFile());
-        QProcess::startDetached(command, args);
-#endif
-    });
     connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
     connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);

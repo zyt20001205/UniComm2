@@ -443,7 +443,7 @@ Item {
             text: qsTr("Copy URL")
             icon.source: "qrc:/icon/copy.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: logModule.urlCopy(logModuleLinkMenu.url)
+            onTriggered: launcherModule.copyToClipboard(logModuleLinkMenu.url)
         }
 
         Menu {
@@ -455,14 +455,14 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: logModule.openInExplorer(logModuleLinkMenu.url)
+                onTriggered: launcherModule.openInExplorer(logModuleLinkMenu.url)
             }
 
             MenuItem {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: logModule.openInApplication(logModuleLinkMenu.url)
+                onTriggered: launcherModule.openInApplication(logModuleLinkMenu.url)
             }
         }
     }

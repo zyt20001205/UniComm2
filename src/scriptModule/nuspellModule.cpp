@@ -6,8 +6,8 @@
 #include <nuspell/finder.hxx>
 
 // NuspellModule public
-NuspellModule::NuspellModule(QWidget *parent)
-    : QWidget(parent) {
+NuspellModule::NuspellModule(QObject *parent)
+    : QObject(parent) {
     const QDir rootDir(QCoreApplication::applicationDirPath());
     QDir dictDir(rootDir.absoluteFilePath("dict"));
     auto dirs = std::vector<std::filesystem::path>{dictDir.path().toStdString()};

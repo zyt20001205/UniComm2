@@ -9,26 +9,27 @@ class QQuickWidget;
 class QComboBox;
 class QShortcut;
 
+class ConfigManager;
 class LuaLanguageServer;
 
-class StructureModule;
-class ConfigManager;
-
+class BreakpointModule;
+class DebugModule;
+class DiagnosticsModule;
+class ExplorerModule;
+class LauncherModule;
+class LogModule;
 class NuspellModule;
+class StructureModule;
+class ThreadpoolModule;
+
 class UndoModule;
 class SettingModule;
 class ScriptModule;
 class PortModule;
-class ExplorerModule;
 class SendModule;
 class DatabaseModule;
 class DatatableModule;
 class DataplotModule;
-class LogModule;
-class DiagnosticsModule;
-class DebugModule;
-class ThreadpoolModule;
-class BreakpointModule;
 
 class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
@@ -88,6 +89,7 @@ private:
     DebugModule *m_debugModule{};
     DiagnosticsModule *m_diagnosticsModule{};
     ExplorerModule *m_explorerModule{};
+    LauncherModule *m_launcherModule{};
     LogModule *m_logModule{};
     NuspellModule *m_nuspellModule{};
     PortModule *m_portModule{};

@@ -1,15 +1,10 @@
 #include "logModule.h"
 
-#include <QClipboard>
-#include <QDesktopServices>
 #include <QFileDialog>
-#include <QHBoxLayout>
 #include <QMessageBox>
 #include <QPrinter>
-#include <QProcess>
 #include <QQmlContext>
 #include <QQuickTextDocument>
-#include <QQuickWidget>
 #include <QStandardPaths>
 
 #include "globals.h"
@@ -156,28 +151,4 @@ void LogModule::logSave(const QUrl &fileUrl) {
             qDebug() << QString("[%1] log save failed").arg(timestamp);
         }
     }
-}
-
-void LogModule::urlCopy(const QUrl &fileUrl) {
-    QClipboard *clipboard = QGuiApplication::clipboard();
-    clipboard->setText(fileUrl.toString());
-}
-
-void LogModule::openInExplorer(const QUrl &fileUrl) {
-    const QString folderPath = QFileInfo(fileUrl.toLocalFile()).absolutePath();
-#ifdef Q_OS_WIN
-    const QString command = "explorer.exe";
-    QStringList args;
-    args << QDir::toNativeSeparators(folderPath);
-    QProcess::startDetached(command, args);
-#endif
-}
-
-void LogModule::openInApplication(const QUrl &fileUrl) {
-#ifdef Q_OS_WIN
-    const QString command = "explorer.exe";
-    QStringList args;
-    args << QDir::toNativeSeparators(fileUrl.toLocalFile());
-    QProcess::startDetached(command, args);
-#endif
 }

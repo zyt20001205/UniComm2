@@ -48,10 +48,6 @@ signals:
 
     void dockBottom();
 
-    void openInExplorer();
-
-    void openInApplication();
-
     void requestPermission();
 
     void requestIdle();

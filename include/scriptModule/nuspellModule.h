@@ -1,14 +1,14 @@
 #ifndef UNICOMM_NUSPELLMODULE_H
 #define UNICOMM_NUSPELLMODULE_H
 
-#include <QWidget>
+#include <QObject>
 #include <nuspell/dictionary.hxx>
 
-class NuspellModule final : public QWidget {
+class NuspellModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit NuspellModule(QWidget *parent = nullptr);
+    explicit NuspellModule(QObject *parent = nullptr);
 
     ~NuspellModule() override = default;
 
