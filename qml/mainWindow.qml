@@ -107,6 +107,7 @@ Item {
             text: qsTr("View")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: breakpointModule.markerInsert(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
 
@@ -114,6 +115,7 @@ Item {
             text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
 
@@ -121,6 +123,7 @@ Item {
             text: qsTr("Condition")
             icon.source: "qrc:/icon/equalCircle.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: {
                 breakpointModuleConditionDialog.url = breakpointModuleLineMenu.url
                 breakpointModuleConditionDialog.line = breakpointModuleLineMenu.line
@@ -140,6 +143,7 @@ Item {
             text: qsTr("Delete Breakpoints")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: breakpointModule.breakpointsDelete(breakpointModuleFileMenu.url)
         }
     }
@@ -154,6 +158,7 @@ Item {
             text: qsTr("Delete All")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: breakpointModule.allDelete()
         }
     }
@@ -173,6 +178,7 @@ Item {
             text: qsTr("Copy")
             icon.source: "qrc:/icon/copy.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: diagnosticsModule.diagnosticCopy(diagnosticsModuleDiagnosticMenu.diagnostic)
         }
 
@@ -180,6 +186,7 @@ Item {
             text: qsTr("View")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: diagnosticsModule.indicatorInsert(diagnosticsModuleDiagnosticMenu.position)
         }
     }
@@ -325,6 +332,7 @@ Item {
                 text: qsTr("Collapse All")
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
                     for (let i = 0; i < treeView.rows; i++) {
@@ -337,6 +345,7 @@ Item {
                 text: qsTr("Expand All")
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
                     for (let i = 0; i < treeView.rows; i++) {
@@ -350,6 +359,7 @@ Item {
             text: qsTr("Run")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: explorerModule.scriptRun(explorerModuleScriptMenu.filePath)
         }
 
@@ -357,6 +367,7 @@ Item {
             text: qsTr("Debug")
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
         }
 
@@ -369,6 +380,7 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: systemModule.openInExplorer("file:///" + explorerModuleScriptMenu.filePath)
             }
 
@@ -376,6 +388,7 @@ Item {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: systemModule.openInApplication("file:///" + explorerModuleScriptMenu.filePath)
             }
         }
@@ -384,6 +397,7 @@ Item {
             text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: {
                 explorerModuleScriptDeleteDialog.filePath = explorerModuleScriptMenu.filePath
                 explorerModuleScriptDeleteDialog.fileName = explorerModuleScriptMenu.fileName
@@ -409,6 +423,7 @@ Item {
                 text: qsTr("Collapse All")
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
                     for (let i = 0; i < treeView.rows; i++) {
@@ -421,6 +436,7 @@ Item {
                 text: qsTr("Expand All")
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
                     for (let i = 0; i < treeView.rows; i++) {
@@ -439,6 +455,7 @@ Item {
                 text: qsTr("Script")
                 icon.source: "qrc:/icon/document.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     explorerModuleScriptNewDialog.filePath = explorerModuleFolderMenu.filePath
                     explorerModuleScriptNewDialog.open()
@@ -449,6 +466,7 @@ Item {
                 text: qsTr("Folder")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     explorerModuleFolderNewDialog.filePath = explorerModuleFolderMenu.filePath
                     explorerModuleFolderNewDialog.open()
@@ -460,6 +478,7 @@ Item {
             text: qsTr("Open In Explorer")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: systemModule.openInExplorer("file:///" + explorerModuleFolderMenu.filePath)
         }
 
@@ -467,6 +486,7 @@ Item {
             text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: {
                 explorerModuleFolderDeleteDialog.filePath = explorerModuleFolderMenu.filePath
                 explorerModuleFolderDeleteDialog.fileName = explorerModuleFolderMenu.fileName
@@ -492,6 +512,7 @@ Item {
                 text: qsTr("Collapse All")
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
                     for (let i = 0; i < treeView.rows; i++) {
@@ -504,6 +525,7 @@ Item {
                 text: qsTr("Expand All")
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
                     for (let i = 0; i < treeView.rows; i++) {
@@ -522,6 +544,7 @@ Item {
                 text: qsTr("Script")
                 icon.source: "qrc:/icon/document.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     explorerModuleScriptNewDialog.filePath = ""
                     explorerModuleScriptNewDialog.open()
@@ -532,6 +555,7 @@ Item {
                 text: qsTr("Folder")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     explorerModuleFolderNewDialog.filePath = ""
                     explorerModuleFolderNewDialog.open()
@@ -543,6 +567,7 @@ Item {
             text: qsTr("Open In Explorer")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: systemModule.openInExplorer(explorerModuleRootMenu.rootUrl)
         }
     }
@@ -601,6 +626,7 @@ Item {
             text: qsTr("Copy URL")
             icon.source: "qrc:/icon/copy.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: systemModule.copyToClipboard(logModuleLinkMenu.url)
         }
 
@@ -613,6 +639,7 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: systemModule.openInExplorer(logModuleLinkMenu.url)
             }
 
@@ -620,6 +647,7 @@ Item {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: systemModule.openInApplication(logModuleLinkMenu.url)
             }
         }
@@ -642,6 +670,7 @@ Item {
                 text: qsTr("Collapse All")
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: {
                     console.log("Collapse All triggered for:", scriptModuleEditorMenu.scriptUrl)
                     scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
@@ -652,6 +681,7 @@ Item {
                 text: qsTr("Expand All")
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
             }
         }
@@ -666,6 +696,7 @@ Item {
                 text: qsTr("Definition(s)")
                 icon.source: "qrc:/icon/definition.svg"
                 icon.width: 8; icon.height: 8
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -673,6 +704,7 @@ Item {
                 text: qsTr("References(s)")
                 icon.source: "qrc:/icon/reference.svg"
                 icon.width: 8; icon.height: 8
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -680,6 +712,7 @@ Item {
                 text: qsTr("Implementation(s)")
                 icon.source: "qrc:/icon/implementation.svg"
                 icon.width: 8; icon.height: 8
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -687,6 +720,7 @@ Item {
                 text: qsTr("Type Definition(s)")
                 icon.source: "qrc:/icon/typeDefinition.svg"
                 icon.width: 8; icon.height: 8
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
         }
@@ -700,6 +734,7 @@ Item {
                 text: qsTr("Right")
                 icon.source: "qrc:/icon/splitRight.svg"
                 icon.width: 16; icon.height: 16
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -707,6 +742,7 @@ Item {
                 text: qsTr("Left")
                 icon.source: "qrc:/icon/splitLeft.svg"
                 icon.width: 16; icon.height: 16
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -714,6 +750,7 @@ Item {
                 text: qsTr("Top")
                 icon.source: "qrc:/icon/splitUp.svg"
                 icon.width: 16; icon.height: 16
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -721,6 +758,7 @@ Item {
                 text: qsTr("Bottom")
                 icon.source: "qrc:/icon/splitDown.svg"
                 icon.width: 16; icon.height: 16
+
                 // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
         }
@@ -729,6 +767,8 @@ Item {
             text: qsTr("Formatting")
             icon.source: "qrc:/icon/brush.svg"
             icon.width: 16; icon.height: 16
+
+            onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
         }
 
         Menu {
@@ -740,6 +780,7 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: systemModule.openInExplorer(scriptModuleEditorMenu.scriptUrl)
             }
 
@@ -747,6 +788,7 @@ Item {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
+
                 onTriggered: systemModule.openInApplication(scriptModuleEditorMenu.scriptUrl)
             }
         }
@@ -764,6 +806,7 @@ Item {
             text: qsTr("Terminate")
             icon.source: "qrc:/icon/stop.svg"
             icon.width: 16; icon.height: 16
+
             onTriggered: threadpoolModule.threadStop(threadpoolModuleThreadMenu.threadId)
         }
     }

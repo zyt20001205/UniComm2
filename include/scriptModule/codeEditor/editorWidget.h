@@ -60,8 +60,6 @@ signals:
 
     void requestDocumentHighlight();
 
-    void requestFormatting();
-
     void requestHover();
 
     void requestImplementation();

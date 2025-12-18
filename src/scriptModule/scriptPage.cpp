@@ -155,7 +155,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_editorWidget, &EditorWidget::leaveDwellWidget, this, &ScriptPage::leaveDwell);
     connect(m_editorWidget, &EditorWidget::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_editorWidget, &EditorWidget::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
-    connect(m_editorWidget, &EditorWidget::requestFormatting, this, &ScriptPage::formattingRequest);
     connect(m_editorWidget, &EditorWidget::requestHover, this, &ScriptPage::hoverRequest);
     connect(m_editorWidget, &EditorWidget::requestImplementation, this, &ScriptPage::implementationRequest);
     connect(m_editorWidget, &EditorWidget::requestOnTypeFormatting, this, &ScriptPage::onTypeFormattingRequest);

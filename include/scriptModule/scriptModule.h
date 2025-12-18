@@ -90,7 +90,7 @@ public:
 
     void foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const;
 
-    void formattingRequest(const QUrl &scriptUrl);
+    Q_INVOKABLE void formattingRequest(const QUrl &scriptUrl);
 
     void formattingResponse(const QUrl &scriptUrl, const QString &newText) const;
 
