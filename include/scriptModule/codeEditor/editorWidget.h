@@ -43,15 +43,7 @@ public:
     void markerRemove(int type, int line = -1);
 
 signals:
-    void showMenu(bool gotoMenu);
-
-    void dockRight();
-
-    void dockLeft();
-
-    void dockTop();
-
-    void dockBottom();
+    void showMenu(const QVariantHash &menuSession);
 
     void requestPermission();
 

@@ -76,7 +76,7 @@ public:
 
     void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;
 
-    void definitionRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void definitionRequest(const QUrl &scriptUrl, int line, int character);
 
     void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const;
 
@@ -98,7 +98,7 @@ public:
 
     void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
 
-    void implementationRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void implementationRequest(const QUrl &scriptUrl, int line, int character);
 
     void implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const;
 
@@ -106,7 +106,7 @@ public:
 
     void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const;
 
-    void referencesRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void referencesRequest(const QUrl &scriptUrl, int line, int character);
 
     void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const;
 
@@ -120,7 +120,7 @@ public:
 
     void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
 
-    void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 
     void typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const;
 
@@ -162,7 +162,7 @@ private:
 
     void scriptClose(const QUrl &scriptUrl);
 
-    void menuShow(const QUrl &scriptUrl, bool gotoMenu) const;
+    void menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const;
 
     void textInsert(const QUrl &scriptUrl, const QString &text, int line, int index);
 

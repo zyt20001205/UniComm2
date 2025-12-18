@@ -108,47 +108,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // connect signals
     connect(m_editorWidget, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
     connect(m_editorWidget, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
-    connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const bool gotoMenu) {emit showMenu(m_scriptUrl, gotoMenu);});
-    connect(m_editorWidget, &EditorWidget::dockRight, this, [this] {
-        const auto controller = dockWidget();
-        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
-            for (const auto &dock: tabGroup->dockWidgets()) {
-                if (dock != controller) {
-                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnRight, dock);
-                }
-            }
-        }
-    });
-    connect(m_editorWidget, &EditorWidget::dockLeft, this, [this] {
-        const auto controller = dockWidget();
-        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
-            for (const auto &dock: tabGroup->dockWidgets()) {
-                if (dock != controller) {
-                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnLeft, dock);
-                }
-            }
-        }
-    });
-    connect(m_editorWidget, &EditorWidget::dockTop, this, [this] {
-        const auto controller = dockWidget();
-        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
-            for (const auto &dock: tabGroup->dockWidgets()) {
-                if (dock != controller) {
-                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnTop, dock);
-                }
-            }
-        }
-    });
-    connect(m_editorWidget, &EditorWidget::dockBottom, this, [this] {
-        const auto controller = dockWidget();
-        if (const auto tabGroup = group(); tabGroup->dockWidgetCount() > 1) {
-            for (const auto &dock: tabGroup->dockWidgets()) {
-                if (dock != controller) {
-                    controller->addDockWidgetToContainingWindow(controller, KDDockWidgets::Location_OnBottom, dock);
-                }
-            }
-        }
-    });
+    connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) {emit showMenu(m_scriptUrl, menuSession);});
     connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
     connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);

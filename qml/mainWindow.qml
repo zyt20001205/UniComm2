@@ -657,7 +657,7 @@ Item {
     Menu {
         id: scriptModuleEditorMenu
         property url scriptUrl
-        property bool gotoMenu
+        property var menuSession
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
@@ -690,14 +690,14 @@ Item {
             title: qsTr("Goto")
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.gotoMenu
+            enabled: scriptModuleEditorMenu.menuSession["gotoMenu"]
 
             MenuItem {
                 text: qsTr("Definition(s)")
                 icon.source: "qrc:/icon/definition.svg"
                 icon.width: 8; icon.height: 8
 
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.definitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
             }
 
             MenuItem {
@@ -705,7 +705,7 @@ Item {
                 icon.source: "qrc:/icon/reference.svg"
                 icon.width: 8; icon.height: 8
 
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.referencesRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
             }
 
             MenuItem {
@@ -713,7 +713,7 @@ Item {
                 icon.source: "qrc:/icon/implementation.svg"
                 icon.width: 8; icon.height: 8
 
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.implementationRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
             }
 
             MenuItem {
@@ -721,45 +721,7 @@ Item {
                 icon.source: "qrc:/icon/typeDefinition.svg"
                 icon.width: 8; icon.height: 8
 
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-            }
-        }
-
-        Menu {
-            title: qsTr("Dock")
-            icon.source: "qrc:/icon/dock.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Right")
-                icon.source: "qrc:/icon/splitRight.svg"
-                icon.width: 16; icon.height: 16
-
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Left")
-                icon.source: "qrc:/icon/splitLeft.svg"
-                icon.width: 16; icon.height: 16
-
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Top")
-                icon.source: "qrc:/icon/splitUp.svg"
-                icon.width: 16; icon.height: 16
-
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Bottom")
-                icon.source: "qrc:/icon/splitDown.svg"
-                icon.width: 16; icon.height: 16
-
-                // onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
             }
         }
 

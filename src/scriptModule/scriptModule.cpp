@@ -783,9 +783,9 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
     emit closeScript(scriptUrl);
 }
 
-void ScriptModule::menuShow(const QUrl &scriptUrl, const bool gotoMenu) const {
+void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const {
     m_editorMenu->setProperty("scriptUrl", scriptUrl.toString());
-    m_editorMenu->setProperty("gotoMenu", gotoMenu);
+    m_editorMenu->setProperty("menuSession", menuSession);
     QMetaObject::invokeMethod(m_editorMenu, "popup");
 }
 

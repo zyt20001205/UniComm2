@@ -98,7 +98,7 @@ EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
     m_typeTimer->setSingleShot(true);
     connect(m_typeTimer, &QTimer::timeout, this, &EditorWidget::requestIdle);
     // load breakpoints
-    QTimer::singleShot(0, this, [this] {breakpointLoad();});
+    QTimer::singleShot(0, this, [this] { breakpointLoad(); });
 }
 
 void EditorWidget::breakpointLoad() {
@@ -268,33 +268,6 @@ void EditorWidget::markerRemove(const int type, int line) {
     }
 }
 
-// EditorWidget protected
-// void EditorWidget::contextMenuEvent(QContextMenuEvent *event) {
-//     m_dwellTimer->stop();
-//     QMenu menu(this);
-//     QMenu *foldingMenu = menu.addMenu(tr("Folding"));
-//     foldingMenu->addAction(QIcon(":/icon/textCollapse.svg"), tr("Collapse All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); }); // NOLINT
-//     foldingMenu->addAction(QIcon(":/icon/textExpand.svg"), tr("Expand All"), this, [this] { SendScintilla(SCI_FOLDALL, SC_FOLDACTION_EXPAND); }); // NOLINT
-//     QMenu *gotoMenu = menu.addMenu(QIcon(":/icon/arrowRight.svg"), tr("Go To"));
-//     gotoMenu->addAction(QIcon(":/icon/definition.svg"), tr("Definition(s)"), this, [this] { emit requestDefinition(); }); // NOLINT
-//     gotoMenu->addAction(QIcon(":/icon/reference.svg"), tr("References(s)"), this, [this] { emit requestReferences(); }); // NOLINT
-//     gotoMenu->addAction(QIcon(":/icon/implementation.svg"), tr("Implementation(s)"), this, [this] { emit requestImplementation(); }); // NOLINT
-//     gotoMenu->addAction(QIcon(":/icon/typeDefinition.svg"), tr("Type Definition(s)"), this, [this] { emit requestTypeDefinition(); }); // NOLINT
-//     QMenu *dockMenu = menu.addMenu(QIcon(":/icon/dock.svg"), tr("Dock To"));
-//     dockMenu->addAction(QIcon(":/icon/splitRight.svg"), tr("Right"), this, [this] { emit dockRight(); }); // NOLINT
-//     dockMenu->addAction(QIcon(":/icon/splitLeft.svg"), tr("Left"), this, [this] { emit dockLeft(); }); // NOLINT
-//     dockMenu->addAction(QIcon(":/icon/splitUp.svg"), tr("Top"), this, [this] { emit dockTop(); }); // NOLINT
-//     dockMenu->addAction(QIcon(":/icon/splitDown.svg"), tr("Bottom"), this, [this] { emit dockBottom(); }); // NOLINT
-//     menu.addAction(tr("Formatting"), this, &EditorWidget::requestFormatting);
-//     QMenu *openMenu = menu.addMenu(QIcon(":/icon/open.svg"), tr("Open In"));
-//     openMenu->addAction(QIcon(":/icon/folder.svg"), tr("Explorer"), this, [this] { emit openInExplorer(); }); // NOLINT
-//     openMenu->addAction(QIcon(":/icon/apps.svg"), tr("Application"), this, [this] { emit openInApplication(); }); // NOLINT
-//
-//
-//
-//     menu.exec(event->globalPos());
-// }
-
 void EditorWidget::focusOutEvent(QFocusEvent *event) {
     // clear highlight
     indicatorRemove(INDICATOR_HIGHLIGHT);
@@ -398,6 +371,8 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::RightButton) {
         m_dwellTimer->stop();
         bool gotoMenu = true;
+        int line = 0;
+        int index = 0;
         const QPoint globalPos = QCursor::pos();
         const QPoint localPos = mapFromGlobal(globalPos);
         const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
@@ -408,14 +383,19 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
             if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
                 gotoMenu = false;
             } else {
-                const long line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
-                const long index = SendScintilla(SCI_GETCOLUMN, charPos);
+                line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
+                index = SendScintilla(SCI_GETCOLUMN, charPos);
                 setCursorPosition(line, index);
             }
         } else {
             gotoMenu = false;
         }
-        emit showMenu(gotoMenu);
+        const QVariantHash menuSession = {
+            {"gotoMenu", gotoMenu},
+            {"line", line},
+            {"index", index}
+        };
+        emit showMenu(menuSession);
         return;
     }
     QsciScintilla::mousePressEvent(event);

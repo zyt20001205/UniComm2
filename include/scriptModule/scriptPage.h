@@ -54,7 +54,7 @@ signals:
 
     void closeScript(const QUrl &scriptUrl);
 
-    void showMenu(const QUrl &scriptUrl, bool gotoMenu);
+    void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
