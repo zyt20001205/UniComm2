@@ -123,21 +123,12 @@ Item {
             }
         }
 
-        Menu {
-            title: qsTr("Delete")
+        MenuItem {
+            text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            DelayButton {
-                delay: 1000
-                text: qsTr("Confirm")
-
-                onActivated: {
-                    breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
-                    progress = 0
-                    breakpointModuleLineMenu.close()
-                }
-            }
+            onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
     }
 
@@ -659,28 +650,6 @@ Item {
         onClosed: widgetCount -= 1
 
         Menu {
-            title: qsTr("Fold")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Expand All")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
-            }
-        }
-
-        Menu {
             title: qsTr("Goto")
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
@@ -716,6 +685,28 @@ Item {
                 icon.width: 8; icon.height: 8
 
                 onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
+            }
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
             }
         }
 
