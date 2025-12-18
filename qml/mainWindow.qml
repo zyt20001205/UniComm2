@@ -73,7 +73,7 @@ Item {
         modal: true
         title: qsTr("Enter Condition")
         standardButtons: Dialog.Ok
-        property string url
+        property url url
         property int line
 
         onAboutToShow: {
@@ -97,7 +97,7 @@ Item {
 
     Menu {
         id: breakpointModuleLineMenu
-        property string url
+        property url url
         property int line
 
         onAboutToShow: widgetCount += 1
@@ -131,7 +131,7 @@ Item {
 
     Menu {
         id: breakpointModuleFileMenu
-        property string url
+        property url url
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -316,6 +316,36 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
+        Menu {
+            title: qsTr("Fold")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.expandRecursively(i)
+                    }
+                }
+            }
+        }
+
         MenuItem {
             text: qsTr("Run")
             icon.source: "qrc:/icon/play.svg"
@@ -357,25 +387,68 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
-        MenuItem {
-            text: qsTr("New Script")
-            icon.source: "qrc:/icon/documentAdd.svg"
+        Menu {
+            title: qsTr("Fold")
+            icon.source: "qrc:/icon/fold.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: {
-                explorerModuleScriptNewDialog.filePath = explorerModuleFolderMenu.filePath
-                explorerModuleScriptNewDialog.open()
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.expandRecursively(i)
+                    }
+                }
             }
         }
 
-        MenuItem {
-            text: qsTr("New Folder")
-            icon.source: "qrc:/icon/folderAdd.svg"
+        Menu {
+            title: qsTr("New")
+            icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: {
-                explorerModuleFolderNewDialog.filePath = explorerModuleFolderMenu.filePath
-                explorerModuleFolderNewDialog.open()
+
+            MenuItem {
+                text: qsTr("Script")
+                icon.source: "qrc:/icon/document.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    explorerModuleScriptNewDialog.filePath = explorerModuleFolderMenu.filePath
+                    explorerModuleScriptNewDialog.open()
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Folder")
+                icon.source: "qrc:/icon/folder.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    explorerModuleFolderNewDialog.filePath = explorerModuleFolderMenu.filePath
+                    explorerModuleFolderNewDialog.open()
+                }
             }
         }
+
+        // MenuItem {
+        //     text: qsTr("Open In Explorer")
+        //     icon.source: "qrc:/icon/open.svg"
+        //     icon.width: 16; icon.height: 16
+        //     onTriggered: launcherModule.openInExplorer(explorerModuleFolderMenu.filePath)
+        // }
 
         MenuItem {
             text: qsTr("Delete")
@@ -391,27 +464,65 @@ Item {
 
     Menu {
         id: explorerModuleRootMenu
+        property url url
+        property var treeView
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
-        MenuItem {
-            text: qsTr("New Script")
-            icon.source: "qrc:/icon/documentAdd.svg"
+        Menu {
+            title: qsTr("Fold")
+            icon.source: "qrc:/icon/fold.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: {
-                explorerModuleScriptNewDialog.filePath = ""
-                explorerModuleScriptNewDialog.open()
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.expandRecursively(i)
+                    }
+                }
             }
         }
 
-        MenuItem {
-            text: qsTr("New Folder")
-            icon.source: "qrc:/icon/folderAdd.svg"
+        Menu {
+            title: qsTr("New")
+            icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: {
-                explorerModuleFolderNewDialog.filePath = ""
-                explorerModuleFolderNewDialog.open()
+
+            MenuItem {
+                text: qsTr("Script")
+                icon.source: "qrc:/icon/document.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    explorerModuleScriptNewDialog.filePath = ""
+                    explorerModuleScriptNewDialog.open()
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Folder")
+                icon.source: "qrc:/icon/folder.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: {
+                    explorerModuleFolderNewDialog.filePath = ""
+                    explorerModuleFolderNewDialog.open()
+                }
             }
         }
 
@@ -468,7 +579,7 @@ Item {
 
     Menu {
         id: logModuleLinkMenu
-        property string url
+        property url url
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -504,24 +615,29 @@ Item {
     // script module
     Menu {
         id: scriptModuleEditorMenu
-        property string scriptUrl
+        property url scriptUrl
         property bool gotoMenu
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
         Menu {
-            title: qsTr("Folding")
+            title: qsTr("Fold")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
 
             MenuItem {
                 text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/textCollapse.svg"
+                icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
-                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: {
+                    console.log("Collapse All triggered for:", scriptModuleEditorMenu.scriptUrl)
+                    scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                }
             }
 
             MenuItem {
                 text: qsTr("Expand All")
-                icon.source: "qrc:/icon/textExpand.svg"
+                icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
                 onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
             }

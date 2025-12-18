@@ -95,6 +95,7 @@ TreeView {
         TapHandler {
             acceptedButtons: Qt.RightButton
             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
             onSingleTapped: {
                 if (isTreeNode && hasChildren) {
                     folderMenu.filePath = model.filePath
@@ -111,7 +112,9 @@ TreeView {
 
     TapHandler {
         acceptedButtons: Qt.RightButton
+
         onSingleTapped: {
+            rootMenu.treeView = treeView
             rootMenu.popup()
         }
     }

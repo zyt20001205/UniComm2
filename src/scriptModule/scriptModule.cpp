@@ -790,7 +790,7 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
 }
 
 void ScriptModule::menuShow(const QUrl &scriptUrl, const bool gotoMenu) const {
-    m_editorMenu->setProperty("scriptUrl", scriptUrl);
+    m_editorMenu->setProperty("scriptUrl", scriptUrl.toString());
     m_editorMenu->setProperty("gotoMenu", gotoMenu);
     QMetaObject::invokeMethod(m_editorMenu, "popup");
 }
