@@ -22,6 +22,7 @@ Item {
         id: mainWindowCloseDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
+        width: 400
         modal: true
         title: qsTr("Save and Exit?")
         standardButtons: Dialog.Yes | Dialog.No
@@ -31,8 +32,28 @@ Item {
         onAccepted: mainWindow.quit()
     }
 
+    Dialog {
+        id: mainWindowBusyDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: ""
+        standardButtons: Dialog.Abort
+        topPadding: 30; bottomPadding: 20
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+        onRejected: launcherModule.processTerminate()
+
+        ProgressBar {
+            width: parent.width
+            indeterminate: true
+        }
+    }
+
     ToolTip {
-        id: mainTooltip
+        id: mainWindowTooltip
         onOpened: {
             mainWindow.overlayPenetrate(true)
             mainWindow.overlayShow()
@@ -590,14 +611,14 @@ Item {
                 text: qsTr("Explorer")
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
-                // onTriggered: logModule.openInExplorer(logModuleLinkMenu.url)
+                onTriggered: launcherModule.openInExplorer(scriptModuleEditorMenu.scriptUrl)
             }
 
             MenuItem {
                 text: qsTr("Application")
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
-                // onTriggered: logModule.openInApplication(logModuleLinkMenu.url)
+                onTriggered: launcherModule.openInApplication(scriptModuleEditorMenu.scriptUrl)
             }
         }
     }
@@ -621,7 +642,8 @@ Item {
     Component.onCompleted: {
         const objects = {
             "mainWindowCloseDialog": mainWindowCloseDialog,
-            "mainTooltip": mainTooltip,
+            "mainWindowBusyDialog": mainWindowBusyDialog,
+            "mainWindowTooltip": mainWindowTooltip,
 
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,

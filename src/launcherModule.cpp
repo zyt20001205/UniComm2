@@ -9,7 +9,18 @@
 
 // LauncherModule public
 LauncherModule::LauncherModule(QObject *parent)
-    : QObject(parent) {
+    : QObject(parent),
+      m_process(new QProcess(this)) {
+}
+
+void LauncherModule::propertySet(const QVariantMap &objects) {
+    m_busyDialog = qvariant_cast<QObject *>(objects["mainWindowBusyDialog"]);
+}
+
+void LauncherModule::processTerminate() const {
+    const auto state = m_process->state();
+    qDebug() << state;
+    m_process->terminate();
 }
 
 void LauncherModule::openInExplorer(const QUrl &fileUrl) {
@@ -23,8 +34,16 @@ void LauncherModule::openInExplorer(const QUrl &fileUrl) {
     } else if (fileInfo.isDir()) {
         args << QDir::toNativeSeparators(filePath);
     }
-    QProcess::startDetached(command, args);
 #endif
+    connect(m_process, &QProcess::started, this, [this] {
+        m_busyDialog->setProperty("title", tr("Waiting for explorer..."));
+        QMetaObject::invokeMethod(m_busyDialog, "open");
+    });
+    connect(m_process, &QProcess::finished, this, [this] {
+        m_busyDialog->setProperty("title", "");
+        QMetaObject::invokeMethod(m_busyDialog, "close");
+    });
+    m_process->start(command, args);
 }
 
 void LauncherModule::openInApplication(const QUrl &fileUrl) {
@@ -33,8 +52,16 @@ void LauncherModule::openInApplication(const QUrl &fileUrl) {
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
     args << QDir::toNativeSeparators(filePath);
-    QProcess::startDetached(command, args);
 #endif
+    connect(m_process, &QProcess::started, this, [this] {
+        m_busyDialog->setProperty("title", tr("Waiting for application..."));
+        QMetaObject::invokeMethod(m_busyDialog, "open");
+    });
+    connect(m_process, &QProcess::finished, this, [this] {
+        m_busyDialog->setProperty("title", "");
+        QMetaObject::invokeMethod(m_busyDialog, "close");
+    });
+    m_process->start(command, args);
 }
 
 void LauncherModule::copyToClipboard(const QUrl &fileUrl) {
