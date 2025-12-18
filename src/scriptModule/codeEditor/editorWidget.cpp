@@ -6,8 +6,9 @@
 #include "globals.h"
 
 // EditorWidget public
-EditorWidget::EditorWidget(QWidget *parent)
+EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
     : QsciScintilla(parent),
+      m_scriptUrl(scriptUrl),
       m_autoPairHash{
           {'(', ')'},
           {'[', ']'},
@@ -93,10 +94,19 @@ EditorWidget::EditorWidget(QWidget *parent)
     m_dwellTimer->setSingleShot(true);
     m_dwellTimer->setInterval(1000);
     connect(m_dwellTimer, &QTimer::timeout, this, &EditorWidget::dwellHandle);
-
     m_typeTimer->setInterval(500);
     m_typeTimer->setSingleShot(true);
     connect(m_typeTimer, &QTimer::timeout, this, &EditorWidget::requestIdle);
+    // load breakpoints
+    QTimer::singleShot(0, this, [this] {breakpointLoad();});
+}
+
+void EditorWidget::breakpointLoad() {
+    if (g_breakpoints.contains(m_scriptUrl)) {
+        for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
+            markerInsert(MARKER_BREAKPOINT, line - 1);
+        }
+    }
 }
 
 void EditorWidget::textSearch(const QString &text, const int flag) {
@@ -177,8 +187,10 @@ void EditorWidget::cursorPositionGet(int *line, int *index) const {
     getCursorPosition(line, index);
 }
 
+// TODO: This method is not undoable!
 void EditorWidget::textSet(const QString &text) {
     setText(text);
+    breakpointLoad();
 }
 
 void EditorWidget::textInsert(const QString &text, const int line, const int index) {

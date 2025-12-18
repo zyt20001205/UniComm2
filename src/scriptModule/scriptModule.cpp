@@ -214,12 +214,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptFocus(scriptPage, true);
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
         emit openScript(scriptUrl);
-        // load breakpoint
-        if (g_breakpoints.contains(scriptUrl)) {
-            for (const auto &line: g_breakpoints[scriptUrl].keys()) {
-                markerInsert(scriptUrl, MARKER_BREAKPOINT, line - 1);
-            }
-        }
     } else {
         m_scriptPageHash[scriptUrl]->raise();
     }

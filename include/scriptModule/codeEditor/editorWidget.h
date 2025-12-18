@@ -1,15 +1,18 @@
 #ifndef UNICOMM_EDITORWIDGET_H
 #define UNICOMM_EDITORWIDGET_H
 
-#include "Qsci/qsciscintilla.h"
+#include <QUrl>
+#include <Qsci/qsciscintilla.h>
 
 class EditorWidget final : public QsciScintilla {
     Q_OBJECT
 
 public:
-    explicit EditorWidget(QWidget *parent = nullptr);
+    explicit EditorWidget(const QUrl &scriptUrl, QWidget *parent = nullptr);
 
     ~EditorWidget() override = default;
+
+    void breakpointLoad();
 
     void textSearch(const QString &text, int flag);
 
@@ -99,6 +102,7 @@ private:
 
     void searchHandle();
 
+    QUrl m_scriptUrl{};
     QString m_searchText = {};
     int m_searchFlag = 0;
     QList<QList<int> > m_searchList{};

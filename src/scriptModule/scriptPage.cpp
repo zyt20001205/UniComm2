@@ -21,7 +21,7 @@
 // ScriptPage public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
-      m_editorWidget(new EditorWidget()),
+      m_editorWidget(new EditorWidget(scriptUrl)),
       m_scriptUrl(scriptUrl),
       m_fileWatcher(new QFileSystemWatcher()),
       m_searchWidget(new SearchWidget()),
