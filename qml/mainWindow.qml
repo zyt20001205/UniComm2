@@ -668,10 +668,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    console.log("Collapse All triggered for:", scriptModuleEditorMenu.scriptUrl)
-                    scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-                }
+                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
             }
 
             MenuItem {
