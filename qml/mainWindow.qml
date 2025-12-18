@@ -360,11 +360,24 @@ Item {
             onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
         }
 
-        MenuItem {
-            text: qsTr("Open")
+        Menu {
+            title: qsTr("Open In")
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
-            onTriggered: explorerModule.scriptOpen(explorerModuleScriptMenu.filePath)
+
+            MenuItem {
+                text: qsTr("Explorer")
+                icon.source: "qrc:/icon/folder.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: launcherModule.openInExplorer("file:///" + explorerModuleScriptMenu.filePath)
+            }
+
+            MenuItem {
+                text: qsTr("Application")
+                icon.source: "qrc:/icon/apps.svg"
+                icon.width: 16; icon.height: 16
+                onTriggered: launcherModule.openInApplication("file:///" + explorerModuleScriptMenu.filePath)
+            }
         }
 
         MenuItem {
@@ -443,12 +456,12 @@ Item {
             }
         }
 
-        // MenuItem {
-        //     text: qsTr("Open In Explorer")
-        //     icon.source: "qrc:/icon/open.svg"
-        //     icon.width: 16; icon.height: 16
-        //     onTriggered: launcherModule.openInExplorer(explorerModuleFolderMenu.filePath)
-        // }
+        MenuItem {
+            text: qsTr("Open In Explorer")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+            onTriggered: launcherModule.openInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+        }
 
         MenuItem {
             text: qsTr("Delete")
