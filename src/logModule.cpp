@@ -1,7 +1,6 @@
 #include "logModule.h"
 
 #include <QFileDialog>
-#include <QMessageBox>
 #include <QPrinter>
 #include <QQmlContext>
 #include <QQuickTextDocument>
@@ -19,6 +18,7 @@ LogModule::LogModule()
 }
 
 void LogModule::propertySet(const QVariantMap &objects) {
+    m_emptyDialog = qvariant_cast<QObject *>(objects["logModuleEmptyDialog"]);
     m_logWidget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
     m_logWidget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
 
@@ -93,15 +93,20 @@ void LogModule::heightSet(const QString &height) {
     m_logTextDocument->setMaximumBlockCount(height.toInt());
 }
 
+bool LogModule::logSaveCheck() const {
+    QTextDocument document;
+    document.setHtml(m_logTextArea->property("text").toString());
+    if (document.toPlainText().isEmpty()) {
+        QMetaObject::invokeMethod(m_emptyDialog, "open");
+        return false;
+    }
+    return true;
+}
+
 void LogModule::logSave(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     QTextDocument document;
     document.setHtml(m_logTextArea->property("text").toString());
-    if (document.toPlainText().isEmpty()) {
-        QMessageBox::warning(nullptr, "Warning", tr("Log is empty."));
-        return;
-    }
-
     if (filePath.endsWith(".txt", Qt::CaseInsensitive)) {
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {

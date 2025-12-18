@@ -110,6 +110,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_explorerModule->propertySet(explorerObjects);
     const QVariantMap logObjects = {
         {"mainTooltip", objects["mainTooltip"]},
+        {"logModuleEmptyDialog", objects["logModuleEmptyDialog"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };

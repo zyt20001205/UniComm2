@@ -404,6 +404,19 @@ Item {
 
     // log module
     Dialog {
+        id: logModuleEmptyDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Log Is Empty")
+        standardButtons: Dialog.Ok
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+    }
+
+    Dialog {
         id: logModuleHeightDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -622,6 +635,7 @@ Item {
             "explorerModuleFolderMenu": explorerModuleFolderMenu,
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
+            "logModuleEmptyDialog": logModuleEmptyDialog,
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
 

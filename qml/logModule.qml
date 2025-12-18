@@ -46,7 +46,11 @@ RowLayout {
             ToolTip.text: qsTr("Save")
             ToolTip.visible: hovered
 
-            onClicked: fileDialog.open()
+            onClicked: {
+                if (logModule.logSaveCheck()) {
+                    fileDialog.open()
+                }
+            }
 
             FileDialog {
                 id: fileDialog
@@ -84,7 +88,6 @@ RowLayout {
             id: textArea
             textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
-            property alias logTextDocument: textArea.textDocument
 
             HoverHandler {
                 id: hoverHandler

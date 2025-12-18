@@ -34,13 +34,14 @@ public:
 
     Q_INVOKABLE void heightSet(const QString &height);
 
+    Q_INVOKABLE bool logSaveCheck() const;
+
     Q_INVOKABLE void logSave(const QUrl &fileUrl);
 
 private:
     QJsonObject m_logConfig{};
     QQuickWidget *m_logWidget{};
-    QObject *m_heightDialog{};
-    QObject *m_linkMenu{};
+    QObject *m_emptyDialog{};
     QObject *m_logTextArea{};
     QTextDocument *m_logTextDocument{};
 };
