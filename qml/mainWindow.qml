@@ -277,49 +277,6 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
-            text: qsTr("Rename")
-            icon.source: "qrc:/icon/rename.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
-                systemModuleRenameDialog.open()
-            }
-        }
-
-        Menu {
-            title: qsTr("Fold")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
-                        treeView.collapseRecursively(i)
-                    }
-                }
-            }
-
-            MenuItem {
-                text: qsTr("Expand All")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
-                        treeView.expandRecursively(i)
-                    }
-                }
-            }
-        }
-
-        MenuItem {
             text: qsTr("Run")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
@@ -333,6 +290,17 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
+        }
+
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
+                systemModuleRenameDialog.open()
+            }
         }
 
         Menu {
@@ -373,18 +341,9 @@ Item {
                 }
             }
         }
-    }
-
-    Menu {
-        id: explorerModuleFolderMenu
-        property string filePath
-        property string fileName
-
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
 
         Menu {
-            title: qsTr("Fold")
+            title: qsTr("Folding")
             icon.source: "qrc:/icon/fold.svg"
             icon.width: 16; icon.height: 16
 
@@ -414,6 +373,15 @@ Item {
                 }
             }
         }
+    }
+
+    Menu {
+        id: explorerModuleFolderMenu
+        property string filePath
+        property string fileName
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
 
         Menu {
             title: qsTr("New")
@@ -467,18 +435,9 @@ Item {
                 }
             }
         }
-    }
-
-    Menu {
-        id: explorerModuleRootMenu
-        property string rootPath
-        property var treeView
-
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
 
         Menu {
-            title: qsTr("Fold")
+            title: qsTr("Folding")
             icon.source: "qrc:/icon/fold.svg"
             icon.width: 16; icon.height: 16
 
@@ -508,6 +467,15 @@ Item {
                 }
             }
         }
+    }
+
+    Menu {
+        id: explorerModuleRootMenu
+        property string rootPath
+        property var treeView
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
 
         Menu {
             title: qsTr("New")
@@ -543,6 +511,38 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = explorerModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; i++) {
+                        treeView.expandRecursively(i)
+                    }
+                }
+            }
         }
     }
 
@@ -763,9 +763,9 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter new name:")
 
-            Keys.onReturnPressed: systemModuleRenameTextField.accept()
-            Keys.onEnterPressed: systemModuleRenameTextField.accept()
-            Keys.onEscapePressed: systemModuleRenameTextField.reject()
+            Keys.onReturnPressed: systemModuleRenameDialog.accept()
+            Keys.onEnterPressed: systemModuleRenameDialog.accept()
+            Keys.onEscapePressed: systemModuleRenameDialog.reject()
         }
     }
 

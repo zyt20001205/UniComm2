@@ -19,7 +19,7 @@ public:
 
     Q_INVOKABLE static void fileDelete(const QUrl &fileUrl);
 
-    Q_INVOKABLE void fileRename(const QUrl &oldFileUrl, const QUrl &newFileUrl) const;
+    Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name) const;
 
     Q_INVOKABLE void fileNew(const QUrl &fileUrl);
 

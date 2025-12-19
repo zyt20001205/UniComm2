@@ -36,28 +36,8 @@ void SystemModule::fileDelete(const QUrl &fileUrl) {
     }
 }
 
-void SystemModule::fileRename(const QUrl &oldFileUrl, const QUrl &newFileUrl) const {
-    // const QString oldfilePath = fileUrl.toLocalFile();
-    // const QFileInfo oldfileInfo(oldfilePath);
-    // const QString newfilePath = QDir(oldfileInfo.absolutePath()).filePath(name);
-    // const QFileInfo newfileInfo(newfilePath);
-    // if (oldfileInfo.isFile()) {
-    //     if (newfileInfo.exists()) {
-    //         m_errorDialog->setProperty("title", tr("File already exists"));
-    //         QMetaObject::invokeMethod(m_errorDialog, "open");
-    //     } else {
-    //         QFile file(oldfilePath);
-    //         file.rename(name);
-    //     }
-    // } else if (oldfileInfo.isDir()) {
-    //     if (newfileInfo.exists()) {
-    //         m_errorDialog->setProperty("title", tr("Dir already exists"));
-    //         QMetaObject::invokeMethod(m_errorDialog, "open");
-    //     } else {
-    //         QDir dir;
-    //         dir.rename(oldfilePath, newfilePath);
-    //     }
-    // }
+void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) const {
+    qDebug() << fileUrl << name;
 }
 
 void SystemModule::fileNew(const QUrl &fileUrl) {
