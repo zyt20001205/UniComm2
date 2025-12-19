@@ -359,7 +359,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: systemModule.resourceOpenInExplorer("file:///" + explorerModuleScriptMenu.filePath)
             }
 
             MenuItem {
@@ -367,7 +367,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInApplication("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: systemModule.resourceOpenInApplication("file:///" + explorerModuleScriptMenu.filePath)
             }
         }
 
@@ -381,7 +381,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    systemModule.fileDelete("file:///" + explorerModuleScriptMenu.filePath)
+                    systemModule.resourceDelete("file:///" + explorerModuleScriptMenu.filePath)
                     progress = 0
                     explorerModuleScriptMenu.close()
                 }
@@ -462,7 +462,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+            onTriggered: systemModule.resourceOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
         }
 
         Menu {
@@ -475,7 +475,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    systemModule.fileDelete("file:///" + explorerModuleFolderMenu.filePath)
+                    systemModule.resourceDelete("file:///" + explorerModuleFolderMenu.filePath)
                     progress = 0
                     explorerModuleFolderMenu.close()
                 }
@@ -556,7 +556,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.fileOpenInExplorer(explorerModuleRootMenu.rootUrl)
+            onTriggered: systemModule.resourceOpenInExplorer(explorerModuleRootMenu.rootUrl)
         }
     }
 
@@ -628,7 +628,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInExplorer(logModuleLinkMenu.url)
+                onTriggered: systemModule.resourceOpenInExplorer(logModuleLinkMenu.url)
             }
 
             MenuItem {
@@ -636,7 +636,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInApplication(logModuleLinkMenu.url)
+                onTriggered: systemModule.resourceOpenInApplication(logModuleLinkMenu.url)
             }
         }
     }
@@ -728,7 +728,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInExplorer(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.resourceOpenInExplorer(scriptModuleEditorMenu.scriptUrl)
             }
 
             MenuItem {
@@ -736,8 +736,38 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInApplication(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.resourceOpenInApplication(scriptModuleEditorMenu.scriptUrl)
             }
+        }
+    }
+
+    // system module
+    Dialog {
+        id: systemModuleRenameDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Rename")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string fileUrl
+
+        onAboutToShow: {
+            systemModuleRenameTextField.clear()
+            systemModuleRenameTextField.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: systemModule.resourceRename(systemModuleRenameDialog.fileUrl, systemModuleRenameTextField.text)
+
+        TextField {
+            id: systemModuleRenameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter new name:")
+
+            Keys.onReturnPressed: explorerModuleScriptNewDialog.accept()
+            Keys.onEnterPressed: explorerModuleScriptNewDialog.accept()
+            Keys.onEscapePressed: explorerModuleScriptNewDialog.reject()
         }
     }
 
