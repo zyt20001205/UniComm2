@@ -4,6 +4,8 @@
 #include <QClipboard>
 #include <QDir>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QProcess>
 #include <QUrl>
 
@@ -104,13 +106,14 @@ void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) {
     const QFileInfo fileInfo(filePath);
     if (fileInfo.isFile()) {
         QFile file(filePath);
-        if (file.rename(name)) {
-            emit appendLog(QString("file renamed to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+        const QString newPath = fileInfo.dir().filePath(name + "." + fileInfo.suffix());
+        if (file.rename(newPath)) {
+            const auto newUrl = QUrl::fromLocalFile(newPath);
+            didRenameFilesNotification(fileUrl, newUrl);
+            emit appendLog(QString("file renamed to <a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()), "info");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] file renamed to %2").arg(timestamp, fileUrl.toString());
-        } else {
-
+            qDebug() << QString("[%1] file renamed to %2").arg(timestamp, newUrl.toString());
         }
     } else if (fileInfo.isDir()) {
         qDebug() << fileUrl << name;
@@ -122,7 +125,8 @@ void SystemModule::fileDelete(const QUrl &fileUrl) {
     const QFileInfo fileInfo(filePath);
     QString trashPath{};
     if (fileInfo.isFile()) {
-        if (QFile::moveToTrash(filePath,&trashPath)) {
+        if (QFile::moveToTrash(filePath, &trashPath)) {
+            didDeleteFilesNotification(fileUrl);
             const auto trashUrl = QUrl::fromLocalFile(trashPath);
             emit appendLog(QString("file deleted <a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()), "info");
             // logging
@@ -130,7 +134,8 @@ void SystemModule::fileDelete(const QUrl &fileUrl) {
             qDebug() << QString("[%1] file deleted %2").arg(timestamp, trashUrl.toString());
         }
     } else if (fileInfo.isDir()) {
-        if (QFile::moveToTrash(filePath,&trashPath)) {
+        if (QFile::moveToTrash(filePath, &trashPath)) {
+            didDeleteFilesNotification(fileUrl);
             const auto trashUrl = QUrl::fromLocalFile(trashPath);
             emit appendLog(QString("folder deleted <a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()), "info");
             // logging
@@ -143,4 +148,33 @@ void SystemModule::fileDelete(const QUrl &fileUrl) {
 void SystemModule::copyToClipboard(const QUrl &fileUrl) {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(fileUrl.toString());
+}
+
+void SystemModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {
+    // did rename files notification to lua language server
+    const QJsonObject didRenameFilesParams{
+        {
+            "files", QJsonArray{
+                QJsonObject{
+                    {"oldUri", oldUrl.toString()},
+                    {"newUri", newUrl.toString()}
+                }
+            }
+        }
+    };
+    emit notificationJson("workspace/didRenameFiles", didRenameFilesParams);
+}
+
+void SystemModule::didDeleteFilesNotification(const QUrl &fileUrl) {
+    // did delete files notification to lua language server
+    const QJsonObject didDeleteFilesParams{
+            {
+                "files", QJsonArray{
+                    QJsonObject{
+                        {"uri", fileUrl.toString()}
+                    }
+                }
+            }
+    };
+    emit notificationJson("workspace/didDeleteFiles", didDeleteFilesParams);
 }

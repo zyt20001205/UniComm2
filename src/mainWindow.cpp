@@ -275,6 +275,7 @@ void MainWindow::moduleInit() {
 
     connect(m_systemModule, &SystemModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_systemModule, &SystemModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_systemModule, &SystemModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);

@@ -34,7 +34,13 @@ signals:
 
     void openScript(const QUrl &scriptUrl);
 
+    void notificationJson(const QString &method, const QJsonObject &params);
+
 private:
+    void didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl);
+
+    void didDeleteFilesNotification(const QUrl &fileUrl);
+
     QObject* m_busyDialog{};
     QObject* m_errorDialog{};
     QProcess* m_process{};
