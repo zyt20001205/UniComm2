@@ -292,15 +292,7 @@ Item {
             onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
         }
 
-        MenuItem {
-            text: qsTr("Rename")
-            icon.source: "qrc:/icon/rename.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
-                systemModuleRenameDialog.open()
-            }
+        MenuSeparator {
         }
 
         Menu {
@@ -325,6 +317,17 @@ Item {
             }
         }
 
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
+                systemModuleRenameDialog.open()
+            }
+        }
+
         Menu {
             title: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
@@ -340,6 +343,9 @@ Item {
                     explorerModuleScriptMenu.close()
                 }
             }
+        }
+
+        MenuSeparator {
         }
 
         Menu {
@@ -383,6 +389,14 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
+        MenuItem {
+            text: qsTr("Open In Explorer")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+        }
+
         Menu {
             title: qsTr("New")
             icon.source: "qrc:/icon/add.svg"
@@ -411,14 +425,6 @@ Item {
             }
         }
 
-        MenuItem {
-            text: qsTr("Open In Explorer")
-            icon.source: "qrc:/icon/open.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
-        }
-
         Menu {
             title: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
@@ -434,6 +440,9 @@ Item {
                     explorerModuleFolderMenu.close()
                 }
             }
+        }
+
+        MenuSeparator {
         }
 
         Menu {
@@ -477,6 +486,14 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
+        MenuItem {
+            text: qsTr("Open In Explorer")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
+        }
+
         Menu {
             title: qsTr("New")
             icon.source: "qrc:/icon/add.svg"
@@ -505,12 +522,7 @@ Item {
             }
         }
 
-        MenuItem {
-            text: qsTr("Open In Explorer")
-            icon.source: "qrc:/icon/open.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
+        MenuSeparator {
         }
 
         Menu {
@@ -674,6 +686,9 @@ Item {
             }
         }
 
+        MenuSeparator {
+        }
+
         Menu {
             title: qsTr("Folding")
             icon.source: "qrc:/icon/fold.svg"
@@ -702,6 +717,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
+        }
+
+        MenuSeparator {
         }
 
         Menu {
