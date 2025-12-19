@@ -23,9 +23,9 @@ public:
 
     Q_INVOKABLE void fileNew(const QUrl &fileUrl);
 
-    Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name) const;
+    Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name);
 
-    Q_INVOKABLE static void fileDelete(const QUrl &fileUrl);
+    Q_INVOKABLE void fileDelete(const QUrl &fileUrl);
 
     Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
 

@@ -99,19 +99,44 @@ void SystemModule::fileNew(const QUrl &fileUrl) {
     }
 }
 
-void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) const {
-    qDebug() << fileUrl << name;
+void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    if (fileInfo.isFile()) {
+        QFile file(filePath);
+        if (file.rename(name)) {
+            emit appendLog(QString("file renamed to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] file renamed to %2").arg(timestamp, fileUrl.toString());
+        } else {
+
+        }
+    } else if (fileInfo.isDir()) {
+        qDebug() << fileUrl << name;
+    }
 }
 
 void SystemModule::fileDelete(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
+    QString trashPath{};
     if (fileInfo.isFile()) {
-        QFile file(filePath);
-        file.remove();
+        if (QFile::moveToTrash(filePath,&trashPath)) {
+            const auto trashUrl = QUrl::fromLocalFile(trashPath);
+            emit appendLog(QString("file deleted <a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()), "info");
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] file deleted %2").arg(timestamp, trashUrl.toString());
+        }
     } else if (fileInfo.isDir()) {
-        QDir dir(filePath);
-        dir.removeRecursively();
+        if (QFile::moveToTrash(filePath,&trashPath)) {
+            const auto trashUrl = QUrl::fromLocalFile(trashPath);
+            emit appendLog(QString("folder deleted <a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()), "info");
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] folder deleted %2").arg(timestamp, trashUrl.toString());
+        }
     }
 }
 
