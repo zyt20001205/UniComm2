@@ -24,86 +24,86 @@ void SystemModule::processTerminate() const {
     m_process->terminate();
 }
 
-void SystemModule::resourceDelete(const QUrl &resourceUrl) {
-    const QString resourcePath = resourceUrl.toLocalFile();
-    const QFileInfo resourceInfo(resourcePath);
-    if (resourceInfo.isFile()) {
-        QFile file(resourcePath);
+void SystemModule::fileDelete(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    if (fileInfo.isFile()) {
+        QFile file(filePath);
         file.remove();
-    } else if (resourceInfo.isDir()) {
-        QDir dir(resourcePath);
+    } else if (fileInfo.isDir()) {
+        QDir dir(filePath);
         dir.removeRecursively();
     }
 }
 
-void SystemModule::resourceRename(const QUrl &resourceUrl, const QString &name) const {
-    // const QString oldResourcePath = resourceUrl.toLocalFile();
-    // const QFileInfo oldResourceInfo(oldResourcePath);
-    // const QString newResourcePath = QDir(oldResourceInfo.absolutePath()).filePath(name);
-    // const QFileInfo newResourceInfo(newResourcePath);
-    // if (oldResourceInfo.isFile()) {
-    //     if (newResourceInfo.exists()) {
+void SystemModule::fileRename(const QUrl &oldFileUrl, const QUrl &newFileUrl) const {
+    // const QString oldfilePath = fileUrl.toLocalFile();
+    // const QFileInfo oldfileInfo(oldfilePath);
+    // const QString newfilePath = QDir(oldfileInfo.absolutePath()).filePath(name);
+    // const QFileInfo newfileInfo(newfilePath);
+    // if (oldfileInfo.isFile()) {
+    //     if (newfileInfo.exists()) {
     //         m_errorDialog->setProperty("title", tr("File already exists"));
     //         QMetaObject::invokeMethod(m_errorDialog, "open");
     //     } else {
-    //         QFile file(oldResourcePath);
+    //         QFile file(oldfilePath);
     //         file.rename(name);
     //     }
-    // } else if (oldResourceInfo.isDir()) {
-    //     if (newResourceInfo.exists()) {
+    // } else if (oldfileInfo.isDir()) {
+    //     if (newfileInfo.exists()) {
     //         m_errorDialog->setProperty("title", tr("Dir already exists"));
     //         QMetaObject::invokeMethod(m_errorDialog, "open");
     //     } else {
     //         QDir dir;
-    //         dir.rename(oldResourcePath, newResourcePath);
+    //         dir.rename(oldfilePath, newfilePath);
     //     }
     // }
 }
 
-void SystemModule::resourceNew(const QUrl &resourceUrl) {
-    const QString resourcePath = resourceUrl.toLocalFile();
-    const QFileInfo resourceInfo(resourcePath);
-    if (!resourceInfo.suffix().isEmpty()) {
-        if (resourceInfo.exists()) {
+void SystemModule::fileNew(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    if (!fileInfo.suffix().isEmpty()) {
+        if (fileInfo.exists()) {
             m_errorDialog->setProperty("title", tr("File already exists"));
             QMetaObject::invokeMethod(m_errorDialog, "open");
         } else {
-            QFile file(resourcePath);
+            QFile file(filePath);
             if (file.open(QIODevice::WriteOnly)) {
                 file.close();
-                emit openScript(resourceUrl);
-                emit appendLog(QString("file created at <a href='%1'>%2</a>").arg(resourceUrl.toString(), resourceUrl.toString()), "info");
+                emit openScript(fileUrl);
+                emit appendLog(QString("file created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
                 // logging
                 QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] file created at %2").arg(timestamp, resourceUrl.toString());
+                qDebug() << QString("[%1] file created at %2").arg(timestamp, fileUrl.toString());
             }
         }
     } else {
-        if (resourceInfo.exists()) {
+        if (fileInfo.exists()) {
             m_errorDialog->setProperty("title", tr("Dir already exists"));
             QMetaObject::invokeMethod(m_errorDialog, "open");
         } else {
             const QDir dir;
-            if (dir.mkpath(resourcePath)) {
-                emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(resourceUrl.toString(), resourceUrl.toString()), "info");
+            if (dir.mkpath(filePath)) {
+                emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
                 // logging
                 QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] folder created at %2").arg(timestamp, resourceUrl.toString());
+                qDebug() << QString("[%1] folder created at %2").arg(timestamp, fileUrl.toString());
             }
         }
     }
 }
 
-void SystemModule::resourceOpenInExplorer(const QUrl &resourceUrl) {
-    const QString resourcePath = resourceUrl.toLocalFile();
-    const QFileInfo resourceInfo(resourcePath);
+void SystemModule::fileOpenInExplorer(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
     QStringList args;
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
-    if (resourceInfo.isFile()) {
-        args << "/select," << QDir::toNativeSeparators(resourcePath);
-    } else if (resourceInfo.isDir()) {
-        args << QDir::toNativeSeparators(resourcePath);
+    if (fileInfo.isFile()) {
+        args << "/select," << QDir::toNativeSeparators(filePath);
+    } else if (fileInfo.isDir()) {
+        args << QDir::toNativeSeparators(filePath);
     }
 #endif
     connect(m_process, &QProcess::started, this, [this] {
@@ -117,12 +117,12 @@ void SystemModule::resourceOpenInExplorer(const QUrl &resourceUrl) {
     m_process->start(command, args);
 }
 
-void SystemModule::resourceOpenInApplication(const QUrl &resourceUrl) {
-    const QString resourcePath = resourceUrl.toLocalFile();
+void SystemModule::fileOpenInApplication(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
     QStringList args;
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
-    args << QDir::toNativeSeparators(resourcePath);
+    args << QDir::toNativeSeparators(filePath);
 #endif
     connect(m_process, &QProcess::started, this, [this] {
         m_busyDialog->setProperty("title", tr("Waiting for application..."));
@@ -135,7 +135,7 @@ void SystemModule::resourceOpenInApplication(const QUrl &resourceUrl) {
     m_process->start(command, args);
 }
 
-void SystemModule::copyToClipboard(const QUrl &resourceUrl) {
+void SystemModule::copyToClipboard(const QUrl &fileUrl) {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(resourceUrl.toString());
+    clipboard->setText(fileUrl.toString());
 }
