@@ -78,6 +78,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
+    m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
     m_overlay->rootContext()->setContextProperty("scriptModule", m_scriptModule);
     m_overlay->rootContext()->setContextProperty("systemModule", m_systemModule);
@@ -86,45 +87,59 @@ void MainWindow::propertySet() {
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
+
     const QVariantMap breakpointObjects = {
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
         {"breakpointModuleFileMenu", objects["breakpointModuleFileMenu"]},
         {"breakpointModuleRootMenu", objects["breakpointModuleRootMenu"]}
     };
     m_breakpointModule->propertySet(breakpointObjects);
+
     const QVariantMap debugObjects = {
         //
     };
     m_debugModule->propertySet(debugObjects);
+
     const QVariantMap diagnosticsObjects = {
         {"diagnosticsModuleDiagnosticMenu", objects["diagnosticsModuleDiagnosticMenu"]}
     };
     m_diagnosticsModule->propertySet(diagnosticsObjects);
+
     const QVariantMap explorerObjects = {
         {"explorerModuleScriptMenu", objects["explorerModuleScriptMenu"]},
         {"explorerModuleFolderMenu", objects["explorerModuleFolderMenu"]},
         {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}
     };
     m_explorerModule->propertySet(explorerObjects);
+
     const QVariantMap logObjects = {
         {"logModuleEmptyDialog", objects["logModuleEmptyDialog"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };
     m_logModule->propertySet(logObjects);
+
+    const QVariantMap portObjects = {
+        {"portModuleRootMenu", objects["portModuleRootMenu"]}
+    };
+    m_portModule->propertySet(portObjects);
+
     const QVariantMap scriptObjects = {
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]}
     };
     m_scriptModule->propertySet(scriptObjects);
+
     const QVariantMap structureObjects = {
         //
     };
     m_structureModule->propertySet(structureObjects);
+
     const QVariantMap systemObjects = {
         {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
         {"systemModuleErrorDialog", objects["systemModuleErrorDialog"]}
     };
     m_systemModule->propertySet(systemObjects);
+
     const QVariantMap threadpoolObjects = {
         {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}
     };
@@ -238,6 +253,8 @@ void MainWindow::moduleInit() {
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
 
+    connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
+
     connect(m_scriptModule, &ScriptModule::requestJson, m_luals, &LuaLanguageServer::jsonRequest);
     connect(m_scriptModule, &ScriptModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
@@ -296,7 +313,7 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
     connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
     connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
-    connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
+
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);

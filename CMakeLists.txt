@@ -165,6 +165,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/scriptModule/codeDebug/debugModule.qml"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"
         "qml/scriptModule/codeEditor/explorerModule.qml"
+        "qml/portModule/portModule.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"

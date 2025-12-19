@@ -142,6 +142,7 @@ Item {
 
         TapHandler {
             acceptedButtons: Qt.RightButton
+
             onSingleTapped: rootMenu.popup()
         }
     }

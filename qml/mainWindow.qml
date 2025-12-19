@@ -650,6 +650,22 @@ Item {
         }
     }
 
+    // port module
+    Menu {
+        id: portModuleRootMenu
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("New")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: scriptModule.portInsert(-1)
+        }
+    }
+
     // script module
     Menu {
         id: scriptModuleEditorMenu
@@ -834,6 +850,8 @@ Item {
             "logModuleEmptyDialog": logModuleEmptyDialog,
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
+
+            "portModuleRootMenu": portModuleRootMenu,
 
             "scriptModuleEditorMenu": scriptModuleEditorMenu,
 

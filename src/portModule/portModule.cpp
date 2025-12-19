@@ -6,56 +6,47 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
-#include <QPushButton>
+#include <QQmlContext>
+#include <QQuickItem>
+#include <QStandardItemModel>
 #include <QTabBar>
 #include <QTimer>
 #include <QVBoxLayout>
 
 #include "globals.h"
 #include "portModule/basePort.h"
+#include "portModule/camera.h"
 #include "portModule/portPage.h"
 #include "portModule/portSetting.h"
+#include "portModule/screen.h"
+#include "portModule/serialPort.h"
+#include "portModule/tcpClient.h"
+#include "portModule/tcpServer.h"
+#include "portModule/udpSocket.h"
+#include "portModule/visa.h"
 
 // PortModule public
 PortModule::PortModule()
     : DockWidget("port"),
+      m_portWidget(new QQuickWidget()),
+      m_portStandardItemModel(new QStandardItemModel()),
       m_portTabWidget(new QTabWidget()),
       m_portTabOverlay(new QWidget(m_portTabWidget)) {
-    setMinimumHeight(100);
-    setWidget(m_portTabWidget);
-    m_portTabWidget->setTabPosition(QTabWidget::West);
-    m_portTabWidget->setTabsClosable(true);
-    m_portTabWidget->setMovable(true);
-    m_portTabWidget->tabBar()->setElideMode(Qt::ElideRight);
-    connect(m_portTabWidget, &QTabWidget::tabCloseRequested, this, [this](const int index) {
-        portRemove(index);
-        portAnnotate();
-    });
-    connect(m_portTabWidget->tabBar(), &QTabBar::tabMoved, this, &PortModule::portSwap);
-    auto *addButton = new QPushButton(); // NOLINT
-    addButton->setFixedSize(24, 24);
-    addButton->setIcon(QIcon(":/icon/add.svg"));
-    m_portTabWidget->setCornerWidget(addButton, Qt::BottomLeftCorner);
-    connect(addButton, &QPushButton::clicked, this, [this] {
-        portInsert(-1);
-        portAnnotate();
-    });
+    setWidget(m_portWidget);
+}
+
+void PortModule::propertySet(const QVariantMap &objects) {
+    m_portWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));
+
     for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
         const QJsonObject portConfig = value.toObject();
         portInsert(-1, portConfig);
     }
-    portAnnotate();
-
-    m_portTabOverlay->installEventFilter(this);
-    m_portTabOverlay->setStyleSheet("background-color: rgba(0, 0, 0, 96);");
-    auto *overlayLayout = new QVBoxLayout(m_portTabOverlay); // NOLINT
-    overlayLayout->setAlignment(Qt::AlignCenter);
-    overlayLayout->setContentsMargins(0, 0, 0, 0);
-    auto *overlayLabel = new QLabel(tr("Click to add a port")); // NOLINT
-    overlayLayout->addWidget(overlayLabel);
-    overlayLabel->setFont(QFont("Consolas", 12, QFont::Bold));
-    overlayLabel->setStyleSheet("background-color: rgba(0, 0, 0, 0); color: white;");
-    if (m_portTabWidget->count() == 0) overlayShow();
+    m_portWidget->rootContext()->setContextProperty("portModule", this);
+    m_portWidget->rootContext()->setContextProperty("standardItemModel", m_portStandardItemModel);
+    m_portWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
+    m_portRoot = m_portWidget->rootObject();
 }
 
 void PortModule::portConfigSave() const {
@@ -88,15 +79,55 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
         }
     }
     const QString portName = portConfig["portName"].toString();
-    // frontend
-    auto *portPage = new PortPage(portConfig); // NOLINT
-    connect(portPage, &PortPage::appendLog, this, &PortModule::appendLog);
-    m_portTabWidget->insertTab(index, portPage, portName);
-    m_portTabWidget->setCurrentWidget(portPage);
-    overlayHide();
-    // backend
+    m_portStandardItemModel->appendRow(new QStandardItem(portName));
+    BasePort* port{};
+    switch (portConfig["portType"].toInt()) {
+        case SERIALPORT: {
+            port = new SerialPort(portConfig);
+            break;
+        }
+        case VISA: {
+            port = new Visa(portConfig);
+            break;
+        }
+        case TCPCLIENT: {
+            port = new TcpClient(portConfig);
+            break;
+        }
+        case TCPSERVER: {
+            port = new TcpServer(portConfig);
+            break;
+        }
+        case UDPSOCKET: {
+            port = new UdpSocket(portConfig);
+            break;
+        }
+        case SCREEN: {
+            port = new Screen(portConfig);
+            // connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+            //     m_portToggleButton->setChecked(status);
+            //     m_pixmapPreview->setVisible(status);
+            // });
+            // connect(m_port, &BasePort::showPreview, m_pixmapPreview, &PixmapPreview::previewShow);
+            break;
+        }
+        case CAMERA: {
+            port = new Camera(portConfig);
+            // connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+            //     m_portToggleButton->setChecked(status);
+            //     m_pixmapPreview->setVisible(status);
+            // });
+            // connect(m_port, &BasePort::showPreview, m_pixmapPreview, &PixmapPreview::previewShow);
+            break;
+        }
+        default: {
+            qDebug() << "unknown port type";
+            break;
+        }
+    }
+    connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
     m_portConfig.insert(index, portConfig);
-    m_portHash.insert(portName, portPage->m_port);
+    m_portHash.insert(portName, port);
     // logging
     emit appendLog(QString("%1 initialized").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -121,6 +152,22 @@ void PortModule::portAnnotate() const {
     QTextStream stream(&file);
     stream << annotation;
     file.close();
+}
+
+void PortModule::portToggle(const QString &portName, const bool status) {
+    auto port = m_portHash[portName];
+    if (status) {
+        bool ok = false;
+        QMetaObject::invokeMethod(port, [&port, &ok] {
+            ok = port->open();
+        }, Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, ok));
+    } else {
+        QMetaObject::invokeMethod(port, [&port] {
+            port->close();
+        }, Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, status));
+    }
 }
 
 // PortModule protected
