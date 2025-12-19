@@ -671,7 +671,7 @@ Item {
             icon.source: "qrc:/icon/edit.svg"
             icon.width: 16; icon.height: 16
 
-            // onTriggered: portModule.portInsert(-1)
+            onTriggered: portModule.portReload(portModulePortMenu.portName)
         }
 
         Menu {

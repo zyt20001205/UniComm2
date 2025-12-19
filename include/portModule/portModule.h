@@ -35,7 +35,7 @@ public:
 
     Q_INVOKABLE void portRemove(const QString &portName);
 
-    Q_INVOKABLE void portReload(int index);
+    Q_INVOKABLE void portReload(const QString &portName);
 
     Q_INVOKABLE void portToggle(const QString &portName, bool status);
 
@@ -45,6 +45,8 @@ signals:
 
 private:
     void portSwap(int srcIndex, int dstIndex);
+
+    void portSetChecked(const QString &portName, bool status) const;
 
     QJsonArray m_portConfig{};
     QQuickWidget *m_portWidget{};

@@ -118,6 +118,7 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
         }
     }
     connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
+    connect(port, &BasePort::togglePort, this, [this, portName](const bool status) { portSetChecked(portName, status); });
     m_portConfig.insert(index, portConfig);
     m_portHash.insert(portName, port);
     // logging
@@ -151,7 +152,8 @@ void PortModule::portRemove(const QString &portName) {
     qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
 }
 
-void PortModule::portReload(const int index) {
+void PortModule::portReload(const QString &portName) {
+    qDebug() << portName << "WIP";
     // const auto *portPage = static_cast<PortPage *>(m_portTabWidget->widget(index));
     // PortSetting portSettingDialog{};
     // const QJsonObject oldPortConfig = m_portConfig[index].toObject();
@@ -185,12 +187,12 @@ void PortModule::portToggle(const QString &portName, const bool status) {
         QMetaObject::invokeMethod(port, [&port, &ok] {
             ok = port->open();
         }, Qt::BlockingQueuedConnection);
-        QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, ok));
+        portSetChecked(portName, ok);
     } else {
         QMetaObject::invokeMethod(port, [&port] {
             port->close();
         }, Qt::BlockingQueuedConnection);
-        QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, status));
+        portSetChecked(portName, status);
     }
 }
 
@@ -199,4 +201,8 @@ void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // config
     const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
     m_portConfig.insert(dstIndex, tmp);
+}
+
+void PortModule::portSetChecked(const QString &portName, const bool status) const {
+    QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, status));
 }
