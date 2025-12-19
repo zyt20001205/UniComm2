@@ -37,27 +37,27 @@ void SystemModule::resourceDelete(const QUrl &resourceUrl) {
 }
 
 void SystemModule::resourceRename(const QUrl &resourceUrl, const QString &name) const {
-    const QString oldResourcePath = resourceUrl.toLocalFile();
-    const QFileInfo oldResourceInfo(oldResourcePath);
-    const QString newResourcePath = QDir(oldResourceInfo.absolutePath()).filePath(name);
-    const QFileInfo newResourceInfo(newResourcePath);
-    if (oldResourceInfo.isFile()) {
-        if (newResourceInfo.exists()) {
-            m_errorDialog->setProperty("title", tr("File already exists"));
-            QMetaObject::invokeMethod(m_errorDialog, "open");
-        } else {
-            QFile file(oldResourcePath);
-            file.rename(name);
-        }
-    } else if (oldResourceInfo.isDir()) {
-        if (newResourceInfo.exists()) {
-            m_errorDialog->setProperty("title", tr("Dir already exists"));
-            QMetaObject::invokeMethod(m_errorDialog, "open");
-        } else {
-            QDir dir;
-            dir.rename(oldResourcePath, newResourcePath);
-        }
-    }
+    // const QString oldResourcePath = resourceUrl.toLocalFile();
+    // const QFileInfo oldResourceInfo(oldResourcePath);
+    // const QString newResourcePath = QDir(oldResourceInfo.absolutePath()).filePath(name);
+    // const QFileInfo newResourceInfo(newResourcePath);
+    // if (oldResourceInfo.isFile()) {
+    //     if (newResourceInfo.exists()) {
+    //         m_errorDialog->setProperty("title", tr("File already exists"));
+    //         QMetaObject::invokeMethod(m_errorDialog, "open");
+    //     } else {
+    //         QFile file(oldResourcePath);
+    //         file.rename(name);
+    //     }
+    // } else if (oldResourceInfo.isDir()) {
+    //     if (newResourceInfo.exists()) {
+    //         m_errorDialog->setProperty("title", tr("Dir already exists"));
+    //         QMetaObject::invokeMethod(m_errorDialog, "open");
+    //     } else {
+    //         QDir dir;
+    //         dir.rename(oldResourcePath, newResourcePath);
+    //     }
+    // }
 }
 
 void SystemModule::resourceOpenInExplorer(const QUrl &resourceUrl) {
