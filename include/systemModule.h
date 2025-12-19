@@ -29,6 +29,11 @@ public:
 
     Q_INVOKABLE static void copyToClipboard(const QUrl &resourceUrl);
 
+signals:
+    void appendLog(const QString &message, const QString &level);
+
+    void openScript(const QUrl &scriptUrl);
+
 private:
     QObject* m_busyDialog{};
     QObject* m_errorDialog{};

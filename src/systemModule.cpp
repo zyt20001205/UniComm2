@@ -61,7 +61,37 @@ void SystemModule::resourceRename(const QUrl &resourceUrl, const QString &name) 
 }
 
 void SystemModule::resourceNew(const QUrl &resourceUrl) {
-    qDebug() << resourceUrl;
+    const QString resourcePath = resourceUrl.toLocalFile();
+    const QFileInfo resourceInfo(resourcePath);
+    if (!resourceInfo.suffix().isEmpty()) {
+        if (resourceInfo.exists()) {
+            m_errorDialog->setProperty("title", tr("File already exists"));
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        } else {
+            QFile file(resourcePath);
+            if (file.open(QIODevice::WriteOnly)) {
+                file.close();
+                emit openScript(resourceUrl);
+                emit appendLog(QString("file created at <a href='%1'>%2</a>").arg(resourceUrl.toString(), resourceUrl.toString()), "info");
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] file created at %2").arg(timestamp, resourceUrl.toString());
+            }
+        }
+    } else {
+        if (resourceInfo.exists()) {
+            m_errorDialog->setProperty("title", tr("Dir already exists"));
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        } else {
+            const QDir dir;
+            if (dir.mkpath(resourcePath)) {
+                emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(resourceUrl.toString(), resourceUrl.toString()), "info");
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] folder created at %2").arg(timestamp, resourceUrl.toString());
+            }
+        }
+    }
 }
 
 void SystemModule::resourceOpenInExplorer(const QUrl &resourceUrl) {

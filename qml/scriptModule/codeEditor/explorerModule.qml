@@ -11,7 +11,6 @@ TreeView {
     columnWidthProvider: function (col) {
         return col === 0 ? treeView.width : 0
     }
-    property url modelRootPath
 
     delegate: Item {
         implicitWidth: treeView.width; implicitHeight: 24

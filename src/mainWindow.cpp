@@ -273,6 +273,9 @@ void MainWindow::moduleInit() {
 
     connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
 
+    connect(m_systemModule, &SystemModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_systemModule, &SystemModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+
     connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);

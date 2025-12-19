@@ -226,7 +226,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: explorerModule.scriptNew(explorerModuleScriptNewDialog.filePath, explorerModuleScriptNameTextField.text)
+        onAccepted: systemModule.resourceNew("file:///" + explorerModuleScriptNewDialog.filePath + "/" + explorerModuleScriptNameTextField.text + ".lua")
 
         TextField {
             id: explorerModuleScriptNameTextField
@@ -255,10 +255,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: {
-            const resourceUrl = Qt.resolvedUrl(explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
-            systemModule.resourceNew(resourceUrl)
-        }
+        onAccepted: systemModule.resourceNew("file:///" + explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
 
         TextField {
             id: explorerModuleFolderNameTextField
