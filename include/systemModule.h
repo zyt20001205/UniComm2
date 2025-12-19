@@ -17,18 +17,19 @@ public:
 
     Q_INVOKABLE void processTerminate() const;
 
-    Q_INVOKABLE static void resourceDelete(const QUrl &fileUrl);
+    Q_INVOKABLE static void resourceDelete(const QUrl &resourceUrl);
 
-    Q_INVOKABLE void resourceRename(const QUrl &fileUrl, const QString &name);
+    Q_INVOKABLE void resourceRename(const QUrl &resourceUrl, const QString &name) const;
 
-    Q_INVOKABLE void resourceOpenInExplorer(const QUrl &fileUrl);
+    Q_INVOKABLE void resourceOpenInExplorer(const QUrl &resourceUrl);
 
-    Q_INVOKABLE void resourceOpenInApplication(const QUrl &fileUrl);
+    Q_INVOKABLE void resourceOpenInApplication(const QUrl &resourceUrl);
 
-    Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
+    Q_INVOKABLE static void copyToClipboard(const QUrl &resourceUrl);
 
 private:
     QObject* m_busyDialog{};
+    QObject* m_errorDialog{};
     QProcess* m_process{};
 };
 

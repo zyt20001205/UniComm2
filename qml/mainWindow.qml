@@ -301,6 +301,14 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: systemModuleRenameDialog.open()
+        }
+
         Menu {
             title: qsTr("Fold")
             icon.source: "qrc:/icon/fold.svg"
@@ -743,6 +751,18 @@ Item {
 
     // system module
     Dialog {
+        id: systemModuleErrorDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        standardButtons: Dialog.Ok
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+    }
+
+    Dialog {
         id: systemModuleRenameDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -765,9 +785,9 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter new name:")
 
-            Keys.onReturnPressed: explorerModuleScriptNewDialog.accept()
-            Keys.onEnterPressed: explorerModuleScriptNewDialog.accept()
-            Keys.onEscapePressed: explorerModuleScriptNewDialog.reject()
+            Keys.onReturnPressed: systemModuleRenameTextField.accept()
+            Keys.onEnterPressed: systemModuleRenameTextField.accept()
+            Keys.onEscapePressed: systemModuleRenameTextField.reject()
         }
     }
 
@@ -811,6 +831,8 @@ Item {
             "logModuleLinkMenu": logModuleLinkMenu,
 
             "scriptModuleEditorMenu": scriptModuleEditorMenu,
+
+            "systemModuleErrorDialog": systemModuleErrorDialog,
 
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu
         };

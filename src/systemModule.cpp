@@ -15,6 +15,7 @@ SystemModule::SystemModule(QObject *parent)
 
 void SystemModule::propertySet(const QVariantMap &objects) {
     m_busyDialog = qvariant_cast<QObject *>(objects["mainWindowBusyDialog"]);
+    m_errorDialog = qvariant_cast<QObject *>(objects["systemModuleErrorDialog"]);
 }
 
 void SystemModule::processTerminate() const {
@@ -23,32 +24,52 @@ void SystemModule::processTerminate() const {
     m_process->terminate();
 }
 
-void SystemModule::resourceDelete(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    if (fileInfo.isFile()) {
-        QFile file(filePath);
+void SystemModule::resourceDelete(const QUrl &resourceUrl) {
+    const QString resourcePath = resourceUrl.toLocalFile();
+    const QFileInfo resourceInfo(resourcePath);
+    if (resourceInfo.isFile()) {
+        QFile file(resourcePath);
         file.remove();
-    } else if (fileInfo.isDir()) {
-        QDir dir(filePath);
+    } else if (resourceInfo.isDir()) {
+        QDir dir(resourcePath);
         dir.removeRecursively();
     }
 }
 
-void SystemModule::resourceRename(const QUrl &fileUrl, const QString &name) {
-    qDebug() << fileUrl << name;
+void SystemModule::resourceRename(const QUrl &resourceUrl, const QString &name) const {
+    const QString oldResourcePath = resourceUrl.toLocalFile();
+    const QFileInfo oldResourceInfo(oldResourcePath);
+    const QString newResourcePath = QDir(oldResourceInfo.absolutePath()).filePath(name);
+    const QFileInfo newResourceInfo(newResourcePath);
+    if (oldResourceInfo.isFile()) {
+        if (newResourceInfo.exists()) {
+            m_errorDialog->setProperty("title", tr("File already exists"));
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        } else {
+            QFile file(oldResourcePath);
+            file.rename(name);
+        }
+    } else if (oldResourceInfo.isDir()) {
+        if (newResourceInfo.exists()) {
+            m_errorDialog->setProperty("title", tr("Dir already exists"));
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        } else {
+            QDir dir;
+            dir.rename(oldResourcePath, newResourcePath);
+        }
+    }
 }
 
-void SystemModule::resourceOpenInExplorer(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
+void SystemModule::resourceOpenInExplorer(const QUrl &resourceUrl) {
+    const QString resourcePath = resourceUrl.toLocalFile();
+    const QFileInfo resourceInfo(resourcePath);
     QStringList args;
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
-    if (fileInfo.isFile()) {
-        args << "/select," << QDir::toNativeSeparators(filePath);
-    } else if (fileInfo.isDir()) {
-        args << QDir::toNativeSeparators(filePath);
+    if (resourceInfo.isFile()) {
+        args << "/select," << QDir::toNativeSeparators(resourcePath);
+    } else if (resourceInfo.isDir()) {
+        args << QDir::toNativeSeparators(resourcePath);
     }
 #endif
     connect(m_process, &QProcess::started, this, [this] {
@@ -62,12 +83,12 @@ void SystemModule::resourceOpenInExplorer(const QUrl &fileUrl) {
     m_process->start(command, args);
 }
 
-void SystemModule::resourceOpenInApplication(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
+void SystemModule::resourceOpenInApplication(const QUrl &resourceUrl) {
+    const QString resourcePath = resourceUrl.toLocalFile();
     QStringList args;
 #ifdef Q_OS_WIN
     const QString command = "explorer.exe";
-    args << QDir::toNativeSeparators(filePath);
+    args << QDir::toNativeSeparators(resourcePath);
 #endif
     connect(m_process, &QProcess::started, this, [this] {
         m_busyDialog->setProperty("title", tr("Waiting for application..."));
@@ -80,7 +101,7 @@ void SystemModule::resourceOpenInApplication(const QUrl &fileUrl) {
     m_process->start(command, args);
 }
 
-void SystemModule::copyToClipboard(const QUrl &fileUrl) {
+void SystemModule::copyToClipboard(const QUrl &resourceUrl) {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(fileUrl.toString());
+    clipboard->setText(resourceUrl.toString());
 }

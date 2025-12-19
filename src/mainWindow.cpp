@@ -124,6 +124,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_structureModule->propertySet(structureObjects);
     const QVariantMap systemObjects = {
         {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
+        {"systemModuleErrorDialog", objects["systemModuleErrorDialog"]}
     };
     m_systemModule->propertySet(systemObjects);
     const QVariantMap threadpoolObjects = {
