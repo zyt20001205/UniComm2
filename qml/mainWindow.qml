@@ -306,7 +306,10 @@ Item {
             icon.source: "qrc:/icon/rename.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModuleRenameDialog.open()
+            onTriggered: {
+                systemModuleRenameDialog.resourceUrl = "file:///" + explorerModuleScriptMenu.filePath
+                systemModuleRenameDialog.open()
+            }
         }
 
         Menu {
@@ -770,7 +773,7 @@ Item {
         modal: true
         title: qsTr("Rename")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string fileUrl
+        property string resourceUrl
 
         onAboutToShow: {
             systemModuleRenameTextField.clear()
@@ -778,7 +781,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: systemModule.resourceRename(systemModuleRenameDialog.fileUrl, systemModuleRenameTextField.text)
+        onAccepted: systemModule.resourceRename(systemModuleRenameDialog.resourceUrl, systemModuleRenameTextField.text)
 
         TextField {
             id: systemModuleRenameTextField
