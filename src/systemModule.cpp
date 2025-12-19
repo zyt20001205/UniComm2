@@ -24,56 +24,6 @@ void SystemModule::processTerminate() const {
     m_process->terminate();
 }
 
-void SystemModule::fileDelete(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    if (fileInfo.isFile()) {
-        QFile file(filePath);
-        file.remove();
-    } else if (fileInfo.isDir()) {
-        QDir dir(filePath);
-        dir.removeRecursively();
-    }
-}
-
-void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) const {
-    qDebug() << fileUrl << name;
-}
-
-void SystemModule::fileNew(const QUrl &fileUrl) {
-    const QString filePath = fileUrl.toLocalFile();
-    const QFileInfo fileInfo(filePath);
-    if (!fileInfo.suffix().isEmpty()) {
-        if (fileInfo.exists()) {
-            m_errorDialog->setProperty("title", tr("File already exists"));
-            QMetaObject::invokeMethod(m_errorDialog, "open");
-        } else {
-            QFile file(filePath);
-            if (file.open(QIODevice::WriteOnly)) {
-                file.close();
-                emit openScript(fileUrl);
-                emit appendLog(QString("file created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] file created at %2").arg(timestamp, fileUrl.toString());
-            }
-        }
-    } else {
-        if (fileInfo.exists()) {
-            m_errorDialog->setProperty("title", tr("Dir already exists"));
-            QMetaObject::invokeMethod(m_errorDialog, "open");
-        } else {
-            const QDir dir;
-            if (dir.mkpath(filePath)) {
-                emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
-                // logging
-                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-                qDebug() << QString("[%1] folder created at %2").arg(timestamp, fileUrl.toString());
-            }
-        }
-    }
-}
-
 void SystemModule::fileOpenInExplorer(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
@@ -113,6 +63,56 @@ void SystemModule::fileOpenInApplication(const QUrl &fileUrl) {
         QMetaObject::invokeMethod(m_busyDialog, "close");
     });
     m_process->start(command, args);
+}
+
+void SystemModule::fileNew(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    if (!fileInfo.suffix().isEmpty()) {
+        if (fileInfo.exists()) {
+            m_errorDialog->setProperty("title", tr("File already exists"));
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        } else {
+            QFile file(filePath);
+            if (file.open(QIODevice::WriteOnly)) {
+                file.close();
+                emit openScript(fileUrl);
+                emit appendLog(QString("file created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] file created at %2").arg(timestamp, fileUrl.toString());
+            }
+        }
+    } else {
+        if (fileInfo.exists()) {
+            m_errorDialog->setProperty("title", tr("Dir already exists"));
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        } else {
+            const QDir dir;
+            if (dir.mkpath(filePath)) {
+                emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] folder created at %2").arg(timestamp, fileUrl.toString());
+            }
+        }
+    }
+}
+
+void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) const {
+    qDebug() << fileUrl << name;
+}
+
+void SystemModule::fileDelete(const QUrl &fileUrl) {
+    const QString filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    if (fileInfo.isFile()) {
+        QFile file(filePath);
+        file.remove();
+    } else if (fileInfo.isDir()) {
+        QDir dir(filePath);
+        dir.removeRecursively();
+    }
 }
 
 void SystemModule::copyToClipboard(const QUrl &fileUrl) {

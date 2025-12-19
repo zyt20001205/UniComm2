@@ -17,15 +17,15 @@ public:
 
     Q_INVOKABLE void processTerminate() const;
 
-    Q_INVOKABLE static void fileDelete(const QUrl &fileUrl);
-
-    Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name) const;
-
-    Q_INVOKABLE void fileNew(const QUrl &fileUrl);
-
     Q_INVOKABLE void fileOpenInExplorer(const QUrl &fileUrl);
 
     Q_INVOKABLE void fileOpenInApplication(const QUrl &fileUrl);
+
+    Q_INVOKABLE void fileNew(const QUrl &fileUrl);
+
+    Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name) const;
+
+    Q_INVOKABLE static void fileDelete(const QUrl &fileUrl);
 
     Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
 
