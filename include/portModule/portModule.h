@@ -44,10 +44,6 @@ signals:
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-    void resizeEvent(QResizeEvent *event) override;
-
 private:
     void portRemove(int index);
 
@@ -55,19 +51,12 @@ private:
 
     void portSwap(int srcIndex, int dstIndex);
 
-    void overlayShow() const;
-
-    void overlayHide() const;
-
-    void overlayResize() const;
-
     QJsonArray m_portConfig{};
     QQuickWidget *m_portWidget{};
     QQuickItem *m_portRoot{};
     QStandardItemModel *m_portStandardItemModel{};
 
     QTabWidget *m_portTabWidget{};
-    QWidget *m_portTabOverlay{};
     int m_version = 1;
 };
 

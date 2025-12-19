@@ -30,8 +30,7 @@ PortModule::PortModule()
     : DockWidget("port"),
       m_portWidget(new QQuickWidget()),
       m_portStandardItemModel(new QStandardItemModel()),
-      m_portTabWidget(new QTabWidget()),
-      m_portTabOverlay(new QWidget(m_portTabWidget)) {
+      m_portTabWidget(new QTabWidget()) {
     setWidget(m_portWidget);
 }
 
@@ -185,20 +184,6 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
     }
 }
 
-bool PortModule::eventFilter(QObject *obj, QEvent *event) {
-    if (obj == m_portTabOverlay && event->type() == QEvent::MouseButtonPress) {
-        portInsert(-1);
-        portAnnotate();
-        return true;
-    }
-    return DockWidget::eventFilter(obj, event);
-}
-
-void PortModule::resizeEvent(QResizeEvent *event) {
-    DockWidget::resizeEvent(event);
-    if (!m_portTabOverlay->isHidden()) overlayResize();
-}
-
 // PortModule private
 void PortModule::portRemove(const int index) {
     QJsonObject portConfig = m_portConfig[index].toObject();
@@ -214,7 +199,6 @@ void PortModule::portRemove(const int index) {
     QWidget *w = m_portTabWidget->widget(index);
     m_portTabWidget->removeTab(index);
     if (w) w->deleteLater();
-    if (m_portTabWidget->count() == 0) overlayShow();
     // backend
     m_portConfig.removeAt(index);
     m_portHash.remove(portName);
@@ -255,19 +239,4 @@ void PortModule::portSwap(const int srcIndex, const int dstIndex) {
     // config
     const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
     m_portConfig.insert(dstIndex, tmp);
-}
-
-void PortModule::overlayShow() const {
-    overlayResize();
-    m_portTabOverlay->raise();
-    m_portTabOverlay->show();
-}
-
-void PortModule::overlayHide() const {
-    m_portTabOverlay->hide();
-}
-
-void PortModule::overlayResize() const {
-    m_portTabOverlay->resize(m_portTabWidget->size());
-    m_portTabOverlay->move(0, 0);
 }
