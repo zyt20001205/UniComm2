@@ -81,6 +81,7 @@ TreeView {
         HoverHandler {
             onHoveredChanged: {
                 if (hovered) {
+                    cursorShape = Qt.PointingHandCursor
                     highlightRect.opacity = 1
                 } else {
                     highlightRect.opacity = 0

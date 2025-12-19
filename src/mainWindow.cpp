@@ -120,6 +120,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_logModule->propertySet(logObjects);
 
     const QVariantMap portObjects = {
+        {"portModulePortMenu", objects["portModulePortMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
     m_portModule->propertySet(portObjects);

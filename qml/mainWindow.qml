@@ -652,6 +652,29 @@ Item {
 
     // port module
     Menu {
+        id: portModulePortMenu
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("New")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: portModule.portInsert(-1)
+        }
+
+        MenuItem {
+            text: qsTr("Edit")
+            icon.source: "qrc:/icon/edit.svg"
+            icon.width: 16; icon.height: 16
+
+            // onTriggered: portModule.portInsert(-1)
+        }
+    }
+
+    Menu {
         id: portModuleRootMenu
 
         onAboutToShow: widgetCount += 1
@@ -662,7 +685,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: scriptModule.portInsert(-1)
+            onTriggered: portModule.portInsert(-1)
         }
     }
 
@@ -851,6 +874,7 @@ Item {
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
 
+            "portModulePortMenu": portModulePortMenu,
             "portModuleRootMenu": portModuleRootMenu,
 
             "scriptModuleEditorMenu": scriptModuleEditorMenu,

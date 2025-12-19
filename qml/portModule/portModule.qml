@@ -41,6 +41,21 @@ Item {
             text: model.display
 
             onClicked: portModule.portToggle(model.display, checked)
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (hovered) {
+                        cursorShape = Qt.PointingHandCursor
+                    }
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onSingleTapped: portMenu.popup()
+            }
         }
 
         TapHandler {
@@ -67,7 +82,6 @@ Item {
     }
 
     function setChecked(portName, status) {
-        console.log(portName, status)
         for (let i = 0; i < listView.count; i++) {
             const item = listView.itemAtIndex(i)
             if (item.text === portName) {

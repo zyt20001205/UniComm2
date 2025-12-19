@@ -72,47 +72,6 @@ Item {
                 anchors.leftMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
                 text: model.display
-
-                ToolTip.visible: hoverHandler.hovered
-                ToolTip.delay: 500
-                ToolTip.text: {
-                    if (isTreeNode && hasChildren) {
-                        qsTr("Click to view file")
-                    } else {
-                        qsTr("Click to view line")
-                    }
-                }
-
-                HoverHandler {
-                    id: hoverHandler
-                    cursorShape: Qt.PointingHandCursor
-                }
-
-                TapHandler {
-                    acceptedButtons: Qt.LeftButton
-                    onSingleTapped: {
-                        if (isTreeNode && hasChildren) {
-                            breakpointModule.scriptOpen(model.whatsThis)
-                        } else {
-                            breakpointModule.markerInsert(model.whatsThis, model.display)
-                        }
-                    }
-                }
-
-                TapHandler {
-                    acceptedButtons: Qt.RightButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-                    onSingleTapped: {
-                        if (isTreeNode && hasChildren) {
-                            fileMenu.url = model.whatsThis
-                            fileMenu.popup()
-                        } else {
-                            lineMenu.url = model.whatsThis
-                            lineMenu.line = model.display
-                            lineMenu.popup()
-                        }
-                    }
-                }
             }
 
             Rectangle {
@@ -132,9 +91,36 @@ Item {
             HoverHandler {
                 onHoveredChanged: {
                     if (hovered) {
+                        cursorShape = Qt.PointingHandCursor
                         highlightRect.opacity = 1
                     } else {
                         highlightRect.opacity = 0
+                    }
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                onSingleTapped: {
+                    if (isTreeNode && hasChildren) {
+                        breakpointModule.scriptOpen(model.whatsThis)
+                    } else {
+                        breakpointModule.markerInsert(model.whatsThis, model.display)
+                    }
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                onSingleTapped: {
+                    if (isTreeNode && hasChildren) {
+                        fileMenu.url = model.whatsThis
+                        fileMenu.popup()
+                    } else {
+                        lineMenu.url = model.whatsThis
+                        lineMenu.line = model.display
+                        lineMenu.popup()
                     }
                 }
             }
