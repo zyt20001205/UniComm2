@@ -134,6 +134,29 @@ void PortModule::portInsert(int index, QJsonObject portConfig) {
     qDebug() << QString("[%1] %2 initialized").arg(timestamp, portName);
 }
 
+void PortModule::portRemove(const int index) {
+    QJsonObject portConfig = m_portConfig[index].toObject();
+    QString portName = portConfig["portName"].toString();
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+        nullptr,
+        tr("Remove Port"),
+        QString(tr("Are you sure to remove port %1?")).arg(portName),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+    if (reply != QMessageBox::Yes) return;
+    // frontend
+    QWidget *w = m_portTabWidget->widget(index);
+    m_portTabWidget->removeTab(index);
+    if (w) w->deleteLater();
+    // backend
+    m_portConfig.removeAt(index);
+    m_portHash.remove(portName);
+    // logging
+    emit appendLog(QString("%1 removed").arg(portName), "info");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
+}
+
 void PortModule::portAnnotate() const {
     QString annotation;
     annotation += "--- @meta\n\n";
@@ -185,29 +208,6 @@ void PortModule::contextMenuEvent(QContextMenuEvent *event) {
 }
 
 // PortModule private
-void PortModule::portRemove(const int index) {
-    QJsonObject portConfig = m_portConfig[index].toObject();
-    QString portName = portConfig["portName"].toString();
-    const QMessageBox::StandardButton reply = QMessageBox::question(
-        nullptr,
-        tr("Remove Port"),
-        QString(tr("Are you sure to remove port %1?")).arg(portName),
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No);
-    if (reply != QMessageBox::Yes) return;
-    // frontend
-    QWidget *w = m_portTabWidget->widget(index);
-    m_portTabWidget->removeTab(index);
-    if (w) w->deleteLater();
-    // backend
-    m_portConfig.removeAt(index);
-    m_portHash.remove(portName);
-    // logging
-    emit appendLog(QString("%1 removed").arg(portName), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
-}
-
 void PortModule::portReload(const int index) {
     const auto *portPage = static_cast<PortPage *>(m_portTabWidget->widget(index));
     PortSetting portSettingDialog{};

@@ -33,6 +33,8 @@ public:
 
     Q_INVOKABLE void portInsert(int index, QJsonObject portConfig = QJsonObject());
 
+    Q_INVOKABLE void portRemove(int index);
+
     void portAnnotate() const;
 
     Q_INVOKABLE void portToggle(const QString &portName, bool status);
@@ -45,8 +47,6 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
-    void portRemove(int index);
-
     void portReload(int index);
 
     void portSwap(int srcIndex, int dstIndex);
