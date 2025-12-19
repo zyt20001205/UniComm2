@@ -27,13 +27,13 @@ public:
 
     void portConfigSave() const;
 
-    BasePort* currentPort() const;
+    BasePort *currentPort() const;
 
     void portList(std::vector<std::string> &portList) const;
 
     Q_INVOKABLE void portInsert(int index, QJsonObject portConfig = QJsonObject());
 
-    Q_INVOKABLE void portRemove(int index);
+    Q_INVOKABLE void portRemove(const QString &portName);
 
     Q_INVOKABLE void portReload(int index);
 
@@ -45,9 +45,6 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
 private:
     void portSwap(int srcIndex, int dstIndex);
 
@@ -56,7 +53,6 @@ private:
     QQuickItem *m_portRoot{};
     QStandardItemModel *m_portStandardItemModel{};
 
-    QTabWidget *m_portTabWidget{};
     int m_version = 1;
 };
 

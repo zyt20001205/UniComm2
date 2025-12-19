@@ -653,6 +653,7 @@ Item {
     // port module
     Menu {
         id: portModulePortMenu
+        property string portName
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -671,6 +672,23 @@ Item {
             icon.width: 16; icon.height: 16
 
             // onTriggered: portModule.portInsert(-1)
+        }
+
+        Menu {
+            title: qsTr("Delete")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    portModule.portRemove(portModulePortMenu.portName)
+                    progress = 0
+                    portModulePortMenu.close()
+                }
+            }
         }
     }
 

@@ -54,7 +54,10 @@ Item {
                 acceptedButtons: Qt.RightButton
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                onSingleTapped: portMenu.popup()
+                onSingleTapped: {
+                    portMenu.portName = text
+                    portMenu.popup()
+                }
             }
         }
 
