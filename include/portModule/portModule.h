@@ -37,8 +37,6 @@ public:
 
     Q_INVOKABLE void portReload(int index);
 
-    void portAnnotate() const;
-
     Q_INVOKABLE void portToggle(const QString &portName, bool status);
 
     QHash<QString, BasePort *> m_portHash{};

@@ -276,10 +276,7 @@ void MainWindow::moduleInit() {
         }
     });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] {
-        m_portModule->portInsert(-1, QJsonObject());
-        m_portModule->portAnnotate();
-    });
+    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] {m_portModule->portInsert(-1, QJsonObject());});
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] {
         m_databaseModule->databaseInsert(-1, QString());
         m_databaseModule->databaseAnnotate();
