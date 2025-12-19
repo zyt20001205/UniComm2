@@ -59,8 +59,14 @@ Item {
                     visible: isTreeNode && hasChildren
                     source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
 
+                    HoverHandler {
+                        cursorShape: Qt.PointingHandCursor
+                    }
+
                     TapHandler {
                         enabled: indicator.visible
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
                         onSingleTapped: treeView.toggleExpanded(row)
                     }
                 }
@@ -91,7 +97,6 @@ Item {
             HoverHandler {
                 onHoveredChanged: {
                     if (hovered) {
-                        cursorShape = Qt.PointingHandCursor
                         highlightRect.opacity = 1
                     } else {
                         highlightRect.opacity = 0
@@ -113,6 +118,7 @@ Item {
             TapHandler {
                 acceptedButtons: Qt.RightButton
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
                 onSingleTapped: {
                     if (isTreeNode && hasChildren) {
                         fileMenu.url = model.whatsThis
