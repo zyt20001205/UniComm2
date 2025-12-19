@@ -23,10 +23,6 @@ public:
 
     Q_INVOKABLE void scriptOpen(const QString &scriptPath);
 
-    Q_INVOKABLE void scriptNew(const QString &rootPath, const QString &scriptName);
-
-    Q_INVOKABLE void folderNew(const QString &rootPath, const QString &folderName);
-
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -36,8 +32,6 @@ signals:
 
 private:
     QQuickWidget *m_explorerWidget{};
-    QObject* m_scriptErrorDialog{};
-    QObject* m_folderErrorDialog{};
     QFileSystemModel *m_explorerFileSystemModel{};
     QTreeView *m_explorerTreeView{};
 };

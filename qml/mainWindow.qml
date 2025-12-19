@@ -211,19 +211,6 @@ Item {
 
     // explorer module
     Dialog {
-        id: explorerModuleScriptErrorDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 400
-        modal: true
-        title: qsTr("Script Already Exists")
-        standardButtons: Dialog.Ok
-
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
-    }
-
-    Dialog {
         id: explorerModuleScriptNewDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -253,18 +240,6 @@ Item {
     }
 
     Dialog {
-        id: explorerModuleFolderErrorDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 400
-        modal: true
-        title: qsTr("Folder Already Exists")
-        standardButtons: Dialog.Ok
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
-    }
-
-    Dialog {
         id: explorerModuleFolderNewDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -280,7 +255,10 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: explorerModule.folderNew(explorerModuleFolderNewDialog.filePath, explorerModuleFolderNameTextField.text)
+        onAccepted: {
+            const resourceUrl = Qt.resolvedUrl(explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
+            systemModule.resourceNew(resourceUrl)
+        }
 
         TextField {
             id: explorerModuleFolderNameTextField
@@ -496,7 +474,7 @@ Item {
 
     Menu {
         id: explorerModuleRootMenu
-        property url rootUrl
+        property string rootPath
         property var treeView
 
         onAboutToShow: widgetCount += 1
@@ -545,7 +523,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleScriptNewDialog.filePath = ""
+                    explorerModuleScriptNewDialog.filePath = explorerModuleRootMenu.rootPath
                     explorerModuleScriptNewDialog.open()
                 }
             }
@@ -556,7 +534,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleFolderNewDialog.filePath = ""
+                    explorerModuleFolderNewDialog.filePath = explorerModuleRootMenu.rootPath
                     explorerModuleFolderNewDialog.open()
                 }
             }
@@ -567,7 +545,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.resourceOpenInExplorer(explorerModuleRootMenu.rootUrl)
+            onTriggered: systemModule.resourceOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
         }
     }
 
@@ -823,8 +801,6 @@ Item {
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
-            "explorerModuleScriptErrorDialog": explorerModuleScriptErrorDialog,
-            "explorerModuleFolderErrorDialog": explorerModuleFolderErrorDialog,
             "explorerModuleScriptMenu": explorerModuleScriptMenu,
             "explorerModuleFolderMenu": explorerModuleFolderMenu,
             "explorerModuleRootMenu": explorerModuleRootMenu,

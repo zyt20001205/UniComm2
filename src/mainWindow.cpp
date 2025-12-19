@@ -101,8 +101,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_diagnosticsModule->propertySet(diagnosticsObjects);
     const QVariantMap explorerObjects = {
-        {"explorerModuleScriptErrorDialog", objects["explorerModuleScriptErrorDialog"]},
-        {"explorerModuleFolderErrorDialog", objects["explorerModuleFolderErrorDialog"]},
         {"explorerModuleScriptMenu", objects["explorerModuleScriptMenu"]},
         {"explorerModuleFolderMenu", objects["explorerModuleFolderMenu"]},
         {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}

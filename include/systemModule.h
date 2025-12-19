@@ -21,6 +21,8 @@ public:
 
     Q_INVOKABLE void resourceRename(const QUrl &resourceUrl, const QString &name) const;
 
+    Q_INVOKABLE void resourceNew(const QUrl &resourceUrl);
+
     Q_INVOKABLE void resourceOpenInExplorer(const QUrl &resourceUrl);
 
     Q_INVOKABLE void resourceOpenInApplication(const QUrl &resourceUrl);

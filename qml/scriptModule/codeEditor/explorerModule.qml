@@ -11,7 +11,7 @@ TreeView {
     columnWidthProvider: function (col) {
         return col === 0 ? treeView.width : 0
     }
-    property url modelRootUrl
+    property url modelRootPath
 
     delegate: Item {
         implicitWidth: treeView.width; implicitHeight: 24
@@ -115,7 +115,7 @@ TreeView {
         acceptedButtons: Qt.RightButton
 
         onSingleTapped: {
-            rootMenu.rootUrl = modelRootUrl
+            rootMenu.rootPath = modelRootPath
             rootMenu.treeView = treeView
             rootMenu.popup()
         }

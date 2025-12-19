@@ -3,10 +3,8 @@
 #include <QFileSystemModel>
 #include <QInputDialog>
 #include <QMenu>
-#include <QMessageBox>
 #include <QProcess>
 #include <QQmlContext>
-#include <QQuickWidget>
 #include <QTreeView>
 
 #include "globals.h"
@@ -21,18 +19,16 @@ ExplorerModule::ExplorerModule()
 }
 
 void ExplorerModule::propertySet(const QVariantMap &objects) {
-    m_scriptErrorDialog = qvariant_cast<QObject *>(objects["explorerModuleScriptErrorDialog"]);
-    m_folderErrorDialog = qvariant_cast<QObject *>(objects["explorerModuleFolderErrorDialog"]);
     m_explorerWidget->rootContext()->setContextProperty("scriptMenu", qvariant_cast<QObject *>(objects["explorerModuleScriptMenu"]));
     m_explorerWidget->rootContext()->setContextProperty("folderMenu", qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]));
     m_explorerWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
 
-    const auto rootPath = g_workspaceUrl.toLocalFile();
-    m_explorerFileSystemModel->setRootPath(rootPath);
-    const QModelIndex modelRootIndex = m_explorerFileSystemModel->index(rootPath);
+    const auto modelRootPath = g_workspaceUrl.toLocalFile();
+    m_explorerFileSystemModel->setRootPath(modelRootPath);
+    const QModelIndex modelRootIndex = m_explorerFileSystemModel->index(modelRootPath);
     m_explorerWidget->rootContext()->setContextProperty("explorerModule", this);
     m_explorerWidget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
-    m_explorerWidget->rootContext()->setContextProperty("modelRootUrl", g_workspaceUrl);
+    m_explorerWidget->rootContext()->setContextProperty("modelRootPath", modelRootPath);
     m_explorerWidget->rootContext()->setContextProperty("fileSystemModel", m_explorerFileSystemModel);
     m_explorerWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_explorerWidget->setSource(QUrl("qrc:/qml/scriptModule/codeEditor/explorerModule.qml"));
@@ -65,50 +61,4 @@ void ExplorerModule::scriptDebug(const QString &scriptPath) {
 void ExplorerModule::scriptOpen(const QString &scriptPath) {
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath).toString();
     emit openScript(scriptUrl);
-}
-
-void ExplorerModule::scriptNew(const QString &rootPath, const QString &scriptName) {
-    QString filePath{};
-    if (rootPath.isEmpty()) {
-        filePath = QDir(m_explorerFileSystemModel->rootPath()).filePath(scriptName + ".lua");
-    } else {
-        filePath = QDir(rootPath).filePath(scriptName + ".lua");
-    }
-    if (QFile::exists(filePath)) {
-        QMetaObject::invokeMethod(m_scriptErrorDialog, "open");
-        return;
-    }
-
-    QFile file(filePath);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        file.close();
-        const auto fileUrl = QUrl::fromLocalFile(filePath);
-        emit appendLog(QString("script created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
-        const QUrl scriptUrl = QUrl::fromLocalFile(filePath).toString();
-        emit openScript(scriptUrl);
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] script created at %2").arg(timestamp, fileUrl.toString());
-    }
-}
-
-void ExplorerModule::folderNew(const QString &rootPath, const QString &folderName) {
-    QString folderPath{};
-    if (rootPath.isEmpty()) {
-        folderPath = QDir(m_explorerFileSystemModel->rootPath()).filePath(folderName);
-    } else {
-        folderPath = QDir(rootPath).filePath(folderName);
-    }
-    if (QFile::exists(folderPath)) {
-        QMetaObject::invokeMethod(m_folderErrorDialog, "open");
-        return;
-    }
-    if (QDir().mkdir(folderPath)) {
-        const auto fileUrl = QUrl::fromLocalFile(folderPath);
-        emit appendLog(QString("folder created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] folder created at %2").arg(timestamp, fileUrl.toString());
-    }
 }

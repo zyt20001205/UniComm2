@@ -60,6 +60,10 @@ void SystemModule::resourceRename(const QUrl &resourceUrl, const QString &name) 
     // }
 }
 
+void SystemModule::resourceNew(const QUrl &resourceUrl) {
+    qDebug() << resourceUrl;
+}
+
 void SystemModule::resourceOpenInExplorer(const QUrl &resourceUrl) {
     const QString resourcePath = resourceUrl.toLocalFile();
     const QFileInfo resourceInfo(resourcePath);
