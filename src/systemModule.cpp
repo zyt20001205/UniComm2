@@ -116,7 +116,16 @@ void SystemModule::fileRename(const QUrl &fileUrl, const QString &name) {
             qDebug() << QString("[%1] file renamed to %2").arg(timestamp, newUrl.toString());
         }
     } else if (fileInfo.isDir()) {
-        qDebug() << fileUrl << name;
+        QFile file(filePath);
+        const QString newPath = fileInfo.dir().filePath(name);
+        if (file.rename(newPath)) {
+            const auto newUrl = QUrl::fromLocalFile(newPath);
+            didRenameFilesNotification(fileUrl, newUrl);
+            emit appendLog(QString("folder renamed to <a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()), "info");
+            // logging
+            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            qDebug() << QString("[%1] folder renamed to %2").arg(timestamp, newUrl.toString());
+        }
     }
 }
 

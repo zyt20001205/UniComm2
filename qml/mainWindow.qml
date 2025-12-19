@@ -425,6 +425,17 @@ Item {
             }
         }
 
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
+                systemModuleRenameDialog.open()
+            }
+        }
+
         Menu {
             title: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
