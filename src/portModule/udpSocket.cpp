@@ -27,16 +27,16 @@ void UdpSocket::reload(const QJsonObject &portConfig) {
 
 std::unordered_map<std::string, std::string> UdpSocket::info() {
     const std::string status = m_udpSocket && m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
-    const std::string localAddress = m_portConfig["udpSocketLocalAddress"].toString().toStdString();
+    const std::string localHost = m_portConfig["udpSocketLocalHost"].toString().toStdString();
     const std::string localPort = QString::number(m_portConfig["udpSocketLocalPort"].toInt()).toStdString();
-    const std::string remoteAddress = m_portConfig["udpSocketRemoteAddress"].toString().toStdString();
+    const std::string remoteHost = m_portConfig["udpSocketRemoteHost"].toString().toStdString();
     const std::string remotePort = QString::number(m_portConfig["udpSocketRemotePort"].toInt()).toStdString();
 
     std::unordered_map<std::string, std::string> infoHash{};
     infoHash["status"] = status;
-    infoHash["localAddress"] = localAddress;
+    infoHash["localHost"] = localHost;
     infoHash["localPort"] = localPort;
-    infoHash["remoteAddress"] = remoteAddress;
+    infoHash["remoteHost"] = remoteHost;
     infoHash["remotePort"] = remotePort;
     return infoHash;
 }
@@ -49,20 +49,20 @@ bool UdpSocket::open() {
         connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
     }
     // open port
-    if (!m_udpSocket->bind(QHostAddress(m_portConfig["udpSocketLocalAddress"].toString()), m_portConfig["udpSocketLocalPort"].toInt())) {
+    if (!m_udpSocket->bind(QHostAddress(m_portConfig["udpSocketLocalHost"].toString()), m_portConfig["udpSocketLocalPort"].toInt())) {
         emit appendLog(QString("%1 open failed: %2").arg(m_portConfig["portName"].toString(), m_udpSocket->errorString()), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 open failed: %3").arg(timestamp, m_portConfig["portName"].toString(), m_udpSocket->errorString());
         return false;
     }
-    m_udpSocket->connectToHost(m_portConfig["udpSocketRemoteAddress"].toString(), m_portConfig["udpSocketRemotePort"].toInt());
+    m_udpSocket->connectToHost(m_portConfig["udpSocketRemoteHost"].toString(), m_portConfig["udpSocketRemotePort"].toInt());
     emit togglePort(true);
-    emit appendLog(QString("%1 opened: %2:%3->%4:%5").arg(m_portConfig["portName"].toString(), m_portConfig["udpSocketLocalAddress"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteAddress"].toString(),
+    emit appendLog(QString("%1 opened: %2:%3->%4:%5").arg(m_portConfig["portName"].toString(), m_portConfig["udpSocketLocalHost"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteHost"].toString(),
                                                           QString::number(m_portConfig["udpSocketRemotePort"].toInt())), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 opened: %3:%4->%5:%6").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["udpSocketLocalAddress"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteAddress"].toString(),
+    qDebug() << QString("[%1] %2 opened: %3:%4->%5:%6").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["udpSocketLocalHost"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteHost"].toString(),
                                                             QString::number(m_portConfig["udpSocketRemotePort"].toInt()));
     return true;
 }
@@ -186,7 +186,7 @@ void UdpSocket::handleLog(const QString &mode, const QByteArray &data) {
         else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_portConfig["udpSocketLocalAddress"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteAddress"].toString(),
+        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_portConfig["udpSocketLocalHost"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteHost"].toString(),
                                                           QString::number(m_portConfig["udpSocketRemotePort"].toInt()), txMessage);
         emit appendLog(txMessage, mode);
     } else {
@@ -202,7 +202,7 @@ void UdpSocket::handleLog(const QString &mode, const QByteArray &data) {
         else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_portConfig["udpSocketLocalAddress"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteAddress"].toString(),
+        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_portConfig["udpSocketLocalHost"].toString(), QString::number(m_portConfig["udpSocketLocalPort"].toInt()), m_portConfig["udpSocketRemoteHost"].toString(),
                                                           QString::number(m_portConfig["udpSocketRemotePort"].toInt()), rxMessage);
         emit appendLog(rxMessage, mode);
     }

@@ -19,7 +19,8 @@
 PortSetting::PortSetting(QWidget *parent)
     : QWidget(parent),
       m_portSettingDialog(new QDialog(this)),
-      m_serialPortStandardItemModel(new QStandardItemModel(this)) {
+      m_serialPortStandardItemModel(new QStandardItemModel(this)),
+      m_visaStandardItemModel(new QStandardItemModel(this)) {
     propertySet();
 }
 
@@ -31,18 +32,36 @@ void PortSetting::propertySet() {
     layout->setContentsMargins(0, 0, 0, 0);
     widget->rootContext()->setContextProperty("portSetting", this);
     widget->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
+    widget->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
 }
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
     m_tumbler = qvariant_cast<QObject *>(objects["tumbler"]);
+    // serial port
     m_serialPortNameComboBox = qvariant_cast<QObject *>(objects["serialPortNameComboBox"]);
     m_serialPortBaudRateSpinBox = qvariant_cast<QObject *>(objects["serialPortBaudRateSpinBox"]);
     m_serialPortDataBitsComboBox = qvariant_cast<QObject *>(objects["serialPortDataBitsComboBox"]);
     m_serialPortParityComboBox = qvariant_cast<QObject *>(objects["serialPortParityComboBox"]);
     m_serialPortStopBitsComboBox = qvariant_cast<QObject *>(objects["serialPortStopBitsComboBox"]);
-
+    // visa
+    m_visaNameComboBox = qvariant_cast<QObject *>(objects["visaNameComboBox"]);
+    // tcp client
+    m_tcpClientNameTextField = qvariant_cast<QObject *>(objects["tcpClientNameTextField"]);
+    m_tcpClientRemoteHostTextField = qvariant_cast<QObject *>(objects["tcpClientRemoteHostTextField"]);
+    m_tcpClientRemotePortSpinBox = qvariant_cast<QObject *>(objects["tcpClientRemotePortSpinBox"]);
+    // tcp server
+    m_tcpServerNameTextField = qvariant_cast<QObject *>(objects["tcpServerNameTextField"]);
+    m_tcpServerLocalHostTextField = qvariant_cast<QObject *>(objects["tcpServerLocalHostTextField"]);
+    m_tcpServerLocalPortSpinBox = qvariant_cast<QObject *>(objects["tcpServerLocalPortSpinBox"]);
+    // udp server
+    m_udpSocketNameTextField = qvariant_cast<QObject *>(objects["udpSocketNameTextField"]);
+    m_udpSocketLocalHostTextField = qvariant_cast<QObject *>(objects["udpSocketLocalHostTextField"]);
+    m_udpSocketLocalPortSpinBox = qvariant_cast<QObject *>(objects["udpSocketLocalPortSpinBox"]);
+    m_udpSocketRemoteHostTextField = qvariant_cast<QObject *>(objects["udpSocketRemoteHostTextField"]);
+    m_udpSocketRemotePortSpinBox = qvariant_cast<QObject *>(objects["udpSocketRemotePortSpinBox"]);
+    // format
     m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
     m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
     m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
@@ -50,6 +69,7 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
 
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     serialPortRefresh();
+    visaRefresh();
     if (!portConfig.isEmpty()) {
     }
     m_portSettingDialog->resize(600, 500);
@@ -62,15 +82,74 @@ void PortSetting::portSettingExport() {
     switch (portType) {
         case SERIALPORT: {
             portConfig = {
-                {"portType",portType},
-                {"portName",m_serialPortNameComboBox->property("currentValue").toString()},
+                {"portType", portType},
+                {"portName", m_serialPortNameComboBox->property("currentValue").toString()},
                 {"baudRate", m_serialPortBaudRateSpinBox->property("value").toInt()},
                 {"dataBits", m_serialPortDataBitsComboBox->property("currentValue").toInt()},
                 {"parity", m_serialPortParityComboBox->property("currentValue").toInt()},
                 {"stopBits", m_serialPortStopBitsComboBox->property("currentValue").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentText").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+            };
+        }
+        break;
+        case VISA: {
+            portConfig = {
+                {"portType", portType},
+                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+            };
+        }
+        break;
+        case TCPCLIENT: {
+            portConfig = {
+                {"portType", portType},
+                {"portName", m_tcpClientNameTextField->property("text").toString()},
+                {"remoteHost", m_tcpClientRemoteHostTextField->property("text").toString()},
+                {"remotePort", m_tcpClientRemotePortSpinBox->property("value").toInt()},
+                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+            };
+        }
+        break;
+        case TCPSERVER: {
+            portConfig = {
+                {"portType", portType},
+                {"portName", m_tcpClientNameTextField->property("text").toString()},
+                {"localHost", m_tcpServerLocalHostTextField->property("text").toString()},
+                {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
+                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+            };
+        }
+        break;
+        case UDPSOCKET: {
+            portConfig = {
+                {"portType", portType},
+                {"portName", m_udpSocketNameTextField->property("text").toString()},
+                {"localHost", m_udpSocketLocalHostTextField->property("text").toString()},
+                {"localPort", m_udpSocketLocalPortSpinBox->property("value").toInt()},
+                {"remoteHost", m_udpSocketRemoteHostTextField->property("text").toString()},
+                {"remotePort", m_udpSocketRemotePortSpinBox->property("value").toInt()},
+                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+            };
+        }
+        break;
+        case SCREEN: {
+            portConfig = {
+                {"portType", portType}
+            };
+        }
+        break;
+        case CAMERA: {
+            portConfig = {
+                {"portType", portType}
             };
         }
         break;
@@ -88,6 +167,41 @@ void PortSetting::serialPortRefresh() const {
         item->setData(port.portName(), Qt::WhatsThisRole);
         m_serialPortStandardItemModel->appendRow(item);
     }
+}
+
+void PortSetting::visaRefresh() const {
+    // QStringList deviceList;
+    //
+    // ViFindList findList;
+    // ViUInt32 numInst;
+    // ViChar portName[VI_FIND_BUFLEN];
+    //
+    // ViStatus status = viOpenDefaultRM(&g_rm);
+    // if (status != VI_SUCCESS) {
+    //     qDebug() << "fails to start visa resource manager";
+    //     return deviceList;
+    // }
+    //
+    // status = viFindRsrc(g_rm, "?*INSTR", &findList, &numInst, portName);
+    // if (status != VI_SUCCESS) {
+    //     qDebug() << "fails to search visa instruments";
+    //     viClose(g_rm);
+    //     return deviceList;
+    // }
+    //
+    // deviceList.append(QString(portName));
+    //
+    // for (ViUInt32 i = 1; i < numInst; i++) {
+    //     status = viFindNext(findList, portName);
+    //     if (status == VI_SUCCESS) {
+    //         deviceList.append(QString(portName));
+    //     }
+    // }
+    //
+    // // viClose(findList);
+    // // viClose(rm);
+    //
+    // return deviceList;
 }
 
 // // PortSetting public
@@ -112,24 +226,24 @@ void PortSetting::serialPortRefresh() const {
 //       m_visaNameCombobox(new QComboBox()),
 //       m_tcpClientNameWidget(new QWidget()),
 //       m_tcpClientNameLineEdit(new QLineEdit()),
-//       m_tcpClientRemoteAddressWidget(new QWidget()),
-//       m_tcpClientRemoteAddressLineEdit(new QLineEdit()),
+//       m_tcpClientRemoteHostWidget(new QWidget()),
+//       m_tcpClientRemoteHostLineEdit(new QLineEdit()),
 //       m_tcpClientRemotePortWidget(new QWidget()),
 //       m_tcpClientRemotePortSpinBox(new QSpinBox()),
 //       m_tcpServerNameWidget(new QWidget()),
 //       m_tcpServerNameLineEdit(new QLineEdit()),
-//       m_tcpServerLocalAddressWidget(new QWidget()),
-//       m_tcpServerLocalAddressLineEdit(new QLineEdit()),
+//       m_tcpServerLocalHostWidget(new QWidget()),
+//       m_tcpServerLocalHostLineEdit(new QLineEdit()),
 //       m_tcpServerLocalPortWidget(new QWidget()),
 //       m_tcpServerLocalPortSpinBox(new QSpinBox()),
 //       m_udpSocketNameWidget(new QWidget()),
 //       m_udpSocketNameLineEdit(new QLineEdit()),
-//       m_udpSocketLocalAddressWidget(new QWidget()),
-//       m_udpSocketLocalAddressLineEdit(new QLineEdit()),
+//       m_udpSocketLocalHostWidget(new QWidget()),
+//       m_udpSocketLocalHostLineEdit(new QLineEdit()),
 //       m_udpSocketLocalPortWidget(new QWidget()),
 //       m_udpSocketLocalPortSpinBox(new QSpinBox()),
-//       m_udpSocketRemoteAddressWidget(new QWidget()),
-//       m_udpSocketRemoteAddressLineEdit(new QLineEdit()),
+//       m_udpSocketRemoteHostWidget(new QWidget()),
+//       m_udpSocketRemoteHostLineEdit(new QLineEdit()),
 //       m_udpSocketRemotePortWidget(new QWidget()),
 //       m_udpSocketRemotePortSpinBox(new QSpinBox()),
 //       m_screenNameWidget(new QWidget()),
@@ -237,12 +351,12 @@ void PortSetting::serialPortRefresh() const {
 //         tcpClientNameLayout->addWidget(tcpClientNameLabel, 1);
 //         tcpClientNameLayout->addWidget(m_tcpClientNameLineEdit, 1);
 //
-//         m_portSettingLayout->addWidget(m_tcpClientRemoteAddressWidget);
-//         const auto tcpClientRemoteAddressLayout = new QHBoxLayout(m_tcpClientRemoteAddressWidget); // NOLINT
-//         tcpClientRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
-//         const auto tcpClientRemoteAddressLabel = new QLabel("remote adress"); // NOLINT
-//         tcpClientRemoteAddressLayout->addWidget(tcpClientRemoteAddressLabel, 1);
-//         tcpClientRemoteAddressLayout->addWidget(m_tcpClientRemoteAddressLineEdit, 1);
+//         m_portSettingLayout->addWidget(m_tcpClientRemoteHostWidget);
+//         const auto tcpClientRemoteHostLayout = new QHBoxLayout(m_tcpClientRemoteHostWidget); // NOLINT
+//         tcpClientRemoteHostLayout->setContentsMargins(0, 0, 0, 0);
+//         const auto tcpClientRemoteHostLabel = new QLabel("remote adress"); // NOLINT
+//         tcpClientRemoteHostLayout->addWidget(tcpClientRemoteHostLabel, 1);
+//         tcpClientRemoteHostLayout->addWidget(m_tcpClientRemoteHostLineEdit, 1);
 //
 //         m_portSettingLayout->addWidget(m_tcpClientRemotePortWidget);
 //         const auto tcpClientRemotePortLayout = new QHBoxLayout(m_tcpClientRemotePortWidget); // NOLINT
@@ -261,12 +375,12 @@ void PortSetting::serialPortRefresh() const {
 //         tcpServerNameLayout->addWidget(tcpServerNameLabel, 1);
 //         tcpServerNameLayout->addWidget(m_tcpServerNameLineEdit, 1);
 //
-//         m_portSettingLayout->addWidget(m_tcpServerLocalAddressWidget);
-//         const auto tcpServerLocalAddressLayout = new QHBoxLayout(m_tcpServerLocalAddressWidget); // NOLINT
-//         tcpServerLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
-//         const auto tcpServerLocalAddressLabel = new QLabel("local adress"); // NOLINT
-//         tcpServerLocalAddressLayout->addWidget(tcpServerLocalAddressLabel, 1);
-//         tcpServerLocalAddressLayout->addWidget(m_tcpServerLocalAddressLineEdit, 1);
+//         m_portSettingLayout->addWidget(m_tcpServerLocalHostWidget);
+//         const auto tcpServerLocalHostLayout = new QHBoxLayout(m_tcpServerLocalHostWidget); // NOLINT
+//         tcpServerLocalHostLayout->setContentsMargins(0, 0, 0, 0);
+//         const auto tcpServerLocalHostLabel = new QLabel("local adress"); // NOLINT
+//         tcpServerLocalHostLayout->addWidget(tcpServerLocalHostLabel, 1);
+//         tcpServerLocalHostLayout->addWidget(m_tcpServerLocalHostLineEdit, 1);
 //
 //         m_portSettingLayout->addWidget(m_tcpServerLocalPortWidget);
 //         const auto tcpServerLocalPortLayout = new QHBoxLayout(m_tcpServerLocalPortWidget); // NOLINT
@@ -285,12 +399,12 @@ void PortSetting::serialPortRefresh() const {
 //         udpSocketNameLayout->addWidget(udpSocketNameLabel, 1);
 //         udpSocketNameLayout->addWidget(m_udpSocketNameLineEdit, 1);
 //
-//         m_portSettingLayout->addWidget(m_udpSocketLocalAddressWidget);
-//         const auto udpSocketLocalAddressLayout = new QHBoxLayout(m_udpSocketLocalAddressWidget); // NOLINT
-//         udpSocketLocalAddressLayout->setContentsMargins(0, 0, 0, 0);
-//         const auto udpSocketLocalAddressLabel = new QLabel("local adress"); // NOLINT
-//         udpSocketLocalAddressLayout->addWidget(udpSocketLocalAddressLabel, 1);
-//         udpSocketLocalAddressLayout->addWidget(m_udpSocketLocalAddressLineEdit, 1);
+//         m_portSettingLayout->addWidget(m_udpSocketLocalHostWidget);
+//         const auto udpSocketLocalHostLayout = new QHBoxLayout(m_udpSocketLocalHostWidget); // NOLINT
+//         udpSocketLocalHostLayout->setContentsMargins(0, 0, 0, 0);
+//         const auto udpSocketLocalHostLabel = new QLabel("local adress"); // NOLINT
+//         udpSocketLocalHostLayout->addWidget(udpSocketLocalHostLabel, 1);
+//         udpSocketLocalHostLayout->addWidget(m_udpSocketLocalHostLineEdit, 1);
 //
 //         m_portSettingLayout->addWidget(m_udpSocketLocalPortWidget);
 //         const auto udpSocketLocalPortLayout = new QHBoxLayout(m_udpSocketLocalPortWidget); // NOLINT
@@ -300,12 +414,12 @@ void PortSetting::serialPortRefresh() const {
 //         udpSocketLocalPortLayout->addWidget(m_udpSocketLocalPortSpinBox);
 //         m_udpSocketLocalPortSpinBox->setRange(0, 65536);
 //
-//         m_portSettingLayout->addWidget(m_udpSocketRemoteAddressWidget);
-//         const auto udpSocketRemoteAddressLayout = new QHBoxLayout(m_udpSocketRemoteAddressWidget); // NOLINT
-//         udpSocketRemoteAddressLayout->setContentsMargins(0, 0, 0, 0);
-//         const auto udpSocketRemoteAddressLabel = new QLabel("remote adress"); // NOLINT
-//         udpSocketRemoteAddressLayout->addWidget(udpSocketRemoteAddressLabel, 1);
-//         udpSocketRemoteAddressLayout->addWidget(m_udpSocketRemoteAddressLineEdit, 1);
+//         m_portSettingLayout->addWidget(m_udpSocketRemoteHostWidget);
+//         const auto udpSocketRemoteHostLayout = new QHBoxLayout(m_udpSocketRemoteHostWidget); // NOLINT
+//         udpSocketRemoteHostLayout->setContentsMargins(0, 0, 0, 0);
+//         const auto udpSocketRemoteHostLabel = new QLabel("remote adress"); // NOLINT
+//         udpSocketRemoteHostLayout->addWidget(udpSocketRemoteHostLabel, 1);
+//         udpSocketRemoteHostLayout->addWidget(m_udpSocketRemoteHostLineEdit, 1);
 //
 //         m_portSettingLayout->addWidget(m_udpSocketRemotePortWidget);
 //         const auto udpSocketRemotePortLayout = new QHBoxLayout(m_udpSocketRemotePortWidget); // NOLINT
@@ -405,7 +519,7 @@ void PortSetting::serialPortRefresh() const {
 //         }
 //         case TCPCLIENT: {
 //             m_tcpClientNameLineEdit->setText(portConfig["portName"].toString());
-//             m_tcpClientRemoteAddressLineEdit->setText(portConfig["tcpClientRemoteAddress"].toString());
+//             m_tcpClientRemoteHostLineEdit->setText(portConfig["tcpClientRemoteHost"].toString());
 //             m_tcpClientRemotePortSpinBox->setValue(portConfig["tcpClientRemotePort"].toInt());
 //             m_txFormatCombobox->setCurrentText(portConfig["txFormat"].toString());
 //             m_txSuffixCombobox->setCurrentText(portConfig["txSuffix"].toString());
@@ -414,7 +528,7 @@ void PortSetting::serialPortRefresh() const {
 //         }
 //         case TCPSERVER: {
 //             m_tcpServerNameLineEdit->setText(portConfig["portName"].toString());
-//             m_tcpServerLocalAddressLineEdit->setText(portConfig["tcpServerLocalAddress"].toString());
+//             m_tcpServerLocalHostLineEdit->setText(portConfig["tcpServerLocalHost"].toString());
 //             m_tcpServerLocalPortSpinBox->setValue(portConfig["tcpServerLocalPort"].toInt());
 //             m_txFormatCombobox->setCurrentText(portConfig["txFormat"].toString());
 //             m_txSuffixCombobox->setCurrentText(portConfig["txSuffix"].toString());
@@ -423,9 +537,9 @@ void PortSetting::serialPortRefresh() const {
 //         }
 //         case UDPSOCKET: {
 //             m_udpSocketNameLineEdit->setText(portConfig["portName"].toString());
-//             m_udpSocketLocalAddressLineEdit->setText(portConfig["udpSocketLocalAddress"].toString());
+//             m_udpSocketLocalHostLineEdit->setText(portConfig["udpSocketLocalHost"].toString());
 //             m_udpSocketLocalPortSpinBox->setValue(portConfig["udpSocketLocalPort"].toInt());
-//             m_udpSocketRemoteAddressLineEdit->setText(portConfig["udpSocketRemoteAddress"].toString());
+//             m_udpSocketRemoteHostLineEdit->setText(portConfig["udpSocketRemoteHost"].toString());
 //             m_udpSocketRemotePortSpinBox->setValue(portConfig["udpSocketRemotePort"].toInt());
 //             m_txFormatCombobox->setCurrentText(portConfig["txFormat"].toString());
 //             m_txSuffixCombobox->setCurrentText(portConfig["txSuffix"].toString());
@@ -475,19 +589,19 @@ void PortSetting::serialPortRefresh() const {
 //     // tcp client setting widget
 //     m_tcpClientNameWidget->hide();
 //     m_tcpClientNameLineEdit->setText("Tcp Client");
-//     m_tcpClientRemoteAddressWidget->hide();
+//     m_tcpClientRemoteHostWidget->hide();
 //     m_tcpClientRemotePortWidget->hide();
 //     // tcp server setting widget
 //     m_tcpServerNameWidget->hide();
 //     m_tcpServerNameLineEdit->setText("Tcp Server");
-//     m_tcpServerLocalAddressWidget->hide();
+//     m_tcpServerLocalHostWidget->hide();
 //     m_tcpServerLocalPortWidget->hide();
 //     // udp socket setting widget
 //     m_udpSocketNameWidget->hide();
 //     m_udpSocketNameLineEdit->setText("Udp Socket");
-//     m_udpSocketLocalAddressWidget->hide();
+//     m_udpSocketLocalHostWidget->hide();
 //     m_udpSocketLocalPortWidget->hide();
-//     m_udpSocketRemoteAddressWidget->hide();
+//     m_udpSocketRemoteHostWidget->hide();
 //     m_udpSocketRemotePortWidget->hide();
 //     // screen/camera setting widget
 //     m_screenNameWidget->hide();
@@ -536,7 +650,7 @@ void PortSetting::serialPortRefresh() const {
 //         }
 //         case TCPCLIENT: {
 //             m_tcpClientNameWidget->show();
-//             m_tcpClientRemoteAddressWidget->show();
+//             m_tcpClientRemoteHostWidget->show();
 //             m_tcpClientRemotePortWidget->show();
 //             m_txFormatWidget->show();
 //             m_txSuffixWidget->show();
@@ -546,7 +660,7 @@ void PortSetting::serialPortRefresh() const {
 //         }
 //         case TCPSERVER: {
 //             m_tcpServerNameWidget->show();
-//             m_tcpServerLocalAddressWidget->show();
+//             m_tcpServerLocalHostWidget->show();
 //             m_tcpServerLocalPortWidget->show();
 //             m_txFormatWidget->show();
 //             m_txSuffixWidget->show();
@@ -556,9 +670,9 @@ void PortSetting::serialPortRefresh() const {
 //         }
 //         case UDPSOCKET: {
 //             m_udpSocketNameWidget->show();
-//             m_udpSocketLocalAddressWidget->show();
+//             m_udpSocketLocalHostWidget->show();
 //             m_udpSocketLocalPortWidget->show();
-//             m_udpSocketRemoteAddressWidget->show();
+//             m_udpSocketRemoteHostWidget->show();
 //             m_udpSocketRemotePortWidget->show();
 //             m_txFormatWidget->show();
 //             m_txSuffixWidget->show();
@@ -633,7 +747,7 @@ void PortSetting::serialPortRefresh() const {
 //             }
 //             m_portConfig["portType"] = portType;
 //             m_portConfig["portName"] = m_tcpClientNameLineEdit->text();
-//             m_portConfig["tcpClientRemoteAddress"] = m_tcpClientRemoteAddressLineEdit->text();
+//             m_portConfig["tcpClientRemoteHost"] = m_tcpClientRemoteHostLineEdit->text();
 //             m_portConfig["tcpClientRemotePort"] = m_tcpClientRemotePortSpinBox->value();
 //             m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
 //             m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
@@ -647,7 +761,7 @@ void PortSetting::serialPortRefresh() const {
 //             }
 //             m_portConfig["portType"] = portType;
 //             m_portConfig["portName"] = m_tcpServerNameLineEdit->text();
-//             m_portConfig["tcpServerLocalAddress"] = m_tcpServerLocalAddressLineEdit->text();
+//             m_portConfig["tcpServerLocalHost"] = m_tcpServerLocalHostLineEdit->text();
 //             m_portConfig["tcpServerLocalPort"] = m_tcpServerLocalPortSpinBox->value();
 //             m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
 //             m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();
@@ -661,9 +775,9 @@ void PortSetting::serialPortRefresh() const {
 //             }
 //             m_portConfig["portType"] = portType;
 //             m_portConfig["portName"] = m_udpSocketNameLineEdit->text();
-//             m_portConfig["udpSocketLocalAddress"] = m_udpSocketLocalAddressLineEdit->text();
+//             m_portConfig["udpSocketLocalHost"] = m_udpSocketLocalHostLineEdit->text();
 //             m_portConfig["udpSocketLocalPort"] = m_udpSocketLocalPortSpinBox->value();
-//             m_portConfig["udpSocketRemoteAddress"] = m_udpSocketRemoteAddressLineEdit->text();
+//             m_portConfig["udpSocketRemoteHost"] = m_udpSocketRemoteHostLineEdit->text();
 //             m_portConfig["udpSocketRemotePort"] = m_udpSocketRemotePortSpinBox->value();
 //             m_portConfig["txFormat"] = m_txFormatCombobox->currentText();
 //             m_portConfig["txSuffix"] = m_txSuffixCombobox->currentText();

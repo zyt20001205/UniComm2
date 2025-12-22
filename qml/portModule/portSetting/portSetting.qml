@@ -34,7 +34,7 @@ Item {
                 Tumbler {
                     id: tumbler
                     delegate: delegateComponent
-                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Screen"), qsTr("Camera")]
+                    model: [qsTr("Serial Port"), qsTr("Visa(WIP)"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Screen"), qsTr("Camera")]
                     wrap: false
                     Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -338,6 +338,184 @@ Item {
                             Layout.fillWidth: true
                         }
                     }
+
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: visaNameComboBox
+                            model: visaStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: tcpClientNameTextField
+                            placeholderText: qsTr("Tcp Client")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Remote Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: tcpClientRemoteHostTextField
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Remote Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: tcpClientRemotePortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: tcpServerNameTextField
+                            placeholderText: qsTr("Tcp Server")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: tcpServerLocalHostTextField
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: tcpServerLocalPortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: udpSocketNameTextField
+                            placeholderText: qsTr("Udp Socket")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: udpSocketLocalHostTextField
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Local Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: udpSocketLocalPortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Remote Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: udpSocketRemoteHostTextField
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Remote Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: udpSocketRemotePortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
+                    }
                 }
 
                 Label {
@@ -490,6 +668,59 @@ Item {
                                     return
                                 }
                             }
+                                break
+                            case 1: {
+                                if (!visaNameComboBox.currentText) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
+                            case 2: {
+                                if (!tcpClientNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!tcpClientRemoteHostTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Remote Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
+                            case 3: {
+                                if (!tcpServerNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!tcpServerLocalHostTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Local Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
+                            case 4: {
+                                if (!udpSocketNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!udpSocketLocalHostTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Local Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!udpSocketRemoteHostTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Remote Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                                break
                         }
                         swipeView.currentIndex = swipeView.currentIndex + 1
                     } else {
@@ -503,13 +734,29 @@ Item {
     Component.onCompleted: {
         const objects = {
             "tumbler": tumbler,
-
+            // serial port
             "serialPortNameComboBox": serialPortNameComboBox,
             "serialPortBaudRateSpinBox": serialPortBaudRateSpinBox,
             "serialPortDataBitsComboBox": serialPortDataBitsComboBox,
             "serialPortParityComboBox": serialPortParityComboBox,
             "serialPortStopBitsComboBox": serialPortStopBitsComboBox,
-
+            // visa
+            "visaNameComboBox": visaNameComboBox,
+            // tcp client
+            "tcpClientNameTextField": tcpClientNameTextField,
+            "tcpClientRemoteHostTextField": tcpClientRemoteHostTextField,
+            "tcpClientRemotePortSpinBox": tcpClientRemotePortSpinBox,
+            // tcp server
+            "tcpServerNameTextField": tcpServerNameTextField,
+            "tcpServerLocalHostTextField": tcpServerLocalHostTextField,
+            "tcpServerLocalPortSpinBox": tcpServerLocalPortSpinBox,
+            // udp socket
+            "udpSocketNameTextField": udpSocketNameTextField,
+            "udpSocketLocalHostTextField": udpSocketLocalHostTextField,
+            "udpSocketLocalPortSpinBox": udpSocketLocalPortSpinBox,
+            "udpSocketRemoteHostTextField": udpSocketRemoteHostTextField,
+            "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
+            // format
             "txFormatComboBox": txFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,
             "rxFormatComboBox": rxFormatComboBox

@@ -56,7 +56,7 @@ private:
     QTcpSocket *m_tcpClient{};
     // port config
     QJsonObject m_portConfig{};
-    QString m_tcpClientLocalAddress{};
+    QString m_tcpClientLocalHost{};
     int m_tcpClientLocalPort{};
     //
     bool m_syncMode = false;

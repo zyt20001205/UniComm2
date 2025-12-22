@@ -34,8 +34,11 @@ signals:
 private:
     void serialPortRefresh() const;
 
+    void visaRefresh() const;
+
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
+    QStandardItemModel *m_visaStandardItemModel{};
 
     QObject *m_tumbler{};
     // serial port
@@ -44,7 +47,22 @@ private:
     QObject *m_serialPortDataBitsComboBox{};
     QObject *m_serialPortParityComboBox{};
     QObject *m_serialPortStopBitsComboBox{};
-
+    // visa
+    QObject *m_visaNameComboBox{};
+    // tcp client
+    QObject *m_tcpClientNameTextField{};
+    QObject *m_tcpClientRemoteHostTextField{};
+    QObject *m_tcpClientRemotePortSpinBox{};
+    // tcp server
+    QObject *m_tcpServerNameTextField{};
+    QObject *m_tcpServerLocalHostTextField{};
+    QObject *m_tcpServerLocalPortSpinBox{};
+    // udp socket
+    QObject *m_udpSocketNameTextField{};
+    QObject *m_udpSocketLocalHostTextField{};
+    QObject *m_udpSocketLocalPortSpinBox{};
+    QObject *m_udpSocketRemoteHostTextField{};
+    QObject *m_udpSocketRemotePortSpinBox{};
     // format
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};
@@ -96,26 +114,26 @@ private:
 //     // tcp client
 //     QWidget *m_tcpClientNameWidget{};
 //     QLineEdit *m_tcpClientNameLineEdit{};
-//     QWidget *m_tcpClientRemoteAddressWidget{};
-//     QLineEdit *m_tcpClientRemoteAddressLineEdit{};
+//     QWidget *m_tcpClientRemoteHostWidget{};
+//     QLineEdit *m_tcpClientRemoteHostLineEdit{};
 //     QWidget *m_tcpClientRemotePortWidget{};
 //     QSpinBox *m_tcpClientRemotePortSpinBox{};
 //     // tcp server
 //     QWidget *m_tcpServerNameWidget{};
 //     QLineEdit *m_tcpServerNameLineEdit{};
-//     QWidget *m_tcpServerLocalAddressWidget{};
-//     QLineEdit *m_tcpServerLocalAddressLineEdit{};
+//     QWidget *m_tcpServerLocalHostWidget{};
+//     QLineEdit *m_tcpServerLocalHostLineEdit{};
 //     QWidget *m_tcpServerLocalPortWidget{};
 //     QSpinBox *m_tcpServerLocalPortSpinBox{};
 //     // udp socket
 //     QWidget *m_udpSocketNameWidget{};
 //     QLineEdit *m_udpSocketNameLineEdit{};
-//     QWidget *m_udpSocketLocalAddressWidget{};
-//     QLineEdit *m_udpSocketLocalAddressLineEdit{};
+//     QWidget *m_udpSocketLocalHostWidget{};
+//     QLineEdit *m_udpSocketLocalHostLineEdit{};
 //     QWidget *m_udpSocketLocalPortWidget{};
 //     QSpinBox *m_udpSocketLocalPortSpinBox{};
-//     QWidget *m_udpSocketRemoteAddressWidget{};
-//     QLineEdit *m_udpSocketRemoteAddressLineEdit{};
+//     QWidget *m_udpSocketRemoteHostWidget{};
+//     QLineEdit *m_udpSocketRemoteHostLineEdit{};
 //     QWidget *m_udpSocketRemotePortWidget{};
 //     QSpinBox *m_udpSocketRemotePortSpinBox{};
 //     // screen & camera
