@@ -703,7 +703,7 @@ Item {
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: portModule.portInsert(-1)
+            onTriggered: portModule.portSetting()
         }
     }
 

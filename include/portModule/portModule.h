@@ -13,7 +13,7 @@ class QTabWidget;
 class QVBoxLayout;
 
 class BasePort;
-class PortPage;
+class PortSetting;
 
 class PortModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -31,7 +31,9 @@ public:
 
     void portList(std::vector<std::string> &portList) const;
 
-    Q_INVOKABLE void portInsert(int index, QJsonObject portConfig = QJsonObject());
+    Q_INVOKABLE void portSetting(const QJsonObject &portConfig = QJsonObject());
+
+    void portInsert(int index, const QJsonObject &portConfig = QJsonObject());
 
     Q_INVOKABLE void portRemove(const QString &portName);
 
@@ -52,6 +54,7 @@ private:
     QQuickWidget *m_portWidget{};
     QQuickItem *m_portRoot{};
     QStandardItemModel *m_portStandardItemModel{};
+    PortSetting *m_portSetting{};
 
     int m_version = 1;
 };

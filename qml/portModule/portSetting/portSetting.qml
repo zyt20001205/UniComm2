@@ -282,6 +282,8 @@ Item {
                 onClicked: {
                     if (swipeView.currentIndex !== 2) {
                         swipeView.currentIndex = swipeView.currentIndex + 1
+                    } else {
+                        portSetting.portSettingExport()
                     }
                 }
             }
@@ -302,6 +304,9 @@ Item {
             }
 
             ComboBox {
+                id: serialPortNameComboBox
+                model: serialPortStandardItemModel
+                textRole: "display"
                 Layout.fillWidth: true
             }
 
@@ -312,6 +317,7 @@ Item {
             }
 
             SpinBox {
+                id: serialPortBaudRateSpinBox
                 font.pointSize: 12
                 editable: true
                 from: 1
@@ -327,6 +333,7 @@ Item {
             }
 
             ComboBox {
+                id: serialPortDataBitsComboBox
                 model: ListModel {
                     ListElement {
                         text: "5"; value: 5
@@ -355,6 +362,7 @@ Item {
             }
 
             ComboBox {
+                id: serialPortParityComboBox
                 model: ListModel {
                     ListElement {
                         text: qsTr("No"); value: 0
@@ -385,6 +393,7 @@ Item {
             }
 
             ComboBox {
+                id: serialPortStopBitsComboBox
                 model: ListModel {
                     ListElement {
                         text: "1"; value: 1
@@ -418,6 +427,7 @@ Item {
             }
 
             ComboBox {
+                id: txFormatComboBox
                 model: ListModel {
                     ListElement {
                         text: qsTr("raw")
@@ -443,6 +453,7 @@ Item {
             }
 
             ComboBox {
+                id: txSuffixComboBox
                 model: ListModel {
                     ListElement {
                         text: qsTr("null")
@@ -465,6 +476,7 @@ Item {
             }
 
             ComboBox {
+                id: rxFormatComboBox
                 model: ListModel {
                     ListElement {
                         text: qsTr("raw")
@@ -483,5 +495,22 @@ Item {
                 Layout.fillWidth: true
             }
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "tumbler": tumbler,
+
+            "serialPortNameComboBox": serialPortNameComboBox,
+            "serialPortBaudRateSpinBox": serialPortBaudRateSpinBox,
+            "serialPortDataBitsComboBox": serialPortDataBitsComboBox,
+            "serialPortParityComboBox": serialPortParityComboBox,
+            "serialPortStopBitsComboBox": serialPortStopBitsComboBox,
+
+            "txFormatComboBox": txFormatComboBox,
+            "txSuffixComboBox": txSuffixComboBox,
+            "rxFormatComboBox": rxFormatComboBox
+        };
+        portSetting.propertyGet(objects)
     }
 }

@@ -25,21 +25,9 @@
 PortModule::PortModule()
     : DockWidget("port"),
       m_portWidget(new QQuickWidget()),
-      m_portStandardItemModel(new QStandardItemModel()) {
+      m_portStandardItemModel(new QStandardItemModel()),
+      m_portSetting(new PortSetting(this)) {
     setWidget(m_portWidget);
-
-    // test
-    auto *dialog = new QDialog();
-    dialog->setWindowTitle(tr("Port Setting"));
-    auto *layout = new QVBoxLayout();
-    dialog->setLayout(layout);
-    auto *widget = new QQuickWidget();
-    layout->addWidget(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    widget->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
-    dialog->resize(400, 500);
-    dialog->show();
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
@@ -71,18 +59,22 @@ void PortModule::portList(std::vector<std::string> &portList) const {
     }
 }
 
-void PortModule::portInsert(int index, QJsonObject portConfig) {
+void PortModule::portSetting(const QJsonObject &portConfig) {
+    m_portSetting->portSettingImport(portConfig);
+}
+
+void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     if (index == -1) {
         index = m_portConfig.size();
     }
-    if (portConfig.isEmpty()) {
-        const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
-        if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
-            portConfig = portSettingDialog.portSettingExport();
-        } else {
-            return;
-        }
-    }
+    // if (portConfig.isEmpty()) {
+    //     const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
+    //     if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
+    //         portConfig = portSettingDialog.portSettingExport();
+    //     } else {
+    //         return;
+    //     }
+    // }
     const QString portName = portConfig["portName"].toString();
     m_portStandardItemModel->appendRow(new QStandardItem(portName));
     BasePort *port{};
