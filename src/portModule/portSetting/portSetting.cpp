@@ -37,19 +37,46 @@ void PortSetting::propertySet() {
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
     m_tumbler = qvariant_cast<QObject *>(objects["tumbler"]);
+    m_serialPortNameComboBox = qvariant_cast<QObject *>(objects["serialPortNameComboBox"]);
+    m_serialPortBaudRateSpinBox = qvariant_cast<QObject *>(objects["serialPortBaudRateSpinBox"]);
+    m_serialPortDataBitsComboBox = qvariant_cast<QObject *>(objects["serialPortDataBitsComboBox"]);
+    m_serialPortParityComboBox = qvariant_cast<QObject *>(objects["serialPortParityComboBox"]);
+    m_serialPortStopBitsComboBox = qvariant_cast<QObject *>(objects["serialPortStopBitsComboBox"]);
+
+    m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
+    m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
+    m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
 }
 
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     serialPortRefresh();
     if (!portConfig.isEmpty()) {
     }
-    m_portSettingDialog->resize(400, 500);
+    m_portSettingDialog->resize(600, 500);
     m_portSettingDialog->show();
 }
 
 void PortSetting::portSettingExport() {
     const int portType = m_tumbler->property("currentIndex").toInt();
-    qDebug() << portType;
+    QJsonObject portConfig{};
+    switch (portType) {
+        case SERIALPORT: {
+            portConfig = {
+                {"portType",portType},
+                {"portName",m_serialPortNameComboBox->property("currentValue").toString()},
+                {"baudRate", m_serialPortBaudRateSpinBox->property("value").toInt()},
+                {"dataBits", m_serialPortDataBitsComboBox->property("currentValue").toInt()},
+                {"parity", m_serialPortParityComboBox->property("currentValue").toInt()},
+                {"stopBits", m_serialPortStopBitsComboBox->property("currentValue").toInt()},
+                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()},
+            };
+        }
+        break;
+        default: break;
+    }
+    emit insertPort(-1, portConfig);
 }
 
 // PortSetting private

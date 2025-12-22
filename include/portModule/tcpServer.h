@@ -16,6 +16,8 @@ public:
 
     int type() override;
 
+    QJsonObject config() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     bool open() override;
@@ -64,13 +66,8 @@ private:
 
     QTcpServer *m_tcpServer{};
     // port config
-    QString m_portName{};
-    QString m_tcpServerLocalAddress{};
-    int m_tcpServerLocalPort{};
+    QJsonObject m_portConfig{};
     QHash<QString, QTcpSocket *> m_tcpServerPeerHash{};
-    QString m_txFormat{};
-    QString m_txSuffix{};
-    QString m_rxFormat{};
     //
     bool m_syncMode = false;
     qint64 m_bufferSize = 0;

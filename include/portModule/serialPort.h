@@ -15,6 +15,8 @@ public:
 
     int type() override;
 
+    QJsonObject config() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     std::unordered_map<std::string, std::string> info() override;
@@ -49,14 +51,7 @@ private:
 
     QSerialPort *m_serialPort{};
     // port config
-    QString m_portName{};
-    int m_baudRate{};
-    int m_dataBits{};
-    int m_parity{};
-    int m_stopBits{};
-    QString m_txFormat{};
-    QString m_txSuffix{};
-    QString m_rxFormat{};
+    QJsonObject m_portConfig{};
     //
     bool m_syncMode = false;
     qint64 m_bufferSize = 0;

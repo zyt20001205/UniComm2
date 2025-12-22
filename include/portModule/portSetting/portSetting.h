@@ -28,11 +28,15 @@ public:
 
     Q_INVOKABLE void portSettingExport();
 
+signals:
+    void insertPort(int index, const QJsonObject &portConfig);
+
 private:
     void serialPortRefresh() const;
 
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
+
     QObject *m_tumbler{};
     // serial port
     QObject *m_serialPortNameComboBox{};

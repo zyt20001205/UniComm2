@@ -212,18 +212,147 @@ Item {
                 }
             }
 
-            StackLayout {
-                currentIndex: rootItem.portType
+            ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true
 
-                Item {
-                    anchors.fill: parent
+                StackLayout {
+                    currentIndex: rootItem.portType
+                    Layout.fillWidth: true; Layout.fillHeight: true
 
-                    Loader {
-                        anchors.top: parent.top
-                        width: parent.width
-                        sourceComponent: serialPortPage
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: serialPortNameComboBox
+                            model: serialPortStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Baud Rate")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: serialPortBaudRateSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 1
+                            to: 5000000
+                            value: 115200
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Databits")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: serialPortDataBitsComboBox
+                            model: ListModel {
+                                ListElement {
+                                    text: "5"; value: 5
+                                }
+                                ListElement {
+                                    text: "6"; value: 6
+                                }
+                                ListElement {
+                                    text: "7"; value: 7
+                                }
+                                ListElement {
+                                    text: "8"; value: 8
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            currentValue: 8
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Parity")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: serialPortParityComboBox
+                            model: ListModel {
+                                ListElement {
+                                    text: qsTr("No"); value: 0
+                                }
+                                ListElement {
+                                    text: qsTr("Even"); value: 2
+                                }
+                                ListElement {
+                                    text: qsTr("Odd"); value: 3
+                                }
+                                ListElement {
+                                    text: qsTr("Space"); value: 4
+                                }
+                                ListElement {
+                                    text: qsTr("Mark"); value: 5
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Stop Bits")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: serialPortStopBitsComboBox
+                            model: ListModel {
+                                ListElement {
+                                    text: "1"; value: 1
+                                }
+                                ListElement {
+                                    text: "1.5"; value: 3
+                                }
+                                ListElement {
+                                    text: "2"; value: 2
+                                }
+                            }
+                            textRole: "text"
+                            valueRole: "value"
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
                     }
+                }
+
+                Label {
+                    id: portNameValidator
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                    color: "#c50f1f"
+                    text: ""
+                    font.pointSize: 16
+                }
+
+                Timer {
+                    id: portNameValidatorTimer
+                    interval: 3000
+                    onTriggered: {portNameValidator.text = ""}
                 }
             }
 
@@ -237,13 +366,83 @@ Item {
                 }
                 Layout.fillWidth: true; Layout.fillHeight: true
 
-                Item {
-                    anchors.fill: parent
+                GridLayout {
+                    columns: 2
+                    columnSpacing: 20; rowSpacing: 20
 
-                    Loader {
-                        anchors.top: parent.top
-                        width: parent.width
-                        sourceComponent: formatPage
+                    Label {
+                        text: qsTr("Tx Format")
+                        font.pointSize: 12
+                        Layout.fillWidth: true
+                    }
+
+                    ComboBox {
+                        id: txFormatComboBox
+                        model: ListModel {
+                            ListElement {
+                                text: qsTr("raw")
+                            }
+                            ListElement {
+                                text: qsTr("hex")
+                            }
+                            ListElement {
+                                text: qsTr("ascii")
+                            }
+                            ListElement {
+                                text: qsTr("utf-8")
+                            }
+                        }
+                        textRole: "text"
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        text: qsTr("Tx Suffix")
+                        font.pointSize: 12
+                        Layout.fillWidth: true
+                    }
+
+                    ComboBox {
+                        id: txSuffixComboBox
+                        model: ListModel {
+                            ListElement {
+                                text: qsTr("null")
+                            }
+                            ListElement {
+                                text: qsTr("crlf")
+                            }
+                            ListElement {
+                                text: qsTr("crc16 modbus")
+                            }
+                        }
+                        textRole: "text"
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        text: qsTr("Rx Format")
+                        font.pointSize: 12
+                        Layout.fillWidth: true
+                    }
+
+                    ComboBox {
+                        id: rxFormatComboBox
+                        model: ListModel {
+                            ListElement {
+                                text: qsTr("raw")
+                            }
+                            ListElement {
+                                text: qsTr("hex")
+                            }
+                            ListElement {
+                                text: qsTr("ascii")
+                            }
+                            ListElement {
+                                text: qsTr("utf-8")
+                            }
+                        }
+                        textRole: "text"
+                        Layout.fillWidth: true
                     }
                 }
             }
@@ -280,219 +479,23 @@ Item {
                 highlighted: swipeView.currentIndex === 2
 
                 onClicked: {
-                    if (swipeView.currentIndex !== 2) {
+                    if (swipeView.currentIndex === 0) {
+                        swipeView.currentIndex = swipeView.currentIndex + 1
+                    } else if (swipeView.currentIndex === 1) {
+                        switch (tumbler.currentIndex) {
+                            case 0: {
+                                if (!serialPortNameComboBox.currentText) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                            }
+                        }
                         swipeView.currentIndex = swipeView.currentIndex + 1
                     } else {
                         portSetting.portSettingExport()
                     }
                 }
-            }
-        }
-    }
-
-    Component {
-        id: serialPortPage
-
-        GridLayout {
-            columns: 2
-            columnSpacing: 20; rowSpacing: 20
-
-            Label {
-                text: qsTr("Port Name")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: serialPortNameComboBox
-                model: serialPortStandardItemModel
-                textRole: "display"
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Baud Rate")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            SpinBox {
-                id: serialPortBaudRateSpinBox
-                font.pointSize: 12
-                editable: true
-                from: 1
-                to: 5000000
-                value: 115200
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Databits")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: serialPortDataBitsComboBox
-                model: ListModel {
-                    ListElement {
-                        text: "5"; value: 5
-                    }
-                    ListElement {
-                        text: "6"; value: 6
-                    }
-                    ListElement {
-                        text: "7"; value: 7
-                    }
-                    ListElement {
-                        text: "8"; value: 8
-                    }
-                }
-                textRole: "text"
-                valueRole: "value"
-                currentValue: 8
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Parity")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: serialPortParityComboBox
-                model: ListModel {
-                    ListElement {
-                        text: qsTr("No"); value: 0
-                    }
-                    ListElement {
-                        text: qsTr("Even"); value: 2
-                    }
-                    ListElement {
-                        text: qsTr("Odd"); value: 3
-                    }
-                    ListElement {
-                        text: qsTr("Space"); value: 4
-                    }
-                    ListElement {
-                        text: qsTr("Mark"); value: 5
-                    }
-                }
-                textRole: "text"
-                valueRole: "value"
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Stop Bits")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: serialPortStopBitsComboBox
-                model: ListModel {
-                    ListElement {
-                        text: "1"; value: 1
-                    }
-                    ListElement {
-                        text: "1.5"; value: 3
-                    }
-                    ListElement {
-                        text: "2"; value: 2
-                    }
-                }
-                textRole: "text"
-                valueRole: "value"
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-        }
-    }
-
-    Component {
-        id: formatPage
-
-        GridLayout {
-            columns: 2
-            columnSpacing: 20; rowSpacing: 20
-
-            Label {
-                text: qsTr("Tx Format")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: txFormatComboBox
-                model: ListModel {
-                    ListElement {
-                        text: qsTr("raw")
-                    }
-                    ListElement {
-                        text: qsTr("hex")
-                    }
-                    ListElement {
-                        text: qsTr("ascii")
-                    }
-                    ListElement {
-                        text: qsTr("utf-8")
-                    }
-                }
-                textRole: "text"
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Tx Suffix")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: txSuffixComboBox
-                model: ListModel {
-                    ListElement {
-                        text: qsTr("null")
-                    }
-                    ListElement {
-                        text: qsTr("crlf")
-                    }
-                    ListElement {
-                        text: qsTr("crc16 modbus")
-                    }
-                }
-                textRole: "text"
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Rx Format")
-                font.pointSize: 12
-                Layout.fillWidth: true
-            }
-
-            ComboBox {
-                id: rxFormatComboBox
-                model: ListModel {
-                    ListElement {
-                        text: qsTr("raw")
-                    }
-                    ListElement {
-                        text: qsTr("hex")
-                    }
-                    ListElement {
-                        text: qsTr("ascii")
-                    }
-                    ListElement {
-                        text: qsTr("utf-8")
-                    }
-                }
-                textRole: "text"
-                Layout.fillWidth: true
             }
         }
     }

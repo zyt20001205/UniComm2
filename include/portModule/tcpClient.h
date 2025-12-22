@@ -15,6 +15,8 @@ public:
 
     int type() override;
 
+    QJsonObject config() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     std::unordered_map<std::string, std::string> info() override;
@@ -53,14 +55,9 @@ private:
 
     QTcpSocket *m_tcpClient{};
     // port config
-    QString m_portName{};
-    QString m_tcpClientRemoteAddress{};
-    int m_tcpClientRemotePort{};
+    QJsonObject m_portConfig{};
     QString m_tcpClientLocalAddress{};
     int m_tcpClientLocalPort{};
-    QString m_txFormat{};
-    QString m_txSuffix{};
-    QString m_rxFormat{};
     //
     bool m_syncMode = false;
     qint64 m_bufferSize = 0;

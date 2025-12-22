@@ -22,6 +22,10 @@ int Camera::type() {
     return CAMERA;
 }
 
+QJsonObject Camera::config() {
+    return {};
+}
+
 void Camera::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
     m_charset = portConfig["charset"].toString();

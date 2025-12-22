@@ -36,7 +36,7 @@ extern QVariantMap g_cursorPosition;
 extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
 
 enum {
-    SERIALPORT = 1,
+    SERIALPORT,
     VISA,
     TCPCLIENT,
     TCPSERVER,

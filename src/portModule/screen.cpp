@@ -18,6 +18,10 @@ int Screen::type() {
     return SCREEN;
 }
 
+QJsonObject Screen::config() {
+    return {};
+}
+
 void Screen::reload(const QJsonObject &portConfig) {
     m_portName = portConfig["portName"].toString();
     m_charset = portConfig["charset"].toString();

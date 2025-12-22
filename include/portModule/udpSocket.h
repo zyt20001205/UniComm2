@@ -15,6 +15,8 @@ public:
 
     int type() override;
 
+    QJsonObject config() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     std::unordered_map<std::string, std::string> info() override;
@@ -49,14 +51,7 @@ private:
 
     QUdpSocket *m_udpSocket{};
     // port config
-    QString m_portName{};
-    QString m_udpSocketLocalAddress{};
-    int m_udpSocketLocalPort{};
-    QString m_udpSocketRemoteAddress{};
-    int m_udpSocketRemotePort{};
-    QString m_txFormat{};
-    QString m_txSuffix{};
-    QString m_rxFormat{};
+    QJsonObject m_portConfig{};
     //
     bool m_syncMode = false;
     qint64 m_bufferSize = 0;

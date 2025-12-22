@@ -15,6 +15,8 @@ public:
 
     int type() override;
 
+    QJsonObject config() override;
+
     void reload(const QJsonObject &portConfig) override;
 
     bool open() override;

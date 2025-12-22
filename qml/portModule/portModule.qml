@@ -24,7 +24,7 @@ Item {
             TapHandler {
                 acceptedButtons: Qt.LeftButton
 
-                onSingleTapped: portModule.portInsert(-1)
+                onSingleTapped: portModule.portSetting()
             }
         }
     }

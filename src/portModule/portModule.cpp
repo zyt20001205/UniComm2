@@ -28,6 +28,7 @@ PortModule::PortModule()
       m_portStandardItemModel(new QStandardItemModel()),
       m_portSetting(new PortSetting(this)) {
     setWidget(m_portWidget);
+    connect(m_portSetting, &PortSetting::insertPort, this, &PortModule::portInsert);
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
@@ -45,8 +46,13 @@ void PortModule::propertySet(const QVariantMap &objects) {
     m_portRoot = m_portWidget->rootObject();
 }
 
-void PortModule::portConfigSave() const {
-    g_workspaceConfig["portConfig"] = m_portConfig;
+void PortModule::portConfigSave() {
+    QJsonArray portConfigArray{};
+    for (const auto &value: m_portHash) {
+        QJsonObject portConfig = value->config();
+        portConfigArray.append(portConfig);
+    }
+    g_workspaceConfig["portConfig"] = portConfigArray;
 }
 
 BasePort *PortModule::currentPort() const {
@@ -64,9 +70,6 @@ void PortModule::portSetting(const QJsonObject &portConfig) {
 }
 
 void PortModule::portInsert(int index, const QJsonObject &portConfig) {
-    if (index == -1) {
-        index = m_portConfig.size();
-    }
     // if (portConfig.isEmpty()) {
     //     const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
     //     if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
@@ -124,7 +127,6 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     }
     connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
     connect(port, &BasePort::togglePort, this, [this, portName](const bool status) { portSetChecked(portName, status); });
-    m_portConfig.insert(index, portConfig);
     m_portHash.insert(portName, port);
     // logging
     emit appendLog(QString("%1 initialized").arg(portName), "info");
@@ -139,13 +141,7 @@ void PortModule::portRemove(const QString &portName) {
             break;
         }
     }
-    for (int i = 0; i < m_portConfig.size(); i++) {
-        QJsonObject portConfig = m_portConfig[i].toObject();
-        if (portConfig["portName"].toString() == portName) {
-            m_portConfig.removeAt(i);
-        }
-    }
-    auto *port = m_portHash["portName"];
+    auto *port = m_portHash[portName];
     QMetaObject::invokeMethod(port, [&port] {
         port->close();
     }, Qt::BlockingQueuedConnection);
@@ -202,12 +198,6 @@ void PortModule::portToggle(const QString &portName, const bool status) {
 }
 
 // PortModule private
-void PortModule::portSwap(const int srcIndex, const int dstIndex) {
-    // config
-    const QJsonValue tmp = m_portConfig.takeAt(srcIndex);
-    m_portConfig.insert(dstIndex, tmp);
-}
-
 void PortModule::portSetChecked(const QString &portName, const bool status) const {
     QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, status));
 }

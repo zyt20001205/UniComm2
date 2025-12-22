@@ -9,15 +9,19 @@
 // Visa public
 Visa::Visa(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_portName(portConfig["portName"].toString()) {
+      m_portConfig(portConfig) {
 }
 
 int Visa::type() {
     return VISA;
 }
 
+QJsonObject Visa::config() {
+    return m_portConfig;
+}
+
 void Visa::reload(const QJsonObject &portConfig) {
-    m_portName = portConfig["portName"].toString();
+    m_portConfig = portConfig;
 }
 
 std::unordered_map<std::string, std::string> Visa::info() {
@@ -25,20 +29,20 @@ std::unordered_map<std::string, std::string> Visa::info() {
 }
 
 bool Visa::open() {
-    ViStatus status = viOpen(g_rm, m_portName.toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
+    ViStatus status = viOpen(g_rm, m_portConfig["portName"].toString().toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
     if (status == VI_SUCCESS) {
         status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
         emit togglePort(true);
-        emit appendLog(QString("%1 opened").arg(m_portName), "info");
+        emit appendLog(QString("%1 opened").arg(m_portConfig["portName"].toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portName);
+        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portConfig["portName"].toString());
         return true;
     }
-    emit appendLog(QString("%1 open failed").arg(m_portName), "error");
+    emit appendLog(QString("%1 open failed").arg(m_portConfig["portName"].toString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portName);
+    qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portConfig["portName"].toString());
     return false;
 }
 
@@ -46,31 +50,30 @@ void Visa::close() {
     if (m_visa != VI_NULL) {
         ViStatus status = viClose(m_visa);
         emit togglePort(false);
-        emit appendLog(QString("%1 closed").arg(m_portName), "info");
+        emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
+        qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
     }
 }
 
 bool Visa::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
-    QScopedValueRollback txFormatRollback(m_txFormat);
-    QScopedValueRollback txSuffixRollback(m_txSuffix);
-    if (!txFormat.isEmpty()) m_txFormat = txFormat;
-    if (!txSuffix.isEmpty()) m_txSuffix = txSuffix;
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!txFormat.isEmpty()) m_portConfig["txFormat"].toString() = txFormat;
+    if (!txSuffix.isEmpty()) m_portConfig["txSuffix"].toString() = txSuffix;
     // 1: remove space if tx format is hex
     QByteArray f_txData = txData;
-    if (m_txFormat == "hex") f_txData = QByteArray::fromHex(txData);
+    if (m_portConfig["txFormat"].toString() == "hex") f_txData = QByteArray::fromHex(txData);
     // 2: append suffix according to tx suffix
-    if (m_txSuffix == "crlf") f_txData += "\r\n";
-    else if (m_txSuffix == "crc16 modbus") f_txData += modbusCRC(f_txData);
+    if (m_portConfig["txSuffix"].toString() == "crlf") f_txData += "\r\n";
+    else if (m_portConfig["txSuffix"].toString() == "crc16 modbus") f_txData += modbusCRC(f_txData);
     // call handle write
     return handleWrite(f_txData);
 }
 
 QByteArray Visa::read(const int timeout, const int length, const QString &rxFormat) {
-    QScopedValueRollback rxFormatRollback(m_rxFormat);
-    if (!rxFormat.isEmpty()) m_rxFormat = rxFormat;
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"].toString() = rxFormat;
     QByteArray rxData;
     // async mode
     if (timeout == 0) {
@@ -91,10 +94,10 @@ QByteArray Visa::read(const int timeout, const int length, const QString &rxForm
 bool Visa::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_visa == VI_NULL) {
-        emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
+        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
         return false;
     }
     ViUInt32 retCount;
@@ -109,10 +112,10 @@ bool Visa::handleWrite(const QByteArray &f_txData) {
 QByteArray Visa::handleRead(const int timeout, const int length) {
     // // check port status
     // if (m_Visa == nullptr || !m_Visa->isOpen()) {
-    //     emit appendLog(QString("%1 is not opened").arg(m_portName), "error");
+    //     emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");
     //     // logging
     //     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    //     qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portName);
+    //     qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
     //     return {};
     // }
     // QElapsedTimer timer;
@@ -124,7 +127,7 @@ QByteArray Visa::handleRead(const int timeout, const int length) {
     //     }
     //     m_Visa->waitForReadyRead(10);
     // }
-    // emit appendLog(QString("%1 timeout").arg(m_portName), "error");
+    // emit appendLog(QString("%1 timeout").arg(m_portConfig["portName"].toString()), "error");
     return {};
 }
 
@@ -133,31 +136,31 @@ void Visa::handleLog(const QString &mode, const QByteArray &data) {
         // tx message reformat
         QString txMessage;
         // 1: encode tx message according to tx format
-        if (m_txFormat == "raw") {
+        if (m_portConfig["txFormat"].toString() == "raw") {
             txMessage.reserve(data.size() * 4);
             for (const char c: data) {
                 txMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
             }
-        } else if (m_txFormat == "hex") txMessage = data.toHex(' ').toUpper();
-        else if (m_txFormat == "ascii") txMessage = QString::fromLatin1(data);
-        else /* m_txFormat == "utf-8" */ txMessage = QString::fromUtf8(data);
+        } else if (m_portConfig["txFormat"].toString() == "hex") txMessage = data.toHex(' ').toUpper();
+        else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
+        else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        txMessage = QString("[%1] -&gt; %2").arg(m_portName, txMessage);
+        txMessage = QString("[%1] -&gt; %2").arg(m_portConfig["portName"].toString(), txMessage);
         emit appendLog(txMessage, mode);
     } else {
         // rx message reformat
         QString rxMessage;
         // 1: encode rx message according to rx format
-        if (m_rxFormat == "raw") {
+        if (m_portConfig["rxFormat"].toString() == "raw") {
             rxMessage.reserve(data.size() * 4);
             for (const char c: data) {
                 rxMessage += QString("\\x%1").arg(static_cast<quint8>(c), 2, 16, QChar('0'));
             }
-        } else if (m_rxFormat == "hex") rxMessage = data.toHex(' ').toUpper();
-        else if (m_rxFormat == "ascii") rxMessage = QString::fromLatin1(data);
-        else /* m_rxFormat == "utf-8" */ rxMessage = QString::fromUtf8(data);
+        } else if (m_portConfig["rxFormat"].toString() == "hex") rxMessage = data.toHex(' ').toUpper();
+        else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
+        else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        rxMessage = QString("[%1] &lt;- %2").arg(m_portName, rxMessage);
+        rxMessage = QString("[%1] &lt;- %2").arg(m_portConfig["portName"].toString(), rxMessage);
         emit appendLog(rxMessage, mode);
     }
 }

@@ -25,7 +25,7 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void portConfigSave() const;
+    void portConfigSave();
 
     BasePort *currentPort() const;
 
@@ -46,11 +46,8 @@ signals:
     void appendLog(const QString &message, const QString &level);
 
 private:
-    void portSwap(int srcIndex, int dstIndex);
-
     void portSetChecked(const QString &portName, bool status) const;
 
-    QJsonArray m_portConfig{};
     QQuickWidget *m_portWidget{};
     QQuickItem *m_portRoot{};
     QStandardItemModel *m_portStandardItemModel{};
