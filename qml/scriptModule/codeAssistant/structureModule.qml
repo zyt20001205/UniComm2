@@ -30,8 +30,14 @@ TreeView {
                 visible: isTreeNode && hasChildren
                 source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
 
+                HoverHandler {
+                    cursorShape: Qt.PointingHandCursor
+                }
+
                 TapHandler {
                     enabled: indicator.visible
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
                     onSingleTapped: treeView.toggleExpanded(row)
                 }
             }
@@ -56,20 +62,6 @@ TreeView {
             anchors.leftMargin: 4
             anchors.verticalCenter: parent.verticalCenter
             text: model.display
-
-            ToolTip.visible: hoverHandler.hovered
-            ToolTip.delay: 500
-            ToolTip.text: qsTr("Line: %1\nClick to view details").arg(model.whatsThis + 1)
-
-            HoverHandler {
-                id: hoverHandler
-                cursorShape: Qt.PointingHandCursor
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-                onSingleTapped: structureModule.markerInsert(model.whatsThis)
-            }
         }
 
         Rectangle {
@@ -92,6 +84,12 @@ TreeView {
                     highlightRect.opacity = 0
                 }
             }
+        }
+
+        TapHandler {
+            acceptedButtons: Qt.LeftButton
+
+            onSingleTapped: structureModule.markerInsert(model.whatsThis)
         }
     }
 }
