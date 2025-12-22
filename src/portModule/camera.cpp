@@ -26,13 +26,6 @@ QJsonObject Camera::config() {
     return {};
 }
 
-void Camera::reload(const QJsonObject &portConfig) {
-    m_portName = portConfig["portName"].toString();
-    m_charset = portConfig["charset"].toString();
-    m_process = portConfig["process"].toObject();
-    m_areaList = portConfig["areaList"].toArray();
-}
-
 bool Camera::open() {
     m_showPreview = true;
     emit togglePort(true);

@@ -16,8 +16,6 @@ public:
 
     QJsonObject config() override;
 
-    void reload(const QJsonObject &portConfig) override;
-
     std::unordered_map<std::string, std::string> info() override;
 
     bool open() override;

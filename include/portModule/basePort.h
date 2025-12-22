@@ -15,8 +15,6 @@ public:
 
     virtual QJsonObject config() = 0;
 
-    virtual void reload(const QJsonObject &portConfig) =0;
-
     virtual std::unordered_map<std::string, std::string> info() = 0;
 
     virtual bool open() = 0;

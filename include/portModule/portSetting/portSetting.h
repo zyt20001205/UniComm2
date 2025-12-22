@@ -31,6 +31,8 @@ public:
 signals:
     void insertPort(int index, const QJsonObject &portConfig);
 
+    void editPort(const QString &oldPortName, const QJsonObject &portConfig);
+
 private:
     void serialPortRefresh() const;
 
@@ -39,7 +41,9 @@ private:
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
     QStandardItemModel *m_visaStandardItemModel{};
+    QString m_oldPortName{};
 
+    QObject *m_swipeView{};
     QObject *m_tumbler{};
     // serial port
     QObject *m_serialPortNameComboBox{};

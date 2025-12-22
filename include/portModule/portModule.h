@@ -31,13 +31,13 @@ public:
 
     void portList(std::vector<std::string> &portList) const;
 
-    Q_INVOKABLE void portSetting(const QJsonObject &portConfig = QJsonObject());
+    Q_INVOKABLE void portSetting(const QString &portName = QString()) const;
 
     void portInsert(int index, const QJsonObject &portConfig = QJsonObject());
 
     Q_INVOKABLE void portRemove(const QString &portName);
 
-    Q_INVOKABLE void portReload(const QString &portName);
+    void portEdit(const QString &oldPortName, const QJsonObject &portConfig);
 
     Q_INVOKABLE void portToggle(const QString &portName, bool status);
 

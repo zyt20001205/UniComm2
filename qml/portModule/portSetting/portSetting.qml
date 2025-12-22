@@ -249,7 +249,6 @@ Item {
                             editable: true
                             from: 1
                             to: 5000000
-                            value: 115200
                             Layout.fillWidth: true
                         }
 
@@ -277,7 +276,6 @@ Item {
                             }
                             textRole: "text"
                             valueRole: "value"
-                            currentValue: 8
                             font.pointSize: 12
                             Layout.fillWidth: true
                         }
@@ -558,19 +556,20 @@ Item {
                         id: txFormatComboBox
                         model: ListModel {
                             ListElement {
-                                text: qsTr("raw")
+                                text: qsTr("raw"); value: "raw"
                             }
                             ListElement {
-                                text: qsTr("hex")
+                                text: qsTr("hex"); value: "hex"
                             }
                             ListElement {
-                                text: qsTr("ascii")
+                                text: qsTr("ascii"); value: "ascii"
                             }
                             ListElement {
-                                text: qsTr("utf-8")
+                                text: qsTr("utf-8"); value: "utf-8"
                             }
                         }
                         textRole: "text"
+                        valueRole: "value"
                         Layout.fillWidth: true
                     }
 
@@ -584,16 +583,17 @@ Item {
                         id: txSuffixComboBox
                         model: ListModel {
                             ListElement {
-                                text: qsTr("null")
+                                text: qsTr("null"); value: "null"
                             }
                             ListElement {
-                                text: qsTr("crlf")
+                                text: qsTr("crlf"); value: "crlf"
                             }
                             ListElement {
-                                text: qsTr("crc16 modbus")
+                                text: qsTr("crc16 modbus"); value: "crc16 modbus"
                             }
                         }
                         textRole: "text"
+                        valueRole: "value"
                         Layout.fillWidth: true
                     }
 
@@ -607,19 +607,20 @@ Item {
                         id: rxFormatComboBox
                         model: ListModel {
                             ListElement {
-                                text: qsTr("raw")
+                                text: qsTr("raw"); value: "raw"
                             }
                             ListElement {
-                                text: qsTr("hex")
+                                text: qsTr("hex"); value: "hex"
                             }
                             ListElement {
-                                text: qsTr("ascii")
+                                text: qsTr("ascii"); value: "ascii"
                             }
                             ListElement {
-                                text: qsTr("utf-8")
+                                text: qsTr("utf-8"); value: "utf-8"
                             }
                         }
                         textRole: "text"
+                        valueRole: "value"
                         Layout.fillWidth: true
                     }
                 }
@@ -634,27 +635,27 @@ Item {
             Button {
                 text: qsTr("Prev")
                 enabled: swipeView.currentIndex !== 0
+                flat: true
 
                 onClicked: swipeView.currentIndex = swipeView.currentIndex - 1
-            }
-
-            Item {
-                Layout.fillWidth: true
             }
 
             PageIndicator {
                 id: pageIndicator
                 count: swipeView.count
                 currentIndex: swipeView.currentIndex
-            }
+                Layout.fillWidth: false
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-            Item {
-                Layout.fillWidth: true
+                background: Rectangle{
+                    color: "transparent"
+                }
             }
 
             Button {
                 text: swipeView.currentIndex !== 2 ? qsTr("Next") : qsTr("Confirm")
                 highlighted: swipeView.currentIndex === 2
+                flat: true
 
                 onClicked: {
                     if (swipeView.currentIndex === 0) {
@@ -733,6 +734,7 @@ Item {
 
     Component.onCompleted: {
         const objects = {
+            "swipeView": swipeView,
             "tumbler": tumbler,
             // serial port
             "serialPortNameComboBox": serialPortNameComboBox,

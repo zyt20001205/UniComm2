@@ -20,10 +20,6 @@ QJsonObject Visa::config() {
     return m_portConfig;
 }
 
-void Visa::reload(const QJsonObject &portConfig) {
-    m_portConfig = portConfig;
-}
-
 std::unordered_map<std::string, std::string> Visa::info() {
     return {};
 }

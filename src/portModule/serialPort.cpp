@@ -22,10 +22,6 @@ QJsonObject SerialPort::config() {
     return m_portConfig;
 }
 
-void SerialPort::reload(const QJsonObject &portConfig) {
-    m_portConfig = portConfig;
-}
-
 std::unordered_map<std::string, std::string> SerialPort::info() {
     const std::string status = m_serialPort && m_serialPort->isOpen() ? "opened" : "closed";
     const std::string portName = m_portConfig["portName"].toString().toStdString();

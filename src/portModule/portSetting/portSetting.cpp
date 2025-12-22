@@ -38,6 +38,7 @@ void PortSetting::propertySet() {
 }
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
+    m_swipeView = qvariant_cast<QObject *>(objects["swipeView"]);
     m_tumbler = qvariant_cast<QObject *>(objects["tumbler"]);
     // serial port
     m_serialPortNameComboBox = qvariant_cast<QObject *>(objects["serialPortNameComboBox"]);
@@ -70,7 +71,100 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     serialPortRefresh();
     visaRefresh();
-    if (!portConfig.isEmpty()) {
+    m_swipeView->setProperty("currentIndex", 0);
+    if (portConfig.isEmpty()) {
+        m_oldPortName = "";
+        m_tumbler->setProperty("currentIndex", 0);
+        // serial port
+        if (m_serialPortNameComboBox->property("count").toInt()) {
+            m_serialPortNameComboBox->setProperty("currentIndex", 0);
+        }
+        m_serialPortBaudRateSpinBox->setProperty("value", 115200);
+        m_serialPortDataBitsComboBox->setProperty("currentValue", 8);
+        m_serialPortParityComboBox->setProperty("currentValue", 0);
+        m_serialPortStopBitsComboBox->setProperty("currentValue", 1);
+        // visa
+        if (m_visaNameComboBox->property("count").toInt()) {
+            m_visaNameComboBox->setProperty("currentIndex", 0);
+        }
+        // tcp client
+        m_tcpClientNameTextField->setProperty("text", "");
+        m_tcpClientRemoteHostTextField->setProperty("text", "");
+        m_tcpClientRemotePortSpinBox->setProperty("value", 0);
+        // tcp server
+        m_tcpServerNameTextField->setProperty("text", "");
+        m_tcpServerLocalHostTextField->setProperty("text", "");
+        m_tcpServerLocalPortSpinBox->setProperty("value", 0);
+        // udp socket
+        m_udpSocketNameTextField->setProperty("text", "");
+        m_udpSocketLocalHostTextField->setProperty("text", "");
+        m_udpSocketLocalPortSpinBox->setProperty("value", 0);
+        m_udpSocketRemoteHostTextField->setProperty("text", "");
+        m_udpSocketRemotePortSpinBox->setProperty("value", 0);
+        // format
+        m_txFormatComboBox->setProperty("currentValue", "hex");
+        m_txSuffixComboBox->setProperty("currentValue", "null");
+        m_rxFormatComboBox->setProperty("currentValue", "hex");
+    } else {
+        m_oldPortName = portConfig["portName"].toString();
+        const int portType = portConfig["portType"].toInt();
+        m_tumbler->setProperty("currentIndex", portType);
+        switch (portType) {
+            case SERIALPORT: {
+                m_serialPortNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
+                m_serialPortBaudRateSpinBox->setProperty("value", portConfig["baudRate"].toInt());
+                m_serialPortDataBitsComboBox->setProperty("currentValue", portConfig["dataBits"].toInt());
+                m_serialPortParityComboBox->setProperty("currentValue", portConfig["parity"].toInt());
+                m_serialPortStopBitsComboBox->setProperty("currentValue", portConfig["stopBits"].toInt());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+            }
+            break;
+            case VISA: {
+                m_visaNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+            }
+            break;
+            case TCPCLIENT: {
+                m_tcpClientNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_tcpClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
+                m_tcpClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+            }
+            break;
+            case TCPSERVER: {
+                m_tcpServerNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_tcpServerLocalHostTextField->setProperty("text", portConfig["localHost"].toString());
+                m_tcpServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+            }
+            break;
+            case UDPSOCKET: {
+                m_udpSocketNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_udpSocketLocalHostTextField->setProperty("text", portConfig["localHost"].toString());
+                m_udpSocketLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
+                m_udpSocketRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
+                m_udpSocketRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+            }
+            break;
+            case SCREEN: {
+            }
+            break;
+            case CAMERA: {
+            }
+            break;
+            default: break;
+        }
     }
     m_portSettingDialog->resize(600, 500);
     m_portSettingDialog->show();
@@ -88,18 +182,19 @@ void PortSetting::portSettingExport() {
                 {"dataBits", m_serialPortDataBitsComboBox->property("currentValue").toInt()},
                 {"parity", m_serialPortParityComboBox->property("currentValue").toInt()},
                 {"stopBits", m_serialPortStopBitsComboBox->property("currentValue").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
-                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
             };
         }
         break;
         case VISA: {
             portConfig = {
                 {"portType", portType},
-                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
-                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+                {"portName", m_visaNameComboBox->property("currentValue").toString()},
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
             };
         }
         break;
@@ -109,9 +204,9 @@ void PortSetting::portSettingExport() {
                 {"portName", m_tcpClientNameTextField->property("text").toString()},
                 {"remoteHost", m_tcpClientRemoteHostTextField->property("text").toString()},
                 {"remotePort", m_tcpClientRemotePortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
-                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
             };
         }
         break;
@@ -121,9 +216,9 @@ void PortSetting::portSettingExport() {
                 {"portName", m_tcpClientNameTextField->property("text").toString()},
                 {"localHost", m_tcpServerLocalHostTextField->property("text").toString()},
                 {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
-                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
             };
         }
         break;
@@ -135,9 +230,9 @@ void PortSetting::portSettingExport() {
                 {"localPort", m_udpSocketLocalPortSpinBox->property("value").toInt()},
                 {"remoteHost", m_udpSocketRemoteHostTextField->property("text").toString()},
                 {"remotePort", m_udpSocketRemotePortSpinBox->property("value").toInt()},
-                {"txFormat", m_txFormatComboBox->property("currentText").toString()},
-                {"txSuffix", m_txSuffixComboBox->property("currentText").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentText").toString()}
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
             };
         }
         break;
@@ -155,7 +250,11 @@ void PortSetting::portSettingExport() {
         break;
         default: break;
     }
-    emit insertPort(-1, portConfig);
+    if (m_oldPortName.isEmpty()) {
+        emit insertPort(-1, portConfig);
+    } else {
+        emit editPort(m_oldPortName, portConfig);
+    }
     m_portSettingDialog->hide();
 }
 

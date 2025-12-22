@@ -21,10 +21,6 @@ QJsonObject UdpSocket::config() {
     return m_portConfig;
 }
 
-void UdpSocket::reload(const QJsonObject &portConfig) {
-    m_portConfig = portConfig;
-}
-
 std::unordered_map<std::string, std::string> UdpSocket::info() {
     const std::string status = m_udpSocket && m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
     const std::string localHost = m_portConfig["udpSocketLocalHost"].toString().toStdString();

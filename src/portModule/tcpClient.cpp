@@ -21,10 +21,6 @@ QJsonObject TcpClient::config() {
     return m_portConfig;
 }
 
-void TcpClient::reload(const QJsonObject &portConfig) {
-    m_portConfig = portConfig;
-}
-
 std::unordered_map<std::string, std::string> TcpClient::info() {
     std::string status;
     if (m_tcpClient == nullptr) {

@@ -22,10 +22,6 @@ QJsonObject TcpServer::config() {
     return m_portConfig;
 }
 
-void TcpServer::reload(const QJsonObject &portConfig) {
-    m_portConfig = portConfig;
-}
-
 std::unordered_map<std::string, std::string> TcpServer::info() {
     const std::string status = m_tcpServer && m_tcpServer->isListening() ? "opened" : "closed";
     const std::string localHost = m_portConfig["tcpServerLocalHost"].toString().toStdString();

@@ -29,6 +29,7 @@ PortModule::PortModule()
       m_portSetting(new PortSetting(this)) {
     setWidget(m_portWidget);
     connect(m_portSetting, &PortSetting::insertPort, this, &PortModule::portInsert);
+    connect(m_portSetting, &PortSetting::editPort, this, &PortModule::portEdit);
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
@@ -65,19 +66,17 @@ void PortModule::portList(std::vector<std::string> &portList) const {
     }
 }
 
-void PortModule::portSetting(const QJsonObject &portConfig) {
-    m_portSetting->portSettingImport(portConfig);
+void PortModule::portSetting(const QString &portName) const {
+    if (portName.isEmpty()) {
+        m_portSetting->portSettingImport();
+    } else {
+        const auto &portObject = m_portHash[portName];
+        const auto &portConfig = portObject->config();
+        m_portSetting->portSettingImport(portConfig);
+    }
 }
 
 void PortModule::portInsert(int index, const QJsonObject &portConfig) {
-    // if (portConfig.isEmpty()) {
-    //     const QSet usedPortName(m_portHash.keyBegin(), m_portHash.keyEnd());
-    //     if (PortSetting portSettingDialog(usedPortName); portSettingDialog.exec() == QDialog::Accepted) {
-    //         portConfig = portSettingDialog.portSettingExport();
-    //     } else {
-    //         return;
-    //     }
-    // }
     const QString portName = portConfig["portName"].toString();
     m_portStandardItemModel->appendRow(new QStandardItem(portName));
     BasePort *port{};
@@ -153,32 +152,9 @@ void PortModule::portRemove(const QString &portName) {
     qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
 }
 
-void PortModule::portReload(const QString &portName) {
-    qDebug() << portName << "WIP";
-    // const auto *portPage = static_cast<PortPage *>(m_portTabWidget->widget(index));
-    // PortSetting portSettingDialog{};
-    // const QJsonObject oldPortConfig = m_portConfig[index].toObject();
-    // const QString oldPortName = oldPortConfig["portName"].toString();
-    // portSettingDialog.portSettingImport(oldPortConfig);
-    // if (portSettingDialog.exec() == QDialog::Accepted) {
-    //     const QJsonObject newPortConfig = portSettingDialog.portSettingExport();
-    //     const QString newPortName = newPortConfig["portName"].toString();
-    //     if (newPortName != oldPortName) {
-    //         // frontend
-    //         m_portTabWidget->setTabText(index, newPortName);
-    //         // backend
-    //         BasePort *port = m_portHash.value(oldPortName);
-    //         m_portHash.remove(oldPortName);
-    //         m_portHash.insert(newPortName, port);
-    //         portAnnotate();
-    //     }
-    //     m_portConfig[index] = newPortConfig;
-    //     portPage->portReload(newPortConfig);
-    //     // logging
-    //     emit appendLog(QString("%1 reloaded").arg(oldPortName), "info");
-    //     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    //     qDebug() << QString("[%1] %2 reloaded").arg(timestamp, oldPortName);
-    // }
+void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {
+    portRemove(oldPortName);
+    portInsert(-1, portConfig);
 }
 
 void PortModule::portToggle(const QString &portName, const bool status) {

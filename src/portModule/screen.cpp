@@ -22,13 +22,6 @@ QJsonObject Screen::config() {
     return {};
 }
 
-void Screen::reload(const QJsonObject &portConfig) {
-    m_portName = portConfig["portName"].toString();
-    m_charset = portConfig["charset"].toString();
-    m_process = portConfig["process"].toObject();
-    m_areaList = portConfig["areaList"].toArray();
-}
-
 bool Screen::open() {
     m_showPreview = true;
     emit togglePort(true);
