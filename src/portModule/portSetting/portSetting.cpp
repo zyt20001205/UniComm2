@@ -77,6 +77,7 @@ void PortSetting::portSettingExport() {
         default: break;
     }
     emit insertPort(-1, portConfig);
+    m_portSettingDialog->hide();
 }
 
 // PortSetting private
