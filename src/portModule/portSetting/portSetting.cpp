@@ -1,4 +1,4 @@
-#include "portModule/portSetting.h"
+#include "portModule/portSetting/portSetting.h"
 
 #include <QCameraDevice>
 #include <QComboBox>

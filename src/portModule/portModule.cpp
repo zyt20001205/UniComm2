@@ -13,7 +13,7 @@
 #include "globals.h"
 #include "portModule/basePort.h"
 #include "portModule/camera.h"
-#include "portModule/portSetting.h"
+#include "portModule/portSetting/portSetting.h"
 #include "portModule/screen.h"
 #include "portModule/serialPort.h"
 #include "portModule/tcpClient.h"
