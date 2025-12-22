@@ -27,6 +27,19 @@ PortModule::PortModule()
       m_portWidget(new QQuickWidget()),
       m_portStandardItemModel(new QStandardItemModel()) {
     setWidget(m_portWidget);
+
+    // test
+    auto *dialog = new QDialog();
+    dialog->setWindowTitle(tr("Port Setting"));
+    auto *layout = new QVBoxLayout();
+    dialog->setLayout(layout);
+    auto *widget = new QQuickWidget();
+    layout->addWidget(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    widget->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
+    dialog->resize(800, 600);
+    dialog->show();
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {

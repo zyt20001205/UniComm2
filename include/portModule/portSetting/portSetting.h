@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QJsonObject>
+#include <QQuickView>
 
 class QComboBox;
 class QLineEdit;
@@ -31,6 +32,8 @@ private:
     void portSettingTypeSwitch(int portType);
 
     void portSettingSave(int portType);
+
+    // QQuickView* m_portSettingDialog{};
 
     QSet<QString> m_portUsedName{};
     QJsonObject m_portConfig{};

@@ -21,6 +21,7 @@
 // PortSetting public
 PortSetting::PortSetting(const QSet<QString> &portUsedName, QWidget *parent)
     : QDialog(parent),
+      // m_portSettingDialog(new QQuickView()),
       m_portUsedName(portUsedName),
       m_portSettingLayout(new QVBoxLayout(this)),
       m_portTypeWidget(new QWidget()),
@@ -73,6 +74,11 @@ PortSetting::PortSetting(const QSet<QString> &portUsedName, QWidget *parent)
       m_rxFormatWidget(new QWidget()),
       m_rxFormatCombobox(new QComboBox()),
       m_portSettingSavePushButton(new QPushButton(tr("Save Setting"))) {
+
+    // m_portSettingDialog->setResizeMode(QQuickView::SizeRootObjectToView);
+    // m_portSettingDialog->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
+    // m_portSettingDialog->show();
+
     // setting dialog & port type combobox
     {
         this->setFixedWidth(600);
@@ -392,7 +398,7 @@ void PortSetting::portSettingHideAll() {
     // visa setting widget
     m_visaNameWidget->hide();
     m_visaNameCombobox->clear();
-    for (QStringList devices = visaListGet(); const QString &device : devices) {
+    for (QStringList devices = visaListGet(); const QString &device: devices) {
         m_visaNameCombobox->addItem(device, device);
     }
     // tcp client setting widget
