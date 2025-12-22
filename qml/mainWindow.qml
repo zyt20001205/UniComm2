@@ -719,7 +719,7 @@ Item {
             title: qsTr("Goto")
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession["gotoMenu"]
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["gotoMenu"] : false
 
             MenuItem {
                 text: qsTr("Definition(s)")

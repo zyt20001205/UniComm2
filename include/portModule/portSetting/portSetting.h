@@ -4,11 +4,7 @@
 #include <QDialog>
 #include <QJsonObject>
 
-class QComboBox;
-class QLineEdit;
-class QSpinBox;
 class QStandardItemModel;
-class QVBoxLayout;
 
 class AreaSelection;
 
@@ -38,9 +34,12 @@ private:
 
     void visaRefresh() const;
 
+    void localHostRefresh() const;
+
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
     QStandardItemModel *m_visaStandardItemModel{};
+    QStandardItemModel *m_localHostStandardItemModel{};
     QString m_oldPortName{};
 
     QObject *m_swipeView{};
@@ -59,11 +58,11 @@ private:
     QObject *m_tcpClientRemotePortSpinBox{};
     // tcp server
     QObject *m_tcpServerNameTextField{};
-    QObject *m_tcpServerLocalHostTextField{};
+    QObject *m_tcpServerLocalHostComboBox{};
     QObject *m_tcpServerLocalPortSpinBox{};
     // udp socket
     QObject *m_udpSocketNameTextField{};
-    QObject *m_udpSocketLocalHostTextField{};
+    QObject *m_udpSocketLocalHostComboBox{};
     QObject *m_udpSocketLocalPortSpinBox{};
     QObject *m_udpSocketRemoteHostTextField{};
     QObject *m_udpSocketRemotePortSpinBox{};
@@ -72,91 +71,5 @@ private:
     QObject *m_txSuffixComboBox{};
     QObject *m_rxFormatComboBox{};
 };
-
-// class PortSetting final : public QDialog {
-//     Q_OBJECT
-//
-// public:
-//     explicit PortSetting(const QSet<QString> &portUsedName = QSet<QString>(), QWidget *parent = nullptr);
-//
-//     ~PortSetting() override = default;
-//
-//     void portSettingImport(const QJsonObject &portConfig);
-//
-//     QJsonObject portSettingExport();
-//
-//     static QStringList visaListGet();
-//
-// private:
-//     void portSettingHideAll();
-//
-//     void portSettingTypeSwitch(int portType);
-//
-//     void portSettingSave(int portType);
-//
-//     // QQuickView* m_portSettingDialog{};
-//
-//     QSet<QString> m_portUsedName{};
-//     QJsonObject m_portConfig{};
-//     QVBoxLayout *m_portSettingLayout{};
-//     QWidget *m_portTypeWidget{};
-//     QComboBox *m_portTypeCombobox{};
-//     // serial port
-//     QWidget *m_serialPortNameWidget{};
-//     QComboBox *m_serialPortNameCombobox{};
-//     QWidget *m_serialPortBaudRateWidget{};
-//     QSpinBox *m_serialPortBaudRateSpinBox{};
-//     QWidget *m_serialPortDataBitsWidget{};
-//     QComboBox *m_serialPortDataBitsCombobox{};
-//     QWidget *m_serialPortParityWidget{};
-//     QComboBox *m_serialPortParityCombobox{};
-//     QWidget *m_serialPortStopBitsWidget{};
-//     QComboBox *m_serialPortStopBitsCombobox{};
-//     // visa
-//     QWidget *m_visaNameWidget{};
-//     QComboBox *m_visaNameCombobox{};
-//     // tcp client
-//     QWidget *m_tcpClientNameWidget{};
-//     QLineEdit *m_tcpClientNameLineEdit{};
-//     QWidget *m_tcpClientRemoteHostWidget{};
-//     QLineEdit *m_tcpClientRemoteHostLineEdit{};
-//     QWidget *m_tcpClientRemotePortWidget{};
-//     QSpinBox *m_tcpClientRemotePortSpinBox{};
-//     // tcp server
-//     QWidget *m_tcpServerNameWidget{};
-//     QLineEdit *m_tcpServerNameLineEdit{};
-//     QWidget *m_tcpServerLocalHostWidget{};
-//     QLineEdit *m_tcpServerLocalHostLineEdit{};
-//     QWidget *m_tcpServerLocalPortWidget{};
-//     QSpinBox *m_tcpServerLocalPortSpinBox{};
-//     // udp socket
-//     QWidget *m_udpSocketNameWidget{};
-//     QLineEdit *m_udpSocketNameLineEdit{};
-//     QWidget *m_udpSocketLocalHostWidget{};
-//     QLineEdit *m_udpSocketLocalHostLineEdit{};
-//     QWidget *m_udpSocketLocalPortWidget{};
-//     QSpinBox *m_udpSocketLocalPortSpinBox{};
-//     QWidget *m_udpSocketRemoteHostWidget{};
-//     QLineEdit *m_udpSocketRemoteHostLineEdit{};
-//     QWidget *m_udpSocketRemotePortWidget{};
-//     QSpinBox *m_udpSocketRemotePortSpinBox{};
-//     // screen & camera
-//     QWidget *m_screenNameWidget{};
-//     QComboBox *m_screenNameCombobox{};
-//     QWidget *m_cameraNameWidget{};
-//     QComboBox *m_cameraNameCombobox{};
-//     QWidget *m_areaSelectionWidget{};
-//     QPushButton *m_areaSelectionPushButton{};
-//     AreaSelection *m_areaSelectionDialog{};
-//     // tx/rx
-//     QWidget *m_txFormatWidget{};
-//     QComboBox *m_txFormatCombobox{};
-//     QWidget *m_txSuffixWidget{};
-//     QComboBox *m_txSuffixCombobox{};
-//     QWidget *m_rxFormatWidget{};
-//     QComboBox *m_rxFormatCombobox{};
-//     // save button
-//     QPushButton *m_portSettingSavePushButton{};
-// };
 
 #endif //UNICOMM_PORTSETTING_H

@@ -15,16 +15,13 @@ Item {
         RowLayout {
             anchors.centerIn: parent
 
-            Label {
+            Button {
+                flat: true
                 text: qsTr("Click to create port.")
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignVCenter
-            }
 
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-
-                onSingleTapped: portModule.portSetting()
+                onClicked: portModule.portSetting()
             }
         }
     }

@@ -422,9 +422,11 @@ Item {
                             Layout.fillWidth: true
                         }
 
-                        TextField {
-                            id: tcpServerLocalHostTextField
-                            font.pointSize: 12
+                        ComboBox {
+                            id: tcpServerLocalHostComboBox
+                            model: localHostStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
                             Layout.fillWidth: true
                         }
 
@@ -466,9 +468,11 @@ Item {
                             Layout.fillWidth: true
                         }
 
-                        TextField {
-                            id: udpSocketLocalHostTextField
-                            font.pointSize: 12
+                        ComboBox {
+                            id: udpSocketLocalHostComboBox
+                            model: localHostStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
                             Layout.fillWidth: true
                         }
 
@@ -697,7 +701,7 @@ Item {
                                     portNameValidatorTimer.start()
                                     return
                                 }
-                                if (!tcpServerLocalHostTextField.text) {
+                                if (!tcpServerLocalHostComboBox.currentText) {
                                     portNameValidator.text = qsTr("Invalid Local Host")
                                     portNameValidatorTimer.start()
                                     return
@@ -710,7 +714,7 @@ Item {
                                     portNameValidatorTimer.start()
                                     return
                                 }
-                                if (!udpSocketLocalHostTextField.text) {
+                                if (!udpSocketLocalHostComboBox.currentText) {
                                     portNameValidator.text = qsTr("Invalid Local Host")
                                     portNameValidatorTimer.start()
                                     return
@@ -750,11 +754,11 @@ Item {
             "tcpClientRemotePortSpinBox": tcpClientRemotePortSpinBox,
             // tcp server
             "tcpServerNameTextField": tcpServerNameTextField,
-            "tcpServerLocalHostTextField": tcpServerLocalHostTextField,
+            "tcpServerLocalHostComboBox": tcpServerLocalHostComboBox,
             "tcpServerLocalPortSpinBox": tcpServerLocalPortSpinBox,
             // udp socket
             "udpSocketNameTextField": udpSocketNameTextField,
-            "udpSocketLocalHostTextField": udpSocketLocalHostTextField,
+            "udpSocketLocalHostComboBox": udpSocketLocalHostComboBox,
             "udpSocketLocalPortSpinBox": udpSocketLocalPortSpinBox,
             "udpSocketRemoteHostTextField": udpSocketRemoteHostTextField,
             "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
