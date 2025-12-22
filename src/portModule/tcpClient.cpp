@@ -130,7 +130,7 @@ QByteArray TcpClient::read(const int timeout, const int length, const QString &r
 
 // TcpClient private
 void TcpClient::handleConnected() {
-    m_tcpClientLocalHost = m_tcpClient->localHost().toString();
+    m_tcpClientLocalHost = m_tcpClient->localAddress().toString();
     m_tcpClientLocalPort = m_tcpClient->localPort();
     emit appendLog(QString("%1 connected to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt())), "info");
     // logging
