@@ -38,7 +38,7 @@ PortModule::PortModule()
     layout->setContentsMargins(0, 0, 0, 0);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
-    dialog->resize(800, 600);
+    dialog->resize(400, 500);
     dialog->show();
 }
 

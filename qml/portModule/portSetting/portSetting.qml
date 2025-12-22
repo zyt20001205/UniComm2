@@ -163,25 +163,89 @@ Item {
                             Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
                         }
                     }
-                }
-            }
 
-            ColumnLayout {
-                Layout.fillWidth: true; Layout.fillHeight: true
+                    ColumnLayout {
+                        Layout.fillWidth: true
 
-                StackLayout {
-                    currentIndex: rootItem.portType
-                    Layout.fillWidth: true; Layout.fillHeight: true
+                        Item {
+                            Layout.fillHeight: true
+                        }
 
-                    Loader {
-                        sourceComponent: serialPortPage
-                        Layout.fillWidth: true; Layout.fillHeight: true
+                        Image {
+                            source: "qrc:/icon/screen.svg"
+                            sourceSize: Qt.size(80, 80)
+                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
+                            Layout.alignment: Qt.AlignHCenter
+                        }
+
+                        Label {
+                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            text: qsTr("Capture screenshots for image processing and OCR text recognition.")
+                            wrapMode: Text.WordWrap
+                            font.pointSize: 12
+                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Item {
+                            Layout.fillHeight: true
+                        }
+
+                        Image {
+                            source: "qrc:/icon/camera.svg"
+                            sourceSize: Qt.size(80, 80)
+                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
+                            Layout.alignment: Qt.AlignHCenter
+                        }
+
+                        Label {
+                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            text: qsTr("Take pictures for image processing and OCR text recognition.")
+                            wrapMode: Text.WordWrap
+                            font.pointSize: 12
+                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
+                        }
                     }
                 }
             }
 
-            ColumnLayout {
+            StackLayout {
+                currentIndex: rootItem.portType
                 Layout.fillWidth: true; Layout.fillHeight: true
+
+                Item {
+                    anchors.fill: parent
+
+                    Loader {
+                        anchors.top: parent.top
+                        width: parent.width
+                        sourceComponent: serialPortPage
+                    }
+                }
+            }
+
+            StackLayout {
+                currentIndex: {
+                    if (rootItem.portType in [0, 1, 2, 3, 4]) {
+                        return 0
+                    } else {
+                        return 1
+                    }
+                }
+                Layout.fillWidth: true; Layout.fillHeight: true
+
+                Item {
+                    anchors.fill: parent
+
+                    Loader {
+                        anchors.top: parent.top
+                        width: parent.width
+                        sourceComponent: formatPage
+                    }
+                }
             }
         }
 
@@ -197,10 +261,18 @@ Item {
                 onClicked: swipeView.currentIndex = swipeView.currentIndex - 1
             }
 
+            Item {
+                Layout.fillWidth: true
+            }
+
             PageIndicator {
                 id: pageIndicator
                 count: swipeView.count
                 currentIndex: swipeView.currentIndex
+            }
+
+            Item {
+                Layout.fillWidth: true
             }
 
             Button {
@@ -220,13 +292,195 @@ Item {
         id: serialPortPage
 
         GridLayout {
-            anchors.fill: parent
-            columns: 2; rows: 2
-            columnSpacing: 10; rowSpacing: 10
+            columns: 2
+            columnSpacing: 20; rowSpacing: 20
 
             Label {
                 text: qsTr("Port Name")
                 font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Baud Rate")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            SpinBox {
+                font.pointSize: 12
+                editable: true
+                from: 1
+                to: 5000000
+                value: 115200
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Databits")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                model: ListModel {
+                    ListElement {
+                        text: "5"; value: 5
+                    }
+                    ListElement {
+                        text: "6"; value: 6
+                    }
+                    ListElement {
+                        text: "7"; value: 7
+                    }
+                    ListElement {
+                        text: "8"; value: 8
+                    }
+                }
+                textRole: "text"
+                valueRole: "value"
+                currentValue: 8
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Parity")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                model: ListModel {
+                    ListElement {
+                        text: qsTr("No"); value: 0
+                    }
+                    ListElement {
+                        text: qsTr("Even"); value: 2
+                    }
+                    ListElement {
+                        text: qsTr("Odd"); value: 3
+                    }
+                    ListElement {
+                        text: qsTr("Space"); value: 4
+                    }
+                    ListElement {
+                        text: qsTr("Mark"); value: 5
+                    }
+                }
+                textRole: "text"
+                valueRole: "value"
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Stop Bits")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                model: ListModel {
+                    ListElement {
+                        text: "1"; value: 1
+                    }
+                    ListElement {
+                        text: "1.5"; value: 3
+                    }
+                    ListElement {
+                        text: "2"; value: 2
+                    }
+                }
+                textRole: "text"
+                valueRole: "value"
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+        }
+    }
+
+    Component {
+        id: formatPage
+
+        GridLayout {
+            columns: 2
+            columnSpacing: 20; rowSpacing: 20
+
+            Label {
+                text: qsTr("Tx Format")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                model: ListModel {
+                    ListElement {
+                        text: qsTr("raw")
+                    }
+                    ListElement {
+                        text: qsTr("hex")
+                    }
+                    ListElement {
+                        text: qsTr("ascii")
+                    }
+                    ListElement {
+                        text: qsTr("utf-8")
+                    }
+                }
+                textRole: "text"
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Tx Suffix")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                model: ListModel {
+                    ListElement {
+                        text: qsTr("null")
+                    }
+                    ListElement {
+                        text: qsTr("crlf")
+                    }
+                    ListElement {
+                        text: qsTr("crc16 modbus")
+                    }
+                }
+                textRole: "text"
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Rx Format")
+                font.pointSize: 12
+                Layout.fillWidth: true
+            }
+
+            ComboBox {
+                model: ListModel {
+                    ListElement {
+                        text: qsTr("raw")
+                    }
+                    ListElement {
+                        text: qsTr("hex")
+                    }
+                    ListElement {
+                        text: qsTr("ascii")
+                    }
+                    ListElement {
+                        text: qsTr("utf-8")
+                    }
+                }
+                textRole: "text"
+                Layout.fillWidth: true
             }
         }
     }
