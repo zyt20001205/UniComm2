@@ -73,8 +73,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     serialPortRefresh();
     visaRefresh();
     localHostRefresh();
-    m_swipeView->setProperty("currentIndex", 0);
     if (portConfig.isEmpty()) {
+        m_swipeView->setProperty("currentIndex", 0);
         m_oldPortName = "";
         m_tumbler->setProperty("currentIndex", 0);
         // serial port
@@ -112,6 +112,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_txSuffixComboBox->setProperty("currentValue", "null");
         m_rxFormatComboBox->setProperty("currentValue", "hex");
     } else {
+        m_swipeView->setProperty("currentIndex", 1);
         m_oldPortName = portConfig["portName"].toString();
         const int portType = portConfig["portType"].toInt();
         m_tumbler->setProperty("currentIndex", portType);
