@@ -48,9 +48,11 @@ void PortModule::propertySet(const QVariantMap &objects) {
 }
 
 void PortModule::portConfigSave() {
+    QVariant portList{};
+    QMetaObject::invokeMethod(m_portRoot, "getOrder",Q_RETURN_ARG(QVariant, portList));
     QJsonArray portConfigArray{};
-    for (const auto &value: m_portHash) {
-        QJsonObject portConfig = value->config();
+    for (const auto &portName: portList.toStringList()) {
+        QJsonObject portConfig = m_portHash[portName]->config();
         portConfigArray.append(portConfig);
     }
     g_workspaceConfig["portConfig"] = portConfigArray;

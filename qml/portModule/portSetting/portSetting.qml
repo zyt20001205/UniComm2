@@ -5,6 +5,9 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     property int portType
+    property var patterns: {
+        "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    }
 
     Component {
         id: delegateComponent
@@ -651,7 +654,7 @@ Item {
                 Layout.fillWidth: false
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                background: Rectangle{
+                background: Rectangle {
                     color: "transparent"
                 }
             }
@@ -689,6 +692,10 @@ Item {
                                     return
                                 }
                                 if (!tcpClientRemoteHostTextField.text) {
+                                    portNameValidator.text = qsTr("Empty Remote Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                } else if (!rootItem.patterns["ipv4"].test(tcpClientRemoteHostTextField.text)) {
                                     portNameValidator.text = qsTr("Invalid Remote Host")
                                     portNameValidatorTimer.start()
                                     return
@@ -720,6 +727,10 @@ Item {
                                     return
                                 }
                                 if (!udpSocketRemoteHostTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Remote Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                } else if (!rootItem.patterns["ipv4"].test(udpSocketRemoteHostTextField.text)) {
                                     portNameValidator.text = qsTr("Invalid Remote Host")
                                     portNameValidatorTimer.start()
                                     return
