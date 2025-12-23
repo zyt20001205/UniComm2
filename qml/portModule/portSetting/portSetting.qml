@@ -222,6 +222,7 @@ Item {
                     currentIndex: rootItem.portType
                     Layout.fillWidth: true; Layout.fillHeight: true
 
+                    // serial port
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -340,6 +341,7 @@ Item {
                         }
                     }
 
+                    // visa
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -359,6 +361,7 @@ Item {
                         }
                     }
 
+                    // tcp client
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -403,6 +406,7 @@ Item {
                         }
                     }
 
+                    // tcp server
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -449,6 +453,7 @@ Item {
                         }
                     }
 
+                    // udp socket
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -518,6 +523,46 @@ Item {
                             editable: true
                             from: 0
                             to: 65535
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    // screen
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: screenNameComboBox
+                            model: screenStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    // camera
+                    GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
+
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        ComboBox {
+                            id: cameraNameComboBox
+                            model: cameraStandardItemModel
+                            textRole: "display"
+                            valueRole: "whatsThis"
                             Layout.fillWidth: true
                         }
                     }
@@ -773,6 +818,10 @@ Item {
             "udpSocketLocalPortSpinBox": udpSocketLocalPortSpinBox,
             "udpSocketRemoteHostTextField": udpSocketRemoteHostTextField,
             "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
+            // screen
+            "screenNameComboBox": screenNameComboBox,
+            // camera
+            "cameraNameComboBox": cameraNameComboBox,
             // format
             "txFormatComboBox": txFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,

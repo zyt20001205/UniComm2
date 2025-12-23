@@ -5,7 +5,6 @@
 #include <QJsonObject>
 #include <QMediaDevices>
 #include <QQmlContext>
-#include <QScreen>
 #include <QSerialPortInfo>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
@@ -20,7 +19,9 @@ PortSetting::PortSetting(QWidget *parent)
       m_portSettingDialog(new QDialog(this)),
       m_serialPortStandardItemModel(new QStandardItemModel(this)),
       m_localHostStandardItemModel(new QStandardItemModel(this)),
-      m_visaStandardItemModel(new QStandardItemModel(this)) {
+      m_visaStandardItemModel(new QStandardItemModel(this)),
+      m_screenStandardItemModel(new QStandardItemModel(this)),
+      m_cameraStandardItemModel(new QStandardItemModel(this)) {
     propertySet();
 }
 
@@ -34,6 +35,8 @@ void PortSetting::propertySet() {
     widget->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
     widget->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     widget->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
+    widget->rootContext()->setContextProperty("screenStandardItemModel", m_screenStandardItemModel);
+    widget->rootContext()->setContextProperty("cameraStandardItemModel", m_cameraStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
 }
@@ -63,6 +66,10 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_udpSocketLocalPortSpinBox = qvariant_cast<QObject *>(objects["udpSocketLocalPortSpinBox"]);
     m_udpSocketRemoteHostTextField = qvariant_cast<QObject *>(objects["udpSocketRemoteHostTextField"]);
     m_udpSocketRemotePortSpinBox = qvariant_cast<QObject *>(objects["udpSocketRemotePortSpinBox"]);
+    // screen
+    m_screenNameComboBox = qvariant_cast<QObject *>(objects["screenNameComboBox"]);
+    // camera
+    m_cameraNameComboBox = qvariant_cast<QObject *>(objects["cameraNameComboBox"]);
     // format
     m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
     m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
@@ -73,6 +80,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     serialPortRefresh();
     visaRefresh();
     localHostRefresh();
+    screenRefresh();
+    cameraRefresh();
     if (portConfig.isEmpty()) {
         m_swipeView->setProperty("currentIndex", 0);
         m_oldPortName = "";
@@ -107,6 +116,14 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_udpSocketLocalPortSpinBox->setProperty("value", 0);
         m_udpSocketRemoteHostTextField->setProperty("text", "");
         m_udpSocketRemotePortSpinBox->setProperty("value", 0);
+        // screen
+        if (m_screenNameComboBox->property("count").toInt()) {
+            m_screenNameComboBox->setProperty("currentIndex", 0);
+        }
+        // screen
+        if (m_cameraNameComboBox->property("count").toInt()) {
+            m_cameraNameComboBox->setProperty("currentIndex", 0);
+        }
         // format
         m_txFormatComboBox->setProperty("currentValue", "hex");
         m_txSuffixComboBox->setProperty("currentValue", "null");
@@ -165,9 +182,11 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             }
             break;
             case SCREEN: {
+                m_screenNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
             }
             break;
             case CAMERA: {
+                m_cameraNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
             }
             break;
             default: break;
@@ -245,13 +264,15 @@ void PortSetting::portSettingExport() {
         break;
         case SCREEN: {
             portConfig = {
-                {"portType", portType}
+                {"portType", portType},
+                {"portName", m_screenNameComboBox->property("currentValue").toString()},
             };
         }
         break;
         case CAMERA: {
             portConfig = {
-                {"portType", portType}
+                {"portType", portType},
+                {"portName", m_cameraNameComboBox->property("currentValue").toString()},
             };
         }
         break;
@@ -320,9 +341,18 @@ void PortSetting::localHostRefresh() const {
     }
 }
 
-//     for (const QList<QScreen *> screens = QGuiApplication::screens(); const QScreen *screen: screens) {
-//         m_screenNameCombobox->addItem(screen->name());
-//     }
-//     for (const QList<QCameraDevice> cameras = QMediaDevices::videoInputs(); const QCameraDevice &camera: cameras) {
-//         m_cameraNameCombobox->addItem(camera.description());
-//     }
+void PortSetting::screenRefresh() const {
+    for (const QScreen *screen: QGuiApplication::screens()) {
+        auto *item = new QStandardItem(screen->name());
+        item->setData(screen->name(), Qt::WhatsThisRole);
+        m_screenStandardItemModel->appendRow(item);
+    }
+}
+
+void PortSetting::cameraRefresh() const {
+    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
+        auto *item = new QStandardItem(camera.description());
+        item->setData(camera.description(), Qt::WhatsThisRole);
+        m_cameraStandardItemModel->appendRow(item);
+    }
+}

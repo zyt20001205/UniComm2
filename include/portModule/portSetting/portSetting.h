@@ -36,10 +36,16 @@ private:
 
     void localHostRefresh() const;
 
+    void screenRefresh() const;
+
+    void cameraRefresh() const;
+
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
     QStandardItemModel *m_visaStandardItemModel{};
     QStandardItemModel *m_localHostStandardItemModel{};
+    QStandardItemModel *m_screenStandardItemModel{};
+    QStandardItemModel *m_cameraStandardItemModel{};
     QString m_oldPortName{};
 
     QObject *m_swipeView{};
@@ -66,6 +72,10 @@ private:
     QObject *m_udpSocketLocalPortSpinBox{};
     QObject *m_udpSocketRemoteHostTextField{};
     QObject *m_udpSocketRemotePortSpinBox{};
+    // screen
+    QObject *m_screenNameComboBox{};
+    // camera
+    QObject *m_cameraNameComboBox{};
     // format
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};
