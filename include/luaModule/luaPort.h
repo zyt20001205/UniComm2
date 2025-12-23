@@ -28,7 +28,7 @@ public:
     std::string read(const std::string &portName, int timeout, int length, const std::string &peerIp);
 
 signals:
-    void listPort(std::vector<std::string> &portList);
+    void listPort(QSet<QString> &portList);
 };
 
 #endif //UNICOMM_LUAPORT_H

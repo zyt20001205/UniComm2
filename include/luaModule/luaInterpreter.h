@@ -36,7 +36,7 @@ signals:
 
     void appendLog(const QString &message, const QString &level);
 
-    void listPort(std::vector<std::string> &portList);
+    void listPort(QSet<QString> &portList);
 
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 

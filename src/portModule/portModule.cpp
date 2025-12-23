@@ -62,9 +62,9 @@ BasePort *PortModule::currentPort() const {
     return nullptr;
 }
 
-void PortModule::portList(std::vector<std::string> &portList) const {
+void PortModule::portList(QSet<QString> &portList) const {
     for (const QString &portName: m_portHash.keys()) {
-        portList.push_back(portName.toStdString());
+        portList.insert(portName);
     }
 }
 

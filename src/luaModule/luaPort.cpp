@@ -11,8 +11,12 @@ LuaPort::LuaPort(QObject *parent)
 }
 
 std::vector<std::string> LuaPort::list() {
+    QSet<QString> portSet{};
+    emit listPort(portSet);
     std::vector<std::string> portList{};
-    emit listPort(portList);
+    for (const auto& portName:portSet) {
+        portList.push_back(portName.toStdString());
+    }
     return portList;
 }
 

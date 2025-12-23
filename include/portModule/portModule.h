@@ -29,7 +29,7 @@ public:
 
     BasePort *currentPort() const;
 
-    void portList(std::vector<std::string> &portList) const;
+    void portList(QSet<QString> &portList) const;
 
     Q_INVOKABLE void portSetting(const QString &portName = QString()) const;
 
