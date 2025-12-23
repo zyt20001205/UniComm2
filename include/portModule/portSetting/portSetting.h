@@ -89,6 +89,8 @@ private:
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};
     QObject *m_rxFormatComboBox{};
+    // image
+    QObject *m_captureImage{};
 };
 
 class ImageProvider final: public QQuickImageProvider {

@@ -680,13 +680,73 @@ Item {
 
                 // image
                 RowLayout {
-                    ScrollView {
+
+                    ColumnLayout {
                         Layout.fillWidth: true; Layout.fillHeight: true
 
-                        Image {
-                            id: captureImage
+                        ScrollView {
+                            Layout.fillWidth: true; Layout.fillHeight: true
+
+                            Image {
+                                id: captureImage
+                            }
+
+                            Rectangle {
+                                id: captureSelection
+                                color: "white"
+                                opacity: 0.5
+                                visible: false
+                                Layout.fillWidth: true; Layout.fillHeight: true
+                                z: 10
+                            }
+                        }
+
+                        ToolBar {
+
+                            RowLayout {
+
+                                ToolButton {
+                                    Layout.preferredWidth: 48; Layout.preferredHeight: 48
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: "qrc:/icon/refresh.svg"
+                                    icon.width: 32; icon.height: 32
+                                    checkable: true
+                                    ToolTip.text: qsTr("Auto Refresh")
+                                    ToolTip.visible: hovered
+
+                                    Timer {
+                                        interval: 1000
+                                        running: parent.checked
+                                        repeat: true
+                                        onTriggered: {
+                                            if (rootItem.portType === 5) {
+                                                portSetting.screenCapture()
+                                            } else {
+                                                portSetting.cameraCapture()
+                                            }
+                                        }
+                                    }
+                                }
+
+                                ToolSeparator {
+                                }
+
+                                ToolButton {
+                                    Layout.preferredWidth: 48; Layout.preferredHeight: 48
+                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                    icon.source: "qrc:/icon/square.svg"
+                                    icon.width: 32; icon.height: 32
+                                    ToolTip.text: qsTr("Rectangular")
+                                    ToolTip.visible: hovered
+
+                                    onClicked: {
+                                        captureSelection.visible = true
+                                    }
+                                }
+                            }
                         }
                     }
+
 
                     ColumnLayout {
                         Layout.preferredWidth: 200; Layout.fillHeight: true
@@ -807,14 +867,10 @@ Item {
                                 break
                             case 5: {
                                 portSetting.screenCapture()
-                                captureImage.source =  "image://capture/" + Date.now()
-                                portSetting.dialogResize(1600, 900)
                             }
                                 break
                             case 6: {
                                 portSetting.cameraCapture()
-                                captureImage.source =  "image://capture/" + Date.now()
-                                portSetting.dialogResize(1600, 900)
                             }
                                 break
                         }
@@ -860,7 +916,9 @@ Item {
             // format
             "txFormatComboBox": txFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,
-            "rxFormatComboBox": rxFormatComboBox
+            "rxFormatComboBox": rxFormatComboBox,
+            // image
+            "captureImage": captureImage
         };
         portSetting.propertyGet(objects)
     }

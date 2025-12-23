@@ -80,6 +80,8 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
     m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
     m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
+    // image
+    m_captureImage = qvariant_cast<QObject *>(objects["captureImage"]);
 }
 
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
@@ -295,11 +297,15 @@ void PortSetting::portSettingExport() {
 void PortSetting::screenCapture() const {
     const auto &portName = m_screenNameComboBox->property("currentValue").toString();
     m_imageProvider->screenCapture(portName);
+    m_captureImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+    m_portSettingDialog->resize(1600,900);
 }
 
 void PortSetting::cameraCapture() const {
     const auto &portName = m_cameraNameComboBox->property("currentValue").toString();
     m_imageProvider->cameraCapture(portName);
+    m_captureImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+    m_portSettingDialog->resize(1600,900);
 }
 
 void PortSetting::dialogResize(const int width, const int height) const {
