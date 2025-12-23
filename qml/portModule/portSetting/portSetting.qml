@@ -594,6 +594,7 @@ Item {
                 }
                 Layout.fillWidth: true; Layout.fillHeight: true
 
+                // format
                 GridLayout {
                     columns: 2
                     columnSpacing: 20; rowSpacing: 20
@@ -676,6 +677,25 @@ Item {
                         Layout.fillWidth: true
                     }
                 }
+
+                // image
+                RowLayout {
+                    ScrollView {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+
+                        Image {
+                            id: captureImage
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 200; Layout.fillHeight: true
+
+                        Label {
+
+                        }
+                    }
+                }
             }
         }
 
@@ -689,7 +709,10 @@ Item {
                 enabled: swipeView.currentIndex !== 0
                 flat: true
 
-                onClicked: swipeView.currentIndex = swipeView.currentIndex - 1
+                onClicked: {
+                    swipeView.currentIndex = swipeView.currentIndex - 1
+                    portSetting.dialogResize(600, 500)
+                }
             }
 
             PageIndicator {
@@ -780,6 +803,18 @@ Item {
                                     portNameValidatorTimer.start()
                                     return
                                 }
+                            }
+                                break
+                            case 5: {
+                                portSetting.screenCapture()
+                                captureImage.source =  "image://capture/" + Date.now()
+                                portSetting.dialogResize(1600, 900)
+                            }
+                                break
+                            case 6: {
+                                portSetting.cameraCapture()
+                                captureImage.source =  "image://capture/" + Date.now()
+                                portSetting.dialogResize(1600, 900)
                             }
                                 break
                         }

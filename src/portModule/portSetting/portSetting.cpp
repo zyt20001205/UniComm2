@@ -1,8 +1,11 @@
 #include "portModule/portSetting/portSetting.h"
 
+#include <QCamera>
 #include <QCameraDevice>
 #include <QHostInfo>
+#include <QImageCapture>
 #include <QJsonObject>
+#include <QMediaCaptureSession>
 #include <QMediaDevices>
 #include <QQmlContext>
 #include <QSerialPortInfo>
@@ -18,10 +21,11 @@ PortSetting::PortSetting(QWidget *parent)
     : QWidget(parent),
       m_portSettingDialog(new QDialog(this)),
       m_serialPortStandardItemModel(new QStandardItemModel(this)),
-      m_localHostStandardItemModel(new QStandardItemModel(this)),
       m_visaStandardItemModel(new QStandardItemModel(this)),
+      m_localHostStandardItemModel(new QStandardItemModel(this)),
       m_screenStandardItemModel(new QStandardItemModel(this)),
-      m_cameraStandardItemModel(new QStandardItemModel(this)) {
+      m_cameraStandardItemModel(new QStandardItemModel(this)),
+      m_imageProvider(new ImageProvider()) {
     propertySet();
 }
 
@@ -31,6 +35,8 @@ void PortSetting::propertySet() {
     auto *widget = new QQuickWidget(); // NOLINT
     layout->addWidget(widget);
     layout->setContentsMargins(0, 0, 0, 0);
+    QQmlEngine *engine = widget->engine();
+    engine->addImageProvider("capture", m_imageProvider);
     widget->rootContext()->setContextProperty("portSetting", this);
     widget->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
     widget->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
@@ -286,6 +292,20 @@ void PortSetting::portSettingExport() {
     m_portSettingDialog->hide();
 }
 
+void PortSetting::screenCapture() const {
+    const auto &portName = m_screenNameComboBox->property("currentValue").toString();
+    m_imageProvider->screenCapture(portName);
+}
+
+void PortSetting::cameraCapture() const {
+    const auto &portName = m_cameraNameComboBox->property("currentValue").toString();
+    m_imageProvider->cameraCapture(portName);
+}
+
+void PortSetting::dialogResize(const int width, const int height) const {
+    m_portSettingDialog->resize(width, height);
+}
+
 // PortSetting private
 void PortSetting::serialPortRefresh() const {
     m_serialPortStandardItemModel->clear();
@@ -332,7 +352,8 @@ void PortSetting::visaRefresh() const {
 }
 
 void PortSetting::localHostRefresh() const {
-    for (const QHostAddress &address : QHostInfo::fromName(QHostInfo::localHostName()).addresses()) {
+    m_localHostStandardItemModel->clear();
+    for (const QHostAddress &address: QHostInfo::fromName(QHostInfo::localHostName()).addresses()) {
         if (address.protocol() == QAbstractSocket::IPv4Protocol) {
             auto *item = new QStandardItem(address.toString());
             item->setData(address.toString(), Qt::WhatsThisRole);
@@ -342,6 +363,7 @@ void PortSetting::localHostRefresh() const {
 }
 
 void PortSetting::screenRefresh() const {
+    m_screenStandardItemModel->clear();
     for (const QScreen *screen: QGuiApplication::screens()) {
         auto *item = new QStandardItem(screen->name());
         item->setData(screen->name(), Qt::WhatsThisRole);
@@ -350,9 +372,59 @@ void PortSetting::screenRefresh() const {
 }
 
 void PortSetting::cameraRefresh() const {
+    m_cameraStandardItemModel->clear();
     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
         auto *item = new QStandardItem(camera.description());
         item->setData(camera.description(), Qt::WhatsThisRole);
         m_cameraStandardItemModel->appendRow(item);
     }
+}
+
+ImageProvider::ImageProvider()
+    : QQuickImageProvider(Pixmap) {
+}
+
+QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
+    if (m_capture.isNull()) return {};
+    return m_capture;
+}
+
+void ImageProvider::screenCapture(const QString &portName) {
+    QScreen *screen = nullptr;
+    for (QScreen *s: QGuiApplication::screens()) {
+        if (s->name() == portName) {
+            screen = s;
+            break;
+        }
+    }
+    if (!screen) return;
+    // capture
+    m_capture = screen->grabWindow(0);
+}
+
+void ImageProvider::cameraCapture(const QString &portName) {
+    QCameraDevice cameraDevice;
+    for (const QCameraDevice &c: QMediaDevices::videoInputs()) {
+        if (c.description() == portName) {
+            cameraDevice = c;
+            break;
+        }
+    }
+    if (cameraDevice.isNull()) return;
+    // capture
+    const auto camera = new QCamera(cameraDevice, this);
+    QMediaCaptureSession captureSession;
+    captureSession.setCamera(camera);
+    QImageCapture imageCapture;
+    captureSession.setImageCapture(&imageCapture);
+    QEventLoop loop;
+    connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &loop](int, const QImage &img) {
+        m_capture = QPixmap::fromImage(img);
+        loop.quit();
+    });
+    camera->start();
+    imageCapture.capture();
+    loop.exec();
+    camera->stop();
+    delete camera;
 }

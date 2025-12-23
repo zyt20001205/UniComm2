@@ -3,10 +3,12 @@
 
 #include <QDialog>
 #include <QJsonObject>
+#include <QQuickImageProvider>
 
 class QStandardItemModel;
 
 class AreaSelection;
+class ImageProvider;
 
 class PortSetting final : public QWidget {
     Q_OBJECT
@@ -23,6 +25,12 @@ public:
     void portSettingImport(const QJsonObject &portConfig = QJsonObject());
 
     Q_INVOKABLE void portSettingExport();
+
+    Q_INVOKABLE void screenCapture() const;
+
+    Q_INVOKABLE void cameraCapture() const;
+
+    Q_INVOKABLE void dialogResize(int width, int height) const;
 
 signals:
     void insertPort(int index, const QJsonObject &portConfig);
@@ -46,6 +54,7 @@ private:
     QStandardItemModel *m_localHostStandardItemModel{};
     QStandardItemModel *m_screenStandardItemModel{};
     QStandardItemModel *m_cameraStandardItemModel{};
+    ImageProvider *m_imageProvider{};
     QString m_oldPortName{};
 
     QObject *m_swipeView{};
@@ -80,6 +89,24 @@ private:
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};
     QObject *m_rxFormatComboBox{};
+};
+
+class ImageProvider final: public QQuickImageProvider {
+    Q_OBJECT
+
+public:
+    explicit ImageProvider();
+
+    ~ImageProvider() override = default;
+
+    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
+
+    void screenCapture(const QString& portName);
+
+    void cameraCapture(const QString& portName);
+
+private:
+    QPixmap m_capture{};
 };
 
 #endif //UNICOMM_PORTSETTING_H
