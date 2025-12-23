@@ -686,6 +686,7 @@ Item {
 
                         ScrollView {
                             Layout.fillWidth: true; Layout.fillHeight: true
+                            contentWidth: captureImage.width; contentHeight: captureImage.height
 
                             Image {
                                 id: captureImage
@@ -693,11 +694,38 @@ Item {
 
                             Rectangle {
                                 id: captureSelection
+                                anchors.fill: captureImage
                                 color: "white"
                                 opacity: 0.5
                                 visible: false
-                                Layout.fillWidth: true; Layout.fillHeight: true
-                                z: 10
+                                property bool roi: false
+                                property point anchorLT
+                                property point anchorRB
+
+                                TapHandler {
+                                    acceptedButtons: Qt.LeftButton
+                                    enabled: captureSelection.visible
+
+                                    onTapped: (eventPoint) => {
+                                        const position = eventPoint.position;
+                                        if (!captureSelection.roi) {
+                                            captureSelection.anchorLT = position
+                                            captureSelection.roi = true
+                                        } else {
+                                            captureSelection.anchorRB = position
+                                            captureSelection.roi = false
+                                            captureSelection.visible = false
+                                            console.log("roi finish", captureSelection.anchorLT.x, captureSelection.anchorLT.y, captureSelection.anchorRB.x, captureSelection.anchorRB.y)
+                                        }
+                                    }
+                                }
+
+                                TapHandler {
+                                    acceptedButtons: Qt.RightButton
+                                    enabled: captureSelection.visible
+
+                                    onTapped: captureSelection.visible = false
+                                }
                             }
                         }
 
