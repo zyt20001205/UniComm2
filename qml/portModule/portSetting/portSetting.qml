@@ -690,6 +690,17 @@ Item {
 
                             Image {
                                 id: captureImage
+                                property var roiList: []
+
+                                TapHandler {
+                                    acceptedButtons: Qt.LeftButton
+
+                                    onTapped: {
+                                        for (let i = 0; i < captureImage.roiList.length; i++) {
+                                            captureImage.roiList[i].opacity = 0.2
+                                        }
+                                    }
+                                }
                             }
 
                             Rectangle {
@@ -715,7 +726,10 @@ Item {
                                             captureSelection.anchorRB = position
                                             captureSelection.roi = false
                                             captureSelection.visible = false
-                                            console.log("roi finish", captureSelection.anchorLT.x, captureSelection.anchorLT.y, captureSelection.anchorRB.x, captureSelection.anchorRB.y)
+                                            const roiRect = roiRectComponent.createObject(captureImage, {
+                                                "anchorLT": captureSelection.anchorLT,
+                                                "anchorRB": captureSelection.anchorRB
+                                            });
                                         }
                                     }
                                 }
@@ -725,6 +739,30 @@ Item {
                                     enabled: captureSelection.visible
 
                                     onTapped: captureSelection.visible = false
+                                }
+                            }
+
+                            Component {
+                                id: roiRectComponent
+
+                                Rectangle {
+                                    id: roiRect
+                                    x: Math.min(anchorLT.x, anchorRB.x); y: Math.min(anchorLT.y, anchorRB.y)
+                                    width: Math.abs(anchorRB.x - anchorLT.x); height: Math.abs(anchorRB.y - anchorLT.y)
+                                    color: "#a9d3f2"
+                                    opacity: 0.2
+                                    border.color: "#0078d4"; border.width: 1
+                                    property point anchorLT
+                                    property point anchorRB
+
+                                    TapHandler {
+                                        acceptedButtons: Qt.LeftButton
+                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                        onTapped: roiRect.opacity = 0.8
+                                    }
+
+                                    Component.onCompleted: captureImage.roiList.push(roiRect)
                                 }
                             }
                         }
