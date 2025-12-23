@@ -276,7 +276,7 @@ void MainWindow::moduleInit() {
         }
     });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] {m_portModule->portInsert(-1, QJsonObject());});
+    connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] { m_portModule->portInsert(-1, QJsonObject()); });
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] {
         m_databaseModule->databaseInsert(-1, QString());
         m_databaseModule->databaseAnnotate();
@@ -321,12 +321,14 @@ void MainWindow::moduleInit() {
 
 void MainWindow::shortcutInit() {
     auto shortcutConfig = g_workspaceConfig["shortcutConfig"].toObject();
-    m_openWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["openWorkspace"].toString()), this); // NOLINT
-    connect(m_openWorkspaceShortcut, &QShortcut::activated, this, [this] { workspaceOpen(); });
-    m_saveWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspace"].toString()), this); // NOLINT
-    connect(m_saveWorkspaceShortcut, &QShortcut::activated, this, [this] { workspaceSave(); });
-    m_saveWorkspaceAsShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspaceAs"].toString()), this); // NOLINT
-    connect(m_saveWorkspaceAsShortcut, &QShortcut::activated, this, [this] {
+    const auto *maximizeShortcut = new QShortcut(QKeySequence("F11"), this); // NOLINT
+    connect(maximizeShortcut, &QShortcut::activated, this, &MainWindow::maximizeToggle);
+    const auto *openWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["openWorkspace"].toString()), this); // NOLINT
+    connect(openWorkspaceShortcut, &QShortcut::activated, this, &MainWindow::workspaceOpen);
+    const auto *saveWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspace"].toString()), this); // NOLINT
+    connect(saveWorkspaceShortcut, &QShortcut::activated, this, [this] { workspaceSave(); });
+    const auto *saveWorkspaceAsShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspaceAs"].toString()), this); // NOLINT
+    connect(saveWorkspaceAsShortcut, &QShortcut::activated, this, [this] {
         const QString filePath = QFileDialog::getSaveFileName(
             nullptr,
             tr("Save Workspace As"),
@@ -573,6 +575,11 @@ void MainWindow::mainConfigSave() {
     const QByteArray layoutData = layoutSaver.serializeLayout();
     m_mainConfig["state"] = QString(layoutData.toBase64());
     g_workspaceConfig["mainConfig"] = m_mainConfig;
+}
+
+void MainWindow::maximizeToggle() {
+    if (isMaximized()) showNormal();
+    else showMaximized();
 }
 
 void MainWindow::workspaceOpen() {

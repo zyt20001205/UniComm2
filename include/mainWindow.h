@@ -70,6 +70,8 @@ private:
 
     void mainConfigSave();
 
+    void maximizeToggle();
+
     void workspaceOpen();
 
     void workspaceSave(QString filePath = QString());
@@ -99,10 +101,6 @@ private:
     StructureModule *m_structureModule{};
     ThreadpoolModule *m_threadpoolModule{};
     UndoModule *m_undoModule{};
-
-    QShortcut *m_openWorkspaceShortcut{};
-    QShortcut *m_saveWorkspaceShortcut{};
-    QShortcut *m_saveWorkspaceAsShortcut{};
 
     QComboBox *m_scriptComboBox{};
 };
