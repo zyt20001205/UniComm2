@@ -81,6 +81,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
     m_overlay->rootContext()->setContextProperty("scriptModule", m_scriptModule);
+    // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
     m_overlay->rootContext()->setContextProperty("systemModule", m_systemModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
 }
@@ -129,6 +130,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]}
     };
     m_scriptModule->propertySet(scriptObjects);
+
+    const QVariantMap sendObjects = {
+        //
+    };
+    m_sendModule->propertySet(sendObjects);
 
     const QVariantMap structureObjects = {
         //

@@ -25,23 +25,23 @@
 PortModule::PortModule()
     : DockWidget("port"),
       m_portWidget(new QQuickWidget()),
-      m_portStandardItemModel(new QStandardItemModel()),
       m_portSetting(new PortSetting(this)) {
     setWidget(m_portWidget);
     connect(m_portSetting, &PortSetting::insertPort, this, &PortModule::portInsert);
     connect(m_portSetting, &PortSetting::editPort, this, &PortModule::portEdit);
+    g_portStandardItemModel = new QStandardItemModel(this);
+    for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
+        const QJsonObject portConfig = value.toObject();
+        portInsert(-1, portConfig);
+    }
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
     m_portWidget->rootContext()->setContextProperty("portMenu", qvariant_cast<QObject *>(objects["portModulePortMenu"]));
     m_portWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));
 
-    for (const auto &value: g_workspaceConfig["portConfig"].toArray()) {
-        const QJsonObject portConfig = value.toObject();
-        portInsert(-1, portConfig);
-    }
     m_portWidget->rootContext()->setContextProperty("portModule", this);
-    m_portWidget->rootContext()->setContextProperty("standardItemModel", m_portStandardItemModel);
+    m_portWidget->rootContext()->setContextProperty("standardItemModel", g_portStandardItemModel);
     m_portWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
     m_rootItem = m_portWidget->rootObject();
@@ -58,10 +58,6 @@ void PortModule::portConfigSave() {
     g_workspaceConfig["portConfig"] = portConfigArray;
 }
 
-BasePort *PortModule::currentPort() const {
-    return nullptr;
-}
-
 void PortModule::portList(QSet<QString> &portList) const {
     for (const QString &portName: m_portHash.keys()) {
         portList.insert(portName);
@@ -72,7 +68,7 @@ void PortModule::portSetting(const int index) const {
     if (index == -1) {
         m_portSetting->portSettingImport();
     } else {
-        const auto *item = m_portStandardItemModel->item(index, 0);
+        const auto *item = g_portStandardItemModel->item(index, 0);
         const QString portName = item->text();
         const auto &portObject = m_portHash[portName];
         const auto &portConfig = portObject->config();
@@ -84,8 +80,8 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     const QString portName = portConfig["portName"].toString();
     auto *item = new QStandardItem(portName); // NOLINT
     item->setData(false, Qt::WhatsThisRole);
-    if (index == -1) m_portStandardItemModel->appendRow(item);
-    else m_portStandardItemModel->insertRow(index, item);
+    if (index == -1) g_portStandardItemModel->appendRow(item);
+    else g_portStandardItemModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
         case SERIALPORT: {
@@ -141,9 +137,9 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
 }
 
 void PortModule::portRemove(const int index) {
-    const auto *item = m_portStandardItemModel->item(index, 0);
+    const auto *item = g_portStandardItemModel->item(index, 0);
     const QString portName = item->text();
-    m_portStandardItemModel->removeRow(index);
+    g_portStandardItemModel->removeRow(index);
     auto *port = m_portHash[portName];
     QMetaObject::invokeMethod(port, [&port] {
         port->close();
@@ -159,8 +155,8 @@ void PortModule::portRemove(const int index) {
 
 void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {
     int oldIndex = -1;
-    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
-        if (m_portStandardItemModel->item(row, 0)->text() == oldPortName) {
+    for (int row = 0; row < g_portStandardItemModel->rowCount(); ++row) {
+        if (g_portStandardItemModel->item(row, 0)->text() == oldPortName) {
             oldIndex = row;
             break;
         }
@@ -170,7 +166,7 @@ void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portCon
 }
 
 void PortModule::portToggle(const int index) {
-    const auto *item = m_portStandardItemModel->item(index, 0);
+    const auto *item = g_portStandardItemModel->item(index, 0);
     const QString portName = item->text();
     bool status = item->data(Qt::WhatsThisRole).toBool();
     auto port = m_portHash[portName];
@@ -187,8 +183,8 @@ void PortModule::portToggle(const int index) {
 }
 
 void PortModule::portRefresh(const QString &portName, const bool status) const {
-    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
-        auto *item = m_portStandardItemModel->item(row, 0);
+    for (int row = 0; row < g_portStandardItemModel->rowCount(); ++row) {
+        auto *item = g_portStandardItemModel->item(row, 0);
         if (item->text() == portName) {
             item->setData(status, Qt::WhatsThisRole);
             break;

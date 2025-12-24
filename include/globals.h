@@ -5,6 +5,8 @@
 
 #include "mainWindow.h"
 
+class QStandardItemModel;
+
 class DatabaseModule;
 class DatatableModule;
 class DataplotModule;
@@ -34,6 +36,7 @@ extern ViSession g_rm;
 extern QVariantMap g_cursorPosition;
 
 extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
+extern QStandardItemModel* g_portStandardItemModel;
 
 enum {
     SERIALPORT,

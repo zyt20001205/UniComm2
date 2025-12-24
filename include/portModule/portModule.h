@@ -27,8 +27,6 @@ public:
 
     void portConfigSave();
 
-    BasePort *currentPort() const;
-
     void portList(QSet<QString> &portList) const;
 
     Q_INVOKABLE void portSetting(int index = -1) const;
@@ -50,7 +48,6 @@ signals:
 private:
     QQuickWidget *m_portWidget{};
     QQuickItem *m_rootItem{};
-    QStandardItemModel *m_portStandardItemModel{};
     PortSetting *m_portSetting{};
 
     int m_version = 1;

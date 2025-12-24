@@ -22,3 +22,4 @@ QVariantMap g_cursorPosition = {
 };
 
 QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints = {};
+QStandardItemModel* g_portStandardItemModel = {};
