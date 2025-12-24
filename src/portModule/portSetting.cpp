@@ -371,8 +371,8 @@ void PortSetting::localHostRefresh() const {
             m_localHostStandardItemModel->appendRow(item);
         } else if (address.protocol() == QAbstractSocket::IPv6Protocol) {
             auto portName = address.toString();
-            const QString scopeId = address.scopeId();
-            if (!scopeId.isEmpty()) portName.remove("%"+scopeId);
+            // const QString scopeId = address.scopeId();
+            // if (!scopeId.isEmpty()) portName.remove("%"+scopeId);
             auto *item = new QStandardItem(portName);
             item->setData(portName, Qt::WhatsThisRole);
             m_localHostStandardItemModel->appendRow(item);

@@ -24,8 +24,8 @@ QJsonObject TcpServer::config() {
 
 std::unordered_map<std::string, std::string> TcpServer::info() {
     const std::string status = m_tcpServer && m_tcpServer->isListening() ? "opened" : "closed";
-    const std::string localHost = m_portConfig["tcpServerLocalHost"].toString().toStdString();
-    const std::string localPort = QString::number(m_portConfig["tcpServerLocalPort"].toInt()).toStdString();
+    const std::string localHost = m_portConfig["localHost"].toString().toStdString();
+    const std::string localPort = QString::number(m_portConfig["localPort"].toInt()).toStdString();
     // QVariantList peerList;
     // for (const QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
     //     QMap<QString, QVariant> peerInfo;
@@ -51,12 +51,12 @@ bool TcpServer::open() {
     }
     // m_tcpServer->setMaxPendingConnections();
     // open port
-    if (m_tcpServer->listen(QHostAddress(m_portConfig["tcpServerLocalHost"].toString()), m_portConfig["tcpServerLocalPort"].toInt())) {
+    if (m_tcpServer->listen(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
         emit togglePort(true);
-        emit appendLog(QString("%1 started on %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["tcpServerLocalHost"].toString(), QString::number(m_portConfig["tcpServerLocalPort"].toInt())), "info");
+        emit appendLog(QString("%1 started on %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt())), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 started on %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["tcpServerLocalHost"].toString(), QString::number(m_portConfig["tcpServerLocalPort"].toInt()));
+        qDebug() << QString("[%1] %2 started on %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()));
         return true;
     }
     emit appendLog(QString("%1 open failed: %2").arg(m_portConfig["portName"].toString(), m_tcpServer->errorString()), "error");
@@ -299,7 +299,7 @@ void TcpServer::handleLog(const QString &mode, const QByteArray &data, const QTc
         else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_portConfig["tcpServerLocalHost"].toString(), QString::number(m_portConfig["tcpServerLocalPort"].toInt()), peerIp, txMessage);
+        txMessage = QString("[%1:%2 -&gt; %3] %4").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()), peerIp, txMessage);
         emit appendLog(txMessage, mode);
     } else {
         // rx message reformat
@@ -314,7 +314,7 @@ void TcpServer::handleLog(const QString &mode, const QByteArray &data, const QTc
         else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        rxMessage = QString("[%1:%2 &lt;- %3] %4").arg(m_portConfig["tcpServerLocalHost"].toString(), QString::number(m_portConfig["tcpServerLocalPort"].toInt()), peerIp, rxMessage);
+        rxMessage = QString("[%1:%2 &lt;- %3] %4").arg(m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt()), peerIp, rxMessage);
         emit appendLog(rxMessage, mode);
     }
 }

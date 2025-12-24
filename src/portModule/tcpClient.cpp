@@ -44,8 +44,8 @@ std::unordered_map<std::string, std::string> TcpClient::info() {
     }
     const std::string localHost = m_tcpClientLocalHost.toStdString();
     const std::string localPort = QString::number(m_tcpClientLocalPort).toStdString();
-    const std::string remoteHost = m_portConfig["tcpClientRemoteHost"].toString().toStdString();
-    const std::string remotePort = QString::number(m_portConfig["tcpClientRemotePort"].toInt()).toStdString();
+    const std::string remoteHost = m_portConfig["remoteHost"].toString().toStdString();
+    const std::string remotePort = QString::number(m_portConfig["remotePort"].toInt()).toStdString();
 
     std::unordered_map<std::string, std::string> infoHash{};
     infoHash["status"] = status;
@@ -68,12 +68,12 @@ bool TcpClient::open() {
     m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     // open port
-    m_tcpClient->connectToHost(m_portConfig["tcpClientRemoteHost"].toString(), m_portConfig["tcpClientRemotePort"].toInt());
+    m_tcpClient->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     emit togglePort(true);
-    emit appendLog(QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt())), "info");
+    emit appendLog(QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 connecting to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt()));
+    qDebug() << QString("[%1] %2 connecting to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt()));
     return true;
 }
 
@@ -128,17 +128,17 @@ QByteArray TcpClient::read(const int timeout, const int length, const QString &r
 void TcpClient::handleConnected() {
     m_tcpClientLocalHost = m_tcpClient->localAddress().toString();
     m_tcpClientLocalPort = m_tcpClient->localPort();
-    emit appendLog(QString("%1 connected to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt())), "info");
+    emit appendLog(QString("%1 connected to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 connected to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt()));
+    qDebug() << QString("[%1] %2 connected to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt()));
 }
 
 void TcpClient::handleDisconnected() {
-    emit appendLog(QString("%1 %2:%3").arg("tcp client disconnected from", m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt())), "info");
+    emit appendLog(QString("%1 %2:%3").arg("tcp client disconnected from", m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_portConfig["tcpClientRemoteHost"].toString(), QString::number(m_portConfig["tcpClientRemotePort"].toInt()));
+    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt()));
 }
 
 void TcpClient::handleReadyRead() {
@@ -217,8 +217,8 @@ void TcpClient::handleLog(const QString &mode, const QByteArray &data) {
         else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientLocalHost, QString::number(m_tcpClientLocalPort), m_portConfig["tcpClientRemoteHost"].toString(),
-                                                          QString::number(m_portConfig["tcpClientRemotePort"].toInt()), txMessage);
+        txMessage = QString("[%1:%2 -&gt; %3:%4] %5").arg(m_tcpClientLocalHost, QString::number(m_tcpClientLocalPort), m_portConfig["remoteHost"].toString(),
+                                                          QString::number(m_portConfig["remotePort"].toInt()), txMessage);
         emit appendLog(txMessage, mode);
     } else {
         // rx message reformat
@@ -233,8 +233,8 @@ void TcpClient::handleLog(const QString &mode, const QByteArray &data) {
         else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalHost, QString::number(m_tcpClientLocalPort), m_portConfig["tcpClientRemoteHost"].toString(),
-                                                          QString::number(m_portConfig["tcpClientRemotePort"].toInt()), rxMessage);
+        rxMessage = QString("[%1:%2 &lt;- %3:%4] %5").arg(m_tcpClientLocalHost, QString::number(m_tcpClientLocalPort), m_portConfig["remoteHost"].toString(),
+                                                          QString::number(m_portConfig["remotePort"].toInt()), rxMessage);
         emit appendLog(rxMessage, mode);
     }
 }

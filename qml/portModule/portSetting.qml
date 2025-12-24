@@ -6,7 +6,8 @@ Item {
     id: rootItem
     property int portType: 0
     property var patterns: {
-        "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+        "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+        "ipv6": /[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){3}/
     }
 
     Component {
@@ -863,7 +864,7 @@ Item {
                     if (swipeView.currentIndex === 0) {
                         swipeView.currentIndex = swipeView.currentIndex + 1
                     } else if (swipeView.currentIndex === 1) {
-                        switch (tumbler.currentIndex) {
+                        switch (rootItem.portType) {
                             case 0: {
                                 if (!serialPortNameComboBox.currentText) {
                                     portNameValidator.text = qsTr("Invalid Port Name")
@@ -890,7 +891,8 @@ Item {
                                     portNameValidator.text = qsTr("Empty Remote Host")
                                     portNameValidatorTimer.start()
                                     return
-                                } else if (!rootItem.patterns["ipv4"].test(tcpClientRemoteHostTextField.text)) {
+                                } else if (!(rootItem.patterns["ipv4"].test(tcpClientRemoteHostTextField.text)
+                                    || rootItem.patterns["ipv6"].test(tcpClientRemoteHostTextField.text))) {
                                     portNameValidator.text = qsTr("Invalid Remote Host")
                                     portNameValidatorTimer.start()
                                     return
@@ -925,7 +927,8 @@ Item {
                                     portNameValidator.text = qsTr("Invalid Remote Host")
                                     portNameValidatorTimer.start()
                                     return
-                                } else if (!rootItem.patterns["ipv4"].test(udpSocketRemoteHostTextField.text)) {
+                                } else if (!(rootItem.patterns["ipv4"].test(udpSocketRemoteHostTextField.text)
+                                    || rootItem.patterns["ipv6"].test(udpSocketRemoteHostTextField.text))) {
                                     portNameValidator.text = qsTr("Invalid Remote Host")
                                     portNameValidatorTimer.start()
                                     return
