@@ -70,21 +70,27 @@ bool TcpClient::open() {
     // open port
     m_tcpClient->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     emit togglePort(true);
-    emit appendLog(QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())), "info");
+    emit appendLog(QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
+                                                         QString::number(m_portConfig["remotePort"].toInt())), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 connecting to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt()));
+    qDebug() << QString("[%1] %2 connecting to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
+                                                           QString::number(m_portConfig["remotePort"].toInt()));
     return true;
 }
 
 void TcpClient::close() {
     if (m_tcpClient == nullptr) return;
     switch (m_tcpClient->state()) {
-        case QAbstractSocket::ConnectedState:
-        case QAbstractSocket::ConnectingState:
-        case QAbstractSocket::HostLookupState:
+        case QAbstractSocket::ConnectedState: {
             m_tcpClient->disconnectFromHost();
-            break;
+        }
+        break;
+        case QAbstractSocket::ConnectingState:
+        case QAbstractSocket::HostLookupState: {
+            m_tcpClient->abort();
+        }
+        break;
         default:
             break;
     }
@@ -128,10 +134,12 @@ QByteArray TcpClient::read(const int timeout, const int length, const QString &r
 void TcpClient::handleConnected() {
     m_tcpClientLocalHost = m_tcpClient->localAddress().toString();
     m_tcpClientLocalPort = m_tcpClient->localPort();
-    emit appendLog(QString("%1 connected to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())), "info");
+    emit appendLog(QString("%1 connected to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
+                                                        QString::number(m_portConfig["remotePort"].toInt())), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 connected to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt()));
+    qDebug() << QString("[%1] %2 connected to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
+                                                          QString::number(m_portConfig["remotePort"].toInt()));
 }
 
 void TcpClient::handleDisconnected() {
