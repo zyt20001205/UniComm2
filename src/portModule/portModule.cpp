@@ -150,6 +150,7 @@ void PortModule::portRemove(const int index) {
     }, Qt::BlockingQueuedConnection);
     delete port;
     m_portHash.remove(portName);
+    m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
     // logging
     emit appendLog(QString("%1 removed").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

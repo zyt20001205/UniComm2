@@ -35,7 +35,6 @@ Item {
         interactive: false
         movableRows: true
         visible: modelVisible
-        property bool swap: true
 
         Rectangle {
             anchors.fill: parent
