@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QQuickImageProvider>
 
+class QQuickItem;
 class QStandardItemModel;
 
 class AreaSelection;
@@ -57,8 +58,8 @@ private:
     ImageProvider *m_imageProvider{};
     QString m_oldPortName{};
 
+    QQuickItem *m_rootItem{};
     QObject *m_swipeView{};
-    QObject *m_tumbler{};
     // serial port
     QObject *m_serialPortNameComboBox{};
     QObject *m_serialPortBaudRateSpinBox{};

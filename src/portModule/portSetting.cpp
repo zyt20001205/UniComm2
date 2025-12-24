@@ -8,6 +8,7 @@
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QSerialPortInfo>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
@@ -45,11 +46,11 @@ void PortSetting::propertySet() {
     widget->rootContext()->setContextProperty("cameraStandardItemModel", m_cameraStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting.qml"));
+    m_rootItem = widget->rootObject();
 }
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
     m_swipeView = qvariant_cast<QObject *>(objects["swipeView"]);
-    m_tumbler = qvariant_cast<QObject *>(objects["tumbler"]);
     // serial port
     m_serialPortNameComboBox = qvariant_cast<QObject *>(objects["serialPortNameComboBox"]);
     m_serialPortBaudRateSpinBox = qvariant_cast<QObject *>(objects["serialPortBaudRateSpinBox"]);
@@ -91,9 +92,9 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     screenRefresh();
     cameraRefresh();
     if (portConfig.isEmpty()) {
+        m_rootItem->setProperty("portType", 0);
         m_swipeView->setProperty("currentIndex", 0);
         m_oldPortName = "";
-        m_tumbler->setProperty("currentIndex", 0);
         // serial port
         if (m_serialPortNameComboBox->property("count").toInt()) {
             m_serialPortNameComboBox->setProperty("currentIndex", 0);
@@ -140,7 +141,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_swipeView->setProperty("currentIndex", 1);
         m_oldPortName = portConfig["portName"].toString();
         const int portType = portConfig["portType"].toInt();
-        m_tumbler->setProperty("currentIndex", portType);
+        m_rootItem->setProperty("portType", portType);
         switch (portType) {
             case SERIALPORT: {
                 m_serialPortNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
@@ -205,7 +206,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
 }
 
 void PortSetting::portSettingExport() {
-    const int portType = m_tumbler->property("currentIndex").toInt();
+    const int portType = m_rootItem->property("portType").toInt();
     QJsonObject portConfig{};
     switch (portType) {
         case SERIALPORT: {

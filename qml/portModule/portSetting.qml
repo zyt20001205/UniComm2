@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 Item {
     id: rootItem
-    property int portType
+    property int portType: 0
     property var patterns: {
         "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
     }
@@ -36,6 +36,7 @@ Item {
 
                 Tumbler {
                     id: tumbler
+                    currentIndex: rootItem.portType
                     delegate: delegateComponent
                     model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Screen"), qsTr("Camera")]
                     wrap: false

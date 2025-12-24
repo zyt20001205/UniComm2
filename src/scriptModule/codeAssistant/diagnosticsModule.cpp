@@ -26,7 +26,7 @@ void DiagnosticsModule::propertySet(const QVariantMap &objects) {
     m_diagnosticsWidget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
     m_diagnosticsWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_diagnosticsWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/diagnosticsModule.qml"));
-    m_diagnosticsRoot = m_diagnosticsWidget->rootObject();
+    m_rootItem = m_diagnosticsWidget->rootObject();
 }
 
 void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
@@ -85,7 +85,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
     }
     if (!m_diagnosticsModelHash.contains(scriptUrl)) {
         m_diagnosticsModelHash.insert(scriptUrl, diagnosticsModel);
-        QMetaObject::invokeMethod(m_diagnosticsRoot, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
+        QMetaObject::invokeMethod(m_rootItem, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
     } else {
         m_diagnosticsModelHash[scriptUrl] = diagnosticsModel;
     }

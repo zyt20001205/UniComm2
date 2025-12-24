@@ -34,7 +34,7 @@ signals:
 
 private:
     QQuickWidget *m_diagnosticsWidget{};
-    QQuickItem *m_diagnosticsRoot{};
+    QQuickItem *m_rootItem{};
     QHash<QUrl, QStandardItemModel *> m_diagnosticsModelHash{};
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 

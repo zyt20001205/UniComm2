@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import Qt.labs.qmlmodels
 
 Item {
-    objectName: "diagnosticsRoot"
     anchors.fill: parent
 
     Item {
