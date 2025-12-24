@@ -323,38 +323,40 @@ void PortSetting::serialPortRefresh() const {
 }
 
 void PortSetting::visaRefresh() const {
-    // QStringList deviceList;
-    //
-    // ViFindList findList;
-    // ViUInt32 numInst;
-    // ViChar portName[VI_FIND_BUFLEN];
-    //
-    // ViStatus status = viOpenDefaultRM(&g_rm);
-    // if (status != VI_SUCCESS) {
-    //     qDebug() << "fails to start visa resource manager";
-    //     return deviceList;
-    // }
-    //
-    // status = viFindRsrc(g_rm, "?*INSTR", &findList, &numInst, portName);
-    // if (status != VI_SUCCESS) {
-    //     qDebug() << "fails to search visa instruments";
-    //     viClose(g_rm);
-    //     return deviceList;
-    // }
-    //
-    // deviceList.append(QString(portName));
-    //
-    // for (ViUInt32 i = 1; i < numInst; i++) {
-    //     status = viFindNext(findList, portName);
-    //     if (status == VI_SUCCESS) {
-    //         deviceList.append(QString(portName));
-    //     }
-    // }
-    //
-    // // viClose(findList);
-    // // viClose(rm);
-    //
-    // return deviceList;
+    ViFindList findList;
+    ViUInt32 numInst;
+    ViChar portName[VI_FIND_BUFLEN];
+    // resource manager check
+    ViStatus status = viOpenDefaultRM(&g_rm);
+    if (status != VI_SUCCESS) {
+        qDebug() << "failed to start visa resource manager";
+        return;
+    }
+    // device check
+    status = viFindRsrc(g_rm, "?*INSTR", &findList, &numInst, portName);
+    if (status != VI_SUCCESS) {
+        qDebug() << "failed to find visa instruments";
+        viClose(g_rm);
+        return;
+    }
+    // standard item model construct
+    m_visaStandardItemModel->clear();
+    // first device
+    auto *firstItem = new QStandardItem(QString(portName)); // NOLINT
+    firstItem->setData(QString(portName), Qt::WhatsThisRole);
+    m_visaStandardItemModel->appendRow(firstItem);
+    // following device
+    for (ViUInt32 i = 1; i < numInst; i++) {
+        status = viFindNext(findList, portName);
+        if (status == VI_SUCCESS) {
+            auto *followingItem = new QStandardItem(QString(portName)); // NOLINT
+            followingItem->setData(QString(portName), Qt::WhatsThisRole);
+            m_visaStandardItemModel->appendRow(followingItem);
+        }
+    }
+    // free resource
+    viClose(findList);
+    viClose(g_rm);
 }
 
 void PortSetting::localHostRefresh() const {

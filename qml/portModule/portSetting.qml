@@ -37,7 +37,7 @@ Item {
                 Tumbler {
                     id: tumbler
                     delegate: delegateComponent
-                    model: [qsTr("Serial Port"), qsTr("Visa(WIP)"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Screen"), qsTr("Camera")]
+                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Screen"), qsTr("Camera")]
                     wrap: false
                     Layout.fillWidth: true; Layout.fillHeight: true
 
