@@ -653,7 +653,7 @@ Item {
     // port module
     Menu {
         id: portModulePortMenu
-        property string portName
+        property int portIndex
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -671,7 +671,7 @@ Item {
             icon.source: "qrc:/icon/edit.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: portModule.portSetting(portModulePortMenu.portName)
+            onTriggered: portModule.portSetting(portModulePortMenu.portIndex)
         }
 
         Menu {
@@ -684,7 +684,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    portModule.portRemove(portModulePortMenu.portName)
+                    portModule.portRemove(portModulePortMenu.portIndex)
                     progress = 0
                     portModulePortMenu.close()
                 }

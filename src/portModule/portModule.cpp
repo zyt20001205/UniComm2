@@ -44,12 +44,12 @@ void PortModule::propertySet(const QVariantMap &objects) {
     m_portWidget->rootContext()->setContextProperty("standardItemModel", m_portStandardItemModel);
     m_portWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
-    m_portRoot = m_portWidget->rootObject();
+    m_rootItem = m_portWidget->rootObject();
 }
 
 void PortModule::portConfigSave() {
     QVariant portList{};
-    QMetaObject::invokeMethod(m_portRoot, "getOrder",Q_RETURN_ARG(QVariant, portList));
+    QMetaObject::invokeMethod(m_rootItem, "getOrder",Q_RETURN_ARG(QVariant, portList));
     QJsonArray portConfigArray{};
     for (const auto &portName: portList.toStringList()) {
         QJsonObject portConfig = m_portHash[portName]->config();
@@ -68,10 +68,12 @@ void PortModule::portList(QSet<QString> &portList) const {
     }
 }
 
-void PortModule::portSetting(const QString &portName) const {
-    if (portName.isEmpty()) {
+void PortModule::portSetting(const int index) const {
+    if (index == -1) {
         m_portSetting->portSettingImport();
     } else {
+        const auto *item = m_portStandardItemModel->item(index, 0);
+        const QString portName = item->text();
         const auto &portObject = m_portHash[portName];
         const auto &portConfig = portObject->config();
         m_portSetting->portSettingImport(portConfig);
@@ -138,13 +140,10 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     qDebug() << QString("[%1] %2 initialized").arg(timestamp, portName);
 }
 
-void PortModule::portRemove(const QString &portName) {
-    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
-        if (m_portStandardItemModel->item(row, 0)->text() == portName) {
-            m_portStandardItemModel->removeRow(row);
-            break;
-        }
-    }
+void PortModule::portRemove(const int index) {
+    const auto *item = m_portStandardItemModel->item(index, 0);
+    const QString portName = item->text();
+    m_portStandardItemModel->removeRow(index);
     auto *port = m_portHash[portName];
     QMetaObject::invokeMethod(port, [&port] {
         port->close();
@@ -165,19 +164,13 @@ void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portCon
             break;
         }
     }
-    portRemove(oldPortName);
+    portRemove(oldIndex);
     portInsert(oldIndex, portConfig);
 }
 
-void PortModule::portToggle(const QString &portName) {
-    QStandardItem *item{};
-    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
-        if (m_portStandardItemModel->item(row, 0)->text() == portName) {
-            item = m_portStandardItemModel->item(row, 0);
-            break;
-        }
-    }
-    if (!item) return;
+void PortModule::portToggle(const int index) {
+    const auto *item = m_portStandardItemModel->item(index, 0);
+    const QString portName = item->text();
     bool status = item->data(Qt::WhatsThisRole).toBool();
     auto port = m_portHash[portName];
     if (status) {

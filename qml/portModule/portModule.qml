@@ -35,6 +35,7 @@ Item {
         interactive: false
         movableRows: true
         visible: modelVisible
+        property bool swap: true
 
         Rectangle {
             anchors.fill: parent
@@ -90,7 +91,7 @@ Item {
                 color: "white"
             }
 
-            onClicked: portModule.portToggle(model.display)
+            onClicked: portModule.portToggle(model.row)
 
             HoverHandler {
                 onHoveredChanged: cursorShape = Qt.PointingHandCursor
@@ -101,7 +102,7 @@ Item {
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                 onSingleTapped: {
-                    portMenu.portName = text
+                    portMenu.portIndex = model.row
                     portMenu.popup()
                 }
             }

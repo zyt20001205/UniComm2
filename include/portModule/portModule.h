@@ -31,15 +31,15 @@ public:
 
     void portList(QSet<QString> &portList) const;
 
-    Q_INVOKABLE void portSetting(const QString &portName = QString()) const;
+    Q_INVOKABLE void portSetting(int index = -1) const;
 
     void portInsert(int index, const QJsonObject &portConfig = QJsonObject());
 
-    Q_INVOKABLE void portRemove(const QString &portName);
+    Q_INVOKABLE void portRemove(int index);
 
     void portEdit(const QString &oldPortName, const QJsonObject &portConfig);
 
-    Q_INVOKABLE void portToggle(const QString &portName);
+    Q_INVOKABLE void portToggle(int index);
 
     void portRefresh(const QString &portName, bool status) const;
 
@@ -49,7 +49,7 @@ signals:
 
 private:
     QQuickWidget *m_portWidget{};
-    QQuickItem *m_portRoot{};
+    QQuickItem *m_rootItem{};
     QStandardItemModel *m_portStandardItemModel{};
     PortSetting *m_portSetting{};
 
