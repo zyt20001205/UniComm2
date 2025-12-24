@@ -53,7 +53,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/portModule/camera.h
         include/portModule/pixmapPreview.h
         include/portModule/portModule.h
-        include/portModule/portSetting/portSetting.h
+        include/portModule/portSetting.h
         include/portModule/screen.h
         include/portModule/sendModule.h
         include/portModule/serialPort.h
@@ -112,7 +112,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/portModule/camera.cpp
         src/portModule/pixmapPreview.cpp
         src/portModule/portModule.cpp
-        src/portModule/portSetting/portSetting.cpp
+        src/portModule/portSetting.cpp
         src/portModule/screen.cpp
         src/portModule/sendModule.cpp
         src/portModule/serialPort.cpp
@@ -158,7 +158,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/logModule.qml"
         "qml/mainWindow.qml"
         "qml/portModule/portModule.qml"
-        "qml/portModule/portSetting/portSetting.qml"
+        "qml/portModule/portSetting.qml"
         "qml/scriptModule/codeAssistant/diagnosticsModule.qml"
         "qml/scriptModule/codeAssistant/structureModule.qml"
         "qml/scriptModule/codeDebug/breakpointModule.qml"

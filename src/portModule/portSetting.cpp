@@ -1,4 +1,4 @@
-#include "portModule/portSetting/portSetting.h"
+#include "portModule/portSetting.h"
 
 #include <QCamera>
 #include <QCameraDevice>
@@ -44,7 +44,7 @@ void PortSetting::propertySet() {
     widget->rootContext()->setContextProperty("screenStandardItemModel", m_screenStandardItemModel);
     widget->rootContext()->setContextProperty("cameraStandardItemModel", m_cameraStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    widget->setSource(QUrl("qrc:/qml/portModule/portSetting/portSetting.qml"));
+    widget->setSource(QUrl("qrc:/qml/portModule/portSetting.qml"));
 }
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
