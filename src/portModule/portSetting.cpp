@@ -247,7 +247,7 @@ void PortSetting::portSettingExport() {
         case TCPSERVER: {
             portConfig = {
                 {"portType", portType},
-                {"portName", m_tcpClientNameTextField->property("text").toString()},
+                {"portName", m_tcpServerNameTextField->property("text").toString()},
                 {"localHost", m_tcpServerLocalHostComboBox->property("currentValue").toString()},
                 {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
