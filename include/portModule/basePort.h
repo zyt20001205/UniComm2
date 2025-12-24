@@ -40,7 +40,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void togglePort(bool status);
+    void refreshPort(const QString &portName, bool status);
 
     void showPreview(QList<QPixmap> pixmapList);
 

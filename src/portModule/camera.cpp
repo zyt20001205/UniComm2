@@ -12,6 +12,7 @@
 // Camera public
 Camera::Camera(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
+      m_portConfig(portConfig),
       m_portName(portConfig["portName"].toString()),
       m_charset(portConfig["charset"].toString()),
       m_process(portConfig["process"].toObject()),
@@ -23,12 +24,12 @@ int Camera::type() {
 }
 
 QJsonObject Camera::config() {
-    return {};
+    return m_portConfig;
 }
 
 bool Camera::open() {
     m_showPreview = true;
-    emit togglePort(true);
+    emit refreshPort(m_portConfig["portName"].toString(), true);
     emit appendLog(QString("%1 opened").arg(m_portName), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -38,7 +39,7 @@ bool Camera::open() {
 
 void Camera::close() {
     m_showPreview = false;
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 closed").arg(m_portName), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

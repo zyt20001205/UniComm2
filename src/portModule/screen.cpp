@@ -8,6 +8,7 @@
 // Screen public
 Screen::Screen(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
+      m_portConfig(portConfig),
       m_portName(portConfig["portName"].toString()),
       m_charset(portConfig["charset"].toString()),
       m_process(portConfig["process"].toObject()),
@@ -19,12 +20,12 @@ int Screen::type() {
 }
 
 QJsonObject Screen::config() {
-    return {};
+    return m_portConfig;
 }
 
 bool Screen::open() {
     m_showPreview = true;
-    emit togglePort(true);
+    emit refreshPort(m_portConfig["portName"].toString(), true);
     emit appendLog(QString("%1 opened").arg(m_portName), "info");
     emit showPreview({});
     // logging
@@ -35,7 +36,7 @@ bool Screen::open() {
 
 void Screen::close() {
     m_showPreview = false;
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 closed").arg(m_portName), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

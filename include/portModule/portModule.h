@@ -39,15 +39,15 @@ public:
 
     void portEdit(const QString &oldPortName, const QJsonObject &portConfig);
 
-    Q_INVOKABLE void portToggle(const QString &portName, bool status);
+    Q_INVOKABLE void portToggle(const QString &portName);
+
+    void portRefresh(const QString &portName, bool status) const;
 
     QHash<QString, BasePort *> m_portHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
 private:
-    void portSetChecked(const QString &portName, bool status) const;
-
     QQuickWidget *m_portWidget{};
     QQuickItem *m_portRoot{};
     QStandardItemModel *m_portStandardItemModel{};

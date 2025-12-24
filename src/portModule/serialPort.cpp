@@ -76,7 +76,7 @@ bool SerialPort::open() {
     m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_portConfig["stopBits"].toInt()));
     // port open
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
-        emit togglePort(true);
+        emit refreshPort(m_portConfig["portName"].toString(), true);
         emit appendLog(QString("%1 opened").arg(m_portConfig["portName"].toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -94,7 +94,7 @@ void SerialPort::close() {
     // close port
     if (m_serialPort == nullptr) return;
     m_serialPort->close();
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -154,7 +154,7 @@ void SerialPort::handleError() {
     if (m_serialPort->isOpen()) {
         m_serialPort->close();
     }
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 error: %2").arg(m_portConfig["portName"].toString(), m_serialPort->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

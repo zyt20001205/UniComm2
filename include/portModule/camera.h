@@ -28,6 +28,7 @@ public:
 private:
     QCameraDevice m_camera{};
     // port config
+    QJsonObject m_portConfig{};
     QString m_portName{};
     QString m_charset{};
     QJsonObject m_process{};

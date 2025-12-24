@@ -84,12 +84,13 @@ Item {
 
         delegate: SwitchDelegate {
             implicitWidth: tableView.width
+            checked: model.whatsThis
             text: model.display
             background: Rectangle {
                 color: "white"
             }
 
-            onClicked: portModule.portToggle(model.display, checked)
+            onClicked: portModule.portToggle(model.display)
 
             HoverHandler {
                 onHoveredChanged: cursorShape = Qt.PointingHandCursor
@@ -126,16 +127,6 @@ Item {
 
         function onModelReset() {
             modelVisible = false
-        }
-    }
-
-    function setChecked(portName, status) {
-        for (let i = 0; i < tableView.rows; i++) {
-            const item = tableView.itemAtCell(Qt.point(0, i))
-            if (item.text === portName) {
-                item.checked = status
-                break
-            }
         }
     }
 

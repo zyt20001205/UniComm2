@@ -52,7 +52,7 @@ bool TcpServer::open() {
     // m_tcpServer->setMaxPendingConnections();
     // open port
     if (m_tcpServer->listen(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
-        emit togglePort(true);
+        emit refreshPort(m_portConfig["portName"].toString(), true);
         emit appendLog(QString("%1 started on %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["localHost"].toString(), QString::number(m_portConfig["localPort"].toInt())), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -79,7 +79,7 @@ void TcpServer::close() {
         }
     }
     m_tcpServerPeerHash.clear();
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog("tcp server closed", "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -179,7 +179,7 @@ void TcpServer::handleServerError() {
     if (m_tcpServer->isListening()) {
         m_tcpServer->close();
     }
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 error: %2").arg(m_portConfig["portName"].toString(), m_tcpServer->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -225,7 +225,7 @@ void TcpServer::handleError(QTcpSocket *tcpServerPeer) {
     //     tcpServerPeer->close();
     // }
     const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
-    // emit togglePort(false);
+    // emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 error: %2").arg(peerIp, tcpServerPeer->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

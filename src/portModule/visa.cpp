@@ -28,7 +28,7 @@ bool Visa::open() {
     ViStatus status = viOpen(g_rm, m_portConfig["portName"].toString().toUtf8().constData(), VI_NULL, VI_NULL, &m_visa);
     if (status == VI_SUCCESS) {
         status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
-        emit togglePort(true);
+        emit refreshPort(m_portConfig["portName"].toString(), true);
         emit appendLog(QString("%1 opened").arg(m_portConfig["portName"].toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -45,7 +45,7 @@ bool Visa::open() {
 void Visa::close() {
     if (m_visa != VI_NULL) {
         ViStatus status = viClose(m_visa);
-        emit togglePort(false);
+        emit refreshPort(m_portConfig["portName"].toString(), false);
         emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

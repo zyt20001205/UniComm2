@@ -78,9 +78,12 @@ void PortModule::portSetting(const QString &portName) const {
     }
 }
 
-void PortModule::portInsert(int index, const QJsonObject &portConfig) {
+void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
     const QString portName = portConfig["portName"].toString();
-    m_portStandardItemModel->appendRow(new QStandardItem(portName));
+    auto *item = new QStandardItem(portName); // NOLINT
+    item->setData(false, Qt::WhatsThisRole);
+    if (index == -1) m_portStandardItemModel->appendRow(item);
+    else m_portStandardItemModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
         case SERIALPORT: {
@@ -105,7 +108,7 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
         }
         case SCREEN: {
             port = new Screen(portConfig);
-            // connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+            // connect(m_port, &BasePort::refreshPort, this, [this](const bool status) {
             //     m_portToggleButton->setChecked(status);
             //     m_pixmapPreview->setVisible(status);
             // });
@@ -114,7 +117,7 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
         }
         case CAMERA: {
             port = new Camera(portConfig);
-            // connect(m_port, &BasePort::togglePort, this, [this](const bool status) {
+            // connect(m_port, &BasePort::refreshPort, this, [this](const bool status) {
             //     m_portToggleButton->setChecked(status);
             //     m_pixmapPreview->setVisible(status);
             // });
@@ -127,7 +130,7 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
         }
     }
     connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
-    connect(port, &BasePort::togglePort, this, [this, portName](const bool status) { portSetChecked(portName, status); });
+    connect(port, &BasePort::refreshPort, this, &PortModule::portRefresh);
     m_portHash.insert(portName, port);
     // logging
     emit appendLog(QString("%1 initialized").arg(portName), "info");
@@ -155,27 +158,46 @@ void PortModule::portRemove(const QString &portName) {
 }
 
 void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {
+    int oldIndex = -1;
+    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
+        if (m_portStandardItemModel->item(row, 0)->text() == oldPortName) {
+            oldIndex = row;
+            break;
+        }
+    }
     portRemove(oldPortName);
-    portInsert(-1, portConfig);
+    portInsert(oldIndex, portConfig);
 }
 
-void PortModule::portToggle(const QString &portName, const bool status) {
+void PortModule::portToggle(const QString &portName) {
+    QStandardItem *item{};
+    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
+        if (m_portStandardItemModel->item(row, 0)->text() == portName) {
+            item = m_portStandardItemModel->item(row, 0);
+            break;
+        }
+    }
+    if (!item) return;
+    bool status = item->data(Qt::WhatsThisRole).toBool();
     auto port = m_portHash[portName];
     if (status) {
-        bool ok = false;
-        QMetaObject::invokeMethod(port, [&port, &ok] {
-            ok = port->open();
-        }, Qt::BlockingQueuedConnection);
-        portSetChecked(portName, ok);
-    } else {
         QMetaObject::invokeMethod(port, [&port] {
             port->close();
         }, Qt::BlockingQueuedConnection);
-        portSetChecked(portName, status);
+    } else {
+        QMetaObject::invokeMethod(port, [&port, &status] {
+            status = port->open();
+        }, Qt::BlockingQueuedConnection);
     }
+    portRefresh(portName, status);
 }
 
-// PortModule private
-void PortModule::portSetChecked(const QString &portName, const bool status) const {
-    QMetaObject::invokeMethod(m_portRoot, "setChecked", Q_ARG(QVariant, portName), Q_ARG(QVariant, status));
+void PortModule::portRefresh(const QString &portName, const bool status) const {
+    for (int row = 0; row < m_portStandardItemModel->rowCount(); ++row) {
+        auto *item = m_portStandardItemModel->item(row, 0);
+        if (item->text() == portName) {
+            item->setData(status, Qt::WhatsThisRole);
+            break;
+        }
+    }
 }

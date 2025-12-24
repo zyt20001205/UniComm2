@@ -69,7 +69,7 @@ bool TcpClient::open() {
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     // open port
     m_tcpClient->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
-    emit togglePort(true);
+    emit refreshPort(m_portConfig["portName"].toString(), true);
     emit appendLog(QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
                                                          QString::number(m_portConfig["remotePort"].toInt())), "info");
     // logging
@@ -94,7 +94,7 @@ void TcpClient::close() {
         default:
             break;
     }
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
 }
 
 bool TcpClient::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
@@ -168,7 +168,7 @@ void TcpClient::handleError() {
     if (m_tcpClient->isOpen()) {
         m_tcpClient->close();
     }
-    emit togglePort(false);
+    emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 error: %2").arg(m_portConfig["portName"].toString(), m_tcpClient->errorString()), "error");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

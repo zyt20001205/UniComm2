@@ -29,6 +29,7 @@ public:
 private:
     QScreen *m_screen{};
     // port config
+    QJsonObject m_portConfig{};
     QString m_portName{};
     QString m_charset{};
     QJsonObject m_process{};
