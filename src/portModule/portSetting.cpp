@@ -316,8 +316,9 @@ void PortSetting::dialogResize(const int width, const int height) const {
 void PortSetting::serialPortRefresh() const {
     m_serialPortStandardItemModel->clear();
     for (QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts(); const QSerialPortInfo &port: ports) {
-        auto *item = new QStandardItem(port.portName() + " " + port.description());
-        item->setData(port.portName(), Qt::WhatsThisRole);
+        const QString portName = port.portName();
+        auto *item = new QStandardItem(portName + " " + port.description());
+        item->setData(portName, Qt::WhatsThisRole);
         m_serialPortStandardItemModel->appendRow(item);
     }
 }
@@ -363,8 +364,16 @@ void PortSetting::localHostRefresh() const {
     m_localHostStandardItemModel->clear();
     for (const QHostAddress &address: QHostInfo::fromName(QHostInfo::localHostName()).addresses()) {
         if (address.protocol() == QAbstractSocket::IPv4Protocol) {
-            auto *item = new QStandardItem(address.toString());
-            item->setData(address.toString(), Qt::WhatsThisRole);
+            const QString portName = address.toString();
+            auto *item = new QStandardItem(portName);
+            item->setData(portName, Qt::WhatsThisRole);
+            m_localHostStandardItemModel->appendRow(item);
+        } else if (address.protocol() == QAbstractSocket::IPv6Protocol) {
+            auto portName = address.toString();
+            const QString scopeId = address.scopeId();
+            if (!scopeId.isEmpty()) portName.remove("%"+scopeId);
+            auto *item = new QStandardItem(portName);
+            item->setData(portName, Qt::WhatsThisRole);
             m_localHostStandardItemModel->appendRow(item);
         }
     }
@@ -373,8 +382,9 @@ void PortSetting::localHostRefresh() const {
 void PortSetting::screenRefresh() const {
     m_screenStandardItemModel->clear();
     for (const QScreen *screen: QGuiApplication::screens()) {
-        auto *item = new QStandardItem(screen->name());
-        item->setData(screen->name(), Qt::WhatsThisRole);
+        const QString portName = screen->name();
+        auto *item = new QStandardItem(portName);
+        item->setData(portName, Qt::WhatsThisRole);
         m_screenStandardItemModel->appendRow(item);
     }
 }
@@ -382,8 +392,9 @@ void PortSetting::screenRefresh() const {
 void PortSetting::cameraRefresh() const {
     m_cameraStandardItemModel->clear();
     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
-        auto *item = new QStandardItem(camera.description());
-        item->setData(camera.description(), Qt::WhatsThisRole);
+        const QString portName = camera.description();
+        auto *item = new QStandardItem(portName);
+        item->setData(portName, Qt::WhatsThisRole);
         m_cameraStandardItemModel->appendRow(item);
     }
 }
