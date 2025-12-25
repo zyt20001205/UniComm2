@@ -35,7 +35,7 @@ Item {
     VerticalHeaderView {
         id: verticalHeaderView
         anchors.left: parent.left
-        width: 24; height: parent.height
+        width: 32; height: parent.height
         syncView: tableView
         clip: true
         interactive: false
@@ -47,7 +47,7 @@ Item {
             padding: 0
 
             contentItem: Rectangle {
-                width: 24; height: 24
+                width: 32; height: 32
                 color: "white"
 
                 Image {
@@ -102,21 +102,33 @@ Item {
         height: parent.height
         alternatingRows: false
         clip: true
-        editTriggers: TableView.NoEditTriggers
-        rowSpacing: 1
+        // editTriggers: TableView.NoEditTriggers
+        rowSpacing: 1; columnSpacing: 1
         model: standardItemModel
         visible: modelVisible
         contentWidth: width
-        delegate: ItemDelegate  {
-            implicitWidth: tableView.width
+        delegate: ItemDelegate {
+            implicitWidth: tableView.width / 2; implicitHeight: 32
             text: model.display
+            font.pixelSize: 16
 
             background: Rectangle {
                 color: "white"
             }
 
+            Rectangle {
+                id: highlightRect
+                anchors.fill: parent
+                radius: 2
+                color: "#f5f5f5"
+                opacity: hoverHandler.hovered ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation { duration: 150 }
+                }
+            }
+
             HoverHandler {
-                onHoveredChanged: cursorShape = Qt.PointingHandCursor
+                id: hoverHandler
             }
 
             TapHandler {
@@ -125,6 +137,8 @@ Item {
 
                 onSingleTapped: {
                     tableMenu.databaseIndex = model.row
+                    const index = tableView.model.index(row, 0);
+                    tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
                     tableMenu.popup()
                 }
             }

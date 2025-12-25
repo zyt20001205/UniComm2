@@ -27,7 +27,7 @@ public:
 
     void portConfigSave();
 
-    void portList(QSet<QString> &portList) const;
+    void portList(QSet<QString> &portSet) const;
 
     Q_INVOKABLE void portSetting(int index = -1) const;
 

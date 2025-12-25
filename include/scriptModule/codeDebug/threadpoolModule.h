@@ -42,9 +42,11 @@ signals:
 
     void stopDebug(const QString &threadId);
 
+    void listDatabase(QSet<QString> &databaseSet);
+
     void appendLog(const QString &message, const QString &level);
 
-    void listPort(QSet<QString> &portList);
+    void listPort(QSet<QString> &portSet);
 
 private:
     void threadAppend(int status, const QString &name, const QString &threadId);

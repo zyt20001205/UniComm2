@@ -316,6 +316,7 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
+    connect(m_threadpoolModule, &ThreadpoolModule::listDatabase, m_databaseModule, &DatabaseModule::databaseList);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
 

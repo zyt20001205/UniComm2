@@ -226,14 +226,21 @@ Item {
         title: qsTr("Enter Key Name")
         standardButtons: Dialog.Ok
         property int databaseIndex
+        property string databaseKey
 
         onAboutToShow: {
-            databaseModuleNameTextField.text = ""
+            databaseModuleNameTextField.text = databaseModuleNameDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: databaseModule.databaseInsert(databaseModuleNameDialog.databaseIndex, databaseModuleNameTextField.text)
+        onAccepted: {
+            if (databaseModuleNameDialog.databaseKey) {
+                databaseModule.databaseRename(databaseModuleNameDialog.databaseIndex, databaseModuleNameTextField.text)
+            } else {
+                databaseModule.databaseInsert(databaseModuleNameDialog.databaseIndex, databaseModuleNameTextField.text)
+            }
+        }
 
         TextField {
             id: databaseModuleNameTextField
@@ -248,6 +255,7 @@ Item {
     Menu {
         id: databaseModuleTableMenu
         property int databaseIndex
+        property string databaseKey
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -259,6 +267,19 @@ Item {
 
             onTriggered: {
                 databaseModuleNameDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
+                databaseModuleNameDialog.databaseKey = ""
+                databaseModuleNameDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                databaseModuleNameDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
+                databaseModuleNameDialog.databaseKey = databaseModuleTableMenu.databaseKey
                 databaseModuleNameDialog.open()
             }
         }
@@ -294,6 +315,7 @@ Item {
 
             onTriggered: {
                 databaseModuleNameDialog.databaseIndex = -1
+                databaseModuleNameDialog.databaseKey = ""
                 databaseModuleNameDialog.open()
             }
         }

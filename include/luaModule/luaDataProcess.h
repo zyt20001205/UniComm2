@@ -1,24 +1,38 @@
 #ifndef UNICOMM_LUADATAPROCESS_H
 #define UNICOMM_LUADATAPROCESS_H
 
-#include <lua.hpp>
+#include <QObject>
 
-int lua_databaseList(lua_State *L);
+class LuaDataProcess final : public QObject {
+    Q_OBJECT
 
-int lua_databaseWrite(lua_State *L);
+public:
+    explicit LuaDataProcess(QObject *parent = nullptr);
 
-int lua_databaseClear(lua_State *L);
+    ~LuaDataProcess() override = default;
 
-int lua_datatableList(lua_State *L);
+    std::vector<std::string> databaseList();
 
-int lua_datatableWrite(lua_State *L);
+signals:
+    void listDatabase(QSet<QString> &databaseSet);
+};
 
-int lua_datatableClear(lua_State *L);
-
-int lua_datatableExport(lua_State *L);
-
-int lua_dataplotAppend(lua_State *L);
-
-int lua_dataplotRemove(lua_State *L);
+// int lua_databaseList(lua_State *L);
+//
+// int lua_databaseWrite(lua_State *L);
+//
+// int lua_databaseClear(lua_State *L);
+//
+// int lua_datatableList(lua_State *L);
+//
+// int lua_datatableWrite(lua_State *L);
+//
+// int lua_datatableClear(lua_State *L);
+//
+// int lua_datatableExport(lua_State *L);
+//
+// int lua_dataplotAppend(lua_State *L);
+//
+// int lua_dataplotRemove(lua_State *L);
 
 #endif //UNICOMM_LUADATAPROCESS_H

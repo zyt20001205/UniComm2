@@ -56,9 +56,9 @@ void PortModule::portConfigSave() {
     g_workspaceConfig["portConfig"] = portConfigArray;
 }
 
-void PortModule::portList(QSet<QString> &portList) const {
+void PortModule::portList(QSet<QString> &portSet) const {
     for (const QString &portName: m_portHash.keys()) {
-        portList.insert(portName);
+        portSet.insert(portName);
     }
 }
 

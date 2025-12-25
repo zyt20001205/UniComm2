@@ -56,16 +56,26 @@ void DatabaseModule::databaseInsert(const int index, const QString &key) {
 void DatabaseModule::databaseRemove(const int index) {
     const auto key = g_databaseStandardItemModel->item(index, 0)->text();
     g_databaseStandardItemModel->removeRow(index);
-    // logging
-    emit appendLog(QString("%1 removed").arg(key), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 removed").arg(timestamp, key);
+    databaseIndex();
 }
 
-void DatabaseModule::databaseSwap(const int src, const int dst) const {
+void DatabaseModule::databaseRename(const int index, const QString &key) {
+    g_databaseStandardItemModel->item(index, 0)->setText(key);
+    databaseIndex();
+}
+
+void DatabaseModule::databaseSwap(const int src, const int dst) {
     const auto tmp = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, tmp);
+    databaseIndex();
     QTimer::singleShot(0, this, [this] { m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml")); });
+}
+
+void DatabaseModule::databaseWrite(const QString &key, const QString &value, bool &status) {
+    if (!m_databaseHash.contains(key)) return;
+    const auto index = m_databaseHash[key];
+    g_databaseStandardItemModel->item(index, 0)->setText(value);
+    status = true;
 }
 
 void DatabaseModule::databaseIndex() {

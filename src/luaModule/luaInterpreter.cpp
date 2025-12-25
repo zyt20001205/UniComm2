@@ -18,6 +18,7 @@
 LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
+      m_luaDataProcess(new LuaDataProcess(this)),
       m_luaIO(new LuaIO(this)),
       m_luaModbusRtu(new LuaModbusRtu(this)),
       m_luaPort(new LuaPort(this)),
@@ -30,6 +31,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     const QString workspacePath = QString("%1/?.lua").arg(m_luaSession["workspaceUrl"].toUrl().toLocalFile());
     const QString new_path = QString("%1;%2").arg(QString::fromStdString(current_path), workspacePath);
     package["path"] = new_path.toStdString();
+    // LuaDataProcess lib
+    sol::table database = m_lua.create_table();
+    database.set_function("list", [this] { return sol::as_table(m_luaDataProcess->databaseList()); });
+    m_lua["database"] = database;
+    connect(m_luaDataProcess, &LuaDataProcess::listDatabase, this, &LuaInterpreter::listDatabase);
     // LuaIO lib
     sol::table io = m_lua.create_table();
     io.set_function("log", [this](const sol::variadic_args &args) { m_luaIO->log(args); });

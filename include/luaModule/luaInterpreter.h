@@ -9,6 +9,7 @@
 class QEventLoop;
 class QStandardItemModel;
 
+class LuaDataProcess;
 class LuaIO;
 class LuaModbusRtu;
 class LuaPort;
@@ -35,11 +36,13 @@ signals:
 
     void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 
+    void listDatabase(QSet<QString> &databaseSet);
+
     void appendLog(const QString &message, const QString &level);
 
     void newMessageDialog(const QString &threadId, const QString &text, const QEventLoop *eventloop) const;
 
-    void listPort(QSet<QString> &portList);
+    void listPort(QSet<QString> &portSet);
 
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
@@ -54,6 +57,7 @@ private:
 
     sol::state m_lua{};
     QVariantMap m_luaSession{};
+    LuaDataProcess *m_luaDataProcess{};
     LuaIO *m_luaIO{};
     LuaModbusRtu *m_luaModbusRtu{};
     LuaPort *m_luaPort{};
