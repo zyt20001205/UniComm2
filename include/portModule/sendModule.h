@@ -24,7 +24,9 @@ public:
 
     void sendConfigSave() const;
 
-    static void commandSend(const QString &txText);
+    Q_INVOKABLE void configLoad() const;
+
+    Q_INVOKABLE void commandSend();
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -40,6 +42,11 @@ private:
 
     QJsonArray m_sendConfig{};
     QQuickWidget *m_sendWidget{};
+    QObject *m_nameComboBox{};
+    QObject *m_overrideSwitch{};
+    QObject *m_formatComboBox{};
+    QObject *m_suffixComboBox{};
+    QObject *m_sendTextField{};
 
     QLineEdit *m_lineEdit{};
     QTableWidget *m_tableWidget{};

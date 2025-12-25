@@ -103,8 +103,8 @@ void SerialPort::close() {
 
 bool SerialPort::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!txFormat.isEmpty()) m_portConfig["txFormat"].toString() = txFormat;
-    if (!txSuffix.isEmpty()) m_portConfig["txSuffix"].toString() = txSuffix;
+    if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
+    if (!txSuffix.isEmpty()) m_portConfig["txSuffix"] = txSuffix;
     // 1: remove space if tx format is hex
     QByteArray f_txData = txData;
     if (m_portConfig["txFormat"].toString() == "hex") f_txData = QByteArray::fromHex(txData);
@@ -117,7 +117,7 @@ bool SerialPort::write(const QByteArray &txData, const QString &txFormat, const 
 
 QByteArray SerialPort::read(const int timeout, const int length, const QString &rxFormat) {
     QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"].toString() = rxFormat;
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
     QByteArray rxData;
     // async mode
     if (timeout == 0) {
