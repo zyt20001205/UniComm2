@@ -26,7 +26,7 @@ public:
 
     Q_INVOKABLE void databaseRemove(int index);
 
-    Q_INVOKABLE void databaseRemove(int src, int dst) const;
+    Q_INVOKABLE void databaseSwap(int src, int dst) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);

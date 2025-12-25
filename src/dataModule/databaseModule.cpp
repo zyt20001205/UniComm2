@@ -62,7 +62,7 @@ void DatabaseModule::databaseRemove(const int index) {
     qDebug() << QString("[%1] %2 removed").arg(timestamp, key);
 }
 
-void DatabaseModule::databaseRemove(const int src, const int dst) const {
+void DatabaseModule::databaseSwap(const int src, const int dst) const {
     const auto tmp = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, tmp);
     QTimer::singleShot(0, this, [this] { m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml")); });
