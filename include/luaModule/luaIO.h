@@ -22,8 +22,6 @@ public:
 
     void message(const std::string &text) const;
 
-    void textField() const;
-
     static void speak(const std::string &text);
 
 signals:
