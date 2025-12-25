@@ -125,8 +125,7 @@ Item {
             width: parent.width
             placeholderText: qsTr("true")
 
-            Keys.onReturnPressed: breakpointModuleConditionDialog.accept()
-            Keys.onEnterPressed: breakpointModuleConditionDialog.accept()
+            onAccepted: breakpointModuleConditionDialog.accept()
             Keys.onEscapePressed: breakpointModuleConditionDialog.reject()
         }
     }
@@ -269,8 +268,7 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter script name:")
 
-            Keys.onReturnPressed: explorerModuleScriptNewDialog.accept()
-            Keys.onEnterPressed: explorerModuleScriptNewDialog.accept()
+            onAccepted: explorerModuleScriptNewDialog.accept()
             Keys.onEscapePressed: explorerModuleScriptNewDialog.reject()
         }
     }
@@ -298,8 +296,7 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter folder name:")
 
-            Keys.onReturnPressed: explorerModuleFolderNewDialog.accept()
-            Keys.onEnterPressed: explorerModuleFolderNewDialog.accept()
+            onAccepted: explorerModuleFolderNewDialog.accept()
             Keys.onEscapePressed: explorerModuleFolderNewDialog.reject()
         }
     }
@@ -645,6 +642,7 @@ Item {
 
             Keys.onReturnPressed: logModuleHeightDialog.accept()
             Keys.onEnterPressed: logModuleHeightDialog.accept()
+            Keys.onEscapePressed: logModuleHeightDialog.reject()
         }
     }
 
@@ -885,8 +883,7 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter new name:")
 
-            Keys.onReturnPressed: systemModuleRenameDialog.accept()
-            Keys.onEnterPressed: systemModuleRenameDialog.accept()
+            onAccepted: systemModuleRenameDialog.accept()
             Keys.onEscapePressed: systemModuleRenameDialog.reject()
         }
     }

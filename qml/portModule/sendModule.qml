@@ -91,8 +91,7 @@ Item {
                 id: sendTextField
                 Layout.fillWidth: true
 
-                Keys.onReturnPressed: sendModule.commandSend()
-                Keys.onEnterPressed: sendModule.commandSend()
+                onAccepted: sendModule.commandSend()
             }
         }
     }
