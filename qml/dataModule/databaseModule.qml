@@ -102,7 +102,6 @@ Item {
         height: parent.height
         alternatingRows: false
         clip: true
-        // editTriggers: TableView.NoEditTriggers
         rowSpacing: 1; columnSpacing: 1
         model: standardItemModel
         visible: modelVisible
