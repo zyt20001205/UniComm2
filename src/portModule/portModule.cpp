@@ -44,7 +44,6 @@ void PortModule::propertySet(const QVariantMap &objects) {
     m_portWidget->rootContext()->setContextProperty("standardItemModel", g_portStandardItemModel);
     m_portWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
-    m_rootItem = m_portWidget->rootObject();
 }
 
 void PortModule::portConfigSave() {
