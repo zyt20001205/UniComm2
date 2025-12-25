@@ -35,11 +35,13 @@ public:
 
     Q_INVOKABLE void portRemove(int index);
 
+    Q_INVOKABLE void portSwap(int src, int dst) const;
+
     void portEdit(const QString &oldPortName, const QJsonObject &portConfig);
 
     Q_INVOKABLE void portToggle(int index);
 
-    void portRefresh(const QString &portName, bool status) const;
+    static void portRefresh(const QString &portName, bool status) ;
 
     QHash<QString, BasePort *> m_portHash{};
 signals:

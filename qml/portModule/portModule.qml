@@ -35,13 +35,6 @@ Item {
         interactive: false
         movableRows: true
         visible: modelVisible
-
-        Rectangle {
-            anchors.fill: parent
-            color: "#e0e0e0"
-            z: -1
-        }
-
         delegate: VerticalHeaderViewDelegate {
             id: verticalHeaderViewDelegate
             implicitWidth: verticalHeaderView.width;
@@ -62,6 +55,39 @@ Item {
                 onHoveredChanged: cursorShape = Qt.OpenHandCursor
             }
         }
+        property var moves: []
+
+        Rectangle {
+            anchors.fill: parent
+            color: "#e0e0e0"
+            z: -1
+        }
+
+        Timer {
+            id: timer
+            interval: 10
+            onTriggered: {
+                let index = -1
+                let distance = -1
+                let currentDistance;
+                for (let i = 0; i < verticalHeaderView.moves.length; ++i) {
+                    let move = verticalHeaderView.moves[i]
+                    currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                    if (currentDistance > distance) {
+                        distance = currentDistance
+                        index = i
+                    }
+                }
+                let move = verticalHeaderView.moves[index]
+                portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
+                verticalHeaderView.moves = []
+            }
+        }
+
+        onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+            moves.push({oldVisualIndex, newVisualIndex})
+            timer.restart()
+        }
     }
 
     TableView {
@@ -75,13 +101,6 @@ Item {
         model: standardItemModel
         visible: modelVisible
         contentWidth: width
-
-        Rectangle {
-            anchors.fill: parent
-            color: "#e0e0e0"
-            z: -1
-        }
-
         delegate: SwitchDelegate {
             implicitWidth: tableView.width
             checked: model.whatsThis
@@ -105,6 +124,12 @@ Item {
                     portMenu.popup()
                 }
             }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            color: "#e0e0e0"
+            z: -1
         }
 
         TapHandler {

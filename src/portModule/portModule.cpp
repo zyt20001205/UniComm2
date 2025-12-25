@@ -146,11 +146,16 @@ void PortModule::portRemove(const int index) {
     }, Qt::BlockingQueuedConnection);
     delete port;
     m_portHash.remove(portName);
-    m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
     // logging
     emit appendLog(QString("%1 removed").arg(portName), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
+}
+
+void PortModule::portSwap(const int src, const int dst) const {
+    const auto tmp = g_portStandardItemModel->takeRow(src);
+    g_portStandardItemModel->insertRow(dst, tmp);
+    QTimer::singleShot(0, this, [this] { m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml")); });
 }
 
 void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {
@@ -182,7 +187,7 @@ void PortModule::portToggle(const int index) {
     portRefresh(portName, status);
 }
 
-void PortModule::portRefresh(const QString &portName, const bool status) const {
+void PortModule::portRefresh(const QString &portName, const bool status) {
     for (int row = 0; row < g_portStandardItemModel->rowCount(); ++row) {
         auto *item = g_portStandardItemModel->item(row, 0);
         if (item->text() == portName) {
