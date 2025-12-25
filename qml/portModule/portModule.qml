@@ -154,14 +154,5 @@ Item {
             modelVisible = false
         }
     }
-
-    function getOrder() {
-        const portList = [];
-        for (let i = 0; i < tableView.rows; i++) {
-            const item = tableView.itemAtCell(Qt.point(0, i))
-            portList.push(item.text)
-        }
-        return portList
-    }
 }
 
