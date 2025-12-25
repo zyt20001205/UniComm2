@@ -252,10 +252,42 @@ Item {
         }
     }
 
+    Dialog {
+        id: databaseModuleIntervalDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Set Timer Interval")
+        standardButtons: Dialog.Ok
+        property int timerInterval
+
+        onAboutToShow: {
+            databaseModuleIntervalSpinBox.value = databaseModuleIntervalDialog.timerInterval
+            databaseModuleIntervalSpinBox.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: databaseModule.intervalSet(databaseModuleIntervalSpinBox.value)
+
+        SpinBox {
+            id: databaseModuleIntervalSpinBox
+            editable: true
+            width: parent.width
+            from: 0
+            to: 1000
+
+            Keys.onReturnPressed: databaseModuleIntervalDialog.accept()
+            Keys.onEnterPressed: databaseModuleIntervalDialog.accept()
+            Keys.onEscapePressed: databaseModuleIntervalDialog.reject()
+        }
+    }
+
     Menu {
         id: databaseModuleTableMenu
         property int databaseIndex
         property string databaseKey
+        property int timerInterval
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -300,10 +332,22 @@ Item {
                 }
             }
         }
+
+        MenuItem {
+            text: qsTr("Timer")
+            // icon.source: "qrc:/icon/rename.svg"
+            // icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                databaseModuleIntervalDialog.timerInterval = databaseModuleTableMenu.timerInterval
+                databaseModuleIntervalDialog.open()
+            }
+        }
     }
 
     Menu {
         id: databaseModuleRootMenu
+        property int timerInterval
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -317,6 +361,17 @@ Item {
                 databaseModuleNameDialog.databaseIndex = -1
                 databaseModuleNameDialog.databaseKey = ""
                 databaseModuleNameDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Timer")
+            // icon.source: "qrc:/icon/rename.svg"
+            // icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                databaseModuleIntervalDialog.timerInterval = databaseModuleRootMenu.timerInterval
+                databaseModuleIntervalDialog.open()
             }
         }
     }

@@ -32,12 +32,15 @@ public:
 
     void databaseWrite(const QString &key, const QString &value, bool &status);
 
+    Q_INVOKABLE void intervalSet(int interval);
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
 private:
     void databaseIndex();
 
+    int m_interval{};
     QQuickWidget *m_databaseWidget{};
     QHash<QString, int> m_databaseHash{};
 };

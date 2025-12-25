@@ -110,9 +110,23 @@ Item {
             implicitWidth: tableView.width / 2; implicitHeight: 32
             text: model.display
             font.pixelSize: 16
-
             background: Rectangle {
+                id: backgroundRect
                 color: "white"
+            }
+
+            onTextChanged: {
+                if (timerInterval !== 0 && column === 1) {
+                    backgroundRect.color = "yellow"
+                    timer.restart()
+                }
+            }
+
+            Timer {
+                id: timer
+                interval: timerInterval
+
+                onTriggered: {backgroundRect.color = "white"}
             }
 
             Rectangle {
@@ -122,7 +136,9 @@ Item {
                 color: "#f5f5f5"
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
-                    NumberAnimation { duration: 150 }
+                    NumberAnimation {
+                        duration: 150
+                    }
                 }
             }
 
@@ -138,6 +154,7 @@ Item {
                     tableMenu.databaseIndex = model.row
                     const index = tableView.model.index(row, 0);
                     tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
+                    tableMenu.timerInterval = timerInterval
                     tableMenu.popup()
                 }
             }
@@ -152,7 +169,10 @@ Item {
         TapHandler {
             acceptedButtons: Qt.RightButton
 
-            onSingleTapped: rootMenu.popup()
+            onSingleTapped: {
+                rootMenu.timerInterval = timerInterval
+                rootMenu.popup()
+            }
         }
     }
 
