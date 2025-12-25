@@ -14,7 +14,7 @@ LuaIO::LuaIO(QObject *parent)
 }
 
 void LuaIO::log(const sol::variadic_args &args) {
-    std::function<void(const QVariant&)> logging = [&](const QVariant& var) {
+    std::function<void(const QVariant &)> logging = [&](const QVariant &var) {
         if (var.typeId() == QMetaType::QVariantMap) {
             QVariantMap map = var.toMap();
             if (map.isEmpty()) {
@@ -22,8 +22,8 @@ void LuaIO::log(const sol::variadic_args &args) {
                 return;
             }
             for (auto it = map.begin(); it != map.end(); ++it) {
-                const QString& key = it.key();
-                const QVariant& value = it.value();
+                const QString &key = it.key();
+                const QVariant &value = it.value();
                 if (value.typeId() == QMetaType::QVariantMap) {
                     emit appendLog(QString("%1: {").arg(key), "info");
                     logging(value);
@@ -44,22 +44,11 @@ void LuaIO::log(const sol::variadic_args &args) {
 }
 
 void LuaIO::message(const std::string &text) const {
-    auto *eventLoop = new QEventLoop();
-    emit newMessageDialog(QString::fromStdString(text), eventLoop);
-    eventLoop->exec();
-    delete eventLoop;
+    auto *eventloop = new QEventLoop();
+    emit newMessageDialog(QString::fromStdString(text), eventloop);
+    eventloop->exec();
+    delete eventloop;
 }
-
-// std::string LuaIO::inputDialog() {
-//     bool ok = false;
-//     QString input;
-//     QMetaObject::invokeMethod(qApp, [&ok, &input] {
-//         QWidget *parent = QApplication::activeWindow();
-//         input = QInputDialog::getText(parent, "Input Dialog", "input:", QLineEdit::Normal, QString(), &ok);
-//     }, Qt::BlockingQueuedConnection);
-//     if (!ok) return "";
-//     return input.toStdString();
-// }
 
 void LuaIO::speak(const std::string &text) {
     QTextToSpeech tts;
@@ -74,7 +63,7 @@ void LuaIO::speak(const std::string &text) {
     tts.setRate(0.0);
     tts.setVolume(1.0);
     QEventLoop loop;
-    connect(&tts, &QTextToSpeech::stateChanged, [&](const QTextToSpeech::State state) {if (state == QTextToSpeech::Ready) loop.quit();});
+    connect(&tts, &QTextToSpeech::stateChanged, [&](const QTextToSpeech::State state) { if (state == QTextToSpeech::Ready) loop.quit(); });
     tts.say(QString::fromStdString(text));
     loop.exec();
 }

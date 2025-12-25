@@ -83,7 +83,9 @@ Item {
             "text": text
         });
         messageDialog.open()
-        messageDialog.closed.connect(() => {eventloop.quit()});
+        messageDialog.closed.connect(() => {
+            eventloop.quit()
+        });
     }
 
     ToolTip {

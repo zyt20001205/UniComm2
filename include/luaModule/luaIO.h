@@ -1,6 +1,7 @@
 #ifndef UNICOMM_LUAIO_H
 #define UNICOMM_LUAIO_H
 
+#include <QHash>
 #include <QObject>
 
 class QEventLoop;
@@ -21,7 +22,7 @@ public:
 
     void message(const std::string &text) const;
 
-    // std::string inputDialog();
+    void textField() const;
 
     static void speak(const std::string &text);
 
