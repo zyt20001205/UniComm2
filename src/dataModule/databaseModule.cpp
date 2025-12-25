@@ -74,7 +74,7 @@ void DatabaseModule::databaseSwap(const int src, const int dst) {
 void DatabaseModule::databaseWrite(const QString &key, const QString &value, bool &status) {
     if (!m_databaseHash.contains(key)) return;
     const auto index = m_databaseHash[key];
-    g_databaseStandardItemModel->item(index, 0)->setText(value);
+    g_databaseStandardItemModel->item(index, 1)->setText(value);
     status = true;
 }
 

@@ -13,8 +13,12 @@ public:
 
     std::vector<std::string> databaseList();
 
+    void databaseWrite(const std::string &key, const std::string &value);
+
 signals:
     void listDatabase(QSet<QString> &databaseSet);
+
+    void writeDatabase(const QString &key, const QString &value, bool &status);
 };
 
 // int lua_databaseList(lua_State *L);

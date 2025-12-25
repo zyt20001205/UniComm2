@@ -44,6 +44,8 @@ signals:
 
     void listDatabase(QSet<QString> &databaseSet);
 
+    void writeDatabase(const QString &key, const QString &value, bool &status);
+
     void appendLog(const QString &message, const QString &level);
 
     void listPort(QSet<QString> &portSet);

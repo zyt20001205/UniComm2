@@ -1,8 +1,5 @@
 #include "luaModule/luaDataProcess.h"
 
-#include "dataModule/databaseModule.h"
-#include "dataModule/datatableModule.h"
-#include "dataModule/dataplotModule.h"
 #include "globals.h"
 #include "utils/luaUtils.h"
 
@@ -18,6 +15,14 @@ std::vector<std::string> LuaDataProcess::databaseList() {
         databaseList.push_back(key.toStdString());
     }
     return databaseList;
+}
+
+void LuaDataProcess::databaseWrite(const std::string &key, const std::string &value) {
+    bool status = false;
+    emit writeDatabase(QString::fromStdString(key), QString::fromStdString(value), status);
+    if (!status) {
+        throw sol::error("failed to write to database key: " + key);
+    }
 }
 
 // int lua_databaseList(lua_State *L) {

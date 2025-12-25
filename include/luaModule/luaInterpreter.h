@@ -38,6 +38,8 @@ signals:
 
     void listDatabase(QSet<QString> &databaseSet);
 
+    void writeDatabase(const QString &key, const QString &value, bool &status);
+
     void appendLog(const QString &message, const QString &level);
 
     void newMessageDialog(const QString &threadId, const QString &text, const QEventLoop *eventloop) const;
