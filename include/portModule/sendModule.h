@@ -26,7 +26,7 @@ public:
 
     Q_INVOKABLE void configLoad() const;
 
-    Q_INVOKABLE void commandSend();
+    Q_INVOKABLE void commandSend() const;
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
