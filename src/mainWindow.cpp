@@ -74,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
+    m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
     // m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
@@ -96,6 +97,13 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_breakpointModule->propertySet(breakpointObjects);
 
+    const QVariantMap databaseObjects = {
+        {"databaseModuleNameDialog", objects["databaseModuleNameDialog"]},
+        {"databaseModuleTableMenu", objects["databaseModuleTableMenu"]},
+        {"databaseModuleRootMenu", objects["databaseModuleRootMenu"]}
+    };
+    m_databaseModule->propertySet(databaseObjects);
+    
     const QVariantMap debugObjects = {
         //
     };
@@ -121,7 +129,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_logModule->propertySet(logObjects);
 
     const QVariantMap portObjects = {
-        {"portModulePortMenu", objects["portModulePortMenu"]},
+        {"portModuleTableMenu", objects["portModuleTableMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
     m_portModule->propertySet(portObjects);
@@ -247,6 +255,8 @@ void MainWindow::moduleInit() {
     connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
 
+    connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
+    
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
@@ -286,7 +296,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] { m_portModule->portInsert(-1, QJsonObject()); });
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] {
         m_databaseModule->databaseInsert(-1, QString());
-        m_databaseModule->databaseAnnotate();
     });
     connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, [this] {
         m_datatableModule->datatableInsert(-1, QString());
@@ -319,7 +328,8 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
     connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
 
-    connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
+
+    
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
     connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);

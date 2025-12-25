@@ -37,7 +37,7 @@ PortModule::PortModule()
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
-    m_portWidget->rootContext()->setContextProperty("portMenu", qvariant_cast<QObject *>(objects["portModulePortMenu"]));
+    m_portWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["portModuleTableMenu"]));
     m_portWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));
 
     m_portWidget->rootContext()->setContextProperty("portModule", this);

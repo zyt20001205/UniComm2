@@ -16,40 +16,26 @@ public:
 
     ~DatabaseModule() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void databaseConfigSave() const;
 
-    QVariantList databaseList() const;
+    void databaseList(QSet<QString> &databaseList) const;
 
-    void databaseInsert(int visualIndex, QString key = QString());
+    Q_INVOKABLE void databaseInsert(int index, const QString &key);
 
-    void databaseAnnotate() const;
+    Q_INVOKABLE void databaseRemove(int index);
 
-    bool databaseWrite(const QString &key, const QString &value) const;
-
-    void databaseClear() const;
-
-    QHash<QString, int> m_databaseHash{};
+    Q_INVOKABLE void databaseRemove(int src, int dst) const;
 
 signals:
     void appendLog(const QString &message, const QString &level);
 
-protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
 private:
-    void databaseRemove(int visualIndex);
+    void databaseIndex();
 
-    void databaseRename(int visualIndex);
-
-    void databaseSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex);
-
-    QJsonArray m_databaseConfig{};
     QQuickWidget *m_databaseWidget{};
-    QStandardItemModel *m_databaseModel{};
-    QTableWidget *m_tableWidget{};
-    int m_version = 1;
+    QHash<QString, int> m_databaseHash{};
 };
 
 #endif //UNICOMM_DATABASE_H

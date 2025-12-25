@@ -14,7 +14,7 @@ int lua_databaseList(lua_State *L) {
     // start operation
     QVariantList variantList{};
     QMetaObject::invokeMethod(g_mainWindow, [&variantList] {
-        variantList = g_database->databaseList();
+        // variantList = g_database->databaseList();
     }, Qt::BlockingQueuedConnection);
     lua_pushqvariant(L, variantList);
     return 1;
@@ -32,7 +32,7 @@ int lua_databaseWrite(lua_State *L) {
     const QString key = param1;
     const QString value = param2;
     QMetaObject::invokeMethod(g_mainWindow, [&status, key, value] {
-        status = g_database->databaseWrite(key, value);
+        // status = g_database->databaseWrite(key, value);
     }, Qt::BlockingQueuedConnection);
     if (!status) {
         luaL_error(L, "key not found in database");
@@ -46,7 +46,7 @@ int lua_databaseClear(lua_State *L) {
         luaL_error(L, "unexpected number of arguments");
     // convert arguments
     QMetaObject::invokeMethod(g_mainWindow, [] {
-        g_database->databaseClear();
+        // g_database->databaseClear();
     }, Qt::QueuedConnection);
     return 0;
 }

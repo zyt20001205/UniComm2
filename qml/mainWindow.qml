@@ -216,6 +216,89 @@ Item {
         }
     }
 
+    // database module
+    Dialog {
+        id: databaseModuleNameDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Enter Key Name")
+        standardButtons: Dialog.Ok
+        property int databaseIndex
+
+        onAboutToShow: {
+            databaseModuleNameTextField.text = ""
+            databaseModuleNameTextField.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: databaseModule.databaseInsert(databaseModuleNameDialog.databaseIndex, databaseModuleNameTextField.text)
+
+        TextField {
+            id: databaseModuleNameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter key:")
+
+            onAccepted: databaseModuleNameDialog.accept()
+            Keys.onEscapePressed: databaseModuleNameDialog.reject()
+        }
+    }
+
+    Menu {
+        id: databaseModuleTableMenu
+        property int databaseIndex
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Insert")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                databaseModuleNameDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
+                databaseModuleNameDialog.open()
+            }
+        }
+
+        Menu {
+            title: qsTr("Delete")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    databaseModule.databaseRemove(databaseModuleTableMenu.portIndex)
+                    progress = 0
+                    databaseModuleTableMenu.close()
+                }
+            }
+        }
+    }
+
+    Menu {
+        id: databaseModuleRootMenu
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("New")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                databaseModuleNameDialog.databaseIndex = -1
+                databaseModuleNameDialog.open()
+            }
+        }
+    }
+
     // debug module
 
     // diagnostics module
@@ -686,7 +769,7 @@ Item {
 
     // port module
     Menu {
-        id: portModulePortMenu
+        id: portModuleTableMenu
         property int portIndex
 
         onAboutToShow: widgetCount += 1
@@ -705,7 +788,7 @@ Item {
             icon.source: "qrc:/icon/edit.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: portModule.portSetting(portModulePortMenu.portIndex)
+            onTriggered: portModule.portSetting(portModuleTableMenu.portIndex)
         }
 
         Menu {
@@ -718,9 +801,9 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    portModule.portRemove(portModulePortMenu.portIndex)
+                    portModule.portRemove(portModuleTableMenu.portIndex)
                     progress = 0
-                    portModulePortMenu.close()
+                    portModuleTableMenu.close()
                 }
             }
         }
@@ -916,6 +999,10 @@ Item {
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
 
+            "databaseModuleNameDialog": databaseModuleNameDialog,
+            "databaseModuleTableMenu": databaseModuleTableMenu,
+            "databaseModuleRootMenu": databaseModuleRootMenu,
+
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
             "explorerModuleScriptMenu": explorerModuleScriptMenu,
@@ -926,7 +1013,7 @@ Item {
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
 
-            "portModulePortMenu": portModulePortMenu,
+            "portModuleTableMenu": portModuleTableMenu,
             "portModuleRootMenu": portModuleRootMenu,
 
             "scriptModuleEditorMenu": scriptModuleEditorMenu,

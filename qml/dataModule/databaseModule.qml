@@ -17,11 +17,17 @@ Item {
 
             Button {
                 flat: true
-                text: qsTr("Click to create port.")
+                text: qsTr("Click to create key.")
                 font.pixelSize: 16
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                icon.source: "qrc:/icon/database.svg"
+                icon.width: 16; icon.height: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                onClicked: portModule.portSetting()
+                onClicked: {
+                    nameDialog.databaseIndex = -1
+                    nameDialog.open()
+                }
             }
         }
     }
@@ -29,7 +35,7 @@ Item {
     VerticalHeaderView {
         id: verticalHeaderView
         anchors.left: parent.left
-        width: 32; height: parent.height
+        width: 24; height: parent.height
         syncView: tableView
         clip: true
         interactive: false
@@ -41,7 +47,7 @@ Item {
             padding: 0
 
             contentItem: Rectangle {
-                width: 32; height: 32
+                width: 24; height: 24
                 color: "white"
 
                 Image {
@@ -79,7 +85,7 @@ Item {
                     }
                 }
                 let move = verticalHeaderView.moves[index]
-                portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
+                databaseModule.databaseSwap(move.oldVisualIndex, move.newVisualIndex)
                 verticalHeaderView.moves = []
             }
         }
@@ -101,15 +107,13 @@ Item {
         model: standardItemModel
         visible: modelVisible
         contentWidth: width
-        delegate: SwitchDelegate {
+        delegate: ItemDelegate  {
             implicitWidth: tableView.width
-            checked: model.whatsThis
             text: model.display
+
             background: Rectangle {
                 color: "white"
             }
-
-            onClicked: portModule.portToggle(model.row)
 
             HoverHandler {
                 onHoveredChanged: cursorShape = Qt.PointingHandCursor
@@ -120,7 +124,7 @@ Item {
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                 onSingleTapped: {
-                    tableMenu.portIndex = model.row
+                    tableMenu.databaseIndex = model.row
                     tableMenu.popup()
                 }
             }
