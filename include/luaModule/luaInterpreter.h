@@ -6,6 +6,7 @@
 #include <QUrl>
 #include <sol/state.hpp>
 
+class QEventLoop;
 class QStandardItemModel;
 
 class LuaIO;
@@ -35,6 +36,8 @@ signals:
     void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 
     void appendLog(const QString &message, const QString &level);
+
+    void newMessageDialog(const QString &threadId, const QString &text, const QEventLoop *eventloop) const;
 
     void listPort(QSet<QString> &portList);
 

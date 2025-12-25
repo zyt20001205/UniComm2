@@ -1,14 +1,11 @@
 #include "scriptModule/codeDebug/threadpoolModule.h"
 
 #include <QDir>
-#include <QEventLoop>
 #include <QFile>
 #include <QHeaderView>
-#include <QMessageBox>
 #include <QQmlContext>
-#include <QQuickWidget>
+#include <QQuickItem>
 #include <QStandardItemModel>
-#include <QTableWidget>
 #include <QThread>
 #include <QTimer>
 
@@ -25,6 +22,8 @@ ThreadpoolModule::ThreadpoolModule()
 }
 
 void ThreadpoolModule::propertySet(const QVariantMap &objects) {
+    const auto mainObject = qvariant_cast<QObject *>(objects["mainItem"]);
+    m_mainItem = qobject_cast<QQuickItem *>(mainObject);
     m_threadpoolWidget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
 
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};
@@ -43,8 +42,8 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     luaSession.insert("mode", mode);
     luaSession.insert("workspaceUrl", g_workspaceUrl);
     luaSession.insert("scriptUrl", scriptUrl);
+    luaSession.insert("threadId", threadId);
     if (mode == LUATHREAD_DEBUG) {
-        luaSession.insert("threadId", threadId);
         luaSession.insert("currentUrl", scriptUrl);
         luaSession.insert("state", DEBUG_RESUME);
         luaSession.insert("baseDepth", 0);
@@ -58,6 +57,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
+    connect(interpreter, &LuaInterpreter::newMessageDialog, this, &ThreadpoolModule::messageDialogNew);
     connect(interpreter, &LuaInterpreter::listPort, this, &ThreadpoolModule::listPort, Qt::BlockingQueuedConnection);
     interpreter->moveToThread(worker);
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
@@ -145,4 +145,8 @@ void ThreadpoolModule::threadAppend(const int status, const QString &name, const
             }
         }
     });
+}
+
+void ThreadpoolModule::messageDialogNew(const QString &threadId, const QString &text, const QEventLoop *eventloop) const {
+    QMetaObject::invokeMethod(m_mainItem, "messageDialogNew", Q_ARG(QVariant, threadId), Q_ARG(QVariant, text), Q_ARG(QVariant, QVariant::fromValue(eventloop)));
 }

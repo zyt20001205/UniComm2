@@ -2,6 +2,7 @@
 
 #include <QEventLoop>
 #include <QTextToSpeech>
+#include <QThread>
 #include <QVariant>
 #include <sol/object.hpp>
 #include <sol/variadic_args.hpp>
@@ -40,6 +41,13 @@ void LuaIO::log(const sol::variadic_args &args) {
     for (const auto &parsed: parsedList) {
         logging(parsed);
     }
+}
+
+void LuaIO::message(const std::string &text) const {
+    auto *eventLoop = new QEventLoop();
+    emit newMessageDialog(QString::fromStdString(text), eventLoop);
+    eventLoop->exec();
+    delete eventLoop;
 }
 
 // std::string LuaIO::inputDialog() {

@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+class QEventLoop;
+
 namespace sol {
     struct variadic_args;
 }
@@ -17,12 +19,16 @@ public:
 
     void log(const sol::variadic_args &args);
 
+    void message(const std::string &text) const;
+
     // std::string inputDialog();
 
-    void speak(const std::string &text);
+    static void speak(const std::string &text);
 
 signals:
     void appendLog(const QString &message, const QString &level);
+
+    void newMessageDialog(const QString &text, const QEventLoop *eventloop) const;
 };
 
 #endif //UNICOMM_LUAIO_H

@@ -33,9 +33,13 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaIO lib
     sol::table io = m_lua.create_table();
     io.set_function("log", [this](const sol::variadic_args &args) { m_luaIO->log(args); });
-    io.set_function("speak", [this](const std::string &text) { m_luaIO->speak(text); });
+    io.set_function("message", [this](const std::string &text) { m_luaIO->message(text); });
+    io.set_function("speak", [](const std::string &text) { LuaIO::speak(text); });
     m_lua["io"] = io;
     connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
+    connect(m_luaIO, &LuaIO::newMessageDialog, this, [this](const QString &text,const QEventLoop *eventloop) {
+        emit newMessageDialog(m_luaSession["threadId"].toString(), text, eventloop);
+    });
     // LuaModbusRtu lib
     sol::table modbusRtu = m_lua.create_table();
     modbusRtu.set_function("readHoldingRegisters",

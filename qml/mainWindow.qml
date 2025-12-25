@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 Item {
+    id: mainItem
     anchors.centerIn: parent
 
     // overlay control
@@ -38,7 +39,6 @@ Item {
         anchors.centerIn: parent
         width: 400
         modal: true
-        title: ""
         standardButtons: Dialog.Abort
         topPadding: 30; bottomPadding: 20
 
@@ -50,6 +50,40 @@ Item {
             width: parent.width
             indeterminate: true
         }
+    }
+
+    Component {
+        id: mainWindowMessageComponent
+
+        Dialog {
+            id: mainWindowMessageDialog
+            parent: Overlay.overlay
+            anchors.centerIn: parent
+            width: 400
+            modal: true
+            standardButtons: Dialog.Ok
+            property string text
+            topPadding: 30; bottomPadding: 20
+
+            onAboutToShow: widgetCount += 1
+            onClosed: {
+                widgetCount -= 1
+                destroy()
+            }
+
+            Label {
+                text: mainWindowMessageDialog.text
+            }
+        }
+    }
+
+    function messageDialogNew(title, text, eventloop) {
+        const messageDialog = mainWindowMessageComponent.createObject(mainItem, {
+            "title": title,
+            "text": text
+        });
+        messageDialog.open()
+        messageDialog.closed.connect(() => {eventloop.quit()});
     }
 
     ToolTip {
@@ -874,6 +908,7 @@ Item {
 
     Component.onCompleted: {
         const objects = {
+            "mainItem": mainItem,
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowBusyDialog": mainWindowBusyDialog,
             "mainWindowTooltip": mainWindowTooltip,

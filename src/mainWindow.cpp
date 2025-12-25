@@ -148,6 +148,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_systemModule->propertySet(systemObjects);
 
     const QVariantMap threadpoolObjects = {
+        {"mainItem", objects["mainItem"]},
         {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}
     };
     m_threadpoolModule->propertySet(threadpoolObjects);
