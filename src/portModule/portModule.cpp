@@ -105,20 +105,10 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
         }
         case SCREEN: {
             port = new Screen(portConfig);
-            // connect(m_port, &BasePort::refreshPort, this, [this](const bool status) {
-            //     m_portToggleButton->setChecked(status);
-            //     m_pixmapPreview->setVisible(status);
-            // });
-            // connect(m_port, &BasePort::showPreview, m_pixmapPreview, &PixmapPreview::previewShow);
             break;
         }
         case CAMERA: {
             port = new Camera(portConfig);
-            // connect(m_port, &BasePort::refreshPort, this, [this](const bool status) {
-            //     m_portToggleButton->setChecked(status);
-            //     m_pixmapPreview->setVisible(status);
-            // });
-            // connect(m_port, &BasePort::showPreview, m_pixmapPreview, &PixmapPreview::previewShow);
             break;
         }
         default: {

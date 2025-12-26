@@ -19,15 +19,17 @@ Item {
                 flat: true
                 text: qsTr("Click to create key.")
                 font.pixelSize: 16
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                icon.source: "qrc:/icon/database.svg"
-                icon.width: 16; icon.height: 16
                 Layout.alignment: Qt.AlignVCenter
 
                 onClicked: {
                     nameDialog.databaseIndex = -1
                     nameDialog.open()
                 }
+            }
+
+            Image {
+                source: "qrc:/icon/database.svg"
+                Layout.alignment: Qt.AlignVCenter
             }
         }
     }

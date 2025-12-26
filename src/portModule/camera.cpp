@@ -112,6 +112,5 @@ QByteArray Camera::read(const int timeout, const int length, const QString &rxFo
         const QString text = ocr(processed, m_charset);
         resultList.append(text);
     }
-    emit showPreview(pixmapList);
     // return resultList.join("\x1E");
 }

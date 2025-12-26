@@ -1,5 +1,6 @@
 #include "portModule/screen.h"
 
+#include <QLabel>
 #include <QScreen>
 
 #include "globals.h"
@@ -8,11 +9,7 @@
 // Screen public
 Screen::Screen(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_portConfig(portConfig),
-      m_portName(portConfig["portName"].toString()),
-      m_charset(portConfig["charset"].toString()),
-      m_process(portConfig["process"].toObject()),
-      m_areaList(portConfig["areaList"].toArray()) {
+      m_portConfig(portConfig) {
 }
 
 int Screen::type() {
@@ -24,23 +21,20 @@ QJsonObject Screen::config() {
 }
 
 bool Screen::open() {
-    m_showPreview = true;
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(QString("%1 opened").arg(m_portName), "info");
-    emit showPreview({});
+    emit appendLog(QString("%1 opened").arg(m_portConfig["portName"].toString()), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portName);
+    qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portConfig["portName"].toString());
     return true;
 }
 
 void Screen::close() {
-    m_showPreview = false;
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(QString("%1 closed").arg(m_portName), "info");
+    emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portName);
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
 }
 
 std::unordered_map<std::string, std::string> Screen::info() {
@@ -50,47 +44,24 @@ std::unordered_map<std::string, std::string> Screen::info() {
 QByteArray Screen::read(const int timeout, const int length, const QString &rxFormat) {
     // find screen
     for (QScreen *s: QGuiApplication::screens()) {
-        if (s->name() == m_portName) {
+        if (s->name() == m_portConfig["portName"].toString()) {
             m_screen = s;
             break;
         }
     }
     if (!m_screen) return "screen not found";
     const auto shot = m_screen->grabWindow(0);
-    QList<QPixmap> pixmapList{};
-    QStringList resultList;
-    for (const QJsonValue &value: m_areaList) {
-        QJsonArray areaArray = value.toArray();
-        const int x = areaArray[0].toInt();
-        const int y = areaArray[1].toInt();
-        const int width = areaArray[2].toInt();
-        const int height = areaArray[3].toInt();
+    QStringList resultList{};
+    for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
+        QJsonArray roi = value.toArray();
+        const int x = roi[0].toInt();
+        const int y = roi[1].toInt();
+        const int width = roi[2].toInt();
+        const int height = roi[3].toInt();
         const auto rect = QRect(x, y, width, height);
         const QPixmap cropped = shot.copy(rect);
-        QPixmap processed{};
-        const int processType = m_process["processType"].toInt();
-        if (processType == RAW) {
-            processed = cropped;
-        } else {
-            switch (processType) {
-                case GAUSSIANBLUR: {
-                    const int kernalSize = m_process["thresholdValue"].toInt();
-                    processed = processGaussianBlur(cropped, kernalSize);
-                    break;
-                }
-                case THRESHOLD: {
-                    const int thresholdValue = m_process["thresholdValue"].toInt();
-                    const int thresholdType = m_process["thresholdType"].toInt();
-                    processed = processThreshold(cropped, thresholdValue, thresholdType);
-                    break;
-                }
-                default: break;
-            }
-        }
-        if (m_showPreview) pixmapList.append(processed);
-        const QString text = ocr(processed, m_charset);
+        const QString text = ocr(cropped, "eng");
         resultList.append(text);
     }
-    emit showPreview(pixmapList);
-    // return resultList.join("\x1E");
+    return resultList.join("\x1E").toUtf8();
 }

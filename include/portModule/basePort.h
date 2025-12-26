@@ -42,8 +42,6 @@ signals:
 
     void refreshPort(const QString &portName, bool status);
 
-    void showPreview(QList<QPixmap> pixmapList);
-
 private:
     QThread *m_thread{};
 };

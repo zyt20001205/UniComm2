@@ -659,17 +659,7 @@ Item {
 
                             Image {
                                 id: captureImage
-                                property var roiList: []
-
-                                TapHandler {
-                                    acceptedButtons: Qt.LeftButton
-
-                                    onTapped: {
-                                        for (let i = 0; i < captureImage.roiList.length; i++) {
-                                            captureImage.roiList[i].opacity = 0.2
-                                        }
-                                    }
-                                }
+                                property var indicatorList: []
                             }
 
                             Rectangle {
@@ -696,11 +686,11 @@ Item {
                                             captureSelection.anchorRB = position
                                             captureSelection.roi = false
                                             captureSelection.visible = false
-                                            portSetting.roiInsert(captureSelection.anchorLT.x, captureSelection.anchorLT.y, captureSelection.anchorRB.x, captureSelection.anchorRB.y)
-                                            // const roiRect = roiRectComponent.createObject(captureImage, {
-                                            //     "anchorLT": captureSelection.anchorLT,
-                                            //     "anchorRB": captureSelection.anchorRB
-                                            // });
+                                            let ix = Math.round(Math.min(captureSelection.anchorLT.x, captureSelection.anchorRB.x))
+                                            let iy = Math.round(Math.min(captureSelection.anchorLT.y, captureSelection.anchorRB.y))
+                                            let iw = Math.abs(captureSelection.anchorRB.x - captureSelection.anchorLT.x)
+                                            let ih = Math.abs(captureSelection.anchorRB.y - captureSelection.anchorLT.y)
+                                            portSetting.roiInsert(ix, iy, iw, ih)
                                             hintLabel.text = qsTr("")
                                         }
                                     }
@@ -711,30 +701,6 @@ Item {
                                     enabled: captureSelection.visible
 
                                     onTapped: captureSelection.visible = false
-                                }
-                            }
-
-                            Component {
-                                id: roiRectComponent
-
-                                Rectangle {
-                                    id: roiRect
-                                    x: Math.min(anchorLT.x, anchorRB.x); y: Math.min(anchorLT.y, anchorRB.y)
-                                    width: Math.abs(anchorRB.x - anchorLT.x); height: Math.abs(anchorRB.y - anchorLT.y)
-                                    color: "#a9d3f2"
-                                    opacity: 0.2
-                                    border.color: "#0078d4"; border.width: 1
-                                    property point anchorLT
-                                    property point anchorRB
-
-                                    TapHandler {
-                                        acceptedButtons: Qt.LeftButton
-                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                                        onTapped: roiRect.opacity = 0.8
-                                    }
-
-                                    Component.onCompleted: captureImage.roiList.push(roiRect)
                                 }
                             }
                         }
@@ -775,7 +741,7 @@ Item {
                                     ToolButton {
                                         Layout.preferredWidth: 48; Layout.preferredHeight: 48
                                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                        icon.source: "qrc:/icon/square.svg"
+                                        icon.source: "qrc:/icon/squareHint.svg"
                                         icon.width: 32; icon.height: 32
                                         ToolTip.text: qsTr("Rectangular")
                                         ToolTip.visible: hovered
@@ -798,12 +764,23 @@ Item {
                     ColumnLayout {
                         Layout.preferredWidth: 300; Layout.fillHeight: true
 
+                        RowLayout {
+
+                            Label {
+                                text: qsTr("Region of Interest")
+                                font.pixelSize: 20
+                            }
+
+                            Image {
+                                source: "qrc:/icon/roi.svg"
+                            }
+                        }
+
                         Component {
                             id: roiTableComponent
 
                             Item {
                                 anchors.fill: parent
-                                visible: modelVisible
 
                                 VerticalHeaderView {
                                     id: roiVerticalHeaderView
@@ -848,17 +825,17 @@ Item {
                                             let index = -1
                                             let distance = -1
                                             let currentDistance;
-                                            for (let i = 0; i < verticalHeaderView.moves.length; ++i) {
-                                                let move = verticalHeaderView.moves[i]
+                                            for (let i = 0; i < roiVerticalHeaderView.moves.length; ++i) {
+                                                let move = roiVerticalHeaderView.moves[i]
                                                 currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
                                                 if (currentDistance > distance) {
                                                     distance = currentDistance
                                                     index = i
                                                 }
                                             }
-                                            let move = verticalHeaderView.moves[index]
-                                            portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
-                                            verticalHeaderView.moves = []
+                                            let move = roiVerticalHeaderView.moves[index]
+                                            portSetting.roiSwap(move.oldVisualIndex, move.newVisualIndex)
+                                            roiVerticalHeaderView.moves = []
                                         }
                                     }
 
@@ -908,7 +885,7 @@ Item {
                                             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                                             onSingleTapped: {
-                                                roiMenu.databaseIndex = model.row
+                                                roiMenu.roiIndex = model.row
                                                 roiMenu.popup()
                                             }
                                         }
@@ -930,7 +907,7 @@ Item {
                                         icon.source: "qrc:/icon/delete.svg"
                                         icon.width: 16; icon.height: 16
 
-                                        onTriggered: databaseModule.databaseRemove(databaseModuleTableMenu.databaseIndex)
+                                        onTriggered: portSetting.roiRemove(roiMenu.roiIndex)
                                     }
                                 }
                             }
@@ -1110,5 +1087,49 @@ Item {
             "captureImage": captureImage
         };
         portSetting.propertyGet(objects)
+    }
+
+    function roiReload() {
+        roiTableLoader.active = false
+        roiTableLoader.active = true
+    }
+
+    Component {
+        id: indicatorComponent
+
+        Rectangle {
+            color: "#a9d3f2"
+            opacity: 0.5
+            border.color: "#0078d4"; border.width: 1
+            property int index
+
+            Label {
+                text: index.toString()
+                font.bold: true
+                font.pixelSize: 20
+                background: Rectangle {
+                    color: "#0078d4"
+                }
+            }
+        }
+    }
+
+    function indicatorReload() {
+        for (let i = 0; i < captureImage.indicatorList.length; ++i) {
+            captureImage.indicatorList[i].destroy()
+        }
+        captureImage.indicatorList = []
+        for (let row = 0; row < roiStandardItemModel.rowCount(); ++row) {
+            const index = roiStandardItemModel.index(row, 0);
+            const position = roiStandardItemModel.data(index, Qt.WhatsThisRole);
+            const indicator = indicatorComponent.createObject(captureImage, {
+                x: position[0],
+                y: position[1],
+                width: position[2],
+                height: position[3],
+                index: row
+            });
+            captureImage.indicatorList.push(indicator)
+        }
     }
 }

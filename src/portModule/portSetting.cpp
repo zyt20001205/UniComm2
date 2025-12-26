@@ -4,6 +4,7 @@
 #include <QCameraDevice>
 #include <QHostInfo>
 #include <QImageCapture>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
@@ -93,6 +94,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     localHostRefresh();
     screenRefresh();
     cameraRefresh();
+    roiRefresh();
     if (portConfig.isEmpty()) {
         m_rootItem->setProperty("portType", 0);
         m_swipeView->setProperty("currentIndex", 0);
@@ -131,7 +133,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         if (m_screenNameComboBox->property("count").toInt()) {
             m_screenNameComboBox->setProperty("currentIndex", 0);
         }
-        // screen
+        // camera
         if (m_cameraNameComboBox->property("count").toInt()) {
             m_cameraNameComboBox->setProperty("currentIndex", 0);
         }
@@ -194,6 +196,10 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
             case SCREEN: {
                 m_screenNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
+                for (const QJsonValue &value: portConfig["roi"].toArray()) {
+                    QJsonArray roi = value.toArray();
+                    roiInsert(roi[0].toInt(),roi[1].toInt(),roi[2].toInt(),roi[3].toInt());
+                }
             }
             break;
             case CAMERA: {
@@ -274,9 +280,15 @@ void PortSetting::portSettingExport() {
         }
         break;
         case SCREEN: {
+            QJsonArray roiArray{};
+            for (int i = 0; i < m_roiStandardItemModel->rowCount(); ++i) {
+                const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
+                roiArray.append(roi);
+            }
             portConfig = {
                 {"portType", portType},
                 {"portName", m_screenNameComboBox->property("currentValue").toString()},
+                {"roi", roiArray}
             };
         }
         break;
@@ -315,15 +327,24 @@ void PortSetting::cameraCapture() const {
     m_portSettingDialog->resize(1600, 900);
 }
 
-void PortSetting::roiInsert(const float left, const float top, const float right, const float bottom) const {
-    auto *item = new QStandardItem(QString::number(left) + " " + QString::number(top) + " " + QString::number(right) + " " + QString::number(bottom)); // NOLINT
-    const QVariantList position = {left, top, right, bottom};
+void PortSetting::roiInsert(const int x, const int y, const int w, const int h) const {
+    auto *item = new QStandardItem(QString::number(x) + " " + QString::number(y) + " " + QString::number(w) + " " + QString::number(h)); // NOLINT
+    const QVariantList position = {x, y, w, h};
     m_roiStandardItemModel->appendRow(item);
     item->setData(position, Qt::WhatsThisRole);
+    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
 }
 
 void PortSetting::roiRemove(const int index) const {
     m_roiStandardItemModel->removeRow(index);
+    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
+}
+
+void PortSetting::roiSwap(const int src, const int dst) const {
+    const auto tmp = m_roiStandardItemModel->takeRow(src);
+    m_roiStandardItemModel->insertRow(dst, tmp);
+    QMetaObject::invokeMethod(m_rootItem, "roiReload");
+    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
 }
 
 // PortSetting private
@@ -411,6 +432,11 @@ void PortSetting::cameraRefresh() const {
         item->setData(portName, Qt::WhatsThisRole);
         m_cameraStandardItemModel->appendRow(item);
     }
+}
+
+void PortSetting::roiRefresh() const {
+    m_roiStandardItemModel->clear();
+    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
 }
 
 ImageProvider::ImageProvider()

@@ -33,9 +33,11 @@ public:
 
     Q_INVOKABLE void cameraCapture() const;
 
-    Q_INVOKABLE void roiInsert(float left, float top, float right, float bottom) const;
+    Q_INVOKABLE void roiInsert(int x, int y, int w, int h) const;
 
     Q_INVOKABLE void roiRemove(int index) const;
+
+    Q_INVOKABLE void roiSwap(int src, int dst) const;
 
 signals:
     void insertPort(int index, const QJsonObject &portConfig);
@@ -52,6 +54,8 @@ private:
     void screenRefresh() const;
 
     void cameraRefresh() const;
+
+    void roiRefresh() const;
 
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
