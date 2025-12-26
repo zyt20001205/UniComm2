@@ -292,21 +292,12 @@ Item {
             onTriggered: databaseModule.databaseClear(databaseModuleTableMenu.databaseIndex)
         }
 
-        Menu {
-            title: qsTr("Delete")
+        MenuItem {
+            text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            DelayButton {
-                delay: 1000
-                text: qsTr("Confirm")
-
-                onActivated: {
-                    databaseModule.databaseRemove(databaseModuleTableMenu.databaseIndex)
-                    progress = 0
-                    databaseModuleTableMenu.close()
-                }
-            }
+            onTriggered: databaseModule.databaseRemove(databaseModuleTableMenu.databaseIndex)
         }
     }
 
@@ -340,7 +331,7 @@ Item {
                 onActivated: {
                     databaseModule.databaseClear(-1)
                     progress = 0
-                    databaseModuleTableMenu.close()
+                    databaseModuleRootMenu.close()
                 }
             }
         }

@@ -696,10 +696,11 @@ Item {
                                             captureSelection.anchorRB = position
                                             captureSelection.roi = false
                                             captureSelection.visible = false
-                                            const roiRect = roiRectComponent.createObject(captureImage, {
-                                                "anchorLT": captureSelection.anchorLT,
-                                                "anchorRB": captureSelection.anchorRB
-                                            });
+                                            portSetting.roiInsert(captureSelection.anchorLT.x, captureSelection.anchorLT.y, captureSelection.anchorRB.x, captureSelection.anchorRB.y)
+                                            // const roiRect = roiRectComponent.createObject(captureImage, {
+                                            //     "anchorLT": captureSelection.anchorLT,
+                                            //     "anchorRB": captureSelection.anchorRB
+                                            // });
                                             hintLabel.text = qsTr("")
                                         }
                                     }
@@ -795,10 +796,150 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.preferredWidth: 200; Layout.fillHeight: true
+                        Layout.preferredWidth: 300; Layout.fillHeight: true
 
-                        Label {
+                        Component {
+                            id: roiTableComponent
 
+                            Item {
+                                anchors.fill: parent
+                                visible: modelVisible
+
+                                VerticalHeaderView {
+                                    id: roiVerticalHeaderView
+                                    anchors.left: parent.left
+                                    width: 32; height: parent.height
+                                    syncView: roiTableView
+                                    clip: true
+                                    interactive: false
+                                    movableRows: true
+                                    delegate: VerticalHeaderViewDelegate {
+                                        id: roiVerticalHeaderViewDelegate
+                                        implicitWidth: roiVerticalHeaderView.width; implicitHeight: 32
+                                        padding: 0
+
+                                        contentItem: Rectangle {
+                                            width: 32; height: 32
+                                            color: "white"
+
+                                            Image {
+                                                width: 16; height: 16
+                                                anchors.centerIn: parent
+                                                source: "qrc:/icon/drag.svg"
+                                            }
+                                        }
+
+                                        HoverHandler {
+                                            onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                                        }
+                                    }
+                                    property var moves: []
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        color: "#e0e0e0"
+                                        z: -1
+                                    }
+
+                                    Timer {
+                                        id: timer
+                                        interval: 10
+                                        onTriggered: {
+                                            let index = -1
+                                            let distance = -1
+                                            let currentDistance;
+                                            for (let i = 0; i < verticalHeaderView.moves.length; ++i) {
+                                                let move = verticalHeaderView.moves[i]
+                                                currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                                                if (currentDistance > distance) {
+                                                    distance = currentDistance
+                                                    index = i
+                                                }
+                                            }
+                                            let move = verticalHeaderView.moves[index]
+                                            portModule.portSwap(move.oldVisualIndex, move.newVisualIndex)
+                                            verticalHeaderView.moves = []
+                                        }
+                                    }
+
+                                    onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                                        moves.push({oldVisualIndex, newVisualIndex})
+                                        timer.restart()
+                                    }
+                                }
+
+                                TableView {
+                                    id: roiTableView
+                                    anchors.left: roiVerticalHeaderView.right; anchors.right: parent.right
+                                    height: parent.height
+                                    alternatingRows: false
+                                    clip: true
+                                    editTriggers: TableView.NoEditTriggers
+                                    rowSpacing: 1
+                                    model: roiStandardItemModel
+                                    contentWidth: width
+                                    delegate: ItemDelegate {
+                                        implicitWidth: parent.width; implicitHeight: 32
+                                        text: model.display
+                                        font.pixelSize: 16
+                                        background: Rectangle {
+                                            color: "white"
+                                        }
+
+                                        Rectangle {
+                                            id: highlightRect
+                                            anchors.fill: parent
+                                            radius: 2
+                                            color: "#f5f5f5"
+                                            opacity: hoverHandler.hovered ? 1 : 0
+                                            Behavior on opacity {
+                                                NumberAnimation {
+                                                    duration: 150
+                                                }
+                                            }
+                                        }
+
+                                        HoverHandler {
+                                            id: hoverHandler
+                                        }
+
+                                        TapHandler {
+                                            acceptedButtons: Qt.RightButton
+                                            gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                            onSingleTapped: {
+                                                roiMenu.databaseIndex = model.row
+                                                roiMenu.popup()
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        color: "#e0e0e0"
+                                        z: -1
+                                    }
+                                }
+
+                                Menu {
+                                    id: roiMenu
+                                    property int roiIndex
+
+                                    MenuItem {
+                                        text: qsTr("Delete")
+                                        icon.source: "qrc:/icon/delete.svg"
+                                        icon.width: 16; icon.height: 16
+
+                                        onTriggered: databaseModule.databaseRemove(databaseModuleTableMenu.databaseIndex)
+                                    }
+                                }
+                            }
+                        }
+
+                        Loader {
+                            id: roiTableLoader
+                            Layout.fillWidth: true; Layout.fillHeight: true
+                            sourceComponent: roiTableComponent
                         }
                     }
                 }

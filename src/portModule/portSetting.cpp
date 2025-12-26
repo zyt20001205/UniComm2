@@ -26,7 +26,8 @@ PortSetting::PortSetting(QWidget *parent)
       m_localHostStandardItemModel(new QStandardItemModel(this)),
       m_screenStandardItemModel(new QStandardItemModel(this)),
       m_cameraStandardItemModel(new QStandardItemModel(this)),
-      m_imageProvider(new ImageProvider()) {
+      m_imageProvider(new ImageProvider()),
+      m_roiStandardItemModel(new QStandardItemModel(this)) {
     propertySet();
 }
 
@@ -44,6 +45,7 @@ void PortSetting::propertySet() {
     widget->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
     widget->rootContext()->setContextProperty("screenStandardItemModel", m_screenStandardItemModel);
     widget->rootContext()->setContextProperty("cameraStandardItemModel", m_cameraStandardItemModel);
+    widget->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting.qml"));
     m_rootItem = widget->rootObject();
@@ -295,22 +297,33 @@ void PortSetting::portSettingExport() {
     m_portSettingDialog->hide();
 }
 
+void PortSetting::dialogResize(const int width, const int height) const {
+    m_portSettingDialog->resize(width, height);
+}
+
 void PortSetting::screenCapture() const {
     const auto &portName = m_screenNameComboBox->property("currentValue").toString();
     m_imageProvider->screenCapture(portName);
     m_captureImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-    m_portSettingDialog->resize(1600,900);
+    m_portSettingDialog->resize(1600, 900);
 }
 
 void PortSetting::cameraCapture() const {
     const auto &portName = m_cameraNameComboBox->property("currentValue").toString();
     m_imageProvider->cameraCapture(portName);
     m_captureImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-    m_portSettingDialog->resize(1600,900);
+    m_portSettingDialog->resize(1600, 900);
 }
 
-void PortSetting::dialogResize(const int width, const int height) const {
-    m_portSettingDialog->resize(width, height);
+void PortSetting::roiInsert(const float left, const float top, const float right, const float bottom) const {
+    auto *item = new QStandardItem(QString::number(left) + " " + QString::number(top) + " " + QString::number(right) + " " + QString::number(bottom)); // NOLINT
+    const QVariantList position = {left, top, right, bottom};
+    m_roiStandardItemModel->appendRow(item);
+    item->setData(position, Qt::WhatsThisRole);
+}
+
+void PortSetting::roiRemove(const int index) const {
+    m_roiStandardItemModel->removeRow(index);
 }
 
 // PortSetting private

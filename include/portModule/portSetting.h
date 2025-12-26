@@ -27,11 +27,15 @@ public:
 
     Q_INVOKABLE void portSettingExport();
 
+    Q_INVOKABLE void dialogResize(int width, int height) const;
+
     Q_INVOKABLE void screenCapture() const;
 
     Q_INVOKABLE void cameraCapture() const;
 
-    Q_INVOKABLE void dialogResize(int width, int height) const;
+    Q_INVOKABLE void roiInsert(float left, float top, float right, float bottom) const;
+
+    Q_INVOKABLE void roiRemove(int index) const;
 
 signals:
     void insertPort(int index, const QJsonObject &portConfig);
@@ -56,6 +60,7 @@ private:
     QStandardItemModel *m_screenStandardItemModel{};
     QStandardItemModel *m_cameraStandardItemModel{};
     ImageProvider *m_imageProvider{};
+    QStandardItemModel *m_roiStandardItemModel{};
     QString m_oldPortName{};
 
     QQuickItem *m_rootItem{};
