@@ -16,6 +16,8 @@ QString ocr(const QPixmap &pixmap, const QString &charset, const QString &whitel
     auto *ocr = new tesseract::TessBaseAPI();
     ocr->Init(nullptr, charsetChar);
     ocr->SetVariable("tessedit_char_whitelist", whitelistChar);
+    ocr->SetVariable("load_system_dawg", "0");
+    ocr->SetVariable("load_freq_dawg", "0");
     ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
     char *result = ocr->GetUTF8Text();
     QString text = QString::fromUtf8(result);
