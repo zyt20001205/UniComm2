@@ -49,6 +49,7 @@ signals:
 
 private:
     QQuickWidget *m_portWidget{};
+    QQuickItem *m_rootItem{};
     PortSetting *m_portSetting{};
 
     int m_version = 1;

@@ -44,6 +44,7 @@ void PortModule::propertySet(const QVariantMap &objects) {
     m_portWidget->rootContext()->setContextProperty("standardItemModel", g_portStandardItemModel);
     m_portWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml"));
+    m_rootItem = m_portWidget->rootObject();
 }
 
 void PortModule::portConfigSave() {
@@ -153,7 +154,7 @@ void PortModule::portRemove(const int index) {
 void PortModule::portSwap(const int src, const int dst) const {
     const auto tmp = g_portStandardItemModel->takeRow(src);
     g_portStandardItemModel->insertRow(dst, tmp);
-    QTimer::singleShot(0, this, [this] { m_portWidget->setSource(QUrl("qrc:/qml/portModule/portModule.qml")); });
+    QMetaObject::invokeMethod(m_rootItem, "reload");
 }
 
 void PortModule::portEdit(const QString &oldPortName, const QJsonObject &portConfig) {

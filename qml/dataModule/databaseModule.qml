@@ -207,7 +207,6 @@ Item {
             modelVisible = false
         }
     }
-
     function reload() {
         tableLoader.active = false
         tableLoader.active = true
