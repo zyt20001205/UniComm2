@@ -302,7 +302,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    databaseModule.databaseRemove(databaseModuleTableMenu.portIndex)
+                    databaseModule.databaseRemove(databaseModuleTableMenu.databaseIndex)
                     progress = 0
                     databaseModuleTableMenu.close()
                 }

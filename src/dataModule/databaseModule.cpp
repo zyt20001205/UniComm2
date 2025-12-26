@@ -50,11 +50,9 @@ void DatabaseModule::databaseInsert(const int index, const QString &key) {
     auto *valueItem = new QStandardItem(); // NOLINT
     if (index == -1) g_databaseStandardItemModel->appendRow({keyItem, valueItem});
     else g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
-    databaseIndex();
-}
+    databaseIndex();}
 
 void DatabaseModule::databaseRemove(const int index) {
-    const auto key = g_databaseStandardItemModel->item(index, 0)->text();
     g_databaseStandardItemModel->removeRow(index);
     databaseIndex();
 }
