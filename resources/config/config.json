@@ -1,10 +1,8 @@
 {
   "breakpointConfig": {
   },
-  "databaseConfig": {
-    "timerInterval": 0,
-    "keyArray": []
-  },
+  "databaseConfig": [
+  ],
   "datatableConfig": [
   ],
   "logConfig": {

@@ -13,9 +13,7 @@ DatabaseModule::DatabaseModule()
       m_databaseWidget(new QQuickWidget()) {
     setWidget(m_databaseWidget);
     g_databaseStandardItemModel = new QStandardItemModel(this);
-    auto databaseConfig = g_workspaceConfig["databaseConfig"].toObject();
-    m_interval = databaseConfig["interval"].toInt();
-    for (const auto &value: databaseConfig["keyArray"].toArray()) {
+    for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
         const QString key = value.toString();
         databaseInsert(-1, key);
     }
@@ -28,7 +26,6 @@ void DatabaseModule::propertySet(const QVariantMap &objects) {
 
     m_databaseWidget->rootContext()->setContextProperty("databaseModule", this);
     m_databaseWidget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
-    m_databaseWidget->rootContext()->setContextProperty("timerInterval", m_interval);
     m_databaseWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml"));
 }
@@ -39,10 +36,7 @@ void DatabaseModule::databaseConfigSave() const {
         const QString key = g_databaseStandardItemModel->item(i, 0)->text();
         keyArray.append(key);
     }
-    g_workspaceConfig["databaseConfig"] = QJsonObject{
-        {"interval", m_interval},
-        {"keyArray", keyArray}
-    };
+    g_workspaceConfig["databaseConfig"] = keyArray;
 }
 
 void DatabaseModule::databaseList(QSet<QString> &databaseList) const {
@@ -82,11 +76,6 @@ void DatabaseModule::databaseWrite(const QString &key, const QString &value, boo
     const auto index = m_databaseHash[key];
     g_databaseStandardItemModel->item(index, 1)->setText(value);
     status = true;
-}
-
-void DatabaseModule::intervalSet(const int interval) {
-    m_interval = interval;
-    m_databaseWidget->rootContext()->setContextProperty("timerInterval", m_interval);
 }
 
 void DatabaseModule::databaseIndex() {

@@ -116,17 +116,17 @@ Item {
             }
 
             onTextChanged: {
-                if (timerInterval !== 0 && column === 1) {
-                    backgroundRect.color = "yellow"
-                    timer.restart()
+                if (column === 1) {
+                    highlightRect.opacity = 1
+                    highlightTimer.restart()
                 }
             }
 
             Timer {
-                id: timer
-                interval: timerInterval
+                id: highlightTimer
+                interval: 500
 
-                onTriggered: {backgroundRect.color = "white"}
+                onTriggered: {highlightRect.opacity = 0}
             }
 
             Rectangle {
@@ -154,7 +154,6 @@ Item {
                     tableMenu.databaseIndex = model.row
                     const index = tableView.model.index(row, 0);
                     tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
-                    tableMenu.timerInterval = timerInterval
                     tableMenu.popup()
                 }
             }
@@ -169,10 +168,7 @@ Item {
         TapHandler {
             acceptedButtons: Qt.RightButton
 
-            onSingleTapped: {
-                rootMenu.timerInterval = timerInterval
-                rootMenu.popup()
-            }
+            onSingleTapped: rootMenu.popup()
         }
     }
 
