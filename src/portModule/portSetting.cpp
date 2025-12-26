@@ -16,7 +16,6 @@
 #include <visa.h>
 
 #include "globals.h"
-#include "portModule/areaSelection.h"
 
 // PortSetting public
 PortSetting::PortSetting(QWidget *parent)
@@ -86,6 +85,8 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
     // image
     m_captureImage = qvariant_cast<QObject *>(objects["captureImage"]);
+    m_whitelistSwitch = qvariant_cast<QObject *>(objects["whitelistSwitch"]);
+    m_whitelistTextField = qvariant_cast<QObject *>(objects["whitelistTextField"]);
 }
 
 void PortSetting::portSettingImport(const QJsonObject &portConfig) {
@@ -94,7 +95,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     localHostRefresh();
     screenRefresh();
     cameraRefresh();
-    roiRefresh();
+    processRefresh(portConfig);
     if (portConfig.isEmpty()) {
         m_rootItem->setProperty("portType", 0);
         m_swipeView->setProperty("currentIndex", 0);
@@ -196,10 +197,6 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             break;
             case SCREEN: {
                 m_screenNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
-                for (const QJsonValue &value: portConfig["roi"].toArray()) {
-                    QJsonArray roi = value.toArray();
-                    roiInsert(roi[0].toInt(),roi[1].toInt(),roi[2].toInt(),roi[3].toInt());
-                }
             }
             break;
             case CAMERA: {
@@ -288,7 +285,8 @@ void PortSetting::portSettingExport() {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_screenNameComboBox->property("currentValue").toString()},
-                {"roi", roiArray}
+                {"roi", roiArray},
+                {"whitelist", m_whitelistTextField->property("text").toString()}
             };
         }
         break;
@@ -434,9 +432,24 @@ void PortSetting::cameraRefresh() const {
     }
 }
 
-void PortSetting::roiRefresh() const {
+void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     m_roiStandardItemModel->clear();
     QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
+    m_whitelistSwitch->setProperty("checked", false);
+    m_whitelistTextField->setProperty("text", "");
+    if (!portConfig.isEmpty()) {
+        // roi
+        for (const QJsonValue &value: portConfig["roi"].toArray()) {
+            QJsonArray roi = value.toArray();
+            roiInsert(roi[0].toInt(),roi[1].toInt(),roi[2].toInt(),roi[3].toInt());
+        }
+        // whitelist
+        const QString whitelist = portConfig["whitelist"].toString();
+        if (!whitelist.isEmpty()) {
+            m_whitelistSwitch->setProperty("checked", true);
+            m_whitelistTextField->setProperty("text", whitelist);
+        }
+    }
 }
 
 ImageProvider::ImageProvider()

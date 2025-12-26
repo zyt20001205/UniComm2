@@ -109,8 +109,8 @@ QByteArray Camera::read(const int timeout, const int length, const QString &rxFo
             }
         }
         if (m_showPreview) pixmapList.append(processed);
-        const QString text = ocr(processed, m_charset);
-        resultList.append(text);
+        // const QString text = ocr(processed, m_charset);
+        // resultList.append(text);
     }
     // return resultList.join("\x1E");
 }

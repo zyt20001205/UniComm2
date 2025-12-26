@@ -763,6 +763,7 @@ Item {
 
                     ColumnLayout {
                         Layout.preferredWidth: 300; Layout.fillHeight: true
+                        Layout.alignment: Qt.AlignTop
 
                         RowLayout {
 
@@ -915,8 +916,27 @@ Item {
 
                         Loader {
                             id: roiTableLoader
-                            Layout.fillWidth: true; Layout.fillHeight: true
+                            Layout.fillWidth: true; Layout.preferredHeight: 400
                             sourceComponent: roiTableComponent
+                        }
+
+                        RowLayout {
+
+                            Label {
+                                text: qsTr("Whitelist")
+                                font.pixelSize: 20
+                            }
+
+                            Switch {
+                                id: whitelistSwitch
+                            }
+                        }
+
+                        TextField {
+                            id: whitelistTextField
+                            placeholderText: "0123456789"
+                            visible: whitelistSwitch.checked
+                            Layout.fillWidth: true
                         }
                     }
                 }
@@ -1084,7 +1104,9 @@ Item {
             "txSuffixComboBox": txSuffixComboBox,
             "rxFormatComboBox": rxFormatComboBox,
             // image
-            "captureImage": captureImage
+            "captureImage": captureImage,
+            "whitelistSwitch": whitelistSwitch,
+            "whitelistTextField": whitelistTextField
         };
         portSetting.propertyGet(objects)
     }

@@ -48,7 +48,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaModbusRtu.h
         include/luaModule/luaPort.h
         include/luaModule/luaThread.h
-        include/portModule/areaSelection.h
         include/portModule/basePort.h
         include/portModule/camera.h
         include/portModule/pixmapPreview.h
@@ -107,7 +106,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaModbusRtu.cpp
         src/luaModule/luaPort.cpp
         src/luaModule/luaThread.cpp
-        src/portModule/areaSelection.cpp
         src/portModule/basePort.cpp
         src/portModule/camera.cpp
         src/portModule/pixmapPreview.cpp

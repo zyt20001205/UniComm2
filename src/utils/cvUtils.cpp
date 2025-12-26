@@ -5,13 +5,17 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core/mat.hpp"
 
-QString ocr(const QPixmap &pixmap, const QString &charset) {
+QString ocr(const QPixmap &pixmap, const QString &charset, const QString &whitelist) {
+    const QByteArray charsetBytes = charset.isEmpty() ? "eng" : charset.toUtf8();
+    const char *charsetChar = charsetBytes.constData();
+    const QByteArray whitelistBytes = whitelist.toUtf8();
+    const char *whitelistChar = whitelistBytes.constData();
+
     QImage image = pixmap.toImage().scaled(pixmap.width() * 3, pixmap.height() * 3, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     image = image.convertToFormat(QImage::Format_RGB888);
-    const QByteArray utf8 = charset.isEmpty() ? "eng" : charset.toUtf8();
-    const char *tessCharset = utf8.constData();
     auto *ocr = new tesseract::TessBaseAPI();
-    ocr->Init(nullptr, tessCharset);
+    ocr->Init(nullptr, charsetChar);
+    ocr->SetVariable("tessedit_char_whitelist", whitelistChar);
     ocr->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
     char *result = ocr->GetUTF8Text();
     QString text = QString::fromUtf8(result);

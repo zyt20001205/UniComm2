@@ -4,7 +4,7 @@
 #include <QPixmap>
 #include <QString>
 
-QString ocr(const QPixmap &pixmap, const QString &charset);
+QString ocr(const QPixmap &pixmap, const QString &charset, const QString &whitelist);
 
 QPixmap processGaussianBlur(const QPixmap &pixmap, int size);
 

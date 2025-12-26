@@ -60,7 +60,7 @@ QByteArray Screen::read(const int timeout, const int length, const QString &rxFo
         const int height = roi[3].toInt();
         const auto rect = QRect(x, y, width, height);
         const QPixmap cropped = shot.copy(rect);
-        const QString text = ocr(cropped, "eng");
+        const QString text = ocr(cropped, "eng", m_portConfig["whitelist"].toString());
         resultList.append(text);
     }
     return resultList.join("\x1E").toUtf8();

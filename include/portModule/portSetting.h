@@ -55,7 +55,7 @@ private:
 
     void cameraRefresh() const;
 
-    void roiRefresh() const;
+    void processRefresh(const QJsonObject &portConfig) const;
 
     QDialog *m_portSettingDialog{};
     QStandardItemModel *m_serialPortStandardItemModel{};
@@ -101,6 +101,8 @@ private:
     QObject *m_rxFormatComboBox{};
     // image
     QObject *m_captureImage{};
+    QObject *m_whitelistSwitch{};
+    QObject *m_whitelistTextField{};
 };
 
 class ImageProvider final: public QQuickImageProvider {
