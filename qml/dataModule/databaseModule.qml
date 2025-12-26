@@ -103,15 +103,22 @@ Item {
         alternatingRows: false
         clip: true
         rowSpacing: 1; columnSpacing: 1
+        resizableColumns: true
         model: standardItemModel
         visible: modelVisible
         contentWidth: width
         delegate: ItemDelegate {
-            implicitWidth: tableView.width / 2; implicitHeight: 32
+            implicitWidth: {
+                if (column === 0) {
+                    return tableView.width / 2
+                } else {
+                    return tableView.width - tableView.columnWidth(0)
+                }
+            }
+            implicitHeight: 32
             text: model.display
             font.pixelSize: 16
             background: Rectangle {
-                id: backgroundRect
                 color: "white"
             }
 
@@ -126,7 +133,7 @@ Item {
                 id: highlightTimer
                 interval: 500
 
-                onTriggered: {highlightRect.opacity = 0}
+                onTriggered: highlightRect.opacity = 0
             }
 
             Rectangle {
