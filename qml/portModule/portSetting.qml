@@ -52,14 +52,9 @@ Item {
 
                 StackLayout {
                     currentIndex: rootItem.portType
-                    Layout.fillWidth: true
+                    Layout.fillWidth: true; Layout.fillHeight: false
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             source: "qrc:/icon/serialPort.svg"
@@ -78,11 +73,6 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             // source: "qrc:/icon/serialPort.svg"
@@ -101,11 +91,6 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             source: "qrc:/icon/tcpClient.svg"
@@ -124,11 +109,6 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             source: "qrc:/icon/tcpServer.svg"
@@ -147,11 +127,6 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             source: "qrc:/icon/udpSocket.svg"
@@ -170,11 +145,6 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             source: "qrc:/icon/screen.svg"
@@ -193,11 +163,6 @@ Item {
                     }
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
 
                         Image {
                             source: "qrc:/icon/camera.svg"
@@ -572,7 +537,7 @@ Item {
 
                 Label {
                     id: portNameValidator
-                    Layout.fillWidth: true
+                    Layout.fillWidth: true; Layout.fillHeight: false
                     horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                     color: "#c50f1f"
                     text: ""
@@ -582,7 +547,7 @@ Item {
                 Timer {
                     id: portNameValidatorTimer
                     interval: 3000
-                    onTriggered: {portNameValidator.text = ""}
+                    onTriggered: portNameValidator.text = ""
                 }
             }
 
@@ -600,6 +565,7 @@ Item {
                 GridLayout {
                     columns: 2
                     columnSpacing: 20; rowSpacing: 20
+                    Layout.fillWidth: true; Layout.fillHeight: true
 
                     Label {
                         text: qsTr("Tx Format")
@@ -682,6 +648,7 @@ Item {
 
                 // image
                 RowLayout {
+                    Layout.fillWidth: true; Layout.fillHeight: true
 
                     ColumnLayout {
                         Layout.fillWidth: true; Layout.fillHeight: true
@@ -724,6 +691,7 @@ Item {
                                         if (!captureSelection.roi) {
                                             captureSelection.anchorLT = position
                                             captureSelection.roi = true
+                                            hintLabel.text = qsTr("Select second anchor")
                                         } else {
                                             captureSelection.anchorRB = position
                                             captureSelection.roi = false
@@ -732,6 +700,7 @@ Item {
                                                 "anchorLT": captureSelection.anchorLT,
                                                 "anchorRB": captureSelection.anchorRB
                                             });
+                                            hintLabel.text = qsTr("")
                                         }
                                     }
                                 }
@@ -769,52 +738,61 @@ Item {
                             }
                         }
 
-                        ToolBar {
+                        RowLayout {
 
-                            RowLayout {
+                            ToolBar {
+                                Layout.fillWidth: true; Layout.fillHeight: false
 
-                                ToolButton {
-                                    Layout.preferredWidth: 48; Layout.preferredHeight: 48
-                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                    icon.source: "qrc:/icon/refresh.svg"
-                                    icon.width: 32; icon.height: 32
-                                    checkable: true
-                                    ToolTip.text: qsTr("Auto Refresh")
-                                    ToolTip.visible: hovered
+                                RowLayout {
 
-                                    Timer {
-                                        interval: 1000
-                                        running: parent.checked
-                                        repeat: true
-                                        onTriggered: {
-                                            if (rootItem.portType === 5) {
-                                                portSetting.screenCapture()
-                                            } else {
-                                                portSetting.cameraCapture()
+                                    ToolButton {
+                                        Layout.preferredWidth: 48; Layout.preferredHeight: 48
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        icon.source: "qrc:/icon/refresh.svg"
+                                        icon.width: 32; icon.height: 32
+                                        checkable: true
+                                        ToolTip.text: qsTr("Auto Refresh")
+                                        ToolTip.visible: hovered
+
+                                        Timer {
+                                            interval: 1000
+                                            running: parent.checked
+                                            repeat: true
+                                            onTriggered: {
+                                                if (rootItem.portType === 5) {
+                                                    portSetting.screenCapture()
+                                                } else {
+                                                    portSetting.cameraCapture()
+                                                }
                                             }
                                         }
                                     }
-                                }
 
-                                ToolSeparator {
-                                }
+                                    ToolSeparator {
+                                    }
 
-                                ToolButton {
-                                    Layout.preferredWidth: 48; Layout.preferredHeight: 48
-                                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                    icon.source: "qrc:/icon/square.svg"
-                                    icon.width: 32; icon.height: 32
-                                    ToolTip.text: qsTr("Rectangular")
-                                    ToolTip.visible: hovered
+                                    ToolButton {
+                                        Layout.preferredWidth: 48; Layout.preferredHeight: 48
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        icon.source: "qrc:/icon/square.svg"
+                                        icon.width: 32; icon.height: 32
+                                        ToolTip.text: qsTr("Rectangular")
+                                        ToolTip.visible: hovered
 
-                                    onClicked: {
-                                        captureSelection.visible = true
+                                        onClicked: {
+                                            captureSelection.visible = true
+                                            hintLabel.text = qsTr("Select first anchor")
+                                        }
                                     }
                                 }
                             }
+
+                            Label {
+                                id: hintLabel
+                                font.pixelSize: 20
+                            }
                         }
                     }
-
 
                     ColumnLayout {
                         Layout.preferredWidth: 200; Layout.fillHeight: true
@@ -828,7 +806,7 @@ Item {
         }
 
         RowLayout {
-            Layout.fillWidth: true
+            Layout.fillWidth: true; Layout.fillHeight: false
             Layout.alignment: Qt.AlignHCenter
             Layout.margins: 20
 
