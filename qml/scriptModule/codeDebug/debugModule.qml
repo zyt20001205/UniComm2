@@ -10,13 +10,7 @@ Item {
         anchors.margins: 5
         spacing: 5
 
-        ScrollView {
-            Layout.fillWidth: true; Layout.preferredHeight: 24
-            Layout.alignment: Qt.AlignTop
-            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-            clip: true
-
-            RowLayout {
+        RowLayout {
 
             Button {
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
@@ -87,7 +81,6 @@ Item {
                 ToolTip.visible: hovered
                 onClicked: debugModule.stateSet(combobox.currentText, 6)
             }
-        }
         }
 
         ComboBox {
