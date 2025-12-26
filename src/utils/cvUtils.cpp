@@ -6,7 +6,8 @@
 #include "opencv2/core/mat.hpp"
 
 QString ocr(const QPixmap &pixmap, const QString &charset) {
-    QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888);
+    QImage image = pixmap.toImage().scaled(pixmap.width() * 3, pixmap.height() * 3, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    image = image.convertToFormat(QImage::Format_RGB888);
     const QByteArray utf8 = charset.isEmpty() ? "eng" : charset.toUtf8();
     const char *tessCharset = utf8.constData();
     auto *ocr = new tesseract::TessBaseAPI();
