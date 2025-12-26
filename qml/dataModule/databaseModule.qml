@@ -110,7 +110,7 @@ Item {
         delegate: ItemDelegate {
             implicitWidth: {
                 if (column === 0) {
-                    return tableView.width / 2
+                    return tableView.width / 3
                 } else {
                     return tableView.width - tableView.columnWidth(0)
                 }
