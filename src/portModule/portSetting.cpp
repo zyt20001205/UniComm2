@@ -291,9 +291,16 @@ void PortSetting::portSettingExport() {
         }
         break;
         case CAMERA: {
+            QJsonArray roiArray{};
+            for (int i = 0; i < m_roiStandardItemModel->rowCount(); ++i) {
+                const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
+                roiArray.append(roi);
+            }
             portConfig = {
                 {"portType", portType},
-                {"portName", m_cameraNameComboBox->property("currentValue").toString()},
+                {"portName", m_screenNameComboBox->property("currentValue").toString()},
+                {"roi", roiArray},
+                {"whitelist", m_whitelistTextField->property("text").toString()}
             };
         }
         break;

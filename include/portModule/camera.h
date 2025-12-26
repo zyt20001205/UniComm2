@@ -29,12 +29,6 @@ private:
     QCameraDevice m_camera{};
     // port config
     QJsonObject m_portConfig{};
-    QString m_portName{};
-    QString m_charset{};
-    QJsonObject m_process{};
-    QJsonArray m_areaList{};
-    //
-    bool m_showPreview = false;
 };
 
 #endif //UNICOMM_CAMERA_H
