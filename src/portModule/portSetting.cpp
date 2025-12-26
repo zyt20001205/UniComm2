@@ -298,7 +298,7 @@ void PortSetting::portSettingExport() {
             }
             portConfig = {
                 {"portType", portType},
-                {"portName", m_screenNameComboBox->property("currentValue").toString()},
+                {"portName", m_cameraNameComboBox->property("currentValue").toString()},
                 {"roi", roiArray},
                 {"whitelist", m_whitelistTextField->property("text").toString()}
             };
