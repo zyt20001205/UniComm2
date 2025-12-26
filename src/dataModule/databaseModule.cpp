@@ -1,6 +1,7 @@
 #include "dataModule/databaseModule.h"
 
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QTimer>
@@ -28,6 +29,7 @@ void DatabaseModule::propertySet(const QVariantMap &objects) {
     m_databaseWidget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
     m_databaseWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml"));
+    m_rootItem = m_databaseWidget->rootObject();
 }
 
 void DatabaseModule::databaseConfigSave() const {
@@ -66,7 +68,7 @@ void DatabaseModule::databaseSwap(const int src, const int dst) {
     const auto tmp = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, tmp);
     databaseIndex();
-    QTimer::singleShot(0, this, [this] { m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml")); });
+    QMetaObject::invokeMethod(m_rootItem, "reload");
 }
 
 void DatabaseModule::databaseClear(const int index) {

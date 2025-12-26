@@ -41,6 +41,7 @@ private:
     void databaseIndex();
 
     QQuickWidget *m_databaseWidget{};
+    QQuickItem *m_rootItem{};
     QHash<QString, int> m_databaseHash{};
 };
 
