@@ -30,6 +30,8 @@ public:
 
     Q_INVOKABLE void databaseSwap(int src, int dst);
 
+    Q_INVOKABLE void databaseClear(int index);
+
     void databaseWrite(const QString &key, const QString &value, bool &status);
 
 signals:

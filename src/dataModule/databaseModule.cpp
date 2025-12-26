@@ -71,6 +71,16 @@ void DatabaseModule::databaseSwap(const int src, const int dst) {
     QTimer::singleShot(0, this, [this] { m_databaseWidget->setSource(QUrl("qrc:/qml/dataModule/databaseModule.qml")); });
 }
 
+void DatabaseModule::databaseClear(const int index) {
+    if (index == -1) {
+        for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {
+            g_databaseStandardItemModel->item(i, 1)->setText("");
+        }
+    } else {
+        g_databaseStandardItemModel->item(index, 1)->setText("");
+    }
+}
+
 void DatabaseModule::databaseWrite(const QString &key, const QString &value, bool &status) {
     if (!m_databaseHash.contains(key)) return;
     const auto index = m_databaseHash[key];

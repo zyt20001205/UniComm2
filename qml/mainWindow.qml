@@ -284,6 +284,14 @@ Item {
             }
         }
 
+        MenuItem {
+            text: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: databaseModule.databaseClear(databaseModuleTableMenu.databaseIndex)
+        }
+
         Menu {
             title: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
@@ -317,6 +325,23 @@ Item {
                 databaseModuleNameDialog.databaseIndex = -1
                 databaseModuleNameDialog.databaseKey = ""
                 databaseModuleNameDialog.open()
+            }
+        }
+
+        Menu {
+            title: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    databaseModule.databaseClear(-1)
+                    progress = 0
+                    databaseModuleTableMenu.close()
+                }
             }
         }
     }
