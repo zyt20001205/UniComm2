@@ -15,9 +15,6 @@ BasePort::BasePort(QObject *parent)
 BasePort::~BasePort() {
     if (m_thread && m_thread->isRunning()) {
         m_thread->quit();
-        if (!m_thread->wait(3000)) {
-            qDebug() << "port terminated!!!";
-            m_thread->terminate();
-        }
+        m_thread->wait();
     }
 }

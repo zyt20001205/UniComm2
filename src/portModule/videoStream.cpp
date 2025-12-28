@@ -131,7 +131,6 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
     disconnect(connection);
 
     if (shot.isNull()) return {};
-
     // for testing
     // QMetaObject::invokeMethod(g_mainWindow, [shot] {
     //     auto *label = new QLabel(g_mainWindow); // NOLINT
