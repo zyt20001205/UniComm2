@@ -12,6 +12,10 @@ Visa::Visa(const QJsonObject &portConfig, QObject *parent)
       m_portConfig(portConfig) {
 }
 
+Visa::~Visa() {
+    close();
+}
+
 int Visa::type() {
     return VISA;
 }

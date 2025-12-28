@@ -14,6 +14,10 @@ SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
       m_portConfig(portConfig) {
 }
 
+SerialPort::~SerialPort() {
+    close();
+}
+
 int SerialPort::type() {
     return SERIALPORT;
 }

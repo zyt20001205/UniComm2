@@ -13,6 +13,8 @@ class UdpSocket final : public BasePort {
 public:
     explicit UdpSocket(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    ~UdpSocket() override;
+
     int type() override;
 
     QJsonObject config() override;

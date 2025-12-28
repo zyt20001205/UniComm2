@@ -13,6 +13,10 @@ UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)
       m_portConfig(portConfig) {
 }
 
+UdpSocket::~UdpSocket() {
+    close();
+}
+
 int UdpSocket::type() {
     return UDPSOCKET;
 }

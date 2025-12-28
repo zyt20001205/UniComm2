@@ -13,6 +13,8 @@ class TcpClient final : public BasePort {
 public:
     explicit TcpClient(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    ~TcpClient() override;
+
     int type() override;
 
     QJsonObject config() override;

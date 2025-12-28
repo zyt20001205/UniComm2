@@ -12,6 +12,8 @@ class Visa final : public BasePort {
 public:
     explicit Visa(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    ~Visa() override;
+
     int type() override;
 
     QJsonObject config() override;

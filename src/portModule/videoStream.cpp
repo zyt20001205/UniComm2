@@ -18,6 +18,7 @@ VideoStream::VideoStream(const QJsonObject &portConfig, QObject *parent)
 }
 
 VideoStream::~VideoStream() {
+    close();
     if (m_ocrEngine) {
         m_ocrEngine->End();
         delete m_ocrEngine;

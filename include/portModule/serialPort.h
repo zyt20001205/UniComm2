@@ -13,6 +13,8 @@ class SerialPort final : public BasePort {
 public:
     explicit SerialPort(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    ~SerialPort() override;
+
     int type() override;
 
     QJsonObject config() override;

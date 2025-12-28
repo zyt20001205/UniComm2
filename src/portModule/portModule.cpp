@@ -133,10 +133,7 @@ void PortModule::portRemove(const int index) {
     const auto *item = g_portStandardItemModel->item(index, 0);
     const QString portName = item->text();
     g_portStandardItemModel->removeRow(index);
-    auto *port = m_portHash[portName];
-    QMetaObject::invokeMethod(port, [&port] {
-        port->close();
-    }, Qt::BlockingQueuedConnection);
+    const auto *port = m_portHash[portName];
     delete port;
     m_portHash.remove(portName);
     // logging

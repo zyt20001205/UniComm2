@@ -14,6 +14,8 @@ class TcpServer final : public BasePort {
 public:
     explicit TcpServer(const QJsonObject &portConfig, QObject *parent = nullptr);
 
+    ~TcpServer() override;
+
     int type() override;
 
     QJsonObject config() override;

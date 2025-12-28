@@ -13,6 +13,10 @@ TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)
       m_portConfig(portConfig) {
 }
 
+TcpClient::~TcpClient() {
+    close();
+}
+
 int TcpClient::type() {
     return TCPCLIENT;
 }

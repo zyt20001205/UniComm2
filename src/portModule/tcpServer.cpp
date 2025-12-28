@@ -14,6 +14,10 @@ TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent)
       m_portConfig(portConfig) {
 }
 
+TcpServer::~TcpServer() {
+    close();
+}
+
 int TcpServer::type() {
     return TCPSERVER;
 }
