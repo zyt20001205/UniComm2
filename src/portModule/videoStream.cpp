@@ -1,8 +1,6 @@
 #include "portModule/videoStream.h"
 
 #include <QCamera>
-#include <QDialog>
-#include <QEventLoop>
 #include <QImageCapture>
 #include <QJsonArray>
 #include <QLabel>
