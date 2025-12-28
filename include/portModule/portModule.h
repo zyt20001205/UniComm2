@@ -20,7 +20,7 @@ class PortModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit PortModule();
 
-    ~PortModule() override = default;
+    ~PortModule() override;
 
     void propertySet(const QVariantMap &objects);
 

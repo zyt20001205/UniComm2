@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 Item {
     anchors.fill: parent
-    property bool modelVisible: standardItemModel.rowCount() > 0
+    property bool modelVisible: standardItemModel ? standardItemModel.rowCount() > 0 : false
 
     Item {
         id: hintItem

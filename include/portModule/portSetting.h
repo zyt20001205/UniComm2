@@ -5,8 +5,10 @@
 #include <QJsonObject>
 #include <QQuickImageProvider>
 
+class QCamera;
 class QMediaCaptureSession;
 class QQuickItem;
+class QScreenCapture;
 class QStandardItemModel;
 class QVideoSink;
 
@@ -30,7 +32,7 @@ public:
 
     Q_INVOKABLE void dialogResize(int width, int height) const;
 
-    Q_INVOKABLE void videoCapture() const;
+    Q_INVOKABLE void videoCapture();
 
     Q_INVOKABLE void roiInsert(int x, int y, int w, int h) const;
 
@@ -60,6 +62,8 @@ private:
     QStandardItemModel *m_localHostStandardItemModel{};
     QStandardItemModel *m_videoStreamStandardItemModel{};
     QMediaCaptureSession *m_mediaCaptureSession{};
+    QScreenCapture *m_screenCapture{};
+    QCamera *m_cameraCapture{};
     QStandardItemModel *m_roiStandardItemModel{};
     QString m_oldPortName{};
 

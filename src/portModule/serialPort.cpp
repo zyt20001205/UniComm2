@@ -91,7 +91,7 @@ bool SerialPort::open() {
 }
 
 void SerialPort::close() {
-    // close port
+    // port close
     if (m_serialPort == nullptr) return;
     m_serialPort->close();
     emit refreshPort(m_portConfig["portName"].toString(), false);

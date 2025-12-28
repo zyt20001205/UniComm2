@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
       m_scriptComboBox(new QComboBox()) {
     // mainWindow ui init
     g_mainWindow = this;
+    setAttribute(Qt::WA_DeleteOnClose);
     QWidget::setWindowTitle("UniComm");
     QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
     QWidget::resize(1600, 900);

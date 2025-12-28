@@ -35,6 +35,15 @@ PortModule::PortModule()
     }
 }
 
+PortModule::~PortModule() {
+    for (const auto &port: m_portHash) {
+        QMetaObject::invokeMethod(port, [&port] {
+            port->close();
+        }, Qt::BlockingQueuedConnection);
+        delete port;
+    }
+}
+
 void PortModule::propertySet(const QVariantMap &objects) {
     m_portWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["portModuleTableMenu"]));
     m_portWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));

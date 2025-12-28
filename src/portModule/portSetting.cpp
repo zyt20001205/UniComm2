@@ -293,32 +293,34 @@ void PortSetting::dialogResize(const int width, const int height) const {
     m_portSettingDialog->resize(width, height);
 }
 
-void PortSetting::videoCapture() const {
+void PortSetting::videoCapture() {
     m_portSettingDialog->resize(1600, 900);
-    if (auto *oldCapture = m_mediaCaptureSession->screenCapture()) {
+    if (m_screenCapture) {
         m_mediaCaptureSession->setScreenCapture(nullptr);
-        oldCapture->stop();
-        oldCapture->deleteLater();
-    }
-    if (auto *oldCapture = m_mediaCaptureSession->camera()) {
+        m_screenCapture->stop();
+        m_screenCapture->deleteLater();
+        m_screenCapture = nullptr;
+    } else if (m_cameraCapture) {
         m_mediaCaptureSession->setCamera(nullptr);
-        oldCapture->stop();
-        oldCapture->deleteLater();
+        m_cameraCapture->stop();
+        m_cameraCapture->deleteLater();
+        m_cameraCapture = nullptr;
     }
     const auto &portName = m_videoStreamNameComboBox->property("currentValue").toString();
     for (QScreen *screen: QGuiApplication::screens()) {
         if (portName == screen->name()) {
-            auto *screenCapture = new QScreenCapture(screen);
-            m_mediaCaptureSession->setScreenCapture(screenCapture);
-            screenCapture->start();
+            m_screenCapture = new QScreenCapture(this);
+            m_screenCapture->setScreen(screen);
+            m_mediaCaptureSession->setScreenCapture(m_screenCapture);
+            m_screenCapture->start();
             return;
         }
     }
     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
         if (portName == camera.description()) {
-            auto *cameraCapture = new QCamera(camera);
-            m_mediaCaptureSession->setCamera(cameraCapture);
-            cameraCapture->start();
+            m_cameraCapture = new QCamera(camera, this);
+            m_mediaCaptureSession->setCamera(m_cameraCapture);
+            m_cameraCapture->start();
             return;
         }
     }
