@@ -2,6 +2,7 @@
 #define UNICOMM_LUAPORT_H
 
 #include <QObject>
+#include <sol/object.hpp>
 
 namespace sol {
     struct this_state;
@@ -25,7 +26,7 @@ public:
 
     void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
 
-    std::string read(const std::string &portName, int timeout, int length, const std::string &peerIp);
+    sol::object read(sol::this_state ts, const std::string &portName, int timeout, int length, const std::string &peerIp);
 
 signals:
     void listPort(QSet<QString> &portSet);
