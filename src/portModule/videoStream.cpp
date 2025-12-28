@@ -122,7 +122,7 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         return {};
     }
     QPixmap shot{};
-    auto connection = connect(m_imageCapture, &QImageCapture::imageCaptured, m_eventLoop, [this, &shot](int, const QImage &img) {
+    const auto connection = connect(m_imageCapture, &QImageCapture::imageCaptured, m_eventLoop, [this, &shot](int, const QImage &img) {
         shot = QPixmap::fromImage(img);
         m_eventLoop->quit();
     });
