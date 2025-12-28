@@ -123,6 +123,7 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
     });
     m_imageCapture->capture();
     loop.exec();
+
     // for testing
     // QMetaObject::invokeMethod(g_mainWindow, [shot] {
     //     auto *label = new QLabel(g_mainWindow); // NOLINT
