@@ -37,7 +37,7 @@ class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr, const QString &uniqueName = QStringLiteral("MyMainWindow"));
 
-    ~MainWindow() override = default;
+    ~MainWindow() override;
 
     void propertySet();
 

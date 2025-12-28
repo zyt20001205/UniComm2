@@ -72,6 +72,11 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
 }
 
+MainWindow::~MainWindow() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] main window destructed").arg(timestamp);
+}
+
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
