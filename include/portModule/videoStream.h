@@ -7,6 +7,7 @@
 #include "portModule/basePort.h"
 
 class QCamera;
+class QImageCapture;
 class QMediaCaptureSession;
 class QScreenCapture;
 
@@ -34,6 +35,7 @@ private:
     QMediaCaptureSession *m_mediaCaptureSession{};
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
+    QImageCapture *m_imageCapture{};
     tesseract::TessBaseAPI *m_ocrEngine{};
     // port config
     QJsonObject m_portConfig{};

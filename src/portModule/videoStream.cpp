@@ -1,9 +1,11 @@
 #include "portModule/videoStream.h"
 
 #include <QCamera>
+#include <QDialog>
 #include <QEventLoop>
 #include <QImageCapture>
 #include <QJsonArray>
+#include <QLabel>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
 #include <QScreenCapture>
@@ -36,6 +38,8 @@ bool VideoStream::open() {
     // port init
     if (m_mediaCaptureSession == nullptr) {
         m_mediaCaptureSession = new QMediaCaptureSession(this);
+        m_imageCapture = new QImageCapture(this);
+        m_mediaCaptureSession->setImageCapture(m_imageCapture);
         const auto &portName = m_portConfig["portName"].toString();
         for (QScreen *screen: QGuiApplication::screens()) {
             if (portName == screen->name()) {
@@ -103,44 +107,47 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
     bool status = false;
     if (m_screenCapture) status = m_screenCapture->isActive();
     else if (m_cameraCapture) status = m_cameraCapture->isActive();
-    qDebug() << status;
-    return {};
-    // // find videoStream
-    // m_videoStream = QVideoStreamDevice();
-    // for (const QVideoStreamDevice &videoStream: QMediaDevices::videoInputs()) {
-    //     if (videoStream.description() == m_portConfig["portName"].toString()) {
-    //         m_videoStream = videoStream;
-    //         break;
-    //     }
-    // }
-    // if (m_videoStream.isNull()) return "videoStream not found";;
-    // QPixmap shot{};
-    // const auto videoStream = new QVideoStream(m_videoStream, this);
-    // QMediaCaptureSession captureSession;
-    // captureSession.setVideoStream(videoStream);
-    // QImageCapture imageCapture;
-    // captureSession.setImageCapture(&imageCapture);
-    // QEventLoop loop;
-    // connect(&imageCapture, &QImageCapture::imageCaptured, this, [&shot, &loop](int, const QImage &img) {
-    //     shot = QPixmap::fromImage(img);
-    //     loop.quit();
+    // check port status
+    if (!status) {
+        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        return {};
+    }
+    QPixmap shot{};
+    QEventLoop loop;
+    connect(m_imageCapture, &QImageCapture::imageCaptured, &loop, [&shot, &loop](int, const QImage &img) {
+        shot = QPixmap::fromImage(img);
+        loop.quit();
+    });
+    m_imageCapture->capture();
+    loop.exec();
+    // for testing
+    // QMetaObject::invokeMethod(g_mainWindow, [shot] {
+    //     auto *label = new QLabel(g_mainWindow); // NOLINT
+    //     label->setWindowTitle("test");
+    //     label->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
+    //     label->setPixmap(shot);
+    //     label->show();
     // });
-    // videoStream->start();
-    // imageCapture.capture();
-    // loop.exec();
-    // videoStream->stop();
-    // delete videoStream;
-    // QStringList resultList{};
-    // for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
-    //     QJsonArray roi = value.toArray();
-    //     const int x = roi[0].toInt();
-    //     const int y = roi[1].toInt();
-    //     const int width = roi[2].toInt();
-    //     const int height = roi[3].toInt();
-    //     const auto rect = QRect(x, y, width, height);
-    //     const QPixmap cropped = shot.copy(rect);
-    //     const QString text = ocr(cropped, "eng", m_portConfig["whitelist"].toString());
-    //     resultList.append(text);
-    // }
-    // return resultList.join("\x1E").toUtf8();
+
+    QStringList resultList{};
+    for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
+        QJsonArray roi = value.toArray();
+        const int x = roi[0].toInt();
+        const int y = roi[1].toInt();
+        const int width = roi[2].toInt();
+        const int height = roi[3].toInt();
+        const auto rect = QRect(x, y, width, height);
+        const QPixmap cropped = shot.copy(rect);
+        const QImage image = cropped.toImage().convertToFormat(QImage::Format_RGB888);
+        m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
+        char *result = m_ocrEngine->GetUTF8Text();
+        QString text = QString::fromUtf8(result);
+        text = text.trimmed();
+        resultList.append(text.isEmpty() ? "null" : text);
+        delete result;
+    }
+    return resultList.join("\x1E").toUtf8();
 }
