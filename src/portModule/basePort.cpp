@@ -13,7 +13,8 @@ BasePort::BasePort(QObject *parent)
 
 BasePort::~BasePort() {
     if (m_thread && m_thread->isRunning()) {
-        m_thread->quit();
-        m_thread->wait();
+        // m_thread->quit();
+        // m_thread->wait();
+        m_thread->terminate();
     }
 }

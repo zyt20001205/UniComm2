@@ -113,14 +113,14 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
         return {};
     }
+    QEventLoop eventloop{};
     QPixmap shot{};
-    QEventLoop loop;
-    connect(m_imageCapture, &QImageCapture::imageCaptured, &loop, [&shot, &loop](int, const QImage &img) {
+    connect(m_imageCapture, &QImageCapture::imageCaptured, &eventloop, [&eventloop, &shot](int, const QImage &img) {
         shot = QPixmap::fromImage(img);
-        loop.quit();
+        eventloop.quit();
     });
     m_imageCapture->capture();
-    loop.exec();
+    eventloop.exec();
 
     // for testing
     // QMetaObject::invokeMethod(g_mainWindow, [shot] {
