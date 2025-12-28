@@ -10,9 +10,11 @@
 #include <QMediaDevices>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QScreenCapture>
 #include <QSerialPortInfo>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
+#include <QVideoSink>
 #include <visa.h>
 
 #include "globals.h"
@@ -24,9 +26,8 @@ PortSetting::PortSetting(QWidget *parent)
       m_serialPortStandardItemModel(new QStandardItemModel(this)),
       m_visaStandardItemModel(new QStandardItemModel(this)),
       m_localHostStandardItemModel(new QStandardItemModel(this)),
-      m_screenStandardItemModel(new QStandardItemModel(this)),
-      m_cameraStandardItemModel(new QStandardItemModel(this)),
-      m_imageProvider(new ImageProvider()),
+      m_videoStreamStandardItemModel(new QStandardItemModel(this)),
+      m_mediaCaptureSession(new QMediaCaptureSession(this)),
       m_roiStandardItemModel(new QStandardItemModel(this)) {
     propertySet();
 }
@@ -37,14 +38,11 @@ void PortSetting::propertySet() {
     auto *widget = new QQuickWidget(); // NOLINT
     layout->addWidget(widget);
     layout->setContentsMargins(0, 0, 0, 0);
-    QQmlEngine *engine = widget->engine();
-    engine->addImageProvider("capture", m_imageProvider);
     widget->rootContext()->setContextProperty("portSetting", this);
     widget->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
     widget->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     widget->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
-    widget->rootContext()->setContextProperty("screenStandardItemModel", m_screenStandardItemModel);
-    widget->rootContext()->setContextProperty("cameraStandardItemModel", m_cameraStandardItemModel);
+    widget->rootContext()->setContextProperty("videoStreamStandardItemModel", m_videoStreamStandardItemModel);
     widget->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting.qml"));
@@ -75,16 +73,15 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_udpSocketLocalPortSpinBox = qvariant_cast<QObject *>(objects["udpSocketLocalPortSpinBox"]);
     m_udpSocketRemoteHostTextField = qvariant_cast<QObject *>(objects["udpSocketRemoteHostTextField"]);
     m_udpSocketRemotePortSpinBox = qvariant_cast<QObject *>(objects["udpSocketRemotePortSpinBox"]);
-    // screen
-    m_screenNameComboBox = qvariant_cast<QObject *>(objects["screenNameComboBox"]);
-    // camera
-    m_cameraNameComboBox = qvariant_cast<QObject *>(objects["cameraNameComboBox"]);
+    // video stream
+    m_videoStreamNameComboBox = qvariant_cast<QObject *>(objects["videoStreamNameComboBox"]);
     // format
     m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
     m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
     m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
     // image
-    m_captureImage = qvariant_cast<QObject *>(objects["captureImage"]);
+    m_videoSink = objects["videoSink"].value<QVideoSink *>();
+    m_mediaCaptureSession->setVideoSink(m_videoSink);
     m_whitelistSwitch = qvariant_cast<QObject *>(objects["whitelistSwitch"]);
     m_whitelistTextField = qvariant_cast<QObject *>(objects["whitelistTextField"]);
 }
@@ -93,8 +90,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     serialPortRefresh();
     visaRefresh();
     localHostRefresh();
-    screenRefresh();
-    cameraRefresh();
+    videoStreamRefresh();
     processRefresh(portConfig);
     if (portConfig.isEmpty()) {
         m_rootItem->setProperty("portType", 0);
@@ -130,13 +126,9 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_udpSocketLocalPortSpinBox->setProperty("value", 0);
         m_udpSocketRemoteHostTextField->setProperty("text", "");
         m_udpSocketRemotePortSpinBox->setProperty("value", 0);
-        // screen
-        if (m_screenNameComboBox->property("count").toInt()) {
-            m_screenNameComboBox->setProperty("currentIndex", 0);
-        }
-        // camera
-        if (m_cameraNameComboBox->property("count").toInt()) {
-            m_cameraNameComboBox->setProperty("currentIndex", 0);
+        // video stream
+        if (m_videoStreamNameComboBox->property("count").toInt()) {
+            m_videoStreamNameComboBox->setProperty("currentIndex", 0);
         }
         // format
         m_txFormatComboBox->setProperty("currentValue", "hex");
@@ -195,12 +187,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
             }
             break;
-            case SCREEN: {
-                m_screenNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
-            }
-            break;
-            case CAMERA: {
-                m_cameraNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
+            case VIDEOSTREAM: {
+                m_videoStreamNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
             }
             break;
             default: break;
@@ -276,7 +264,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case SCREEN: {
+        case VIDEOSTREAM: {
             QJsonArray roiArray{};
             for (int i = 0; i < m_roiStandardItemModel->rowCount(); ++i) {
                 const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
@@ -284,26 +272,13 @@ void PortSetting::portSettingExport() {
             }
             portConfig = {
                 {"portType", portType},
-                {"portName", m_screenNameComboBox->property("currentValue").toString()},
+                {"portName", m_videoStreamNameComboBox->property("currentValue").toString()},
                 {"roi", roiArray},
                 {"whitelist", m_whitelistTextField->property("text").toString()}
             };
         }
         break;
-        case CAMERA: {
-            QJsonArray roiArray{};
-            for (int i = 0; i < m_roiStandardItemModel->rowCount(); ++i) {
-                const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
-                roiArray.append(roi);
-            }
-            portConfig = {
-                {"portType", portType},
-                {"portName", m_cameraNameComboBox->property("currentValue").toString()},
-                {"roi", roiArray},
-                {"whitelist", m_whitelistTextField->property("text").toString()}
-            };
-        }
-        break;
+            break;
         default: break;
     }
     if (m_oldPortName.isEmpty()) {
@@ -318,18 +293,35 @@ void PortSetting::dialogResize(const int width, const int height) const {
     m_portSettingDialog->resize(width, height);
 }
 
-void PortSetting::screenCapture() const {
-    const auto &portName = m_screenNameComboBox->property("currentValue").toString();
-    m_imageProvider->screenCapture(portName);
-    m_captureImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+void PortSetting::videoCapture() const {
     m_portSettingDialog->resize(1600, 900);
-}
-
-void PortSetting::cameraCapture() const {
-    const auto &portName = m_cameraNameComboBox->property("currentValue").toString();
-    m_imageProvider->cameraCapture(portName);
-    m_captureImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
-    m_portSettingDialog->resize(1600, 900);
+    if (auto *oldCapture = m_mediaCaptureSession->screenCapture()) {
+        m_mediaCaptureSession->setScreenCapture(nullptr);
+        oldCapture->stop();
+        oldCapture->deleteLater();
+    }
+    if (auto *oldCapture = m_mediaCaptureSession->camera()) {
+        m_mediaCaptureSession->setCamera(nullptr);
+        oldCapture->stop();
+        oldCapture->deleteLater();
+    }
+    const auto &portName = m_videoStreamNameComboBox->property("currentValue").toString();
+    for (QScreen *screen: QGuiApplication::screens()) {
+        if (portName == screen->name()) {
+            auto *screenCapture = new QScreenCapture(screen);
+            m_mediaCaptureSession->setScreenCapture(screenCapture);
+            screenCapture->start();
+            return;
+        }
+    }
+    for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
+        if (portName == camera.description()) {
+            auto *cameraCapture = new QCamera(camera);
+            m_mediaCaptureSession->setCamera(cameraCapture);
+            cameraCapture->start();
+            return;
+        }
+    }
 }
 
 void PortSetting::roiInsert(const int x, const int y, const int w, const int h) const {
@@ -419,23 +411,19 @@ void PortSetting::localHostRefresh() const {
     }
 }
 
-void PortSetting::screenRefresh() const {
-    m_screenStandardItemModel->clear();
+void PortSetting::videoStreamRefresh() const {
+    m_videoStreamStandardItemModel->clear();
     for (const QScreen *screen: QGuiApplication::screens()) {
         const QString portName = screen->name();
-        auto *item = new QStandardItem(portName);
+        auto *item = new QStandardItem(portName); // NOLINT
         item->setData(portName, Qt::WhatsThisRole);
-        m_screenStandardItemModel->appendRow(item);
+        m_videoStreamStandardItemModel->appendRow(item);
     }
-}
-
-void PortSetting::cameraRefresh() const {
-    m_cameraStandardItemModel->clear();
     for (const QCameraDevice &camera: QMediaDevices::videoInputs()) {
         const QString portName = camera.description();
-        auto *item = new QStandardItem(portName);
+        auto *item = new QStandardItem(portName); // NOLINT
         item->setData(portName, Qt::WhatsThisRole);
-        m_cameraStandardItemModel->appendRow(item);
+        m_videoStreamStandardItemModel->appendRow(item);
     }
 }
 
@@ -448,7 +436,7 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
         // roi
         for (const QJsonValue &value: portConfig["roi"].toArray()) {
             QJsonArray roi = value.toArray();
-            roiInsert(roi[0].toInt(),roi[1].toInt(),roi[2].toInt(),roi[3].toInt());
+            roiInsert(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
         }
         // whitelist
         const QString whitelist = portConfig["whitelist"].toString();
@@ -457,53 +445,4 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
             m_whitelistTextField->setProperty("text", whitelist);
         }
     }
-}
-
-ImageProvider::ImageProvider()
-    : QQuickImageProvider(Pixmap) {
-}
-
-QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
-    if (m_capture.isNull()) return {};
-    return m_capture;
-}
-
-void ImageProvider::screenCapture(const QString &portName) {
-    QScreen *screen = nullptr;
-    for (QScreen *s: QGuiApplication::screens()) {
-        if (s->name() == portName) {
-            screen = s;
-            break;
-        }
-    }
-    if (!screen) return;
-    // capture
-    m_capture = screen->grabWindow(0);
-}
-
-void ImageProvider::cameraCapture(const QString &portName) {
-    QCameraDevice cameraDevice;
-    for (const QCameraDevice &c: QMediaDevices::videoInputs()) {
-        if (c.description() == portName) {
-            cameraDevice = c;
-            break;
-        }
-    }
-    if (cameraDevice.isNull()) return;
-    // capture
-    const auto camera = new QCamera(cameraDevice, this);
-    QMediaCaptureSession captureSession;
-    captureSession.setCamera(camera);
-    QImageCapture imageCapture;
-    captureSession.setImageCapture(&imageCapture);
-    QEventLoop loop;
-    connect(&imageCapture, &QImageCapture::imageCaptured, this, [this, &loop](int, const QImage &img) {
-        m_capture = QPixmap::fromImage(img);
-        loop.quit();
-    });
-    camera->start();
-    imageCapture.capture();
-    loop.exec();
-    camera->stop();
-    delete camera;
 }

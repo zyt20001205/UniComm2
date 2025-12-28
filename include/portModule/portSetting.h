@@ -5,10 +5,11 @@
 #include <QJsonObject>
 #include <QQuickImageProvider>
 
+class QMediaCaptureSession;
 class QQuickItem;
 class QStandardItemModel;
+class QVideoSink;
 
-class AreaSelection;
 class ImageProvider;
 
 class PortSetting final : public QWidget {
@@ -29,9 +30,7 @@ public:
 
     Q_INVOKABLE void dialogResize(int width, int height) const;
 
-    Q_INVOKABLE void screenCapture() const;
-
-    Q_INVOKABLE void cameraCapture() const;
+    Q_INVOKABLE void videoCapture() const;
 
     Q_INVOKABLE void roiInsert(int x, int y, int w, int h) const;
 
@@ -51,9 +50,7 @@ private:
 
     void localHostRefresh() const;
 
-    void screenRefresh() const;
-
-    void cameraRefresh() const;
+    void videoStreamRefresh() const;
 
     void processRefresh(const QJsonObject &portConfig) const;
 
@@ -61,9 +58,8 @@ private:
     QStandardItemModel *m_serialPortStandardItemModel{};
     QStandardItemModel *m_visaStandardItemModel{};
     QStandardItemModel *m_localHostStandardItemModel{};
-    QStandardItemModel *m_screenStandardItemModel{};
-    QStandardItemModel *m_cameraStandardItemModel{};
-    ImageProvider *m_imageProvider{};
+    QStandardItemModel *m_videoStreamStandardItemModel{};
+    QMediaCaptureSession *m_mediaCaptureSession{};
     QStandardItemModel *m_roiStandardItemModel{};
     QString m_oldPortName{};
 
@@ -91,36 +87,16 @@ private:
     QObject *m_udpSocketLocalPortSpinBox{};
     QObject *m_udpSocketRemoteHostTextField{};
     QObject *m_udpSocketRemotePortSpinBox{};
-    // screen
-    QObject *m_screenNameComboBox{};
-    // camera
-    QObject *m_cameraNameComboBox{};
+    // video stream
+    QObject *m_videoStreamNameComboBox{};
     // format
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};
     QObject *m_rxFormatComboBox{};
     // image
-    QObject *m_captureImage{};
+    QVideoSink *m_videoSink{};
     QObject *m_whitelistSwitch{};
     QObject *m_whitelistTextField{};
-};
-
-class ImageProvider final: public QQuickImageProvider {
-    Q_OBJECT
-
-public:
-    explicit ImageProvider();
-
-    ~ImageProvider() override = default;
-
-    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
-
-    void screenCapture(const QString& portName);
-
-    void cameraCapture(const QString& portName);
-
-private:
-    QPixmap m_capture{};
 };
 
 #endif //UNICOMM_PORTSETTING_H

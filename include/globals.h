@@ -45,8 +45,7 @@ enum {
     TCPCLIENT,
     TCPSERVER,
     UDPSOCKET,
-    SCREEN,
-    CAMERA
+    VIDEOSTREAM
 };
 
 enum {

@@ -3,7 +3,6 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QTabWidget>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QPushButton;
@@ -51,8 +50,6 @@ private:
     QQuickWidget *m_portWidget{};
     QQuickItem *m_rootItem{};
     PortSetting *m_portSetting{};
-
-    int m_version = 1;
 };
 
 #endif //UNICOMM_PORT_H

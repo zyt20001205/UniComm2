@@ -1,3 +1,4 @@
+import QtMultimedia
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -39,7 +40,7 @@ Item {
                     id: tumbler
                     currentIndex: rootItem.portType
                     delegate: delegateComponent
-                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Screen"), qsTr("Camera")]
+                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Vedio Stream")]
                     wrap: false
                     Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -147,7 +148,7 @@ Item {
                     ColumnLayout {
 
                         Image {
-                            source: "qrc:/icon/screen.svg"
+                            source: "qrc:/icon/video.svg"
                             sourceSize: Qt.size(80, 80)
                             Layout.preferredWidth: 80; Layout.preferredHeight: 80
                             Layout.alignment: Qt.AlignHCenter
@@ -155,25 +156,7 @@ Item {
 
                         Label {
                             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("Capture screenshots for image processing and OCR text recognition.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
-                        }
-                    }
-
-                    ColumnLayout {
-
-                        Image {
-                            source: "qrc:/icon/camera.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("Take pictures for image processing and OCR text recognition.")
+                            text: qsTr("Video stream for image processing and OCR text recognition.")
                             wrapMode: Text.WordWrap
                             font.pointSize: 12
                             Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
@@ -494,7 +477,7 @@ Item {
                         }
                     }
 
-                    // screen
+                    // video stream
                     GridLayout {
                         columns: 2
                         columnSpacing: 20; rowSpacing: 20
@@ -506,28 +489,8 @@ Item {
                         }
 
                         ComboBox {
-                            id: screenNameComboBox
-                            model: screenStandardItemModel
-                            textRole: "display"
-                            valueRole: "whatsThis"
-                            Layout.fillWidth: true
-                        }
-                    }
-
-                    // camera
-                    GridLayout {
-                        columns: 2
-                        columnSpacing: 20; rowSpacing: 20
-
-                        Label {
-                            text: qsTr("Port Name")
-                            font.pointSize: 12
-                            Layout.fillWidth: true
-                        }
-
-                        ComboBox {
-                            id: cameraNameComboBox
-                            model: cameraStandardItemModel
+                            id: videoStreamNameComboBox
+                            model: videoStreamStandardItemModel
                             textRole: "display"
                             valueRole: "whatsThis"
                             Layout.fillWidth: true
@@ -655,16 +618,16 @@ Item {
 
                         ScrollView {
                             Layout.fillWidth: true; Layout.fillHeight: true
-                            contentWidth: captureImage.width; contentHeight: captureImage.height
-
-                            Image {
-                                id: captureImage
+                            contentWidth: videoOutput.width; contentHeight: videoOutput.height
+                            
+                            VideoOutput {
+                                id: videoOutput
                                 property var indicatorList: []
                             }
 
                             Rectangle {
                                 id: captureSelection
-                                anchors.fill: captureImage
+                                anchors.fill: videoOutput
                                 color: "white"
                                 opacity: 0.5
                                 visible: false
@@ -711,33 +674,6 @@ Item {
                                 Layout.fillWidth: true; Layout.fillHeight: false
 
                                 RowLayout {
-
-                                    ToolButton {
-                                        Layout.preferredWidth: 48; Layout.preferredHeight: 48
-                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                        icon.source: "qrc:/icon/refresh.svg"
-                                        icon.width: 32; icon.height: 32
-                                        checkable: true
-                                        ToolTip.text: qsTr("Auto Refresh")
-                                        ToolTip.visible: hovered
-
-                                        Timer {
-                                            interval: 1000
-                                            running: parent.checked
-                                            repeat: true
-                                            onTriggered: {
-                                                if (rootItem.portType === 5) {
-                                                    portSetting.screenCapture()
-                                                } else {
-                                                    portSetting.cameraCapture()
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    ToolSeparator {
-                                    }
-
                                     ToolButton {
                                         Layout.preferredWidth: 48; Layout.preferredHeight: 48
                                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
@@ -1052,11 +988,7 @@ Item {
                             }
                                 break
                             case 5: {
-                                portSetting.screenCapture()
-                            }
-                                break
-                            case 6: {
-                                portSetting.cameraCapture()
+                                portSetting.videoCapture()
                             }
                                 break
                         }
@@ -1095,16 +1027,14 @@ Item {
             "udpSocketLocalPortSpinBox": udpSocketLocalPortSpinBox,
             "udpSocketRemoteHostTextField": udpSocketRemoteHostTextField,
             "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
-            // screen
-            "screenNameComboBox": screenNameComboBox,
-            // camera
-            "cameraNameComboBox": cameraNameComboBox,
+            // video stream
+            "videoStreamNameComboBox": videoStreamNameComboBox,
             // format
             "txFormatComboBox": txFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,
             "rxFormatComboBox": rxFormatComboBox,
             // image
-            "captureImage": captureImage,
+            "videoSink": videoOutput.videoSink,
             "whitelistSwitch": whitelistSwitch,
             "whitelistTextField": whitelistTextField
         };
@@ -1137,21 +1067,21 @@ Item {
     }
 
     function indicatorReload() {
-        for (let i = 0; i < captureImage.indicatorList.length; ++i) {
-            captureImage.indicatorList[i].destroy()
+        for (let i = 0; i < videoOutput.indicatorList.length; ++i) {
+            videoOutput.indicatorList[i].destroy()
         }
-        captureImage.indicatorList = []
+        videoOutput.indicatorList = []
         for (let row = 0; row < roiStandardItemModel.rowCount(); ++row) {
             const index = roiStandardItemModel.index(row, 0);
             const position = roiStandardItemModel.data(index, Qt.WhatsThisRole);
-            const indicator = indicatorComponent.createObject(captureImage, {
+            const indicator = indicatorComponent.createObject(videoOutput, {
                 x: position[0],
                 y: position[1],
                 width: position[2],
                 height: position[3],
                 index: row
             });
-            captureImage.indicatorList.push(indicator)
+            videoOutput.indicatorList.push(indicator)
         }
     }
 }

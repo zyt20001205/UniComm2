@@ -12,13 +12,12 @@
 
 #include "globals.h"
 #include "portModule/basePort.h"
-#include "portModule/camera.h"
 #include "portModule/portSetting.h"
-#include "portModule/screen.h"
 #include "portModule/serialPort.h"
 #include "portModule/tcpClient.h"
 #include "portModule/tcpServer.h"
 #include "portModule/udpSocket.h"
+#include "portModule/videoStream.h"
 #include "portModule/visa.h"
 
 // PortModule public
@@ -103,12 +102,8 @@ void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
             port = new UdpSocket(portConfig);
             break;
         }
-        case SCREEN: {
-            port = new Screen(portConfig);
-            break;
-        }
-        case CAMERA: {
-            port = new Camera(portConfig);
+        case VIDEOSTREAM: {
+            port = new VideoStream(portConfig);
             break;
         }
         default: {

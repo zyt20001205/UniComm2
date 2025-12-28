@@ -49,16 +49,15 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaPort.h
         include/luaModule/luaThread.h
         include/portModule/basePort.h
-        include/portModule/camera.h
         include/portModule/pixmapPreview.h
         include/portModule/portModule.h
         include/portModule/portSetting.h
-        include/portModule/screen.h
         include/portModule/sendModule.h
         include/portModule/serialPort.h
         include/portModule/tcpClient.h
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
+        include/portModule/videoStream.h
         include/portModule/visa.h
         include/scriptModule/nuspellModule.h
         include/scriptModule/scriptModule.h
@@ -107,16 +106,15 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaPort.cpp
         src/luaModule/luaThread.cpp
         src/portModule/basePort.cpp
-        src/portModule/camera.cpp
         src/portModule/pixmapPreview.cpp
         src/portModule/portModule.cpp
         src/portModule/portSetting.cpp
-        src/portModule/screen.cpp
         src/portModule/sendModule.cpp
         src/portModule/serialPort.cpp
         src/portModule/tcpClient.cpp
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp
+        src/portModule/videoStream.cpp
         src/portModule/visa.cpp
         src/scriptModule/nuspellModule.cpp
         src/scriptModule/scriptModule.cpp
@@ -184,7 +182,6 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/autoFitHeight.svg"
         "resources/icon/brush.svg"
         "resources/icon/bug.svg"
-        "resources/icon/camera.svg"
         "resources/icon/checkmarkCircle.svg"
         "resources/icon/clock.svg"
         "resources/icon/collapse.svg"
@@ -223,7 +220,6 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/reset.svg"
         "resources/icon/roi.svg"
         "resources/icon/save.svg"
-        "resources/icon/screen.svg"
         "resources/icon/send.svg"
         "resources/icon/serialPort.svg"
         "resources/icon/share.svg"
@@ -247,6 +243,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/tcpServer.svg"
         "resources/icon/typeDefinition.svg"
         "resources/icon/udpSocket.svg"
+        "resources/icon/video.svg"
         "resources/icon/warning.svg"
         "resources/icon/wholeWord.svg"
         "resources/icon/wordStart.svg"
