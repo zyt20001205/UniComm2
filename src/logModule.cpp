@@ -17,6 +17,11 @@ LogModule::LogModule()
     setWidget(m_logWidget);
 }
 
+LogModule::~LogModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] log module destructed").arg(timestamp);
+}
+
 void LogModule::propertySet(const QVariantMap &objects) {
     m_emptyDialog = qvariant_cast<QObject *>(objects["logModuleEmptyDialog"]);
     m_logWidget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));

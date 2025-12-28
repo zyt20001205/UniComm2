@@ -20,6 +20,11 @@ DatabaseModule::DatabaseModule()
     }
 }
 
+DatabaseModule::~DatabaseModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] database module destructed").arg(timestamp);
+}
+
 void DatabaseModule::propertySet(const QVariantMap &objects) {
     m_databaseWidget->rootContext()->setContextProperty("nameDialog", qvariant_cast<QObject *>(objects["databaseModuleNameDialog"]));
     m_databaseWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));

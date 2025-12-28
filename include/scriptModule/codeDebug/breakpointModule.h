@@ -13,7 +13,7 @@ class BreakpointModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit BreakpointModule();
 
-    ~BreakpointModule() override = default;
+    ~BreakpointModule() override;
 
     void propertySet(const QVariantMap &objects);
 

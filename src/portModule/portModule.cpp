@@ -37,11 +37,10 @@ PortModule::PortModule()
 
 PortModule::~PortModule() {
     for (const auto &port: m_portHash) {
-        QMetaObject::invokeMethod(port, [&port] {
-            port->close();
-        }, Qt::BlockingQueuedConnection);
         delete port;
     }
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] port module destructed").arg(timestamp);
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {

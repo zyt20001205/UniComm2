@@ -12,7 +12,7 @@ class DataplotModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit DataplotModule();
 
-    ~DataplotModule() override = default;
+    ~DataplotModule() override;
 
     void dataplotAppend(const QString &key, int position);
 

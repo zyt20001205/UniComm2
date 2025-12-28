@@ -14,7 +14,7 @@ class LogModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit LogModule();
 
-    ~LogModule() override = default;
+    ~LogModule() override;
 
     void propertySet(const QVariantMap &objects);
 

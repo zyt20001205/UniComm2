@@ -22,7 +22,7 @@ class ScriptModule final : public QObject {
 public:
     explicit ScriptModule(QWidget *parent = nullptr);
 
-    ~ScriptModule() override = default;
+    ~ScriptModule() override;
 
     void propertySet(const QVariantMap &objects);
 

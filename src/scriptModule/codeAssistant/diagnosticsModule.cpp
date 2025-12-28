@@ -18,6 +18,11 @@ DiagnosticsModule::DiagnosticsModule()
     setWidget(m_diagnosticsWidget);
 }
 
+DiagnosticsModule::~DiagnosticsModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] diagnostics module destructed").arg(timestamp);
+}
+
 void DiagnosticsModule::propertySet(const QVariantMap &objects) {
     m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticMenu", qvariant_cast<QObject *>(objects["diagnosticsModuleDiagnosticMenu"]));
 

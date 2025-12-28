@@ -46,6 +46,11 @@ DatatableModule::DatatableModule()
     connect(clearAction, &QAction::triggered, this, [this] { datatableClear(""); });
 }
 
+DatatableModule::~DatatableModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] datatable module destructed").arg(timestamp);
+}
+
 void DatatableModule::datatableConfigSave() const {
     g_workspaceConfig["datatableConfig"] = m_datatableConfig;
 }

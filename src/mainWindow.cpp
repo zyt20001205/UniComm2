@@ -61,8 +61,8 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     overlayInit();
 
     // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "main window created");
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] main window created").arg(timestamp);
 
     // preload multimedia to avoid lagging on port selection
     QThread *worker = QThread::create([] {

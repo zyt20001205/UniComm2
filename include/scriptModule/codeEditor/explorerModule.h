@@ -13,7 +13,7 @@ class ExplorerModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit ExplorerModule();
 
-    ~ExplorerModule() override = default;
+    ~ExplorerModule() override;
 
     void propertySet(const QVariantMap &objects);
 

@@ -14,7 +14,7 @@ class StructureModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit StructureModule();
 
-    ~StructureModule() override = default;
+    ~StructureModule() override;
 
     void propertySet(const QVariantMap &objects);
 

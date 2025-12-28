@@ -7,6 +7,7 @@
 #include "portModule/basePort.h"
 
 class QCamera;
+class QEventLoop;
 class QImageCapture;
 class QMediaCaptureSession;
 class QScreenCapture;
@@ -32,6 +33,7 @@ public:
     QByteArray read(int timeout, int length, const QString &rxFormat) override;
 
 private:
+    QEventLoop *m_eventLoop{};
     QMediaCaptureSession *m_mediaCaptureSession{};
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};

@@ -15,7 +15,7 @@ class DiagnosticsModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit DiagnosticsModule();
 
-    ~DiagnosticsModule() override = default;
+    ~DiagnosticsModule() override;
 
     void propertySet(const QVariantMap &objects);
 

@@ -24,6 +24,11 @@ BreakpointModule::BreakpointModule()
     }
 }
 
+BreakpointModule::~BreakpointModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] breakpoint module destructed").arg(timestamp);
+}
+
 void BreakpointModule::propertySet(const QVariantMap &objects) {
     m_breakpointWidget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
     m_breakpointWidget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));

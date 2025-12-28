@@ -17,6 +17,11 @@ StructureModule::StructureModule()
     setWidget(m_structureWidget);
 }
 
+StructureModule::~StructureModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] structure module destructed").arg(timestamp);
+}
+
 void StructureModule::propertySet(const QVariantMap &objects) {
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);

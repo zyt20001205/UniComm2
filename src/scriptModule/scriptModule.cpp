@@ -36,6 +36,11 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::insertDatatable, this, &ScriptModule::insertDatatable);
 }
 
+ScriptModule::~ScriptModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] script module destructed").arg(timestamp);
+}
+
 void ScriptModule::propertySet(const QVariantMap &objects) {
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }

@@ -15,7 +15,7 @@ class ThreadpoolModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit ThreadpoolModule();
 
-    ~ThreadpoolModule() override = default;
+    ~ThreadpoolModule() override;
 
     void propertySet(const QVariantMap &objects);
 

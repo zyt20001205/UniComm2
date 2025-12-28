@@ -12,7 +12,7 @@ class DatatableModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit DatatableModule();
 
-    ~DatatableModule() override = default;
+    ~DatatableModule() override;
 
     void datatableConfigSave() const;
 

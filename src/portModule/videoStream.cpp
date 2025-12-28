@@ -7,6 +7,7 @@
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
 #include <QScreenCapture>
+#include <QThread>
 
 #include "globals.h"
 #include "utils/cvUtils.h"
@@ -68,6 +69,9 @@ bool VideoStream::open() {
         // m_ocrEngine->SetVariable("load_system_dawg", "0");
         // m_ocrEngine->SetVariable("load_freq_dawg", "0");
     }
+    if (m_eventLoop == nullptr) {
+        m_eventLoop = new QEventLoop(this);
+    }
     // port open
     if (m_screenCapture) m_screenCapture->start();
     else if (m_cameraCapture) m_cameraCapture->start();
@@ -89,6 +93,9 @@ bool VideoStream::open() {
 
 void VideoStream::close() {
     // port close
+    if (m_eventLoop && m_eventLoop->isRunning()) {
+        m_eventLoop->quit();
+    }
     if (m_screenCapture) m_screenCapture->stop();
     else if (m_cameraCapture) m_cameraCapture->stop();
     emit refreshPort(m_portConfig["portName"].toString(), false);
@@ -114,14 +121,16 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
         return {};
     }
-    QEventLoop eventloop{};
     QPixmap shot{};
-    connect(m_imageCapture, &QImageCapture::imageCaptured, &eventloop, [&eventloop, &shot](int, const QImage &img) {
+    auto connection = connect(m_imageCapture, &QImageCapture::imageCaptured, m_eventLoop, [this, &shot](int, const QImage &img) {
         shot = QPixmap::fromImage(img);
-        eventloop.quit();
+        m_eventLoop->quit();
     });
     m_imageCapture->capture();
-    eventloop.exec();
+    m_eventLoop->exec();
+    disconnect(connection);
+
+    if (shot.isNull()) return {};
 
     // for testing
     // QMetaObject::invokeMethod(g_mainWindow, [shot] {

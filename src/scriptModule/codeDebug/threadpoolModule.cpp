@@ -21,6 +21,11 @@ ThreadpoolModule::ThreadpoolModule()
     setWidget(m_threadpoolWidget);
 }
 
+ThreadpoolModule::~ThreadpoolModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] threadpool module destructed").arg(timestamp);
+}
+
 void ThreadpoolModule::propertySet(const QVariantMap &objects) {
     const auto mainObject = qvariant_cast<QObject *>(objects["mainItem"]);
     m_mainItem = qobject_cast<QQuickItem *>(mainObject);

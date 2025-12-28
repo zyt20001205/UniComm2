@@ -18,6 +18,11 @@ ExplorerModule::ExplorerModule()
     setWidget(m_explorerWidget);
 }
 
+ExplorerModule::~ExplorerModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] explorer module destructed").arg(timestamp);
+}
+
 void ExplorerModule::propertySet(const QVariantMap &objects) {
     m_explorerWidget->rootContext()->setContextProperty("scriptMenu", qvariant_cast<QObject *>(objects["explorerModuleScriptMenu"]));
     m_explorerWidget->rootContext()->setContextProperty("folderMenu", qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]));

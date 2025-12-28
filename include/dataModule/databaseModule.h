@@ -14,7 +14,7 @@ class DatabaseModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit DatabaseModule();
 
-    ~DatabaseModule() override = default;
+    ~DatabaseModule() override;
 
     void propertySet(const QVariantMap &objects);
 

@@ -32,6 +32,11 @@ DataplotModule::DataplotModule()
     insetLayout->addElement(m_rightLegend, Qt::AlignTop | Qt::AlignRight);
 }
 
+DataplotModule::~DataplotModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] dataplot module destructed").arg(timestamp);
+}
+
 void DataplotModule::dataplotAppend(const QString &key, const int position) {
     this->open();
     emit addGraphDatatable(key, position);

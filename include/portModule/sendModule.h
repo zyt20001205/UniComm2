@@ -16,7 +16,7 @@ class SendModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit SendModule();
 
-    ~SendModule() override = default;
+    ~SendModule() override;
 
     void propertySet(const QVariantMap &objects);
 

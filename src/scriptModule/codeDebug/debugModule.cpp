@@ -27,6 +27,11 @@ DebugModule::DebugModule()
     setWidget(m_debugWidget);
 }
 
+DebugModule::~DebugModule() {
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] debug module destructed").arg(timestamp);
+}
+
 void DebugModule::propertySet(const QVariantMap &objects) {
     m_debugWidget->rootContext()->setContextProperty("debugModule", this);
     m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);

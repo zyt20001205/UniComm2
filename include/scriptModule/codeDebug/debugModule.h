@@ -22,7 +22,7 @@ class DebugModule final : public KDDockWidgets::QtWidgets::DockWidget {
 public:
     explicit DebugModule();
 
-    ~DebugModule() override = default;
+    ~DebugModule() override;
 
     void propertySet(const QVariantMap &objects);
 
