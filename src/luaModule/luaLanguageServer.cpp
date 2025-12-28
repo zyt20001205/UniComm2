@@ -24,6 +24,8 @@ LuaLanguageServer::~LuaLanguageServer() {
             m_process->waitForFinished();
         }
     }
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] luals module destructed").arg(timestamp);
 }
 
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
