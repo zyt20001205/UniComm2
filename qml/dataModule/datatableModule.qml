@@ -1,0 +1,220 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+Item {
+    id: rootItem
+    anchors.fill: parent
+    property bool modelVisible: standardItemModel.rowCount() > 0
+
+    Item {
+        id: hintItem
+        anchors.fill: parent
+        visible: !modelVisible
+
+        RowLayout {
+            anchors.centerIn: parent
+
+            Button {
+                flat: true
+                text: qsTr("Click to create key.")
+                font.pixelSize: 16
+                Layout.alignment: Qt.AlignVCenter
+
+                onClicked: {
+                    nameDialog.databaseIndex = -1
+                    nameDialog.open()
+                }
+            }
+
+            Image {
+                source: "qrc:/icon/table.svg"
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+    }
+
+    Component {
+        id: tableComponent
+
+        Item {
+            anchors.fill: parent
+            visible: modelVisible
+
+            HorizontalHeaderView {
+                id: horizontalHeaderView
+                anchors.top: parent.top
+                width: parent.width; height: 32
+                syncView: tableView
+                clip: true
+                interactive: false
+                movableColumns: true
+                delegate: HorizontalHeaderViewDelegate {
+                    id: horizontalHeaderViewDelegate
+                    implicitWidth: horizontalHeaderView.width; implicitHeight: 32
+                    padding: 0
+
+                    contentItem: Rectangle {
+                        width: 60; height: 32
+                        color: "white"
+
+                        Text {
+                            anchors.fill: parent
+                            clip: true
+                            font.family: "Segoe UI"
+                            font.pointSize: 10
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                            text: horizontalHeader.data(horizontalHeader.index(horizontalHeaderViewDelegate.index), Qt.DisplayRole)
+                        }
+                    }
+
+                    HoverHandler {
+                        onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                    }
+                }
+                property var moves: []
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#e0e0e0"
+                    z: -1
+                }
+
+                Timer {
+                    id: timer
+                    interval: 10
+                    onTriggered: {
+                        let index = -1
+                        let distance = -1
+                        let currentDistance;
+                        for (let i = 0; i < horizontalHeaderView.moves.length; ++i) {
+                            let move = horizontalHeaderView.moves[i]
+                            currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                            if (currentDistance > distance) {
+                                distance = currentDistance
+                                index = i
+                            }
+                        }
+                        let move = horizontalHeaderView.moves[index]
+                        databaseModule.databaseSwap(move.oldVisualIndex, move.newVisualIndex)
+                        horizontalHeaderView.moves = []
+                    }
+                }
+
+                onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                    moves.push({oldVisualIndex, newVisualIndex})
+                    timer.restart()
+                }
+            }
+
+            // TableView {
+            //     id: tableView
+            //     anchors.left: horizontalHeaderView.right; anchors.right: parent.right
+            //     height: parent.height
+            //     alternatingRows: false
+            //     clip: true
+            //     rowSpacing: 1; columnSpacing: 1
+            //     resizableColumns: true
+            //     model: standardItemModel
+            //     contentWidth: width
+            //     delegate: ItemDelegate {
+            //         implicitWidth: {
+            //             if (column === 0) {
+            //                 return tableView.width / 3
+            //             } else {
+            //                 return tableView.width - tableView.columnWidth(0)
+            //             }
+            //         }
+            //         implicitHeight: 32
+            //         text: model.display
+            //         font.pixelSize: 16
+            //         background: Rectangle {
+            //             color: "white"
+            //         }
+            //
+            //         onTextChanged: {
+            //             if (column === 1) {
+            //                 highlightRect.opacity = 1
+            //                 highlightTimer.restart()
+            //             }
+            //         }
+            //
+            //         Timer {
+            //             id: highlightTimer
+            //             interval: 500
+            //
+            //             onTriggered: highlightRect.opacity = 0
+            //         }
+            //
+            //         Rectangle {
+            //             id: highlightRect
+            //             anchors.fill: parent
+            //             radius: 2
+            //             color: "#f5f5f5"
+            //             opacity: hoverHandler.hovered ? 1 : 0
+            //             Behavior on opacity {
+            //                 NumberAnimation {
+            //                     duration: 150
+            //                 }
+            //             }
+            //         }
+            //
+            //         HoverHandler {
+            //             id: hoverHandler
+            //         }
+            //
+            //         TapHandler {
+            //             acceptedButtons: Qt.RightButton
+            //             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+            //
+            //             onSingleTapped: {
+            //                 tableMenu.databaseIndex = model.row
+            //                 const index = tableView.model.index(row, 0);
+            //                 tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
+            //                 tableMenu.popup()
+            //             }
+            //         }
+            //     }
+            //
+            //     Rectangle {
+            //         anchors.fill: parent
+            //         color: "#e0e0e0"
+            //         z: -1
+            //     }
+            //
+            //     TapHandler {
+            //         acceptedButtons: Qt.RightButton
+            //
+            //         onSingleTapped: rootMenu.popup()
+            //     }
+            // }
+        }
+    }
+
+    Loader {
+        id: tableLoader
+        anchors.fill: parent
+        sourceComponent: tableComponent
+    }
+
+    Connections {
+        target: standardItemModel
+
+        function onRowsInserted() {
+            modelVisible = true
+        }
+
+        function onRowsRemoved() {
+            modelVisible = standardItemModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            modelVisible = false
+        }
+    }
+
+    function reload() {
+        tableLoader.active = false
+        tableLoader.active = true
+    }
+}

@@ -35,7 +35,6 @@ Item {
         clip: true
         interactive: false
         visible: modelVisible
-
         delegate: HorizontalHeaderViewDelegate {
             id: horizontalHeaderViewDelegate
             required property int index

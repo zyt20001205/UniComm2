@@ -2,7 +2,6 @@
 
 #include <QQmlContext>
 #include <QQuickItem>
-#include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QTimer>
 
@@ -52,12 +51,13 @@ void DatabaseModule::databaseList(QSet<QString> &databaseList) const {
     }
 }
 
-void DatabaseModule::databaseInsert(const int index, const QString &key) {
+void DatabaseModule::databaseInsert(int index, const QString &key) {
+    index = g_databaseStandardItemModel->rowCount();
     auto *keyItem = new QStandardItem(key); // NOLINT
     auto *valueItem = new QStandardItem(); // NOLINT
-    if (index == -1) g_databaseStandardItemModel->appendRow({keyItem, valueItem});
-    else g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
-    databaseIndex();}
+    g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
+    databaseIndex();
+}
 
 void DatabaseModule::databaseRemove(const int index) {
     g_databaseStandardItemModel->removeRow(index);

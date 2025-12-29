@@ -81,6 +81,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
     m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
+    m_overlay->rootContext()->setContextProperty("datatableModule", m_datatableModule);
     // m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
@@ -109,7 +110,14 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"databaseModuleRootMenu", objects["databaseModuleRootMenu"]}
     };
     m_databaseModule->propertySet(databaseObjects);
-    
+
+    const QVariantMap datatableObjects = {
+        // {"datatableModuleNameDialog", objects["datatableModuleNameDialog"]},
+        // {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
+        // {"datatableModuleRootMenu", objects["datatableModuleRootMenu"]}
+    };
+    m_datatableModule->propertySet(datatableObjects);
+
     const QVariantMap debugObjects = {
         //
     };
@@ -262,6 +270,10 @@ void MainWindow::moduleInit() {
     connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
 
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
+
+    connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
+    // connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
+    // connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
     
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
@@ -300,13 +312,8 @@ void MainWindow::moduleInit() {
     });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] { m_portModule->portInsert(-1, QJsonObject()); });
-    connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] {
-        m_databaseModule->databaseInsert(-1, QString());
-    });
-    connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, [this] {
-        m_datatableModule->datatableInsert(-1, QString());
-        m_datatableModule->datatableAnnotate();
-    });
+    connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] { m_databaseModule->databaseInsert(-1, QString()); });
+    connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, [this] { m_datatableModule->datatableInsert(-1, QString()); });
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
@@ -336,12 +343,7 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
     connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
 
-
-    
-    connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
-    connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
-    connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
+    // connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
 }
 
 void MainWindow::shortcutInit() {

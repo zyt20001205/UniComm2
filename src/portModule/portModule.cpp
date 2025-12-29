@@ -82,12 +82,12 @@ void PortModule::portSetting(const int index) const {
     }
 }
 
-void PortModule::portInsert(const int index, const QJsonObject &portConfig) {
+void PortModule::portInsert(int index, const QJsonObject &portConfig) {
+    if (index == -1) index = g_portStandardItemModel->rowCount();
     const QString portName = portConfig["portName"].toString();
     auto *item = new QStandardItem(portName); // NOLINT
     item->setData(false, Qt::WhatsThisRole);
-    if (index == -1) g_portStandardItemModel->appendRow(item);
-    else g_portStandardItemModel->insertRow(index, item);
+    g_portStandardItemModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
         case SERIALPORT: {

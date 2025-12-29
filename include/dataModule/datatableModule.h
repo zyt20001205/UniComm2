@@ -4,6 +4,8 @@
 #include <QJsonArray>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QQuickWidget;
+class QStandardItemModel;
 class QTableWidget;
 
 class DatatableModule final : public KDDockWidgets::QtWidgets::DockWidget {
@@ -14,23 +16,23 @@ public:
 
     ~DatatableModule() override;
 
+    void propertySet(const QVariantMap &objects);
+
     void datatableConfigSave() const;
 
-    QVariantList datatableList() const;
+    void datatableList(QSet<QString> &datatableList) const;
 
-    void datatableInsert(int visualIndex, QString key = QString());
+    Q_INVOKABLE void datatableInsert(int index, const QString &key);
 
-    void datatableAnnotate() const;
+    Q_INVOKABLE void datatableRemove(int index);
 
-    bool datatableWrite(const QString &key, const QString &value);
+    Q_INVOKABLE void datatableRename(int index, const QString &key);
 
-    bool datatableClear(const QString &key);
+    Q_INVOKABLE void datatableSwap(int src, int dst);
 
-    void datatableAddGraph(const QString &key, int position);
+    Q_INVOKABLE void datatableClear(int index);
 
-    void datatableExport();
-
-    QHash<QString, int> m_datatableHash{};
+    void datatableWrite(const QString &key, const QString &value, bool &status);
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -39,28 +41,13 @@ signals:
 
     void addPointDataPlot(const QString &key, double x, double y);
 
-protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
 private:
-    void datatableRename(int visualIndex);
+    void datatableIndex();
 
-    void datatableRemove(int visualIndex);
-
-    void datatableSwap(int logicalIndex, int oldVisualIndex, int newVisualIndex);
-
-    struct DataMap {
-        bool enable;
-        QDateTime basetime;
-        QList<double> x;
-        QList<double> y;
-    };
-
-    QJsonArray m_datatableConfig{};
-    QTableWidget *m_tableWidget{};
-    QHash<QString, DataMap> m_data{};
+    QQuickWidget *m_datatableWidget{};
+    QQuickItem *m_rootItem{};
+    QStandardItemModel *m_datatableStandardItemModel{};
+    QHash<QString, int> m_datatableHash{};
 };
 
 #endif //UNICOMM_DATATABLE_H

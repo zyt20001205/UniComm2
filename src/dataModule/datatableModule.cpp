@@ -1,49 +1,20 @@
 #include "dataModule/datatableModule.h"
 
-#include <QContextMenuEvent>
-#include <QDir>
-#include <QFile>
-#include <QHeaderView>
-#include <QInputDialog>
-#include <QMenu>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QTableWidget>
-#include <qtoolbutton.h>
+#include <QQmlContext>
+#include <QStandardItemModel>
+#include <QStringListModel>
+#include <QVariantList>
 
 #include "globals.h"
 
-// DatatableModule public
 DatatableModule::DatatableModule()
     : DockWidget("data table"),
-      m_tableWidget(new QTableWidget()) {
-    setWidget(m_tableWidget);
-    m_tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    m_tableWidget->horizontalHeader()->setMinimumHeight(30);
-    m_tableWidget->horizontalHeader()->setSectionsMovable(true);
+      m_datatableWidget(new QQuickWidget()),
+      m_datatableStandardItemModel(new QStandardItemModel(this)) {
     for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
         const QString key = value.toString();
         datatableInsert(-1, key);
     }
-    datatableAnnotate();
-    connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionMoved, this, &DatatableModule::datatableSwap);
-    connect(m_tableWidget->horizontalHeader(), &QHeaderView::sectionDoubleClicked, this, [this](const int logicalIndex) {
-        const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
-        datatableRename(visualIndex);
-    });
-    m_tableWidget->installEventFilter(this);
-
-    auto *moreButton = new QToolButton(); // NOLINT
-    moreButton->setPopupMode(QToolButton::InstantPopup);
-    m_tableWidget->setCornerWidget(moreButton);
-    auto *cornerMenu = new QMenu(); // NOLINT
-    moreButton->setMenu(cornerMenu);
-    auto *exportAction = new QAction(QIcon(":/icon/share.svg"), tr("Export"), cornerMenu); // NOLINT
-    cornerMenu->addAction(exportAction);
-    connect(exportAction, &QAction::triggered, this, [this] { datatableExport(); });
-    auto *clearAction = new QAction(QIcon(":/icon/delete.svg"), tr("Clear"), cornerMenu); // NOLINT
-    cornerMenu->addAction(clearAction);
-    connect(clearAction, &QAction::triggered, this, [this] { datatableClear(""); });
 }
 
 DatatableModule::~DatatableModule() {
@@ -51,282 +22,95 @@ DatatableModule::~DatatableModule() {
     qDebug() << QString("[%1] datatable module destructed").arg(timestamp);
 }
 
+void DatatableModule::propertySet(const QVariantMap &objects) {
+    // m_datatableWidget->rootContext()->setContextProperty("nameDialog", qvariant_cast<QObject *>(objects["datatableModuleNameDialog"]));
+    // m_datatableWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
+    // m_datatableWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
+
+    m_datatableWidget->rootContext()->setContextProperty("datatableModule", this);
+    m_datatableWidget->rootContext()->setContextProperty("horizontalHeader", g_datatableStringListModel);
+    m_datatableWidget->rootContext()->setContextProperty("standardItemModel", m_datatableStandardItemModel);
+    m_datatableWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_datatableWidget->setSource(QUrl("qrc:/qml/dataModule/datatableModule.qml"));
+    m_rootItem = m_datatableWidget->rootObject();
+}
+
 void DatatableModule::datatableConfigSave() const {
-    g_workspaceConfig["datatableConfig"] = m_datatableConfig;
 }
 
-QVariantList DatatableModule::datatableList() const {
-    QVariantList datatableList{};
-    for (const QString &portName: m_datatableHash.keys()) {
-        datatableList.append(portName);
-    }
-    return datatableList;
-}
-
-void DatatableModule::datatableInsert(int visualIndex, QString key) {
-    if (visualIndex == -1) {
-        visualIndex = m_datatableConfig.size();
-    }
-    if (key.isEmpty()) {
-        bool ok = false;
-        key = QInputDialog::getText(this, tr("Input Name"), "", QLineEdit::Normal, "", &ok);
-        if (!ok) return;
-        if (m_datatableHash.contains(key)) {
-            QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
-            return;
-        }
-    }
-    // frontend
-    m_tableWidget->insertColumn(visualIndex);
-    m_tableWidget->setHorizontalHeaderItem(visualIndex, new QTableWidgetItem(key));
-    // backend
-    m_datatableConfig.insert(visualIndex, key);
-    m_data.insert(key,
-                  DataMap{
-                      /*enable*/ false,
-                      /*basetime*/ {},
-                      /*x*/ {},
-                      /*y*/ {}
-                  });
-    m_datatableHash.clear();
-    for (int index = 0; index < m_tableWidget->columnCount(); ++index) {
-        const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
-        m_datatableHash.insert(headerItem->text(), index);
-    }
-    // logging
-    emit appendLog(QString("%1 inserted").arg(key), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 inserted").arg(timestamp, key);
-}
-
-void DatatableModule::datatableAnnotate() const {
-    QString annotation;
-    annotation += "--- @meta\n\n";
-    annotation += "--- @alias datatable\n";
-    for (const QString &databaseKey: m_datatableHash.keys()) {
-        annotation += QString("--- | '\"%1\"'\n").arg(databaseKey);
-    }
-    annotation += QString("--- | '\"Add New Datatable Key\"'\n");
-    annotation += "\n";
-
-    const QString rootPath = g_workspaceUrl.toLocalFile();
-    const QString annotationPath = QDir(rootPath).filePath("lib/datatable.d.lua");
-    QFile file(annotationPath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream stream(&file);
-    stream << annotation;
-    file.close();
-}
-
-bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
-    if (!m_datatableHash.contains(key)) return false;
-
-    double time = 0.0;
-    if (!m_data[key].basetime.isValid()) {
-        m_data[key].basetime = QDateTime::currentDateTime();
-    } else {
-        time = m_data[key].basetime.msecsTo(QDateTime::currentDateTime()) / 1000.0;
-    }
-    m_data[key].x.append(time);
-    m_data[key].y.append(value.toDouble());
-    if (m_data[key].enable) emit addPointDataPlot(key, time, value.toDouble());
-
-    const int row = m_data[key].x.size() - 1;
-    const int column = m_datatableHash[key];
-    m_tableWidget->setRowCount(qMax(m_tableWidget->rowCount(), row + 1));
-    m_tableWidget->setItem(row, column, new QTableWidgetItem(value));
-    m_tableWidget->scrollToBottom();
-    return true;
-}
-
-bool DatatableModule::datatableClear(const QString &key) {
-    if (key.isEmpty()) {
-        for (auto &data: m_data) {
-            data.enable = false;
-            data.basetime = {};
-            data.x = {};
-            data.y = {};
-        }
-        m_tableWidget->setRowCount(0);
-        return true;
-    }
-
-    if (!m_datatableHash.contains(key)) return false;
-
-    m_data[key].enable = false;
-    m_data[key].basetime = {};
-    m_data[key].x = {};
-    m_data[key].y = {};
-    const int column = m_datatableHash["key"];
-    for (int row = 0; row < m_tableWidget->rowCount(); ++row) {
-        if (QTableWidgetItem *item = m_tableWidget->item(row, column)) {
-            item->setText("");
-        }
-    }
-    return true;
-}
-
-void DatatableModule::datatableAddGraph(const QString &key, const int position) {
-    if (!m_data.contains(key)) {
-        qDebug() << "key not found in datatable";
-        return;
-    }
-    m_data[key].enable = true;
-    emit addGraphDataPlot(key, m_data[key].x, m_data[key].y, position);
-}
-
-void DatatableModule::datatableExport() {
-    const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-    QFile file(defaultName);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    // write header
-    const QList<QString> keyList = m_data.keys();
-    const QString header = keyList.join(", ") + "\n";
-    out << header;
-    // calc length
-    int rowCount = 0;
-    foreach(const QString &key, keyList) {
-        rowCount = qMax(rowCount, m_data[key].y.size());
-    }
-    // write data(y)
-    for (int row = 0; row < rowCount; ++row) {
-        QStringList rowData;
-        foreach(const QString &key, keyList) {
-            if (row < m_data[key].y.size()) {
-                rowData << QString::number(m_data[key].y[row]);
-            } else {
-                rowData << "";
-            }
-        }
-        out << rowData.join(",") << "\n";
-    }
-    file.close();
-    // logging
-    const QUrl fileUrl = QUrl::fromLocalFile(file.fileName());
-    emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), defaultName), "info");
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] data exported").arg(timestamp);
-}
-
-// DatatableModule protected
-void DatatableModule::contextMenuEvent(QContextMenuEvent *event) {
-    const QPoint globalPos = event->globalPos();
-    const auto *header = m_tableWidget->horizontalHeader();
-    const QPoint headerPos = header->mapFromGlobal(globalPos);
-    if (header->rect().contains(headerPos)) {
-        const int logicalIndex = header->logicalIndexAt(headerPos);
-        const int visualIndex = header->visualIndex(logicalIndex);
-        QMenu menu(this);
-        if (logicalIndex == -1) {
-            menu.addAction(tr("New"), [this] {
-                datatableInsert(-1);
-                datatableAnnotate();
-            });
-        } else {
-            menu.addAction(tr("Rename"), [this, visualIndex] {
-                datatableRename(visualIndex);
-            });
-            menu.addAction(tr("Insert Left \t Ins"), [this, visualIndex] {
-                datatableInsert(visualIndex);
-                datatableAnnotate();
-            });
-            menu.addAction(tr("Insert Right \t Ctrl+Ins"), [this, visualIndex] {
-                datatableInsert(visualIndex + 1);
-                datatableAnnotate();
-            });
-            menu.addAction(tr("Remove \t Del"), [this, visualIndex] {
-                datatableRemove(visualIndex);
-                datatableAnnotate();
-            });
-        }
-        menu.exec(event->globalPos());
+void DatatableModule::datatableList(QSet<QString> &datatableList) const {
+    for (const QString &datatableKey: m_datatableHash.keys()) {
+        datatableList.insert(datatableKey);
     }
 }
 
-bool DatatableModule::eventFilter(QObject *obj, QEvent *event) {
-    if (obj == m_tableWidget && event->type() == QEvent::KeyPress) {
-        switch (static_cast<QKeyEvent *>(event)->key()) {
-            case Qt::Key_Insert: {
-                const int logicalIndex = m_tableWidget->currentColumn();
-                const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
-                if (const auto keyEvent = static_cast<QKeyEvent *>(event); keyEvent->modifiers() & Qt::ControlModifier) {
-                    datatableInsert(visualIndex + 1);
-                    datatableAnnotate();
-                } else {
-                    datatableInsert(visualIndex);
-                    datatableAnnotate();
-                }
-                return true;
-            }
-            case Qt::Key_Delete: {
-                const int logicalIndex = m_tableWidget->currentColumn();
-                const int visualIndex = m_tableWidget->horizontalHeader()->visualIndex(logicalIndex);
-                datatableRemove(visualIndex);
-                datatableAnnotate();
-                return true;
-            }
-            case Qt::Key_Escape: {
-                m_tableWidget->clearSelection();
-                m_tableWidget->setCurrentItem(nullptr);
-                m_tableWidget->clearFocus();
-                return true;
-            }
-            default:
-                break;
-        }
-    }
-    return DockWidget::eventFilter(obj, event);
+void DatatableModule::datatableInsert(int index, const QString &key) {
+    if (index == -1) index = g_datatableStringListModel->rowCount();
+    g_datatableStringListModel->insertRow(index);
+    const QModelIndex modelIndex = g_datatableStringListModel->index(index);
+    g_datatableStringListModel->setData(modelIndex,key,  Qt::DisplayRole);
+    m_datatableStandardItemModel->insertColumn(index);
+    datatableIndex();
 }
+
+void DatatableModule::datatableRemove(const int index) {
+    g_datatableStringListModel->removeRow(index);
+    m_datatableStandardItemModel->removeColumn(index);
+    datatableIndex();
+}
+
+void DatatableModule::datatableRename(int index, const QString &key) {
+}
+
+void DatatableModule::datatableSwap(int src, int dst) {
+}
+
+void DatatableModule::datatableClear(int index) {
+}
+
+void DatatableModule::datatableWrite(const QString &key, const QString &value, bool &status) {
+}
+
+// void DatatableModule::datatableExport() {
+//     const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+//     QFile file(defaultName);
+//     file.open(QIODevice::WriteOnly | QIODevice::Text);
+//     QTextStream out(&file);
+//     // write header
+//     const QList<QString> keyList = m_data.keys();
+//     const QString header = keyList.join(", ") + "\n";
+//     out << header;
+//     // calc length
+//     int rowCount = 0;
+//     foreach(const QString &key, keyList) {
+//         rowCount = qMax(rowCount, m_data[key].y.size());
+//     }
+//     // write data(y)
+//     for (int row = 0; row < rowCount; ++row) {
+//         QStringList rowData;
+//         foreach(const QString &key, keyList) {
+//             if (row < m_data[key].y.size()) {
+//                 rowData << QString::number(m_data[key].y[row]);
+//             } else {
+//                 rowData << "";
+//             }
+//         }
+//         out << rowData.join(",") << "\n";
+//     }
+//     file.close();
+//     // logging
+//     const QUrl fileUrl = QUrl::fromLocalFile(file.fileName());
+//     emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), defaultName), "info");
+//     const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+//     qDebug() << QString("[%1] data exported").arg(timestamp);
+// }
 
 // DatatableModule private
-void DatatableModule::datatableRemove(const int visualIndex) {
-    // frontend
-    const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
-    const QString key = m_datatableConfig[visualIndex].toString();
-    m_tableWidget->removeColumn(logicalIndex);
-    // backend
-    m_datatableConfig.removeAt(visualIndex);
-    m_data.remove(key);
+void DatatableModule::datatableIndex() {
     m_datatableHash.clear();
-    for (int index = 0; index < m_tableWidget->columnCount(); ++index) {
-        const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
-        m_datatableHash.insert(headerItem->text(), index);
+    for (int i = 0; i < g_datatableStringListModel->rowCount(); ++i) {
+        const QModelIndex modelIndex = g_datatableStringListModel->index(i);
+        const QString key = g_datatableStringListModel->data(modelIndex, Qt::DisplayRole).toString();
+        m_datatableHash.insert(key, i);
     }
-    // logging
-    emit appendLog(QString("%1 removed").arg(key), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 removed").arg(timestamp, key);
-}
-
-void DatatableModule::datatableRename(const int visualIndex) {
-    // frontend
-    const int logicalIndex = m_tableWidget->horizontalHeader()->logicalIndex(visualIndex);
-    const QString oldKey = m_tableWidget->horizontalHeaderItem(logicalIndex)->text();
-    bool ok = false;
-    const QString newKey = QInputDialog::getText(this, "Rename", "", QLineEdit::Normal, m_tableWidget->horizontalHeaderItem(logicalIndex)->text(), &ok);
-    if (!ok) return;
-    if (m_datatableHash.contains(newKey)) {
-        QMessageBox::critical(this, tr("Error"), tr("Key already exists."));
-        return;
-    }
-    m_tableWidget->horizontalHeaderItem(logicalIndex)->setText(newKey);
-    // backend
-    m_datatableConfig[visualIndex] = newKey;
-    m_data.insert(newKey, m_data.take(oldKey));
-    m_datatableHash.clear();
-    for (int index = 0; index < m_tableWidget->columnCount(); ++index) {
-        const QTableWidgetItem *headerItem = m_tableWidget->horizontalHeaderItem(index);
-        m_datatableHash.insert(headerItem->text(), index);
-    }
-    datatableAnnotate();
-    // logging
-    emit appendLog(QString("%1 renamed").arg(newKey), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 renamed").arg(timestamp, newKey);
-}
-
-void DatatableModule::datatableSwap(int logicalIndex, const int oldVisualIndex, const int newVisualIndex) {
-    const QJsonValue tmp = m_datatableConfig.takeAt(oldVisualIndex);
-    m_datatableConfig.insert(newVisualIndex, tmp);
 }
