@@ -265,6 +265,17 @@ void PortSetting::portSettingExport() {
         }
         break;
         case VIDEOSTREAM: {
+            if (m_screenCapture) {
+                m_mediaCaptureSession->setScreenCapture(nullptr);
+                m_screenCapture->stop();
+                m_screenCapture->deleteLater();
+                m_screenCapture = nullptr;
+            } else if (m_cameraCapture) {
+                m_mediaCaptureSession->setCamera(nullptr);
+                m_cameraCapture->stop();
+                m_cameraCapture->deleteLater();
+                m_cameraCapture = nullptr;
+            }
             QJsonArray roiArray{};
             for (int i = 0; i < m_roiStandardItemModel->rowCount(); ++i) {
                 const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
@@ -278,7 +289,6 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-            break;
         default: break;
     }
     if (m_oldPortName.isEmpty()) {
