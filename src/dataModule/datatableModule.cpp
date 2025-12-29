@@ -1,5 +1,7 @@
 #include "dataModule/datatableModule.h"
 
+#include <QDir>
+#include <QFile>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QStandardItemModel>
@@ -108,38 +110,35 @@ void DatatableModule::datatableClear() {
 }
 
 void DatatableModule::datatableExport() {
-    qDebug() << "export TODO";
-    //     const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-    //     QFile file(defaultName);
-    //     file.open(QIODevice::WriteOnly | QIODevice::Text);
-    //     QTextStream out(&file);
-    //     // write header
-    //     const QList<QString> keyList = m_data.keys();
-    //     const QString header = keyList.join(", ") + "\n";
-    //     out << header;
-    //     // calc length
-    //     int rowCount = 0;
-    //     foreach(const QString &key, keyList) {
-    //         rowCount = qMax(rowCount, m_data[key].y.size());
-    //     }
-    //     // write data(y)
-    //     for (int row = 0; row < rowCount; ++row) {
-    //         QStringList rowData;
-    //         foreach(const QString &key, keyList) {
-    //             if (row < m_data[key].y.size()) {
-    //                 rowData << QString::number(m_data[key].y[row]);
-    //             } else {
-    //                 rowData << "";
-    //             }
-    //         }
-    //         out << rowData.join(",") << "\n";
-    //     }
-    //     file.close();
-    //     // logging
-    //     const QUrl fileUrl = QUrl::fromLocalFile(file.fileName());
-    //     emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), defaultName), "info");
-    //     const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    //     qDebug() << QString("[%1] data exported").arg(timestamp);
+    const auto workspacePath = g_workspaceUrl.toLocalFile();
+    const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+    const auto filePath = QDir(workspacePath).filePath(defaultName);
+    QFile file(filePath);
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    // write header
+    QStringList keyList{};
+    for (int i = 0; i < g_datatableStringListModel->rowCount(); ++i) {
+        const QModelIndex modelIndex = g_datatableStringListModel->index(i);
+        const QString key = g_datatableStringListModel->data(modelIndex, Qt::DisplayRole).toString();
+        keyList.append(key);
+    }
+    const QString header = keyList.join(", ") + "\n";
+    out << header;
+    // write data
+    for (int i = 0; i < m_datatableStandardItemModel->rowCount(); ++i) {
+        QStringList rowData{};
+        for (int j = 0; j < m_datatableStandardItemModel->columnCount(); ++j) {
+            rowData.append(m_datatableStandardItemModel->item(i, j)->text());
+        }
+        out << rowData.join(",") << "\n";
+    }
+    file.close();
+    // logging
+    const QUrl fileUrl = QUrl::fromLocalFile(filePath);
+    emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
 void DatatableModule::datatableWrite(const QString &key, const QString &value, bool &status) {
