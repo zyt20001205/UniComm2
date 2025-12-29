@@ -112,9 +112,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_databaseModule->propertySet(databaseObjects);
 
     const QVariantMap datatableObjects = {
-        // {"datatableModuleNameDialog", objects["datatableModuleNameDialog"]},
-        // {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
-        // {"datatableModuleRootMenu", objects["datatableModuleRootMenu"]}
+        {"datatableModuleNameDialog", objects["datatableModuleNameDialog"]},
+        {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
+        {"datatableModuleRootMenu", objects["datatableModuleRootMenu"]}
     };
     m_datatableModule->propertySet(datatableObjects);
 

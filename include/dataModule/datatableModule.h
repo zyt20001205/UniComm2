@@ -32,6 +32,8 @@ public:
 
     Q_INVOKABLE void datatableClear(int index);
 
+    Q_INVOKABLE void datatableExport();
+
     void datatableWrite(const QString &key, const QString &value, bool &status);
 
 signals:

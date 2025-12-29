@@ -337,6 +337,135 @@ Item {
         }
     }
 
+    // datatable module
+    Dialog {
+        id: datatableModuleNameDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Enter Key Name")
+        standardButtons: Dialog.Ok
+        property int datatableIndex
+        property string datatableKey
+
+        onAboutToShow: {
+            datatableModuleNameTextField.text = datatableModuleNameDialog.datatableKey
+            datatableModuleNameTextField.forceActiveFocus()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: {
+            if (datatableModuleNameDialog.datatableKey) {
+                datatableModule.datatableRename(datatableModuleNameDialog.datatableIndex, datatableModuleNameTextField.text)
+            } else {
+                datatableModule.datatableInsert(datatableModuleNameDialog.datatableIndex, datatableModuleNameTextField.text)
+            }
+        }
+
+        TextField {
+            id: datatableModuleNameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter key:")
+
+            onAccepted: datatableModuleNameDialog.accept()
+            Keys.onEscapePressed: datatableModuleNameDialog.reject()
+        }
+    }
+
+    Menu {
+        id: datatableModuleTableMenu
+        property int datatableIndex
+        property string datatableKey
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Insert")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                datatableModuleNameDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
+                datatableModuleNameDialog.datatableKey = ""
+                datatableModuleNameDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                datatableModuleNameDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
+                datatableModuleNameDialog.datatableKey = datatableModuleTableMenu.datatableKey
+                datatableModuleNameDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: datatableModule.datatableClear(datatableModuleTableMenu.datatableIndex)
+        }
+
+        MenuItem {
+            text: qsTr("Delete")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: datatableModule.datatableRemove(datatableModuleTableMenu.datatableIndex)
+        }
+    }
+
+    Menu {
+        id: datatableModuleRootMenu
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("New")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                datatableModuleNameDialog.datatableIndex = -1
+                datatableModuleNameDialog.datatableKey = ""
+                datatableModuleNameDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Export")
+            icon.source: "qrc:/icon/share.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: datatableModule.datatableExport()
+        }
+
+        Menu {
+            title: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    datatableModule.datatableClear(-1)
+                    progress = 0
+                    datatableModuleRootMenu.close()
+                }
+            }
+        }
+    }
+
     // debug module
 
     // diagnostics module
@@ -1040,6 +1169,10 @@ Item {
             "databaseModuleNameDialog": databaseModuleNameDialog,
             "databaseModuleTableMenu": databaseModuleTableMenu,
             "databaseModuleRootMenu": databaseModuleRootMenu,
+
+            "datatableModuleNameDialog": datatableModuleNameDialog,
+            "datatableModuleTableMenu": datatableModuleTableMenu,
+            "datatableModuleRootMenu": datatableModuleRootMenu,
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 

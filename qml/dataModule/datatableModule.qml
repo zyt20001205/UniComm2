@@ -5,7 +5,7 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: standardItemModel.rowCount() > 0
+    property bool modelVisible: stringListModel.rowCount() > 0
 
     Item {
         id: hintItem
@@ -22,7 +22,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
 
                 onClicked: {
-                    nameDialog.databaseIndex = -1
+                    nameDialog.datatableIndex = -1
                     nameDialog.open()
                 }
             }
@@ -51,20 +51,20 @@ Item {
                 movableColumns: true
                 delegate: HorizontalHeaderViewDelegate {
                     id: horizontalHeaderViewDelegate
-                    implicitWidth: horizontalHeaderView.width; implicitHeight: 32
+                    implicitWidth: 100; implicitHeight: 32
                     padding: 0
 
                     contentItem: Rectangle {
-                        width: 60; height: 32
+                        width: 100; height: 32
                         color: "white"
 
                         Text {
                             anchors.fill: parent
                             clip: true
                             font.family: "Segoe UI"
-                            font.pointSize: 10
-                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                            text: horizontalHeader.data(horizontalHeader.index(horizontalHeaderViewDelegate.index), Qt.DisplayRole)
+                            font.pointSize: 12
+                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            text: stringListModel.data(stringListModel.index(column, 0), Qt.DisplayRole)
                         }
                     }
 
@@ -96,7 +96,7 @@ Item {
                             }
                         }
                         let move = horizontalHeaderView.moves[index]
-                        databaseModule.databaseSwap(move.oldVisualIndex, move.newVisualIndex)
+                        datatableModule.datatableSwap(move.oldVisualIndex, move.newVisualIndex)
                         horizontalHeaderView.moves = []
                     }
                 }
@@ -107,87 +107,66 @@ Item {
                 }
             }
 
-            // TableView {
-            //     id: tableView
-            //     anchors.left: horizontalHeaderView.right; anchors.right: parent.right
-            //     height: parent.height
-            //     alternatingRows: false
-            //     clip: true
-            //     rowSpacing: 1; columnSpacing: 1
-            //     resizableColumns: true
-            //     model: standardItemModel
-            //     contentWidth: width
-            //     delegate: ItemDelegate {
-            //         implicitWidth: {
-            //             if (column === 0) {
-            //                 return tableView.width / 3
-            //             } else {
-            //                 return tableView.width - tableView.columnWidth(0)
-            //             }
-            //         }
-            //         implicitHeight: 32
-            //         text: model.display
-            //         font.pixelSize: 16
-            //         background: Rectangle {
-            //             color: "white"
-            //         }
-            //
-            //         onTextChanged: {
-            //             if (column === 1) {
-            //                 highlightRect.opacity = 1
-            //                 highlightTimer.restart()
-            //             }
-            //         }
-            //
-            //         Timer {
-            //             id: highlightTimer
-            //             interval: 500
-            //
-            //             onTriggered: highlightRect.opacity = 0
-            //         }
-            //
-            //         Rectangle {
-            //             id: highlightRect
-            //             anchors.fill: parent
-            //             radius: 2
-            //             color: "#f5f5f5"
-            //             opacity: hoverHandler.hovered ? 1 : 0
-            //             Behavior on opacity {
-            //                 NumberAnimation {
-            //                     duration: 150
-            //                 }
-            //             }
-            //         }
-            //
-            //         HoverHandler {
-            //             id: hoverHandler
-            //         }
-            //
-            //         TapHandler {
-            //             acceptedButtons: Qt.RightButton
-            //             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-            //
-            //             onSingleTapped: {
-            //                 tableMenu.databaseIndex = model.row
-            //                 const index = tableView.model.index(row, 0);
-            //                 tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
-            //                 tableMenu.popup()
-            //             }
-            //         }
-            //     }
-            //
-            //     Rectangle {
-            //         anchors.fill: parent
-            //         color: "#e0e0e0"
-            //         z: -1
-            //     }
-            //
-            //     TapHandler {
-            //         acceptedButtons: Qt.RightButton
-            //
-            //         onSingleTapped: rootMenu.popup()
-            //     }
-            // }
+            TableView {
+                id: tableView
+                anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
+                width: parent.width
+                alternatingRows: false
+                clip: true
+                rowSpacing: 1; columnSpacing: 1
+                resizableColumns: true
+                model: standardItemModel
+                contentWidth: width
+                delegate: ItemDelegate {
+                    implicitWidth: 60; implicitHeight: 32
+                    text: model.display
+                    font.pixelSize: 16
+                    background: Rectangle {
+                        color: "white"
+                    }
+
+                    Rectangle {
+                        id: highlightRect
+                        anchors.fill: parent
+                        radius: 2
+                        color: "#f5f5f5"
+                        opacity: hoverHandler.hovered ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
+                        }
+                    }
+
+                    HoverHandler {
+                        id: hoverHandler
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.RightButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onSingleTapped: {
+                            tableMenu.datatableIndex = model.row
+                            const index = tableView.model.index(row, 0);
+                            tableMenu.datatableKey = tableView.model.data(index, Qt.DisplayRole)
+                            tableMenu.popup()
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#e0e0e0"
+                    z: -1
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.RightButton
+
+                    onSingleTapped: rootMenu.popup()
+                }
+            }
         }
     }
 
@@ -198,14 +177,14 @@ Item {
     }
 
     Connections {
-        target: standardItemModel
+        target: stringListModel
 
         function onRowsInserted() {
             modelVisible = true
         }
 
         function onRowsRemoved() {
-            modelVisible = standardItemModel.rowCount() > 0
+            modelVisible = stringListModel.rowCount() > 0
         }
 
         function onModelReset() {

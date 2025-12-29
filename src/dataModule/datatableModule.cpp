@@ -1,6 +1,7 @@
 #include "dataModule/datatableModule.h"
 
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QStandardItemModel>
 #include <QStringListModel>
 #include <QVariantList>
@@ -11,6 +12,8 @@ DatatableModule::DatatableModule()
     : DockWidget("data table"),
       m_datatableWidget(new QQuickWidget()),
       m_datatableStandardItemModel(new QStandardItemModel(this)) {
+    setWidget(m_datatableWidget);
+    g_datatableStringListModel = new QStringListModel(this);
     for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
         const QString key = value.toString();
         datatableInsert(-1, key);
@@ -23,12 +26,12 @@ DatatableModule::~DatatableModule() {
 }
 
 void DatatableModule::propertySet(const QVariantMap &objects) {
-    // m_datatableWidget->rootContext()->setContextProperty("nameDialog", qvariant_cast<QObject *>(objects["datatableModuleNameDialog"]));
-    // m_datatableWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
-    // m_datatableWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
+    m_datatableWidget->rootContext()->setContextProperty("nameDialog", qvariant_cast<QObject *>(objects["datatableModuleNameDialog"]));
+    m_datatableWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
+    m_datatableWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
 
     m_datatableWidget->rootContext()->setContextProperty("datatableModule", this);
-    m_datatableWidget->rootContext()->setContextProperty("horizontalHeader", g_datatableStringListModel);
+    m_datatableWidget->rootContext()->setContextProperty("stringListModel", g_datatableStringListModel);
     m_datatableWidget->rootContext()->setContextProperty("standardItemModel", m_datatableStandardItemModel);
     m_datatableWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_datatableWidget->setSource(QUrl("qrc:/qml/dataModule/datatableModule.qml"));
@@ -59,51 +62,69 @@ void DatatableModule::datatableRemove(const int index) {
     datatableIndex();
 }
 
-void DatatableModule::datatableRename(int index, const QString &key) {
+void DatatableModule::datatableRename(const int index, const QString &key) {
+    const QModelIndex modelIndex = g_datatableStringListModel->index(index);
+    g_datatableStringListModel->setData(modelIndex,key,  Qt::DisplayRole);
+    datatableIndex();
 }
 
-void DatatableModule::datatableSwap(int src, int dst) {
+void DatatableModule::datatableSwap(const int src, const int dst) {
+    const QModelIndex srcIndex = g_datatableStringListModel->index(src);
+    const auto key = g_datatableStringListModel->data(srcIndex).toString();
+    g_datatableStringListModel->insertRow(dst);
+    const QModelIndex dstIndex = g_datatableStringListModel->index(dst);
+    g_datatableStringListModel->setData(dstIndex,key,  Qt::DisplayRole);
+    const auto tmp = g_databaseStandardItemModel->takeRow(src);
+    g_databaseStandardItemModel->insertRow(dst, tmp);
+    datatableIndex();
+    QMetaObject::invokeMethod(m_rootItem, "reload");
 }
 
-void DatatableModule::datatableClear(int index) {
+void DatatableModule::datatableClear(const int index) {
+    if (index == -1) {
+        m_datatableStandardItemModel->clear();
+    } else {
+        // g_databaseStandardItemModel->item(index, 1)->setText("");
+    }
+}
+
+void DatatableModule::datatableExport() {
+    qDebug() << "export TODO";
+    //     const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+    //     QFile file(defaultName);
+    //     file.open(QIODevice::WriteOnly | QIODevice::Text);
+    //     QTextStream out(&file);
+    //     // write header
+    //     const QList<QString> keyList = m_data.keys();
+    //     const QString header = keyList.join(", ") + "\n";
+    //     out << header;
+    //     // calc length
+    //     int rowCount = 0;
+    //     foreach(const QString &key, keyList) {
+    //         rowCount = qMax(rowCount, m_data[key].y.size());
+    //     }
+    //     // write data(y)
+    //     for (int row = 0; row < rowCount; ++row) {
+    //         QStringList rowData;
+    //         foreach(const QString &key, keyList) {
+    //             if (row < m_data[key].y.size()) {
+    //                 rowData << QString::number(m_data[key].y[row]);
+    //             } else {
+    //                 rowData << "";
+    //             }
+    //         }
+    //         out << rowData.join(",") << "\n";
+    //     }
+    //     file.close();
+    //     // logging
+    //     const QUrl fileUrl = QUrl::fromLocalFile(file.fileName());
+    //     emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), defaultName), "info");
+    //     const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    //     qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
 void DatatableModule::datatableWrite(const QString &key, const QString &value, bool &status) {
 }
-
-// void DatatableModule::datatableExport() {
-//     const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-//     QFile file(defaultName);
-//     file.open(QIODevice::WriteOnly | QIODevice::Text);
-//     QTextStream out(&file);
-//     // write header
-//     const QList<QString> keyList = m_data.keys();
-//     const QString header = keyList.join(", ") + "\n";
-//     out << header;
-//     // calc length
-//     int rowCount = 0;
-//     foreach(const QString &key, keyList) {
-//         rowCount = qMax(rowCount, m_data[key].y.size());
-//     }
-//     // write data(y)
-//     for (int row = 0; row < rowCount; ++row) {
-//         QStringList rowData;
-//         foreach(const QString &key, keyList) {
-//             if (row < m_data[key].y.size()) {
-//                 rowData << QString::number(m_data[key].y[row]);
-//             } else {
-//                 rowData << "";
-//             }
-//         }
-//         out << rowData.join(",") << "\n";
-//     }
-//     file.close();
-//     // logging
-//     const QUrl fileUrl = QUrl::fromLocalFile(file.fileName());
-//     emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), defaultName), "info");
-//     const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-//     qDebug() << QString("[%1] data exported").arg(timestamp);
-// }
 
 // DatatableModule private
 void DatatableModule::datatableIndex() {
