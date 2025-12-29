@@ -52,11 +52,11 @@ Item {
                 movableColumns: true
                 delegate: HorizontalHeaderViewDelegate {
                     id: horizontalHeaderViewDelegate
-                    implicitWidth: 100; implicitHeight: 32
+                    implicitWidth: 120; implicitHeight: 32
                     padding: 0
 
                     contentItem: Rectangle {
-                        width: 100; height: 32
+                        width: 120; height: 32
                         color: "white"
 
                         Text {
@@ -131,7 +131,7 @@ Item {
                 model: standardItemModel
                 contentWidth: width
                 delegate: ItemDelegate {
-                    implicitWidth: 100; implicitHeight: 32
+                    implicitWidth: 120; implicitHeight: 32
                     text: model.display
                     font.pixelSize: 16
                     background: Rectangle {
