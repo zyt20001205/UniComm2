@@ -30,7 +30,7 @@ public:
 
     Q_INVOKABLE void datatableSwap(int src, int dst);
 
-    Q_INVOKABLE void datatableClear() const;
+    Q_INVOKABLE void datatableClear();
 
     Q_INVOKABLE void datatableExport();
 

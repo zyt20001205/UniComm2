@@ -100,7 +100,10 @@ void DatatableModule::datatableSwap(const int src, const int dst) {
     QMetaObject::invokeMethod(m_rootItem, "reload");
 }
 
-void DatatableModule::datatableClear() const {
+void DatatableModule::datatableClear() {
+    for (auto &session: m_datatableSession) {
+        session["length"] = 0;
+    }
     m_datatableStandardItemModel->clear();
 }
 
@@ -143,8 +146,7 @@ void DatatableModule::datatableWrite(const QString &key, const QString &value, b
     if (!m_datatableHash.contains(key)) return;
     const auto col = m_datatableHash[key];
     const auto row = m_datatableSession[key]["length"].toInt();
-    if (row > g_datatableStringListModel->rowCount() - 1) m_datatableStandardItemModel->insertRow(row);
-    auto* item = new QStandardItem(value); // NOLINT
+    auto *item = new QStandardItem(value); // NOLINT
     m_datatableStandardItemModel->setItem(row, col, item);
     m_datatableSession[key]["length"] = m_datatableSession[key]["length"].toInt() + 1;
     status = true;
