@@ -8,7 +8,6 @@ Item {
     property bool modelVisible: stringListModel.rowCount() > 0
 
     Item {
-        id: hintItem
         anchors.fill: parent
         visible: !modelVisible
 

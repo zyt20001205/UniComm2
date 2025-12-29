@@ -28,7 +28,8 @@ PortSetting::PortSetting(QWidget *parent)
       m_localHostStandardItemModel(new QStandardItemModel(this)),
       m_videoStreamStandardItemModel(new QStandardItemModel(this)),
       m_mediaCaptureSession(new QMediaCaptureSession(this)),
-      m_roiStandardItemModel(new QStandardItemModel(this)) {
+      m_roiStandardItemModel(new QStandardItemModel(this)),
+      m_stepStandardItemModel(new QStandardItemModel(this)){
     propertySet();
 }
 
@@ -44,6 +45,7 @@ void PortSetting::propertySet() {
     widget->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
     widget->rootContext()->setContextProperty("videoStreamStandardItemModel", m_videoStreamStandardItemModel);
     widget->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
+    widget->rootContext()->setContextProperty("stepStandardItemModel", m_stepStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting.qml"));
     m_rootItem = widget->rootObject();

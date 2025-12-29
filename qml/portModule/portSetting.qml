@@ -10,6 +10,8 @@ Item {
         "ipv4": /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
         "ipv6": /[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){3}/
     }
+    property bool roiModelVisible: roiStandardItemModel ? roiStandardItemModel.rowCount() > 0 : false
+    property bool stepModelVisible: stepStandardItemModel ? stepStandardItemModel.rowCount() > 0 : false
 
     Component {
         id: delegateComponent
@@ -700,7 +702,8 @@ Item {
                     ColumnLayout {
                         Layout.preferredWidth: 300; Layout.fillHeight: true
                         Layout.alignment: Qt.AlignTop
-
+                        
+                        // roi area
                         RowLayout {
 
                             Label {
@@ -718,6 +721,7 @@ Item {
 
                             Item {
                                 anchors.fill: parent
+                                visible: roiModelVisible
 
                                 VerticalHeaderView {
                                     id: roiVerticalHeaderView
@@ -850,12 +854,220 @@ Item {
                             }
                         }
 
-                        Loader {
-                            id: roiTableLoader
-                            Layout.fillWidth: true; Layout.preferredHeight: 400
-                            sourceComponent: roiTableComponent
+                        Item {
+                            Layout.fillWidth: true; Layout.preferredHeight: 100
+
+                            Item {
+                                anchors.fill: parent
+                                visible: !roiModelVisible
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+
+                                    Label {
+                                        text: qsTr("Create ROI first.")
+                                        font.pixelSize: 16
+                                        Layout.alignment: Qt.AlignVCenter
+                                    }
+
+                                    Image {
+                                        source: "qrc:/icon/squareHint.svg"
+                                        Layout.alignment: Qt.AlignVCenter
+                                    }
+                                }
+                            }
+
+                            Loader {
+                                id: roiTableLoader
+                                anchors.fill: parent
+                                sourceComponent: roiTableComponent
+                            }
+                        }
+                        
+                        // step area
+                        RowLayout {
+
+                            Label {
+                                text: qsTr("Image Pipeline")
+                                font.pixelSize: 20
+                            }
+
+                            Button {
+                                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                icon.source: "qrc:/icon/add.svg"
+                                icon.width: 24; icon.height: 24
+                                ToolTip.text: qsTr("Add Step")
+                                ToolTip.visible: hovered
+                                flat: true
+                                // onClicked:
+                            }
                         }
 
+                        Component {
+                            id: stepTableComponent
+
+                            Item {
+                                anchors.fill: parent
+                                visible: stepModelVisible
+
+                                VerticalHeaderView {
+                                    id: stepVerticalHeaderView
+                                    anchors.left: parent.left
+                                    width: 32; height: parent.height
+                                    syncView: stepTableView
+                                    clip: true
+                                    interactive: false
+                                    movableRows: true
+                                    delegate: VerticalHeaderViewDelegate {
+                                        id: stepVerticalHeaderViewDelegate
+                                        implicitWidth: stepVerticalHeaderView.width; implicitHeight: 32
+                                        padding: 0
+
+                                        contentItem: Rectangle {
+                                            width: 32; height: 32
+                                            color: "white"
+
+                                            Image {
+                                                width: 16; height: 16
+                                                anchors.centerIn: parent
+                                                source: "qrc:/icon/drag.svg"
+                                            }
+                                        }
+
+                                        HoverHandler {
+                                            onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                                        }
+                                    }
+                                    property var moves: []
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        color: "#e0e0e0"
+                                        z: -1
+                                    }
+
+                                    Timer {
+                                        id: timer
+                                        interval: 10
+                                        onTriggered: {
+                                            let index = -1
+                                            let distance = -1
+                                            let currentDistance;
+                                            for (let i = 0; i < stepVerticalHeaderView.moves.length; ++i) {
+                                                let move = stepVerticalHeaderView.moves[i]
+                                                currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
+                                                if (currentDistance > distance) {
+                                                    distance = currentDistance
+                                                    index = i
+                                                }
+                                            }
+                                            let move = stepVerticalHeaderView.moves[index]
+                                            portSetting.stepSwap(move.oldVisualIndex, move.newVisualIndex)
+                                            stepVerticalHeaderView.moves = []
+                                        }
+                                    }
+
+                                    onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                                        moves.push({oldVisualIndex, newVisualIndex})
+                                        timer.restart()
+                                    }
+                                }
+
+                                TableView {
+                                    id: stepTableView
+                                    anchors.left: stepVerticalHeaderView.right; anchors.right: parent.right
+                                    height: parent.height
+                                    alternatingRows: false
+                                    clip: true
+                                    editTriggers: TableView.NoEditTriggers
+                                    rowSpacing: 1
+                                    model: stepStandardItemModel
+                                    contentWidth: width
+                                    delegate: ItemDelegate {
+                                        implicitWidth: parent.width; implicitHeight: 32
+                                        text: model.display
+                                        font.pixelSize: 16
+                                        background: Rectangle {
+                                            color: "white"
+                                        }
+
+                                        Rectangle {
+                                            id: highlightRect
+                                            anchors.fill: parent
+                                            radius: 2
+                                            color: "#f5f5f5"
+                                            opacity: hoverHandler.hovered ? 1 : 0
+                                            Behavior on opacity {
+                                                NumberAnimation {
+                                                    duration: 150
+                                                }
+                                            }
+                                        }
+
+                                        HoverHandler {
+                                            id: hoverHandler
+                                        }
+
+                                        TapHandler {
+                                            acceptedButtons: Qt.RightButton
+                                            gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                            onSingleTapped: {
+                                                stepMenu.stepIndex = model.row
+                                                stepMenu.popup()
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        color: "#e0e0e0"
+                                        z: -1
+                                    }
+                                }
+
+                                Menu {
+                                    id: stepMenu
+                                    property int stepIndex
+
+                                    MenuItem {
+                                        text: qsTr("Delete")
+                                        icon.source: "qrc:/icon/delete.svg"
+                                        icon.width: 16; icon.height: 16
+
+                                        onTriggered: portSetting.stepRemove(stepMenu.stepIndex)
+                                    }
+                                }
+                            }
+                        }
+
+                        Item {
+                            Layout.fillWidth: true; Layout.preferredHeight: 100
+
+                            Item {
+                                anchors.fill: parent
+                                visible: !stepModelVisible
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+
+                                    Label {
+                                        text: qsTr("Raw output.")
+                                        font.pixelSize: 16
+                                        Layout.alignment: Qt.AlignVCenter
+                                    }
+                                }
+                            }
+
+                            Loader {
+                                id: stepTableLoader
+                                anchors.fill: parent
+                                sourceComponent: stepTableComponent
+                            }
+                        }
+                        
+                        // whitelist
                         RowLayout {
 
                             Label {
@@ -870,7 +1082,7 @@ Item {
 
                         TextField {
                             id: whitelistTextField
-                            placeholderText: "0123456789"
+                            placeholderText: "e.g. 0123456789"
                             visible: whitelistSwitch.checked
                             Layout.fillWidth: true
                         }
@@ -1040,12 +1252,52 @@ Item {
         };
         portSetting.propertyGet(objects)
     }
-
+    
+    // roi model
     function roiReload() {
         roiTableLoader.active = false
         roiTableLoader.active = true
     }
 
+    Connections {
+        target: roiStandardItemModel
+
+        function onRowsInserted() {
+            roiModelVisible = true
+        }
+
+        function onRowsRemoved() {
+            roiModelVisible = roiStandardItemModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            roiModelVisible = false
+        }
+    }
+    
+    // step model
+    function stepReload() {
+        stepTableLoader.active = false
+        stepTableLoader.active = true
+    }
+
+    Connections {
+        target: stepStandardItemModel
+
+        function onRowsInserted() {
+            stepModelVisible = true
+        }
+
+        function onRowsRemoved() {
+            stepModelVisible = stepStandardItemModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            stepModelVisible = false
+        }
+    }
+    
+    // indicator
     Component {
         id: indicatorComponent
 

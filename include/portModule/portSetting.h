@@ -65,6 +65,7 @@ private:
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
     QStandardItemModel *m_roiStandardItemModel{};
+    QStandardItemModel *m_stepStandardItemModel{};
     QString m_oldPortName{};
 
     QQuickItem *m_rootItem{};
