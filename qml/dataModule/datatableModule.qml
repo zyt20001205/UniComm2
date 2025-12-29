@@ -129,7 +129,6 @@ Item {
                 rowSpacing: 1; columnSpacing: 1
                 resizableColumns: true
                 model: standardItemModel
-                contentWidth: width
                 delegate: ItemDelegate {
                     implicitWidth: 120; implicitHeight: 32
                     text: model.display
