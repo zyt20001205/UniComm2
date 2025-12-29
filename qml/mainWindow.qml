@@ -406,14 +406,6 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Clear")
-            icon.source: "qrc:/icon/eraser.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: datatableModule.datatableClear(datatableModuleTableMenu.datatableIndex)
-        }
-
-        MenuItem {
             text: qsTr("Delete")
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16

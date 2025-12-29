@@ -15,10 +15,18 @@ public:
 
     void databaseWrite(const std::string &key, const std::string &value);
 
+    std::vector<std::string> datatableList();
+
+    void datatableWrite(const std::string &key, const std::string &value);
+
 signals:
     void listDatabase(QSet<QString> &databaseSet);
 
     void writeDatabase(const QString &key, const QString &value, bool &status);
+
+    void listDatatable(QSet<QString> &datatableSet);
+
+    void writeDatatable(const QString &key, const QString &value, bool &status);
 };
 
 // int lua_databaseList(lua_State *L);

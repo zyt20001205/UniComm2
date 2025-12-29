@@ -63,6 +63,8 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     connect(interpreter, &LuaInterpreter::listDatabase, this, &ThreadpoolModule::listDatabase, Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::writeDatabase, this, &ThreadpoolModule::writeDatabase, Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::listDatatable, this, &ThreadpoolModule::listDatatable, Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::writeDatatable, this, &ThreadpoolModule::writeDatatable, Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::newMessageDialog, this, &ThreadpoolModule::messageDialogNew);
     connect(interpreter, &LuaInterpreter::listPort, this, &ThreadpoolModule::listPort, Qt::BlockingQueuedConnection);

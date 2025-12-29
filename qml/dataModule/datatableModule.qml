@@ -45,6 +45,7 @@ Item {
                 id: horizontalHeaderView
                 anchors.top: parent.top
                 width: parent.width; height: 32
+                model: stringListModel
                 syncView: tableView
                 clip: true
                 interactive: false
@@ -64,12 +65,24 @@ Item {
                             font.family: "Segoe UI"
                             font.pointSize: 12
                             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: stringListModel.data(stringListModel.index(column, 0), Qt.DisplayRole)
+                            text: model.display
                         }
                     }
 
                     HoverHandler {
                         onHoveredChanged: cursorShape = Qt.OpenHandCursor
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.RightButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onSingleTapped: {
+                            tableMenu.datatableIndex = column
+                            const index = stringListModel.index(column, 0)
+                            tableMenu.datatableKey = stringListModel.data(index, Qt.DisplayRole)
+                            tableMenu.popup()
+                        }
                     }
                 }
                 property var moves: []
@@ -118,7 +131,7 @@ Item {
                 model: standardItemModel
                 contentWidth: width
                 delegate: ItemDelegate {
-                    implicitWidth: 60; implicitHeight: 32
+                    implicitWidth: 100; implicitHeight: 32
                     text: model.display
                     font.pixelSize: 16
                     background: Rectangle {
@@ -140,18 +153,6 @@ Item {
 
                     HoverHandler {
                         id: hoverHandler
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.RightButton
-                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                        onSingleTapped: {
-                            tableMenu.datatableIndex = model.row
-                            const index = tableView.model.index(row, 0);
-                            tableMenu.datatableKey = tableView.model.data(index, Qt.DisplayRole)
-                            tableMenu.popup()
-                        }
                     }
                 }
 

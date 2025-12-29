@@ -30,7 +30,7 @@ public:
 
     Q_INVOKABLE void datatableSwap(int src, int dst);
 
-    Q_INVOKABLE void datatableClear(int index);
+    Q_INVOKABLE void datatableClear() const;
 
     Q_INVOKABLE void datatableExport();
 
@@ -50,6 +50,7 @@ private:
     QQuickItem *m_rootItem{};
     QStandardItemModel *m_datatableStandardItemModel{};
     QHash<QString, int> m_datatableHash{};
+    QHash<QString, QVariantHash> m_datatableSession{};
 };
 
 #endif //UNICOMM_DATATABLE_H

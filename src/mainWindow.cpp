@@ -331,6 +331,8 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
     connect(m_threadpoolModule, &ThreadpoolModule::listDatabase, m_databaseModule, &DatabaseModule::databaseList);
     connect(m_threadpoolModule, &ThreadpoolModule::writeDatabase, m_databaseModule, &DatabaseModule::databaseWrite);
+    connect(m_threadpoolModule, &ThreadpoolModule::listDatatable, m_datatableModule, &DatatableModule::datatableList);
+    connect(m_threadpoolModule, &ThreadpoolModule::writeDatatable, m_datatableModule, &DatatableModule::datatableWrite);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
 
