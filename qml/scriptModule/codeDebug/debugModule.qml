@@ -89,9 +89,7 @@ Item {
             Layout.alignment: Qt.AlignTop
             model: stringListModel
             textRole: "display"
-            onCurrentTextChanged: {
-                debugModule.callStackSwitch(currentText)
-            }
+            onCurrentTextChanged: debugModule.callStackSwitch(currentText)
         }
 
         TableView {

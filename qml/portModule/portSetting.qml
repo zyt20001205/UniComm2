@@ -900,7 +900,9 @@ Item {
                                 ToolTip.text: qsTr("Add Step")
                                 ToolTip.visible: hovered
                                 flat: true
-                                // onClicked:
+                                onClicked: {
+                                    pipelineDialog.open()
+                                }
                             }
                         }
 
@@ -1276,6 +1278,37 @@ Item {
     }
     
     // step model
+    Dialog {
+        id: pipelineDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        modal: true
+        title: qsTr("Image Pipeline")
+        standardButtons: Dialog.Ok
+
+        ColumnLayout{
+            Layout.preferredWidth: 600
+
+            ComboBox {
+                id: typeComboBox
+                model: ListModel {
+                    ListElement {
+                        text: qsTr("Threshold"); value: "threshold"
+                    }
+                    ListElement {
+                        text: qsTr("Resize"); value: "resize"
+                    }
+                }
+                textRole: "text"
+                valueRole: "value"
+                Layout.fillWidth: true
+            }
+        }
+
+        // onAboutToShow:
+        // onAccepted:
+    }
+
     function stepReload() {
         stepTableLoader.active = false
         stepTableLoader.active = true
