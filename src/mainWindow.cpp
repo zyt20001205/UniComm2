@@ -274,6 +274,8 @@ void MainWindow::moduleInit() {
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
     // connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
     // connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
+
+    // connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
     
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
@@ -344,8 +346,6 @@ void MainWindow::moduleInit() {
     connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
     connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
     connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
-
-    // connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
 }
 
 void MainWindow::shortcutInit() {

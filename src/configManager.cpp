@@ -169,24 +169,6 @@ void ConfigManager::workspaceInit() {
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
         }
-        if (const QString portdPath = QDir(libDirPath).filePath("port.d.lua"); !QFile::exists(portdPath)) {
-            if (QFile file(portdPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "port.d.lua generated");
-        }
-        if (const QString databasedPath = QDir(libDirPath).filePath("database.d.lua"); !QFile::exists(databasedPath)) {
-            if (QFile file(databasedPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "database.d.lua generated");
-        }
-        if (const QString datatabledPath = QDir(libDirPath).filePath("datatable.d.lua"); !QFile::exists(datatabledPath)) {
-            if (QFile file(datatabledPath); file.open(QIODevice::WriteOnly | QIODevice::Text)) file.close();
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "datatable.d.lua generated");
-        }
     }
 }
 

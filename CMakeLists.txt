@@ -490,12 +490,6 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${OPENCV_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "OPENCV BIN COPIED")
-#qcustomplot-2.1.1
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${QCUSTOMPLOT_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "QCUSTOMPLOT BIN COPIED")
 #qscintilla-5.4.8
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
