@@ -60,7 +60,6 @@ private:
 
     QJsonArray m_datatableConfig{};
     QTableWidget *m_tableWidget{};
-    int m_version = 1;
     QHash<QString, DataMap> m_data{};
 };
 
