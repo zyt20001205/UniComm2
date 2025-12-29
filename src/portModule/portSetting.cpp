@@ -358,6 +358,29 @@ void PortSetting::roiSwap(const int src, const int dst) const {
     QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
 }
 
+void PortSetting::stepInsert(const QVariantHash &session) const {
+    const int type = session["type"].toInt();
+    switch (type) {
+        case SCALE: {
+            auto *item = new QStandardItem(tr("Scale")); // NOLINT
+            m_stepStandardItemModel->appendRow(item);
+            item->setData(session, Qt::WhatsThisRole);
+        }
+            break;
+        default: break;
+    }
+}
+
+void PortSetting::stepRemove(const int index) const {
+    m_stepStandardItemModel->removeRow(index);
+}
+
+void PortSetting::stepSwap(const int src, const int dst) const {
+    const auto tmp = m_stepStandardItemModel->takeRow(src);
+    m_stepStandardItemModel->insertRow(dst, tmp);
+    QMetaObject::invokeMethod(m_rootItem, "stepReload");
+}
+
 // PortSetting private
 void PortSetting::serialPortRefresh() const {
     m_serialPortStandardItemModel->clear();

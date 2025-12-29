@@ -40,6 +40,12 @@ public:
 
     Q_INVOKABLE void roiSwap(int src, int dst) const;
 
+    Q_INVOKABLE void stepInsert(const QVariantHash &session) const;
+
+    Q_INVOKABLE void stepRemove(int index) const;
+
+    Q_INVOKABLE void stepSwap(int src, int dst) const;
+
 signals:
     void insertPort(int index, const QJsonObject &portConfig);
 

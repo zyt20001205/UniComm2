@@ -144,7 +144,7 @@ enum {
 };
 
 enum {
-    RAW,
+    SCALE,
     GAUSSIANBLUR,
     THRESHOLD,
 };

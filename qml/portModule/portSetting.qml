@@ -621,7 +621,7 @@ Item {
                         ScrollView {
                             Layout.fillWidth: true; Layout.fillHeight: true
                             contentWidth: videoOutput.width; contentHeight: videoOutput.height
-                            
+
                             VideoOutput {
                                 id: videoOutput
                                 property var indicatorList: []
@@ -702,7 +702,7 @@ Item {
                     ColumnLayout {
                         Layout.preferredWidth: 300; Layout.fillHeight: true
                         Layout.alignment: Qt.AlignTop
-                        
+
                         // roi area
                         RowLayout {
 
@@ -883,7 +883,7 @@ Item {
                                 sourceComponent: roiTableComponent
                             }
                         }
-                        
+
                         // step area
                         RowLayout {
 
@@ -1034,6 +1034,16 @@ Item {
                                     property int stepIndex
 
                                     MenuItem {
+                                        text: qsTr("Edit")
+                                        icon.source: "qrc:/icon/edit.svg"
+                                        icon.width: 16; icon.height: 16
+
+                                        onTriggered: {
+                                            pipelineDialog.open()
+                                        }
+                                    }
+
+                                    MenuItem {
                                         text: qsTr("Delete")
                                         icon.source: "qrc:/icon/delete.svg"
                                         icon.width: 16; icon.height: 16
@@ -1068,7 +1078,7 @@ Item {
                                 sourceComponent: stepTableComponent
                             }
                         }
-                        
+
                         // whitelist
                         RowLayout {
 
@@ -1254,7 +1264,7 @@ Item {
         };
         portSetting.propertyGet(objects)
     }
-    
+
     // roi model
     function roiReload() {
         roiTableLoader.active = false
@@ -1276,37 +1286,106 @@ Item {
             roiModelVisible = false
         }
     }
-    
+
     // step model
     Dialog {
         id: pipelineDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
+        width: 600
         modal: true
         title: qsTr("Image Pipeline")
         standardButtons: Dialog.Ok
+        // scale
+        property real ratio: 1
 
-        ColumnLayout{
-            Layout.preferredWidth: 600
+        ColumnLayout {
+            width: parent.width
 
             ComboBox {
                 id: typeComboBox
                 model: ListModel {
                     ListElement {
-                        text: qsTr("Threshold"); value: "threshold"
+                        text: qsTr("Scale")
                     }
                     ListElement {
-                        text: qsTr("Resize"); value: "resize"
+                        text: qsTr("Threshold")
                     }
                 }
                 textRole: "text"
-                valueRole: "value"
                 Layout.fillWidth: true
+            }
+
+            StackLayout {
+                currentIndex: typeComboBox.currentIndex
+
+                // scale
+                RowLayout {
+
+                    Slider {
+                        value: 0
+                        from: -5
+                        to: 5
+                        stepSize: 1
+                        snapMode: Slider.SnapOnRelease
+                        Layout.fillWidth: true
+                        ToolTip.text: "x" + pipelineDialog.ratio.toString()
+                        ToolTip.visible: hovered
+
+                        onMoved: {
+                            switch (value) {
+                                case -5:
+                                    pipelineDialog.ratio = 0.1
+                                    break
+                                case -4:
+                                    pipelineDialog.ratio = 0.25
+                                    break
+                                case -3:
+                                    pipelineDialog.ratio = 0.3
+                                    break
+                                case -2:
+                                    pipelineDialog.ratio = 0.5
+                                    break
+                                case -1:
+                                    pipelineDialog.ratio = 0.75
+                                    break
+                                case 0:
+                                    pipelineDialog.ratio = 1
+                                    break
+                                case 1:
+                                    pipelineDialog.ratio = 1.5
+                                    break
+                                case 2:
+                                    pipelineDialog.ratio = 2
+                                    break
+                                case 3:
+                                    pipelineDialog.ratio = 3
+                                    break
+                                case 4:
+                                    pipelineDialog.ratio = 5
+                                    break
+                                case 5:
+                                    pipelineDialog.ratio = 10
+                                    break
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        // onAboutToShow:
-        // onAccepted:
+        onAccepted: {
+            let type = typeComboBox.currentIndex
+            let session = {}
+            session.type = type
+            switch (type) {
+                case 0: {
+                    session.ratio = ratio
+                }
+                    break
+            }
+            portSetting.stepInsert(session)
+        }
     }
 
     function stepReload() {
@@ -1329,7 +1408,7 @@ Item {
             stepModelVisible = false
         }
     }
-    
+
     // indicator
     Component {
         id: indicatorComponent
