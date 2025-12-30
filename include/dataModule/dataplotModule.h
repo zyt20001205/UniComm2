@@ -3,6 +3,8 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+class QQuickWidget;
+
 class DataplotModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
@@ -11,9 +13,12 @@ public:
 
     ~DataplotModule() override;
 
+    void propertySet(const QVariantMap &objects);
+
 signals:
 
 private:
+    QQuickWidget *m_dataplotWidget{};
 };
 
 #endif //UNICOMM_DATAPLOT_H

@@ -81,6 +81,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
     m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
+    // m_overlay->rootContext()->setContextProperty("dataplotModule", m_dataplotModule);
     m_overlay->rootContext()->setContextProperty("datatableModule", m_datatableModule);
     // m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
@@ -110,6 +111,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"databaseModuleRootMenu", objects["databaseModuleRootMenu"]}
     };
     m_databaseModule->propertySet(databaseObjects);
+
+    const QVariantMap dataplotObjects = {
+        //
+    };
+    m_dataplotModule->propertySet(dataplotObjects);
 
     const QVariantMap datatableObjects = {
         {"datatableModuleNameDialog", objects["datatableModuleNameDialog"]},

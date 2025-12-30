@@ -9,6 +9,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 REQUIRED COMPONENTS
         Core
         Core5Compat
+        Graphs
         Gui
         Multimedia
         Network
@@ -154,6 +155,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/logModule.qml"
         "qml/mainWindow.qml"
         "qml/dataModule/databaseModule.qml"
+        "qml/dataModule/dataplotModule.qml"
         "qml/dataModule/datatableModule.qml"
         "qml/portModule/portModule.qml"
         "qml/portModule/portSetting.qml"
@@ -325,11 +327,6 @@ set(OPENCV_INCLUDE "${OPENCV_DIR}/include")
 file(GLOB OPENCV_LIB "${OPENCV_DIR}/lib/*.a")
 set(OPENCV_BIN "${OPENCV_DIR}/bin")
 
-set(QCUSTOMPLOT_DIR "${CMAKE_SOURCE_DIR}/3rd/qcustomplot-2.1.1")
-set(QCUSTOMPLOT_INCLUDE "${QCUSTOMPLOT_DIR}/include")
-file(GLOB QCUSTOMPLOT_LIB "${QCUSTOMPLOT_DIR}/lib/*.a")
-set(QCUSTOMPLOT_BIN "${QCUSTOMPLOT_DIR}/bin")
-
 set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/qscintilla-2.14.1")
 set(QSCINTILLA_INCLUDE "${QSCINTILLA_DIR}/include")
 file(GLOB QSCINTILLA_LIB "${QSCINTILLA_DIR}/lib/*.a")
@@ -360,7 +357,6 @@ target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE}
         ${NUSPELL_INCLUDE}
         ${OPENCV_INCLUDE}
-        ${QCUSTOMPLOT_INCLUDE}
         ${QSCINTILLA_INCLUDE}
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
@@ -371,6 +367,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::Core
         Qt6::Core5Compat
         Qt6::Gui
+        Qt6::Graphs
         Qt6::Multimedia
         Qt6::Network
         Qt6::PrintSupport
@@ -390,7 +387,6 @@ target_link_libraries(UniComm PRIVATE
         ${LUA_LIB}
         ${NUSPELL_LIB}
         ${OPENCV_LIB}
-        ${QCUSTOMPLOT_LIB}
         ${QSCINTILLA_LIB}
         ${TESSERACT_LIB}
         #???
