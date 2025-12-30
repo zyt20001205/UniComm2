@@ -1232,7 +1232,7 @@ Item {
         }
     }
 
-    // roi model
+    // roi
     function roiReload() {
         roiTableLoader.active = false
         roiTableLoader.active = true
@@ -1254,7 +1254,7 @@ Item {
         }
     }
 
-    // pipeline model
+    // pipeline
     Dialog {
         id: pipelineDialog
         parent: Overlay.overlay
@@ -1264,7 +1264,7 @@ Item {
         title: qsTr("Image Pipeline")
         standardButtons: Dialog.Ok
         // scale
-        property real ratio: 1
+        property int interpolation: 1
 
         ColumnLayout {
             width: parent.width
@@ -1290,52 +1290,86 @@ Item {
                 RowLayout {
 
                     Slider {
+                        id: ratioSlider
                         value: 0
                         from: -5
                         to: 5
                         stepSize: 1
                         snapMode: Slider.SnapOnRelease
                         Layout.fillWidth: true
-                        ToolTip.text: "x" + pipelineDialog.ratio.toString()
+                        ToolTip.text: "x" + ratio.toString()
                         ToolTip.visible: hovered
+                        property real ratio: 1
 
                         onMoved: {
                             switch (value) {
                                 case -5:
-                                    pipelineDialog.ratio = 0.1
+                                    ratio = 0.1
                                     break
                                 case -4:
-                                    pipelineDialog.ratio = 0.25
+                                    ratio = 0.25
                                     break
                                 case -3:
-                                    pipelineDialog.ratio = 0.3
+                                    ratio = 0.3
                                     break
                                 case -2:
-                                    pipelineDialog.ratio = 0.5
+                                    ratio = 0.5
                                     break
                                 case -1:
-                                    pipelineDialog.ratio = 0.75
+                                    ratio = 0.75
                                     break
                                 case 0:
-                                    pipelineDialog.ratio = 1
+                                    ratio = 1
                                     break
                                 case 1:
-                                    pipelineDialog.ratio = 1.5
+                                    ratio = 1.5
                                     break
                                 case 2:
-                                    pipelineDialog.ratio = 2
+                                    ratio = 2
                                     break
                                 case 3:
-                                    pipelineDialog.ratio = 3
+                                    ratio = 3
                                     break
                                 case 4:
-                                    pipelineDialog.ratio = 5
+                                    ratio = 5
                                     break
                                 case 5:
-                                    pipelineDialog.ratio = 10
+                                    ratio = 10
                                     break
                             }
                         }
+                    }
+
+                    ComboBox {
+                        id: interpolationComboBox
+                        currentIndex: 1
+                        model: ListModel {
+                            ListElement {
+                                text: qsTr("Nearest")
+                            }
+                            ListElement {
+                                text: qsTr("Linear")
+                            }
+                            ListElement {
+                                text: qsTr("Cubic")
+                            }
+                            ListElement {
+                                text: qsTr("Area")
+                            }
+                            ListElement {
+                                text: qsTr("Lanczos4")
+                            }
+                            ListElement {
+                                text: qsTr("Linear Exact")
+                            }
+                            ListElement {
+                                text: qsTr("Nearest Exact")
+                            }
+                            ListElement {
+                                text: qsTr("Inter Max")
+                            }
+                        }
+                        textRole: "text"
                     }
                 }
             }
@@ -1347,7 +1381,8 @@ Item {
             session.type = type
             switch (type) {
                 case 0: {
-                    session.ratio = ratio
+                    session.ratio = ratioSlider.ratio
+                    session.interpolation = interpolationComboBox.currentIndex
                 }
                     break
             }

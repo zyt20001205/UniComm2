@@ -13,7 +13,7 @@ class QJsonArray;
 
 QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline);
 
-cv::Mat scale(const cv::Mat &input, double ratio, int interpolation = cv::InterpolationFlags::INTER_LINEAR);
+cv::Mat scale(const cv::Mat &input, double ratio, int interpolation);
 
 // QPixmap processThreshold(const QPixmap &pixmap, int thresh, int type);
 

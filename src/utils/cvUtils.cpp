@@ -17,7 +17,8 @@ QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline) {
         switch (type) {
             case SCALE: {
                 const double ratio = session["ratio"].toDouble();
-                intermediate = scale(intermediate, ratio);
+                const double interpolation = session["interpolation"].toInt();
+                intermediate = scale(intermediate, ratio, interpolation);
             }
             break;
             default: break;
