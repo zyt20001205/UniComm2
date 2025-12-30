@@ -137,8 +137,8 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         //     label->show();
         // });
 
-        const QImage image = processed.toImage().convertToFormat(QImage::Format_RGB888);
-        m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
+        const QImage image = processed.toImage().convertToFormat(QImage::QImage::Format_Grayscale8);
+        m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 1, image.bytesPerLine());
         char *result = m_ocrEngine->GetUTF8Text();
         QString text = QString::fromUtf8(result);
         text = text.trimmed();
