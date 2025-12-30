@@ -515,6 +515,7 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     }
 }
 
+// ImageProvider public
 ImageProvider::ImageProvider()
     : QQuickImageProvider(Pixmap) {
 }
