@@ -668,6 +668,23 @@ Item {
                                     onTapped: captureSelection.visible = false
                                 }
                             }
+
+                            // preview
+                            Popup {
+                                id: previewPopup
+                                padding: 0
+
+                                Image {
+                                    id: previewImage
+
+                                    onStatusChanged: {
+                                        if (status === Image.Ready) {
+                                            previewPopup.width = implicitWidth + 30
+                                            previewPopup.height = implicitHeight + 30
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         RowLayout {
@@ -1393,24 +1410,10 @@ Item {
 
                 onTapped: {
                     portSetting.previewLoad(index)
-                    previewPopup.x = x + width
-                    previewPopup.y = y
-                    previewPopup.open()}
-            }
-        }
-    }
-
-    Popup {
-        id: previewPopup
-        padding: 0
-
-        Image {
-            id: previewImage
-
-            onStatusChanged: {
-                if (status === Image.Ready) {
-                    previewPopup.width = implicitWidth + 30
-                    previewPopup.height = implicitHeight + 30
+                    const pos = mapToItem(previewPopup.parent, width, 0)
+                    previewPopup.x = pos.x
+                    previewPopup.y = pos.y
+                    previewPopup.open()
                 }
             }
         }
