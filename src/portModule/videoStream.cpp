@@ -129,11 +129,11 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         const QPixmap processed = processPipeline(cropped, m_portConfig["pipeline"].toArray());
 
         // for testing
-        // QMetaObject::invokeMethod(g_mainWindow, [cropped] {
+        // QMetaObject::invokeMethod(g_mainWindow, [processed] {
         //     auto *label = new QLabel(g_mainWindow); // NOLINT
         //     label->setWindowTitle("test");
         //     label->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
-        //     label->setPixmap(cropped);
+        //     label->setPixmap(processed);
         //     label->show();
         // });
 
