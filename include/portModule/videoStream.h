@@ -11,6 +11,7 @@ class QEventLoop;
 class QImageCapture;
 class QMediaCaptureSession;
 class QScreenCapture;
+class QVideoSink;
 
 class VideoStream final : public BasePort {
     Q_OBJECT
@@ -35,9 +36,9 @@ public:
 private:
     QEventLoop *m_eventLoop{};
     QMediaCaptureSession *m_mediaCaptureSession{};
+    QVideoSink *m_videoSink{};
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
-    QImageCapture *m_imageCapture{};
     tesseract::TessBaseAPI *m_ocrEngine{};
     // port config
     QJsonObject m_portConfig{};

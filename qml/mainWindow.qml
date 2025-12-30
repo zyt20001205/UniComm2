@@ -450,7 +450,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    datatableModule.datatableClear(-1)
+                    datatableModule.datatableClear()
                     progress = 0
                     datatableModuleRootMenu.close()
                 }

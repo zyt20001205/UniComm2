@@ -8,6 +8,7 @@
 #include <QMediaDevices>
 #include <QScreenCapture>
 #include <QThread>
+#include <QVideoSink>
 
 #include "globals.h"
 #include "utils/cvUtils.h"
@@ -38,8 +39,8 @@ bool VideoStream::open() {
     // port init
     if (m_mediaCaptureSession == nullptr) {
         m_mediaCaptureSession = new QMediaCaptureSession(this);
-        m_imageCapture = new QImageCapture(this);
-        m_mediaCaptureSession->setImageCapture(m_imageCapture);
+        m_videoSink = new QVideoSink(this);
+        m_mediaCaptureSession->setVideoSink(m_videoSink);
         const auto &portName = m_portConfig["portName"].toString();
         for (QScreen *screen: QGuiApplication::screens()) {
             if (portName == screen->name()) {
@@ -121,16 +122,11 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
         return {};
     }
-    QPixmap shot{};
-    const auto connection = connect(m_imageCapture, &QImageCapture::imageCaptured, m_eventLoop, [this, &shot](int, const QImage &img) {
-        shot = QPixmap::fromImage(img);
-        m_eventLoop->quit();
-    });
-    m_imageCapture->capture();
-    m_eventLoop->exec();
-    disconnect(connection);
+    const auto videoFrame = m_videoSink->videoFrame();
+    const auto videoImage = videoFrame.toImage();
+    const auto videoPixmap = QPixmap::fromImage(videoImage);
+    if (videoPixmap.isNull()) return {};
 
-    if (shot.isNull()) return {};
     // for testing
     // QMetaObject::invokeMethod(g_mainWindow, [shot] {
     //     auto *label = new QLabel(g_mainWindow); // NOLINT
@@ -143,13 +139,10 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
     QStringList resultList{};
     for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
         QJsonArray roi = value.toArray();
-        const int x = roi[0].toInt();
-        const int y = roi[1].toInt();
-        const int width = roi[2].toInt();
-        const int height = roi[3].toInt();
-        const auto rect = QRect(x, y, width, height);
-        const QPixmap cropped = shot.copy(rect);
-        const QImage image = cropped.toImage().convertToFormat(QImage::Format_RGB888);
+        const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
+        const QPixmap cropped = videoPixmap.copy(rect);
+        const QPixmap processed = processPipeline(cropped, m_portConfig["pipeline"].toArray());
+        const QImage image = processed.toImage().convertToFormat(QImage::Format_RGB888);
         m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
         char *result = m_ocrEngine->GetUTF8Text();
         QString text = QString::fromUtf8(result);
