@@ -1365,9 +1365,6 @@ Item {
                             ListElement {
                                 text: qsTr("Nearest Exact")
                             }
-                            ListElement {
-                                text: qsTr("Inter Max")
-                            }
                         }
                         textRole: "text"
                     }
