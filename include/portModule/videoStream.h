@@ -34,7 +34,6 @@ public:
     QByteArray read(int timeout, int length, const QString &rxFormat) override;
 
 private:
-    QEventLoop *m_eventLoop{};
     QMediaCaptureSession *m_mediaCaptureSession{};
     QVideoSink *m_videoSink{};
     QScreenCapture *m_screenCapture{};

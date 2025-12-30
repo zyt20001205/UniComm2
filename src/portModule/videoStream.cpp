@@ -70,9 +70,6 @@ bool VideoStream::open() {
         // m_ocrEngine->SetVariable("load_system_dawg", "0");
         // m_ocrEngine->SetVariable("load_freq_dawg", "0");
     }
-    if (m_eventLoop == nullptr) {
-        m_eventLoop = new QEventLoop(this);
-    }
     // port open
     if (m_screenCapture) m_screenCapture->start();
     else if (m_cameraCapture) m_cameraCapture->start();
@@ -94,9 +91,6 @@ bool VideoStream::open() {
 
 void VideoStream::close() {
     // port close
-    if (m_eventLoop && m_eventLoop->isRunning()) {
-        m_eventLoop->quit();
-    }
     if (m_screenCapture) m_screenCapture->stop();
     else if (m_cameraCapture) m_cameraCapture->stop();
     emit refreshPort(m_portConfig["portName"].toString(), false);
@@ -122,26 +116,27 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
         return {};
     }
-    const auto videoFrame = m_videoSink->videoFrame();
-    const auto videoImage = videoFrame.toImage();
-    const auto videoPixmap = QPixmap::fromImage(videoImage);
-    if (videoPixmap.isNull()) return {};
-
-    // for testing
-    // QMetaObject::invokeMethod(g_mainWindow, [shot] {
-    //     auto *label = new QLabel(g_mainWindow); // NOLINT
-    //     label->setWindowTitle("test");
-    //     label->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
-    //     label->setPixmap(shot);
-    //     label->show();
-    // });
+    const auto rawFrame = m_videoSink->videoFrame();
+    const auto rawImage = rawFrame.toImage();
+    const auto rawPixmap = QPixmap::fromImage(rawImage);
+    if (rawPixmap.isNull()) return {};
 
     QStringList resultList{};
     for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
         QJsonArray roi = value.toArray();
         const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
-        const QPixmap cropped = videoPixmap.copy(rect);
+        const QPixmap cropped = rawPixmap.copy(rect);
         const QPixmap processed = processPipeline(cropped, m_portConfig["pipeline"].toArray());
+
+        // for testing
+        // QMetaObject::invokeMethod(g_mainWindow, [cropped] {
+        //     auto *label = new QLabel(g_mainWindow); // NOLINT
+        //     label->setWindowTitle("test");
+        //     label->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
+        //     label->setPixmap(cropped);
+        //     label->show();
+        // });
+
         const QImage image = processed.toImage().convertToFormat(QImage::Format_RGB888);
         m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 3, image.bytesPerLine());
         char *result = m_ocrEngine->GetUTF8Text();

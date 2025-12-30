@@ -24,7 +24,7 @@ QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline) {
         }
     }
     const QImage processedImage(intermediate.data,intermediate.cols,intermediate.rows,intermediate.step,image.format());
-    return QPixmap::fromImage(processedImage);
+    return QPixmap::fromImage(processedImage.copy());
 }
 
 cv::Mat scale(const cv::Mat &input, const double ratio, const int interpolation) {

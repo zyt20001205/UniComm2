@@ -36,7 +36,7 @@ PortSetting::PortSetting(QWidget *parent)
 }
 
 PortSetting::~PortSetting() {
-    delete m_imageProvider;
+    // delete m_imageProvider;
 }
 
 void PortSetting::propertySet() {
