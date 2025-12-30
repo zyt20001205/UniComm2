@@ -353,7 +353,7 @@ void PortSetting::videoCapture() {
     }
 }
 
-void PortSetting::previewLoad(const int index) {
+void PortSetting::previewLoad(const int index) const {
     const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
     QJsonArray pipeline{};
     for (int i = 0; i < m_pipelineStandardItemModel->rowCount(); ++i) {

@@ -34,7 +34,7 @@ public:
 
     Q_INVOKABLE void videoCapture();
 
-    Q_INVOKABLE void previewLoad(int index);
+    Q_INVOKABLE void previewLoad(int index) const;
 
     Q_INVOKABLE void roiInsert(int x, int y, int w, int h) const;
 
