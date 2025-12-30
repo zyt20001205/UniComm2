@@ -1,7 +1,9 @@
 #include "dataModule/dataplotModule.h"
 
 #include <QQmlContext>
-#include <QQuickWidget>
+#include <QStandardItemModel>
+
+#include "globals.h"
 
 // DataplotModule public
 DataplotModule::DataplotModule()
@@ -17,6 +19,7 @@ DataplotModule::~DataplotModule() {
 
 void DataplotModule::propertySet(const QVariantMap &objects) {
     m_dataplotWidget->rootContext()->setContextProperty("dataplotModule", this);
+    m_dataplotWidget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
     m_dataplotWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_dataplotWidget->setSource(QUrl("qrc:/qml/dataModule/dataplotModule.qml"));
 }

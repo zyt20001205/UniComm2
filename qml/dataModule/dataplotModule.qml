@@ -9,11 +9,12 @@ Item {
 
     RowLayout {
         anchors.fill: parent
+        anchors.margins: 4
 
         StackLayout {
             currentIndex: dataSourceComboBox.currentIndex
             Layout.fillWidth: true; Layout.fillHeight: true
-            Layout.preferredWidth: 3
+            Layout.preferredWidth: 2
             clip: true
 
             GraphsView {
@@ -34,9 +35,14 @@ Item {
                 }
 
                 BarSeries {
+                    id: barSeries
+                    property var barSetMap
+                }
+
+                Component {
+                    id: barComponent
+
                     BarSet {
-                        label: "test barset"
-                        values: [50]
                     }
                 }
             }
@@ -65,6 +71,55 @@ Item {
                 valueRole: "value"
                 Layout.fillWidth: true
             }
+
+            StackLayout {
+                currentIndex: dataSourceComboBox.currentIndex
+
+                TableView {
+                    id: databaseTableView
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    alternatingRows: false
+                    clip: true
+                    editTriggers: TableView.NoEditTriggers
+                    rowSpacing: 1
+                    model: standardItemModel
+                    contentWidth: width
+                    delegate: CheckDelegate {
+                        implicitWidth: databaseTableView.width
+                        text: model.display
+                        background: Rectangle {
+                            color: "white"
+                        }
+
+                        onClicked: {
+                            const label = model.display
+                            let bar;
+                            if (checked) {
+                                bar = barComponent.createObject(null, {
+                                    label: label,
+                                    values: [50]
+                                });
+                                barSeries.append(bar)
+                                barSeries.barSetMap[label] = bar
+                            } else {
+                                bar = barSeries.barSetMap[label]
+                                barSeries.remove(bar)
+                                delete barSeries.barSetMap[label]
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#e0e0e0"
+                        z: -1
+                    }
+                }
+            }
         }
+    }
+
+    Component.onCompleted: {
+        barSeries.barSetMap = {}
     }
 }
