@@ -2,10 +2,19 @@
 #define UNICOMM_UTILS_H
 
 #include <QPixmap>
-#include <QString>
 
-QPixmap processGaussianBlur(const QPixmap &pixmap, int size);
+#include <opencv2/imgproc.hpp>
 
-QPixmap processThreshold(const QPixmap &pixmap, int thresh, int type);
+namespace cv {
+    class Mat;
+}
+
+class QJsonArray;
+
+QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline);
+
+cv::Mat scale(const cv::Mat &input, double ratio, int interpolation = cv::InterpolationFlags::INTER_LINEAR);
+
+// QPixmap processThreshold(const QPixmap &pixmap, int thresh, int type);
 
 #endif //UNICOMM_UTILS_H

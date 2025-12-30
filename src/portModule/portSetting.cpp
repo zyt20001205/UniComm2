@@ -18,6 +18,7 @@
 #include <visa.h>
 
 #include "globals.h"
+#include "utils/cvUtils.h"
 
 // PortSetting public
 PortSetting::PortSetting(QWidget *parent)
@@ -29,8 +30,13 @@ PortSetting::PortSetting(QWidget *parent)
       m_videoStreamStandardItemModel(new QStandardItemModel(this)),
       m_mediaCaptureSession(new QMediaCaptureSession(this)),
       m_roiStandardItemModel(new QStandardItemModel(this)),
-      m_stepStandardItemModel(new QStandardItemModel(this)){
+      m_pipelineStandardItemModel(new QStandardItemModel(this)),
+      m_imageProvider(new ImageProvider()) {
     propertySet();
+}
+
+PortSetting::~PortSetting() {
+    delete m_imageProvider;
 }
 
 void PortSetting::propertySet() {
@@ -39,13 +45,15 @@ void PortSetting::propertySet() {
     auto *widget = new QQuickWidget(); // NOLINT
     layout->addWidget(widget);
     layout->setContentsMargins(0, 0, 0, 0);
+    QQmlEngine *engine = widget->engine();
+    engine->addImageProvider("capture", m_imageProvider);
     widget->rootContext()->setContextProperty("portSetting", this);
     widget->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
     widget->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     widget->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
     widget->rootContext()->setContextProperty("videoStreamStandardItemModel", m_videoStreamStandardItemModel);
     widget->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
-    widget->rootContext()->setContextProperty("stepStandardItemModel", m_stepStandardItemModel);
+    widget->rootContext()->setContextProperty("pipelineStandardItemModel", m_pipelineStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/portModule/portSetting.qml"));
     m_rootItem = widget->rootObject();
@@ -84,6 +92,7 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     // image
     m_videoSink = objects["videoSink"].value<QVideoSink *>();
     m_mediaCaptureSession->setVideoSink(m_videoSink);
+    m_previewImage = qvariant_cast<QObject *>(objects["previewImage"]);
     m_whitelistSwitch = qvariant_cast<QObject *>(objects["whitelistSwitch"]);
     m_whitelistTextField = qvariant_cast<QObject *>(objects["whitelistTextField"]);
 }
@@ -283,10 +292,16 @@ void PortSetting::portSettingExport() {
                 const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toList());
                 roiArray.append(roi);
             }
+            QJsonArray pipelineArray{};
+            for (int i = 0; i < m_pipelineStandardItemModel->rowCount(); ++i) {
+                const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
+                pipelineArray.append(session);
+            }
             portConfig = {
                 {"portType", portType},
                 {"portName", m_videoStreamNameComboBox->property("currentValue").toString()},
                 {"roi", roiArray},
+                {"pipeline", pipelineArray},
                 {"whitelist", m_whitelistTextField->property("text").toString()}
             };
         }
@@ -338,6 +353,17 @@ void PortSetting::videoCapture() {
     }
 }
 
+void PortSetting::previewLoad(const int index) {
+    const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
+    QJsonArray pipeline{};
+    for (int i = 0; i < m_pipelineStandardItemModel->rowCount(); ++i) {
+        const QJsonObject session = QJsonObject::fromVariantHash(m_pipelineStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toHash());
+        pipeline.append(session);
+    }
+    m_imageProvider->preview(m_videoSink, roi, pipeline);
+    m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+}
+
 void PortSetting::roiInsert(const int x, const int y, const int w, const int h) const {
     auto *item = new QStandardItem(QString::number(x) + " " + QString::number(y) + " " + QString::number(w) + " " + QString::number(h)); // NOLINT
     const QVariantList position = {x, y, w, h};
@@ -358,27 +384,27 @@ void PortSetting::roiSwap(const int src, const int dst) const {
     QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
 }
 
-void PortSetting::stepInsert(const QVariantHash &session) const {
+void PortSetting::pipelineInsert(const QVariantHash &session) const {
     const int type = session["type"].toInt();
     switch (type) {
         case SCALE: {
             auto *item = new QStandardItem(tr("Scale")); // NOLINT
-            m_stepStandardItemModel->appendRow(item);
+            m_pipelineStandardItemModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }
-            break;
+        break;
         default: break;
     }
 }
 
-void PortSetting::stepRemove(const int index) const {
-    m_stepStandardItemModel->removeRow(index);
+void PortSetting::pipelineRemove(const int index) const {
+    m_pipelineStandardItemModel->removeRow(index);
 }
 
-void PortSetting::stepSwap(const int src, const int dst) const {
-    const auto tmp = m_stepStandardItemModel->takeRow(src);
-    m_stepStandardItemModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_rootItem, "stepReload");
+void PortSetting::pipelineSwap(const int src, const int dst) const {
+    const auto tmp = m_pipelineStandardItemModel->takeRow(src);
+    m_pipelineStandardItemModel->insertRow(dst, tmp);
+    QMetaObject::invokeMethod(m_rootItem, "pipelineReload");
 }
 
 // PortSetting private
@@ -466,6 +492,7 @@ void PortSetting::videoStreamRefresh() const {
 
 void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     m_roiStandardItemModel->clear();
+    m_pipelineStandardItemModel->clear();
     QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
     m_whitelistSwitch->setProperty("checked", false);
     m_whitelistTextField->setProperty("text", "");
@@ -475,6 +502,10 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
             QJsonArray roi = value.toArray();
             roiInsert(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
         }
+        for (const QJsonValue &value: portConfig["pipeline"].toArray()) {
+            QVariantHash session = value.toObject().toVariantHash();
+            pipelineInsert(session);
+        }
         // whitelist
         const QString whitelist = portConfig["whitelist"].toString();
         if (!whitelist.isEmpty()) {
@@ -482,4 +513,22 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
             m_whitelistTextField->setProperty("text", whitelist);
         }
     }
+}
+
+ImageProvider::ImageProvider()
+    : QQuickImageProvider(Pixmap) {
+}
+
+QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
+    if (m_preview.isNull()) return {};
+    return m_preview;
+}
+
+void ImageProvider::preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
+    const auto videoFrame = videoSink->videoFrame();
+    const auto image = videoFrame.toImage();
+    const auto pixmap = QPixmap::fromImage(image);
+    const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
+    const QPixmap cropped = pixmap.copy(rect);
+    m_preview = processPipeline(cropped, pipeline);
 }

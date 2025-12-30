@@ -20,7 +20,7 @@ class PortSetting final : public QWidget {
 public:
     explicit PortSetting(QWidget *parent = nullptr);
 
-    ~PortSetting() override = default;
+    ~PortSetting() override;
 
     void propertySet();
 
@@ -34,17 +34,19 @@ public:
 
     Q_INVOKABLE void videoCapture();
 
+    Q_INVOKABLE void previewLoad(int index);
+
     Q_INVOKABLE void roiInsert(int x, int y, int w, int h) const;
 
     Q_INVOKABLE void roiRemove(int index) const;
 
     Q_INVOKABLE void roiSwap(int src, int dst) const;
 
-    Q_INVOKABLE void stepInsert(const QVariantHash &session) const;
+    Q_INVOKABLE void pipelineInsert(const QVariantHash &session) const;
 
-    Q_INVOKABLE void stepRemove(int index) const;
+    Q_INVOKABLE void pipelineRemove(int index) const;
 
-    Q_INVOKABLE void stepSwap(int src, int dst) const;
+    Q_INVOKABLE void pipelineSwap(int src, int dst) const;
 
 signals:
     void insertPort(int index, const QJsonObject &portConfig);
@@ -71,7 +73,8 @@ private:
     QScreenCapture *m_screenCapture{};
     QCamera *m_cameraCapture{};
     QStandardItemModel *m_roiStandardItemModel{};
-    QStandardItemModel *m_stepStandardItemModel{};
+    QStandardItemModel *m_pipelineStandardItemModel{};
+    ImageProvider *m_imageProvider{};
     QString m_oldPortName{};
 
     QQuickItem *m_rootItem{};
@@ -106,8 +109,25 @@ private:
     QObject *m_rxFormatComboBox{};
     // image
     QVideoSink *m_videoSink{};
+    QObject *m_previewImage{};
     QObject *m_whitelistSwitch{};
     QObject *m_whitelistTextField{};
+};
+
+class ImageProvider final: public QQuickImageProvider {
+    Q_OBJECT
+
+public:
+    explicit ImageProvider();
+
+    ~ImageProvider() override = default;
+
+    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
+
+    void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
+
+private:
+    QPixmap m_preview{};
 };
 
 #endif //UNICOMM_PORTSETTING_H

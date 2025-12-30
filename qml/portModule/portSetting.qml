@@ -11,7 +11,7 @@ Item {
         "ipv6": /[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){3}/
     }
     property bool roiModelVisible: roiStandardItemModel ? roiStandardItemModel.rowCount() > 0 : false
-    property bool stepModelVisible: stepStandardItemModel ? stepStandardItemModel.rowCount() > 0 : false
+    property bool pipelineModelVisible: pipelineStandardItemModel ? pipelineStandardItemModel.rowCount() > 0 : false
 
     Component {
         id: delegateComponent
@@ -884,7 +884,7 @@ Item {
                             }
                         }
 
-                        // step area
+                        // pipeline area
                         RowLayout {
 
                             Label {
@@ -897,7 +897,7 @@ Item {
                                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                                 icon.source: "qrc:/icon/add.svg"
                                 icon.width: 24; icon.height: 24
-                                ToolTip.text: qsTr("Add Step")
+                                ToolTip.text: qsTr("Add Pipeline")
                                 ToolTip.visible: hovered
                                 flat: true
                                 onClicked: {
@@ -907,23 +907,23 @@ Item {
                         }
 
                         Component {
-                            id: stepTableComponent
+                            id: pipelineTableComponent
 
                             Item {
                                 anchors.fill: parent
-                                visible: stepModelVisible
+                                visible: pipelineModelVisible
 
                                 VerticalHeaderView {
-                                    id: stepVerticalHeaderView
+                                    id: pipelineVerticalHeaderView
                                     anchors.left: parent.left
                                     width: 32; height: parent.height
-                                    syncView: stepTableView
+                                    syncView: pipelineTableView
                                     clip: true
                                     interactive: false
                                     movableRows: true
                                     delegate: VerticalHeaderViewDelegate {
-                                        id: stepVerticalHeaderViewDelegate
-                                        implicitWidth: stepVerticalHeaderView.width; implicitHeight: 32
+                                        id: pipelineVerticalHeaderViewDelegate
+                                        implicitWidth: pipelineVerticalHeaderView.width; implicitHeight: 32
                                         padding: 0
 
                                         contentItem: Rectangle {
@@ -956,17 +956,17 @@ Item {
                                             let index = -1
                                             let distance = -1
                                             let currentDistance;
-                                            for (let i = 0; i < stepVerticalHeaderView.moves.length; ++i) {
-                                                let move = stepVerticalHeaderView.moves[i]
+                                            for (let i = 0; i < pipelineVerticalHeaderView.moves.length; ++i) {
+                                                let move = pipelineVerticalHeaderView.moves[i]
                                                 currentDistance = Math.abs(move.oldVisualIndex - move.newVisualIndex)
                                                 if (currentDistance > distance) {
                                                     distance = currentDistance
                                                     index = i
                                                 }
                                             }
-                                            let move = stepVerticalHeaderView.moves[index]
-                                            portSetting.stepSwap(move.oldVisualIndex, move.newVisualIndex)
-                                            stepVerticalHeaderView.moves = []
+                                            let move = pipelineVerticalHeaderView.moves[index]
+                                            portSetting.pipelineSwap(move.oldVisualIndex, move.newVisualIndex)
+                                            pipelineVerticalHeaderView.moves = []
                                         }
                                     }
 
@@ -977,14 +977,14 @@ Item {
                                 }
 
                                 TableView {
-                                    id: stepTableView
-                                    anchors.left: stepVerticalHeaderView.right; anchors.right: parent.right
+                                    id: pipelineTableView
+                                    anchors.left: pipelineVerticalHeaderView.right; anchors.right: parent.right
                                     height: parent.height
                                     alternatingRows: false
                                     clip: true
                                     editTriggers: TableView.NoEditTriggers
                                     rowSpacing: 1
-                                    model: stepStandardItemModel
+                                    model: pipelineStandardItemModel
                                     contentWidth: width
                                     delegate: ItemDelegate {
                                         implicitWidth: parent.width; implicitHeight: 32
@@ -1016,8 +1016,8 @@ Item {
                                             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                                             onSingleTapped: {
-                                                stepMenu.stepIndex = model.row
-                                                stepMenu.popup()
+                                                pipelineMenu.pipelineIndex = model.row
+                                                pipelineMenu.popup()
                                             }
                                         }
                                     }
@@ -1030,8 +1030,8 @@ Item {
                                 }
 
                                 Menu {
-                                    id: stepMenu
-                                    property int stepIndex
+                                    id: pipelineMenu
+                                    property int pipelineIndex
 
                                     MenuItem {
                                         text: qsTr("Edit")
@@ -1048,7 +1048,7 @@ Item {
                                         icon.source: "qrc:/icon/delete.svg"
                                         icon.width: 16; icon.height: 16
 
-                                        onTriggered: portSetting.stepRemove(stepMenu.stepIndex)
+                                        onTriggered: portSetting.pipelineRemove(pipelineMenu.pipelineIndex)
                                     }
                                 }
                             }
@@ -1059,7 +1059,7 @@ Item {
 
                             Item {
                                 anchors.fill: parent
-                                visible: !stepModelVisible
+                                visible: !pipelineModelVisible
 
                                 RowLayout {
                                     anchors.centerIn: parent
@@ -1073,9 +1073,9 @@ Item {
                             }
 
                             Loader {
-                                id: stepTableLoader
+                                id: pipelineTableLoader
                                 anchors.fill: parent
-                                sourceComponent: stepTableComponent
+                                sourceComponent: pipelineTableComponent
                             }
                         }
 
@@ -1225,46 +1225,6 @@ Item {
         }
     }
 
-    Component.onCompleted: {
-        const objects = {
-            "swipeView": swipeView,
-            "tumbler": tumbler,
-            // serial port
-            "serialPortNameComboBox": serialPortNameComboBox,
-            "serialPortBaudRateSpinBox": serialPortBaudRateSpinBox,
-            "serialPortDataBitsComboBox": serialPortDataBitsComboBox,
-            "serialPortParityComboBox": serialPortParityComboBox,
-            "serialPortStopBitsComboBox": serialPortStopBitsComboBox,
-            // visa
-            "visaNameComboBox": visaNameComboBox,
-            // tcp client
-            "tcpClientNameTextField": tcpClientNameTextField,
-            "tcpClientRemoteHostTextField": tcpClientRemoteHostTextField,
-            "tcpClientRemotePortSpinBox": tcpClientRemotePortSpinBox,
-            // tcp server
-            "tcpServerNameTextField": tcpServerNameTextField,
-            "tcpServerLocalHostComboBox": tcpServerLocalHostComboBox,
-            "tcpServerLocalPortSpinBox": tcpServerLocalPortSpinBox,
-            // udp socket
-            "udpSocketNameTextField": udpSocketNameTextField,
-            "udpSocketLocalHostComboBox": udpSocketLocalHostComboBox,
-            "udpSocketLocalPortSpinBox": udpSocketLocalPortSpinBox,
-            "udpSocketRemoteHostTextField": udpSocketRemoteHostTextField,
-            "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
-            // video stream
-            "videoStreamNameComboBox": videoStreamNameComboBox,
-            // format
-            "txFormatComboBox": txFormatComboBox,
-            "txSuffixComboBox": txSuffixComboBox,
-            "rxFormatComboBox": rxFormatComboBox,
-            // image
-            "videoSink": videoOutput.videoSink,
-            "whitelistSwitch": whitelistSwitch,
-            "whitelistTextField": whitelistTextField
-        };
-        portSetting.propertyGet(objects)
-    }
-
     // roi model
     function roiReload() {
         roiTableLoader.active = false
@@ -1287,7 +1247,7 @@ Item {
         }
     }
 
-    // step model
+    // pipeline model
     Dialog {
         id: pipelineDialog
         parent: Overlay.overlay
@@ -1384,28 +1344,28 @@ Item {
                 }
                     break
             }
-            portSetting.stepInsert(session)
+            portSetting.pipelineInsert(session)
         }
     }
 
-    function stepReload() {
-        stepTableLoader.active = false
-        stepTableLoader.active = true
+    function pipelineReload() {
+        pipelineTableLoader.active = false
+        pipelineTableLoader.active = true
     }
 
     Connections {
-        target: stepStandardItemModel
+        target: pipelineStandardItemModel
 
         function onRowsInserted() {
-            stepModelVisible = true
+            pipelineModelVisible = true
         }
 
         function onRowsRemoved() {
-            stepModelVisible = stepStandardItemModel.rowCount() > 0
+            pipelineModelVisible = pipelineStandardItemModel.rowCount() > 0
         }
 
         function onModelReset() {
-            stepModelVisible = false
+            pipelineModelVisible = false
         }
     }
 
@@ -1425,6 +1385,32 @@ Item {
                 font.pixelSize: 20
                 background: Rectangle {
                     color: "#0078d4"
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+
+                onTapped: {
+                    portSetting.previewLoad(index)
+                    previewPopup.x = x + width
+                    previewPopup.y = y
+                    previewPopup.open()}
+            }
+        }
+    }
+
+    Popup {
+        id: previewPopup
+        padding: 0
+
+        Image {
+            id: previewImage
+
+            onStatusChanged: {
+                if (status === Image.Ready) {
+                    previewPopup.width = implicitWidth + 30
+                    previewPopup.height = implicitHeight + 30
                 }
             }
         }
@@ -1447,5 +1433,46 @@ Item {
             });
             videoOutput.indicatorList.push(indicator)
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "swipeView": swipeView,
+            "tumbler": tumbler,
+            // serial port
+            "serialPortNameComboBox": serialPortNameComboBox,
+            "serialPortBaudRateSpinBox": serialPortBaudRateSpinBox,
+            "serialPortDataBitsComboBox": serialPortDataBitsComboBox,
+            "serialPortParityComboBox": serialPortParityComboBox,
+            "serialPortStopBitsComboBox": serialPortStopBitsComboBox,
+            // visa
+            "visaNameComboBox": visaNameComboBox,
+            // tcp client
+            "tcpClientNameTextField": tcpClientNameTextField,
+            "tcpClientRemoteHostTextField": tcpClientRemoteHostTextField,
+            "tcpClientRemotePortSpinBox": tcpClientRemotePortSpinBox,
+            // tcp server
+            "tcpServerNameTextField": tcpServerNameTextField,
+            "tcpServerLocalHostComboBox": tcpServerLocalHostComboBox,
+            "tcpServerLocalPortSpinBox": tcpServerLocalPortSpinBox,
+            // udp socket
+            "udpSocketNameTextField": udpSocketNameTextField,
+            "udpSocketLocalHostComboBox": udpSocketLocalHostComboBox,
+            "udpSocketLocalPortSpinBox": udpSocketLocalPortSpinBox,
+            "udpSocketRemoteHostTextField": udpSocketRemoteHostTextField,
+            "udpSocketRemotePortSpinBox": udpSocketRemotePortSpinBox,
+            // video stream
+            "videoStreamNameComboBox": videoStreamNameComboBox,
+            // format
+            "txFormatComboBox": txFormatComboBox,
+            "txSuffixComboBox": txSuffixComboBox,
+            "rxFormatComboBox": rxFormatComboBox,
+            // image
+            "videoSink": videoOutput.videoSink,
+            "previewImage": previewImage,
+            "whitelistSwitch": whitelistSwitch,
+            "whitelistTextField": whitelistTextField
+        };
+        portSetting.propertyGet(objects)
     }
 }
