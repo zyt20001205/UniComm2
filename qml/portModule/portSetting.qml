@@ -1051,16 +1051,6 @@ Item {
                                     property int pipelineIndex
 
                                     MenuItem {
-                                        text: qsTr("Edit")
-                                        icon.source: "qrc:/icon/edit.svg"
-                                        icon.width: 16; icon.height: 16
-
-                                        onTriggered: {
-                                            pipelineDialog.open()
-                                        }
-                                    }
-
-                                    MenuItem {
                                         text: qsTr("Delete")
                                         icon.source: "qrc:/icon/delete.svg"
                                         icon.width: 16; icon.height: 16
