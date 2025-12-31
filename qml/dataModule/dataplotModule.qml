@@ -95,13 +95,6 @@ Item {
                 LineSeries {
                     id: lineSeries
                     width: 4
-                    // pointDelegate: Item { }
-                    XYPoint { x: 0; y: 0 }
-                    XYPoint { x: 1; y: 2.1 }
-                    XYPoint { x: 2; y: 3.3 }
-                    XYPoint { x: 3; y: 2.1 }
-                    XYPoint { x: 4; y: 4.9 }
-                    XYPoint { x: 5; y: 3.0 }
                 }
             }
         }
@@ -272,6 +265,23 @@ Item {
                 } else if (value > barAxisY.max * 0.8) {
                     barAxisY.max = value / 0.8
                 }
+            }
+        }
+    }
+
+    Connections {
+        target: datatableStandardItemModel
+
+        function onDataChanged(topLeft, bottomRight, roles) {
+            const col = topLeft.column
+            const row = topLeft.row
+            const keyIndex = datatableHeaderItemModel.index(col, 0);
+            const watched = datatableHeaderItemModel.data(keyIndex, Qt.WhatsThisRole)
+            if (watched) {
+                const key = datatableHeaderItemModel.data(keyIndex, Qt.Display)
+                const valueIndex = datatableStandardItemModel.index(row, col)
+                const value = datatableStandardItemModel.data(valueIndex, Qt.Display)
+                lineGraph.lineSeriesMap[key].append(row, value)
             }
         }
     }
