@@ -17,7 +17,7 @@ Item {
                 categories: ["database"]
             }
             axisY: ValueAxis {
-                id: valueAxis
+                id: barAxisY
             }
             marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
             theme: GraphsTheme {
@@ -63,6 +63,45 @@ Item {
 
                 Component.onCompleted: {
                     barSetMap = {}
+                }
+            }
+        }
+
+        GraphsView {
+            id: lineGraph
+            axisX: ValueAxis {
+                id: lineAxisX
+            }
+            axisY: ValueAxis {
+                id: lineAxisY
+            }
+            marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
+            theme: GraphsTheme {
+                theme: GraphsTheme.Theme.QtGreen
+                backgroundVisible: false
+                plotAreaBackgroundVisible: false
+                gridVisible: false
+            }
+            Layout.fillWidth: true; Layout.fillHeight: true
+            property var lineSeriesMap
+
+            Component.onCompleted: {
+                lineSeriesMap = {}
+            }
+
+            Component {
+                id: lineComponent
+
+                LineSeries {
+                    id: lineSeries
+                    width: 4
+                    // pointDelegate: Item { }
+                    XYPoint { x: 0; y: 0 }
+                    XYPoint { x: 1; y: 2.1 }
+                    XYPoint { x: 2; y: 3.3 }
+                    XYPoint { x: 3; y: 2.1 }
+                    XYPoint { x: 4; y: 4.9 }
+                    XYPoint { x: 5; y: 3.0 }
                 }
             }
         }
@@ -129,7 +168,7 @@ Item {
                                     if (checked) {
                                         const index = databaseStandardItemModel.index(row, 1);
                                         const value = databaseStandardItemModel.data(index, Qt.DisplayRole)
-                                        const bar = barComponent.createObject(null, {
+                                        const bar = barComponent.createObject(barSeries, {
                                             label: key,
                                             values: [value]
                                         });
@@ -140,8 +179,8 @@ Item {
                                         barSeries.remove(bar)
                                         delete barSeries.barSetMap[key]
                                         if (barSeries.count === 0) {
-                                            valueAxis.max = 10
-                                            valueAxis.min = 0
+                                            barAxisY.max = 10
+                                            barAxisY.min = 0
                                         }
                                     }
                                 }
@@ -172,18 +211,43 @@ Item {
                     contentWidth: width
                     delegate: CheckDelegate {
                         implicitWidth: datatableTableView.width
-                        checked: model.whatsThis
+                        checked: model.edit
                         text: model.display
                         background: Rectangle {
                             color: "white"
                         }
 
                         onClicked: {
-                            model.whatsThis = checked
+                            model.edit = checked
                             const key = model.display
                             if (checked) {
+                                const line = lineComponent.createObject(lineGraph, {
+
+                                });
+                                lineGraph.lineSeriesMap[key] = line
                             } else {
+                                const line = lineGraph.lineSeriesMap[key]
+                                line.destroy()
+                                delete lineGraph.lineSeriesMap[key]
                             }
+                            // if (checked) {
+                            //     const index = databaseStandardItemModel.index(row, 1);
+                            //     const value = databaseStandardItemModel.data(index, Qt.DisplayRole)
+                            //     const bar = barComponent.createObject(barSeries, {
+                            //         label: key,
+                            //         values: [value]
+                            //     });
+                            //     barSeries.append(bar)
+                            //     barSeries.barSetMap[key] = bar
+                            // } else {
+                            //     const bar = barSeries.barSetMap[key]
+                            //     barSeries.remove(bar)
+                            //     delete barSeries.barSetMap[key]
+                            //     if (barSeries.count === 0) {
+                            //         barAxisY.max = 10
+                            //         barAxisY.min = 0
+                            //     }
+                            // }
                         }
                     }
 
@@ -220,10 +284,10 @@ Item {
                 const valueIndex = databaseStandardItemModel.index(row, 1);
                 const value = databaseStandardItemModel.data(valueIndex, Qt.Display)
                 barSeries.barSetMap[key].values = [value]
-                if (value < valueAxis.min) {
-                    valueAxis.min = value
-                } else if (value > valueAxis.max * 0.8) {
-                    valueAxis.max = value / 0.8
+                if (value < barAxisY.min) {
+                    barAxisY.min = value
+                } else if (value > barAxisY.max * 0.8) {
+                    barAxisY.max = value / 0.8
                 }
             }
         }

@@ -77,10 +77,11 @@ Item {
                         gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                         onSingleTapped: {
-                            tableMenu.datatableIndex = column
-                            const index = stringListModel.index(column, 0)
+                            tableMenu.datatableIndex = row
+                            const index = stringListModel.index(row, 0)
                             tableMenu.datatableKey = stringListModel.data(index, Qt.DisplayRole)
                             tableMenu.popup()
+                            console.log(row, stringListModel.data(index, Qt.DisplayRole))
                         }
                     }
                 }
@@ -190,7 +191,6 @@ Item {
             modelVisible = false
         }
     }
-
     function reload() {
         tableLoader.active = false
         tableLoader.active = true

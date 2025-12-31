@@ -66,7 +66,7 @@ void DatatableModule::datatableInsert(int index, const QString &key) {
     g_datatableStringListModel->insertRow(index);
     const QModelIndex modelIndex = g_datatableStringListModel->index(index);
     g_datatableStringListModel->setData(modelIndex, key, Qt::DisplayRole);
-    g_datatableStringListModel->setData(modelIndex, false, Qt::WhatsThisRole);
+    g_datatableStringListModel->setData(modelIndex, false, Qt::EditRole);
     g_datatableStandardItemModel->insertColumn(index);
     datatableIndex();
 }
