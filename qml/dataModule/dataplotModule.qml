@@ -31,7 +31,23 @@ Item {
             Component {
                 id: barComponent
 
-                BarSet {}
+                BarSet {
+                }
+            }
+
+            Popup {
+                id: hintPopup
+                padding: 0
+                property var barset
+                property string text
+
+                Label {
+                    text: hintPopup.text
+                }
+
+                onAboutToHide: {
+                    barset.deselectBar(0)
+                }
             }
 
             BarSeries {
@@ -40,7 +56,9 @@ Item {
                 property var barSetMap
 
                 onClicked: (index, barset) => {
-                    console.log(index)
+                    hintPopup.barset = barset
+                    hintPopup.text = barset.label + " " + barset.values[0]
+                    hintPopup.open()
                 }
 
                 Component.onCompleted: {
@@ -52,7 +70,7 @@ Item {
 
     Drawer {
         id: drawer
-        width: 0.33 * rootItem.width; height: rootItem.height
+        width: 200; height: rootItem.height
         edge: Qt.RightEdge
         background: Rectangle {
             color: "white"
