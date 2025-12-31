@@ -26,12 +26,11 @@ Item {
                 }
 
                 axisX: BarCategoryAxis {
-                    categories: ["database"]
+                    categories: dataSourceComboBox.currentIndex === 0 ? ["database"] : ["datatable"]
                 }
 
                 axisY: ValueAxis {
-                    min: 0
-                    max: 100
+                    id: valueAxis
                 }
 
                 BarSeries {
@@ -147,7 +146,14 @@ Item {
             if (watched) {
                 const key = standardItemModel.data(keyIndex, Qt.Display)
                 const valueIndex = standardItemModel.index(row, 1);
-                barSeries.barSetMap[key].values = [standardItemModel.data(valueIndex, Qt.Display)]
+                const value = standardItemModel.data(valueIndex, Qt.Display)
+                barSeries.barSetMap[key].values = [value]
+                if (value < valueAxis.min) {
+                    valueAxis.min = value
+                }
+                else if (value > valueAxis.max * 0.8) {
+                    valueAxis.max = value / 0.8
+                }
             }
         }
     }
