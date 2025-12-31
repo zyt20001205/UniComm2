@@ -31,6 +31,7 @@ Item {
 
             BarSeries {
                 id: barSeries
+
                 property var barSetMap
 
                 Component.onCompleted: {
@@ -51,6 +52,9 @@ Item {
         id: drawer
         width: 0.33 * rootItem.width; height: rootItem.height
         edge: Qt.RightEdge
+        background: Rectangle {
+            color: "white"
+        }
 
         ColumnLayout {
             anchors.fill: parent
