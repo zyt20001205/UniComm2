@@ -26,7 +26,7 @@ Item {
                 }
 
                 axisX: BarCategoryAxis {
-                    categories: ["test"]
+                    categories: ["database"]
                 }
 
                 axisY: ValueAxis {
@@ -37,6 +37,10 @@ Item {
                 BarSeries {
                     id: barSeries
                     property var barSetMap
+
+                    Component.onCompleted: {
+                        barSetMap = {}
+                    }
                 }
 
                 Component {
@@ -84,27 +88,41 @@ Item {
                     rowSpacing: 1
                     model: standardItemModel
                     contentWidth: width
-                    delegate: CheckDelegate {
-                        implicitWidth: databaseTableView.width
-                        text: model.display
-                        background: Rectangle {
-                            color: "white"
-                        }
+                    delegate: DelegateChooser {
+                        DelegateChoice {
+                            column: 0
+                            delegate: CheckDelegate {
+                                implicitWidth: databaseTableView.width
+                                checked: model.whatsThis
+                                text: model.display
+                                background: Rectangle {
+                                    color: "white"
+                                }
 
-                        onClicked: {
-                            const label = model.display
-                            let bar;
-                            if (checked) {
-                                bar = barComponent.createObject(null, {
-                                    label: label,
-                                    values: [50]
-                                });
-                                barSeries.append(bar)
-                                barSeries.barSetMap[label] = bar
-                            } else {
-                                bar = barSeries.barSetMap[label]
-                                barSeries.remove(bar)
-                                delete barSeries.barSetMap[label]
+                                onClicked: {
+                                    model.whatsThis = checked
+                                    const key = model.display
+                                    let bar;
+                                    if (checked) {
+                                        const index = standardItemModel.index(row, 1);
+                                        const value = standardItemModel.data(index, Qt.DisplayRole)
+                                        bar = barComponent.createObject(null, {
+                                            label: key,
+                                            values: [value]
+                                        });
+                                        barSeries.append(bar)
+                                        barSeries.barSetMap[key] = bar
+                                    } else {
+                                        bar = barSeries.barSetMap[key]
+                                        barSeries.remove(bar)
+                                        delete barSeries.barSetMap[key]
+                                    }
+                                }
+                            }
+                        }
+                        DelegateChoice {
+                            delegate: Item {
+                                implicitWidth: 1
                             }
                         }
                     }
@@ -119,7 +137,18 @@ Item {
         }
     }
 
-    Component.onCompleted: {
-        barSeries.barSetMap = {}
+    Connections {
+        target: standardItemModel
+
+        function onDataChanged(topLeft, bottomRight, roles) {
+            const row = topLeft.row
+            const keyIndex = standardItemModel.index(row, 0);
+            const watched = standardItemModel.data(keyIndex, Qt.WhatsThisRole)
+            if (watched) {
+                const key = standardItemModel.data(keyIndex, Qt.Display)
+                const valueIndex = standardItemModel.index(row, 1);
+                barSeries.barSetMap[key].values = [standardItemModel.data(valueIndex, Qt.Display)]
+            }
+        }
     }
 }
