@@ -224,30 +224,13 @@ Item {
                                 const line = lineComponent.createObject(lineGraph, {
 
                                 });
+                                lineGraph.addSeries(line)
                                 lineGraph.lineSeriesMap[key] = line
                             } else {
                                 const line = lineGraph.lineSeriesMap[key]
-                                line.destroy()
+                                lineGraph.removeSeries(line)
                                 delete lineGraph.lineSeriesMap[key]
                             }
-                            // if (checked) {
-                            //     const index = databaseStandardItemModel.index(row, 1);
-                            //     const value = databaseStandardItemModel.data(index, Qt.DisplayRole)
-                            //     const bar = barComponent.createObject(barSeries, {
-                            //         label: key,
-                            //         values: [value]
-                            //     });
-                            //     barSeries.append(bar)
-                            //     barSeries.barSetMap[key] = bar
-                            // } else {
-                            //     const bar = barSeries.barSetMap[key]
-                            //     barSeries.remove(bar)
-                            //     delete barSeries.barSetMap[key]
-                            //     if (barSeries.count === 0) {
-                            //         barAxisY.max = 10
-                            //         barAxisY.min = 0
-                            //     }
-                            // }
                         }
                     }
 
