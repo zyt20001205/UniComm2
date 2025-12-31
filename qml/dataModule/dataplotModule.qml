@@ -7,6 +7,46 @@ Item {
     id: rootItem
     anchors.fill: parent
 
+    StackLayout {
+        currentIndex: dataSourceComboBox.currentIndex
+        anchors.fill: parent
+        clip: true
+
+        GraphsView {
+            Layout.fillWidth: true; Layout.fillHeight: true
+            theme: GraphsTheme {
+                theme: GraphsTheme.Theme.QtGreen
+                backgroundVisible: false
+                plotAreaBackgroundVisible: false
+                gridVisible: false
+            }
+
+            axisX: BarCategoryAxis {
+                categories: dataSourceComboBox.currentIndex === 0 ? ["database"] : ["datatable"]
+            }
+
+            axisY: ValueAxis {
+                id: valueAxis
+            }
+
+            BarSeries {
+                id: barSeries
+                property var barSetMap
+
+                Component.onCompleted: {
+                    barSetMap = {}
+                }
+            }
+
+            Component {
+                id: barComponent
+
+                BarSet {
+                }
+            }
+        }
+    }
+
     Drawer {
         id: drawer
         width: 0.33 * rootItem.width; height: rootItem.height
@@ -76,6 +116,10 @@ Item {
                                         bar = barSeries.barSetMap[key]
                                         barSeries.remove(bar)
                                         delete barSeries.barSetMap[key]
+                                        if (barSeries.count === 0) {
+                                            valueAxis.max = 10
+                                            valueAxis.min = 0
+                                        }
                                     }
                                 }
                             }
@@ -92,45 +136,6 @@ Item {
                         color: "#e0e0e0"
                         z: -1
                     }
-                }
-            }
-        }
-    }
-
-    StackLayout {
-        currentIndex: dataSourceComboBox.currentIndex
-        anchors.fill: parent
-        clip: true
-
-        GraphsView {
-            Layout.fillWidth: true; Layout.fillHeight: true
-            theme: GraphsTheme {
-                theme: GraphsTheme.Theme.QtGreen
-                backgroundVisible: false
-                gridVisible: false
-            }
-
-            axisX: BarCategoryAxis {
-                categories: dataSourceComboBox.currentIndex === 0 ? ["database"] : ["datatable"]
-            }
-
-            axisY: ValueAxis {
-                id: valueAxis
-            }
-
-            BarSeries {
-                id: barSeries
-                property var barSetMap
-
-                Component.onCompleted: {
-                    barSetMap = {}
-                }
-            }
-
-            Component {
-                id: barComponent
-
-                BarSet {
                 }
             }
         }
@@ -159,8 +164,7 @@ Item {
                 barSeries.barSetMap[key].values = [value]
                 if (value < valueAxis.min) {
                     valueAxis.min = value
-                }
-                else if (value > valueAxis.max * 0.8) {
+                } else if (value > valueAxis.max * 0.8) {
                     valueAxis.max = value / 0.8
                 }
             }
