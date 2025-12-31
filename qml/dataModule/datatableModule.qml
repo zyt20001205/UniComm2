@@ -5,7 +5,7 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool modelVisible: stringListModel.rowCount() > 0
+    property bool modelVisible: headerItemModel.rowCount() > 0
 
     Item {
         anchors.fill: parent
@@ -44,7 +44,7 @@ Item {
                 id: horizontalHeaderView
                 anchors.top: parent.top
                 width: parent.width; height: 32
-                model: stringListModel
+                model: headerItemModel
                 syncView: tableView
                 clip: true
                 interactive: false
@@ -78,10 +78,9 @@ Item {
 
                         onSingleTapped: {
                             tableMenu.datatableIndex = row
-                            const index = stringListModel.index(row, 0)
-                            tableMenu.datatableKey = stringListModel.data(index, Qt.DisplayRole)
+                            const index = headerItemModel.index(row, 0)
+                            tableMenu.datatableKey = headerItemModel.data(index, Qt.DisplayRole)
                             tableMenu.popup()
-                            console.log(row, stringListModel.data(index, Qt.DisplayRole))
                         }
                     }
                 }
@@ -114,7 +113,7 @@ Item {
                     }
                 }
 
-                onRowMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
+                onColumnMoved: (logicalIndex, oldVisualIndex, newVisualIndex) => {
                     moves.push({oldVisualIndex, newVisualIndex})
                     timer.restart()
                 }
@@ -177,14 +176,14 @@ Item {
     }
 
     Connections {
-        target: stringListModel
+        target: headerItemModel
 
         function onRowsInserted() {
             modelVisible = true
         }
 
         function onRowsRemoved() {
-            modelVisible = stringListModel.rowCount() > 0
+            modelVisible = headerItemModel.rowCount() > 0
         }
 
         function onModelReset() {

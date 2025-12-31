@@ -14,7 +14,7 @@ DatatableModule::DatatableModule()
     : DockWidget("data table"),
       m_datatableWidget(new QQuickWidget()) {
     setWidget(m_datatableWidget);
-    g_datatableStringListModel = new QStringListModel(this);
+    g_datatableHeaderItemModel = new QStandardItemModel(this);
     g_datatableStandardItemModel = new QStandardItemModel(this);
     for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
         const QString key = value.toString();
@@ -33,7 +33,7 @@ void DatatableModule::propertySet(const QVariantMap &objects) {
     m_datatableWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
 
     m_datatableWidget->rootContext()->setContextProperty("datatableModule", this);
-    m_datatableWidget->rootContext()->setContextProperty("stringListModel", g_datatableStringListModel);
+    m_datatableWidget->rootContext()->setContextProperty("headerItemModel", g_datatableHeaderItemModel);
     m_datatableWidget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
     m_datatableWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_datatableWidget->setSource(QUrl("qrc:/qml/dataModule/datatableModule.qml"));
@@ -42,9 +42,8 @@ void DatatableModule::propertySet(const QVariantMap &objects) {
 
 void DatatableModule::datatableConfigSave() const {
     QJsonArray keyArray{};
-    for (int i = 0; i < g_datatableStringListModel->rowCount(); ++i) {
-        const QModelIndex modelIndex = g_datatableStringListModel->index(i);
-        const QString key = g_datatableStringListModel->data(modelIndex, Qt::DisplayRole).toString();
+    for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {
+        const QString key = g_datatableHeaderItemModel->item(i, 0)->text();
         keyArray.append(key);
     }
     g_workspaceConfig["datatableConfig"] = keyArray;
@@ -62,43 +61,37 @@ void DatatableModule::datatableInsert(int index, const QString &key) {
     };
     m_datatableSession.insert(key, sessionHash);
 
-    if (index == -1) index = g_datatableStringListModel->rowCount();
-    g_datatableStringListModel->insertRow(index);
-    const QModelIndex modelIndex = g_datatableStringListModel->index(index);
-    g_datatableStringListModel->setData(modelIndex, key, Qt::DisplayRole);
-    g_datatableStringListModel->setData(modelIndex, false, Qt::EditRole);
+    if (index == -1) index = g_datatableHeaderItemModel->rowCount();
+    auto *item = new QStandardItem(key); // NOLINT
+    item->setData(false, Qt::WhatsThisRole);
+    g_datatableHeaderItemModel->insertRow(index, item);
     g_datatableStandardItemModel->insertColumn(index);
     datatableIndex();
 }
 
 void DatatableModule::datatableRemove(const int index) {
-    const QModelIndex modelIndex = g_datatableStringListModel->index(index);
-    const auto key = g_datatableStringListModel->data(modelIndex).toString();
+    const auto key = g_datatableHeaderItemModel->item(index, 0)->text();
     m_datatableSession.remove(key);
 
-    g_datatableStringListModel->removeRow(index);
+    g_datatableHeaderItemModel->removeRow(index);
     g_datatableStandardItemModel->removeColumn(index);
     datatableIndex();
 }
 
 void DatatableModule::datatableRename(const int index, const QString &key) {
-    const QModelIndex modelIndex = g_datatableStringListModel->index(index);
-    const auto oldKey = g_datatableStringListModel->data(modelIndex).toString();
+    const auto oldKey = g_datatableHeaderItemModel->item(index, 0)->text();
     const auto oldSession = m_datatableSession.take(oldKey);
     m_datatableSession.insert(key, oldSession);
 
-    g_datatableStringListModel->setData(modelIndex, key, Qt::DisplayRole);
+    g_datatableHeaderItemModel->item(index, 0)->setText(key);
     datatableIndex();
 }
 
 void DatatableModule::datatableSwap(const int src, const int dst) {
-    const QModelIndex srcIndex = g_datatableStringListModel->index(src);
-    const auto key = g_datatableStringListModel->data(srcIndex).toString();
-    g_datatableStringListModel->insertRow(dst);
-    const QModelIndex dstIndex = g_datatableStringListModel->index(dst);
-    g_datatableStringListModel->setData(dstIndex, key, Qt::DisplayRole);
-    const auto tmp = g_databaseStandardItemModel->takeRow(src);
-    g_databaseStandardItemModel->insertRow(dst, tmp);
+    auto tmp = g_datatableHeaderItemModel->takeRow(src);
+    g_datatableHeaderItemModel->insertRow(dst, tmp);
+    tmp = g_datatableStandardItemModel->takeColumn(src);
+    g_datatableStandardItemModel->insertColumn(dst, tmp);
     datatableIndex();
     QMetaObject::invokeMethod(m_rootItem, "reload");
 }
@@ -119,9 +112,8 @@ void DatatableModule::datatableExport() {
     QTextStream out(&file);
     // write header
     QStringList keyList{};
-    for (int i = 0; i < g_datatableStringListModel->rowCount(); ++i) {
-        const QModelIndex modelIndex = g_datatableStringListModel->index(i);
-        const QString key = g_datatableStringListModel->data(modelIndex, Qt::DisplayRole).toString();
+    for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {
+        const QString key = g_datatableHeaderItemModel->item(i, 0)->text();
         keyList.append(key);
     }
     const QString header = keyList.join(", ") + "\n";
@@ -155,9 +147,8 @@ void DatatableModule::datatableWrite(const QString &key, const QString &value, b
 // DatatableModule private
 void DatatableModule::datatableIndex() {
     m_datatableHash.clear();
-    for (int i = 0; i < g_datatableStringListModel->rowCount(); ++i) {
-        const QModelIndex modelIndex = g_datatableStringListModel->index(i);
-        const QString key = g_datatableStringListModel->data(modelIndex, Qt::DisplayRole).toString();
+    for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {
+        const QString key = g_datatableHeaderItemModel->item(i, 0)->text();
         m_datatableHash.insert(key, i);
     }
 }

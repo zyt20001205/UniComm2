@@ -207,18 +207,18 @@ Item {
                     clip: true
                     editTriggers: TableView.NoEditTriggers
                     rowSpacing: 1
-                    model: datatableStringListModel
+                    model: datatableHeaderItemModel
                     contentWidth: width
                     delegate: CheckDelegate {
                         implicitWidth: datatableTableView.width
-                        checked: model.edit
+                        checked: model.whatsThis
                         text: model.display
                         background: Rectangle {
                             color: "white"
                         }
 
                         onClicked: {
-                            model.edit = checked
+                            model.whatsThis = checked
                             const key = model.display
                             if (checked) {
                                 const line = lineComponent.createObject(lineGraph, {

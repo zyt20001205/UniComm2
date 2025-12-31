@@ -2,7 +2,6 @@
 
 #include <QQmlContext>
 #include <QStandardItemModel>
-#include <QStringListModel>
 
 #include "globals.h"
 
@@ -23,7 +22,7 @@ void DataplotModule::propertySet(const QVariantMap &objects) {
 
     m_dataplotWidget->rootContext()->setContextProperty("dataplotModule", this);
     m_dataplotWidget->rootContext()->setContextProperty("databaseStandardItemModel", g_databaseStandardItemModel);
-    m_dataplotWidget->rootContext()->setContextProperty("datatableStringListModel", g_datatableStringListModel);
+    m_dataplotWidget->rootContext()->setContextProperty("datatableHeaderItemModel", g_datatableHeaderItemModel);
     m_dataplotWidget->rootContext()->setContextProperty("datatableStandardItemModel", g_datatableStandardItemModel);
     m_dataplotWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_dataplotWidget->setSource(QUrl("qrc:/qml/dataModule/dataplotModule.qml"));
