@@ -12,10 +12,10 @@
 
 DatatableModule::DatatableModule()
     : DockWidget("data table"),
-      m_datatableWidget(new QQuickWidget()),
-      m_datatableStandardItemModel(new QStandardItemModel(this)) {
+      m_datatableWidget(new QQuickWidget()) {
     setWidget(m_datatableWidget);
     g_datatableStringListModel = new QStringListModel(this);
+    g_datatableStandardItemModel = new QStandardItemModel(this);
     for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
         const QString key = value.toString();
         datatableInsert(-1, key);
@@ -34,7 +34,7 @@ void DatatableModule::propertySet(const QVariantMap &objects) {
 
     m_datatableWidget->rootContext()->setContextProperty("datatableModule", this);
     m_datatableWidget->rootContext()->setContextProperty("stringListModel", g_datatableStringListModel);
-    m_datatableWidget->rootContext()->setContextProperty("standardItemModel", m_datatableStandardItemModel);
+    m_datatableWidget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
     m_datatableWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_datatableWidget->setSource(QUrl("qrc:/qml/dataModule/datatableModule.qml"));
     m_rootItem = m_datatableWidget->rootObject();
@@ -67,7 +67,7 @@ void DatatableModule::datatableInsert(int index, const QString &key) {
     const QModelIndex modelIndex = g_datatableStringListModel->index(index);
     g_datatableStringListModel->setData(modelIndex, key, Qt::DisplayRole);
     g_datatableStringListModel->setData(modelIndex, false, Qt::WhatsThisRole);
-    m_datatableStandardItemModel->insertColumn(index);
+    g_datatableStandardItemModel->insertColumn(index);
     datatableIndex();
 }
 
@@ -77,7 +77,7 @@ void DatatableModule::datatableRemove(const int index) {
     m_datatableSession.remove(key);
 
     g_datatableStringListModel->removeRow(index);
-    m_datatableStandardItemModel->removeColumn(index);
+    g_datatableStandardItemModel->removeColumn(index);
     datatableIndex();
 }
 
@@ -107,7 +107,7 @@ void DatatableModule::datatableClear() {
     for (auto &session: m_datatableSession) {
         session["length"] = 0;
     }
-    m_datatableStandardItemModel->clear();
+    g_datatableStandardItemModel->clear();
 }
 
 void DatatableModule::datatableExport() {
@@ -127,10 +127,10 @@ void DatatableModule::datatableExport() {
     const QString header = keyList.join(", ") + "\n";
     out << header;
     // write data
-    for (int i = 0; i < m_datatableStandardItemModel->rowCount(); ++i) {
+    for (int i = 0; i < g_datatableStandardItemModel->rowCount(); ++i) {
         QStringList rowData{};
-        for (int j = 0; j < m_datatableStandardItemModel->columnCount(); ++j) {
-            rowData.append(m_datatableStandardItemModel->item(i, j)->text());
+        for (int j = 0; j < g_datatableStandardItemModel->columnCount(); ++j) {
+            rowData.append(g_datatableStandardItemModel->item(i, j)->text());
         }
         out << rowData.join(",") << "\n";
     }
@@ -147,7 +147,7 @@ void DatatableModule::datatableWrite(const QString &key, const QString &value, b
     const auto col = m_datatableHash[key];
     const auto row = m_datatableSession[key]["length"].toInt();
     auto *item = new QStandardItem(value); // NOLINT
-    m_datatableStandardItemModel->setItem(row, col, item);
+    g_datatableStandardItemModel->setItem(row, col, item);
     m_datatableSession[key]["length"] = m_datatableSession[key]["length"].toInt() + 1;
     status = true;
 }

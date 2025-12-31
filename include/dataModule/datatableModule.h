@@ -48,7 +48,6 @@ private:
 
     QQuickWidget *m_datatableWidget{};
     QQuickItem *m_rootItem{};
-    QStandardItemModel *m_datatableStandardItemModel{};
     QHash<QString, int> m_datatableHash{};
     QHash<QString, QVariantHash> m_datatableSession{};
 };

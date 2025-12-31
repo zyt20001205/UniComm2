@@ -13,36 +13,38 @@ Item {
         clip: true
 
         GraphsView {
-            Layout.fillWidth: true; Layout.fillHeight: true
+            axisX: BarCategoryAxis {
+                categories: ["database"]
+            }
+            axisY: ValueAxis {
+                id: valueAxis
+            }
+            marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
             theme: GraphsTheme {
                 theme: GraphsTheme.Theme.QtGreen
                 backgroundVisible: false
                 plotAreaBackgroundVisible: false
                 gridVisible: false
             }
-
-            axisX: BarCategoryAxis {
-                categories: dataSourceComboBox.currentIndex === 0 ? ["database"] : ["datatable"]
-            }
-
-            axisY: ValueAxis {
-                id: valueAxis
-            }
-
-            BarSeries {
-                id: barSeries
-
-                property var barSetMap
-
-                Component.onCompleted: {
-                    barSetMap = {}
-                }
-            }
+            Layout.fillWidth: true; Layout.fillHeight: true
 
             Component {
                 id: barComponent
 
-                BarSet {
+                BarSet {}
+            }
+
+            BarSeries {
+                id: barSeries
+                selectable: true
+                property var barSetMap
+
+                onClicked: (index, barset) => {
+                    console.log(index)
+                }
+
+                Component.onCompleted: {
+                    barSetMap = {}
                 }
             }
         }
@@ -90,7 +92,7 @@ Item {
                     clip: true
                     editTriggers: TableView.NoEditTriggers
                     rowSpacing: 1
-                    model: standardItemModel
+                    model: databaseStandardItemModel
                     contentWidth: width
                     delegate: DelegateChooser {
                         DelegateChoice {
@@ -106,18 +108,17 @@ Item {
                                 onClicked: {
                                     model.whatsThis = checked
                                     const key = model.display
-                                    let bar;
                                     if (checked) {
-                                        const index = standardItemModel.index(row, 1);
-                                        const value = standardItemModel.data(index, Qt.DisplayRole)
-                                        bar = barComponent.createObject(null, {
+                                        const index = databaseStandardItemModel.index(row, 1);
+                                        const value = databaseStandardItemModel.data(index, Qt.DisplayRole)
+                                        const bar = barComponent.createObject(null, {
                                             label: key,
                                             values: [value]
                                         });
                                         barSeries.append(bar)
                                         barSeries.barSetMap[key] = bar
                                     } else {
-                                        bar = barSeries.barSetMap[key]
+                                        const bar = barSeries.barSetMap[key]
                                         barSeries.remove(bar)
                                         delete barSeries.barSetMap[key]
                                         if (barSeries.count === 0) {
@@ -131,6 +132,39 @@ Item {
                         DelegateChoice {
                             delegate: Item {
                                 implicitWidth: 1
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#e0e0e0"
+                        z: -1
+                    }
+                }
+
+                TableView {
+                    id: datatableTableView
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    alternatingRows: false
+                    clip: true
+                    editTriggers: TableView.NoEditTriggers
+                    rowSpacing: 1
+                    model: datatableStringListModel
+                    contentWidth: width
+                    delegate: CheckDelegate {
+                        implicitWidth: datatableTableView.width
+                        checked: model.whatsThis
+                        text: model.display
+                        background: Rectangle {
+                            color: "white"
+                        }
+
+                        onClicked: {
+                            model.whatsThis = checked
+                            const key = model.display
+                            if (checked) {
+                            } else {
                             }
                         }
                     }
@@ -155,16 +189,18 @@ Item {
     }
 
     Connections {
-        target: standardItemModel
+        target: databaseStandardItemModel
 
         function onDataChanged(topLeft, bottomRight, roles) {
+            const col = topLeft.column
+            if (col !== 1) return
             const row = topLeft.row
-            const keyIndex = standardItemModel.index(row, 0);
-            const watched = standardItemModel.data(keyIndex, Qt.WhatsThisRole)
+            const keyIndex = databaseStandardItemModel.index(row, 0);
+            const watched = databaseStandardItemModel.data(keyIndex, Qt.WhatsThisRole)
             if (watched) {
-                const key = standardItemModel.data(keyIndex, Qt.Display)
-                const valueIndex = standardItemModel.index(row, 1);
-                const value = standardItemModel.data(valueIndex, Qt.Display)
+                const key = databaseStandardItemModel.data(keyIndex, Qt.Display)
+                const valueIndex = databaseStandardItemModel.index(row, 1);
+                const value = databaseStandardItemModel.data(valueIndex, Qt.Display)
                 barSeries.barSetMap[key].values = [value]
                 if (value < valueAxis.min) {
                     valueAxis.min = value

@@ -25,3 +25,4 @@ QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints = {};
 QStandardItemModel* g_portStandardItemModel = {};
 QStandardItemModel* g_databaseStandardItemModel = {};
 QStringListModel* g_datatableStringListModel = {};
+QStandardItemModel* g_datatableStandardItemModel = {};
