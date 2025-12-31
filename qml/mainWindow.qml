@@ -462,6 +462,7 @@ Item {
     Menu {
         id: dataplotModuleRootMenu
         property var drawer
+        property bool resize
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -472,6 +473,16 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: dataplotModuleRootMenu.drawer.open()
+        }
+
+        MenuItem {
+            text: qsTr("Resize")
+            icon.source: "qrc:/icon/resize.svg"
+            icon.width: 16; icon.height: 16
+            checkable: true
+            checked: dataplotModuleRootMenu.resize
+
+            onToggled: dataplotModuleRootMenu.resize = !checked
         }
     }
 

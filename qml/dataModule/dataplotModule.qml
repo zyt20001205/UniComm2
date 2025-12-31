@@ -8,9 +8,11 @@ Item {
     anchors.fill: parent
 
     StackLayout {
+        id: graphStack
         currentIndex: dataSourceComboBox.currentIndex
         anchors.fill: parent
         clip: true
+        property bool resize: true
 
         GraphsView {
             axisX: BarCategoryAxis {
@@ -18,6 +20,8 @@ Item {
             }
             axisY: ValueAxis {
                 id: barAxisY
+                property real minHint: 0
+                property real maxHint: 10
             }
             marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
             theme: GraphsTheme {
@@ -71,10 +75,15 @@ Item {
             id: lineGraph
             axisX: ValueAxis {
                 id: lineAxisX
+                property real minHint: 0
+                property real maxHint: 10
             }
             axisY: ValueAxis {
                 id: lineAxisY
+                property real minHint: 0
+                property real maxHint: 10
             }
+            focus: true
             marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
             theme: GraphsTheme {
                 theme: GraphsTheme.Theme.QtGreen
@@ -82,16 +91,39 @@ Item {
                 plotAreaBackgroundVisible: false
                 gridVisible: false
             }
-            panStyle : GraphsView.PanStyle.Drag
-            zoomAreaEnabled : true
-            zoomStyle : GraphsView.ZoomStyle.Center
+            panStyle: GraphsView.PanStyle.None
+            zoomAreaEnabled: true
+            zoomStyle: GraphsView.ZoomStyle.Center
             Layout.fillWidth: true; Layout.fillHeight: true
             property var lineSeriesMap
 
-            Keys.onPressed: (event)=> {
-                console.log("pressed")
-                if (event.key == Qt.Key_Alt) {
-                    console.log("alt pressed")
+            onVisibleChanged: {
+                if (visible) forceActiveFocus()
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                onPressedChanged: parent.forceActiveFocus()
+            }
+
+            HoverHandler {
+                id: cursorHandler
+                cursorShape: Qt.ArrowCursor
+            }
+
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Alt) {
+                    cursorHandler.cursorShape = Qt.OpenHandCursor
+                    panStyle = GraphsView.PanStyle.Drag
+                    zoomAreaEnabled = false
+                }
+            }
+
+            Keys.onReleased: (event) => {
+                if (event.key === Qt.Key_Alt) {
+                    cursorHandler.cursorShape = Qt.ArrowCursor
+                    panStyle = GraphsView.PanStyle.None
+                    zoomAreaEnabled = true
                 }
             }
 
@@ -224,9 +256,7 @@ Item {
                             model.whatsThis = checked
                             const key = model.display
                             if (checked) {
-                                const line = lineComponent.createObject(lineGraph, {
-
-                                });
+                                const line = lineComponent.createObject(lineGraph, {});
                                 lineGraph.addSeries(line)
                                 lineGraph.lineSeriesMap[key] = line
                             } else {
@@ -252,6 +282,7 @@ Item {
 
         onSingleTapped: {
             rootMenu.drawer = drawer
+            rootMenu.resize = graphStack.resize
             rootMenu.popup()
         }
     }
@@ -270,10 +301,15 @@ Item {
                 const valueIndex = databaseStandardItemModel.index(row, 1);
                 const value = databaseStandardItemModel.data(valueIndex, Qt.Display)
                 barSeries.barSetMap[key].values = [value]
-                if (value < barAxisY.min) {
-                    barAxisY.min = value
-                } else if (value > barAxisY.max * 0.8) {
-                    barAxisY.max = value / 0.8
+                // calc range
+                if (value < barAxisY.minHint) {
+                    barAxisY.minHint = value
+                } else if (value > barAxisY.maxHint * 0.8) {
+                    barAxisY.maxHint = value / 0.8
+                }
+                if (graphStack.resize) {
+                    barAxisY.min = barAxisY.minHint
+                    barAxisY.max = barAxisY.maxHint
                 }
             }
         }
@@ -292,10 +328,19 @@ Item {
                 const valueIndex = datatableStandardItemModel.index(row, col)
                 const value = datatableStandardItemModel.data(valueIndex, Qt.Display)
                 lineGraph.lineSeriesMap[key].append(row, value)
-                if (row < lineAxisX.min) {
-                    lineAxisX.min = row
-                } else if (row > lineAxisX.max * 0.8) {
-                    lineAxisX.max = row / 0.8
+                // calc range
+                if (row > lineAxisX.maxHint) {
+                    lineAxisX.maxHint = row
+                }
+                if (value < lineAxisY.minHint) {
+                    lineAxisY.minHint = value
+                } else if (value > lineAxisY.maxHint * 0.8) {
+                    lineAxisY.maxHint = value / 0.8
+                }
+                if (graphStack.resize) {
+                    lineAxisX.max = lineAxisX.maxHint
+                    lineAxisY.min = lineAxisY.minHint
+                    lineAxisY.max = lineAxisY.maxHint
                 }
             }
         }
