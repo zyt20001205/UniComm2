@@ -82,8 +82,18 @@ Item {
                 plotAreaBackgroundVisible: false
                 gridVisible: false
             }
+            panStyle : GraphsView.PanStyle.Drag
+            zoomAreaEnabled : true
+            zoomStyle : GraphsView.ZoomStyle.Center
             Layout.fillWidth: true; Layout.fillHeight: true
             property var lineSeriesMap
+
+            Keys.onPressed: (event)=> {
+                console.log("pressed")
+                if (event.key == Qt.Key_Alt) {
+                    console.log("alt pressed")
+                }
+            }
 
             Component.onCompleted: {
                 lineSeriesMap = {}
@@ -282,6 +292,11 @@ Item {
                 const valueIndex = datatableStandardItemModel.index(row, col)
                 const value = datatableStandardItemModel.data(valueIndex, Qt.Display)
                 lineGraph.lineSeriesMap[key].append(row, value)
+                if (row < lineAxisX.min) {
+                    lineAxisX.min = row
+                } else if (row > lineAxisX.max * 0.8) {
+                    lineAxisX.max = row / 0.8
+                }
             }
         }
     }
