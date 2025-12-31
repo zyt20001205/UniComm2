@@ -462,7 +462,7 @@ Item {
     Menu {
         id: dataplotModuleRootMenu
         property var drawer
-        property bool resize
+        property var rootItem
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
@@ -480,9 +480,29 @@ Item {
             icon.source: "qrc:/icon/resize.svg"
             icon.width: 16; icon.height: 16
             checkable: true
-            checked: dataplotModuleRootMenu.resize
+            checked: dataplotModuleRootMenu.rootItem ? dataplotModuleRootMenu.rootItem.resize : true
 
-            onToggled: dataplotModuleRootMenu.resize = !checked
+            onToggled: {
+                dataplotModuleRootMenu.rootItem.resize = checked
+                dataplotModuleRootMenu.rootItem.graphResize()
+            }
+        }
+
+        Menu {
+            title: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    dataplotModuleRootMenu.rootItem.graphClear()
+                    progress = 0
+                    dataplotModuleRootMenu.close()
+                }
+            }
         }
     }
 

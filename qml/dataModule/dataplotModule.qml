@@ -6,13 +6,12 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property bool resize: true
 
     StackLayout {
-        id: graphStack
         currentIndex: dataSourceComboBox.currentIndex
         anchors.fill: parent
         clip: true
-        property bool resize: true
 
         GraphsView {
             axisX: BarCategoryAxis {
@@ -21,7 +20,7 @@ Item {
             axisY: ValueAxis {
                 id: barAxisY
                 property real minHint: 0
-                property real maxHint: 10
+                property real maxHint: 0
             }
             marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
             theme: GraphsTheme {
@@ -76,12 +75,12 @@ Item {
             axisX: ValueAxis {
                 id: lineAxisX
                 property real minHint: 0
-                property real maxHint: 10
+                property real maxHint: 0
             }
             axisY: ValueAxis {
                 id: lineAxisY
                 property real minHint: 0
-                property real maxHint: 10
+                property real maxHint: 0
             }
             focus: true
             marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
@@ -282,9 +281,43 @@ Item {
 
         onSingleTapped: {
             rootMenu.drawer = drawer
-            rootMenu.resize = graphStack.resize
+            rootMenu.rootItem = rootItem
             rootMenu.popup()
         }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.MiddleButton
+
+        onSingleTapped: graphResize()
+    }
+
+    function graphResize(index = -1) {
+        if (index === -1) index = dataSourceComboBox.currentIndex
+        switch (index) {
+            case 0: {
+                barAxisY.min = barAxisY.minHint
+                barAxisY.max = barAxisY.maxHint
+                barAxisY.zoom = 1
+                barAxisY.pan = 0
+            }
+                break
+            case 1: {
+                lineAxisX.min = lineAxisX.minHint
+                lineAxisX.max = lineAxisX.maxHint
+                lineAxisX.zoom = 1
+                lineAxisX.pan = 0
+                lineAxisY.min = lineAxisY.minHint
+                lineAxisY.max = lineAxisY.maxHint
+                lineAxisY.zoom = 1
+                lineAxisY.pan = 0
+            }
+                break
+        }
+    }
+
+    function graphClear() {
+        console.log(dataSourceComboBox.currentIndex)
     }
 
     Connections {
@@ -302,14 +335,13 @@ Item {
                 const value = databaseStandardItemModel.data(valueIndex, Qt.Display)
                 barSeries.barSetMap[key].values = [value]
                 // calc range
-                if (value < barAxisY.minHint) {
-                    barAxisY.minHint = value
+                if (value < barAxisY.minHint * 0.8) {
+                    barAxisY.minHint = value / 0.8
                 } else if (value > barAxisY.maxHint * 0.8) {
                     barAxisY.maxHint = value / 0.8
                 }
-                if (graphStack.resize) {
-                    barAxisY.min = barAxisY.minHint
-                    barAxisY.max = barAxisY.maxHint
+                if (rootItem.resize) {
+                    graphResize(0)
                 }
             }
         }
@@ -332,15 +364,13 @@ Item {
                 if (row > lineAxisX.maxHint) {
                     lineAxisX.maxHint = row
                 }
-                if (value < lineAxisY.minHint) {
-                    lineAxisY.minHint = value
+                if (value < lineAxisY.minHint * 0.8) {
+                    lineAxisY.minHint = value / 0.8
                 } else if (value > lineAxisY.maxHint * 0.8) {
                     lineAxisY.maxHint = value / 0.8
                 }
-                if (graphStack.resize) {
-                    lineAxisX.max = lineAxisX.maxHint
-                    lineAxisY.min = lineAxisY.minHint
-                    lineAxisY.max = lineAxisY.maxHint
+                if (rootItem.resize) {
+                    graphResize(1)
                 }
             }
         }
