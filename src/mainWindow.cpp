@@ -113,7 +113,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_databaseModule->propertySet(databaseObjects);
 
     const QVariantMap dataplotObjects = {
-        //
+        {"dataplotModuleRootMenu", objects["dataplotModuleRootMenu"]}
     };
     m_dataplotModule->propertySet(dataplotObjects);
 

@@ -458,6 +458,23 @@ Item {
         }
     }
 
+    // dataplot module
+    Menu {
+        id: dataplotModuleRootMenu
+        property var drawer
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Setting")
+            icon.source: "qrc:/icon/settings.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: dataplotModuleRootMenu.drawer.open()
+        }
+    }
+
     // debug module
 
     // diagnostics module
@@ -1165,6 +1182,8 @@ Item {
             "datatableModuleNameDialog": datatableModuleNameDialog,
             "datatableModuleTableMenu": datatableModuleTableMenu,
             "datatableModuleRootMenu": datatableModuleRootMenu,
+
+            "dataplotModuleRootMenu": dataplotModuleRootMenu,
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 

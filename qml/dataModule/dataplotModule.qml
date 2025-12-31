@@ -7,54 +7,15 @@ Item {
     id: rootItem
     anchors.fill: parent
 
-    RowLayout {
-        anchors.fill: parent
-        anchors.margins: 4
-
-        StackLayout {
-            currentIndex: dataSourceComboBox.currentIndex
-            Layout.fillWidth: true; Layout.fillHeight: true
-            Layout.preferredWidth: 2
-            clip: true
-
-            GraphsView {
-                Layout.fillWidth: true; Layout.fillHeight: true
-                theme: GraphsTheme {
-                    theme: GraphsTheme.Theme.QtGreen
-                    backgroundVisible: false
-                    gridVisible: false
-                }
-
-                axisX: BarCategoryAxis {
-                    categories: dataSourceComboBox.currentIndex === 0 ? ["database"] : ["datatable"]
-                }
-
-                axisY: ValueAxis {
-                    id: valueAxis
-                }
-
-                BarSeries {
-                    id: barSeries
-                    property var barSetMap
-
-                    Component.onCompleted: {
-                        barSetMap = {}
-                    }
-                }
-
-                Component {
-                    id: barComponent
-
-                    BarSet {
-                    }
-                }
-            }
-        }
+    Drawer {
+        id: drawer
+        width: 0.33 * rootItem.width; height: rootItem.height
+        edge: Qt.RightEdge
 
         ColumnLayout {
-            Layout.fillWidth: true; Layout.fillHeight: true
+            anchors.fill: parent
+            anchors.margins: 4
             Layout.alignment: Qt.AlignTop
-            Layout.preferredWidth: 1
 
             Label {
                 text: qsTr("Data Source")
@@ -133,6 +94,54 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    StackLayout {
+        currentIndex: dataSourceComboBox.currentIndex
+        anchors.fill: parent
+        clip: true
+
+        GraphsView {
+            Layout.fillWidth: true; Layout.fillHeight: true
+            theme: GraphsTheme {
+                theme: GraphsTheme.Theme.QtGreen
+                backgroundVisible: false
+                gridVisible: false
+            }
+
+            axisX: BarCategoryAxis {
+                categories: dataSourceComboBox.currentIndex === 0 ? ["database"] : ["datatable"]
+            }
+
+            axisY: ValueAxis {
+                id: valueAxis
+            }
+
+            BarSeries {
+                id: barSeries
+                property var barSetMap
+
+                Component.onCompleted: {
+                    barSetMap = {}
+                }
+            }
+
+            Component {
+                id: barComponent
+
+                BarSet {
+                }
+            }
+        }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+
+        onSingleTapped: {
+            rootMenu.drawer = drawer
+            rootMenu.popup()
         }
     }
 
