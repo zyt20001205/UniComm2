@@ -480,7 +480,7 @@ Item {
             icon.source: "qrc:/icon/resize.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: dataplotModuleRootMenu.drawer.open()
+            onTriggered: dataplotModuleRootMenu.rootItem.graphResize()
         }
 
         MenuItem {
