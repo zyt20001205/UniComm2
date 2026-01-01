@@ -143,10 +143,7 @@ Item {
 
             GraphsView {
                 id: lineGraph
-                axisX: ValueAxis {
-                    id: lineAxisX
-                    property real maxHint: 0
-                }
+                axisX: lineModeSwitch.checked ? lineAxisTime : lineAxisIndex
                 axisY: ValueAxis {
                     id: lineAxisY
                     property real minHint: 0
@@ -160,6 +157,21 @@ Item {
                 zoomStyle: GraphsView.ZoomStyle.Center
                 Layout.fillWidth: true; Layout.fillHeight: true
                 property var lineSeriesMap: ({})
+
+                ValueAxis {
+                    id: lineAxisIndex
+                    titleText: qsTr("index")
+                    property real maxHint: 0
+                }
+
+                DateTimeAxis {
+                    id: lineAxisTime
+                    labelFormat: "mm:ss.zzz"
+                    titleText: qsTr("time")
+                    min: new Date(0)
+                    max: new Date(10000)
+                    property real baseTime
+                }
 
                 onVisibleChanged: {
                     if (visible) forceActiveFocus()
@@ -308,10 +320,6 @@ Item {
             anchors.margins: 4
             Layout.alignment: Qt.AlignTop
 
-            Label {
-                text: qsTr("Graph Type")
-            }
-
             ComboBox {
                 id: graphTypeComboBox
                 model: ListModel {
@@ -394,36 +402,58 @@ Item {
                     }
                 }
 
-                TableView {
-                    id: datatableTableView
+                ColumnLayout {
                     Layout.fillWidth: true; Layout.fillHeight: true
-                    alternatingRows: false
-                    clip: true
-                    editTriggers: TableView.NoEditTriggers
-                    rowSpacing: 1
-                    model: datatableHeaderItemModel
-                    contentWidth: width
-                    delegate: CheckDelegate {
-                        implicitWidth: datatableTableView.width
-                        checked: model.whatsThis
-                        text: model.display
-                        background: Rectangle {
-                            color: "white"
+
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Label {
+                            text: qsTr("index")
                         }
 
-                        onClicked: {
-                            if (checked) {
-                                lineGraph.lineInsert(row)
-                            } else {
-                                lineGraph.lineRemove(row)
-                            }
+                        Switch {
+                            id: lineModeSwitch
+
+                            onClicked: graphClear(1)
+                        }
+
+                        Label {
+                            text: qsTr("time")
                         }
                     }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#e0e0e0"
-                        z: -1
+                    TableView {
+                        id: datatableTableView
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        alternatingRows: false
+                        clip: true
+                        editTriggers: TableView.NoEditTriggers
+                        rowSpacing: 1
+                        model: datatableHeaderItemModel
+                        contentWidth: width
+                        delegate: CheckDelegate {
+                            implicitWidth: datatableTableView.width
+                            checked: model.whatsThis
+                            text: model.display
+                            background: Rectangle {
+                                color: "white"
+                            }
+
+                            onClicked: {
+                                if (checked) {
+                                    lineGraph.lineInsert(row)
+                                } else {
+                                    lineGraph.lineRemove(row)
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "#e0e0e0"
+                            z: -1
+                        }
                     }
                 }
             }
@@ -465,19 +495,19 @@ Item {
                 break
             case 1: {
                 if (lineGraph.seriesList.length === 0) {
-                    lineAxisX.max = 10
-                    lineAxisX.maxHint = 0
+                    lineAxisIndex.max = 10
+                    lineAxisIndex.maxHint = 0
                     lineAxisY.min = 0
                     lineAxisY.max = 10
                     lineAxisY.minHint = 0
                     lineAxisY.maxHint = 0
                 } else {
-                    lineAxisX.max = lineAxisX.maxHint
+                    lineAxisIndex.max = lineAxisIndex.maxHint
                     lineAxisY.min = lineAxisY.minHint
                     lineAxisY.max = lineAxisY.maxHint
                 }
-                lineAxisX.zoom = 1
-                lineAxisX.pan = 0
+                lineAxisIndex.zoom = 1
+                lineAxisIndex.pan = 0
                 lineAxisY.zoom = 1
                 lineAxisY.pan = 0
             }
@@ -551,10 +581,22 @@ Item {
                 const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
                 const valueIndex = datatableStandardItemModel.index(row, col)
                 const value = datatableStandardItemModel.data(valueIndex, Qt.DisplayRole)
-                lineGraph.lineSeriesMap[key].append(row, value)
-                // calc range
-                if (row > lineAxisX.maxHint) {
-                    lineAxisX.maxHint = row
+                if (lineModeSwitch.checked) {
+                    // time based
+                    if (lineGraph.lineSeriesMap[key].count === 0) {
+                        lineAxisTime.baseTime = new Date()
+                        lineGraph.lineSeriesMap[key].append(0, value)
+                    } else {
+                        const timeElapsed = new Date() - lineAxisTime.baseTime
+                        lineGraph.lineSeriesMap[key].append(timeElapsed, value)
+                    }
+                } else {
+                    // index based
+                    lineGraph.lineSeriesMap[key].append(row, value)
+                    // calc range
+                    if (row > lineAxisIndex.maxHint) {
+                        lineAxisIndex.maxHint = row
+                    }
                 }
                 if (value < lineAxisY.minHint * 0.8) {
                     lineAxisY.minHint = value / 0.8
