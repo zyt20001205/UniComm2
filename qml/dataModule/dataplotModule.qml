@@ -8,164 +8,178 @@ Item {
     anchors.fill: parent
     property bool resize: true
 
-    StackLayout {
-        currentIndex: dataSourceComboBox.currentIndex
+    RowLayout {
         anchors.fill: parent
-        clip: true
 
-        GraphsView {
-            axisX: BarCategoryAxis {
-                categories: ["database"]
-            }
-            axisY: ValueAxis {
-                id: barAxisY
-                property real minHint: 0
-                property real maxHint: 0
-            }
-            marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
-            theme: GraphsTheme {
-                theme: GraphsTheme.Theme.QtGreen
-                backgroundVisible: false
-                plotAreaBackgroundVisible: false
-                gridVisible: false
-            }
+        StackLayout {
+            currentIndex: dataSourceComboBox.currentIndex
+            clip: true
             Layout.fillWidth: true; Layout.fillHeight: true
 
-            BarSeries {
-                id: barSeries
-                selectable: true
-                property var barSetMap
-
-                onClicked: (index, barset) => {
-                    hintPopup.barset = barset
-                    hintPopup.text = barset.label + " " + barset.values[0]
-                    hintPopup.open()
+            GraphsView {
+                axisX: BarCategoryAxis {
+                    categories: ["database"]
                 }
-
-                Component.onCompleted: {
-                    barSetMap = {}
+                axisY: ValueAxis {
+                    id: barAxisY
+                    property real minHint: 0
+                    property real maxHint: 0
                 }
+                marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
+                theme: GraphsTheme {
+                    theme: GraphsTheme.Theme.QtGreen
+                    backgroundVisible: false
+                    plotAreaBackgroundVisible: false
+                    gridVisible: false
+                }
+                Layout.fillWidth: true; Layout.fillHeight: true
 
-                Component {
-                    id: barComponent
+                BarSeries {
+                    id: barSeries
+                    selectable: true
+                    property var barSetMap: ({})
 
-                    BarSet {
+                    onClicked: (index, barset) => {
+                        hintPopup.barset = barset
+                        hintPopup.text = barset.label + " " + barset.values[0]
+                        hintPopup.open()
+                    }
+
+                    Component {
+                        id: barComponent
+
+                        BarSet {
+                        }
+                    }
+
+                    function barInsert(row) {
+                        const keyIndex = databaseStandardItemModel.index(row, 0);
+                        const key = databaseStandardItemModel.data(keyIndex, Qt.DisplayRole)
+                        databaseStandardItemModel.setData(keyIndex, true, Qt.WhatsThisRole)
+                        const valueIndex = databaseStandardItemModel.index(row, 1);
+                        const value = databaseStandardItemModel.data(valueIndex, Qt.DisplayRole)
+                        const bar = barComponent.createObject(barSeries, {
+                            label: key,
+                            values: [value]
+                        });
+                        append(bar)
+                        barSetMap[key] = bar
+                    }
+
+                    function barRemove(row) {
+                        const keyIndex = databaseStandardItemModel.index(row, 0);
+                        const key = databaseStandardItemModel.data(keyIndex, Qt.DisplayRole)
+                        databaseStandardItemModel.setData(keyIndex, false, Qt.WhatsThisRole)
+                        const bar = barSetMap[key]
+                        remove(bar)
+                        delete barSetMap[key]
                     }
                 }
 
-                function barInsert(key, value) {
-                    const bar = barComponent.createObject(barSeries, {
-                        label: key,
-                        values: [value]
-                    });
-                    append(bar)
-                    barSetMap[key] = bar
-                }
+                Popup {
+                    id: hintPopup
+                    padding: 0
+                    property var barset
+                    property string text
 
-                function barRemove(key) {
-                    const bar = barSetMap[key]
-                    remove(bar)
-                    delete barSetMap[key]
+                    Label {
+                        text: hintPopup.text
+                    }
+
+                    onAboutToHide: {
+                        barset.deselectBar(0)
+                    }
                 }
             }
 
-            Popup {
-                id: hintPopup
-                padding: 0
-                property var barset
-                property string text
+            GraphsView {
+                id: lineGraph
+                axisX: ValueAxis {
+                    id: lineAxisX
+                    property real minHint: 0
+                    property real maxHint: 0
+                }
+                axisY: ValueAxis {
+                    id: lineAxisY
+                    property real minHint: 0
+                    property real maxHint: 0
+                }
+                focus: true
+                marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
+                theme: GraphsTheme {
+                    theme: GraphsTheme.Theme.QtGreen
+                    backgroundVisible: false
+                    plotAreaBackgroundVisible: false
+                    gridVisible: false
+                }
+                panStyle: GraphsView.PanStyle.None
+                zoomAreaEnabled: true
+                zoomStyle: GraphsView.ZoomStyle.Center
+                Layout.fillWidth: true; Layout.fillHeight: true
+                property var lineSeriesMap: ({})
 
-                Label {
-                    text: hintPopup.text
+                onVisibleChanged: {
+                    if (visible) forceActiveFocus()
                 }
 
-                onAboutToHide: {
-                    barset.deselectBar(0)
+                HoverHandler {
+                    id: hoverHandler
+                    cursorShape: Qt.ArrowCursor
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds
+                    onPressedChanged: parent.forceActiveFocus()
+                }
+
+                Keys.onPressed: (event) => {
+                    if (event.key === Qt.Key_Alt) {
+                        hoverHandler.cursorShape = Qt.OpenHandCursor
+                        panStyle = GraphsView.PanStyle.Drag
+                        zoomAreaEnabled = false
+                    }
+                }
+
+                Keys.onReleased: (event) => {
+                    if (event.key === Qt.Key_Alt) {
+                        hoverHandler.cursorShape = Qt.ArrowCursor
+                        panStyle = GraphsView.PanStyle.None
+                        zoomAreaEnabled = true
+                    }
+                }
+
+                Component {
+                    id: lineComponent
+
+                    LineSeries {
+                        id: lineSeries
+                        width: 3
+                    }
+                }
+
+                function lineInsert(row) {
+                    const keyIndex = datatableHeaderItemModel.index(row, 0);
+                    const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
+                    datatableHeaderItemModel.setData(keyIndex, true, Qt.WhatsThisRole)
+                    const line = lineComponent.createObject(lineGraph, {});
+                    addSeries(line)
+                    lineSeriesMap[key] = line
+                }
+
+                function lineRemove(row) {
+                    const keyIndex = datatableHeaderItemModel.index(row, 0);
+                    const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
+                    datatableHeaderItemModel.setData(keyIndex, false, Qt.WhatsThisRole)
+                    const line = lineSeriesMap[key]
+                    removeSeries(line)
+                    delete lineSeriesMap[key]
                 }
             }
         }
 
-        GraphsView {
-            id: lineGraph
-            axisX: ValueAxis {
-                id: lineAxisX
-                property real minHint: 0
-                property real maxHint: 0
-            }
-            axisY: ValueAxis {
-                id: lineAxisY
-                property real minHint: 0
-                property real maxHint: 0
-            }
-            focus: true
-            marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
-            theme: GraphsTheme {
-                theme: GraphsTheme.Theme.QtGreen
-                backgroundVisible: false
-                plotAreaBackgroundVisible: false
-                gridVisible: false
-            }
-            panStyle: GraphsView.PanStyle.None
-            zoomAreaEnabled: true
-            zoomStyle: GraphsView.ZoomStyle.Center
-            Layout.fillWidth: true; Layout.fillHeight: true
-            property var lineSeriesMap
-
-            onVisibleChanged: {
-                if (visible) forceActiveFocus()
-            }
-
-            HoverHandler {
-                id: hoverHandler
-                cursorShape: Qt.ArrowCursor
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-                gesturePolicy: TapHandler.ReleaseWithinBounds
-                onPressedChanged: parent.forceActiveFocus()
-            }
-
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Alt) {
-                    hoverHandler.cursorShape = Qt.OpenHandCursor
-                    panStyle = GraphsView.PanStyle.Drag
-                    zoomAreaEnabled = false
-                }
-            }
-
-            Keys.onReleased: (event) => {
-                if (event.key === Qt.Key_Alt) {
-                    hoverHandler.cursorShape = Qt.ArrowCursor
-                    panStyle = GraphsView.PanStyle.None
-                    zoomAreaEnabled = true
-                }
-            }
-
-            Component.onCompleted: {
-                lineSeriesMap = {}
-            }
-
-            Component {
-                id: lineComponent
-
-                LineSeries {
-                    id: lineSeries
-                    width: 3
-                }
-            }
-
-            function lineInsert(key) {
-                const line = lineComponent.createObject(lineGraph, {});
-                addSeries(line)
-                lineSeriesMap[key] = line
-            }
-
-            function lineRemove(key) {
-                const line = lineSeriesMap[key]
-                removeSeries(line)
-                delete lineSeriesMap[key]
-            }
+        Item {
+            Layout.preferredWidth: 10; Layout.fillHeight: true
         }
     }
 
@@ -225,14 +239,10 @@ Item {
                                 }
 
                                 onClicked: {
-                                    model.whatsThis = checked
-                                    const key = model.display
                                     if (checked) {
-                                        const index = databaseStandardItemModel.index(row, 1);
-                                        const value = databaseStandardItemModel.data(index, Qt.DisplayRole)
-                                        barSeries.barInsert(key, value)
+                                        barSeries.barInsert(row)
                                     } else {
-                                        barSeries.barRemove(key)
+                                        barSeries.barRemove(row)
                                     }
                                 }
                             }
@@ -269,12 +279,10 @@ Item {
                         }
 
                         onClicked: {
-                            model.whatsThis = checked
-                            const key = model.display
                             if (checked) {
-                                lineGraph.lineInsert(key)
+                                lineGraph.lineInsert(row)
                             } else {
-                                lineGraph.lineRemove(key)
+                                lineGraph.lineRemove(row)
                             }
                         }
                     }
@@ -347,16 +355,31 @@ Item {
         }
     }
 
-    function graphClear() {
+    function graphClear(index = -1) {
         if (index === -1) index = dataSourceComboBox.currentIndex
         switch (index) {
             case 0: {
+                for (let row = 0; row < databaseStandardItemModel.rowCount(); ++row) {
+                    const keyIndex = databaseStandardItemModel.index(row, 0);
+                    const watched = databaseStandardItemModel.data(keyIndex, Qt.WhatsThisRole)
+                    if (watched) {
+                        barSeries.barRemove(row)
+                    }
+                }
             }
                 break
             case 1: {
+                for (let row = 0; row < datatableHeaderItemModel.rowCount(); ++row) {
+                    const keyIndex = datatableHeaderItemModel.index(row, 0);
+                    const watched = datatableHeaderItemModel.data(keyIndex, Qt.WhatsThisRole)
+                    if (watched) {
+                        lineGraph.lineRemove(row)
+                    }
+                }
             }
                 break
         }
+        graphResize(index)
     }
 
     Connections {
@@ -369,9 +392,9 @@ Item {
             const keyIndex = databaseStandardItemModel.index(row, 0);
             const watched = databaseStandardItemModel.data(keyIndex, Qt.WhatsThisRole)
             if (watched) {
-                const key = databaseStandardItemModel.data(keyIndex, Qt.Display)
+                const key = databaseStandardItemModel.data(keyIndex, Qt.DisplayRole)
                 const valueIndex = databaseStandardItemModel.index(row, 1);
-                const value = databaseStandardItemModel.data(valueIndex, Qt.Display)
+                const value = databaseStandardItemModel.data(valueIndex, Qt.DisplayRole)
                 barSeries.barSetMap[key].values = [value]
                 // calc range
                 if (value < barAxisY.minHint * 0.8) {
@@ -395,9 +418,10 @@ Item {
             const keyIndex = datatableHeaderItemModel.index(col, 0);
             const watched = datatableHeaderItemModel.data(keyIndex, Qt.WhatsThisRole)
             if (watched) {
-                const key = datatableHeaderItemModel.data(keyIndex, Qt.Display)
+                const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
                 const valueIndex = datatableStandardItemModel.index(row, col)
-                const value = datatableStandardItemModel.data(valueIndex, Qt.Display)
+                const value = datatableStandardItemModel.data(valueIndex, Qt.DisplayRole)
+                console.log(row, value)
                 lineGraph.lineSeriesMap[key].append(row, value)
                 // calc range
                 if (row > lineAxisX.maxHint) {
