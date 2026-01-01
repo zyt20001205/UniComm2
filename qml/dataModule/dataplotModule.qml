@@ -606,7 +606,7 @@ Item {
                     const timeElapsed = (new Date() - lineAxisTime.baseTime) / 1000
                     lineGraph.lineSeriesMap[key].append(timeElapsed, value)
                     if (timeElapsed > lineAxisTime.maxHint) {
-                        lineAxisTime.maxHint = row
+                        lineAxisTime.maxHint = timeElapsed
                     }
                 }
                 // calc range
