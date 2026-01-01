@@ -124,6 +124,7 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
+                        preventStealing: true
                         property real lastX
                         property real lastY
 
@@ -272,6 +273,7 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
+                        preventStealing: true
                         property real lastX
                         property real lastY
 
