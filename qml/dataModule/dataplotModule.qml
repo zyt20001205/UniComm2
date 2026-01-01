@@ -145,7 +145,6 @@ Item {
                 id: lineGraph
                 axisX: ValueAxis {
                     id: lineAxisX
-                    property real minHint: 0
                     property real maxHint: 0
                 }
                 axisY: ValueAxis {
@@ -466,16 +465,13 @@ Item {
                 break
             case 1: {
                 if (lineGraph.seriesList.length === 0) {
-                    lineAxisX.min = 0
                     lineAxisX.max = 10
-                    lineAxisX.minHint = 0
                     lineAxisX.maxHint = 0
                     lineAxisY.min = 0
                     lineAxisY.max = 10
                     lineAxisY.minHint = 0
                     lineAxisY.maxHint = 0
                 } else {
-                    lineAxisX.min = lineAxisX.minHint
                     lineAxisX.max = lineAxisX.maxHint
                     lineAxisY.min = lineAxisY.minHint
                     lineAxisY.max = lineAxisY.maxHint
