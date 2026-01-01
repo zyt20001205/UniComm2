@@ -421,7 +421,6 @@ Item {
                 const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
                 const valueIndex = datatableStandardItemModel.index(row, col)
                 const value = datatableStandardItemModel.data(valueIndex, Qt.DisplayRole)
-                console.log(row, value)
                 lineGraph.lineSeriesMap[key].append(row, value)
                 // calc range
                 if (row > lineAxisX.maxHint) {
