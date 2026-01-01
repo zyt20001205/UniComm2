@@ -222,6 +222,32 @@ Item {
                     addSeries(line)
                     lineSeriesMap[key] = line
                     lineLegend.reload()
+
+                    if (!lineModeSwitch.checked) {
+                        // index based
+                        const points = [];
+                        for (let i = 0; i < datatableStandardItemModel.rowCount(); ++i) {
+                            const valueIndex = datatableStandardItemModel.index(i, row);
+                            const value = datatableStandardItemModel.data(valueIndex, Qt.DisplayRole)
+                            if (value === undefined) {
+                                break
+                            } else {
+                                points.push(Qt.point(i, value))
+                                if (i > lineAxisIndex.maxHint) {
+                                    lineAxisIndex.maxHint = i
+                                }
+                                if (value < lineAxisY.minHint * 0.8) {
+                                    lineAxisY.minHint = value / 0.8
+                                } else if (value > lineAxisY.maxHint * 0.8) {
+                                    lineAxisY.maxHint = value / 0.8
+                                }
+                            }
+                        }
+                        line.append(points)
+                        if (rootItem.resize) {
+                            graphResize(1)
+                        }
+                    }
                 }
 
                 function lineRemove(row) {
