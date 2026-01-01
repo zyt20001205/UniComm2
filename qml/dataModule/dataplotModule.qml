@@ -27,6 +27,7 @@ Item {
                 }
                 marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
                 theme: GraphsTheme {
+                    id: barTheme
                     theme: GraphsTheme.Theme.QtGreen
                     backgroundVisible: false
                     plotAreaBackgroundVisible: false
@@ -36,13 +37,10 @@ Item {
 
                 BarSeries {
                     id: barSeries
-                    selectable: true
                     property var barSetMap: ({})
 
-                    onClicked: (index, barset) => {
-                        hintPopup.barset = barset
-                        hintPopup.text = barset.label + " " + barset.values[0]
-                        hintPopup.open()
+                    onCountChanged: {
+                        barLegend.reload()
                     }
 
                     Component {
@@ -77,17 +75,65 @@ Item {
                 }
 
                 Popup {
-                    id: hintPopup
-                    padding: 0
-                    property var barset
-                    property string text
-
-                    Label {
-                        text: hintPopup.text
+                    id: barLegend
+                    width: 120; height: barLegend.model.count * 20 + 30
+                    closePolicy: Popup.NoAutoClose
+                    modal: false
+                    background.opacity: 0.3
+                    visible: barSeries.count
+                    property var model: ListModel
+                    {
                     }
 
-                    onAboutToHide: {
-                        barset.deselectBar(0)
+                    ListView {
+                        anchors.fill: parent
+                        interactive: false
+                        model: barLegend.model
+                        delegate: Item {
+                            implicitWidth: 90; implicitHeight: 20
+
+                            RowLayout {
+                                anchors.fill: parent
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Rectangle {
+                                    width: 14; height: 14
+                                    color: model.color
+                                }
+
+                                Label {
+                                    text: model.label
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                            }
+                        }
+                    }
+
+                    function reload() {
+                        barLegend.model.clear()
+                        for (let i = 0; i < barSeries.barSets.length; ++i) {
+                            barLegend.model.append({
+                                label: barSeries.barSets[i].label,
+                                color: barTheme.seriesColors[i % barTheme.seriesColors.length]
+                            })
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        property real lastX
+                        property real lastY
+
+                        onPressed: (mouse) => {
+                            lastX = mouse.x
+                            lastY = mouse.y
+                        }
+
+                        onPositionChanged: (mouse) => {
+                            barLegend.x += mouse.x - lastX
+                            barLegend.y += mouse.y - lastY
+                        }
                     }
                 }
             }
