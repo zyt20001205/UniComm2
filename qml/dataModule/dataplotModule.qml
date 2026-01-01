@@ -31,10 +31,41 @@ Item {
             }
             Layout.fillWidth: true; Layout.fillHeight: true
 
-            Component {
-                id: barComponent
+            BarSeries {
+                id: barSeries
+                selectable: true
+                property var barSetMap
 
-                BarSet {
+                onClicked: (index, barset) => {
+                    hintPopup.barset = barset
+                    hintPopup.text = barset.label + " " + barset.values[0]
+                    hintPopup.open()
+                }
+
+                Component.onCompleted: {
+                    barSetMap = {}
+                }
+
+                Component {
+                    id: barComponent
+
+                    BarSet {
+                    }
+                }
+
+                function barInsert(key, value) {
+                    const bar = barComponent.createObject(barSeries, {
+                        label: key,
+                        values: [value]
+                    });
+                    append(bar)
+                    barSetMap[key] = bar
+                }
+
+                function barRemove(key) {
+                    const bar = barSetMap[key]
+                    remove(bar)
+                    delete barSetMap[key]
                 }
             }
 
@@ -50,22 +81,6 @@ Item {
 
                 onAboutToHide: {
                     barset.deselectBar(0)
-                }
-            }
-
-            BarSeries {
-                id: barSeries
-                selectable: true
-                property var barSetMap
-
-                onClicked: (index, barset) => {
-                    hintPopup.barset = barset
-                    hintPopup.text = barset.label + " " + barset.values[0]
-                    hintPopup.open()
-                }
-
-                Component.onCompleted: {
-                    barSetMap = {}
                 }
             }
         }
@@ -100,19 +115,20 @@ Item {
                 if (visible) forceActiveFocus()
             }
 
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-                onPressedChanged: parent.forceActiveFocus()
+            HoverHandler {
+                id: hoverHandler
+                cursorShape: Qt.ArrowCursor
             }
 
-            HoverHandler {
-                id: cursorHandler
-                cursorShape: Qt.ArrowCursor
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds
+                onPressedChanged: parent.forceActiveFocus()
             }
 
             Keys.onPressed: (event) => {
                 if (event.key === Qt.Key_Alt) {
-                    cursorHandler.cursorShape = Qt.OpenHandCursor
+                    hoverHandler.cursorShape = Qt.OpenHandCursor
                     panStyle = GraphsView.PanStyle.Drag
                     zoomAreaEnabled = false
                 }
@@ -120,7 +136,7 @@ Item {
 
             Keys.onReleased: (event) => {
                 if (event.key === Qt.Key_Alt) {
-                    cursorHandler.cursorShape = Qt.ArrowCursor
+                    hoverHandler.cursorShape = Qt.ArrowCursor
                     panStyle = GraphsView.PanStyle.None
                     zoomAreaEnabled = true
                 }
@@ -135,8 +151,20 @@ Item {
 
                 LineSeries {
                     id: lineSeries
-                    width: 4
+                    width: 3
                 }
+            }
+
+            function lineInsert(key) {
+                const line = lineComponent.createObject(lineGraph, {});
+                addSeries(line)
+                lineSeriesMap[key] = line
+            }
+
+            function lineRemove(key) {
+                const line = lineSeriesMap[key]
+                removeSeries(line)
+                delete lineSeriesMap[key]
             }
         }
     }
@@ -202,20 +230,9 @@ Item {
                                     if (checked) {
                                         const index = databaseStandardItemModel.index(row, 1);
                                         const value = databaseStandardItemModel.data(index, Qt.DisplayRole)
-                                        const bar = barComponent.createObject(barSeries, {
-                                            label: key,
-                                            values: [value]
-                                        });
-                                        barSeries.append(bar)
-                                        barSeries.barSetMap[key] = bar
+                                        barSeries.barInsert(key, value)
                                     } else {
-                                        const bar = barSeries.barSetMap[key]
-                                        barSeries.remove(bar)
-                                        delete barSeries.barSetMap[key]
-                                        if (barSeries.count === 0) {
-                                            barAxisY.max = 10
-                                            barAxisY.min = 0
-                                        }
+                                        barSeries.barRemove(key)
                                     }
                                 }
                             }
@@ -255,13 +272,9 @@ Item {
                             model.whatsThis = checked
                             const key = model.display
                             if (checked) {
-                                const line = lineComponent.createObject(lineGraph, {});
-                                lineGraph.addSeries(line)
-                                lineGraph.lineSeriesMap[key] = line
+                                lineGraph.lineInsert(key)
                             } else {
-                                const line = lineGraph.lineSeriesMap[key]
-                                lineGraph.removeSeries(line)
-                                delete lineGraph.lineSeriesMap[key]
+                                lineGraph.lineRemove(key)
                             }
                         }
                     }
@@ -296,19 +309,37 @@ Item {
         if (index === -1) index = dataSourceComboBox.currentIndex
         switch (index) {
             case 0: {
-                barAxisY.min = barAxisY.minHint
-                barAxisY.max = barAxisY.maxHint
+                if (barSeries.count === 0) {
+                    barAxisY.min = 0
+                    barAxisY.max = 10
+                    barAxisY.minHint = 0
+                    barAxisY.maxHint = 0
+                } else {
+                    barAxisY.min = barAxisY.minHint
+                    barAxisY.max = barAxisY.maxHint
+                }
                 barAxisY.zoom = 1
                 barAxisY.pan = 0
             }
                 break
             case 1: {
-                lineAxisX.min = lineAxisX.minHint
-                lineAxisX.max = lineAxisX.maxHint
+                if (lineGraph.seriesList.length === 0) {
+                    lineAxisX.min = 0
+                    lineAxisX.max = 10
+                    lineAxisX.minHint = 0
+                    lineAxisX.maxHint = 0
+                    lineAxisY.min = 0
+                    lineAxisY.max = 10
+                    lineAxisY.minHint = 0
+                    lineAxisY.maxHint = 0
+                } else {
+                    lineAxisX.min = lineAxisX.minHint
+                    lineAxisX.max = lineAxisX.maxHint
+                    lineAxisY.min = lineAxisY.minHint
+                    lineAxisY.max = lineAxisY.maxHint
+                }
                 lineAxisX.zoom = 1
                 lineAxisX.pan = 0
-                lineAxisY.min = lineAxisY.minHint
-                lineAxisY.max = lineAxisY.maxHint
                 lineAxisY.zoom = 1
                 lineAxisY.pan = 0
             }
@@ -317,7 +348,15 @@ Item {
     }
 
     function graphClear() {
-        console.log(dataSourceComboBox.currentIndex)
+        if (index === -1) index = dataSourceComboBox.currentIndex
+        switch (index) {
+            case 0: {
+            }
+                break
+            case 1: {
+            }
+                break
+        }
     }
 
     Connections {
