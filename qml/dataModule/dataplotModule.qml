@@ -11,8 +11,16 @@ Item {
     RowLayout {
         anchors.fill: parent
 
+        GraphsTheme {
+            id: graphsTheme
+            theme: GraphsTheme.Theme.QtGreen
+            backgroundVisible: false
+            plotAreaBackgroundVisible: false
+            gridVisible: false
+        }
+
         StackLayout {
-            currentIndex: dataSourceComboBox.currentIndex
+            currentIndex: graphTypeComboBox.currentIndex
             clip: true
             Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -26,13 +34,7 @@ Item {
                     property real maxHint: 0
                 }
                 marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
-                theme: GraphsTheme {
-                    id: barTheme
-                    theme: GraphsTheme.Theme.QtGreen
-                    backgroundVisible: false
-                    plotAreaBackgroundVisible: false
-                    gridVisible: false
-                }
+                theme: graphsTheme
                 Layout.fillWidth: true; Layout.fillHeight: true
 
                 BarSeries {
@@ -90,7 +92,7 @@ Item {
                         interactive: false
                         model: barLegend.model
                         delegate: Item {
-                            implicitWidth: 90; implicitHeight: 20
+                            width: 90; height: 20
 
                             RowLayout {
                                 anchors.fill: parent
@@ -115,7 +117,7 @@ Item {
                         for (let i = 0; i < barSeries.barSets.length; ++i) {
                             barLegend.model.append({
                                 label: barSeries.barSets[i].label,
-                                color: barTheme.seriesColors[i % barTheme.seriesColors.length]
+                                color: graphsTheme.seriesColors[i % graphsTheme.seriesColors.length]
                             })
                         }
                     }
@@ -152,12 +154,7 @@ Item {
                 }
                 focus: true
                 marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
-                theme: GraphsTheme {
-                    theme: GraphsTheme.Theme.QtGreen
-                    backgroundVisible: false
-                    plotAreaBackgroundVisible: false
-                    gridVisible: false
-                }
+                theme: graphsTheme
                 panStyle: GraphsView.PanStyle.None
                 zoomAreaEnabled: true
                 zoomStyle: GraphsView.ZoomStyle.Center
@@ -201,6 +198,7 @@ Item {
                     LineSeries {
                         id: lineSeries
                         width: 3
+                        property string label
                     }
                 }
 
@@ -208,9 +206,12 @@ Item {
                     const keyIndex = datatableHeaderItemModel.index(row, 0);
                     const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
                     datatableHeaderItemModel.setData(keyIndex, true, Qt.WhatsThisRole)
-                    const line = lineComponent.createObject(lineGraph, {});
+                    const line = lineComponent.createObject(lineGraph, {
+                        label: key
+                    });
                     addSeries(line)
                     lineSeriesMap[key] = line
+                    lineLegend.reload()
                 }
 
                 function lineRemove(row) {
@@ -220,6 +221,70 @@ Item {
                     const line = lineSeriesMap[key]
                     removeSeries(line)
                     delete lineSeriesMap[key]
+                    lineLegend.reload()
+                }
+
+                Popup {
+                    id: lineLegend
+                    width: 120; height: lineLegend.model.count * 20 + 30
+                    closePolicy: Popup.NoAutoClose
+                    modal: false
+                    background.opacity: 0.3
+                    property var model: ListModel
+                    {
+                    }
+
+                    ListView {
+                        anchors.fill: parent
+                        interactive: false
+                        model: lineLegend.model
+                        delegate: Item {
+                            width: 90; height: 20
+
+                            RowLayout {
+                                anchors.fill: parent
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Rectangle {
+                                    width: 14; height: 14
+                                    color: model.color
+                                }
+
+                                Label {
+                                    text: model.label
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                            }
+                        }
+                    }
+
+                    function reload() {
+                        lineLegend.visible = lineGraph.seriesList.length
+                        lineLegend.model.clear()
+                        for (let i = 0; i < lineGraph.seriesList.length; ++i) {
+                            lineLegend.model.append({
+                                label: lineGraph.seriesList[i].label,
+                                color: graphsTheme.seriesColors[i % graphsTheme.seriesColors.length]
+                            })
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        property real lastX
+                        property real lastY
+
+                        onPressed: (mouse) => {
+                            lastX = mouse.x
+                            lastY = mouse.y
+                        }
+
+                        onPositionChanged: (mouse) => {
+                            lineLegend.x += mouse.x - lastX
+                            lineLegend.y += mouse.y - lastY
+                        }
+                    }
                 }
             }
         }
@@ -243,26 +308,47 @@ Item {
             Layout.alignment: Qt.AlignTop
 
             Label {
-                text: qsTr("Data Source")
+                text: qsTr("Graph Type")
             }
 
             ComboBox {
-                id: dataSourceComboBox
+                id: graphTypeComboBox
                 model: ListModel {
                     ListElement {
-                        text: qsTr("Database"); value: "database"
+                        text: qsTr("Database(Bar)"); value: "bar"; source: "qrc:/icon/barGraph.svg"
                     }
                     ListElement {
-                        text: qsTr("Datatable"); value: "datatable"
+                        text: qsTr("Datatable(Line)"); value: "line"; source: "qrc:/icon/lineGraph.svg"
                     }
                 }
                 textRole: "text"
                 valueRole: "value"
                 Layout.fillWidth: true
+
+                delegate: ItemDelegate {
+                    width: parent.width; height: 36
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 10; anchors.rightMargin: 10
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Image {
+                            width: 24; height: 24
+                            source: model.source
+                        }
+
+                        Label {
+                            text: model.text
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+                    }
+                }
             }
 
             StackLayout {
-                currentIndex: dataSourceComboBox.currentIndex
+                currentIndex: graphTypeComboBox.currentIndex
 
                 TableView {
                     id: databaseTableView
@@ -360,7 +446,7 @@ Item {
     }
 
     function graphResize(index = -1) {
-        if (index === -1) index = dataSourceComboBox.currentIndex
+        if (index === -1) index = graphTypeComboBox.currentIndex
         switch (index) {
             case 0: {
                 if (barSeries.count === 0) {
@@ -402,7 +488,7 @@ Item {
     }
 
     function graphClear(index = -1) {
-        if (index === -1) index = dataSourceComboBox.currentIndex
+        if (index === -1) index = graphTypeComboBox.currentIndex
         switch (index) {
             case 0: {
                 for (let row = 0; row < databaseStandardItemModel.rowCount(); ++row) {
