@@ -468,7 +468,7 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
-            text: qsTr("Setting")
+            text: qsTr("Setting\tSwipe")
             icon.source: "qrc:/icon/settings.svg"
             icon.width: 16; icon.height: 16
 
@@ -476,8 +476,16 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Resize")
+            text: qsTr("Resize\tMB3")
             icon.source: "qrc:/icon/resize.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: dataplotModuleRootMenu.drawer.open()
+        }
+
+        MenuItem {
+            text: qsTr("Auto Resize")
+            icon.source: "qrc:/icon/autoResize.svg"
             icon.width: 16; icon.height: 16
             checkable: true
             checked: dataplotModuleRootMenu.rootItem ? dataplotModuleRootMenu.rootItem.resize : true
