@@ -164,12 +164,10 @@ Item {
                     property real maxHint: 0
                 }
 
-                DateTimeAxis {
+                ValueAxis {
                     id: lineAxisTime
-                    labelFormat: "mm:ss.zzz"
                     titleText: qsTr("time")
-                    min: new Date(0)
-                    max: new Date(10000)
+                    property real maxHint: 0
                     property real baseTime
                 }
 
@@ -495,19 +493,30 @@ Item {
                 break
             case 1: {
                 if (lineGraph.seriesList.length === 0) {
-                    lineAxisIndex.max = 10
-                    lineAxisIndex.maxHint = 0
+                    if (!lineModeSwitch.checked) {
+                        lineAxisIndex.max = 10
+                        lineAxisIndex.maxHint = 0
+                    } else {
+                        lineAxisTime.max = 10
+                        lineAxisTime.maxHint = 0
+                    }
                     lineAxisY.min = 0
                     lineAxisY.max = 10
                     lineAxisY.minHint = 0
                     lineAxisY.maxHint = 0
                 } else {
-                    lineAxisIndex.max = lineAxisIndex.maxHint
+                    if (!lineModeSwitch.checked) {
+                        lineAxisIndex.max = lineAxisIndex.maxHint
+                    } else {
+                        lineAxisTime.max = lineAxisTime.maxHint
+                    }
                     lineAxisY.min = lineAxisY.minHint
                     lineAxisY.max = lineAxisY.maxHint
                 }
                 lineAxisIndex.zoom = 1
                 lineAxisIndex.pan = 0
+                lineAxisTime.zoom = 1
+                lineAxisTime.pan = 0
                 lineAxisY.zoom = 1
                 lineAxisY.pan = 0
             }
@@ -581,23 +590,26 @@ Item {
                 const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
                 const valueIndex = datatableStandardItemModel.index(row, col)
                 const value = datatableStandardItemModel.data(valueIndex, Qt.DisplayRole)
-                if (lineModeSwitch.checked) {
-                    // time based
-                    if (lineGraph.lineSeriesMap[key].count === 0) {
-                        lineAxisTime.baseTime = new Date()
-                        lineGraph.lineSeriesMap[key].append(0, value)
-                    } else {
-                        const timeElapsed = new Date() - lineAxisTime.baseTime
-                        lineGraph.lineSeriesMap[key].append(timeElapsed, value)
-                    }
-                } else {
+                if (!lineModeSwitch.checked) {
                     // index based
                     lineGraph.lineSeriesMap[key].append(row, value)
-                    // calc range
                     if (row > lineAxisIndex.maxHint) {
                         lineAxisIndex.maxHint = row
                     }
+
+                } else {
+                    // time based
+                    if (lineGraph.lineSeriesMap[key].count === 0) {
+                        lineAxisTime.baseTime = new Date()
+
+                    }
+                    const timeElapsed = (new Date() - lineAxisTime.baseTime) / 1000
+                    lineGraph.lineSeriesMap[key].append(timeElapsed, value)
+                    if (timeElapsed > lineAxisTime.maxHint) {
+                        lineAxisTime.maxHint = row
+                    }
                 }
+                // calc range
                 if (value < lineAxisY.minHint * 0.8) {
                     lineAxisY.minHint = value / 0.8
                 } else if (value > lineAxisY.maxHint * 0.8) {
