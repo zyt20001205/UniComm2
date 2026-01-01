@@ -18,7 +18,7 @@ Item {
 
             GraphsView {
                 axisX: BarCategoryAxis {
-                    categories: ["database"]
+                    categories: [""]
                 }
                 axisY: ValueAxis {
                     id: barAxisY
