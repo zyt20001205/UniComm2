@@ -41,6 +41,7 @@ Item {
 
                 BarSeries {
                     id: barSeries
+                    barWidth: count * 0.1
                     property var barSetMap: ({})
 
                     onCountChanged: {
