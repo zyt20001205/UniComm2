@@ -42,7 +42,7 @@ Item {
 
             HorizontalHeaderView {
                 id: horizontalHeaderView
-                anchors.top: parent.top
+                anchors.left: verticalHeaderView.right; anchors.top: parent.top
                 width: parent.width; height: 32
                 model: headerItemModel
                 syncView: tableView
@@ -119,8 +119,41 @@ Item {
                 }
             }
 
+            VerticalHeaderView {
+                id: verticalHeaderView
+                anchors.left: parent.left; anchors.top: horizontalHeaderView.bottom
+                width: 40; height: parent.height
+                syncView: tableView
+                clip: true
+                interactive: false
+                delegate: VerticalHeaderViewDelegate {
+                    implicitWidth: 40; implicitHeight: 32
+                    padding: 0
+                    contentItem: Rectangle {
+                        width: 40; height: 32
+                        color: "white"
+
+                        Text {
+                            anchors.fill: parent
+                            clip: true
+                            font.family: "Segoe UI"
+                            font.pointSize: 12
+                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            text: row + 1
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#e0e0e0"
+                    z: -1
+                }
+            }
+
             TableView {
                 id: tableView
+                anchors.left: verticalHeaderView.right
                 anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
                 width: parent.width
                 alternatingRows: false
