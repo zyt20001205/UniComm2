@@ -27,6 +27,7 @@ Item {
             GraphsView {
                 axisX: BarCategoryAxis {
                     categories: [""]
+                    // alignment : barOrientationSwitch.checked ? Qt.AlignLeft : Qt.AlignBottom
                 }
                 axisY: ValueAxis {
                     id: barAxisY
@@ -34,6 +35,7 @@ Item {
                     property real maxHint: 0
                 }
                 marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
+                orientation: barOrientationSwitch.checked ? Qt.Horizontal : Qt.Vertical
                 theme: graphsTheme
                 Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -143,7 +145,7 @@ Item {
 
             GraphsView {
                 id: lineGraph
-                axisX: lineModeSwitch.checked ? lineAxisTime : lineAxisIndex
+                axisX: lineAxisSwitch.checked ? lineAxisTime : lineAxisIndex
                 axisY: ValueAxis {
                     id: lineAxisY
                     property real minHint: 0
@@ -223,7 +225,7 @@ Item {
                     lineSeriesMap[key] = line
                     lineLegend.reload()
 
-                    if (!lineModeSwitch.checked) {
+                    if (!lineAxisSwitch.checked) {
                         // index based
                         const points = [];
                         for (let i = 0; i < datatableStandardItemModel.rowCount(); ++i) {
@@ -383,46 +385,66 @@ Item {
             StackLayout {
                 currentIndex: graphTypeComboBox.currentIndex
 
-                TableView {
-                    id: databaseTableView
+                ColumnLayout {
                     Layout.fillWidth: true; Layout.fillHeight: true
-                    alternatingRows: false
-                    clip: true
-                    editTriggers: TableView.NoEditTriggers
-                    rowSpacing: 1
-                    model: databaseStandardItemModel
-                    contentWidth: width
-                    delegate: DelegateChooser {
-                        DelegateChoice {
-                            column: 0
-                            delegate: CheckDelegate {
-                                implicitWidth: databaseTableView.width
-                                checked: model.whatsThis
-                                text: model.display
-                                background: Rectangle {
-                                    color: "white"
-                                }
 
-                                onClicked: {
-                                    if (checked) {
-                                        barSeries.barInsert(row)
-                                    } else {
-                                        barSeries.barRemove(row)
-                                    }
-                                }
-                            }
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Label {
+                            text: qsTr("vertical")
                         }
-                        DelegateChoice {
-                            delegate: Item {
-                                implicitWidth: 1
-                            }
+
+                        Switch {
+                            id: barOrientationSwitch
+                        }
+
+                        Label {
+                            text: qsTr("horizontal")
                         }
                     }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#e0e0e0"
-                        z: -1
+                    TableView {
+                        id: databaseTableView
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        alternatingRows: false
+                        clip: true
+                        editTriggers: TableView.NoEditTriggers
+                        rowSpacing: 1
+                        model: databaseStandardItemModel
+                        contentWidth: width
+                        delegate: DelegateChooser {
+                            DelegateChoice {
+                                column: 0
+                                delegate: CheckDelegate {
+                                    implicitWidth: databaseTableView.width
+                                    checked: model.whatsThis
+                                    text: model.display
+                                    background: Rectangle {
+                                        color: "white"
+                                    }
+
+                                    onClicked: {
+                                        if (checked) {
+                                            barSeries.barInsert(row)
+                                        } else {
+                                            barSeries.barRemove(row)
+                                        }
+                                    }
+                                }
+                            }
+                            DelegateChoice {
+                                delegate: Item {
+                                    implicitWidth: 1
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "#e0e0e0"
+                            z: -1
+                        }
                     }
                 }
 
@@ -437,7 +459,7 @@ Item {
                         }
 
                         Switch {
-                            id: lineModeSwitch
+                            id: lineAxisSwitch
 
                             onClicked: graphClear(1)
                         }
@@ -519,7 +541,7 @@ Item {
                 break
             case 1: {
                 if (lineGraph.seriesList.length === 0) {
-                    if (!lineModeSwitch.checked) {
+                    if (!lineAxisSwitch.checked) {
                         lineAxisIndex.max = 10
                         lineAxisIndex.maxHint = 0
                     } else {
@@ -531,7 +553,7 @@ Item {
                     lineAxisY.minHint = 0
                     lineAxisY.maxHint = 0
                 } else {
-                    if (!lineModeSwitch.checked) {
+                    if (!lineAxisSwitch.checked) {
                         lineAxisIndex.max = lineAxisIndex.maxHint
                     } else {
                         lineAxisTime.max = lineAxisTime.maxHint
@@ -616,7 +638,7 @@ Item {
                 const key = datatableHeaderItemModel.data(keyIndex, Qt.DisplayRole)
                 const valueIndex = datatableStandardItemModel.index(row, col)
                 const value = datatableStandardItemModel.data(valueIndex, Qt.DisplayRole)
-                if (!lineModeSwitch.checked) {
+                if (!lineAxisSwitch.checked) {
                     // index based
                     lineGraph.lineSeriesMap[key].append(row, value)
                     if (row > lineAxisIndex.maxHint) {
