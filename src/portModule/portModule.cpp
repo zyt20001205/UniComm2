@@ -14,6 +14,7 @@
 #include "portModule/basePort.h"
 #include "portModule/portSetting.h"
 #include "portModule/serialPort.h"
+#include "portModule/sslClient.h"
 #include "portModule/tcpClient.h"
 #include "portModule/tcpServer.h"
 #include "portModule/udpSocket.h"
@@ -100,6 +101,10 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
         }
         case TCPCLIENT: {
             port = new TcpClient(portConfig);
+            break;
+        }
+        case SSLCLIENT: {
+            port = new SslClient(portConfig);
             break;
         }
         case TCPSERVER: {

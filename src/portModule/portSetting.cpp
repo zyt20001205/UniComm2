@@ -249,6 +249,21 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
+        case SSLCLIENT: {
+            portConfig = {
+                {"portType", portType},
+                // {"portName", m_sslClientNameTextField->property("text").toString()},
+                {"portName", "ssl client"},
+                // {"remoteHost", m_sslClientRemoteHostTextField->property("text").toString()},
+                {"remoteHost", "smtp.qq.com"},
+                // {"remotePort", m_sslClientRemotePortSpinBox->property("value").toInt()},
+                {"remotePort", 465},
+                {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
+                {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+            };
+        }
+            break;
         case TCPSERVER: {
             portConfig = {
                 {"portType", portType},

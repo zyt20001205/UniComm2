@@ -42,7 +42,7 @@ Item {
                     id: tumbler
                     currentIndex: rootItem.portType
                     delegate: delegateComponent
-                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Vedio Stream")]
+                    model: [qsTr("Serial Port"), qsTr("Visa"), qsTr("Tcp Client"), qsTr("Ssl Client"), qsTr("Tcp Server"), qsTr("Udp Socket"), qsTr("Vedio Stream")]
                     wrap: false
                     Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -57,6 +57,7 @@ Item {
                     currentIndex: rootItem.portType
                     Layout.fillWidth: true; Layout.fillHeight: false
 
+                    // serial port
                     ColumnLayout {
 
                         Image {
@@ -75,6 +76,7 @@ Item {
                         }
                     }
 
+                    // visa
                     ColumnLayout {
 
                         Image {
@@ -93,6 +95,7 @@ Item {
                         }
                     }
 
+                    // tcp client
                     ColumnLayout {
 
                         Image {
@@ -111,6 +114,12 @@ Item {
                         }
                     }
 
+                    // ssl client
+                    ColumnLayout {
+
+                    }
+
+                    // tcp server
                     ColumnLayout {
 
                         Image {
@@ -129,6 +138,7 @@ Item {
                         }
                     }
 
+                    // udp socket
                     ColumnLayout {
 
                         Image {
@@ -147,6 +157,7 @@ Item {
                         }
                     }
 
+                    // video stream
                     ColumnLayout {
 
                         Image {
@@ -358,6 +369,11 @@ Item {
                         }
                     }
 
+                    // ssl client
+                    GridLayout {
+
+                    }
+
                     // tcp server
                     GridLayout {
                         columns: 2
@@ -518,7 +534,7 @@ Item {
 
             StackLayout {
                 currentIndex: {
-                    if (rootItem.portType in [0, 1, 2, 3, 4]) {
+                    if (rootItem.portType in [0, 1, 2, 3, 4, 5]) {
                         return 0
                     } else {
                         return 1
@@ -1183,6 +1199,10 @@ Item {
                             }
                                 break
                             case 3: {
+
+                            }
+                                break
+                            case 4: {
                                 if (!tcpServerNameTextField.text) {
                                     portNameValidator.text = qsTr("Invalid Port Name")
                                     portNameValidatorTimer.start()
@@ -1195,7 +1215,7 @@ Item {
                                 }
                             }
                                 break
-                            case 4: {
+                            case 5: {
                                 if (!udpSocketNameTextField.text) {
                                     portNameValidator.text = qsTr("Invalid Port Name")
                                     portNameValidatorTimer.start()
@@ -1218,7 +1238,7 @@ Item {
                                 }
                             }
                                 break
-                            case 5: {
+                            case 6: {
                                 portSetting.videoCapture()
                             }
                                 break

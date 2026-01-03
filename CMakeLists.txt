@@ -55,6 +55,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/portModule/portSetting.h
         include/portModule/sendModule.h
         include/portModule/serialPort.h
+        include/portModule/sslClient.h
         include/portModule/tcpClient.h
         include/portModule/tcpServer.h
         include/portModule/udpSocket.h
@@ -112,6 +113,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/portModule/portSetting.cpp
         src/portModule/sendModule.cpp
         src/portModule/serialPort.cpp
+        src/portModule/sslClient.cpp
         src/portModule/tcpClient.cpp
         src/portModule/tcpServer.cpp
         src/portModule/udpSocket.cpp

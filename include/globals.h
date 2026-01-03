@@ -45,6 +45,7 @@ enum {
     SERIALPORT,
     VISA,
     TCPCLIENT,
+    SSLCLIENT,
     TCPSERVER,
     UDPSOCKET,
     VIDEOSTREAM
