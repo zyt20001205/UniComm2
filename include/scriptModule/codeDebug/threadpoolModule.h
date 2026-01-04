@@ -19,6 +19,8 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    void quit();
+
     void threadStart(const QUrl &scriptUrl, int mode, QString &threadId);
 
     Q_INVOKABLE void threadStart(const QUrl &scriptUrl, int mode);
@@ -32,6 +34,8 @@ public:
     void stateSet(const QString &threadId, int state);
 
 signals:
+    void trackQuit(float secondaryProgress, const QString &secondaryLog) const;
+
     void openScript(const QUrl &scriptUrl);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);

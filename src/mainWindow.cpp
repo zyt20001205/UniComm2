@@ -96,6 +96,7 @@ void MainWindow::propertySet() {
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
+    m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
 
     const QVariantMap breakpointObjects = {
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
@@ -188,8 +189,27 @@ void MainWindow::overlayTransparent(const bool status) const {
 
 void MainWindow::quit() {
     workspaceSave();
+
+    QMetaObject::invokeMethod(m_quitDialog, "open");
+    constexpr float total = 2;
+    float current = 1;
+    // quit modules
+    m_quitDialog->setProperty("primaryLog", tr("Waiting for threadpool module..."));
+    m_threadpoolModule->quit();
+    m_quitDialog->setProperty("primaryProgress", current / total);
+    current += 1;
+    m_quitDialog->setProperty("primaryLog", tr("Waiting for lua language server module..."));
+    m_luals->quit();
+    m_quitDialog->setProperty("primaryProgress", current / total);
+    current += 1;
+
     m_askForSaving = false;
     close();
+}
+
+void MainWindow::quitTrack(const float secondaryProgress, const QString &secondaryLog) const {
+    m_quitDialog->setProperty("secondaryProgress", secondaryProgress);
+    m_quitDialog->setProperty("secondaryLog", secondaryLog);
 }
 
 // MainWindow protected
@@ -310,6 +330,7 @@ void MainWindow::moduleInit() {
     connect(m_systemModule, &SystemModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_systemModule, &SystemModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
+    connect(m_threadpoolModule, &ThreadpoolModule::trackQuit, this, &MainWindow::quitTrack);
     connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);

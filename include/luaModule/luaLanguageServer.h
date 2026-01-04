@@ -15,12 +15,16 @@ public:
 
     ~LuaLanguageServer() override;
 
+    void quit();
+
     void jsonRequest(const QString &method, const QJsonObject &params);
 
     void jsonNotification(const QString &method, const QJsonObject &params) const;
 
 signals:
     void initialized();
+
+    void shutdowned();
 
     void notificationPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
@@ -54,6 +58,8 @@ signals:
 
 private:
     void initializeNotification();
+
+    void exitNotification();
 
     void jsonResponse();
 

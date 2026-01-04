@@ -17,21 +17,23 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
 }
 
 LuaLanguageServer::~LuaLanguageServer() {
-    if (m_process->state() != QProcess::NotRunning) {
-        m_process->terminate();
-        if (!m_process->waitForFinished(3000)) {
-            m_process->kill();
-            m_process->waitForFinished();
-        }
-    }
     const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] luals module destructed").arg(timestamp);
+}
+
+void LuaLanguageServer::quit() {
+    if (m_process->state() != QProcess::NotRunning) {
+        exitNotification();
+        QEventLoop eventLoop{};
+        connect(m_process, &QProcess::finished, this, [&eventLoop] {eventLoop.quit();});
+        eventLoop.exec();
+    }
 }
 
 void LuaLanguageServer::jsonRequest(const QString &method, const QJsonObject &params) {
     const QJsonObject textDocument = params["textDocument"].toObject();
     const auto url = QUrl(textDocument["uri"].toString());
-    if (method != "initialize" && !textDocument["uri"].toString().endsWith(".lua")) return;
+    if (method != "initialize" && method != "shutdown" && !textDocument["uri"].toString().endsWith(".lua")) return;
     m_methods.insert(m_id, method);
     m_urls.insert(m_id, url);
     const QJsonObject msg = {
@@ -72,13 +74,22 @@ void LuaLanguageServer::initializeNotification() {
     };
     jsonRequest("initialize", initializeParams);
     // wait until lls initialized
-    QEventLoop loop;
-    connect(this, &LuaLanguageServer::initialized, &loop, &QEventLoop::quit);
-    loop.exec();
+    QEventLoop eventLoop;
+    connect(this, &LuaLanguageServer::initialized, &eventLoop, &QEventLoop::quit);
+    eventLoop.exec();
     jsonNotification("initialized", QJsonObject{});
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "workspace initialized");
+}
+
+void LuaLanguageServer::exitNotification() {
+    jsonRequest("shutdown", QJsonObject{});
+    // wait until lls showdowned
+    QEventLoop eventLoop;
+    connect(this, &LuaLanguageServer::shutdowned, &eventLoop, &QEventLoop::quit);
+    eventLoop.exec();
+    jsonNotification("exit", QJsonObject{});
 }
 
 void LuaLanguageServer::jsonResponse() {
@@ -104,6 +115,10 @@ void LuaLanguageServer::jsonResponse() {
                 // initialize request
                 // qDebug() << json;
                 emit initialized();
+            } else if (method == "shutdown") {
+                // shutdown request
+                // qDebug() << json;
+                emit shutdowned();
             } else if (method == "textDocument/codeAction") {
                 // code action request
                 if (!json["result"].isArray()) return; // null result

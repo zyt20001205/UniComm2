@@ -39,6 +39,29 @@ void ThreadpoolModule::propertySet(const QVariantMap &objects) {
     m_threadpoolWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/threadpoolModule.qml"));
 }
 
+void ThreadpoolModule::quit() {
+    if (const int total = static_cast<int>(m_threadHash.size())) {
+        int current = 0;
+        emit trackQuit(0, QString(tr("Waiting for 0/%1 threads to terminate...")).arg(total));
+
+        QEventLoop eventLoop{};
+        for (const auto &thread: m_threadHash) {
+            connect(thread, &QThread::finished, this, [this, &current, &total, &eventLoop] {
+                current ++;
+                emit trackQuit(static_cast<float>(current) / static_cast<float>(total), QString(tr("Waiting for %1/%2 threads to terminate...")).arg(QString::number(current), QString::number(total)));
+                if (current == total) {
+                    emit trackQuit(0, "");
+                    eventLoop.quit();
+                }
+            });
+        }
+        for (const auto &threadId: m_threadHash.keys()) {
+            threadStop(threadId);
+        }
+        eventLoop.exec();
+    }
+}
+
 void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QString &threadId) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);

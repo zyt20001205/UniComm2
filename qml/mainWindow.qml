@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Item {
     id: mainItem
@@ -20,20 +21,6 @@ Item {
 
     // main window
     Dialog {
-        id: mainWindowCloseDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 400
-        modal: true
-        title: qsTr("Save and Exit?")
-        standardButtons: Dialog.Yes | Dialog.No
-
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
-        onAccepted: mainWindow.quit()
-    }
-
-    Dialog {
         id: mainWindowBusyDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -49,6 +36,68 @@ Item {
         ProgressBar {
             width: parent.width
             indeterminate: true
+        }
+    }
+
+    Dialog {
+        id: mainWindowCloseDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Save and Exit?")
+        standardButtons: Dialog.Yes | Dialog.No
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+        onAccepted: {
+            mainWindowCloseDialog.close()
+            mainWindow.quit()
+        }
+    }
+
+    Dialog {
+        id: mainWindowQuitDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Exiting application...")
+        standardButtons: Dialog.Abort
+        topPadding: 30; bottomPadding: 20
+        property real primaryProgress
+        property string primaryLog
+        property real secondaryProgress
+        property string secondaryLog
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+        // onRejected: systemModule.processTerminate()
+
+        ColumnLayout {
+            width: parent.width
+
+            ProgressBar {
+                value: mainWindowQuitDialog.primaryProgress
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: mainWindowQuitDialog.primaryLog
+                horizontalAlignment: Text.AlignRight
+                Layout.fillWidth: true
+            }
+
+            ProgressBar {
+                value: mainWindowQuitDialog.secondaryProgress
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: mainWindowQuitDialog.secondaryLog
+                horizontalAlignment: Text.AlignRight
+                Layout.fillWidth: true
+            }
         }
     }
 
@@ -1225,8 +1274,9 @@ Item {
     Component.onCompleted: {
         const objects = {
             "mainItem": mainItem,
-            "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowBusyDialog": mainWindowBusyDialog,
+            "mainWindowCloseDialog": mainWindowCloseDialog,
+            "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowTooltip": mainWindowTooltip,
 
             "breakpointModuleLineMenu": breakpointModuleLineMenu,

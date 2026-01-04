@@ -47,6 +47,8 @@ public:
 
     Q_INVOKABLE void quit();
 
+    void quitTrack(float secondaryProgress, const QString &secondaryLog) const;
+
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -79,6 +81,7 @@ private:
     QJsonObject m_mainConfig{};
     QQuickWidget *m_overlay{};
     QObject *m_closeDialog{};
+    QObject *m_quitDialog{};
     bool m_askForSaving = true;
 
     ConfigManager *m_configManager{};
