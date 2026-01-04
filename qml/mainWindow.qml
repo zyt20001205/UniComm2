@@ -88,6 +88,10 @@ Item {
                 Layout.fillWidth: true
             }
 
+            Item {
+                Layout.fillWidth: true; Layout.preferredHeight: 30
+            }
+
             ProgressBar {
                 value: mainWindowQuitDialog.secondaryProgress
                 Layout.fillWidth: true
