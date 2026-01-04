@@ -117,6 +117,20 @@ Item {
                     // ssl client
                     ColumnLayout {
 
+                        Image {
+                            // source: "qrc:/icon/tcpClient.svg"
+                            sourceSize: Qt.size(80, 80)
+                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
+                            Layout.alignment: Qt.AlignHCenter
+                        }
+
+                        Label {
+                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            text: qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
+                            wrapMode: Text.WordWrap
+                            font.pointSize: 12
+                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
+                        }
                     }
 
                     // tcp server
@@ -371,7 +385,47 @@ Item {
 
                     // ssl client
                     GridLayout {
+                        columns: 2
+                        columnSpacing: 20; rowSpacing: 20
 
+                        Label {
+                            text: qsTr("Port Name")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: sslClientNameTextField
+                            placeholderText: qsTr("Ssl Client")
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Remote Host")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        TextField {
+                            id: sslClientRemoteHostTextField
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Remote Port")
+                            font.pointSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        SpinBox {
+                            id: sslClientRemotePortSpinBox
+                            font.pointSize: 12
+                            editable: true
+                            from: 0
+                            to: 65535
+                            Layout.fillWidth: true
+                        }
                     }
 
                     // tcp server
@@ -1190,16 +1244,32 @@ Item {
                                     portNameValidator.text = qsTr("Empty Remote Host")
                                     portNameValidatorTimer.start()
                                     return
-                                } else if (!(rootItem.patterns["ipv4"].test(tcpClientRemoteHostTextField.text)
-                                    || rootItem.patterns["ipv6"].test(tcpClientRemoteHostTextField.text))) {
-                                    portNameValidator.text = qsTr("Invalid Remote Host")
-                                    portNameValidatorTimer.start()
-                                    return
                                 }
+                                // else if (!(rootItem.patterns["ipv4"].test(tcpClientRemoteHostTextField.text)
+                                //     || rootItem.patterns["ipv6"].test(tcpClientRemoteHostTextField.text))) {
+                                //     portNameValidator.text = qsTr("Invalid Remote Host")
+                                //     portNameValidatorTimer.start()
+                                //     return
+                                // }
                             }
                                 break
                             case 3: {
-
+                                if (!sslClientNameTextField.text) {
+                                    portNameValidator.text = qsTr("Invalid Port Name")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                if (!sslClientRemoteHostTextField.text) {
+                                    portNameValidator.text = qsTr("Empty Remote Host")
+                                    portNameValidatorTimer.start()
+                                    return
+                                }
+                                // else if (!(rootItem.patterns["ipv4"].test(sslClientRemoteHostTextField.text)
+                                //     || rootItem.patterns["ipv6"].test(sslClientRemoteHostTextField.text))) {
+                                //     portNameValidator.text = qsTr("Invalid Remote Host")
+                                //     portNameValidatorTimer.start()
+                                //     return
+                                // }
                             }
                                 break
                             case 4: {
@@ -1230,12 +1300,13 @@ Item {
                                     portNameValidator.text = qsTr("Invalid Remote Host")
                                     portNameValidatorTimer.start()
                                     return
-                                } else if (!(rootItem.patterns["ipv4"].test(udpSocketRemoteHostTextField.text)
-                                    || rootItem.patterns["ipv6"].test(udpSocketRemoteHostTextField.text))) {
-                                    portNameValidator.text = qsTr("Invalid Remote Host")
-                                    portNameValidatorTimer.start()
-                                    return
                                 }
+                                // else if (!(rootItem.patterns["ipv4"].test(udpSocketRemoteHostTextField.text)
+                                //     || rootItem.patterns["ipv6"].test(udpSocketRemoteHostTextField.text))) {
+                                //     portNameValidator.text = qsTr("Invalid Remote Host")
+                                //     portNameValidatorTimer.start()
+                                //     return
+                                // }
                             }
                                 break
                             case 6: {
@@ -1496,6 +1567,10 @@ Item {
             "tcpClientNameTextField": tcpClientNameTextField,
             "tcpClientRemoteHostTextField": tcpClientRemoteHostTextField,
             "tcpClientRemotePortSpinBox": tcpClientRemotePortSpinBox,
+            // ssl client
+            "sslClientNameTextField": sslClientNameTextField,
+            "sslClientRemoteHostTextField": sslClientRemoteHostTextField,
+            "sslClientRemotePortSpinBox": sslClientRemotePortSpinBox,
             // tcp server
             "tcpServerNameTextField": tcpServerNameTextField,
             "tcpServerLocalHostComboBox": tcpServerLocalHostComboBox,

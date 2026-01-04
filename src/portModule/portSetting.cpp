@@ -73,6 +73,10 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_tcpClientNameTextField = qvariant_cast<QObject *>(objects["tcpClientNameTextField"]);
     m_tcpClientRemoteHostTextField = qvariant_cast<QObject *>(objects["tcpClientRemoteHostTextField"]);
     m_tcpClientRemotePortSpinBox = qvariant_cast<QObject *>(objects["tcpClientRemotePortSpinBox"]);
+    // ssl client
+    m_sslClientNameTextField = qvariant_cast<QObject *>(objects["sslClientNameTextField"]);
+    m_sslClientRemoteHostTextField = qvariant_cast<QObject *>(objects["sslClientRemoteHostTextField"]);
+    m_sslClientRemotePortSpinBox = qvariant_cast<QObject *>(objects["sslClientRemotePortSpinBox"]);
     // tcp server
     m_tcpServerNameTextField = qvariant_cast<QObject *>(objects["tcpServerNameTextField"]);
     m_tcpServerLocalHostComboBox = qvariant_cast<QObject *>(objects["tcpServerLocalHostComboBox"]);
@@ -123,6 +127,10 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_tcpClientNameTextField->setProperty("text", "");
         m_tcpClientRemoteHostTextField->setProperty("text", "");
         m_tcpClientRemotePortSpinBox->setProperty("value", 0);
+        // ssl client
+        m_sslClientNameTextField->setProperty("text", "");
+        m_sslClientRemoteHostTextField->setProperty("text", "");
+        m_sslClientRemotePortSpinBox->setProperty("value", 0);
         // tcp server
         m_tcpServerNameTextField->setProperty("text", "");
         if (m_tcpServerLocalHostComboBox->property("count").toInt()) {
@@ -173,6 +181,15 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_tcpClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_tcpClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
                 m_tcpClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
+                m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
+                m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
+                m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+            }
+            break;
+            case SSLCLIENT: {
+                m_sslClientNameTextField->setProperty("text", portConfig["portName"].toString());
+                m_sslClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
+                m_sslClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
@@ -252,18 +269,15 @@ void PortSetting::portSettingExport() {
         case SSLCLIENT: {
             portConfig = {
                 {"portType", portType},
-                // {"portName", m_sslClientNameTextField->property("text").toString()},
-                {"portName", "ssl client"},
-                // {"remoteHost", m_sslClientRemoteHostTextField->property("text").toString()},
-                {"remoteHost", "smtp.qq.com"},
-                // {"remotePort", m_sslClientRemotePortSpinBox->property("value").toInt()},
-                {"remotePort", 465},
+                {"portName", m_sslClientNameTextField->property("text").toString()},
+                {"remoteHost", m_sslClientRemoteHostTextField->property("text").toString()},
+                {"remotePort", m_sslClientRemotePortSpinBox->property("value").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
                 {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
             };
         }
-            break;
+        break;
         case TCPSERVER: {
             portConfig = {
                 {"portType", portType},

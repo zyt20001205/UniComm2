@@ -91,6 +91,10 @@ private:
     QObject *m_tcpClientNameTextField{};
     QObject *m_tcpClientRemoteHostTextField{};
     QObject *m_tcpClientRemotePortSpinBox{};
+    // ssl client
+    QObject *m_sslClientNameTextField{};
+    QObject *m_sslClientRemoteHostTextField{};
+    QObject *m_sslClientRemotePortSpinBox{};
     // tcp server
     QObject *m_tcpServerNameTextField{};
     QObject *m_tcpServerLocalHostComboBox{};

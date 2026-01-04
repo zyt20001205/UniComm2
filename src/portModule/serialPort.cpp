@@ -191,7 +191,7 @@ QByteArray SerialPort::handleRead(const int timeout, const int length) {
     QElapsedTimer timer;
     timer.start();
     while (timer.elapsed() <= timeout) {
-        if (m_serialPort->bytesAvailable() == length) {
+        if (m_serialPort->bytesAvailable() >= length) {
             QByteArray rxData = m_serialPort->readAll();
             return rxData;
         }

@@ -207,7 +207,7 @@ QByteArray SslClient::handleRead(const int timeout, const int length) {
     QElapsedTimer timer;
     timer.start();
     while (timer.elapsed() <= timeout) {
-        if (m_sslClient->bytesAvailable() == length) {
+        if (m_sslClient->bytesAvailable() >= length) {
             QByteArray rxData = m_sslClient->readAll();
             return rxData;
         }

@@ -67,7 +67,7 @@ void LogModule::logAppend(const QString &message, const QString &level) {
         timestamp = QString("[%1] ").arg(QDateTime::currentDateTime().toString("HH:mm:ss.zzz"));
     }
     // logging
-    QString f_message = QString("%1%2").arg(timestamp, message);
+    QString f_message = QString("%1%2").arg(timestamp, message).toHtmlEscaped();
     // check level
     if (level == "info")
         f_message = QString("<span style='color:black'>%1</span>").arg(f_message);

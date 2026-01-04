@@ -277,7 +277,7 @@ QByteArray TcpServer::handleRead(const int timeout, const int length, QTcpSocket
     QElapsedTimer timer;
     timer.start();
     while (timer.elapsed() <= timeout) {
-        if (tcpServerPeer->bytesAvailable() == length) {
+        if (tcpServerPeer->bytesAvailable() >= length) {
             QByteArray rxData = tcpServerPeer->readAll();
             return rxData;
         }

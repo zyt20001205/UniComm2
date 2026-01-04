@@ -13,6 +13,7 @@ class LuaDataProcess;
 class LuaIO;
 class LuaModbusRtu;
 class LuaPort;
+class LuaSMTP;
 class LuaThread;
 
 class LuaInterpreter final : public QObject {
@@ -67,6 +68,7 @@ private:
     LuaIO *m_luaIO{};
     LuaModbusRtu *m_luaModbusRtu{};
     LuaPort *m_luaPort{};
+    LuaSMTP *m_luaSMTP{};
     LuaThread *m_luaThread{};
 };
 

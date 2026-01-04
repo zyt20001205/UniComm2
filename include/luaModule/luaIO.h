@@ -1,7 +1,6 @@
 #ifndef UNICOMM_LUAIO_H
 #define UNICOMM_LUAIO_H
 
-#include <QHash>
 #include <QObject>
 
 class QEventLoop;
