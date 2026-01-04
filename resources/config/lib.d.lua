@@ -1,5 +1,17 @@
 --- @meta
 
+--- @alias portName
+--- | string
+--- | '"_PORT_PLACEHOLDER_"'
+
+--- @alias databaseKey
+--- | string
+--- | '"_DATABASE_PLACEHOLDER_"'
+
+--- @alias datatableKey
+--- | string
+--- | '"_DATATABLE_PLACEHOLDER_"'
+
 --- @alias key
 --- | '"A"'
 --- | '"B"'
@@ -28,6 +40,40 @@
 --- | '"Y"'
 --- | '"Z"'
 
+database = {}
+--- Retrieves a list of all available database keys.
+--- @return table
+function database.list() end
+
+--- Writes data to a key in database.
+--- @param key databaseKey The key to write to.
+--- @param value string|number The value to write.
+--- @return nil
+function database.write(key, value) end
+
+--- Clears all data in database.
+function database.clear() end
+
+datatable = {}
+--- Retrieves a list of all available datatable keys.
+--- @return table
+function datatable.list() end
+
+--- Writes data to a key in datatable.
+--- @param key datatableKey The key to write to.
+--- @param value string|number The value to write.
+--- @return nil
+function datatable.write(key, value) end
+
+--- Clears a column of datatable using a key identifier.
+--- @param key? datatableKey The target column key identifier. ; when omitted or set to "all" clears all columns.
+--- @return nil
+function datatable.clear(key) end
+
+--- Exports the datatable to a CSV file.
+--- @return nil
+function datatable.export() end
+
 io = {}
 --- Logging.
 ---@param ... any
@@ -43,7 +89,7 @@ function io.speak(text) end
 
 modbusRtu = {}
 --- Reads data from multiple holding registers of a Modbus RTU device.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
@@ -52,7 +98,7 @@ modbusRtu = {}
 function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
 --- Writes data to write single register to a Modbus RTU device.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param regAddr integer The address of the register to write to.
 --- @param data string **Binary string** containing the raw data to be written.
@@ -61,7 +107,7 @@ function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, ti
 function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
 
 --- Writes data to multiple holding registers to a Modbus RTU device.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param data string **Binary string** containing the raw data to be written.
@@ -75,7 +121,7 @@ port = {}
 function port.list() end
 
 --- Opens a port connection for communication.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @return nil
 ---
 --- @usage — Open port COM3.
@@ -84,7 +130,7 @@ function port.list() end
 function port.open(name) end
 
 --- Closes a port connection.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @return nil
 ---
 --- @usage — Close port COM3.
@@ -93,7 +139,7 @@ function port.open(name) end
 function port.close(name) end
 
 --- Prints information about a port.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @return table information
 ---
 --- @usage — Print information about port COM3.
@@ -102,7 +148,7 @@ function port.close(name) end
 function port.info(name) end
 
 --- Writes data to a port.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param data string The data to write.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
 --- @return nil
@@ -117,7 +163,7 @@ function port.info(name) end
 function port.write(name, data, peerIp) end
 
 --- Reads data from a port.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
@@ -150,19 +196,19 @@ function port.read(name, timeout, length, peerIp) end
 
 smtp = {}
 --- Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
---- @param name port Target port name.
+--- @param name portName Target port name.
 ---
 function smtp.ehlo(name) end
 
 --- Send AUTH LOGIN command to authenticate with SMTP server.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param username string SMTP username/email address.
 --- @param password string SMTP password.
 ---
 function smtp.authLogin(name, username, password) end
 
 --- Send a simple email.
---- @param name port Target port name.
+--- @param name portName Target port name.
 --- @param from string
 --- @param to string
 --- @param subject string
@@ -229,47 +275,3 @@ function control.rightDoubleClick(x, y) end
 --- @param key key Key name.
 --- @return nil
 function control.keyPress(key) end
-
---modbusAscii = {}
---function modbusAscii.readHoldingRegisters() end
-
-database = {}
---- Retrieves a list of all available database keys.
---- @return table
-function database.list() end
-
---- Writes data to a key in database.
---- @param key database The key to write to.
---- @param value string|number The value to write.
---- @return nil
-function database.write(key, value) end
-
---- Clears all data in database.
-function database.clear() end
-
-datatable = {}
---- Retrieves a list of all available datatable keys.
---- @return table
-function datatable.list() end
-
---- Writes data to a key in datatable.
---- @param key datatable The key to write to.
---- @param value string|number The value to write.
---- @return nil
-function datatable.write(key, value) end
-
---- Clears a column of datatable using a key identifier.
---- @param key? datatable The target column key identifier. ; when omitted or set to "all" clears all columns.
---- @return nil
-function datatable.clear(key) end
-
---- Exports the datatable to a CSV file.
---- @return nil
-function datatable.export() end
-
-dataplot = {}
---- Appends a column from the datatable to dataplot using a key identifier
---- @param key datatable The named key of the column to append from the datatable.
---- @param position? integer 0=left Y-axis (default), 1=right Y-axis.
---- @return nil
-function dataplot.append(key, position) end
