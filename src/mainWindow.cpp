@@ -207,6 +207,11 @@ void MainWindow::quit() {
     close();
 }
 
+void MainWindow::terminate() {
+    m_askForSaving = false;
+    close();
+}
+
 void MainWindow::quitTrack(const float secondaryProgress, const QString &secondaryLog) const {
     m_quitDialog->setProperty("secondaryProgress", secondaryProgress);
     m_quitDialog->setProperty("secondaryLog", secondaryLog);

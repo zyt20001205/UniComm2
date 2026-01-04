@@ -47,6 +47,8 @@ public:
 
     Q_INVOKABLE void quit();
 
+    Q_INVOKABLE void terminate();
+
     void quitTrack(float secondaryProgress, const QString &secondaryLog) const;
 
 signals:

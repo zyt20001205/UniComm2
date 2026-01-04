@@ -72,7 +72,7 @@ Item {
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
-        // onRejected: systemModule.processTerminate()
+        onRejected: mainWindow.terminate()
 
         ColumnLayout {
             width: parent.width
