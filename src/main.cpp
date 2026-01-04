@@ -1,4 +1,4 @@
-#include "mainWindow.h"
+#include "mainWindow/mainWindow.h"
 
 #include <crashHandler.h>
 #include <QQuickStyle>

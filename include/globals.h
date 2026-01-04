@@ -3,7 +3,7 @@
 
 #include <visa.h>
 
-#include "mainWindow.h"
+#include "mainWindow/mainWindow.h"
 
 class QStandardItemModel;
 

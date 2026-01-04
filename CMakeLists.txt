@@ -32,7 +32,6 @@ endif ()
 
 qt_add_executable(UniComm ${GUI_TYPE}
         src/main.cpp
-        include/mainWindow.h
         include/configManager.h
         include/crashHandler.h
         include/dataModule/databaseModule.h
@@ -50,6 +49,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaPort.h
         include/luaModule/luaSMTP.h
         include/luaModule/luaThread.h
+        include/mainWindow/mainWindow.h
         include/portModule/basePort.h
         include/portModule/pixmapPreview.h
         include/portModule/portModule.h
@@ -91,7 +91,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/utils/cvUtils.h
         include/utils/luaUtils.h
         include/utils/qtUtils.h
-        src/mainWindow.cpp
         src/configManager.cpp
         src/crashHandler.cpp
         src/dataModule/databaseModule.cpp
@@ -109,6 +108,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaPort.cpp
         src/luaModule/luaSMTP.cpp
         src/luaModule/luaThread.cpp
+        src/mainWindow/mainWindow.cpp
         src/portModule/basePort.cpp
         src/portModule/pixmapPreview.cpp
         src/portModule/portModule.cpp
@@ -157,10 +157,10 @@ qt_add_resources(UniComm "qml_resources"
         BASE "qml"
         FILES
         "qml/logModule.qml"
-        "qml/mainWindow.qml"
         "qml/dataModule/databaseModule.qml"
         "qml/dataModule/dataplotModule.qml"
         "qml/dataModule/datatableModule.qml"
+        "qml/mainWindow/mainWindow.qml"
         "qml/portModule/portModule.qml"
         "qml/portModule/portSetting.qml"
         "qml/portModule/sendModule.qml"

@@ -1,4 +1,4 @@
-#include "mainWindow.h"
+#include "mainWindow/mainWindow.h"
 
 #include <QCameraDevice>
 #include <QCloseEvent>
@@ -551,7 +551,7 @@ void MainWindow::overlayInit() {
     m_overlay->setFormat(format);
 
     propertySet();
-    m_overlay->setSource(QUrl("qrc:/qml/mainWindow.qml"));
+    m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
     m_overlay->resize(size());
     m_overlay->show();
 }
