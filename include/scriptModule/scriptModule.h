@@ -131,10 +131,6 @@ signals:
 
     void openWorkspace();
 
-    void openScript(const QUrl &scriptUrl);
-
-    void closeScript(const QUrl &scriptUrl);
-
     void focusScript(const QUrl &scriptUrl);
 
     void insertPort();

@@ -45,8 +45,7 @@
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
-    : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent),
-      m_scriptComboBox(new QComboBox()) {
+    : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent) {
     // mainWindow ui init
     g_mainWindow = this;
     setAttribute(Qt::WA_DeleteOnClose);
@@ -247,10 +246,6 @@ void MainWindow::moduleInit() {
     g_undo = m_undoModule;
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_scriptComboBox, &QComboBox::activated, m_scriptModule, [this] {
-        const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-        m_scriptModule->scriptOpen(scriptUrl);
-    });
 
     connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
 
@@ -278,11 +273,9 @@ void MainWindow::moduleInit() {
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
-    // connect(m_datatableModule, &DatatableModule::addGraphDataPlot, m_dataplotModule, &DataplotModule::dataplotAddGraph);
-    // connect(m_datatableModule, &DatatableModule::addPointDataPlot, m_dataplotModule, &DataplotModule::dataplotAddPoint);
 
     // connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
-    
+
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
@@ -304,20 +297,6 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
-    connect(m_scriptModule, &ScriptModule::openScript, this, [this](const QUrl &scriptUrl) {
-        const QString scriptName = scriptUrl.fileName();
-        m_scriptComboBox->addItem(scriptName, scriptUrl);
-    });
-    connect(m_scriptModule, &ScriptModule::closeScript, this, [this](const QUrl &scriptUrl) {
-        if (const int index = m_scriptComboBox->findData(scriptUrl); index != -1) {
-            m_scriptComboBox->removeItem(index);
-        }
-    });
-    connect(m_scriptModule, &ScriptModule::focusScript, this, [this](const QUrl &scriptUrl) {
-        if (const int index = m_scriptComboBox->findData(scriptUrl); index != -1) {
-            m_scriptComboBox->setCurrentIndex(index);
-        }
-    });
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] { m_portModule->portInsert(-1, QJsonObject()); });
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] { m_databaseModule->databaseInsert(-1, QString()); });
@@ -506,60 +485,6 @@ void MainWindow::menuInit() {
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolBar->addWidget(spacer);
     toolBar->addSeparator();
-    // control menu
-    {
-        toolBar->addWidget(m_scriptComboBox);
-        m_scriptComboBox->setFont(QFont("Consolas", 12, QFont::Bold));
-        m_scriptComboBox->setStyleSheet("color: #333333;");
-        // load script
-        const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
-        const QJsonArray scriptList = scriptConfig["scriptList"].toArray();
-        for (const auto &value: scriptConfig["scriptList"].toArray()) {
-            const auto scriptUrl = QUrl(value.toString());
-            const QString scriptName = scriptUrl.fileName();
-            m_scriptComboBox->addItem(scriptName, scriptUrl);
-        }
-
-        auto runScript = [this] {
-            if (m_scriptModule->m_scriptPageHash.isEmpty()) {
-                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
-            } else {
-                const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                QString threadId{};
-                emit startThread(scriptUrl, LUATHREAD_RUN, threadId);
-                m_logModule->raise();
-            }
-        };
-        auto *runButton = new QToolButton(); // NOLINT
-        toolBar->addWidget(runButton);
-        runButton->setFixedSize(32, 32);
-        runButton->setIcon(QIcon(":/icon/play.svg"));
-        runButton->setToolTip(tr("Run Shift + F10"));
-        connect(runButton, &QToolButton::clicked, this, runScript);
-        const auto *runShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F10), this); // NOLINT
-        connect(runShortcut, &QShortcut::activated, this, runScript);
-
-        auto debugScript = [this] {
-            if (m_scriptModule->m_scriptPageHash.isEmpty()) {
-                QMessageBox::critical(this, tr("Error"), tr("Please open a script first."));
-            } else {
-                const QUrl scriptUrl = m_scriptComboBox->currentData().toUrl();
-                QString threadId{};
-                emit startThread(scriptUrl, LUATHREAD_DEBUG, threadId);
-                m_debugModule->raise();
-            }
-        };
-        auto *debugButton = new QToolButton(); // NOLINT
-        toolBar->addWidget(debugButton);
-        debugButton->setFixedSize(32, 32);
-        debugButton->setIcon(QIcon(":/icon/bug.svg"));
-        debugButton->setToolTip(tr("Debug Shift + F9"));
-        connect(debugButton, &QToolButton::clicked, this, debugScript);
-        const auto *debugShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F9), this); // NOLINT
-        connect(debugShortcut, &QShortcut::activated, this, debugScript);
-
-        connect(this, &MainWindow::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
-    }
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "menu initialized");

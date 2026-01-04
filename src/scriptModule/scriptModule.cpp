@@ -218,7 +218,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         }
         scriptFocus(scriptPage, true);
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
-        emit openScript(scriptUrl);
     } else {
         m_scriptPageHash[scriptUrl]->raise();
     }
@@ -785,7 +784,6 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
         const auto begin = m_scriptPageHash.begin();
         m_focusedPage = begin.value();
     }
-    emit closeScript(scriptUrl);
 }
 
 void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const {

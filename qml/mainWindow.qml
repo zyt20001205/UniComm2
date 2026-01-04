@@ -1047,6 +1047,25 @@ Item {
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
+        MenuItem {
+            text: qsTr("Run")
+            icon.source: "qrc:/icon/play.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.scriptUrl, 0)
+        }
+
+        MenuItem {
+            text: qsTr("Debug")
+            icon.source: "qrc:/icon/bug.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.scriptUrl, 1)
+        }
+
+        MenuSeparator {
+        }
+
         Menu {
             title: qsTr("Goto")
             icon.source: "qrc:/icon/arrowRight.svg"

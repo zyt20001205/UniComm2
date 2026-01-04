@@ -101,8 +101,6 @@ private:
     StructureModule *m_structureModule{};
     ThreadpoolModule *m_threadpoolModule{};
     UndoModule *m_undoModule{};
-
-    QComboBox *m_scriptComboBox{};
 };
 
 #endif //UNICOMM_MAINWINDOW_H

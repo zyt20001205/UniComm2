@@ -90,6 +90,11 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     }
 }
 
+void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode) {
+    QString threadId{};
+    threadStart(scriptUrl, mode, threadId);
+}
+
 void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QString &threadId) {
     QString relativePath = scriptPath;
     relativePath = relativePath.replace('.', '/') + ".lua";

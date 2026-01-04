@@ -21,6 +21,8 @@ public:
 
     void threadStart(const QUrl &scriptUrl, int mode, QString &threadId);
 
+    Q_INVOKABLE void threadStart(const QUrl &scriptUrl, int mode);
+
     void threadStart(const QString &scriptPath, int mode, QString &threadId);
 
     Q_INVOKABLE void threadStop(const QString &threadId);
