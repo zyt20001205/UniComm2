@@ -12,6 +12,13 @@ public:
     ~StatusModule() override;
 
     void propertySet(const QVariantMap &objects);
+
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
+    void scriptFocus(const QUrl &scriptUrl) const;
+
+private:
+    QQuickItem *m_rootItem{};
 };
 
 #endif //UNICOMM_STATUSMODULE_H

@@ -89,6 +89,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
+    // m_overlay->rootContext()->setContextProperty("statusModule", m_statusModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
     m_overlay->rootContext()->setContextProperty("scriptModule", m_scriptModule);
     // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
@@ -330,6 +331,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
+    connect(m_scriptModule, &ScriptModule::focusScript, m_statusModule, &StatusModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] { m_portModule->portInsert(-1, QJsonObject()); });
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] { m_databaseModule->databaseInsert(-1, QString()); });
@@ -526,7 +528,7 @@ void MainWindow::menuInit() {
 
 void MainWindow::layoutInit() {
     auto *statusBar = this->statusBar();
-    statusBar->addPermanentWidget(m_statusModule);
+    statusBar->addWidget(m_statusModule, 1);
 
     addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
     addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
