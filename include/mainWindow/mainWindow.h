@@ -18,6 +18,7 @@ class DiagnosticsModule;
 class ExplorerModule;
 class LogModule;
 class NuspellModule;
+class StatusModule;
 class StructureModule;
 class SystemModule;
 class ThreadpoolModule;
@@ -64,9 +65,9 @@ protected:
 private:
     void moduleInit();
 
-    void menuInit();
-
     void shortcutInit();
+
+    void menuInit();
 
     void layoutInit();
 
@@ -103,6 +104,7 @@ private:
     ScriptModule *m_scriptModule{};
     SendModule *m_sendModule{};
     SettingModule *m_settingModule{};
+    StatusModule *m_statusModule{};
     StructureModule *m_structureModule{};
     ThreadpoolModule *m_threadpoolModule{};
     UndoModule *m_undoModule{};

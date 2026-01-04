@@ -50,6 +50,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaSMTP.h
         include/luaModule/luaThread.h
         include/mainWindow/mainWindow.h
+        include/mainWindow/statusModule.h
         include/portModule/basePort.h
         include/portModule/pixmapPreview.h
         include/portModule/portModule.h
@@ -109,6 +110,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaSMTP.cpp
         src/luaModule/luaThread.cpp
         src/mainWindow/mainWindow.cpp
+        src/mainWindow/statusModule.cpp
         src/portModule/basePort.cpp
         src/portModule/pixmapPreview.cpp
         src/portModule/portModule.cpp
@@ -161,6 +163,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/dataModule/dataplotModule.qml"
         "qml/dataModule/datatableModule.qml"
         "qml/mainWindow/mainWindow.qml"
+        "qml/mainWindow/statusModule.qml"
         "qml/portModule/portModule.qml"
         "qml/portModule/portSetting.qml"
         "qml/portModule/sendModule.qml"

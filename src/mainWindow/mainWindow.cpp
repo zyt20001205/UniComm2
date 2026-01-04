@@ -13,6 +13,7 @@
 #include <QQuickWidget>
 #include <QShortcut>
 #include <QStandardPaths>
+#include <QStatusBar>
 #include <QThread>
 #include <QToolBar>
 #include <QToolButton>
@@ -30,6 +31,7 @@
 #include "dataModule/datatableModule.h"
 #include "luaModule/luaInterpreter.h"
 #include "luaModule/luaLanguageServer.h"
+#include "mainWindow/statusModule.h"
 #include "portModule/portModule.h"
 #include "portModule/sendModule.h"
 #include "scriptModule/nuspellModule.h"
@@ -164,6 +166,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_sendModule->propertySet(sendObjects);
 
+    const QVariantMap statusObjects = {
+        //
+    };
+    m_statusModule->propertySet(statusObjects);
+
     const QVariantMap structureObjects = {
         //
     };
@@ -256,6 +263,7 @@ void MainWindow::moduleInit() {
     m_scriptModule = new ScriptModule();
     m_sendModule = new SendModule();
     m_settingModule = new SettingModule(this);
+    m_statusModule = new StatusModule(this);
     m_structureModule = new StructureModule();
     m_systemModule = new SystemModule();
     m_threadpoolModule = new ThreadpoolModule();
@@ -517,6 +525,9 @@ void MainWindow::menuInit() {
 }
 
 void MainWindow::layoutInit() {
+    auto *statusBar = this->statusBar();
+    statusBar->addPermanentWidget(m_statusModule);
+
     addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
     addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
     addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
