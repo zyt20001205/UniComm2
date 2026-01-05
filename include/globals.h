@@ -141,7 +141,6 @@ enum {
 
 enum {
     SCALE,
-    GAUSSIANBLUR,
     THRESHOLD,
 };
 
