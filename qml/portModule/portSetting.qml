@@ -1314,13 +1314,13 @@ Item {
                                                     Layout.fillWidth: true
                                                     ToolTip.text: value.toFixed(0)
                                                     ToolTip.visible: hovered
-
-                                                    onMoved: thresholdTimer.restart()
                                                 }
 
                                                 Timer {
                                                     id: thresholdTimer
-                                                    interval: 50
+                                                    interval: 16 // 60Hz
+                                                    repeat: true
+                                                    running: thresholdSlider.pressed
 
                                                     onTriggered: {
                                                         thresholdItem.session.thresh = Math.round(thresholdSlider.value)
