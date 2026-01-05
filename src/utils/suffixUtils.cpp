@@ -51,17 +51,19 @@ QByteArray modbusCRC(const QByteArray &data) {
 
 QByteArray modbusLRC(const QByteArray &data) {
     if (data.isEmpty()) {
-        return QByteArray("00");
+        return {"00\r\n"};
     }
 
     quint8 lrc = 0x00;
-    for (const unsigned char byte : data) {
+    for (const unsigned char byte : QByteArray::fromHex(data)) {
         lrc += byte;
     }
     lrc = static_cast<quint8>(-lrc);
 
     QByteArray checksum;
-    checksum.reserve(2);
+    checksum.reserve(4);
     checksum.append(QString("%1").arg(lrc, 2, 16, QLatin1Char('0')).toUpper().toLatin1());
+    checksum.append('\r');
+    checksum.append('\n');
     return checksum;
 }

@@ -1,15 +1,15 @@
-#ifndef UNICOMM_LUAMODBUSRTU_H
-#define UNICOMM_LUAMODBUSRTU_H
+#ifndef UNICOMM_LUAMODBUSASCII_H
+#define UNICOMM_LUAMODBUSASCII_H
 
 #include <QObject>
 
-class LuaModbusRtu final : public QObject {
+class LuaModbusAscii final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaModbusRtu(QObject *parent = nullptr);
+    explicit LuaModbusAscii(QObject *parent = nullptr);
 
-    ~LuaModbusRtu() override = default;
+    ~LuaModbusAscii() override = default;
 
     std::string readHoldingRegisters(const std::string &portName, int slaveAddr, int startAddr, int quantity, int timeout);
 
@@ -18,4 +18,4 @@ public:
     void writeMultipleRegisters(const std::string &portName, int slaveAddr, int startAddr, const std::string_view &data, int timeout);
 };
 
-#endif //UNICOMM_LUAMODBUSRTU_H
+#endif //UNICOMM_LUAMODBUSASCII_H

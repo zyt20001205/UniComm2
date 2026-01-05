@@ -9,6 +9,7 @@
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaIO.h"
 #include "luaModule/luaPort.h"
+#include "luaModule/luaModbusAscii.h"
 #include "luaModule/luaModbusRtu.h"
 #include "luaModule/luaSmtp.h"
 #include "luaModule/luaThread.h"
@@ -21,6 +22,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_luaSession(luaSession),
       m_luaDataProcess(new LuaDataProcess(this)),
       m_luaIO(new LuaIO(this)),
+      m_luaModbusAscii(new LuaModbusAscii(this)),
       m_luaModbusRtu(new LuaModbusRtu(this)),
       m_luaPort(new LuaPort(this)),
       m_luaSMTP(new LuaSMTP(this)),
@@ -57,7 +59,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     connect(m_luaIO, &LuaIO::newMessageDialog, this, [this](const QString &text, const QEventLoop *eventloop) {
         emit newMessageDialog(m_luaSession["threadId"].toString(), text, eventloop);
     });
-    // LuaModbusRtu lib
+    // LuaModbus lib
     sol::table modbusRtu = m_lua.create_table();
     modbusRtu.set_function("readHoldingRegisters",
                            [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
@@ -72,6 +74,21 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                                m_luaModbusRtu->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                            });
     m_lua["modbusRtu"] = modbusRtu;
+
+    sol::table modbusAscii = m_lua.create_table();
+    modbusAscii.set_function("readHoldingRegisters",
+                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
+                               return m_luaModbusAscii->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                           });
+    modbusAscii.set_function("writeSingleRegister",
+                           [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                               m_luaModbusAscii->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                           });
+    modbusAscii.set_function("writeMultipleRegisters",
+                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                               m_luaModbusAscii->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                           });
+    m_lua["modbusAscii"] = modbusAscii;
     // LuaPort lib
     sol::table port = m_lua.create_table();
     port.set_function("list", [this] { return sol::as_table(m_luaPort->list()); });

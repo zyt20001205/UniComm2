@@ -11,6 +11,7 @@ class QStandardItemModel;
 
 class LuaDataProcess;
 class LuaIO;
+class LuaModbusAscii;
 class LuaModbusRtu;
 class LuaPort;
 class LuaSMTP;
@@ -66,6 +67,7 @@ private:
     QVariantMap m_luaSession{};
     LuaDataProcess *m_luaDataProcess{};
     LuaIO *m_luaIO{};
+    LuaModbusAscii *m_luaModbusAscii{};
     LuaModbusRtu *m_luaModbusRtu{};
     LuaPort *m_luaPort{};
     LuaSMTP *m_luaSMTP{};
