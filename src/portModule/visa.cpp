@@ -4,7 +4,7 @@
 
 #include "globals.h"
 #include "portModule/visa.h"
-#include "suffix.h"
+#include "utils/suffixUtils.h"
 
 // Visa public
 Visa::Visa(const QJsonObject &portConfig, QObject *parent)

@@ -5,7 +5,7 @@
 #include <QUdpSocket>
 
 #include "globals.h"
-#include "suffix.h"
+#include "utils/suffixUtils.h"
 
 // UdpSocket public
 UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)

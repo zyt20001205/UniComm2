@@ -1,8 +1,4 @@
-#include "suffix.h"
-
-QByteArray crc8Maxim(const QByteArray &data) {
-    return "";
-}
+#include "utils/suffixUtils.h"
 
 QByteArray modbusCRC(const QByteArray &data) {
     static constexpr quint16 table[256] = {
@@ -53,16 +49,19 @@ QByteArray modbusCRC(const QByteArray &data) {
     return checksum;
 }
 
-QString modbusLRC(const QString &text)
-{
-    if (text.isEmpty()) {
-        return "00";
+QByteArray modbusLRC(const QByteArray &data) {
+    if (data.isEmpty()) {
+        return QByteArray("00");
     }
 
     quint8 lrc = 0x00;
-    for (QByteArray data = QByteArray::fromHex(text.toLatin1()); const char byte : data) {
-        lrc += static_cast<quint8>(byte);
+    for (const unsigned char byte : data) {
+        lrc += byte;
     }
+    lrc = static_cast<quint8>(-lrc);
 
-    return QString("%1").arg(static_cast<quint8>(-lrc), 2, 16, QLatin1Char('0')).toUpper();
+    QByteArray checksum;
+    checksum.reserve(2);
+    checksum.append(QString("%1").arg(lrc, 2, 16, QLatin1Char('0')).toUpper().toLatin1());
+    return checksum;
 }

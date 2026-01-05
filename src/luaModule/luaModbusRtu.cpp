@@ -3,9 +3,9 @@
 #include <sol/error.hpp>
 
 #include "globals.h"
-#include "suffix.h"
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
+#include "utils/suffixUtils.h"
 
 LuaModbusRtu::LuaModbusRtu(QObject *parent)
     : QObject(parent) {
@@ -25,14 +25,13 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
     txData.append(static_cast<qint8>(startAddr & 0xFF));
     txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
     txData.append(static_cast<qint8>(quantity & 0xFF));
-    txData += modbusCRC(txData);
     bool status = false;
 
     const int length = quantity * 2 + 5;
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &timeout, &length, &rxData] {
-        status = port->write(txData, "raw", "null");
+        status = port->write(txData, "raw", "crc16 modbus");
         rxData = port->read(timeout, length, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
@@ -67,13 +66,12 @@ void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int sl
     txData.append(static_cast<qint8>(regAddr >> 8 & 0xFF));
     txData.append(static_cast<qint8>(regAddr & 0xFF));
     txData += regData;
-    txData += modbusCRC(txData);
     bool status = false;
 
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "null");
+        status = port->write(txData, "raw", "crc16 modbus");
         rxData = port->read(timeout, 8, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
@@ -115,13 +113,12 @@ void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int
     txData.append(static_cast<qint8>(regCount & 0xFF));
     txData.append(static_cast<qint8>(byteCount));
     txData += regData;
-    txData += modbusCRC(txData);
     bool status = false;
 
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "null");
+        status = port->write(txData, "raw", "crc16 modbus");
         rxData = port->read(timeout, 8, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {

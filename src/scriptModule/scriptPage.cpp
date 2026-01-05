@@ -217,7 +217,7 @@ void ScriptPage::scriptClose() {
 }
 
 void ScriptPage::scriptPosition(const int row, const int column) {
-    emit positionScript(row, column);
+    emit positionScript(row + 1, column);
 }
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {

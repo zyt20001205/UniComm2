@@ -86,12 +86,12 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/settingModule/indicatorSettingScript.h
         include/settingModule/markerSettingScript.h
         include/settingModule/settingModule.h
-        include/suffix.h
         include/undoModule.h
         include/utils/cmarkUtils.h
         include/utils/cvUtils.h
         include/utils/luaUtils.h
         include/utils/qtUtils.h
+        include/utils/suffixUtils.h
         src/configManager.cpp
         src/crashHandler.cpp
         src/dataModule/databaseModule.cpp
@@ -146,12 +146,12 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/settingModule/indicatorSettingScript.cpp
         src/settingModule/markerSettingScript.cpp
         src/settingModule/settingModule.cpp
-        src/suffix.cpp
         src/undoModule.cpp
         src/utils/cmarkUtils.cpp
         src/utils/cvUtils.cpp
         src/utils/luaUtils.cpp
         src/utils/qtUtils.cpp
+        src/utils/suffixUtils.cpp
 )
 
 qt_add_resources(UniComm "qml_resources"

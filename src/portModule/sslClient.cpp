@@ -5,7 +5,7 @@
 #include <QSslSocket>
 
 #include "globals.h"
-#include "suffix.h"
+#include "utils/suffixUtils.h"
 
 // SslClient public
 SslClient::SslClient(const QJsonObject &portConfig, QObject *parent)
