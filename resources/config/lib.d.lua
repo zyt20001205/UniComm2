@@ -40,6 +40,40 @@
 --- | '"Y"'
 --- | '"Z"'
 
+AT = {}
+--- Executes an action.
+--- @param name portName Target port name.
+--- @param command string The command to exec.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
+--- @return nil
+---
+function AT.exec(name, command, peerIp) end
+
+--- Returns the current value of the parameter(s).
+--- @param name portName Target port name.
+--- @param command string The command to read.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
+--- @return nil
+---
+function AT.read(name, command, peerIp) end
+
+--- Sets the parameter values.
+--- @param name portName Target port name.
+--- @param command string The command to set.
+--- @param value string The value to be written.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
+--- @return nil
+---
+function AT.set(name, command, value, peerIp) end
+
+--- Returns the supported parameter values or value range.
+--- @param name portName Target port name.
+--- @param command string The command to test.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
+--- @return nil
+---
+function AT.test(name, command, peerIp) end
+
 database = {}
 --- Retrieves a list of all available database keys.
 --- @return table

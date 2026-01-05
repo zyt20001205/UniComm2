@@ -40,6 +40,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/globals.h
         include/systemModule.h
         include/logModule.h
+        include/luaModule/luaAT.h
         include/luaModule/luaControl.h
         include/luaModule/luaDataProcess.h
         include/luaModule/luaInterpreter.h
@@ -101,6 +102,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/globals.cpp
         src/systemModule.cpp
         src/logModule.cpp
+        src/luaModule/luaAT.cpp
         src/luaModule/luaControl.cpp
         src/luaModule/luaDataProcess.cpp
         src/luaModule/luaInterpreter.cpp

@@ -9,6 +9,7 @@
 class QEventLoop;
 class QStandardItemModel;
 
+class LuaAT;
 class LuaDataProcess;
 class LuaIO;
 class LuaModbusAscii;
@@ -65,6 +66,7 @@ private:
 
     sol::state m_lua{};
     QVariantMap m_luaSession{};
+    LuaAT *m_luaAT{};
     LuaDataProcess *m_luaDataProcess{};
     LuaIO *m_luaIO{};
     LuaModbusAscii *m_luaModbusAscii{};

@@ -5,6 +5,7 @@
 #include <sol/sol.hpp>
 
 #include "globals.h"
+#include "luaModule/luaAT.h"
 #include "luaModule/luaControl.h"
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaIO.h"
@@ -20,6 +21,7 @@
 LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
+      m_luaAT(new LuaAT(this)),
       m_luaDataProcess(new LuaDataProcess(this)),
       m_luaIO(new LuaIO(this)),
       m_luaModbusAscii(new LuaModbusAscii(this)),
@@ -35,6 +37,21 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     const QString workspacePath = QString("%1/?.lua").arg(m_luaSession["workspaceUrl"].toUrl().toLocalFile());
     const QString new_path = QString("%1;%2").arg(QString::fromStdString(current_path), workspacePath);
     package["path"] = new_path.toStdString();
+    // LuaAT lib
+    sol::table AT = m_lua.create_table();
+    AT.set_function("exec", [this](const std::string &portName, const std::string &command, const sol::optional<std::string> &peerIp) {
+        m_luaAT->exec(portName, command, peerIp.value_or(""));
+    });
+    AT.set_function("read", [this](const std::string &portName, const std::string &command, const sol::optional<std::string> &peerIp) {
+        m_luaAT->read(portName, command, peerIp.value_or(""));
+    });
+    AT.set_function("set", [this](const std::string &portName, const std::string &command, const std::string &data, const sol::optional<std::string> &peerIp) {
+        m_luaAT->set(portName, command, data, peerIp.value_or(""));
+    });
+    AT.set_function("test", [this](const std::string &portName, const std::string &command, const sol::optional<std::string> &peerIp) {
+        m_luaAT->test(portName, command, peerIp.value_or(""));
+    });
+    m_lua["AT"] = AT;
     // LuaDataProcess lib
     sol::table database = m_lua.create_table();
     database.set_function("list", [this] { return sol::as_table(m_luaDataProcess->databaseList()); });
