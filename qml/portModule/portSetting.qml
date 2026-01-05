@@ -1110,7 +1110,7 @@ Item {
 
                                         DelegateChoice {
                                             roleValue: qsTr("Threshold")
-                                            delegate: scaleDelegate
+                                            delegate: thresholdDelegate
                                         }
                                     }
 
