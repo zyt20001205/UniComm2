@@ -645,7 +645,10 @@ Item {
                                 text: qsTr("crlf"); value: "crlf"
                             }
                             ListElement {
-                                text: qsTr("crc16 modbus"); value: "crc16 modbus"
+                                text: qsTr("modbus crc"); value: "modbus crc"
+                            }
+                            ListElement {
+                                text: qsTr("modbus lrc"); value: "modbus lrc"
                             }
                         }
                         textRole: "text"

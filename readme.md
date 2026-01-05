@@ -422,7 +422,7 @@ flowchart RL
     handleWrite --> output
 ```
 
-- example: hex & crc16 modbus
+- example: hex & modbus crc
 
 ```lua
 port.write("Actual Port", "0103 0000 0001")

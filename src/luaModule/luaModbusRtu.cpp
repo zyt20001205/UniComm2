@@ -31,7 +31,7 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &timeout, &length, &rxData] {
-        status = port->write(txData, "raw", "crc16 modbus");
+        status = port->write(txData, "raw", "modbus crc");
         rxData = port->read(timeout, length, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
@@ -71,7 +71,7 @@ void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int sl
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "crc16 modbus");
+        status = port->write(txData, "raw", "modbus crc");
         rxData = port->read(timeout, 8, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
@@ -118,7 +118,7 @@ void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "crc16 modbus");
+        status = port->write(txData, "raw", "modbus crc");
         rxData = port->read(timeout, 8, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
