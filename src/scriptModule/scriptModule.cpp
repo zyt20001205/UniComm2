@@ -185,6 +185,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         });
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
+        connect(scriptPage, &ScriptPage::positionScript, this, &ScriptModule::positionScript);
         connect(scriptPage, &ScriptPage::showMenu,this,&ScriptModule::menuShow);
         connect(scriptPage, &ScriptPage::insertMarker, this, &ScriptModule::markerInsert);
         connect(scriptPage, &ScriptPage::removeMarker, this, &ScriptModule::markerRemove);

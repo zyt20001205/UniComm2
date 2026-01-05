@@ -17,8 +17,11 @@ public:
 
     void scriptFocus(const QUrl &scriptUrl) const;
 
+    void scriptPosition(int row, int column) const;
+
 private:
     QQuickItem *m_rootItem{};
+    QObject *m_positionButton{};
 };
 
 #endif //UNICOMM_STATUSMODULE_H

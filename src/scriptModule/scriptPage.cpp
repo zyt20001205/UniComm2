@@ -107,8 +107,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scriptHash = stringHashCalc(m_editorWidget->text());
     // connect signals
     connect(m_editorWidget, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
+    connect(m_editorWidget, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(scriptPosition(int,int)));
     connect(m_editorWidget, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
-    connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) {emit showMenu(m_scriptUrl, menuSession);});
+    connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) { emit showMenu(m_scriptUrl, menuSession); });
     connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
     connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);
@@ -213,6 +214,10 @@ void ScriptPage::scriptClose() {
     emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
+}
+
+void ScriptPage::scriptPosition(const int row, const int column) {
+    emit positionScript(row, column);
 }
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {

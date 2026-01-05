@@ -133,6 +133,8 @@ signals:
 
     void focusScript(const QUrl &scriptUrl);
 
+    void positionScript(int row, int column);
+
     void insertPort();
 
     void insertDatabase();

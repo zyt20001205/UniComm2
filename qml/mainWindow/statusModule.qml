@@ -43,12 +43,12 @@ Item {
                         flat: true
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         text: breadcrumbItem.text
-                        Layout.preferredWidth: textMetrics.width + 8; Layout.preferredHeight: 20
+                        Layout.preferredWidth: breadcrumbButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                         // onClicked:
 
                         TextMetrics {
-                            id: textMetrics
+                            id: breadcrumbButtonTextMetrics
                             text: breadcrumbButton.text
                             font: breadcrumbButton.font
                         }
@@ -60,6 +60,28 @@ Item {
         Item {
             Layout.fillWidth: true
         }
+
+        Button {
+            id: positionButton
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            Layout.preferredWidth: positionButtonTextMetrics.width + 8; Layout.preferredHeight: 20
+
+            // onClicked:
+
+            TextMetrics {
+                id: positionButtonTextMetrics
+                text: positionButton.text
+                font: positionButton.font
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "positionButton": positionButton
+        };
+        statusModule.propertyGet(objects)
     }
 
     function scriptPathLoad(pathList) {

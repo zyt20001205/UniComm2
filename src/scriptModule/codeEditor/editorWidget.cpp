@@ -268,6 +268,7 @@ void EditorWidget::markerRemove(const int type, int line) {
     }
 }
 
+// EditorWidget protected
 void EditorWidget::focusOutEvent(QFocusEvent *event) {
     // clear highlight
     indicatorRemove(INDICATOR_HIGHLIGHT);

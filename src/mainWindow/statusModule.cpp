@@ -1,6 +1,7 @@
 #include "mainWindow/statusModule.h"
 
 #include <QDir>
+#include <QQmlContext>
 #include <QQuickItem>
 
 #include "globals.h"
@@ -16,12 +17,14 @@ StatusModule::~StatusModule() {
 }
 
 void StatusModule::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("statusModule", this);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/mainWindow/statusModule.qml"));
     m_rootItem = rootObject();
 }
 
 void StatusModule::propertyGet(const QVariantMap &objects) {
+    m_positionButton = qvariant_cast<QObject *>(objects["positionButton"]);
 }
 
 void StatusModule::scriptFocus(const QUrl &scriptUrl) const {
@@ -31,4 +34,8 @@ void StatusModule::scriptFocus(const QUrl &scriptUrl) const {
     const QString relativePath = workspaceDir.relativeFilePath(scriptPath);
     const QVariantList pathList = QVariant::fromValue(relativePath.split('/')).toList();
     QMetaObject::invokeMethod(m_rootItem, "scriptPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
+}
+
+void StatusModule::scriptPosition(const int row, const int column) const {
+    m_positionButton->setProperty("text", QString("%1:%2").arg(QString::number(row), QString::number(column)));
 }
