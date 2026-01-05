@@ -62,7 +62,7 @@ QByteArray modbusLRC(const QByteArray &data) {
 
     QByteArray checksum;
     checksum.reserve(4);
-    checksum.append(QString("%1").arg(lrc, 2, 16, QLatin1Char('0')).toUpper().toLatin1());
+    checksum.append(QString("%1").arg(lrc, 2, 16, QChar('0')).toUpper().toLatin1());
     checksum.append('\r');
     checksum.append('\n');
     return checksum;
