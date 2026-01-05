@@ -43,6 +43,9 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
     if (static_cast<quint8>(rxData.at(1)) != funcCode) {
         throw sol::error(portName + ": modbus rtu read holding registers function code inconsistent");
     }
+    if (static_cast<quint8>(rxData.at(2)) != quantity * 2) {
+        throw sol::error(portName + ": modbus rtu read holding registers byte count inconsistent");
+    }
     const QByteArray checksum = rxData.right(2);
     rxData.chop(2);
     if (checksum != modbusCRC(rxData)) {
