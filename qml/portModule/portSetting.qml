@@ -750,7 +750,7 @@ Item {
 
                                 Image {
                                     id: previewImage
-                                    property int currentIndex
+                                    property int currentIndex: -1
 
                                     onStatusChanged: {
                                         if (status === Image.Ready) {
@@ -1283,10 +1283,10 @@ Item {
                                                                 text: qsTr("Trunc")
                                                             }
                                                             ListElement {
-                                                                text: qsTr("Tozero")
+                                                                text: qsTr("To Zero")
                                                             }
                                                             ListElement {
-                                                                text: qsTr("Tozero Inv")
+                                                                text: qsTr("To Zero Inv")
                                                             }
                                                         }
                                                         textRole: "text"
@@ -1298,7 +1298,7 @@ Item {
 
                                                         onCurrentTextChanged: {
                                                             if (!thresholdComboBox.initialized) return
-                                                            thresholdItem.session.mode = threshold.currentIndex
+                                                            thresholdItem.session.mode = thresholdComboBox.currentIndex
                                                             const index = pipelineStandardItemModel.index(row, 0);
                                                             pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
                                                             portSetting.previewLoad(previewImage.currentIndex)
@@ -1311,13 +1311,19 @@ Item {
                                                     value: session.thresh
                                                     from: 0
                                                     to: 255
-                                                    stepSize: 1
                                                     Layout.fillWidth: true
-                                                    ToolTip.text: value
+                                                    ToolTip.text: value.toFixed(0)
                                                     ToolTip.visible: hovered
 
-                                                    onMoved: {
-                                                        thresholdItem.session.thresh = thresholdSlider.value
+                                                    onMoved: thresholdTimer.restart()
+                                                }
+
+                                                Timer {
+                                                    id: thresholdTimer
+                                                    interval: 50
+
+                                                    onTriggered: {
+                                                        thresholdItem.session.thresh = Math.round(thresholdSlider.value)
                                                         const index = pipelineStandardItemModel.index(row, 0);
                                                         pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
                                                         portSetting.previewLoad(previewImage.currentIndex)
@@ -1588,6 +1594,7 @@ Item {
                 session.ratio = 0
                 session.interpolation = 1
                 portSetting.pipelineInsert(session)
+                portSetting.previewLoad(previewImage.currentIndex)
             }
         }
 
@@ -1602,6 +1609,7 @@ Item {
                 session.thresh = 128
                 session.mode = 0
                 portSetting.pipelineInsert(session)
+                portSetting.previewLoad(previewImage.currentIndex)
             }
         }
     }

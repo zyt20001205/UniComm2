@@ -78,38 +78,28 @@ QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline) {
             default: break;
         }
     }
-    const QImage processedImage(intermediate.data, intermediate.cols, intermediate.rows, intermediate.step, image.format());
+    const QImage::Format format = intermediate.channels() == 1 ? QImage::Format_Grayscale8 : image.format();
+    const QImage processedImage(intermediate.data, intermediate.cols, intermediate.rows, intermediate.step, format);
     return QPixmap::fromImage(processedImage.copy());
 }
 
 cv::Mat scale(const cv::Mat &input, const float ratio, const int interpolation) {
     const int newWidth = static_cast<int>(input.cols * ratio);
     const int newHeight = static_cast<int>(input.rows * ratio);
-    cv::Mat output;
+    cv::Mat output{};
     cv::resize(input, output, cv::Size(newWidth, newHeight), 0, 0, interpolation);
     return output;
 }
 
 cv::Mat threshold(const cv::Mat &input, const int thresh, const int mode) {
-}
+    cv::Mat output{};
+    if (input.channels() != 1) {
+        cv::Mat gray{};
+        cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
+        cv::threshold(gray, output, thresh, 255, mode);
+    } else {
+        cv::threshold(input, output, thresh, 255, mode);
+    }
 
-// QPixmap processThreshold(const QPixmap &pixmap, const int thresh, const int type) {
-//     QImage image = pixmap.toImage();
-//     const cv::Mat cvImg(image.height(), image.width(),
-//                         image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-//                         image.bits(),
-//                         image.bytesPerLine());
-//     cv::Mat processed;
-//     cv::Mat gray;
-//     cv::cvtColor(cvImg, gray, cv::COLOR_BGRA2GRAY);
-//     cv::threshold(gray, processed, thresh, 255, type);
-//     cv::cvtColor(processed, processed, cv::COLOR_GRAY2BGRA);
-//     const QImage result(
-//         processed.data,
-//         processed.cols,
-//         processed.rows,
-//         processed.step,
-//         image.format()
-//     );
-//     return QPixmap::fromImage(result.copy());
-// }
+    return output;
+}
