@@ -1297,7 +1297,7 @@ Item {
                                                         }
 
                                                         onCurrentTextChanged: {
-                                                            if (!threshold.initialized) return
+                                                            if (!thresholdComboBox.initialized) return
                                                             thresholdItem.session.mode = threshold.currentIndex
                                                             const index = pipelineStandardItemModel.index(row, 0);
                                                             pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
@@ -1312,7 +1312,6 @@ Item {
                                                     from: 0
                                                     to: 255
                                                     stepSize: 1
-                                                    snapMode: Slider.SnapOnRelease
                                                     Layout.fillWidth: true
                                                     ToolTip.text: value
                                                     ToolTip.visible: hovered
