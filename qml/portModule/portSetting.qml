@@ -745,16 +745,41 @@ Item {
                             // preview
                             Popup {
                                 id: previewPopup
+                                closePolicy: Popup.NoAutoClose
                                 padding: 0
 
                                 Image {
                                     id: previewImage
+                                    property int currentIndex
 
                                     onStatusChanged: {
                                         if (status === Image.Ready) {
                                             previewPopup.width = implicitWidth + 30
                                             previewPopup.height = implicitHeight + 30
                                         }
+                                    }
+                                }
+
+                                TapHandler {
+                                    acceptedButtons: Qt.RightButton
+
+                                    onTapped: previewPopup.close()
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    preventStealing: true
+                                    property real lastX
+                                    property real lastY
+
+                                    onPressed: (mouse) => {
+                                        lastX = mouse.x
+                                        lastY = mouse.y
+                                    }
+
+                                    onPositionChanged: (mouse) => {
+                                        previewPopup.x += mouse.x - lastX
+                                        previewPopup.y += mouse.y - lastY
                                     }
                                 }
                             }
@@ -986,13 +1011,12 @@ Item {
                                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
                                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                                 icon.source: "qrc:/icon/add.svg"
+                                flat: true
                                 icon.width: 24; icon.height: 24
                                 ToolTip.text: qsTr("Add Pipeline")
                                 ToolTip.visible: hovered
-                                flat: true
-                                onClicked: {
-                                    pipelineDialog.open()
-                                }
+
+                                onClicked: pipelineMenu.popup()
                             }
                         }
 
@@ -1076,38 +1100,240 @@ Item {
                                     rowSpacing: 1
                                     model: pipelineStandardItemModel
                                     contentWidth: width
-                                    delegate: ItemDelegate {
-                                        implicitWidth: parent.width; implicitHeight: 32
-                                        text: model.display
-                                        font.pixelSize: 16
-                                        background: Rectangle {
-                                            color: "white"
+                                    delegate: DelegateChooser {
+                                        role: "display"
+
+                                        DelegateChoice {
+                                            roleValue: qsTr("Scale")
+                                            delegate: scaleDelegate
                                         }
 
-                                        Rectangle {
-                                            id: highlightRect
-                                            anchors.fill: parent
-                                            radius: 2
-                                            color: "#f5f5f5"
-                                            opacity: hoverHandler.hovered ? 1 : 0
-                                            Behavior on opacity {
-                                                NumberAnimation {
-                                                    duration: 150
+                                        DelegateChoice {
+                                            roleValue: qsTr("Threshold")
+                                            delegate: scaleDelegate
+                                        }
+                                    }
+
+                                    Component {
+                                        id: scaleDelegate
+
+                                        ItemDelegate {
+                                            id: scaleItem
+                                            implicitWidth: parent.width; implicitHeight: 80
+                                            property var session: model.whatsThis
+                                            background: Rectangle {
+                                                color: "white"
+                                            }
+                                            contentItem: ColumnLayout {
+                                                anchors.fill: parent
+                                                anchors.leftMargin: 10
+
+                                                RowLayout {
+
+                                                    Label {
+                                                        font.pixelSize: 16
+                                                        text: model.display
+                                                        Layout.fillWidth: true
+                                                    }
+
+                                                    ComboBox {
+                                                        id: scaleComboBox
+                                                        currentIndex: session.interpolation
+                                                        model: ListModel {
+                                                            ListElement {
+                                                                text: qsTr("Nearest")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Linear")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Cubic")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Area")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Lanczos4")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Linear Exact")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Nearest Exact")
+                                                            }
+                                                        }
+                                                        textRole: "text"
+                                                        property bool initialized: false
+
+                                                        Component.onCompleted: {
+                                                            initialized = true
+                                                        }
+
+                                                        onCurrentTextChanged: {
+                                                            if (!scaleComboBox.initialized) return
+                                                            scaleItem.session.interpolation = scaleComboBox.currentIndex
+                                                            const index = pipelineStandardItemModel.index(row, 0);
+                                                            pipelineStandardItemModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
+                                                            portSetting.previewLoad(previewImage.currentIndex)
+                                                        }
+                                                    }
+                                                }
+
+                                                Slider {
+                                                    id: scaleSlider
+                                                    value: session.ratio
+                                                    from: -5
+                                                    to: 5
+                                                    stepSize: 1
+                                                    snapMode: Slider.SnapOnRelease
+                                                    Layout.fillWidth: true
+                                                    ToolTip.text: "x" + ratio.toString()
+                                                    ToolTip.visible: hovered
+                                                    property real ratio: 1
+
+                                                    onMoved: {
+                                                        switch (value) {
+                                                            case -5:
+                                                                ratio = 0.1
+                                                                break
+                                                            case -4:
+                                                                ratio = 0.25
+                                                                break
+                                                            case -3:
+                                                                ratio = 0.3
+                                                                break
+                                                            case -2:
+                                                                ratio = 0.5
+                                                                break
+                                                            case -1:
+                                                                ratio = 0.75
+                                                                break
+                                                            case 0:
+                                                                ratio = 1
+                                                                break
+                                                            case 1:
+                                                                ratio = 1.5
+                                                                break
+                                                            case 2:
+                                                                ratio = 2
+                                                                break
+                                                            case 3:
+                                                                ratio = 3
+                                                                break
+                                                            case 4:
+                                                                ratio = 5
+                                                                break
+                                                            case 5:
+                                                                ratio = 10
+                                                                break
+                                                        }
+                                                        scaleItem.session.ratio = scaleSlider.value
+                                                        const index = pipelineStandardItemModel.index(row, 0);
+                                                        pipelineStandardItemModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
+                                                        portSetting.previewLoad(previewImage.currentIndex)
+                                                    }
+                                                }
+                                            }
+
+                                            TapHandler {
+                                                acceptedButtons: Qt.RightButton
+                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                onSingleTapped: {
+                                                    pipelineMenu.pipelineIndex = model.row
+                                                    pipelineMenu.popup()
                                                 }
                                             }
                                         }
+                                    }
 
-                                        HoverHandler {
-                                            id: hoverHandler
-                                        }
+                                    Component {
+                                        id: thresholdDelegate
 
-                                        TapHandler {
-                                            acceptedButtons: Qt.RightButton
-                                            gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+                                        ItemDelegate {
+                                            id: thresholdItem
+                                            implicitWidth: parent.width; implicitHeight: 80
+                                            property var session: model.whatsThis
+                                            background: Rectangle {
+                                                color: "white"
+                                            }
+                                            contentItem: ColumnLayout {
+                                                anchors.fill: parent
+                                                anchors.leftMargin: 10
 
-                                            onSingleTapped: {
-                                                pipelineMenu.pipelineIndex = model.row
-                                                pipelineMenu.popup()
+                                                RowLayout {
+
+                                                    Label {
+                                                        font.pixelSize: 16
+                                                        text: model.display
+                                                        Layout.fillWidth: true
+                                                    }
+
+                                                    ComboBox {
+                                                        id: thresholdComboBox
+                                                        currentIndex: session.mode
+                                                        model: ListModel {
+                                                            ListElement {
+                                                                text: qsTr("Binary")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Binary Inv")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Trunc")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Tozero")
+                                                            }
+                                                            ListElement {
+                                                                text: qsTr("Tozero Inv")
+                                                            }
+                                                        }
+                                                        textRole: "text"
+                                                        property bool initialized: false
+
+                                                        Component.onCompleted: {
+                                                            initialized = true
+                                                        }
+
+                                                        onCurrentTextChanged: {
+                                                            if (!threshold.initialized) return
+                                                            thresholdItem.session.mode = threshold.currentIndex
+                                                            const index = pipelineStandardItemModel.index(row, 0);
+                                                            pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
+                                                            portSetting.previewLoad(previewImage.currentIndex)
+                                                        }
+                                                    }
+                                                }
+
+                                                Slider {
+                                                    id: thresholdSlider
+                                                    value: session.thresh
+                                                    from: 0
+                                                    to: 255
+                                                    stepSize: 1
+                                                    snapMode: Slider.SnapOnRelease
+                                                    Layout.fillWidth: true
+                                                    ToolTip.text: value
+                                                    ToolTip.visible: hovered
+
+                                                    onMoved: {
+                                                        thresholdItem.session.thresh = thresholdSlider.value
+                                                        const index = pipelineStandardItemModel.index(row, 0);
+                                                        pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
+                                                        portSetting.previewLoad(previewImage.currentIndex)
+                                                    }
+                                                }
+                                            }
+
+                                            TapHandler {
+                                                acceptedButtons: Qt.RightButton
+                                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                                onSingleTapped: {
+                                                    pipelineMenu.pipelineIndex = model.row
+                                                    pipelineMenu.popup()
+                                                }
                                             }
                                         }
                                     }
@@ -1135,7 +1361,7 @@ Item {
                         }
 
                         Item {
-                            Layout.fillWidth: true; Layout.preferredHeight: 100
+                            Layout.fillWidth: true; Layout.preferredHeight: 300
 
                             Item {
                                 anchors.fill: parent
@@ -1349,135 +1575,35 @@ Item {
     }
 
     // pipeline
-    Dialog {
-        id: pipelineDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 600
-        modal: true
-        title: qsTr("Image Pipeline")
-        standardButtons: Dialog.Ok
-        // scale
-        property int interpolation: 1
+    Menu {
+        id: pipelineMenu
 
-        ColumnLayout {
-            width: parent.width
+        MenuItem {
+            text: qsTr("Scale")
+            icon.source: "qrc:/icon/resize.svg"
+            icon.width: 16; icon.height: 16
 
-            ComboBox {
-                id: typeComboBox
-                model: ListModel {
-                    ListElement {
-                        text: qsTr("Scale")
-                    }
-                    ListElement {
-                        text: qsTr("Threshold")
-                    }
-                }
-                textRole: "text"
-                Layout.fillWidth: true
-            }
-
-            StackLayout {
-                currentIndex: typeComboBox.currentIndex
-
-                // scale
-                RowLayout {
-
-                    Slider {
-                        id: ratioSlider
-                        value: 0
-                        from: -5
-                        to: 5
-                        stepSize: 1
-                        snapMode: Slider.SnapOnRelease
-                        Layout.fillWidth: true
-                        ToolTip.text: "x" + ratio.toString()
-                        ToolTip.visible: hovered
-                        property real ratio: 1
-
-                        onMoved: {
-                            switch (value) {
-                                case -5:
-                                    ratio = 0.1
-                                    break
-                                case -4:
-                                    ratio = 0.25
-                                    break
-                                case -3:
-                                    ratio = 0.3
-                                    break
-                                case -2:
-                                    ratio = 0.5
-                                    break
-                                case -1:
-                                    ratio = 0.75
-                                    break
-                                case 0:
-                                    ratio = 1
-                                    break
-                                case 1:
-                                    ratio = 1.5
-                                    break
-                                case 2:
-                                    ratio = 2
-                                    break
-                                case 3:
-                                    ratio = 3
-                                    break
-                                case 4:
-                                    ratio = 5
-                                    break
-                                case 5:
-                                    ratio = 10
-                                    break
-                            }
-                        }
-                    }
-
-                    ComboBox {
-                        id: interpolationComboBox
-                        currentIndex: 1
-                        model: ListModel {
-                            ListElement {
-                                text: qsTr("Nearest")
-                            }
-                            ListElement {
-                                text: qsTr("Linear")
-                            }
-                            ListElement {
-                                text: qsTr("Cubic")
-                            }
-                            ListElement {
-                                text: qsTr("Area")
-                            }
-                            ListElement {
-                                text: qsTr("Lanczos4")
-                            }
-                            ListElement {
-                                text: qsTr("Linear Exact")
-                            }
-                            ListElement {
-                                text: qsTr("Nearest Exact")
-                            }
-                        }
-                        textRole: "text"
-                    }
-                }
+            onTriggered: {
+                let session = {}
+                session.type = 0
+                session.ratio = 0
+                session.interpolation = 1
+                portSetting.pipelineInsert(session)
             }
         }
 
-        onAccepted: {
-            let type = typeComboBox.currentIndex
-            let session = {}
-            session.type = type
-            switch (type) {
-                case 0: {
-                    session.ratio = ratioSlider.ratio
-                    session.interpolation = interpolationComboBox.currentIndex
-                }
-                    break
+        MenuItem {
+            text: qsTr("Threshold")
+            icon.source: "qrc:/icon/contrast.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                let session = {}
+                session.type = 1
+                session.thresh = 128
+                session.mode = 0
+                portSetting.pipelineInsert(session)
             }
-            portSetting.pipelineInsert(session)
         }
     }
 

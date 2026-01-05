@@ -391,6 +391,7 @@ void PortSetting::previewLoad(const int index) const {
     }
     m_imageProvider->preview(m_videoSink, roi, pipeline);
     m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+    m_previewImage->setProperty("currentIndex", index);
 }
 
 void PortSetting::roiInsert(const int x, const int y, const int w, const int h) const {
@@ -418,6 +419,12 @@ void PortSetting::pipelineInsert(const QVariantHash &session) const {
     switch (type) {
         case SCALE: {
             auto *item = new QStandardItem(tr("Scale")); // NOLINT
+            m_pipelineStandardItemModel->appendRow(item);
+            item->setData(session, Qt::WhatsThisRole);
+        }
+        break;
+        case THRESHOLD: {
+            auto *item = new QStandardItem(tr("Threshold")); // NOLINT
             m_pipelineStandardItemModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }
