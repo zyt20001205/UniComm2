@@ -31,6 +31,17 @@ int main(int argc, char *argv[]) {
             border-bottom: 2px solid #0f548c;
             color: #000000;
         }
+        QTabBar::close-button {
+            border-radius: 4px;
+            margin: 2px;
+            image: url(:/icon/close.svg);
+        }
+        QTabBar::close-button:hover {
+            background-color: #e0e0e0;
+        }
+        QTabBar::close-button:pressed {
+            background-color: #d0d0d0;
+        }
     )");
     QQuickStyle::setStyle("FluentWinUI3");
     // kddw init
