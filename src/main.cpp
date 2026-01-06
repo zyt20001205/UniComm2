@@ -19,19 +19,17 @@ int main(int argc, char *argv[]) {
             background-color: #ffffff;
         }
         QTabBar::tab {
-            background: #ffffff;
+            background: transparent;
             border: none;
             padding: 6px 12px;
             color: #606060;
         }
         QTabBar::tab:hover {
-            background-color: #ffffff;
             border-bottom: 2px solid #cccccc;
             border-top-left-radius: 4px;
             border-top-right-radius: 4px;
         }
         QTabBar::tab:selected {
-            background-color: #ffffff;
             color: #000000;
             border-bottom: 2px solid #0f548c;
             border-top-left-radius: 4px;
