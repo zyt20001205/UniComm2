@@ -118,14 +118,13 @@ QByteArray VideoStream::read(const int timeout, const int length, const QString 
     }
     const auto rawFrame = m_videoSink->videoFrame();
     const auto rawImage = rawFrame.toImage();
-    const auto rawPixmap = QPixmap::fromImage(rawImage);
-    if (rawPixmap.isNull()) return {};
+    if (rawImage.isNull()) return {};
 
     QStringList resultList{};
     for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
         QJsonArray roi = value.toArray();
         const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
-        const QPixmap cropped = rawPixmap.copy(rect);
+        const auto cropped = QPixmap::fromImage(rawImage.copy(rect));
         const QPixmap processed = processPipeline(cropped, m_portConfig["pipeline"].toArray());
 
         // for testing

@@ -562,11 +562,10 @@ QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize
     return m_preview;
 }
 
-void ImageProvider::preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
+void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
     const auto videoFrame = videoSink->videoFrame();
     const auto image = videoFrame.toImage();
-    const auto pixmap = QPixmap::fromImage(image);
     const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
-    const QPixmap cropped = pixmap.copy(rect);
+    const auto cropped = QPixmap::fromImage(image.copy(rect));
     m_preview = processPipeline(cropped, pipeline);
 }
