@@ -51,6 +51,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaPort.h
         include/luaModule/luaSMTP.h
         include/luaModule/luaThread.h
+        include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/statusModule.h
         include/portModule/basePort.h
@@ -113,6 +114,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaPort.cpp
         src/luaModule/luaSMTP.cpp
         src/luaModule/luaThread.cpp
+        src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/statusModule.cpp
         src/portModule/basePort.cpp

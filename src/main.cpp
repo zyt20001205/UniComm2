@@ -6,6 +6,7 @@
 #include <kddockwidgets/Config.h>
 
 #include "configManager.h"
+#include "mainWindow/kddwCustom.h"
 
 int main(int argc, char *argv[]) {
     // crash handler init
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_AlwaysShowTabs;
     flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
-    KDDockWidgets::Config::self().setSeparatorThickness(5);
+    KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory());
     // config init
     if (ConfigManager::mainConfigLoad()) return 1;
     auto *mainWindow = new MainWindow();
