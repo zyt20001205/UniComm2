@@ -1027,7 +1027,7 @@ Item {
                                     }
 
                                     Image {
-                                        source: "qrc:/icon/squareHint.svg"
+                                        source: "qrc:/icon/rectangle.svg"
                                         Layout.alignment: Qt.AlignVCenter
                                     }
                                 }

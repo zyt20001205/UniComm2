@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_AlwaysShowTabs;
     flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
+    KDDockWidgets::Config::self().setSeparatorThickness(5);
     // config init
     if (ConfigManager::mainConfigLoad()) return 1;
     auto *mainWindow = new MainWindow();
