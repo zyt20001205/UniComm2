@@ -1,15 +1,17 @@
 #include "mainWindow/kddwCustom.h"
 
-#include <kddockwidgets/core/Separator.h>
+#include <QPainter>
 
 MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent)
     : Separator(controller, parent)
 {
-    if (controller->isVertical()) {
-        View::setFixedWidth(2);
-    } else {
-        View::setFixedHeight(2);
-    }
+
+}
+
+void MySeparator::paintEvent(QPaintEvent *event)
+{
+    QPainter p(this);
+    p.fillRect(QWidget::rect(), "#CCCCCC");
 }
 
 KDDockWidgets::Core::View *

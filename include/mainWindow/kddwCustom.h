@@ -9,6 +9,9 @@ public:
     explicit MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent);
 
     ~MySeparator() override = default;
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
 };
 
 class CustomWidgetFactory final : public KDDockWidgets::QtWidgets::ViewFactory {
