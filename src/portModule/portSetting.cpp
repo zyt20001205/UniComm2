@@ -396,7 +396,6 @@ void PortSetting::previewLoad(const int index) const {
 }
 
 void PortSetting::roiInsert(const QVariantList &roi) const {
-    qDebug() << roi;
     QString text{};
     if (roi.length() == 4) {
         const int x = roi[0].toInt();
@@ -405,7 +404,7 @@ void PortSetting::roiInsert(const QVariantList &roi) const {
         const int h = roi[3].toInt();
         text = QString::number(x) + " " + QString::number(y) + " " + QString::number(w) + " " + QString::number(h);
     } else if (roi.length() == 8) {
-
+        text = "Quadrilateral";
     }
     auto *item = new QStandardItem(text); // NOLINT
     m_roiStandardItemModel->appendRow(item);
@@ -575,7 +574,10 @@ QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize
 void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
     const auto videoFrame = videoSink->videoFrame();
     const auto image = videoFrame.toImage();
-    const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
-    const auto cropped = QPixmap::fromImage(image.copy(rect));
+    QPixmap cropped{};
+    if (roi.size() == 4) {
+        const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
+        cropped = QPixmap::fromImage(image.copy(rect));
+    }
     m_preview = processPipeline(cropped, pipeline);
 }
