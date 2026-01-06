@@ -551,11 +551,11 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     m_whitelistTextField->setProperty("text", "");
     if (!portConfig.isEmpty()) {
         // roi
-        for (const QJsonValue &value: portConfig["roi"].toArray()) {
+        for (const auto &value: portConfig["roi"].toArray()) {
             QJsonArray roi = value.toArray();
             roiInsert(roi.toVariantList());
         }
-        for (const QJsonValue &value: portConfig["pipeline"].toArray()) {
+        for (const auto &value: portConfig["pipeline"].toArray()) {
             QVariantHash session = value.toObject().toVariantHash();
             pipelineInsert(session);
         }
