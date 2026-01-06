@@ -21,19 +21,15 @@ int main(int argc, char *argv[]) {
         QTabBar::tab {
             background: transparent;
             border: none;
-            padding: 6px 12px;
             color: #606060;
+            padding: 6px 12px;
         }
         QTabBar::tab:hover {
             border-bottom: 2px solid #cccccc;
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
         }
         QTabBar::tab:selected {
-            color: #000000;
             border-bottom: 2px solid #0f548c;
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
+            color: #000000;
         }
     )");
     QQuickStyle::setStyle("FluentWinUI3");
