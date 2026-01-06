@@ -2,6 +2,7 @@ import QtMultimedia
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Shapes
 
 Item {
     id: rootItem
@@ -1697,6 +1698,71 @@ Item {
         }
     }
 
+    Component {
+        id: indicatorQuadComponent
+
+        Shape {
+            id: indicatorQuadShape
+            property int x0
+            property int y0
+            property int x1
+            property int y1
+            property int x2
+            property int y2
+            property int x3
+            property int y3
+            property int index
+
+            ShapePath {
+                strokeColor: "#0078d4"
+                strokeWidth: 1
+                fillColor: "#80a9d3f2"
+                startX: x0; startY: y0
+
+                PathLine {
+                    x: x1; y: y1
+                }
+                PathLine {
+                    x: x2; y: y2
+                }
+                PathLine {
+                    x: x3; y: y3
+                }
+                PathLine {
+                    x: x0; y: y0
+                }
+
+                // Label {
+                //     text: index.toString()
+                //     font.bold: true
+                //     font.pixelSize: 20
+                //     background: Rectangle {
+                //         color: "#0078d4"
+                //     }
+                // }
+            }
+
+            Item {
+                x: indicatorQuadShape.boundingRect.x
+                y: indicatorQuadShape.boundingRect.y
+                width: indicatorQuadShape.boundingRect.width
+                height: indicatorQuadShape.boundingRect.height
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+
+                    onTapped: {
+                        const pos = mapToItem(previewPopup.parent, width, 0)
+                        previewPopup.x = pos.x
+                        previewPopup.y = pos.y
+                        previewImage.currentIndex = index
+                        previewPopup.open()
+                    }
+                }
+            }
+        }
+    }
+
     function indicatorReload() {
         for (let i = 0; i < videoOutput.indicatorList.length; ++i) {
             videoOutput.indicatorList[i].destroy()
@@ -1704,15 +1770,28 @@ Item {
         videoOutput.indicatorList = []
         for (let row = 0; row < roiStandardItemModel.rowCount(); ++row) {
             const index = roiStandardItemModel.index(row, 0)
-            const position = roiStandardItemModel.data(index, Qt.WhatsThisRole)
+            const roi = roiStandardItemModel.data(index, Qt.WhatsThisRole)
             var indicator
-            if (position.length === 4) {
+            if (roi.length === 4) {
                 // rect roi
                 indicator = indicatorRectComponent.createObject(videoOutput, {
-                    x: position[0],
-                    y: position[1],
-                    width: position[2],
-                    height: position[3],
+                    x: roi[0],
+                    y: roi[1],
+                    width: roi[2],
+                    height: roi[3],
+                    index: row
+                });
+            } else if (roi.length === 8) {
+                // quad roi
+                indicator = indicatorQuadComponent.createObject(videoOutput, {
+                    x0: roi[0],
+                    y0: roi[1],
+                    x1: roi[2],
+                    y1: roi[3],
+                    x2: roi[4],
+                    y2: roi[5],
+                    x3: roi[6],
+                    y3: roi[7],
                     index: row
                 });
             }

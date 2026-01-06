@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
+#include <QPainter>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QScreenCapture>
@@ -578,6 +579,33 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
     if (roi.size() == 4) {
         const auto rect = QRect(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
         cropped = QPixmap::fromImage(image.copy(rect));
+    } else if (roi.size() == 8) {
+        // src poly
+        QPolygon src({
+        QPoint(roi[0].toInt(), roi[1].toInt()),
+            QPoint(roi[2].toInt(), roi[3].toInt()),
+            QPoint(roi[4].toInt(), roi[5].toInt()),
+            QPoint(roi[6].toInt(), roi[7].toInt())
+        });
+        // dst poly
+        const int w = qRound(qMax(QLineF(src[0], src[1]).length(), QLineF(src[2], src[3]).length()));
+        const int h = qRound(qMax(QLineF(src[0], src[3]).length(), QLineF(src[1], src[2]).length()));
+        const QPolygon dst({
+            QPoint(0, 0),
+            QPoint(w, 0),
+            QPoint(w, h),
+            QPoint(0, h)
+        });
+        // perform transform
+        QTransform transform;
+        QTransform::quadToQuad(src, dst, transform);
+        QImage result(w, h, image.format());
+        QPainter painter(&result);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setRenderHint(QPainter::SmoothPixmapTransform);
+        painter.setTransform(transform);
+        painter.drawImage(0, 0, image);
+        cropped = QPixmap::fromImage(result);
     }
     m_preview = processPipeline(cropped, pipeline);
 }
