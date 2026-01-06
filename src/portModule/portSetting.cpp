@@ -395,11 +395,21 @@ void PortSetting::previewLoad(const int index) const {
     m_previewImage->setProperty("currentIndex", index);
 }
 
-void PortSetting::roiInsert(const int x, const int y, const int w, const int h) const {
-    auto *item = new QStandardItem(QString::number(x) + " " + QString::number(y) + " " + QString::number(w) + " " + QString::number(h)); // NOLINT
-    const QVariantList position = {x, y, w, h};
+void PortSetting::roiInsert(const QVariantList &roi) const {
+    qDebug() << roi;
+    QString text{};
+    if (roi.length() == 4) {
+        const int x = roi[0].toInt();
+        const int y = roi[1].toInt();
+        const int w = roi[2].toInt();
+        const int h = roi[3].toInt();
+        text = QString::number(x) + " " + QString::number(y) + " " + QString::number(w) + " " + QString::number(h);
+    } else if (roi.length() == 8) {
+
+    }
+    auto *item = new QStandardItem(text); // NOLINT
     m_roiStandardItemModel->appendRow(item);
-    item->setData(position, Qt::WhatsThisRole);
+    item->setData(roi, Qt::WhatsThisRole);
     QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
 }
 
@@ -537,7 +547,7 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
         // roi
         for (const QJsonValue &value: portConfig["roi"].toArray()) {
             QJsonArray roi = value.toArray();
-            roiInsert(roi[0].toInt(), roi[1].toInt(), roi[2].toInt(), roi[3].toInt());
+            roiInsert(roi.toVariantList());
         }
         for (const QJsonValue &value: portConfig["pipeline"].toArray()) {
             QVariantHash session = value.toObject().toVariantHash();

@@ -701,44 +701,67 @@ Item {
                             }
 
                             Rectangle {
-                                id: captureSelection
+                                id: roiSelection
                                 anchors.fill: videoOutput
                                 color: "white"
                                 opacity: 0.5
                                 visible: false
-                                property bool roi: false
-                                property point anchorLT
-                                property point anchorRB
+                                property int step: 0
+                                property var roiList: []
 
                                 TapHandler {
                                     acceptedButtons: Qt.LeftButton
-                                    enabled: captureSelection.visible
+                                    enabled: roiSelection.visible
 
                                     onTapped: (eventPoint) => {
                                         const position = eventPoint.position;
-                                        if (!captureSelection.roi) {
-                                            captureSelection.anchorLT = position
-                                            captureSelection.roi = true
-                                            hintLabel.text = qsTr("Select second anchor")
-                                        } else {
-                                            captureSelection.anchorRB = position
-                                            captureSelection.roi = false
-                                            captureSelection.visible = false
-                                            let ix = Math.round(Math.min(captureSelection.anchorLT.x, captureSelection.anchorRB.x))
-                                            let iy = Math.round(Math.min(captureSelection.anchorLT.y, captureSelection.anchorRB.y))
-                                            let iw = Math.abs(captureSelection.anchorRB.x - captureSelection.anchorLT.x)
-                                            let ih = Math.abs(captureSelection.anchorRB.y - captureSelection.anchorLT.y)
-                                            portSetting.roiInsert(ix, iy, iw, ih)
-                                            hintLabel.text = qsTr("")
-                                        }
+                                        roiSelection.roiRecord(position)
                                     }
                                 }
 
                                 TapHandler {
                                     acceptedButtons: Qt.RightButton
-                                    enabled: captureSelection.visible
+                                    enabled: roiSelection.visible
 
-                                    onTapped: captureSelection.visible = false
+                                    onTapped: roiSelection.roiStop()
+                                }
+
+                                function roiRecord(position) {
+                                    roiList.push(position)
+                                    hintLabel.text = qsTr("Select " + roiList.length + "/" + step)
+                                    if (roiList.length === step) {
+                                        if (step === 2) {
+                                            let ix = Math.round(Math.min(roiList[0].x, roiList[1].x))
+                                            let iy = Math.round(Math.min(roiList[0].y, roiList[1].y))
+                                            let iw = Math.round(Math.abs(roiList[1].x - roiList[0].x))
+                                            let ih = Math.round(Math.abs(roiList[1].y - roiList[0].y))
+                                            portSetting.roiInsert([ix, iy, iw, ih])
+                                        } else if (step === 4) {
+                                            let ix0 = Math.round(roiList[0].x)
+                                            let iy0 = Math.round(roiList[0].y)
+                                            let ix1 = Math.round(roiList[1].x)
+                                            let iy1 = Math.round(roiList[1].y)
+                                            let ix2 = Math.round(roiList[2].x)
+                                            let iy2 = Math.round(roiList[2].y)
+                                            let ix3 = Math.round(roiList[3].x)
+                                            let iy3 = Math.round(roiList[3].y)
+                                            portSetting.roiInsert([ix0, iy0, ix1, iy1, ix2, iy2, ix3, iy3])
+                                        }
+                                        roiSelection.roiStop()
+                                    }
+                                }
+
+                                function roiStart(step) {
+                                    roiSelection.visible = true
+                                    roiSelection.step = step
+                                    hintLabel.text = qsTr("Select 0/" + step)
+                                }
+
+                                function roiStop() {
+                                    roiSelection.visible = false
+                                    roiSelection.step = 0
+                                    roiSelection.roiList = []
+                                    hintLabel.text = ""
                                 }
                             }
 
@@ -782,6 +805,14 @@ Item {
                                         previewPopup.y += mouse.y - lastY
                                     }
                                 }
+
+                                Timer {
+                                    interval: 16 // 60Hz
+                                    repeat: true
+                                    running: previewPopup.visible
+
+                                    onTriggered: portSetting.previewLoad(previewImage.currentIndex)
+                                }
                             }
                         }
 
@@ -791,18 +822,27 @@ Item {
                                 Layout.fillWidth: true; Layout.fillHeight: false
 
                                 RowLayout {
+
                                     ToolButton {
                                         Layout.preferredWidth: 48; Layout.preferredHeight: 48
                                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                                        icon.source: "qrc:/icon/squareHint.svg"
+                                        icon.source: "qrc:/icon/rectangle.svg"
                                         icon.width: 32; icon.height: 32
                                         ToolTip.text: qsTr("Rectangular")
                                         ToolTip.visible: hovered
 
-                                        onClicked: {
-                                            captureSelection.visible = true
-                                            hintLabel.text = qsTr("Select first anchor")
-                                        }
+                                        onClicked: roiSelection.roiStart(2)
+                                    }
+
+                                    ToolButton {
+                                        Layout.preferredWidth: 48; Layout.preferredHeight: 48
+                                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                                        icon.source: "qrc:/icon/quadrilateral.svg"
+                                        icon.width: 32; icon.height: 32
+                                        ToolTip.text: qsTr("Quadrilateral")
+                                        ToolTip.visible: hovered
+
+                                        onClicked: roiSelection.roiStart(4)
                                     }
                                 }
                             }
@@ -1174,7 +1214,6 @@ Item {
                                                             scaleItem.session.interpolation = scaleComboBox.currentIndex
                                                             const index = pipelineStandardItemModel.index(row, 0);
                                                             pipelineStandardItemModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
-                                                            portSetting.previewLoad(previewImage.currentIndex)
                                                         }
                                                     }
                                                 }
@@ -1230,7 +1269,6 @@ Item {
                                                         scaleItem.session.ratio = scaleSlider.value
                                                         const index = pipelineStandardItemModel.index(row, 0);
                                                         pipelineStandardItemModel.setData(index, scaleItem.session, Qt.WhatsThisRole)
-                                                        portSetting.previewLoad(previewImage.currentIndex)
                                                     }
                                                 }
                                             }
@@ -1301,7 +1339,6 @@ Item {
                                                             thresholdItem.session.mode = thresholdComboBox.currentIndex
                                                             const index = pipelineStandardItemModel.index(row, 0);
                                                             pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
-                                                            portSetting.previewLoad(previewImage.currentIndex)
                                                         }
                                                     }
                                                 }
@@ -1314,21 +1351,15 @@ Item {
                                                     Layout.fillWidth: true
                                                     ToolTip.text: value.toFixed(0)
                                                     ToolTip.visible: hovered
-                                                }
 
-                                                Timer {
-                                                    id: thresholdTimer
-                                                    interval: 16 // 60Hz
-                                                    repeat: true
-                                                    running: thresholdSlider.pressed
-
-                                                    onTriggered: {
+                                                    onMoved: {
                                                         thresholdItem.session.thresh = Math.round(thresholdSlider.value)
                                                         const index = pipelineStandardItemModel.index(row, 0);
                                                         pipelineStandardItemModel.setData(index, thresholdItem.session, Qt.WhatsThisRole)
-                                                        portSetting.previewLoad(previewImage.currentIndex)
                                                     }
                                                 }
+
+
                                             }
 
                                             TapHandler {
@@ -1594,7 +1625,6 @@ Item {
                 session.ratio = 0
                 session.interpolation = 1
                 portSetting.pipelineInsert(session)
-                portSetting.previewLoad(previewImage.currentIndex)
             }
         }
 
@@ -1609,7 +1639,6 @@ Item {
                 session.thresh = 128
                 session.mode = 0
                 portSetting.pipelineInsert(session)
-                portSetting.previewLoad(previewImage.currentIndex)
             }
         }
     }
@@ -1637,7 +1666,7 @@ Item {
 
     // indicator
     Component {
-        id: indicatorComponent
+        id: indicatorRectComponent
 
         Rectangle {
             color: "#a9d3f2"
@@ -1658,10 +1687,10 @@ Item {
                 acceptedButtons: Qt.LeftButton
 
                 onTapped: {
-                    portSetting.previewLoad(index)
                     const pos = mapToItem(previewPopup.parent, width, 0)
                     previewPopup.x = pos.x
                     previewPopup.y = pos.y
+                    previewImage.currentIndex = index
                     previewPopup.open()
                 }
             }
@@ -1674,15 +1703,19 @@ Item {
         }
         videoOutput.indicatorList = []
         for (let row = 0; row < roiStandardItemModel.rowCount(); ++row) {
-            const index = roiStandardItemModel.index(row, 0);
-            const position = roiStandardItemModel.data(index, Qt.WhatsThisRole);
-            const indicator = indicatorComponent.createObject(videoOutput, {
-                x: position[0],
-                y: position[1],
-                width: position[2],
-                height: position[3],
-                index: row
-            });
+            const index = roiStandardItemModel.index(row, 0)
+            const position = roiStandardItemModel.data(index, Qt.WhatsThisRole)
+            var indicator
+            if (position.length === 4) {
+                // rect roi
+                indicator = indicatorRectComponent.createObject(videoOutput, {
+                    x: position[0],
+                    y: position[1],
+                    width: position[2],
+                    height: position[3],
+                    index: row
+                });
+            }
             videoOutput.indicatorList.push(indicator)
         }
     }

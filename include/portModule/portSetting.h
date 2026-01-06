@@ -36,7 +36,7 @@ public:
 
     Q_INVOKABLE void previewLoad(int index) const;
 
-    Q_INVOKABLE void roiInsert(int x, int y, int w, int h) const;
+    Q_INVOKABLE void roiInsert(const QVariantList &roi) const;
 
     Q_INVOKABLE void roiRemove(int index) const;
 
