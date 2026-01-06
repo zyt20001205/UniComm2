@@ -128,9 +128,12 @@ public:
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 
+    void null();
+
     void preview(const QVideoSink* videoSink, const QJsonArray &roi, const QJsonArray &pipeline);
 
 private:
+    QPixmap m_null{};
     QPixmap m_preview{};
 };
 

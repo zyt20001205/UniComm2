@@ -385,6 +385,12 @@ void PortSetting::videoCapture() {
 
 void PortSetting::previewLoad(const int index) const {
     if (index == -1) return;
+    if (!m_roiStandardItemModel->item(index, 0)) {
+        m_imageProvider->null();
+        m_previewImage->setProperty("source", "image://capture/" + QString::number(QDateTime::currentMSecsSinceEpoch()));
+        m_previewImage->setProperty("currentIndex", -1);
+        return;
+    }
     const QJsonArray roi = QJsonArray::fromVariantList(m_roiStandardItemModel->item(index, 0)->data(Qt::WhatsThisRole).toList());
     QJsonArray pipeline{};
     for (int i = 0; i < m_pipelineStandardItemModel->rowCount(); ++i) {
@@ -565,11 +571,16 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
 // ImageProvider public
 ImageProvider::ImageProvider()
     : QQuickImageProvider(Pixmap) {
+    m_null.load(":/icon/null.svg");
+    null();
 }
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) {
-    if (m_preview.isNull()) return {};
     return m_preview;
+}
+
+void ImageProvider::null() {
+    m_preview = m_null;
 }
 
 void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, const QJsonArray &pipeline) {
