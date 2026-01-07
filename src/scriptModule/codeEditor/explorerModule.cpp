@@ -11,7 +11,7 @@
 
 // ExplorerModule public
 ExplorerModule::ExplorerModule()
-    : DockWidget("Dxplorer"),
+    : DockWidget("Explorer"),
       m_explorerWidget(new QQuickWidget()),
       m_explorerFileSystemModel(new QFileSystemModel()),
       m_explorerTreeView(new QTreeView()) {

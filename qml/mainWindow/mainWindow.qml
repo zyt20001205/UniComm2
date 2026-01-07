@@ -89,7 +89,7 @@ Item {
             }
 
             Item {
-                Layout.fillWidth: true; Layout.preferredHeight: 30
+                Layout.fillWidth: true; Layout.preferredHeight: 10
             }
 
             ProgressBar {
