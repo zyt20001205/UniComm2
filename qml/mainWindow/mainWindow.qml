@@ -168,6 +168,7 @@ Item {
         onAboutToShow: {
             breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
+            breakpointModuleConditionTextField.selectAll()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -284,6 +285,7 @@ Item {
         onAboutToShow: {
             databaseModuleNameTextField.text = databaseModuleNameDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
+            databaseModuleNameTextField.selectAll()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -405,6 +407,7 @@ Item {
         onAboutToShow: {
             datatableModuleNameTextField.text = datatableModuleNameDialog.datatableKey
             datatableModuleNameTextField.forceActiveFocus()
+            datatableModuleNameTextField.selectAll()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1254,6 +1257,7 @@ Item {
         onAboutToShow: {
             systemModuleRenameTextField.clear()
             systemModuleRenameTextField.forceActiveFocus()
+            systemModuleRenameTextField.selectAll()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1

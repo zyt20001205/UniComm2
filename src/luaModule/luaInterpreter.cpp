@@ -152,31 +152,6 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         // lua_pushcfunction(L, lua_keyPress);
         // lua_setfield(L, -2, "keyPress");
         // lua_setglobal(L, "control");
-        // // register database class
-        // lua_newtable(L);
-        // lua_pushcfunction(L, lua_databaseList);
-        // lua_setfield(L, -2, "list");
-        // lua_pushcfunction(L, lua_databaseWrite);
-        // lua_setfield(L, -2, "write");
-        // lua_pushcfunction(L, lua_databaseClear);
-        // lua_setfield(L, -2, "clear");
-        // lua_setglobal(L, "database");
-        // // register datatable class
-        // lua_newtable(L);
-        // lua_pushcfunction(L, lua_datatableList);
-        // lua_setfield(L, -2, "list");
-        // lua_pushcfunction(L, lua_datatableWrite);
-        // lua_setfield(L, -2, "write");
-        // lua_pushcfunction(L, lua_datatableClear);
-        // lua_setfield(L, -2, "clear");
-        // lua_pushcfunction(L, lua_datatableExport);
-        // lua_setfield(L, -2, "export");
-        // lua_setglobal(L, "datatable");
-        // // register dataplot class
-        // lua_newtable(L);
-        // lua_pushcfunction(L, lua_dataplotAppend);
-        // lua_setfield(L, -2, "append");
-        // lua_setglobal(L, "dataplot");
     }
 }
 
@@ -366,7 +341,17 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         sol::table mt = lua.create_table();
                         mt[sol::meta_function::index] = lua.globals();
                         env[sol::metatable_key] = mt;
-                        // load locals into env table
+                        // load upvalues
+                        if (lua_getinfo(L, "f", ar)) {
+                            const char *name = nullptr;
+                            int i = 1;
+                            while ((name = lua_getupvalue(L, -1, i++)) != nullptr) {
+                                if (name[0] != '(') env[name] = sol::object(L, -1);
+                                lua_pop(L, 1);
+                            }
+                            lua_pop(L, 1);
+                        }
+                        // load locals
                         const char *name = nullptr;
                         int i = 1;
                         while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
@@ -423,114 +408,54 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 level++;
             }
             emit This->insertCallStack(session["threadId"].toString(), callStackModel);
-            // TODO: var handle
-            {
-                // var tree
-                // {
-                //     // init var tree
-                //     auto *varTree = new QStandardItemModel(); // NOLINT
-                //     varTree->setHorizontalHeaderLabels({tr("Name"), tr("Type"), tr("Value")});
-                //     // table recursion lambda
-                //     auto appendTable = [](lua_State *L, QStandardItem *parentNameItem, const QString &parentVarname, const QString &parentVarScope, const int tableIndex,
-                //                           auto &&self) -> void {
-                //         lua_pushnil(L);
-                //         while (lua_next(L, tableIndex) != 0) {
-                //             lua_pushvalue(L, -2);
-                //             QString varName = lua_tostring(L, -1);
-                //             lua_pop(L, 1);
-                //             QString varType = lua_typename(L, lua_type(L, -1));
-                //             lua_pushvalue(L, -1);
-                //             QString varValue = lua_toqstring(L, -1);
-                //             lua_pop(L, 1);
-                //
-                //             auto *localNameItem = new QStandardItem(varName); // NOLINT
-                //             localNameItem->setEditable(false);
-                //             auto *localTypeItem = new QStandardItem(varType); // NOLINT
-                //             localTypeItem->setEditable(false);
-                //             QStandardItem *valueItem = new QStandardItem(varValue); // NOLINT
-                //
-                //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-                //                 valueItem->setData(parentVarScope, Qt::UserRole + 1);
-                //                 valueItem->setData(parentVarname + "." + varName, Qt::UserRole + 2);
-                //             } else if (lua_type(L, -1) == LUA_TTABLE) {
-                //                 valueItem->setEditable(false);
-                //                 self(L, localNameItem, parentVarname + "." + varName, parentVarScope, lua_gettop(L), self);
-                //             } else {
-                //                 valueItem->setEditable(false);
-                //             }
-                //             parentNameItem->appendRow({localNameItem, localTypeItem, valueItem});
-                //             lua_pop(L, 1);
-                //         }
-                //     };
-                //     // local var
-                //     auto *localVar = new QStandardItem("local"); // NOLINT
-                //     localVar->setEditable(false);
-                //     varTree->appendRow(localVar);
-                //     int i = 1;
-                //     QString localVarName;
-                //     while ((localVarName = lua_getlocal(L, ar, i)) != nullptr) {
-                //         if (localVarName[0] != '(') {
-                //             QString localVarType = lua_typename(L, lua_type(L, -1));
-                //             QString localVarValue = lua_toqstring(L, -1);
-                //
-                //             QStandardItem *localNameItem = new QStandardItem(localVarName); // NOLINT
-                //             localNameItem->setEditable(false);
-                //             QStandardItem *localTypeItem = new QStandardItem(localVarType); // NOLINT
-                //             localTypeItem->setEditable(false);
-                //             QStandardItem *localValueItem = new QStandardItem(localVarValue); // NOLINT
-                //
-                //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-                //                 localValueItem->setData("local", Qt::UserRole + 1);
-                //                 localValueItem->setData(localVarName, Qt::UserRole + 2);
-                //             } else if (lua_type(L, -1) == LUA_TTABLE) {
-                //                 localValueItem->setEditable(false);
-                //                 appendTable(L, localNameItem, localVarName, "local", lua_gettop(L), appendTable);
-                //             } else {
-                //                 localValueItem->setEditable(false);
-                //             }
-                //             localVar->appendRow({localNameItem, localTypeItem, localValueItem});
-                //         }
-                //         lua_pop(L, 1);
-                //         i++;
-                //     }
-                //     // up var
-                //     auto *upVar = new QStandardItem("up"); // NOLINT
-                //     upVar->setEditable(false);
-                //     varTree->appendRow(upVar);
-                //     lua_getinfo(L, "f", ar);
-                //     i = 1;
-                //     QString upVarName;
-                //     while ((upVarName = lua_getupvalue(L, -1, i)) != nullptr) {
-                //         if (upVarName[0] != '(' && upVarName[0] != '_') {
-                //             QString upVarType = lua_typename(L, lua_type(L, -1));
-                //             QString upVarValue = lua_toqstring(L, -1);
-                //
-                //             QStandardItem *upNameItem = new QStandardItem(upVarName); // NOLINT
-                //             upNameItem->setEditable(false);
-                //             QStandardItem *upTypeItem = new QStandardItem(upVarType); // NOLINT
-                //             upTypeItem->setEditable(false);
-                //             QStandardItem *upValueItem = new QStandardItem(upVarValue); // NOLINT
-                //
-                //             if (lua_type(L, -1) == LUA_TBOOLEAN || lua_type(L, -1) == LUA_TNUMBER || lua_type(L, -1) == LUA_TSTRING) {
-                //                 upValueItem->setData("up", Qt::UserRole + 1);
-                //                 upValueItem->setData(upVarName, Qt::UserRole + 2);
-                //             } else if (lua_type(L, -1) == LUA_TTABLE) {
-                //                 upValueItem->setEditable(false);
-                //                 appendTable(L, upNameItem, upVarName, "up", lua_gettop(L), appendTable);
-                //             } else {
-                //                 upValueItem->setEditable(false);
-                //             }
-                //             upVar->appendRow({upNameItem, upTypeItem, upValueItem});
-                //         }
-                //         lua_pop(L, 1);
-                //         i++;
-                //     }
-                //     lua_pop(L, 1);
-                //     // send to debug module
-                //     QMetaObject::invokeMethod(g_mainWindow, [debugData, varTree] {
-                //         g_debug->varReturn(debugData->threadId, varTree);
-                //     }, Qt::BlockingQueuedConnection);
-                // }
+            // watch handle
+            QHash<QString, int> watchHash{};
+            for (int i = 0; i < g_watchStandardItemModel->rowCount(); ++i) {
+                const QString url = g_watchStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toString();
+                if (url == currentUrl) {
+                    const QString key = g_watchStandardItemModel->item(i, 0)->text();
+                    watchHash.insert(key, i);
+                }
+            }
+            if (!watchHash.isEmpty()) {
+                // create env table
+                sol::environment env(lua, sol::create);
+                sol::table mt = lua.create_table();
+                mt[sol::meta_function::index] = lua.globals();
+                env[sol::metatable_key] = mt;
+                // load upvalues
+                if (lua_getinfo(L, "f", ar)) {
+                    const char *name = nullptr;
+                    int i = 1;
+                    while ((name = lua_getupvalue(L, -1, i++)) != nullptr) {
+                        if (name[0] != '(') env[name] = sol::object(L, -1);
+                        lua_pop(L, 1);
+                    }
+                    lua_pop(L, 1);
+                }
+                // load locals
+                const char *name = nullptr;
+                int i = 1;
+                while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
+                    if (name[0] != '(') env[name] = sol::object(L, -1);
+                    lua_pop(L, 1);
+                }
+                // eval
+                for (auto it = watchHash.constBegin(); it != watchHash.constEnd(); ++it) {
+                    const auto result = lua.safe_script("return " + it.key().toStdString(), env, sol::script_pass_on_error);
+                    QString val = "nil";
+                    QString type = "nil";
+                    if (result.valid()) {
+                        sol::object obj = result;
+                        obj.push();
+                        type = lua_typename(L, lua_type(L, -1));
+                        val = lua_toqstring(L, -1);
+                        lua_pop(L, 1);
+                    }
+                    g_watchStandardItemModel->item(it.value(), 1)->setText(val);
+                    // g_watchStandardItemModel->setItem(it.value(), 1, new QStandardItem(val));
+                    // g_watchStandardItemModel->setItem(it.value(), 2, new QStandardItem(type));
+                }
             }
             // hold thread
             QEventLoop loop;
