@@ -271,6 +271,8 @@ void EditorWidget::markerRemove(const int type, int line) {
 
 // EditorWidget protected
 void EditorWidget::focusOutEvent(QFocusEvent *event) {
+    // block qml menu event
+    if (event->reason() == Qt::OtherFocusReason) return;
     // clear highlight
     indicatorRemove(INDICATOR_HIGHLIGHT);
     indicatorRemove(INDICATOR_READ);
@@ -375,19 +377,29 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         bool gotoMenu = true;
         int line = 0;
         int index = 0;
+        QString word{};
         const QPoint globalPos = QCursor::pos();
         const QPoint localPos = mapFromGlobal(globalPos);
-        const long charPos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
-        const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, charPos, true);
-        const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, charPos, true);
-        if (charPos != -1 && wordStart < wordEnd) {
-            const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, charPos);
+        // move cursor
+        long charPos = SendScintilla(SCI_POSITIONFROMPOINT, localPos.x(), localPos.y());
+        if (charPos != -1) {
+            line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
+            index = SendScintilla(SCI_GETCOLUMN, charPos);
+            setCursorPosition(line, index);
+        }
+        // get word property
+        const long closePos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+        const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, closePos, true);
+        const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, closePos, true);
+        if (closePos != -1 && wordStart < wordEnd) {
+            // get word
+            QByteArray buffer(wordEnd - wordStart, 0);
+            SendScintilla(SCI_GETTEXTRANGE, wordStart, wordEnd, buffer.data());
+            word = QString::fromUtf8(buffer);
+            // get style
+            const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, closePos);
             if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
                 gotoMenu = false;
-            } else {
-                line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
-                index = SendScintilla(SCI_GETCOLUMN, charPos);
-                setCursorPosition(line, index);
             }
         } else {
             gotoMenu = false;
@@ -395,7 +407,8 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         const QVariantHash menuSession = {
             {"gotoMenu", gotoMenu},
             {"line", line},
-            {"index", index}
+            {"index", index},
+            {"word", word}
         };
         emit showMenu(menuSession);
         return;

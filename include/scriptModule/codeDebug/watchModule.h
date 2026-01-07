@@ -15,7 +15,7 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    Q_INVOKABLE void watchInsert();
+    Q_INVOKABLE void watchInsert(const QUrl &scriptUrl, const QString &name);
 
 signals:
 

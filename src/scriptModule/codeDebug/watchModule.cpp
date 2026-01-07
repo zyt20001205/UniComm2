@@ -21,5 +21,6 @@ void WatchModule::propertySet(const QVariantMap &objects) {
     m_watchWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/watchModule.qml"));
 }
 
-void WatchModule::watchInsert() {
+void WatchModule::watchInsert(const QUrl &scriptUrl, const QString &name) {
+    qDebug() << scriptUrl << name;
 }

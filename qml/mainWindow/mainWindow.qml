@@ -1095,8 +1095,10 @@ Item {
     // script module
     Menu {
         id: scriptModuleEditorMenu
+        focus: false
         property url scriptUrl
         property var menuSession
+
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
@@ -1117,6 +1119,36 @@ Item {
         }
 
         MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Formatting")
+            icon.source: "qrc:/icon/brush.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
         }
 
         Menu {
@@ -1161,34 +1193,13 @@ Item {
         MenuSeparator {
         }
 
-        Menu {
-            title: qsTr("Folding")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Collapse All")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Expand All")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
-            }
-        }
-
         MenuItem {
-            text: qsTr("Formatting")
-            icon.source: "qrc:/icon/brush.svg"
+            text: qsTr("Watch")
+            icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["word"] : false
 
-            onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
+            onTriggered: watchModule.watchInsert(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["word"])
         }
 
         MenuSeparator {
