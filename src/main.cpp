@@ -22,14 +22,18 @@ int main(int argc, char *argv[]) {
             background: transparent;
             border: none;
             color: #606060;
-            padding: 6px 12px;
+            font-family: "Segoe UI";
+            font-size: 14px;
+            margin: 10px 10px 6px 10px;
+            padding: 0px 0px 4px 16px;
         }
         QTabBar::tab:hover {
-            border-bottom: 2px solid #cccccc;
+            border-bottom: 3px solid #e0e0e0;
         }
         QTabBar::tab:selected {
-            border-bottom: 2px solid #0f548c;
+            border-bottom: 3px solid #0f548c;
             color: #000000;
+            font-weight: 600;
         }
         QTabBar::close-button {
             border-radius: 4px;
@@ -41,6 +45,11 @@ int main(int argc, char *argv[]) {
         }
         QTabBar::close-button:pressed {
             background-color: #d0d0d0;
+        }
+        QTabWidget::pane {
+            border: 1px solid #cccccc;
+            border-radius: 2px;
+            border-top: none;
         }
     )");
     QQuickStyle::setStyle("FluentWinUI3");

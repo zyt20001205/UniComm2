@@ -19,6 +19,7 @@ EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
       m_dwellTimer(new QTimer(this)),
       m_typeTimer(new QTimer(this)) {
     setContextMenuPolicy(Qt::NoContextMenu);
+    setFrameStyle(NoFrame);
     // set markers
     markerDefine(Background, MARKER_ERROR);
     setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
