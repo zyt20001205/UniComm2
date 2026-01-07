@@ -19,9 +19,12 @@ public:
 
     void scriptPosition(int row, int column) const;
 
+    void threadRefresh(int run, int debug) const;
+
 private:
     QQuickItem *m_rootItem{};
     QObject *m_positionButton{};
+    QObject *m_threadButton{};
 };
 
 #endif //UNICOMM_STATUSMODULE_H

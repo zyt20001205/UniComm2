@@ -75,11 +75,28 @@ Item {
                 font: positionButton.font
             }
         }
+
+        Button {
+            id: threadButton
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            text: qsTr("Idle")
+            Layout.preferredWidth: threadButtonTextMetrics.width + 8; Layout.preferredHeight: 20
+
+            // onClicked:
+
+            TextMetrics {
+                id: threadButtonTextMetrics
+                text: threadButton.text
+                font: threadButton.font
+            }
+        }
     }
 
     Component.onCompleted: {
         const objects = {
-            "positionButton": positionButton
+            "positionButton": positionButton,
+            "threadButton": threadButton
         };
         statusModule.propertyGet(objects)
     }

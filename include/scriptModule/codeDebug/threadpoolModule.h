@@ -36,6 +36,8 @@ public:
 signals:
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;
 
+    void refreshThread(int run, int debug);
+
     void openScript(const QUrl &scriptUrl);
 
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
@@ -61,7 +63,7 @@ signals:
     void listPort(QSet<QString> &portSet);
 
 private:
-    void threadAppend(int status, const QString &name, const QString &threadId);
+    void threadAppend(int mode, const QString &name, const QString &threadId);
 
     void messageDialogNew(const QString &threadId, const QString &text, const QEventLoop *eventloop) const;
 
@@ -69,6 +71,8 @@ private:
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QQuickWidget *m_threadpoolWidget{};
     QQuickItem *m_mainItem{};
+    int m_run = 0;
+    int m_debug = 0;
     QStandardItemModel *m_threadpoolStandardItemModel{};
     QString m_lifetime{};
 

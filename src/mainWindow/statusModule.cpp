@@ -26,6 +26,7 @@ void StatusModule::propertySet(const QVariantMap &objects) {
 
 void StatusModule::propertyGet(const QVariantMap &objects) {
     m_positionButton = qvariant_cast<QObject *>(objects["positionButton"]);
+    m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
 void StatusModule::scriptFocus(const QUrl &scriptUrl) const {
@@ -39,4 +40,12 @@ void StatusModule::scriptFocus(const QUrl &scriptUrl) const {
 
 void StatusModule::scriptPosition(const int row, const int column) const {
     m_positionButton->setProperty("text", QString("%1:%2").arg(QString::number(row), QString::number(column)));
+}
+
+void StatusModule::threadRefresh(const int run, const int debug) const {
+    if (run + debug == 0) {
+        m_threadButton->setProperty("text", tr("Idle"));
+    } else {
+        m_threadButton->setProperty("text", QString(tr("Run: %1 Debug: %2")).arg(QString::number(run), QString::number(debug)));
+    }
 }

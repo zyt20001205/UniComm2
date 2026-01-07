@@ -47,8 +47,9 @@ void ThreadpoolModule::quit() {
         QEventLoop eventLoop{};
         for (const auto &thread: m_threadHash) {
             connect(thread, &QThread::finished, this, [this, &current, &total, &eventLoop] {
-                current ++;
-                emit trackQuit(static_cast<float>(current) / static_cast<float>(total), QString(tr("Waiting for %1/%2 threads to terminate...")).arg(QString::number(current), QString::number(total)));
+                current++;
+                emit trackQuit(static_cast<float>(current) / static_cast<float>(total),
+                               QString(tr("Waiting for %1/%2 threads to terminate...")).arg(QString::number(current), QString::number(total)));
                 if (current == total) {
                     emit trackQuit(0, "");
                     eventLoop.quit();
@@ -162,22 +163,31 @@ void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
 }
 
 // ThreadpoolModule private
-void ThreadpoolModule::threadAppend(const int status, const QString &name, const QString &threadId) {
+void ThreadpoolModule::threadAppend(const int mode, const QString &name, const QString &threadId) {
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
-    const QString text = status == LUATHREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
+    const QString text = mode == LUATHREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
     auto *nameItem = new QStandardItem(name + text); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
     spawnItem->setData(QVariant::fromValue(currentTime), Qt::UserRole + 1);
     auto *threadIdItem = new QStandardItem(threadId); // NOLINT
-    threadIdItem->setData(threadId, Qt::UserRole + 1);
+    threadIdItem->setData(mode, Qt::UserRole + 1);
     m_threadpoolStandardItemModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
+    // refresh status bar
+    if (mode == LUATHREAD_RUN) m_run++;
+    else m_debug++;
+    emit refreshThread(m_run, m_debug);
 
     const auto *worker = m_threadHash[threadId];
     connect(worker, &QThread::finished, this, [this, threadId] {
         for (int row = 0; row < m_threadpoolStandardItemModel->rowCount(); ++row) {
-            if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == threadId) {
+            if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->text() == threadId) {
+                const int mode = m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt();
                 m_threadpoolStandardItemModel->removeRow(row);
+                // refresh status bar
+                if (mode == LUATHREAD_RUN) m_run--;
+                else m_debug--;
+                emit refreshThread(m_run, m_debug);
                 break;
             }
         }

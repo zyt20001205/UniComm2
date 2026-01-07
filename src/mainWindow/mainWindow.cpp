@@ -355,6 +355,7 @@ void MainWindow::moduleInit() {
     connect(m_systemModule, &SystemModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_threadpoolModule, &ThreadpoolModule::trackQuit, this, &MainWindow::quitTrack);
+    connect(m_threadpoolModule, &ThreadpoolModule::refreshThread, m_statusModule, &StatusModule::threadRefresh);
     connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
