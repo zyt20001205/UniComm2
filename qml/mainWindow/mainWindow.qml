@@ -272,7 +272,7 @@ Item {
 
     // database module
     Dialog {
-        id: databaseModuleNameDialog
+        id: databaseModuleEditDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 400
@@ -283,17 +283,17 @@ Item {
         property string databaseKey
 
         onAboutToShow: {
-            databaseModuleNameTextField.text = databaseModuleNameDialog.databaseKey
+            databaseModuleNameTextField.text = databaseModuleEditDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
             databaseModuleNameTextField.selectAll()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (databaseModuleNameDialog.databaseKey) {
-                databaseModule.databaseRename(databaseModuleNameDialog.databaseIndex, databaseModuleNameTextField.text)
+            if (databaseModuleEditDialog.databaseKey) {
+                databaseModule.databaseRename(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
             } else {
-                databaseModule.databaseInsert(databaseModuleNameDialog.databaseIndex, databaseModuleNameTextField.text)
+                databaseModule.databaseInsert(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
             }
         }
 
@@ -302,8 +302,8 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter key:")
 
-            onAccepted: databaseModuleNameDialog.accept()
-            Keys.onEscapePressed: databaseModuleNameDialog.reject()
+            onAccepted: databaseModuleEditDialog.accept()
+            Keys.onEscapePressed: databaseModuleEditDialog.reject()
         }
     }
 
@@ -321,9 +321,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                databaseModuleNameDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
-                databaseModuleNameDialog.databaseKey = ""
-                databaseModuleNameDialog.open()
+                databaseModuleEditDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
+                databaseModuleEditDialog.databaseKey = ""
+                databaseModuleEditDialog.open()
             }
         }
 
@@ -333,9 +333,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                databaseModuleNameDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
-                databaseModuleNameDialog.databaseKey = databaseModuleTableMenu.databaseKey
-                databaseModuleNameDialog.open()
+                databaseModuleEditDialog.databaseIndex = databaseModuleTableMenu.databaseIndex
+                databaseModuleEditDialog.databaseKey = databaseModuleTableMenu.databaseKey
+                databaseModuleEditDialog.open()
             }
         }
 
@@ -368,9 +368,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                databaseModuleNameDialog.databaseIndex = -1
-                databaseModuleNameDialog.databaseKey = ""
-                databaseModuleNameDialog.open()
+                databaseModuleEditDialog.databaseIndex = -1
+                databaseModuleEditDialog.databaseKey = ""
+                databaseModuleEditDialog.open()
             }
         }
 
@@ -394,7 +394,7 @@ Item {
 
     // datatable module
     Dialog {
-        id: datatableModuleNameDialog
+        id: datatableModuleEditDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 400
@@ -405,17 +405,17 @@ Item {
         property string datatableKey
 
         onAboutToShow: {
-            datatableModuleNameTextField.text = datatableModuleNameDialog.datatableKey
+            datatableModuleNameTextField.text = datatableModuleEditDialog.datatableKey
             datatableModuleNameTextField.forceActiveFocus()
             datatableModuleNameTextField.selectAll()
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (datatableModuleNameDialog.datatableKey) {
-                datatableModule.datatableRename(datatableModuleNameDialog.datatableIndex, datatableModuleNameTextField.text)
+            if (datatableModuleEditDialog.datatableKey) {
+                datatableModule.datatableRename(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
             } else {
-                datatableModule.datatableInsert(datatableModuleNameDialog.datatableIndex, datatableModuleNameTextField.text)
+                datatableModule.datatableInsert(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
             }
         }
 
@@ -424,8 +424,8 @@ Item {
             width: parent.width
             placeholderText: qsTr("Enter key:")
 
-            onAccepted: datatableModuleNameDialog.accept()
-            Keys.onEscapePressed: datatableModuleNameDialog.reject()
+            onAccepted: datatableModuleEditDialog.accept()
+            Keys.onEscapePressed: datatableModuleEditDialog.reject()
         }
     }
 
@@ -443,9 +443,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                datatableModuleNameDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
-                datatableModuleNameDialog.datatableKey = ""
-                datatableModuleNameDialog.open()
+                datatableModuleEditDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
+                datatableModuleEditDialog.datatableKey = ""
+                datatableModuleEditDialog.open()
             }
         }
 
@@ -455,9 +455,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                datatableModuleNameDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
-                datatableModuleNameDialog.datatableKey = datatableModuleTableMenu.datatableKey
-                datatableModuleNameDialog.open()
+                datatableModuleEditDialog.datatableIndex = datatableModuleTableMenu.datatableIndex
+                datatableModuleEditDialog.datatableKey = datatableModuleTableMenu.datatableKey
+                datatableModuleEditDialog.open()
             }
         }
 
@@ -482,9 +482,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                datatableModuleNameDialog.datatableIndex = -1
-                datatableModuleNameDialog.datatableKey = ""
-                datatableModuleNameDialog.open()
+                datatableModuleEditDialog.datatableIndex = -1
+                datatableModuleEditDialog.datatableKey = ""
+                datatableModuleEditDialog.open()
             }
         }
 
@@ -1308,13 +1308,78 @@ Item {
     }
 
     // watch module
+    Dialog {
+        id: watchModuleEditDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Enter Watch")
+        standardButtons: Dialog.Ok
+        property int watchIndex
+        property url watchUrl
+        property string watchKey
+
+        onAboutToShow: {
+            watchModuleUrlTextField.text = watchModuleEditDialog.watchUrl
+            watchModuleKeyTextField.text = watchModuleEditDialog.watchKey
+            watchModuleKeyTextField.forceActiveFocus()
+            watchModuleKeyTextField.selectAll()
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: {
+            if (watchModuleEditDialog.databaseKey) {
+                watchModule.watchRename(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleKeyTextField.text)
+            } else {
+                watchModule.watchInsert(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleKeyTextField.text)
+            }
+        }
+
+        ColumnLayout {
+            width: parent.width
+
+            TextField {
+                id: watchModuleUrlTextField
+                width: parent.width
+                placeholderText: qsTr("Enter url:")
+
+                onAccepted: watchModuleEditDialog.accept()
+                Keys.onEscapePressed: watchModuleEditDialog.reject()
+            }
+
+            TextField {
+                id: watchModuleKeyTextField
+                width: parent.width
+                placeholderText: qsTr("Enter key:")
+
+                onAccepted: watchModuleEditDialog.accept()
+                Keys.onEscapePressed: watchModuleEditDialog.reject()
+            }
+        }
+    }
+
     Menu {
         id: watchModuleTableMenu
         property int watchIndex
+        property url watchUrl
         property string watchKey
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                watchModuleEditDialog.watchIndex = watchModuleTableMenu.watchIndex
+                watchModuleEditDialog.watchUrl = watchModuleTableMenu.watchUrl
+                watchModuleEditDialog.watchKey = watchModuleTableMenu.watchKey
+                watchModuleEditDialog.open()
+            }
+        }
 
         MenuItem {
             text: qsTr("Clear")
@@ -1369,11 +1434,11 @@ Item {
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,
 
-            "databaseModuleNameDialog": databaseModuleNameDialog,
+            "databaseModuleEditDialog": databaseModuleEditDialog,
             "databaseModuleTableMenu": databaseModuleTableMenu,
             "databaseModuleRootMenu": databaseModuleRootMenu,
 
-            "datatableModuleNameDialog": datatableModuleNameDialog,
+            "datatableModuleEditDialog": datatableModuleEditDialog,
             "datatableModuleTableMenu": datatableModuleTableMenu,
             "datatableModuleRootMenu": datatableModuleRootMenu,
 

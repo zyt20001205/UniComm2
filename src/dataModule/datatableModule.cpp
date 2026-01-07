@@ -28,7 +28,7 @@ DatatableModule::~DatatableModule() {
 }
 
 void DatatableModule::propertySet(const QVariantMap &objects) {
-    m_datatableWidget->rootContext()->setContextProperty("nameDialog", qvariant_cast<QObject *>(objects["datatableModuleNameDialog"]));
+    m_datatableWidget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
     m_datatableWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
     m_datatableWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
 

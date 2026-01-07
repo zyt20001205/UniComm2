@@ -21,6 +21,8 @@ public:
 
     Q_INVOKABLE void watchRemove(int index);
 
+    Q_INVOKABLE void watchRename(int index, const QUrl &scriptUrl, const QString &key);
+
     Q_INVOKABLE void watchSwap(int src, int dst);
 
     Q_INVOKABLE void watchClear(int index);

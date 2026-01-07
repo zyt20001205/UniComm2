@@ -111,7 +111,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_breakpointModule->propertySet(breakpointObjects);
 
     const QVariantMap databaseObjects = {
-        {"databaseModuleNameDialog", objects["databaseModuleNameDialog"]},
+        {"databaseModuleEditDialog", objects["databaseModuleEditDialog"]},
         {"databaseModuleTableMenu", objects["databaseModuleTableMenu"]},
         {"databaseModuleRootMenu", objects["databaseModuleRootMenu"]}
     };
@@ -123,7 +123,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_dataplotModule->propertySet(dataplotObjects);
 
     const QVariantMap datatableObjects = {
-        {"datatableModuleNameDialog", objects["datatableModuleNameDialog"]},
+        {"datatableModuleEditDialog", objects["datatableModuleEditDialog"]},
         {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
         {"datatableModuleRootMenu", objects["datatableModuleRootMenu"]}
     };

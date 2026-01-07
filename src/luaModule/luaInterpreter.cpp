@@ -457,8 +457,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         lua_pop(L, 1);
                     }
                     g_watchStandardItemModel->item(it.value(), 1)->setText(val);
-                    // g_watchStandardItemModel->setItem(it.value(), 1, new QStandardItem(val));
-                    // g_watchStandardItemModel->setItem(it.value(), 2, new QStandardItem(type));
+                    g_watchStandardItemModel->item(it.value(), 1)->setData(type, Qt::WhatsThisRole);
                 }
             }
             // hold thread

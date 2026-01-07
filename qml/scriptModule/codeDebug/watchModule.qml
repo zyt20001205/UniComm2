@@ -121,8 +121,8 @@ Item {
                     background: Rectangle {
                         color: "white"
                     }
-                    ToolTip.text: model.whatsThis ? model.whatsThis : "null"
-                    ToolTip.visible: column === 0 && hovered
+                    ToolTip.text: model.whatsThis
+                    ToolTip.visible: hovered
 
                     onTextChanged: {
                         if (column === 1) {
@@ -162,6 +162,7 @@ Item {
                         onSingleTapped: {
                             tableMenu.watchIndex = model.row
                             const index = tableView.model.index(row, 0);
+                            tableMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
                             tableMenu.watchKey = tableView.model.data(index, Qt.DisplayRole)
                             tableMenu.popup()
                         }

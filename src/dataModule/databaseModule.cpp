@@ -24,7 +24,7 @@ DatabaseModule::~DatabaseModule() {
 }
 
 void DatabaseModule::propertySet(const QVariantMap &objects) {
-    m_databaseWidget->rootContext()->setContextProperty("nameDialog", qvariant_cast<QObject *>(objects["databaseModuleNameDialog"]));
+    m_databaseWidget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
     m_databaseWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));
     m_databaseWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["databaseModuleRootMenu"]));
 

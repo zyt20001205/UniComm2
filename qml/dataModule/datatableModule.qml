@@ -21,8 +21,8 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
 
                 onClicked: {
-                    nameDialog.datatableIndex = -1
-                    nameDialog.open()
+                    editDialog.datatableIndex = -1
+                    editDialog.open()
                 }
             }
 
