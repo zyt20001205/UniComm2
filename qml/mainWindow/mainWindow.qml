@@ -1329,7 +1329,7 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (watchModuleEditDialog.databaseKey) {
+            if (watchModuleEditDialog.watchKey) {
                 watchModule.watchRename(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleKeyTextField.text)
             } else {
                 watchModule.watchInsert(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleKeyTextField.text)
