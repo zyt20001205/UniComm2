@@ -26,3 +26,4 @@ QStandardItemModel* g_portStandardItemModel = {};
 QStandardItemModel* g_databaseStandardItemModel = {};
 QStandardItemModel* g_datatableHeaderItemModel = {};
 QStandardItemModel* g_datatableStandardItemModel = {};
+QStandardItemModel* g_watchStandardItemModel = {};

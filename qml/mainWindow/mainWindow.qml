@@ -1199,7 +1199,7 @@ Item {
             icon.width: 16; icon.height: 16
             enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["word"] : false
 
-            onTriggered: watchModule.watchInsert(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["word"])
+            onTriggered: watchModule.watchInsert(-1, scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["word"])
         }
 
         MenuSeparator {

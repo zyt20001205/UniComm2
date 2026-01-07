@@ -40,6 +40,7 @@ extern QStandardItemModel* g_portStandardItemModel;
 extern QStandardItemModel* g_databaseStandardItemModel;
 extern QStandardItemModel* g_datatableHeaderItemModel;
 extern QStandardItemModel* g_datatableStandardItemModel;
+extern QStandardItemModel* g_watchStandardItemModel;
 
 enum {
     SERIALPORT,

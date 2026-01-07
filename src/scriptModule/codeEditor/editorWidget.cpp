@@ -392,12 +392,15 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         const long wordStart = SendScintilla(SCI_WORDSTARTPOSITION, closePos, true);
         const long wordEnd = SendScintilla(SCI_WORDENDPOSITION, closePos, true);
         if (closePos != -1 && wordStart < wordEnd) {
-            // get word
-            QByteArray buffer(wordEnd - wordStart, 0);
-            SendScintilla(SCI_GETTEXTRANGE, wordStart, wordEnd, buffer.data());
-            word = QString::fromUtf8(buffer);
             // get style
             const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, closePos);
+            // watch menu
+            if (LUA_TOKEN == LUA_TOKEN_VARIABLE) {
+                word = text(wordStart, wordEnd);
+            } else {
+                qDebug() << "attempt to watch" << LUA_TOKEN;
+            }
+            // goto menu
             if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
                 gotoMenu = false;
             }

@@ -3,7 +3,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QStandardItemModel>
-#include <QTimer>
 
 #include "globals.h"
 
