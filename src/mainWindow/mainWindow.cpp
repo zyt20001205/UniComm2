@@ -43,6 +43,7 @@
 #include "scriptModule/codeDebug/threadpoolModule.h"
 #include "scriptModule/codeAssistant/diagnosticsModule.h"
 #include "scriptModule/codeAssistant/structureModule.h"
+#include "scriptModule/codeDebug/watchModule.h"
 #include "settingModule/settingModule.h"
 
 // MainWindow public
@@ -95,6 +96,7 @@ void MainWindow::propertySet() {
     // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
     m_overlay->rootContext()->setContextProperty("systemModule", m_systemModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
+    m_overlay->rootContext()->setContextProperty("watchModule", m_watchModule);
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
@@ -188,6 +190,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}
     };
     m_threadpoolModule->propertySet(threadpoolObjects);
+
+    const QVariantMap watchObjects = {
+        //
+    };
+    m_watchModule->propertySet(watchObjects);
 }
 
 void MainWindow::overlayTransparent(const bool status) const {
@@ -269,6 +276,7 @@ void MainWindow::moduleInit() {
     m_systemModule = new SystemModule();
     m_threadpoolModule = new ThreadpoolModule();
     m_undoModule = new UndoModule(this);
+    m_watchModule = new WatchModule();
 
     m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
     g_database = m_databaseModule;
@@ -307,8 +315,6 @@ void MainWindow::moduleInit() {
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
-
-    // connect(m_dataplotModule, &DataplotModule::addGraphDatatable, m_datatableModule, &DatatableModule::datatableAddGraph);
 
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
@@ -359,6 +365,8 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::writeDatatable, m_datatableModule, &DatatableModule::datatableWrite);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
+
+
 
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
@@ -471,6 +479,8 @@ void MainWindow::menuInit() {
         m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
         viewMenu->addAction(m_breakpointModule->toggleAction());
         m_breakpointModule->toggleAction()->setText(tr("Breakpoint"));
+        viewMenu->addAction(m_watchModule->toggleAction());
+        m_watchModule->toggleAction()->setText(tr("Watch"));
     }
     // setting menu
     {

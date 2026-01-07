@@ -13,24 +13,25 @@ class ConfigManager;
 class LuaLanguageServer;
 
 class BreakpointModule;
+class DatabaseModule;
+class DatatableModule;
+class DataplotModule;
 class DebugModule;
 class DiagnosticsModule;
 class ExplorerModule;
 class LogModule;
 class NuspellModule;
+class PortModule;
+class ScriptModule;
+class SendModule;
 class StatusModule;
 class StructureModule;
 class SystemModule;
 class ThreadpoolModule;
+class WatchModule;
 
 class UndoModule;
 class SettingModule;
-class ScriptModule;
-class PortModule;
-class SendModule;
-class DatabaseModule;
-class DatatableModule;
-class DataplotModule;
 
 class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
@@ -108,6 +109,7 @@ private:
     StructureModule *m_structureModule{};
     ThreadpoolModule *m_threadpoolModule{};
     UndoModule *m_undoModule{};
+    WatchModule *m_watchModule{};
 };
 
 #endif //UNICOMM_MAINWINDOW_H

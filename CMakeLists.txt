@@ -81,6 +81,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeDebug/breakpointModule.h
         include/scriptModule/codeDebug/debugModule.h
         include/scriptModule/codeDebug/threadpoolModule.h
+        include/scriptModule/codeDebug/watchModule.h
         include/scriptModule/codeEditor/editorWidget.h
         include/scriptModule/codeEditor/explorerModule.h
         include/scriptModule/codeEditor/searchWidget.h
@@ -144,6 +145,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeDebug/breakpointModule.cpp
         src/scriptModule/codeDebug/debugModule.cpp
         src/scriptModule/codeDebug/threadpoolModule.cpp
+        src/scriptModule/codeDebug/watchModule.cpp
         src/scriptModule/codeEditor/editorWidget.cpp
         src/scriptModule/codeEditor/explorerModule.cpp
         src/scriptModule/codeEditor/searchWidget.cpp
@@ -179,6 +181,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/scriptModule/codeDebug/breakpointModule.qml"
         "qml/scriptModule/codeDebug/debugModule.qml"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"
+        "qml/scriptModule/codeDebug/watchModule.qml"
         "qml/scriptModule/codeEditor/explorerModule.qml"
 )
 
