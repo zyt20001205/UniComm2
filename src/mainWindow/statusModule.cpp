@@ -18,6 +18,7 @@ StatusModule::~StatusModule() {
 
 void StatusModule::propertySet(const QVariantMap &objects) {
     rootContext()->setContextProperty("statusModule", this);
+    rootContext()->setContextProperty("workspaceName", g_workspaceUrl.fileName());
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/mainWindow/statusModule.qml"));
     m_rootItem = rootObject();

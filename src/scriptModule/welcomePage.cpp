@@ -1,15 +1,21 @@
 #include "scriptModule/welcomePage.h"
 
-#include <QHBoxLayout>
-#include <QPushButton>
+#include <QQmlContext>
+#include <QQuickWidget>
 
 // WelcomePage public
 WelcomePage::WelcomePage()
-    : DockWidget("welcome") {
-    auto *widget = new QWidget(); // NOLINT
-    setWidget(widget);
-    auto *layout = new QHBoxLayout(widget); // NOLINT
-    auto *openButton = new QPushButton(tr("Open Workspace")); // NOLINT
-    layout->addWidget(openButton);
-    connect(openButton, &QPushButton::clicked, this, &WelcomePage::openWorkspace);
+    : DockWidget("welcome") ,
+    m_welcomeWidget(new QQuickWidget()){
+    setWidget(m_welcomeWidget);
+}
+
+void WelcomePage::propertySet(const QVariantMap &objects) {
+    m_welcomeWidget->rootContext()->setContextProperty("welcomePage", this);
+    m_welcomeWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_welcomeWidget->setSource(QUrl("qrc:/qml/scriptModule/welcomePage.qml"));
+}
+
+void WelcomePage::workspaceOpen() {
+    emit openWorkspace();
 }

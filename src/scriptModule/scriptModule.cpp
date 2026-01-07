@@ -42,6 +42,7 @@ ScriptModule::~ScriptModule() {
 }
 
 void ScriptModule::propertySet(const QVariantMap &objects) {
+    m_welcomePage->propertySet(QVariantMap());
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 

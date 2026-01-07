@@ -14,7 +14,7 @@ Item {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/home.svg"
             icon.width: 16; icon.height: 16
-            text: qsTr("Workspace")
+            text: workspaceName
             Layout.preferredHeight: 20
 
             // onClicked:
