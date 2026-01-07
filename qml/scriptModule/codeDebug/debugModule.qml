@@ -19,7 +19,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Terminate")
                 ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 0)
+                onClicked: debugModule.stateSet(threadComboBox.currentText, 0)
             }
 
             Button {
@@ -29,7 +29,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Resume")
                 ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 1)
+                onClicked: debugModule.stateSet(threadComboBox.currentText, 1)
             }
 
             Button {
@@ -39,7 +39,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Pause")
                 ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 2)
+                onClicked: debugModule.stateSet(threadComboBox.currentText, 2)
             }
 
             Button {
@@ -49,7 +49,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Step Over")
                 ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 3)
+                onClicked: debugModule.stateSet(threadComboBox.currentText, 3)
             }
 
             Button {
@@ -59,7 +59,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Step Into")
                 ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 4)
+                onClicked: debugModule.stateSet(threadComboBox.currentText, 4)
             }
 
             Button {
@@ -69,22 +69,12 @@ Item {
                 icon.width: 16; icon.height: 16
                 ToolTip.text: qsTr("Step Out")
                 ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 5)
-            }
-
-            Button {
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                icon.source: "qrc:/icon/debugContinue.svg"
-                icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Run To Cursor")
-                ToolTip.visible: hovered
-                onClicked: debugModule.stateSet(combobox.currentText, 6)
+                onClicked: debugModule.stateSet(threadComboBox.currentText, 5)
             }
         }
 
         ComboBox {
-            id: combobox
+            id: threadComboBox
             Layout.fillWidth: true;
             Layout.alignment: Qt.AlignTop
             model: stringListModel
@@ -177,5 +167,12 @@ Item {
                 debugModule.markerInsert(model.data(index, Qt.WhatsThisRole))
             }
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "threadComboBox": threadComboBox
+        };
+        debugModule.propertyGet(objects)
     }
 }

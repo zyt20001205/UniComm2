@@ -1197,12 +1197,20 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Watch")
+            text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
             enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["word"] : false
 
             onTriggered: watchModule.watchInsert(-1, scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["word"])
+        }
+
+        MenuItem {
+            text: qsTr("Run Here")
+            icon.source: "qrc:/icon/debugContinue.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: debugModule.stateSet("", 6)
         }
 
         MenuSeparator {

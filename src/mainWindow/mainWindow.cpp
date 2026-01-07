@@ -85,7 +85,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
     // m_overlay->rootContext()->setContextProperty("dataplotModule", m_dataplotModule);
     m_overlay->rootContext()->setContextProperty("datatableModule", m_datatableModule);
-    // m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
+    m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
@@ -318,6 +318,7 @@ void MainWindow::moduleInit() {
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_debugModule, &DebugModule::getCursorPosition, m_scriptModule, &ScriptModule::cursorPositionGet);
     connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
     connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
 

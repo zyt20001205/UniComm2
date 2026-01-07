@@ -40,6 +40,10 @@ void DebugModule::propertySet(const QVariantMap &objects) {
     m_debugWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/debugModule.qml"));
 }
 
+void DebugModule::propertyGet(const QVariantMap &objects) {
+    m_threadComboBox = qvariant_cast<QObject *>(objects["threadComboBox"]);
+}
+
 void DebugModule::debugStart(const QString &threadId) const {
     QStringList threads = m_threadStringListModel->stringList();
     threads.append(threadId);
@@ -56,7 +60,13 @@ void DebugModule::debugStop(const QString &threadId) {
 }
 
 void DebugModule::stateSet(const QString &threadId, const int state) {
-    emit setState(threadId, state);
+    if (state == DEBUG_RUNTOCURSOR) {
+        emit getCursorPosition();
+        const QString &currentThreadId = m_threadComboBox->property("currentText").toString();
+        emit setState(currentThreadId, state);
+    } else {
+        emit setState(threadId, state);
+    }
 }
 
 void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {

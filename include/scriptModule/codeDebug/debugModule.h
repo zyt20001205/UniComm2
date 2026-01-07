@@ -26,6 +26,8 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
     void debugStart(const QString &threadId) const;
 
     void debugStop(const QString &threadId);
@@ -41,12 +43,15 @@ public:
 signals:
     void openScript(const QUrl &scriptUrl);
 
+    void getCursorPosition();
+
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void setState(const QString &threadId, int state);
 
 private:
     QQuickWidget *m_debugWidget{};
+    QObject *m_threadComboBox{};
     QStringListModel *m_threadStringListModel{};
     QHash<QString, QStandardItemModel *> m_callStackModelHash{};
 };
