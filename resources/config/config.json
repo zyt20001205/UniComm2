@@ -57,5 +57,7 @@
     "openWorkspace": "Ctrl+O",
     "saveWorkspace": "Ctrl+S",
     "saveWorkspaceAs": "Ctrl+Shift+S"
-  }
+  },
+  "watchConfig": [
+  ]
 }

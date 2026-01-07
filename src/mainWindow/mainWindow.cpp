@@ -626,11 +626,12 @@ void MainWindow::workspaceOpen() {
 void MainWindow::workspaceSave(QString filePath) {
     m_scriptModule->scriptConfigSave();
     m_breakpointModule->breakpointConfigSave();
-    m_portModule->portConfigSave();
-    m_sendModule->sendConfigSave();
     m_databaseModule->databaseConfigSave();
     m_datatableModule->datatableConfigSave();
     m_logModule->logConfigSave();
+    m_portModule->portConfigSave();
+    m_sendModule->sendConfigSave();
+    m_watchModule->watchConfigSave();
     mainConfigSave();
     m_configManager->workspaceConfigSave(filePath);
 }

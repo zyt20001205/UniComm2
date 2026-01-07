@@ -9,13 +9,13 @@
 // BreakpointModule public
 BreakpointModule::BreakpointModule()
     : DockWidget("Breakpoint"),
-      m_breakpointConfig(g_workspaceConfig["breakpointConfig"].toObject()),
       m_breakpointWidget(new QQuickWidget()),
       m_breakpointStandardItemModel(new QStandardItemModel()) {
     setWidget(m_breakpointWidget);
-    for (const auto &key: m_breakpointConfig.keys()) {
+    auto breakpointConfig = g_workspaceConfig["breakpointConfig"].toObject();
+    for (const auto &key: breakpointConfig.keys()) {
         const QUrl url(key);
-        const auto breakpointLineHash = m_breakpointConfig[key].toObject();
+        const auto breakpointLineHash = breakpointConfig[key].toObject();
         for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
             const int line = it.key().toInt();
             const QVariantHash session = it.value().toObject().toVariantHash();

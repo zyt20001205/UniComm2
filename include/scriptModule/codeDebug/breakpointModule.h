@@ -45,7 +45,6 @@ signals:
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
 private:
-    QJsonObject m_breakpointConfig{};
     QQuickWidget *m_breakpointWidget{};
     QStandardItemModel *m_breakpointStandardItemModel{};
 };

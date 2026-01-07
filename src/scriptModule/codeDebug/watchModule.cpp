@@ -1,5 +1,6 @@
 #include "scriptModule/codeDebug/watchModule.h"
 
+#include <QJsonArray>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QStandardItemModel>
@@ -12,6 +13,13 @@ WatchModule::WatchModule()
       m_watchWidget(new QQuickWidget()) {
     setWidget(m_watchWidget);
     g_watchStandardItemModel = new QStandardItemModel(this);
+    auto watchConfig = g_workspaceConfig["watchConfig"].toArray();
+    for (const auto &value : watchConfig) {
+        const auto pair = value.toArray();
+        const auto scriptUrl = QUrl(pair[0].toString());
+        const QString key = pair[1].toString();
+        watchInsert(-1, scriptUrl, key);
+    }
 }
 
 WatchModule::~WatchModule() {
@@ -31,7 +39,13 @@ void WatchModule::propertySet(const QVariantMap &objects) {
 }
 
 void WatchModule::watchConfigSave() const {
-
+    auto watchArray = QJsonArray();
+    for (int i = 0; i < g_watchStandardItemModel->rowCount(); ++i) {
+        const QString url = g_watchStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toString();
+        const QString key = g_watchStandardItemModel->item(i, 0)->text();
+        watchArray.append(QJsonArray({url, key}));
+    }
+    g_workspaceConfig["watchConfig"] = watchArray;
 }
 
 void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &key) {
