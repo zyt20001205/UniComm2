@@ -143,6 +143,10 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
     }
 }
 
+bool ThreadpoolModule::debugging() const {
+    return m_debug != 0;
+}
+
 QString ThreadpoolModule::lifetimeCalc(const int row) const {
     const auto item = m_threadpoolStandardItemModel->item(row, SPAWN_COL);
     if (!item) return {};

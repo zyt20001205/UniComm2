@@ -29,6 +29,8 @@ public:
 
     Q_INVOKABLE void threadStop(const QString &threadId);
 
+    Q_INVOKABLE bool debugging() const;
+
     Q_INVOKABLE QString lifetimeCalc(int row) const;
 
     void stateSet(const QString &threadId, int state);

@@ -1102,7 +1102,10 @@ Item {
         property url scriptUrl
         property var menuSession
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
+            widgetCount += 1
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -1201,14 +1204,20 @@ Item {
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
             enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["word"] : false
+            ToolTip.visible: hovered
+            ToolTip.text: enabled ? scriptModuleEditorMenu.menuSession["word"] : qsTr("Right-click a variable")
 
             onTriggered: watchModule.watchInsert(-1, scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["word"])
         }
 
         MenuItem {
+            id: scriptModuleEditorMenuRunHereItem
             text: qsTr("Run Here")
             icon.source: "qrc:/icon/debugContinue.svg"
             icon.width: 16; icon.height: 16
+            enabled: false
+            ToolTip.visible: hovered && !enabled
+            ToolTip.text: qsTr("No debug sessions")
 
             onTriggered: debugModule.stateSet("", 6)
         }
@@ -1297,7 +1306,7 @@ Item {
             onTriggered: threadpoolModule.threadStop(threadpoolModuleThreadMenu.threadId)
         }
     }
-    
+
     // watch module
     Menu {
         id: watchModuleTableMenu
