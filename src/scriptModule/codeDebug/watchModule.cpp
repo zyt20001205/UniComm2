@@ -5,7 +5,7 @@
 
 // WatchModule public
 WatchModule::WatchModule()
-    : DockWidget("welcome"),
+    : DockWidget("Watch"),
       m_watchWidget(new QQuickWidget()) {
     setWidget(m_watchWidget);
 }
