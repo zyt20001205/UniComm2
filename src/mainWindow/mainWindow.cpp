@@ -192,7 +192,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_threadpoolModule->propertySet(threadpoolObjects);
 
     const QVariantMap watchObjects = {
-        //
+        {"watchModuleTableMenu", objects["watchModuleTableMenu"]},
+        {"watchModuleRootMenu", objects["watchModuleRootMenu"]}
     };
     m_watchModule->propertySet(watchObjects);
 }

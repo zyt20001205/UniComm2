@@ -1285,6 +1285,56 @@ Item {
             onTriggered: threadpoolModule.threadStop(threadpoolModuleThreadMenu.threadId)
         }
     }
+    
+    // watch module
+    Menu {
+        id: watchModuleTableMenu
+        property int watchIndex
+        property string watchKey
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: watchModule.watchClear(watchModuleTableMenu.watchIndex)
+        }
+
+        MenuItem {
+            text: qsTr("Delete")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: watchModule.watchRemove(watchModuleTableMenu.watchIndex)
+        }
+    }
+
+    Menu {
+        id: watchModuleRootMenu
+
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        Menu {
+            title: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    watchModule.watchClear(-1)
+                    progress = 0
+                    watchModuleRootMenu.close()
+                }
+            }
+        }
+    }
 
     Component.onCompleted: {
         const objects = {
@@ -1325,7 +1375,10 @@ Item {
 
             "systemModuleErrorDialog": systemModuleErrorDialog,
 
-            "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu
+            "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,
+
+            "watchModuleTableMenu": watchModuleTableMenu,
+            "watchModuleRootMenu": watchModuleRootMenu,
         };
         mainWindow.propertyGet(objects)
     }

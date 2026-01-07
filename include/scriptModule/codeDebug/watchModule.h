@@ -17,7 +17,7 @@ public:
 
     void watchConfigSave() const;
 
-    Q_INVOKABLE void watchInsert(int index, const QUrl &scriptUrl, const QString &name);
+    Q_INVOKABLE void watchInsert(int index, const QUrl &scriptUrl, const QString &key);
 
     Q_INVOKABLE void watchRemove(int index);
 

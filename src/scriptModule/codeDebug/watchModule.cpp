@@ -20,6 +20,9 @@ WatchModule::~WatchModule() {
 }
 
 void WatchModule::propertySet(const QVariantMap &objects) {
+    m_watchWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["watchModuleTableMenu"]));
+    m_watchWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["watchModuleRootMenu"]));
+
     m_watchWidget->rootContext()->setContextProperty("watchModule", this);
     m_watchWidget->rootContext()->setContextProperty("standardItemModel", g_watchStandardItemModel);
     m_watchWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -31,12 +34,12 @@ void WatchModule::watchConfigSave() const {
 
 }
 
-void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &name) {
+void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &key) {
     index = g_watchStandardItemModel->rowCount();
-    auto *nameItem = new QStandardItem(name); // NOLINT
-    nameItem->setData(scriptUrl, Qt::WhatsThisRole);
+    auto *keyItem = new QStandardItem(key); // NOLINT
+    keyItem->setData(scriptUrl, Qt::WhatsThisRole);
     auto *valueItem = new QStandardItem(); // NOLINT
-    g_watchStandardItemModel->insertRow(index, {nameItem, valueItem});
+    g_watchStandardItemModel->insertRow(index, {keyItem, valueItem});
 }
 
 void WatchModule::watchRemove(const int index) {
