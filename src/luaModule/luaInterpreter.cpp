@@ -309,7 +309,7 @@ void LuaInterpreter::luaRunHook(lua_State *L, lua_Debug *ar) {
 }
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
-    // handle pause request
+    // handle pause/terminate request
     QThread* thread = QThread::currentThread();
     thread->eventDispatcher()->processEvents(QEventLoop::AllEvents);
 
