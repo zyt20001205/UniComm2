@@ -7,7 +7,7 @@
 
 // DataplotModule public
 DataplotModule::DataplotModule()
-    : DockWidget("dataplot"),
+    : DockWidget("Dataplot"),
       m_dataplotWidget(new QQuickWidget()) {
     setWidget(m_dataplotWidget);
 }

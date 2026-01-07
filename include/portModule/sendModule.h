@@ -28,17 +28,7 @@ public:
 
     Q_INVOKABLE void commandSend() const;
 
-protected:
-    void contextMenuEvent(QContextMenuEvent *event) override;
-
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
 private:
-    void shortcutRename(int visualIndex, int type);
-
-    void shortcutInsert(int visualIndex);
-
-    void shortcutRemove(int visualIndex);
 
     QJsonArray m_sendConfig{};
     QQuickWidget *m_sendWidget{};
@@ -47,9 +37,6 @@ private:
     QObject *m_formatComboBox{};
     QObject *m_suffixComboBox{};
     QObject *m_sendTextField{};
-
-    QLineEdit *m_lineEdit{};
-    QTableWidget *m_tableWidget{};
 };
 
 #endif //UNICOMM_SENDMODULE_H

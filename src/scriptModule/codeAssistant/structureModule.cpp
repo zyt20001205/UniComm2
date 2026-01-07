@@ -11,7 +11,7 @@
 
 // StructureModule public
 StructureModule::StructureModule()
-    : DockWidget("structure"),
+    : DockWidget("Structure"),
       m_structureWidget(new QQuickWidget()),
       m_structureStandardItemModel(new QStandardItemModel()) {
     setWidget(m_structureWidget);

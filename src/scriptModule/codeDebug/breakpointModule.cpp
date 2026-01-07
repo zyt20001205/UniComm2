@@ -8,7 +8,7 @@
 
 // BreakpointModule public
 BreakpointModule::BreakpointModule()
-    : DockWidget("breakpoint"),
+    : DockWidget("Breakpoint"),
       m_breakpointConfig(g_workspaceConfig["breakpointConfig"].toObject()),
       m_breakpointWidget(new QQuickWidget()),
       m_breakpointStandardItemModel(new QStandardItemModel()) {

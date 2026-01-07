@@ -21,7 +21,7 @@
 
 // DebugModule public
 DebugModule::DebugModule()
-    : DockWidget("debug"),
+    : DockWidget("Debug"),
       m_debugWidget(new QQuickWidget()),
       m_threadStringListModel(new QStringListModel()) {
     setWidget(m_debugWidget);

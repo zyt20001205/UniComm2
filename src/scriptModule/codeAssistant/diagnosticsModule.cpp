@@ -13,7 +13,7 @@
 
 // DiagnosticsModule public
 DiagnosticsModule::DiagnosticsModule()
-    : DockWidget("diagnostics"),
+    : DockWidget("Diagnostics"),
       m_diagnosticsWidget(new QQuickWidget()) {
     setWidget(m_diagnosticsWidget);
 }

@@ -10,7 +10,7 @@
 
 // LogModule public
 LogModule::LogModule()
-    : DockWidget("log"),
+    : DockWidget("Log"),
       m_logConfig(g_workspaceConfig["logConfig"].toObject()),
       m_logWidget(new QQuickWidget()),
       m_logTextDocument(new QTextDocument()) {

@@ -9,7 +9,7 @@
 
 // DatabaseModule public
 DatabaseModule::DatabaseModule()
-    : DockWidget("database"),
+    : DockWidget("Database"),
       m_databaseWidget(new QQuickWidget()) {
     setWidget(m_databaseWidget);
     g_databaseStandardItemModel = new QStandardItemModel(this);

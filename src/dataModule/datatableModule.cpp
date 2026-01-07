@@ -11,7 +11,7 @@
 #include "globals.h"
 
 DatatableModule::DatatableModule()
-    : DockWidget("data table"),
+    : DockWidget("Data Table"),
       m_datatableWidget(new QQuickWidget()) {
     setWidget(m_datatableWidget);
     g_datatableHeaderItemModel = new QStandardItemModel(this);

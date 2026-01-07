@@ -15,7 +15,7 @@
 
 // ThreadpoolModule public
 ThreadpoolModule::ThreadpoolModule()
-    : DockWidget("threadpool"),
+    : DockWidget("Threadpool"),
       m_threadpoolWidget(new QQuickWidget()),
       m_threadpoolStandardItemModel(new QStandardItemModel(this)) {
     setWidget(m_threadpoolWidget);

@@ -23,7 +23,7 @@
 
 // PortModule public
 PortModule::PortModule()
-    : DockWidget("port"),
+    : DockWidget("Port"),
       m_portWidget(new QQuickWidget()),
       m_portSetting(new PortSetting(this)) {
     setWidget(m_portWidget);
