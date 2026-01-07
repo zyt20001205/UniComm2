@@ -309,6 +309,10 @@ void LuaInterpreter::luaRunHook(lua_State *L, lua_Debug *ar) {
 }
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
+    // handle pause request
+    QThread* thread = QThread::currentThread();
+    thread->eventDispatcher()->processEvents(QEventLoop::AllEvents);
+
     sol::state_view lua(L);
     QVariantMap &session = *lua["session"].get<QVariantMap *>();
     auto *This = qvariant_cast<LuaInterpreter *>(session["this"]);
