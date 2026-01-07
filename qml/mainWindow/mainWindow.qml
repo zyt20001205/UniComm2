@@ -1343,6 +1343,7 @@ Item {
                 id: watchModuleUrlTextField
                 width: parent.width
                 placeholderText: qsTr("Enter url:")
+                Layout.fillWidth: true
 
                 onAccepted: watchModuleEditDialog.accept()
                 Keys.onEscapePressed: watchModuleEditDialog.reject()
@@ -1352,6 +1353,7 @@ Item {
                 id: watchModuleKeyTextField
                 width: parent.width
                 placeholderText: qsTr("Enter key:")
+                Layout.fillWidth: true
 
                 onAccepted: watchModuleEditDialog.accept()
                 Keys.onEscapePressed: watchModuleEditDialog.reject()
