@@ -49,33 +49,13 @@ signals:
     void showPosition(const QVariantMap &positionSession);
 
 private:
-    void filterClear() const;
-
-    void filterInit(int mode);
-
-    void filterSet(bool status);
-
-    void labelShow() const;
+    void placeholderExpand(const QString &placeholder) const;
 
     QObject *m_tooltip{};
     QObject *m_tableView{};
     QVariantMap m_completionSession{};
-    QListView *m_completionListView{};
+    QSet<QString > m_placeholderSet{};
     QStandardItemModel *m_completionModel{};
-    QSortFilterProxyModel *m_filterProxyModel{};
-    QSet<int> m_completionKinds{};
-    QWidget *m_filterWidget{};
-    QHash<int, QPushButton *> m_filterButtonHash{};
-    QPushButton *m_textButton{};
-    QPushButton *m_functionButton{};
-    QPushButton *m_fieldButton{};
-    QPushButton *m_variableButton{};
-    QPushButton *m_enumButton{};
-    QPushButton *m_keywordButton{};
-    QPushButton *m_fileButton{};
-    QPushButton *m_enummemberButton{};
-    QPushButton *m_resetButton{};
-    QLabel *m_completionLabel{};
 
     enum {
         COMPLETION_MODE_FULL,

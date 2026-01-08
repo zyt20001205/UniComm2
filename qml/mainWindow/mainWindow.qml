@@ -1367,14 +1367,6 @@ Item {
         contentItem: Label {
             id: scriptModuleSignatureLabel
             textFormat: Text.RichText
-
-            onTextChanged: scriptModuleSignatureToolTipTimer.restart()
-        }
-
-        Timer {
-            id: scriptModuleSignatureToolTipTimer
-            interval: 5000
-            onTriggered: scriptModuleSignatureToolTip.hide()
         }
     }
 
