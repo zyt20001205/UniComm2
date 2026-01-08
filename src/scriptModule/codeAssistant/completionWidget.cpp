@@ -128,8 +128,8 @@ void CompletionWidget::completionNext() const {
 
 void CompletionWidget::textReplace() {
     const int index = m_tableView->property("selectedRow").toInt();
-    const int kind = m_completionModel->item(index, 1)->data(Qt::UserRole + 1).toInt();
-    QString insertText = m_completionModel->item(index, 1)->text();
+    const int kind = m_completionModel->item(index, 0)->data(Qt::UserRole + 1).toInt();
+    QString insertText = m_completionModel->item(index, 0)->text();
     if (kind == COMPLETION_KIND_FUNCTION) {
         insertText += "()";
     } else if (kind == COMPLETION_KIND_FIELD) {
