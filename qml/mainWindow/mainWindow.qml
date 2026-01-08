@@ -1442,6 +1442,15 @@ Item {
                 //     selectedRow = 0
                 // }
             }
+
+            Connections {
+                target: scriptModuleCompletionTableView.model
+
+                function onModelReset() {
+                    scriptModuleCompletionDetailToolTip.close()
+                    scriptModuleCompletionDetailTimer.restart()
+                }
+            }
         }
 
         ToolTip {
@@ -1461,7 +1470,7 @@ Item {
                 model: scriptModuleCompletionDetailListModel
 
                 delegate: Item {
-                    implicitWidth: Math.max(scriptModuleCompletionDetailLabel.implicitWidth + 32, 200); implicitHeight: 24
+                    implicitWidth: Math.max(scriptModuleCompletionDetailLabel.implicitWidth, 100); implicitHeight: 24
 
                     Label {
                         id: scriptModuleCompletionDetailLabel
