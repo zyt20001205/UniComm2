@@ -261,7 +261,7 @@ void EditorWidget::markerInsert(const int type, int line, const int time) {
     });
 }
 
-void EditorWidget::markerRemove(const int type, int line) {
+void EditorWidget::markerRemove(const int type, const int line) {
     if (line == -1) {
         markerDeleteAll(type);
     } else {
@@ -272,7 +272,10 @@ void EditorWidget::markerRemove(const int type, int line) {
 // EditorWidget protected
 void EditorWidget::focusOutEvent(QFocusEvent *event) {
     // block qml menu event
-    if (event->reason() == Qt::OtherFocusReason) return;
+    if (event->reason() == Qt::OtherFocusReason) {
+        setFocus();
+        return;
+    }
     // clear highlight
     indicatorRemove(INDICATOR_HIGHLIGHT);
     indicatorRemove(INDICATOR_READ);
