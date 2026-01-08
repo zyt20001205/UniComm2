@@ -29,7 +29,10 @@ Item {
         standardButtons: Dialog.Abort
         topPadding: 30; bottomPadding: 20
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
         onRejected: systemModule.processTerminate()
 
@@ -48,7 +51,10 @@ Item {
         title: qsTr("Save and Exit?")
         standardButtons: Dialog.Yes | Dialog.No
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
         onAccepted: {
             mainWindowCloseDialog.close()
@@ -70,7 +76,10 @@ Item {
         property real secondaryProgress
         property string secondaryLog
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
         onRejected: mainWindow.terminate()
 
@@ -118,7 +127,10 @@ Item {
             property string text
             topPadding: 30; bottomPadding: 20
 
-            onAboutToShow: widgetCount += 1
+            onAboutToShow: {
+                widgetCount += 1
+                mainWindow.overlayFocus()
+            }
             onClosed: {
                 widgetCount -= 1
                 destroy()
@@ -189,7 +201,10 @@ Item {
         property url url
         property int line
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -225,7 +240,10 @@ Item {
         id: breakpointModuleFileMenu
         property url url
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         Menu {
@@ -249,7 +267,10 @@ Item {
     Menu {
         id: breakpointModuleRootMenu
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         Menu {
@@ -312,7 +333,10 @@ Item {
         property int databaseIndex
         property string databaseKey
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -359,7 +383,10 @@ Item {
     Menu {
         id: databaseModuleRootMenu
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -434,7 +461,10 @@ Item {
         property int datatableIndex
         property string datatableKey
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -473,7 +503,10 @@ Item {
     Menu {
         id: datatableModuleRootMenu
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -520,7 +553,10 @@ Item {
         property var drawer
         property var rootItem
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -578,7 +614,10 @@ Item {
         property string diagnostic
         property var position
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -660,7 +699,10 @@ Item {
         property string filePath
         property string fileName
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -773,7 +815,10 @@ Item {
         property string filePath
         property string fileName
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -881,7 +926,10 @@ Item {
         property string rootPath
         property var treeView
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -966,7 +1014,10 @@ Item {
         title: qsTr("Log Is Empty")
         standardButtons: Dialog.Ok
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
     }
 
@@ -1004,7 +1055,10 @@ Item {
         id: logModuleLinkMenu
         property url url
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -1043,7 +1097,10 @@ Item {
         id: portModuleTableMenu
         property int portIndex
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -1083,7 +1140,10 @@ Item {
     Menu {
         id: portModuleRootMenu
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -1262,13 +1322,17 @@ Item {
             id: scriptModuleCompletionTableView
             anchors.fill: parent
             anchors.margins: 5
-            implicitWidth: contentWidth
-            implicitHeight: Math.min(contentHeight, 150)
+            implicitWidth: contentWidth; implicitHeight: Math.min(contentHeight, 150)
             alternatingRows: false
             clip: true
             editTriggers: TableView.NoEditTriggers
+            flickableDirection: Flickable.VerticalFlick
             property int selectedRow
             property var completionWidget
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             delegate: DelegateChooser {
                 DelegateChoice {
@@ -1285,7 +1349,7 @@ Item {
 
                 Rectangle {
                     implicitWidth: 24; implicitHeight: 24
-                    color: scriptModuleCompletionTableView.selectedRow === row ? "#f5f5f5" : "transparent"
+                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
 
                     Image {
                         width: 16; height: 16
@@ -1302,7 +1366,7 @@ Item {
                     id: textCell
                     implicitWidth: Math.max(textMetrics.width + 16, 176)
                     implicitHeight: 24
-                    color: scriptModuleCompletionTableView.selectedRow === row ? "#f5f5f5" : "transparent"
+                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                     required property int column
                     required property int row
 
@@ -1342,17 +1406,19 @@ Item {
             function completionPrev() {
                 if (selectedRow > 0) {
                     selectedRow = selectedRow - 1
-                } else {
-                    selectedRow = model.rowCount() - 1
                 }
+                // else {
+                //     selectedRow = model.rowCount() - 1
+                // }
             }
 
             function completionNext() {
                 if (selectedRow < model.rowCount() - 1) {
                     selectedRow = selectedRow + 1
-                } else {
-                    selectedRow = 0
                 }
+                // else {
+                //     selectedRow = 0
+                // }
             }
         }
     }
@@ -1382,7 +1448,10 @@ Item {
         modal: true
         standardButtons: Dialog.Ok
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
     }
 
@@ -1420,7 +1489,10 @@ Item {
         id: threadpoolModuleThreadMenu
         property string threadId
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -1492,7 +1564,10 @@ Item {
         property url watchUrl
         property string watchKey
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         MenuItem {
@@ -1528,7 +1603,10 @@ Item {
     Menu {
         id: watchModuleRootMenu
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
         onClosed: widgetCount -= 1
 
         Menu {

@@ -271,11 +271,6 @@ void EditorWidget::markerRemove(const int type, const int line) {
 
 // EditorWidget protected
 void EditorWidget::focusOutEvent(QFocusEvent *event) {
-    // block qml focus out event
-    if (event->reason() == Qt::OtherFocusReason) {
-        setFocus();
-        return;
-    }
     // clear highlight
     indicatorRemove(INDICATOR_HIGHLIGHT);
     indicatorRemove(INDICATOR_READ);

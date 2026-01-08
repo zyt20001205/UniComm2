@@ -964,7 +964,7 @@ Item {
                                             id: highlightRect
                                             anchors.fill: parent
                                             radius: 2
-                                            color: "#f5f5f5"
+                                            color: "#ebebeb"
                                             opacity: hoverHandler.hovered ? 1 : 0
                                             Behavior on opacity {
                                                 NumberAnimation {

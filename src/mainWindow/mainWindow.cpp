@@ -202,9 +202,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_watchModule->propertySet(watchObjects);
 }
 
+void MainWindow::overlayFocus() const {
+    m_overlay->setFocus();
+}
+
 void MainWindow::overlayTransparent(const bool status) const {
     m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents, status);
-    if (!status) m_overlay->setFocus();
 }
 
 void MainWindow::quit() {
@@ -216,12 +219,12 @@ void MainWindow::quit() {
     // quit modules
     current ++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for threadpool module..."));
-    m_threadpoolModule->quit();
     m_quitDialog->setProperty("primaryProgress", current / total);
+    m_threadpoolModule->quit();
     current ++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for lua language server module..."));
-    m_luals->quit();
     m_quitDialog->setProperty("primaryProgress", current / total);
+    m_luals->quit();
 
     m_askForSaving = false;
     close();
