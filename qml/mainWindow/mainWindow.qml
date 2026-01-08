@@ -1316,10 +1316,14 @@ Item {
         property point position
 
         onAboutToShow: {
-            // scriptModuleCompletionDetailToolTip.open()
             widgetCount += 1
+            scriptModuleCompletionDetailToolTip.close()
+            scriptModuleCompletionDetailTimer.restart()
         }
-        onClosed: widgetCount -= 1
+        onClosed: {
+            widgetCount -= 1
+            scriptModuleCompletionDetailToolTip.close()
+        }
 
         contentItem: TableView {
             id: scriptModuleCompletionTableView
@@ -1374,11 +1378,11 @@ Item {
 
                     Label {
                         id: scriptModuleCompletionLabel
-                        Layout.fillWidth: true; Layout.preferredHeight: 24
                         font: scriptModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                         text: model.display
                         elide: Text.ElideRight
+                        Layout.fillWidth: true; Layout.preferredHeight: 24
                     }
 
                     TapHandler {
@@ -1389,14 +1393,35 @@ Item {
                 }
             }
 
-            onSelectedRowChanged: positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+            onSelectedRowChanged: {
+                positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+                scriptModuleCompletionDetailToolTip.close()
+                scriptModuleCompletionDetailTimer.restart()
+            }
 
             HoverHandler {
                 onPointChanged: {
                     scriptModuleCompletionTableView.hoveredRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
+                    scriptModuleCompletionDetailToolTip.close()
+                    scriptModuleCompletionDetailTimer.restart()
                 }
                 onHoveredChanged: {
                     if (!hovered) scriptModuleCompletionTableView.hoveredRow = -1
+                }
+            }
+
+            Timer {
+                id: scriptModuleCompletionDetailTimer
+                interval: 150
+
+                onTriggered: {
+                    const currentIndex = scriptModuleCompletionTableView.model.index(scriptModuleCompletionTableView.selectedRow, 0);
+                    const labelList = scriptModuleCompletionTableView.model.data(currentIndex, Qt.WhatsThisRole)
+                    scriptModuleCompletionDetailListModel.clear();
+                    for (let i = 0; i < labelList.length; ++i) {
+                        scriptModuleCompletionDetailListModel.append({"display": labelList[i]});
+                    }
+                    scriptModuleCompletionDetailToolTip.open()
                 }
             }
 
@@ -1418,14 +1443,41 @@ Item {
                 // }
             }
         }
-        // ToolTip {
-        //     id: scriptModuleCompletionDetailToolTip
-        //     x: scriptModuleCompletionToolTip.x + scriptModuleCompletionToolTip.width; y: scriptModuleCompletionToolTip.y
-        //
-        //     Label {
-        //         text: "for testing"
-        //     }
-        // }
+
+        ToolTip {
+            id: scriptModuleCompletionDetailToolTip
+            parent: Overlay.overlay
+            x: scriptModuleCompletionToolTip.x + scriptModuleCompletionToolTip.width; y: scriptModuleCompletionToolTip.y
+
+            contentItem: TableView {
+                id: scriptModuleCompletionDetailListView
+                anchors.fill: parent
+                anchors.margins: 5
+                implicitWidth: contentWidth; implicitHeight: contentHeight
+                alternatingRows: false
+                clip: true
+                editTriggers: TableView.NoEditTriggers
+                flickableDirection: Flickable.VerticalFlick
+                model: scriptModuleCompletionDetailListModel
+
+                delegate: Item {
+                    implicitWidth: Math.max(scriptModuleCompletionDetailLabel.implicitWidth + 32, 200); implicitHeight: 24
+
+                    Label {
+                        id: scriptModuleCompletionDetailLabel
+                        anchors.fill: parent
+                        font: scriptModuleCompletionToolTip.font
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+
+            ListModel {
+                id: scriptModuleCompletionDetailListModel
+            }
+        }
     }
 
     ToolTip {

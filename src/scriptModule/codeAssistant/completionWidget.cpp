@@ -51,67 +51,79 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
             break;
         }
     }
+    QString recordInsertText{};
     for (const auto &value: items) {
         QJsonObject item = value.toObject();
         const int kind = item["kind"].toInt();
         if (completionMode == COMPLETION_MODE_SIMPLE && kind != COMPLETION_KIND_ENUMMEMBER) continue;
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
+        // placeholder check
         if (m_placeholderSet.contains(insertText)) {
             placeholderExpand(insertText);
             continue;
         }
-        auto *standardItem = new QStandardItem(insertText); // NOLINT
-        QUrl iconSource{};
-        switch (kind) {
-            case COMPLETION_KIND_TEXT: {
-                iconSource = "qrc:/icon/symbolString.svg";
+        // duplicate item check
+        if (insertText != recordInsertText) {
+            recordInsertText = insertText;
+            auto *standardItem = new QStandardItem(insertText); // NOLINT
+            QUrl iconSource{};
+            switch (kind) {
+                case COMPLETION_KIND_TEXT: {
+                    iconSource = "qrc:/icon/symbolString.svg";
+                }
+                    break;
+                case COMPLETION_KIND_METHOD:
+                case COMPLETION_KIND_FUNCTION: {
+                    iconSource = "qrc:/icon/symbolMethod.svg";
+                }
+                    break;
+                case COMPLETION_KIND_FIELD: {
+                    iconSource = "qrc:/icon/symbolField.svg";
+                }
+                    break;
+                case COMPLETION_KIND_VARIABLE: {
+                    iconSource = "qrc:/icon/symbolVariable.svg";
+                }
+                    break;
+                case COMPLETION_KIND_ENUM: {
+                    iconSource = "qrc:/icon/symbolEnum.svg";
+                }
+                    break;
+                case COMPLETION_KIND_KEYWORD: {
+                    iconSource = "qrc:/icon/symbolKeyword.svg";
+                }
+                    break;
+                case COMPLETION_KIND_FILE: {
+                    iconSource = "qrc:/icon/symbolFile.svg";
+                }
+                    break;
+                case COMPLETION_KIND_ENUMMEMBER: {
+                    iconSource = "qrc:/icon/symbolEnumMember.svg";
+                }
+                    break;
+                default: {
+                    iconSource = "qrc:/icon/symbolMisc.svg";
+                    qDebug() << "WIP completion kind:" << kind << insertText;
+                }
+                    break;
             }
-            break;
-            case COMPLETION_KIND_METHOD:
-            case COMPLETION_KIND_FUNCTION: {
-                iconSource = "qrc:/icon/symbolMethod.svg";
-            }
-            break;
-            case COMPLETION_KIND_FIELD: {
-                iconSource = "qrc:/icon/symbolField.svg";
-            }
-            break;
-            case COMPLETION_KIND_VARIABLE: {
-                iconSource = "qrc:/icon/symbolVariable.svg";
-            }
-            break;
-            case COMPLETION_KIND_ENUM: {
-                iconSource = "qrc:/icon/symbolEnum.svg";
-            }
-            break;
-            case COMPLETION_KIND_KEYWORD: {
-                iconSource = "qrc:/icon/symbolKeyword.svg";
-            }
-            break;
-            case COMPLETION_KIND_FILE: {
-                iconSource = "qrc:/icon/symbolFile.svg";
-            }
-            break;
-            case COMPLETION_KIND_ENUMMEMBER: {
-                iconSource = "qrc:/icon/symbolEnumMember.svg";
-            }
-            break;
-            default: {
-                iconSource = "qrc:/icon/symbolMisc.svg";
-                qDebug() << "WIP completion kind:" << kind << insertText;
-            }
-            break;
+            standardItem->setData(iconSource, Qt::DecorationRole);
+            standardItem->setData(QStringList({label}), Qt::WhatsThisRole);
+            standardItem->setData(kind, Qt::UserRole + 1);
+            m_completionModel->appendRow(standardItem);
+        } else {
+            auto labelList = m_completionModel->item(m_completionModel->rowCount()-1, 0)->data(Qt::WhatsThisRole).toStringList();
+            labelList.append(label);
+            m_completionModel->item(m_completionModel->rowCount()-1, 0)->setData(labelList, Qt::WhatsThisRole);
         }
-        standardItem->setData(iconSource, Qt::DecorationRole);
-        standardItem->setData(label, Qt::WhatsThisRole);
-        standardItem->setData(kind, Qt::UserRole + 1);
-        m_completionModel->appendRow(standardItem);
     }
-    const auto position = completionSession["position"].toPoint();
-    m_tooltip->setProperty("position", position);
-    m_tableView->setProperty("selectedRow", 0);
-    QMetaObject::invokeMethod(m_tooltip, "open");
+    if (m_completionModel->rowCount() > 0) {
+        const auto position = completionSession["position"].toPoint();
+        m_tooltip->setProperty("position", position);
+        m_tableView->setProperty("selectedRow", 0);
+        QMetaObject::invokeMethod(m_tooltip, "open");
+    }
 }
 
 void CompletionWidget::completionHide() const {
