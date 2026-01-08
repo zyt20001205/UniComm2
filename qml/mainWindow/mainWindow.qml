@@ -1252,11 +1252,11 @@ Item {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
         x: position.x; y: position.y - implicitHeight
-        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        // closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
-        onAboutToShow: widgetCount += 1
-        onClosed: widgetCount -= 1
+        // onAboutToShow: widgetCount += 1
+        // onClosed: widgetCount -= 1
 
         contentItem: Label {
             id: scriptModuleSignatureLabel

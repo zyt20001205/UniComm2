@@ -25,8 +25,7 @@ bool SignatureWidget::isVisible() const {
     return m_tooltip->property("visible").toBool();
 }
 
-void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) {
-    m_signatureSession = signatureSession;
+void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const {
     QString helpText;
     int index = 0;
     const int activeParameter = signature["activeParameter"].toInt();
@@ -48,8 +47,10 @@ void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const Q
     }
     helpText.chop(2);
     m_label->setProperty("text", helpText);
-    const auto position = m_signatureSession["position"].toPoint();
-    m_tooltip->setProperty("position", position);
+    if (activeParameter == 0) {
+        const auto position = signatureSession["position"].toPoint();
+        m_tooltip->setProperty("position", position);
+    }
     QMetaObject::invokeMethod(m_tooltip, "open");
 }
 

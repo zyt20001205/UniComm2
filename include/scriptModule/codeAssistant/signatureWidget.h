@@ -20,14 +20,13 @@ public:
 
     bool isVisible() const;
 
-    void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature);
+    void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const;
 
     void signatureHide() const;
 
 private:
     QObject *m_tooltip{};
     QObject *m_label{};
-    QVariantMap m_signatureSession{};
 };
 
 #endif //UNICOMM_SIGNATUREWIDGET_H
