@@ -1353,13 +1353,15 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: [4, 0, 0, 4]
+                        topLeftRadius: 4
+                        bottomLeftRadius: 4
                         color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                     }
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: [4, 0, 0, 4]
+                        topLeftRadius: 4
+                        bottomLeftRadius: 4
                         color: "#ebebeb"
                         opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
                         Behavior on opacity {
@@ -1389,13 +1391,15 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: [4, 0, 0, 4]
+                        topRightRadius: 4
+                        bottomRightRadius: 4
                         color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                     }
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: [0, 4, 4, 0]
+                        topRightRadius: 4
+                        bottomRightRadius: 4
                         color: "#ebebeb"
                         opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
                         Behavior on opacity {
