@@ -61,7 +61,7 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
             placeholderExpand(insertText);
             continue;
         }
-        auto *iconItem = new QStandardItem(); // NOLINT
+        auto *standardItem = new QStandardItem(insertText); // NOLINT
         QUrl iconSource{};
         switch (kind) {
             case COMPLETION_KIND_TEXT: {
@@ -103,11 +103,10 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
             }
             break;
         }
-        iconItem->setData(iconSource, Qt::DecorationRole);
-        auto *textItem = new QStandardItem(insertText); // NOLINT
-        textItem->setData(label, Qt::WhatsThisRole);
-        textItem->setData(kind, Qt::UserRole + 1);
-        m_completionModel->appendRow({iconItem, textItem});
+        standardItem->setData(iconSource, Qt::DecorationRole);
+        standardItem->setData(label, Qt::WhatsThisRole);
+        standardItem->setData(kind, Qt::UserRole + 1);
+        m_completionModel->appendRow(standardItem);
     }
     const auto position = completionSession["position"].toPoint();
     m_tooltip->setProperty("position", position);
@@ -187,32 +186,29 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
     if (placeholder == "\"_PORT_PLACEHOLDER_\"") {
         for (int i = 0; i < g_portStandardItemModel->rowCount(); ++i) {
             const QString insertText = "\"" + g_portStandardItemModel->item(i, 0)->text() + "\"";
-            auto *iconItem = new QStandardItem(); // NOLINT
-            iconItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
-            auto *textItem = new QStandardItem(insertText); // NOLINT
-            textItem->setData(insertText, Qt::WhatsThisRole);
-            textItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
-            m_completionModel->appendRow({iconItem, textItem});
+            auto *standardItem = new QStandardItem(insertText); // NOLINT
+            standardItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
+            standardItem->setData(insertText, Qt::WhatsThisRole);
+            standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
+            m_completionModel->appendRow(standardItem);
         }
     } else if (placeholder == "\"_DATABASE_PLACEHOLDER_\"") {
         for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {
             const QString insertText = "\"" + g_databaseStandardItemModel->item(i, 0)->text() + "\"";
-            auto *iconItem = new QStandardItem(); // NOLINT
-            iconItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
-            auto *textItem = new QStandardItem(insertText); // NOLINT
-            textItem->setData(insertText, Qt::WhatsThisRole);
-            textItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
-            m_completionModel->appendRow({iconItem, textItem});
+            auto *standardItem = new QStandardItem(insertText); // NOLINT
+            standardItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
+            standardItem->setData(insertText, Qt::WhatsThisRole);
+            standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
+            m_completionModel->appendRow(standardItem);
         }
     } else if (placeholder == "\"_DATATABLE_PLACEHOLDER_\"") {
         for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {
             const QString insertText = "\"" + g_datatableHeaderItemModel->item(i, 0)->text() + "\"";
-            auto *iconItem = new QStandardItem(); // NOLINT
-            iconItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
-            auto *textItem = new QStandardItem(insertText); // NOLINT
-            textItem->setData(insertText, Qt::WhatsThisRole);
-            textItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
-            m_completionModel->appendRow({iconItem, textItem});
+            auto *standardItem = new QStandardItem(insertText); // NOLINT
+            standardItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
+            standardItem->setData(insertText, Qt::WhatsThisRole);
+            standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
+            m_completionModel->appendRow(standardItem);
         }
     }
 }

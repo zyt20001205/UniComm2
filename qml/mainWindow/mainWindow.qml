@@ -1315,7 +1315,10 @@ Item {
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            // scriptModuleCompletionDetailToolTip.open()
+            widgetCount += 1
+        }
         onClosed: widgetCount -= 1
 
         contentItem: TableView {
@@ -1335,77 +1338,37 @@ Item {
                 policy: ScrollBar.AsNeeded
             }
 
-            delegate: DelegateChooser {
-                DelegateChoice {
-                    column: 0
-                    delegate: iconCellDelegate
+            delegate: Item {
+                implicitWidth: Math.max(textMetrics.width + 16, 200); implicitHeight: 24
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 4
+                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                 }
-                DelegateChoice {
-                    delegate: textCellDelegate
-                }
-            }
 
-            Component {
-                id: iconCellDelegate
-
-                Item {
-                    implicitWidth: 24; implicitHeight: 24
-
-                    Rectangle {
-                        anchors.fill: parent
-                        topLeftRadius: 4
-                        bottomLeftRadius: 4
-                        color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        topLeftRadius: 4
-                        bottomLeftRadius: 4
-                        color: "#ebebeb"
-                        opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 150
-                            }
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 4
+                    color: "#ebebeb"
+                    opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
                         }
                     }
-
-                    Image {
-                        width: 16; height: 16
-                        anchors.centerIn: parent
-                        source: model.decoration
-                    }
                 }
-            }
 
-            Component {
-                id: textCellDelegate
+                RowLayout {
+                    anchors.fill: parent
 
-                Item {
-                    id: textCell
-                    implicitWidth: Math.max(textMetrics.width + 16, 176)
-                    implicitHeight: 24
-                    required property int column
-                    required property int row
+                    Item {
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    Rectangle {
-                        anchors.fill: parent
-                        topRightRadius: 4
-                        bottomRightRadius: 4
-                        color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        topRightRadius: 4
-                        bottomRightRadius: 4
-                        color: "#ebebeb"
-                        opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 150
-                            }
+                        Image {
+                            width: 16; height: 16
+                            anchors.centerIn: parent
+                            source: model.decoration
                         }
                     }
 
@@ -1415,12 +1378,10 @@ Item {
                         text: model.display || ""
                     }
 
-                    Text {
-                        anchors.fill: parent
-                        z: 2
+                    Label {
+                        Layout.fillWidth: true; Layout.preferredHeight: 24
                         font: scriptModuleCompletionToolTip.font
-                        horizontalAlignment: Text.AlignLeft
-                        verticalAlignment: Text.AlignVCenter
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                         text: model.display
                         elide: Text.ElideRight
                     }
@@ -1462,6 +1423,14 @@ Item {
                 // }
             }
         }
+        // ToolTip {
+        //     id: scriptModuleCompletionDetailToolTip
+        //     x: scriptModuleCompletionToolTip.x + scriptModuleCompletionToolTip.width; y: scriptModuleCompletionToolTip.y
+        //
+        //     Label {
+        //         text: "for testing"
+        //     }
+        // }
     }
 
     ToolTip {
