@@ -1252,7 +1252,6 @@ Item {
         id: scriptModuleCompletionToolTip
         parent: Overlay.overlay
         x: position.x - 30; y: position.y
-        width: 200; height: 150
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
@@ -1263,10 +1262,11 @@ Item {
             id: scriptModuleCompletionTableView
             anchors.fill: parent
             anchors.margins: 5
+            implicitWidth: contentWidth
+            implicitHeight: Math.min(contentHeight, 150)
             alternatingRows: false
             clip: true
             editTriggers: TableView.NoEditTriggers
-            contentWidth: width
             property int selectedRow
             property var completionWidget
 
@@ -1300,7 +1300,8 @@ Item {
 
                 Rectangle {
                     id: textCell
-                    implicitWidth: scriptModuleCompletionTableView.width - 24; implicitHeight: 24
+                    implicitWidth: Math.max(textMetrics.width + 16, 176)
+                    implicitHeight: 24
                     color: scriptModuleCompletionTableView.selectedRow === row ? "#f5f5f5" : "transparent"
                     required property int column
                     required property int row
