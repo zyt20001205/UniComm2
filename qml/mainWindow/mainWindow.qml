@@ -1327,6 +1327,7 @@ Item {
             clip: true
             editTriggers: TableView.NoEditTriggers
             flickableDirection: Flickable.VerticalFlick
+            property int hoveredRow: -1
             property int selectedRow
             property var completionWidget
 
@@ -1347,9 +1348,26 @@ Item {
             Component {
                 id: iconCellDelegate
 
-                Rectangle {
+                Item {
                     implicitWidth: 24; implicitHeight: 24
-                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: [4, 0, 0, 4]
+                        color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: [4, 0, 0, 4]
+                        color: "#ebebeb"
+                        opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
+                        }
+                    }
 
                     Image {
                         width: 16; height: 16
@@ -1362,13 +1380,30 @@ Item {
             Component {
                 id: textCellDelegate
 
-                Rectangle {
+                Item {
                     id: textCell
                     implicitWidth: Math.max(textMetrics.width + 16, 176)
                     implicitHeight: 24
-                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                     required property int column
                     required property int row
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: [4, 0, 0, 4]
+                        color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: [0, 4, 4, 0]
+                        color: "#ebebeb"
+                        opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
+                        }
+                    }
 
                     TextMetrics {
                         id: textMetrics
@@ -1384,13 +1419,6 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         text: model.display
                         elide: Text.ElideRight
-
-                        ToolTip.visible: hoverHandler.hovered
-                        ToolTip.text: model.whatsThis
-                    }
-
-                    HoverHandler {
-                        id: hoverHandler
                     }
 
                     TapHandler {
@@ -1402,6 +1430,15 @@ Item {
             }
 
             onSelectedRowChanged: positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+
+            HoverHandler {
+                onPointChanged: {
+                    scriptModuleCompletionTableView.hoveredRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
+                }
+                onHoveredChanged: {
+                    if (!hovered) scriptModuleCompletionTableView.hoveredRow = -1
+                }
+            }
 
             function completionPrev() {
                 if (selectedRow > 0) {
