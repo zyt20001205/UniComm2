@@ -1393,6 +1393,11 @@ Item {
                 }
             }
 
+            onHoveredRowChanged: {
+                scriptModuleCompletionDetailToolTip.close()
+                scriptModuleCompletionDetailTimer.restart()
+            }
+
             onSelectedRowChanged: {
                 positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
                 scriptModuleCompletionDetailToolTip.close()
@@ -1400,11 +1405,7 @@ Item {
             }
 
             HoverHandler {
-                onPointChanged: {
-                    scriptModuleCompletionTableView.hoveredRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
-                    scriptModuleCompletionDetailToolTip.close()
-                    scriptModuleCompletionDetailTimer.restart()
-                }
+                onPointChanged: scriptModuleCompletionTableView.hoveredRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
                 onHoveredChanged: {
                     if (!hovered) scriptModuleCompletionTableView.hoveredRow = -1
                 }
@@ -1415,7 +1416,12 @@ Item {
                 interval: 150
 
                 onTriggered: {
-                    const currentIndex = scriptModuleCompletionTableView.model.index(scriptModuleCompletionTableView.selectedRow, 0);
+                    var currentIndex
+                    if (scriptModuleCompletionTableView.hoveredRow !== -1) {
+                        currentIndex = scriptModuleCompletionTableView.model.index(scriptModuleCompletionTableView.hoveredRow, 0);
+                    } else {
+                        currentIndex = scriptModuleCompletionTableView.model.index(scriptModuleCompletionTableView.selectedRow, 0);
+                    }
                     const labelList = scriptModuleCompletionTableView.model.data(currentIndex, Qt.WhatsThisRole)
                     scriptModuleCompletionDetailListModel.clear();
                     for (let i = 0; i < labelList.length; ++i) {
