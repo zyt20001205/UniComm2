@@ -1339,7 +1339,7 @@ Item {
             }
 
             delegate: Item {
-                implicitWidth: Math.max(textMetrics.width + 16, 200); implicitHeight: 24
+                implicitWidth: Math.max(scriptModuleCompletionLabel.implicitWidth + 24 + 32, 200); implicitHeight: 24
 
                 Rectangle {
                     anchors.fill: parent
@@ -1372,13 +1372,8 @@ Item {
                         }
                     }
 
-                    TextMetrics {
-                        id: textMetrics
-                        font: scriptModuleCompletionToolTip.font
-                        text: model.display || ""
-                    }
-
                     Label {
+                        id: scriptModuleCompletionLabel
                         Layout.fillWidth: true; Layout.preferredHeight: 24
                         font: scriptModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
