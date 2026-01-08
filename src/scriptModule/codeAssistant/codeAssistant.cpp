@@ -89,34 +89,45 @@ void CodeAssistant::signatureShow(const QVariantMap &signatureSession, const QJs
 
 // CodeAssistant protected
 bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
-    if (m_completionWidget->isVisible()) {
-        if (event->type() == QEvent::KeyPress) {
-            const auto *keyEvent = static_cast<QKeyEvent *>(event);
-            switch (keyEvent->key()) {
-                case Qt::Key_Tab: {
-                    m_completionWidget->textReplace();
-                    m_completionWidget->completionHide();
-                }
-                    return true;
-                case Qt::Key_Up: {
-                    m_completionWidget->completionPrev();
-                }
-                    return true;
-                case Qt::Key_Down: {
-                    m_completionWidget->completionNext();
-                }
-                    return true;
-                case Qt::Key_Return:
-                case Qt::Key_Escape:
-                case Qt::Key_Backspace:
-                case Qt::Key_Left:
-                case Qt::Key_Right: {
-                    m_completionWidget->completionHide();
-                }
-                    return false;
-                default:
-                    return false;
+    if (event->type() == QEvent::KeyPress) {
+        auto *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            // hide keys
+            case Qt::Key_Escape:
+            case Qt::Key_Backspace:
+            case Qt::Key_Left:
+            case Qt::Key_Right: {
+                m_completionWidget->completionHide();
+                m_signatureWidget->signatureHide();
             }
+                return false;
+            // selection keys
+            case Qt::Key_Up: {
+                if (m_completionWidget->isVisible()) {
+                    m_completionWidget->completionPrev();
+                    return true;
+                } else {
+                    m_signatureWidget->signatureHide();
+                    return false;
+                }
+            }
+            case Qt::Key_Down: {
+                if (m_completionWidget->isVisible()) {
+                    m_completionWidget->completionNext();
+                    return true;
+                } else {
+                    m_signatureWidget->signatureHide();
+                    return false;
+                }
+            }
+            // completion keys
+            case Qt::Key_Tab: {
+                m_completionWidget->textReplace();
+                m_completionWidget->completionHide();
+            }
+                return true;
+            default:
+                return false;
         }
     }
     if (m_navigationWidget->isVisible()) {
@@ -151,24 +162,6 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
                 m_positionWidget->textReplace();
                 m_positionWidget->positionHide();
                 return true;
-            }
-        }
-    }
-    if (m_signatureWidget->isVisible()) {
-        if (event->type() == QEvent::KeyPress) {
-            auto *keyEvent = static_cast<QKeyEvent *>(event);
-            switch (keyEvent->key()) {
-                case Qt::Key_Escape:
-                case Qt::Key_Backspace:
-                case Qt::Key_Left:
-                case Qt::Key_Up:
-                case Qt::Key_Right:
-                case Qt::Key_Down: {
-                    m_signatureWidget->signatureHide();
-                }
-                    return false;
-                default:
-                    return false;
             }
         }
     }
