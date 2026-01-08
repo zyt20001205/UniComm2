@@ -1337,6 +1337,8 @@ Item {
                 }
             }
 
+            onSelectedRowChanged: positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+
             function completionPrev() {
                 if (selectedRow > 0) {
                     selectedRow = selectedRow - 1
