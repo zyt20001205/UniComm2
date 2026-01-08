@@ -130,7 +130,12 @@ CompletionWidget::CompletionWidget(QWidget *parent)
     m_completionLabel->setStyleSheet("#completionLabel { background-color: white; border: 1px solid #cccccc; border-radius: 10px; padding: 2px; }");
 }
 
+void CompletionWidget::propertySet(const QVariantMap &objects) {
+    m_tooltip = qvariant_cast<QObject *>(objects["scriptModuleCompletionToolTip"]);
+}
+
 void CompletionWidget::completionShow(const QVariantMap &completionSession, const QJsonArray &items) {
+    QMetaObject::invokeMethod(m_tooltip, "open");
     m_completionSession = completionSession;
     m_completionModel->clear();
     m_completionKinds.clear();

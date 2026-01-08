@@ -161,6 +161,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap scriptObjects = {
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
+        {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
         {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
     };

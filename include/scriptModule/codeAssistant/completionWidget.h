@@ -17,6 +17,8 @@ public:
 
     ~CompletionWidget() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void completionShow(const QVariantMap &completionSession, const QJsonArray &items);
 
     void completionHide();
@@ -54,6 +56,7 @@ private:
 
     void labelShow() const;
 
+    QObject *m_tooltip{};
     QVariantMap m_completionSession{};
     QListView *m_completionListView{};
     QStandardItemModel *m_completionModel{};

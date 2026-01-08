@@ -1249,6 +1249,21 @@ Item {
     }
 
     ToolTip {
+        id: scriptModuleCompletionToolTip
+        parent: Overlay.overlay
+        x: position.x; y: position.y
+        // closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+
+        // onAboutToShow: widgetCount += 1
+        // onClosed: widgetCount -= 1
+
+        contentItem: Button {
+            text: "test"
+        }
+    }
+
+    ToolTip {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
         x: position.x; y: position.y - implicitHeight
@@ -1484,6 +1499,7 @@ Item {
             "portModuleRootMenu": portModuleRootMenu,
 
             "scriptModuleEditorMenu": scriptModuleEditorMenu,
+            "scriptModuleCompletionToolTip": scriptModuleCompletionToolTip,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 
