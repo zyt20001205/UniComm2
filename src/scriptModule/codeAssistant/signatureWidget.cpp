@@ -12,12 +12,15 @@ SignatureWidget::SignatureWidget(QWidget *parent)
 
 void SignatureWidget::propertySet(const QVariantMap &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["scriptModuleSignatureToolTip"]);
-    m_label = qvariant_cast<QObject *>(objects["scriptModuleSignatureLabel"]);;
+    m_label = qvariant_cast<QObject *>(objects["scriptModuleSignatureLabel"]);
 }
 
 void SignatureWidget::fontSet(const QString &family, const int pointSize) const {
-    m_label->setProperty("font.family", family);
-    m_label->setProperty("font.pointSize", pointSize);
+    if (!m_label) return;
+    auto font = m_label->property("font").value<QFont>();
+    font.setFamily(family);
+    font.setPointSize(pointSize);
+    m_label->setProperty("font", font);
 }
 
 bool SignatureWidget::isVisible() const {

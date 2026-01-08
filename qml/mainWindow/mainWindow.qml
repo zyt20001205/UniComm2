@@ -1252,7 +1252,6 @@ Item {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
         x: position.x; y: position.y - implicitHeight
-        timeout : 5000
         // closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
@@ -1262,6 +1261,14 @@ Item {
         contentItem: Label {
             id: scriptModuleSignatureLabel
             textFormat: Text.RichText
+
+            onTextChanged: scriptModuleSignatureToolTipTimer.restart()
+        }
+
+        Timer {
+            id: scriptModuleSignatureToolTipTimer
+            interval: 5000
+            onTriggered: scriptModuleSignatureToolTip.hide()
         }
     }
 
