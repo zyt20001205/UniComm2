@@ -1251,15 +1251,106 @@ Item {
     ToolTip {
         id: scriptModuleCompletionToolTip
         parent: Overlay.overlay
-        x: position.x; y: position.y
+        x: position.x - 30; y: position.y
+        width: 200; height: 150
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
         onAboutToShow: widgetCount += 1
         onClosed: widgetCount -= 1
 
-        contentItem: Button {
-            text: "test"
+        contentItem: TableView {
+            id: scriptModuleCompletionTableView
+            anchors.fill: parent
+            anchors.margins: 5
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            contentWidth: width
+            property int selectedRow
+            property var completionWidget
+
+            delegate: DelegateChooser {
+                DelegateChoice {
+                    column: 0
+                    delegate: iconCellDelegate
+                }
+                DelegateChoice {
+                    delegate: textCellDelegate
+                }
+            }
+
+            Component {
+                id: iconCellDelegate
+
+                Rectangle {
+                    implicitWidth: 24; implicitHeight: 24
+                    color: scriptModuleCompletionTableView.selectedRow === row ? "#f5f5f5" : "transparent"
+
+                    Image {
+                        width: 16; height: 16
+                        anchors.centerIn: parent
+                        source: model.decoration
+                    }
+                }
+            }
+
+            Component {
+                id: textCellDelegate
+
+                Rectangle {
+                    id: textCell
+                    implicitWidth: scriptModuleCompletionTableView.width - 24; implicitHeight: 24
+                    color: scriptModuleCompletionTableView.selectedRow === row ? "#f5f5f5" : "transparent"
+                    required property int column
+                    required property int row
+
+                    TextMetrics {
+                        id: textMetrics
+                        font: scriptModuleCompletionToolTip.font
+                        text: model.display || ""
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        z: 2
+                        font: scriptModuleCompletionToolTip.font
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+
+                        ToolTip.visible: hoverHandler.hovered
+                        ToolTip.text: model.whatsThis
+                    }
+
+                    HoverHandler {
+                        id: hoverHandler
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: scriptModuleCompletionTableView.selectedRow = row
+                        onDoubleTapped: scriptModuleCompletionTableView.completionWidget.textReplace()
+                    }
+                }
+            }
+
+            function completionPrev() {
+                if (selectedRow > 0) {
+                    selectedRow = selectedRow - 1
+                } else {
+                    selectedRow = model.rowCount() - 1
+                }
+            }
+
+            function completionNext() {
+                if (selectedRow < model.rowCount() - 1) {
+                    selectedRow = selectedRow + 1
+                } else {
+                    selectedRow = 0
+                }
+            }
         }
     }
 
@@ -1500,6 +1591,7 @@ Item {
 
             "scriptModuleEditorMenu": scriptModuleEditorMenu,
             "scriptModuleCompletionToolTip": scriptModuleCompletionToolTip,
+            "scriptModuleCompletionTableView": scriptModuleCompletionTableView,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 

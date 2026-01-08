@@ -9,7 +9,7 @@ class QListView;
 class QPushButton;
 class QStandardItemModel;
 
-class CompletionWidget final : public QWidget {
+class CompletionWidget final : public QObject {
     Q_OBJECT
 
 public:
@@ -19,15 +19,19 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    void fontSet(const QString &family, int pointSize) const;
+
+    bool isVisible() const;
+
     void completionShow(const QVariantMap &completionSession, const QJsonArray &items);
 
-    void completionHide();
+    void completionHide() const;
 
     void completionPrev() const;
 
     void completionNext() const;
 
-    void textReplace();
+    Q_INVOKABLE void textReplace();
 
 signals:
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
@@ -44,9 +48,6 @@ signals:
 
     void showPosition(const QVariantMap &positionSession);
 
-protected:
-    void hideEvent(QHideEvent *event) override;
-
 private:
     void filterClear() const;
 
@@ -57,6 +58,7 @@ private:
     void labelShow() const;
 
     QObject *m_tooltip{};
+    QObject *m_tableView{};
     QVariantMap m_completionSession{};
     QListView *m_completionListView{};
     QStandardItemModel *m_completionModel{};

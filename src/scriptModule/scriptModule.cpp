@@ -413,10 +413,10 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const int indexFrom = wordStartPos - editor->SendScintilla(QsciScintilla::SCI_POSITIONFROMLINE, line);
     const int indexTo = wordEndPos - editor->SendScintilla(QsciScintilla::SCI_POSITIONFROMLINE, line);
     // get completion display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 26;
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call completion show
     const QVariantMap completionSession = {
         {"scriptUrl", scriptUrl},

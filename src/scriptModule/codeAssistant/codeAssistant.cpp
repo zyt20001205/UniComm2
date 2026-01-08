@@ -34,7 +34,8 @@ CodeAssistant::CodeAssistant(QWidget *parent)
 
 void CodeAssistant::propertySet(const QVariantMap &objects) const {
     m_completionWidget->propertySet(QVariantMap{
-        {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]}
+        {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
+        {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]}
     });
     m_signatureWidget->propertySet(QVariantMap{
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
@@ -42,7 +43,8 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
     });
 }
 
-void CodeAssistant::fontSet(const QString &family, int pointSize) const {
+void CodeAssistant::fontSet(const QString &family, const int pointSize) const {
+    m_completionWidget->fontSet(family, pointSize);
     m_signatureWidget->fontSet(family, pointSize);
 }
 
