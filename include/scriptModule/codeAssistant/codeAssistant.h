@@ -16,6 +16,10 @@ public:
 
     ~CodeAssistant() override = default;
 
+    void propertySet(const QVariantMap &objects) const;
+
+    void fontSet(const QString &family, int pointSize) const;
+
     void completionShow(const QVariantMap &completionSession, const QJsonArray &items) const;
 
     void completionHide() const;

@@ -43,6 +43,8 @@ ScriptModule::~ScriptModule() {
 
 void ScriptModule::propertySet(const QVariantMap &objects) {
     m_welcomePage->propertySet(QVariantMap());
+    m_codeAssistant->propertySet(objects);
+    m_codeAssistant->fontSet(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt());
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
@@ -712,9 +714,8 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     // get signature display position
     const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) - lineHeight - 5;
-    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
+    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call signature show
     const QVariantMap signatureSession = {
         {"scriptUrl", scriptUrl},

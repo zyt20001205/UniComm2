@@ -1,24 +1,28 @@
 #include "scriptModule/codeAssistant/signatureWidget.h"
 
-#include <QEvent>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
-#include <QVBoxLayout>
 
 // SignatureWidget public
 SignatureWidget::SignatureWidget(QWidget *parent)
-    : QWidget(parent, Qt::ToolTip),
-      m_label(new QLabel()) {
-    setAttribute(Qt::WA_StyledBackground, true);
-    setObjectName("signatureWidget");
-    auto *layout = new QVBoxLayout(this); //NOLINT
-    layout->setContentsMargins(5, 5, 5, 5);
-    layout->addWidget(m_label);
-    m_label->setFont(QFont("consolas", 12));
-    setStyleSheet(
-    "#signatureWidget { background-color: white; border: 1px solid #cccccc; border-radius: 10px; }");
+    : QObject(parent) {
+}
+
+void SignatureWidget::propertySet(const QVariantMap &objects) {
+    m_tooltip = qvariant_cast<QObject *>(objects["scriptModuleSignatureToolTip"]);
+    m_label = qvariant_cast<QObject *>(objects["scriptModuleSignatureLabel"]);;
+}
+
+void SignatureWidget::fontSet(const QString &family, const int pointSize) const {
+    m_label->setProperty("font.family", family);
+    m_label->setProperty("font.pointSize", pointSize);
+}
+
+bool SignatureWidget::isVisible() const {
+    if (!m_tooltip) return false;
+    return m_tooltip->property("visible").toBool();
 }
 
 void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) {
@@ -36,18 +40,19 @@ void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const Q
         const int endIndex = range[1].toInt();
         QString param = label.mid(startIndex, endIndex - startIndex);
         if (index == activeParameter) {
-            param = QString("<span style='color: orange;'>%1</span>").arg(param);
+            param = QString("<span style='color: orange; font-weight: 600;'>%1</span>").arg(param);
         }
         helpText += param;
         helpText += ", ";
         index++;
     }
     helpText.chop(2);
-    m_label->setText(helpText);
-    show();
-    move(m_signatureSession["position"].toPoint());
+    m_label->setProperty("text", helpText);
+    const auto position = m_signatureSession["position"].toPoint();
+    m_tooltip->setProperty("position", position);
+    QMetaObject::invokeMethod(m_tooltip, "open");
 }
 
-void SignatureWidget::signatureHide() {
-    hide();
+void SignatureWidget::signatureHide() const {
+    QMetaObject::invokeMethod(m_tooltip, "close");
 }

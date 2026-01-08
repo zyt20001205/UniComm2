@@ -1,11 +1,12 @@
 #ifndef UNICOMM_SIGNATUREWIDGET_H
 #define UNICOMM_SIGNATUREWIDGET_H
 
-#include <QWidget>
+#include <QMap>
+#include <QObject>
 
 class QLabel;
 
-class SignatureWidget final : public QWidget {
+class SignatureWidget final : public QObject {
     Q_OBJECT
 
 public:
@@ -13,13 +14,20 @@ public:
 
     ~SignatureWidget() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
+    void fontSet(const QString &family, int pointSize) const;
+
+    bool isVisible() const;
+
     void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature);
 
-    void signatureHide();
+    void signatureHide() const;
 
 private:
+    QObject *m_tooltip{};
+    QObject *m_label{};
     QVariantMap m_signatureSession{};
-    QLabel *m_label{};
 };
 
 #endif //UNICOMM_SIGNATUREWIDGET_H

@@ -160,7 +160,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_portModule->propertySet(portObjects);
 
     const QVariantMap scriptObjects = {
-        {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]}
+        {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
+        {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
+        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
     };
     m_scriptModule->propertySet(scriptObjects);
 
@@ -208,16 +210,16 @@ void MainWindow::quit() {
 
     QMetaObject::invokeMethod(m_quitDialog, "open");
     constexpr float total = 2;
-    float current = 1;
+    int current = 0;
     // quit modules
+    current ++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for threadpool module..."));
     m_threadpoolModule->quit();
     m_quitDialog->setProperty("primaryProgress", current / total);
-    current += 1;
+    current ++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for lua language server module..."));
     m_luals->quit();
     m_quitDialog->setProperty("primaryProgress", current / total);
-    current += 1;
 
     m_askForSaving = false;
     close();

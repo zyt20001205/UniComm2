@@ -1,5 +1,6 @@
 #include "scriptModule/codeAssistant/codeAssistant.h"
 
+#include <QJsonObject>
 #include <QKeyEvent>
 
 #include "scriptModule/codeAssistant/completionWidget.h"
@@ -29,6 +30,17 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
     connect(m_positionWidget, &PositionWidget::insertText, this, &CodeAssistant::insertText);
+}
+
+void CodeAssistant::propertySet(const QVariantMap &objects) const {
+    m_signatureWidget->propertySet(QVariantMap{
+        {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
+        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
+    });
+}
+
+void CodeAssistant::fontSet(const QString &family, int pointSize) const {
+    m_signatureWidget->fontSet(family, pointSize);
 }
 
 void CodeAssistant::completionShow(const QVariantMap &completionSession, const QJsonArray &items) const {
@@ -146,12 +158,14 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
         if (event->type() == QEvent::KeyPress) {
             auto *keyEvent = static_cast<QKeyEvent *>(event);
             switch (keyEvent->key()) {
-                case Qt::Key_Up:
-                case Qt::Key_Down:
-                case Qt::Key_Left:
-                case Qt::Key_Right:
                 case Qt::Key_Escape:
+                case Qt::Key_Backspace:
+                case Qt::Key_Left:
+                case Qt::Key_Up:
+                case Qt::Key_Right:
+                case Qt::Key_Down: {
                     m_signatureWidget->signatureHide();
+                }
                     return false;
                 default:
                     return false;
