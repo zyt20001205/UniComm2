@@ -126,6 +126,8 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
         m_tooltip->setProperty("position", position);
         m_tableView->setProperty("selectedRow", 0);
         QMetaObject::invokeMethod(m_tooltip, "open");
+    } else {
+        completionHide();
     }
 }
 
@@ -142,8 +144,9 @@ void CompletionWidget::completionNext() const {
 }
 
 void CompletionWidget::detailReload(const int index) const {
-    const auto labelList = m_completionModel->item(index, 0)->data(Qt::WhatsThisRole).toStringList();
     m_detailModel->clear();
+    if (!m_completionModel->item(index, 0)) return;
+    const auto labelList = m_completionModel->item(index, 0)->data(Qt::WhatsThisRole).toStringList();
     for (const auto &label: labelList) {
         m_detailModel->appendRow(new QStandardItem(label));
     }
