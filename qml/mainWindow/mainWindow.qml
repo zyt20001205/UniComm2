@@ -1780,15 +1780,15 @@ Item {
         mainWindow.propertyGet(objects)
     }
 
-    Timer {
-        interval: 1000
-        repeat: true
-        running: mainItem.visible
-        onTriggered: {
-            const window = mainItem.Window.window
-            if (window && window.activeFocusItem) {
-                console.log("focus:", window.activeFocusItem.objectName || window.activeFocusItem.toString())
-            }
-        }
-    }
+    // Timer {
+    //     interval: 1000
+    //     repeat: true
+    //     running: mainItem.visible
+    //     onTriggered: {
+    //         const window = mainItem.Window.window
+    //         if (window && window.activeFocusItem) {
+    //             console.log("focus:", window.activeFocusItem.objectName || window.activeFocusItem.toString())
+    //         }
+    //     }
+    // }
 }
