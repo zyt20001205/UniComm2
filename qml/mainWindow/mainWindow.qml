@@ -1329,7 +1329,7 @@ Item {
         contentItem: TableView {
             id: scriptModuleCompletionTableView
             anchors.fill: parent
-            anchors.margins: 5
+            anchors.margins: 6
             implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
             alternatingRows: false
             clip: true
@@ -1468,7 +1468,7 @@ Item {
             contentItem: TableView {
                 id: scriptModuleCompletionDetailTableView
                 anchors.fill: parent
-                anchors.margins: 5
+                anchors.margins: 6
                 implicitWidth: idealWidth; implicitHeight: idealHeight
                 alternatingRows: false
                 clip: true
