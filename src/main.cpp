@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
             padding: 0px 0px 4px 16px;
         }
         QTabBar::tab:hover {
-            border-bottom: 3px solid #e0e0e0;
+            border-bottom: 3px solid #ebebeb;
         }
         QTabBar::tab:selected {
             border-bottom: 3px solid #0f548c;
@@ -41,10 +41,10 @@ int main(int argc, char *argv[]) {
             image: url(:/icon/close.svg);
         }
         QTabBar::close-button:hover {
-            background-color: #e0e0e0;
+            background-color: #ebebeb;
         }
         QTabBar::close-button:pressed {
-            background-color: #d0d0d0;
+            background-color: #d6d6d6;
         }
         QTabWidget::pane {
             border: 1px solid #cccccc;
