@@ -1390,12 +1390,6 @@ Item {
                         elide: Text.ElideRight
                         Layout.fillWidth: true; Layout.preferredHeight: 24
                     }
-
-                    TapHandler {
-                        acceptedButtons: Qt.LeftButton
-                        onTapped: scriptModuleCompletionTableView.selectedRow = row
-                        onDoubleTapped: scriptModuleCompletionToolTip.completionWidget.textReplace()
-                    }
                 }
 
                 Component.onCompleted: {
@@ -1420,6 +1414,13 @@ Item {
                         scriptModuleCompletionDetailTimer.restart()
                     }
                 }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+
+                onTapped: scriptModuleCompletionTableView.selectedRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
+                onDoubleTapped: scriptModuleCompletionToolTip.completionWidget.textReplace()
             }
 
             Timer {
@@ -1777,5 +1778,17 @@ Item {
             "watchModuleRootMenu": watchModuleRootMenu,
         };
         mainWindow.propertyGet(objects)
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: mainItem.visible
+        onTriggered: {
+            const window = mainItem.Window.window
+            if (window && window.activeFocusItem) {
+                console.log("focus:", window.activeFocusItem.objectName || window.activeFocusItem.toString())
+            }
+        }
     }
 }
