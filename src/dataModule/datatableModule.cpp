@@ -122,7 +122,11 @@ void DatatableModule::datatableExport() {
     for (int i = 0; i < g_datatableStandardItemModel->rowCount(); ++i) {
         QStringList rowData{};
         for (int j = 0; j < g_datatableStandardItemModel->columnCount(); ++j) {
-            rowData.append(g_datatableStandardItemModel->item(i, j)->text());
+            if (g_datatableStandardItemModel->item(i, j)) {
+                rowData.append(g_datatableStandardItemModel->item(i, j)->text());
+            } else {
+                rowData.append("");
+            }
         }
         out << rowData.join(",") << "\n";
     }
