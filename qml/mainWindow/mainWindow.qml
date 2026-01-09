@@ -1311,7 +1311,7 @@ Item {
     ToolTip {
         id: scriptModuleCompletionToolTip
         parent: Overlay.overlay
-        x: position.x - 30; y: position.y
+        x: position.x - 35; y: position.y
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var completionWidget
