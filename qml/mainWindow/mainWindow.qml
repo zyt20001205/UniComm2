@@ -1423,11 +1423,19 @@ Item {
                 interval: 150
 
                 onTriggered: {
+                    var interestRow
                     if (scriptModuleCompletionTableView.hoveredRow !== -1) {
-                        scriptModuleCompletionToolTip.completionWidget.detailReload(scriptModuleCompletionTableView.hoveredRow)
+                        interestRow = scriptModuleCompletionTableView.hoveredRow
                     } else {
-                        scriptModuleCompletionToolTip.completionWidget.detailReload(scriptModuleCompletionTableView.selectedRow)
+                        interestRow = scriptModuleCompletionTableView.selectedRow
                     }
+                    scriptModuleCompletionToolTip.completionWidget.detailReload(interestRow)
+                    const index = scriptModuleCompletionTableView.model.index(interestRow, 0);
+                    const item = scriptModuleCompletionTableView.itemAtIndex(index);
+                    let idealY = item.mapToItem(scriptModuleCompletionTableView, 0, 0).y
+                    idealY = Math.max(0, idealY)
+                    idealY = Math.min(scriptModuleCompletionTableView.height - item.height, idealY)
+                    scriptModuleCompletionDetailToolTip.y = idealY - 6
                 }
             }
 
@@ -1462,8 +1470,7 @@ Item {
 
         ToolTip {
             id: scriptModuleCompletionDetailToolTip
-            parent: Overlay.overlay
-            x: scriptModuleCompletionToolTip.x + scriptModuleCompletionToolTip.width; y: scriptModuleCompletionToolTip.y
+            x: scriptModuleCompletionToolTip.width - 4
 
             contentItem: TableView {
                 id: scriptModuleCompletionDetailTableView
