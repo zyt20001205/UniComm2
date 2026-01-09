@@ -1414,7 +1414,11 @@ Item {
             HoverHandler {
                 onPointChanged: scriptModuleCompletionTableView.hoveredRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
                 onHoveredChanged: {
-                    if (!hovered) scriptModuleCompletionTableView.hoveredRow = -1
+                    if (!hovered) {
+                        scriptModuleCompletionTableView.hoveredRow = -1
+                        scriptModuleCompletionTableView.positionViewAtRow(scriptModuleCompletionTableView.selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+                        scriptModuleCompletionDetailTimer.restart()
+                    }
                 }
             }
 
