@@ -1377,8 +1377,8 @@ Item {
                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                         Image {
-                            width: 16; height: 16
                             anchors.centerIn: parent
+                            width: 16; height: 16
                             source: model.decoration
                         }
                     }

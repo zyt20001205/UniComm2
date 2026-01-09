@@ -1,10 +1,18 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 TreeView {
+    id: treeView
     anchors.fill: parent
     clip: true
     model: standardItemModel
+    property int hoveredRow: -1
+    property int selectedRow: -1
+
+    ScrollBar.vertical: ScrollBar {
+        policy: ScrollBar.AsNeeded
+    }
 
     delegate: Item {
         implicitWidth: treeView.width; implicitHeight: 24
@@ -16,80 +24,80 @@ TreeView {
         required property int row
         required property int column
 
-        Item {
-            id: indicator
-            width: (depth + 1) * 24; height: 24
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-
-            Image {
-                width: 16; height: 16
-                anchors.right: parent.right
-                anchors.rightMargin : 4
-                anchors.verticalCenter: parent.verticalCenter
-                visible: isTreeNode && hasChildren
-                source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
-
-                HoverHandler {
-                    cursorShape: Qt.PointingHandCursor
-                }
-
-                TapHandler {
-                    enabled: indicator.visible
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                    onSingleTapped: treeView.toggleExpanded(row)
-                }
-            }
-        }
-
-        Item {
-            id: icon
-            width: 24; height: 24
-            anchors.left: indicator.right
-            anchors.verticalCenter: parent.verticalCenter
-
-            Image {
-                width: 16; height: 16
-                anchors.centerIn: parent
-                source: model.decoration
-            }
-        }
-
-        Label {
-            id: text
-            anchors.left: icon.right; anchors.right: parent.right
-            anchors.leftMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
-            text: model.display
+        Rectangle {
+            anchors.fill: parent
+            radius: 6
+            color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
         }
 
         Rectangle {
-            id: highlightRect
             anchors.fill: parent
-            z: -1
-            radius: 2
+            radius: 6
             color: "#ebebeb"
-            opacity: 0
+            opacity: treeView.hoveredRow === row && treeView.selectedRow !== row ? 1 : 0
             Behavior on opacity {
-                NumberAnimation { duration: 150 }
-            }
-        }
-
-        HoverHandler {
-            onHoveredChanged: {
-                if (hovered) {
-                    highlightRect.opacity = 1
-                } else {
-                    highlightRect.opacity = 0
+                NumberAnimation {
+                    duration: 150
                 }
             }
         }
 
-        TapHandler {
-            acceptedButtons: Qt.LeftButton
+        RowLayout {
+            anchors.fill: parent
+            spacing: 0
 
-            onSingleTapped: structureModule.markerInsert(model.whatsThis)
+            Item {
+                Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
+            }
+
+            Item {
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                Image {
+                    anchors.centerIn: parent
+                    width: 16; height: 16
+                    source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                    visible: isTreeNode && hasChildren
+                }
+            }
+
+            Item {
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                Image {
+                    anchors.centerIn: parent
+                    width: 16; height: 16
+                    source: model.decoration
+                }
+            }
+
+            Label {
+                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                text: model.display
+                elide: Text.ElideRight
+                Layout.fillWidth: true; Layout.preferredHeight: 24
+            }
+        }
+    }
+
+    HoverHandler {
+        onPointChanged: treeView.hoveredRow = treeView.cellAtPosition(point.position).y
+        onHoveredChanged: {
+            if (!hovered) treeView.hoveredRow = -1
+        }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+
+        onTapped: {
+            treeView.selectedRow = treeView.cellAtPosition(point.position).y
+            const index = treeView.index(treeView.selectedRow, 0)
+            const item = treeView.itemAtIndex(index);
+            structureModule.markerInsert(treeView.model.data(index, Qt.WhatsThisRole))
+            if (item.isTreeNode && item.hasChildren) {
+                treeView.toggleExpanded(treeView.selectedRow)
+            }
         }
     }
 }
