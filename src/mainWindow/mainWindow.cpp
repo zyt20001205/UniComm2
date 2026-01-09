@@ -581,6 +581,7 @@ void MainWindow::overlayInit() {
     m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
     m_overlay->setAttribute(Qt::WA_TranslucentBackground);
     m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents);
+    m_overlay->setFocusPolicy(Qt::NoFocus);
     QSurfaceFormat format;
     format.setAlphaBufferSize(8);
     m_overlay->setFormat(format);
