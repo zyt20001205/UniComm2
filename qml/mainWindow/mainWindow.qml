@@ -1311,7 +1311,7 @@ Item {
     ToolTip {
         id: scriptModuleCompletionToolTip
         parent: Overlay.overlay
-        x: position.x - 35; y: position.y
+        x: position.x - 30; y: position.y
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var completionWidget
@@ -1348,13 +1348,13 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 4
+                    radius: 6
                     color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                 }
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 4
+                    radius: 6
                     color: "#ebebeb"
                     opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
                     Behavior on opacity {
@@ -1372,6 +1372,7 @@ Item {
 
                 RowLayout {
                     anchors.fill: parent
+                    spacing: 0
 
                     Item {
                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
@@ -1475,7 +1476,7 @@ Item {
 
         ToolTip {
             id: scriptModuleCompletionDetailToolTip
-            x: scriptModuleCompletionToolTip.width - 4
+            x: scriptModuleCompletionToolTip.width - 5
 
             contentItem: TableView {
                 id: scriptModuleCompletionDetailTableView
