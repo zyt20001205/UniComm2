@@ -22,7 +22,6 @@ TreeView {
         required property bool hasChildren
         required property int depth
         required property int row
-        required property int column
 
         Rectangle {
             anchors.fill: parent
@@ -98,6 +97,15 @@ TreeView {
             if (item.isTreeNode && item.hasChildren) {
                 treeView.toggleExpanded(treeView.selectedRow)
             }
+        }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+
+        onTapped: {
+            rootMenu.treeView = treeView
+            rootMenu.popup()
         }
     }
 }

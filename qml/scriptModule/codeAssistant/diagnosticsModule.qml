@@ -219,7 +219,7 @@ Item {
                         TapHandler {
                             acceptedButtons: Qt.LeftButton
                             onTapped: {
-                                const index = tableView.model.index(row, 0);
+                                const index = tableView.index(row, 0);
                                 diagnosticsModule.indicatorInsert(tableView.model.data(index, Qt.WhatsThisRole))
                             }
                         }
@@ -228,7 +228,7 @@ Item {
                             acceptedButtons: Qt.RightButton
                             onTapped: {
                                 diagnosticMenu.diagnostic = model.display
-                                const index = tableView.model.index(row, 0);
+                                const index = tableView.index(row, 0);
                                 diagnosticMenu.position = tableView.model.data(index, Qt.WhatsThisRole)
                                 diagnosticMenu.popup()
                             }

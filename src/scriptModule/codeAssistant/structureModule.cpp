@@ -23,6 +23,8 @@ StructureModule::~StructureModule() {
 }
 
 void StructureModule::propertySet(const QVariantMap &objects) {
+    m_structureWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
+
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);

@@ -165,7 +165,7 @@ Item {
 
                         onSingleTapped: {
                             tableMenu.databaseIndex = model.row
-                            const index = tableView.model.index(row, 0);
+                            const index = tableView.index(row, 0);
                             tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
                             tableMenu.popup()
                         }

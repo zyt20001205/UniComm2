@@ -184,7 +184,7 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.RightButton
                     onTapped: {
-                        const index = tableView.model.index(tableView.selectedRow, 3);
+                        const index = tableView.index(tableView.selectedRow, 3);
                         threadMenu.threadId = tableView.model.data(index, Qt.DisplayRole)
                         threadMenu.popup()
                     }

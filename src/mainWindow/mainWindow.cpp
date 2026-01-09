@@ -180,7 +180,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_statusModule->propertySet(statusObjects);
 
     const QVariantMap structureObjects = {
-        //
+        {"structureModuleRootMenu", objects["structureModuleRootMenu"]}
     };
     m_structureModule->propertySet(structureObjects);
 

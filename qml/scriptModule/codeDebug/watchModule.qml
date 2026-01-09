@@ -161,7 +161,7 @@ Item {
 
                         onSingleTapped: {
                             tableMenu.watchIndex = model.row
-                            const index = tableView.model.index(row, 0);
+                            const index = tableView.index(row, 0);
                             tableMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
                             tableMenu.watchKey = tableView.model.data(index, Qt.DisplayRole)
                             tableMenu.popup()

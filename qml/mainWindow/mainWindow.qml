@@ -789,7 +789,7 @@ Item {
 
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
+                    for (let i = 0; i < treeView.rows; ++i) {
                         treeView.collapseRecursively(i)
                     }
                 }
@@ -802,7 +802,7 @@ Item {
 
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
+                    for (let i = 0; i < treeView.rows; ++i) {
                         treeView.expandRecursively(i)
                     }
                 }
@@ -900,7 +900,7 @@ Item {
 
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
+                    for (let i = 0; i < treeView.rows; ++i) {
                         treeView.collapseRecursively(i)
                     }
                 }
@@ -913,7 +913,7 @@ Item {
 
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
+                    for (let i = 0; i < treeView.rows; ++i) {
                         treeView.expandRecursively(i)
                     }
                 }
@@ -983,7 +983,7 @@ Item {
 
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
+                    for (let i = 0; i < treeView.rows; ++i) {
                         treeView.collapseRecursively(i)
                     }
                 }
@@ -996,7 +996,7 @@ Item {
 
                 onTriggered: {
                     const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; i++) {
+                    for (let i = 0; i < treeView.rows; ++i) {
                         treeView.expandRecursively(i)
                     }
                 }
@@ -1436,7 +1436,7 @@ Item {
                         interestRow = scriptModuleCompletionTableView.selectedRow
                     }
                     scriptModuleCompletionToolTip.completionWidget.detailReload(interestRow)
-                    const index = scriptModuleCompletionTableView.model.index(interestRow, 0);
+                    const index = scriptModuleCompletionTableView.index(interestRow, 0);
                     const item = scriptModuleCompletionTableView.itemAtIndex(index);
                     let idealY = item.mapToItem(scriptModuleCompletionTableView, 0, 0).y
                     idealY = Math.max(0, idealY)
@@ -1538,6 +1538,48 @@ Item {
         contentItem: Label {
             id: scriptModuleSignatureLabel
             textFormat: Text.RichText
+        }
+    }
+
+    // structure module
+    Menu {
+        id: structureModuleRootMenu
+        property var treeView
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    for (let i = 0; i < structureModuleRootMenu.treeView.rows; ++i) {
+                        structureModuleRootMenu.treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    for (let i = 0; i < structureModuleRootMenu.treeView.rows; ++i) {
+                        structureModuleRootMenu.treeView.expandRecursively(i)
+                    }
+                }
+            }
         }
     }
 
@@ -1771,6 +1813,8 @@ Item {
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 
+            "structureModuleRootMenu": structureModuleRootMenu,
+
             "systemModuleErrorDialog": systemModuleErrorDialog,
 
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,
@@ -1780,16 +1824,4 @@ Item {
         };
         mainWindow.propertyGet(objects)
     }
-
-    // Timer {
-    //     interval: 1000
-    //     repeat: true
-    //     running: mainItem.visible
-    //     onTriggered: {
-    //         const window = mainItem.Window.window
-    //         if (window && window.activeFocusItem) {
-    //             console.log("focus:", window.activeFocusItem.objectName || window.activeFocusItem.toString())
-    //         }
-    //     }
-    // }
 }
