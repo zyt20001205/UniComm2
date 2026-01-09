@@ -31,6 +31,8 @@ public:
 
     void completionNext() const;
 
+    Q_INVOKABLE void detailReload(int index) const;
+
     Q_INVOKABLE void textReplace();
 
 signals:
@@ -56,6 +58,7 @@ private:
     QVariantMap m_completionSession{};
     QSet<QString > m_placeholderSet{};
     QStandardItemModel *m_completionModel{};
+    QStandardItemModel *m_detailModel{};
 
     enum {
         COMPLETION_MODE_FULL,

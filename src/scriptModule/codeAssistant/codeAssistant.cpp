@@ -35,7 +35,8 @@ CodeAssistant::CodeAssistant(QWidget *parent)
 void CodeAssistant::propertySet(const QVariantMap &objects) const {
     m_completionWidget->propertySet(QVariantMap{
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
-        {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]}
+        {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]},
+        {"scriptModuleCompletionDetailTableView", objects["scriptModuleCompletionDetailTableView"]}
     });
     m_signatureWidget->propertySet(QVariantMap{
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},

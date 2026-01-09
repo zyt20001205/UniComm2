@@ -1314,10 +1314,11 @@ Item {
         x: position.x - 30; y: position.y
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
+        property var completionWidget
 
         onAboutToShow: {
             widgetCount += 1
-            scriptModuleCompletionDetailToolTip.close()
+            scriptModuleCompletionDetailToolTip.open()
             scriptModuleCompletionDetailTimer.restart()
         }
         onClosed: {
@@ -1329,21 +1330,21 @@ Item {
             id: scriptModuleCompletionTableView
             anchors.fill: parent
             anchors.margins: 5
-            implicitWidth: contentWidth; implicitHeight: Math.min(contentHeight, 150)
+            implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
             alternatingRows: false
             clip: true
             editTriggers: TableView.NoEditTriggers
             flickableDirection: Flickable.VerticalFlick
+            property int idealWidth; property int idealHeight
             property int hoveredRow: -1
             property int selectedRow
-            property var completionWidget
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
             }
 
             delegate: Item {
-                implicitWidth: Math.max(scriptModuleCompletionLabel.implicitWidth + 24 + 32, 200); implicitHeight: 24
+                implicitWidth: scriptModuleCompletionTableView.width; implicitHeight: textMetrics.height + 4
 
                 Rectangle {
                     anchors.fill: parent
@@ -1363,6 +1364,12 @@ Item {
                     }
                 }
 
+                TextMetrics {
+                    id: textMetrics
+                    font: scriptModuleCompletionToolTip.font
+                    text: model.display
+                }
+
                 RowLayout {
                     anchors.fill: parent
 
@@ -1377,7 +1384,6 @@ Item {
                     }
 
                     Label {
-                        id: scriptModuleCompletionLabel
                         font: scriptModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                         text: model.display
@@ -1388,19 +1394,20 @@ Item {
                     TapHandler {
                         acceptedButtons: Qt.LeftButton
                         onTapped: scriptModuleCompletionTableView.selectedRow = row
-                        onDoubleTapped: scriptModuleCompletionTableView.completionWidget.textReplace()
+                        onDoubleTapped: scriptModuleCompletionToolTip.completionWidget.textReplace()
                     }
+                }
+
+                Component.onCompleted: {
+                    scriptModuleCompletionTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, scriptModuleCompletionTableView.idealWidth)
+                    scriptModuleCompletionTableView.idealHeight = textMetrics.height + 4 + scriptModuleCompletionTableView.idealHeight
                 }
             }
 
-            onHoveredRowChanged: {
-                scriptModuleCompletionDetailToolTip.close()
-                scriptModuleCompletionDetailTimer.restart()
-            }
+            onHoveredRowChanged: scriptModuleCompletionDetailTimer.restart()
 
             onSelectedRowChanged: {
                 positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
-                scriptModuleCompletionDetailToolTip.close()
                 scriptModuleCompletionDetailTimer.restart()
             }
 
@@ -1416,18 +1423,11 @@ Item {
                 interval: 150
 
                 onTriggered: {
-                    var currentIndex
                     if (scriptModuleCompletionTableView.hoveredRow !== -1) {
-                        currentIndex = scriptModuleCompletionTableView.model.index(scriptModuleCompletionTableView.hoveredRow, 0);
+                        scriptModuleCompletionToolTip.completionWidget.detailReload(scriptModuleCompletionTableView.hoveredRow)
                     } else {
-                        currentIndex = scriptModuleCompletionTableView.model.index(scriptModuleCompletionTableView.selectedRow, 0);
+                        scriptModuleCompletionToolTip.completionWidget.detailReload(scriptModuleCompletionTableView.selectedRow)
                     }
-                    const labelList = scriptModuleCompletionTableView.model.data(currentIndex, Qt.WhatsThisRole)
-                    scriptModuleCompletionDetailListModel.clear();
-                    for (let i = 0; i < labelList.length; ++i) {
-                        scriptModuleCompletionDetailListModel.append({"display": labelList[i]});
-                    }
-                    scriptModuleCompletionDetailToolTip.open()
                 }
             }
 
@@ -1453,7 +1453,8 @@ Item {
                 target: scriptModuleCompletionTableView.model
 
                 function onModelReset() {
-                    scriptModuleCompletionDetailToolTip.close()
+                    scriptModuleCompletionTableView.idealWidth = 0
+                    scriptModuleCompletionTableView.idealHeight = 0
                     scriptModuleCompletionDetailTimer.restart()
                 }
             }
@@ -1465,18 +1466,24 @@ Item {
             x: scriptModuleCompletionToolTip.x + scriptModuleCompletionToolTip.width; y: scriptModuleCompletionToolTip.y
 
             contentItem: TableView {
-                id: scriptModuleCompletionDetailListView
+                id: scriptModuleCompletionDetailTableView
                 anchors.fill: parent
                 anchors.margins: 5
-                implicitWidth: contentWidth; implicitHeight: contentHeight
+                implicitWidth: idealWidth; implicitHeight: idealHeight
                 alternatingRows: false
                 clip: true
                 editTriggers: TableView.NoEditTriggers
                 flickableDirection: Flickable.VerticalFlick
-                model: scriptModuleCompletionDetailListModel
+                property int idealWidth; property int idealHeight
 
                 delegate: Item {
-                    implicitWidth: Math.max(scriptModuleCompletionDetailLabel.implicitWidth, 100); implicitHeight: 24
+                    implicitWidth: scriptModuleCompletionDetailTableView.width; implicitHeight: textMetrics.height + 4
+
+                    TextMetrics {
+                        id: textMetrics
+                        font: scriptModuleCompletionToolTip.font
+                        text: model.display
+                    }
 
                     Label {
                         id: scriptModuleCompletionDetailLabel
@@ -1486,11 +1493,21 @@ Item {
                         text: model.display
                         elide: Text.ElideRight
                     }
-                }
-            }
 
-            ListModel {
-                id: scriptModuleCompletionDetailListModel
+                    Component.onCompleted: {
+                        scriptModuleCompletionDetailTableView.idealWidth = Math.max(textMetrics.width + 4, scriptModuleCompletionDetailTableView.idealWidth)
+                        scriptModuleCompletionDetailTableView.idealHeight = textMetrics.height + 4 + scriptModuleCompletionDetailTableView.idealHeight
+                    }
+                }
+
+                Connections {
+                    target: scriptModuleCompletionDetailTableView.model
+
+                    function onModelReset() {
+                        scriptModuleCompletionDetailTableView.idealWidth = 0
+                        scriptModuleCompletionDetailTableView.idealHeight = 0
+                    }
+                }
             }
         }
     }
@@ -1737,6 +1754,7 @@ Item {
             "scriptModuleEditorMenu": scriptModuleEditorMenu,
             "scriptModuleCompletionToolTip": scriptModuleCompletionToolTip,
             "scriptModuleCompletionTableView": scriptModuleCompletionTableView,
+            "scriptModuleCompletionDetailTableView": scriptModuleCompletionDetailTableView,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 

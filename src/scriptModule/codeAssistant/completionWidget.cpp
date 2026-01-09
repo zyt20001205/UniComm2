@@ -15,14 +15,17 @@
 CompletionWidget::CompletionWidget(QWidget *parent)
     : QObject(parent),
       m_placeholderSet({"\"_PORT_PLACEHOLDER_\"", "\"_DATABASE_PLACEHOLDER_\"", "\"_DATATABLE_PLACEHOLDER_\""}),
-      m_completionModel(new QStandardItemModel(this)) {
+      m_completionModel(new QStandardItemModel(this)),
+      m_detailModel(new QStandardItemModel(this)) {
 }
 
 void CompletionWidget::propertySet(const QVariantMap &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["scriptModuleCompletionToolTip"]);
+    m_tooltip->setProperty("completionWidget", QVariant::fromValue(this));
     m_tableView = qvariant_cast<QObject *>(objects["scriptModuleCompletionTableView"]);
     m_tableView->setProperty("model", QVariant::fromValue(m_completionModel));
-    m_tableView->setProperty("completionWidget", QVariant::fromValue(this));
+    const auto detailTableView = qvariant_cast<QObject *>(objects["scriptModuleCompletionDetailTableView"]);
+    detailTableView->setProperty("model", QVariant::fromValue(m_detailModel));
 }
 
 void CompletionWidget::fontSet(const QString &family, const int pointSize) const {
@@ -72,50 +75,50 @@ void CompletionWidget::completionShow(const QVariantMap &completionSession, cons
                 case COMPLETION_KIND_TEXT: {
                     iconSource = "qrc:/icon/symbolString.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_METHOD:
                 case COMPLETION_KIND_FUNCTION: {
                     iconSource = "qrc:/icon/symbolMethod.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_FIELD: {
                     iconSource = "qrc:/icon/symbolField.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_VARIABLE: {
                     iconSource = "qrc:/icon/symbolVariable.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_ENUM: {
                     iconSource = "qrc:/icon/symbolEnum.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_KEYWORD: {
                     iconSource = "qrc:/icon/symbolKeyword.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_FILE: {
                     iconSource = "qrc:/icon/symbolFile.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_ENUMMEMBER: {
                     iconSource = "qrc:/icon/symbolEnumMember.svg";
                 }
-                    break;
+                break;
                 default: {
                     iconSource = "qrc:/icon/symbolMisc.svg";
                     qDebug() << "WIP completion kind:" << kind << insertText;
                 }
-                    break;
+                break;
             }
             standardItem->setData(iconSource, Qt::DecorationRole);
             standardItem->setData(QStringList({label}), Qt::WhatsThisRole);
             standardItem->setData(kind, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         } else {
-            auto labelList = m_completionModel->item(m_completionModel->rowCount()-1, 0)->data(Qt::WhatsThisRole).toStringList();
+            auto labelList = m_completionModel->item(m_completionModel->rowCount() - 1, 0)->data(Qt::WhatsThisRole).toStringList();
             labelList.append(label);
-            m_completionModel->item(m_completionModel->rowCount()-1, 0)->setData(labelList, Qt::WhatsThisRole);
+            m_completionModel->item(m_completionModel->rowCount() - 1, 0)->setData(labelList, Qt::WhatsThisRole);
         }
     }
     if (m_completionModel->rowCount() > 0) {
@@ -136,6 +139,14 @@ void CompletionWidget::completionPrev() const {
 
 void CompletionWidget::completionNext() const {
     QMetaObject::invokeMethod(m_tableView, "completionNext");
+}
+
+void CompletionWidget::detailReload(const int index) const {
+    const auto labelList = m_completionModel->item(index, 0)->data(Qt::WhatsThisRole).toStringList();
+    m_detailModel->clear();
+    for (const auto &label: labelList) {
+        m_detailModel->appendRow(new QStandardItem(label));
+    }
 }
 
 void CompletionWidget::textReplace() {
