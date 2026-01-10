@@ -29,19 +29,19 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 6
                 color: "#ebebeb"
-                opacity: hoverHandler.hovered && treeView.selectedRow !== row ? 1 : 0
+                opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 150
                     }
                 }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
             }
 
             RowLayout {

@@ -1337,7 +1337,7 @@ Item {
             flickableDirection: Flickable.VerticalFlick
             property int idealWidth; property int idealHeight
             property int hoveredRow: -1
-            property int selectedRow
+            property int selectedRow: -1
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
@@ -1345,23 +1345,24 @@ Item {
 
             delegate: Item {
                 implicitWidth: scriptModuleCompletionTableView.width; implicitHeight: textMetrics.height + 4
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
-                }
+                required property int row
 
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
                     color: "#ebebeb"
-                    opacity: scriptModuleCompletionTableView.hoveredRow === row && scriptModuleCompletionTableView.selectedRow !== row ? 1 : 0
+                    opacity: hoverHandler.hovered ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
                             duration: 150
                         }
                     }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
                 }
 
                 TextMetrics {
@@ -1393,6 +1394,25 @@ Item {
                     }
                 }
 
+                HoverHandler {
+                    id: hoverHandler
+
+                    onPointChanged: scriptModuleCompletionTableView.hoveredRow = row
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            scriptModuleCompletionTableView.hoveredRow = -1
+                            scriptModuleCompletionDetailTimer.restart()
+                        }
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+
+                    onTapped: scriptModuleCompletionTableView.selectedRow = row
+                    onDoubleTapped: scriptModuleCompletionToolTip.completionWidget.textReplace()
+                }
+
                 Component.onCompleted: {
                     scriptModuleCompletionTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, scriptModuleCompletionTableView.idealWidth)
                     scriptModuleCompletionTableView.idealHeight = textMetrics.height + 4 + scriptModuleCompletionTableView.idealHeight
@@ -1404,24 +1424,6 @@ Item {
             onSelectedRowChanged: {
                 positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
                 scriptModuleCompletionDetailTimer.restart()
-            }
-
-            HoverHandler {
-                onPointChanged: scriptModuleCompletionTableView.hoveredRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
-                onHoveredChanged: {
-                    if (!hovered) {
-                        scriptModuleCompletionTableView.hoveredRow = -1
-                        scriptModuleCompletionTableView.positionViewAtRow(scriptModuleCompletionTableView.selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
-                        scriptModuleCompletionDetailTimer.restart()
-                    }
-                }
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-
-                onTapped: scriptModuleCompletionTableView.selectedRow = scriptModuleCompletionTableView.cellAtPosition(point.position).y
-                onDoubleTapped: scriptModuleCompletionToolTip.completionWidget.textReplace()
             }
 
             Timer {
