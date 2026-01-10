@@ -11,7 +11,6 @@ Item {
         anchors.fill: parent
         clip: true
         model: standardItemModel
-        property int hoveredRow: -1
         property int selectedRow: -1
 
         ScrollBar.vertical: ScrollBar {
@@ -37,7 +36,7 @@ Item {
                 anchors.fill: parent
                 radius: 6
                 color: "#ebebeb"
-                opacity: treeView.hoveredRow === row && treeView.selectedRow !== row ? 1 : 0
+                opacity: hoverHandler.hovered && treeView.selectedRow !== row ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 150
@@ -81,28 +80,39 @@ Item {
                     Layout.fillWidth: true; Layout.preferredHeight: 24
                 }
             }
-        }
 
-        HoverHandler {
-            onPointChanged: treeView.hoveredRow = treeView.cellAtPosition(point.position).y
-            onHoveredChanged: {
-                if (!hovered) treeView.hoveredRow = -1
+            HoverHandler {
+                id: hoverHandler
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onTapped: {
+                    treeView.selectedRow = row
+                    structureModule.markerInsert(treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole))
+                    if (isTreeNode && hasChildren) {
+                        treeView.toggleExpanded(row)
+                    }
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onTapped: {
+                    rootMenu.treeView = treeView
+                    rootMenu.popup()
+                }
             }
         }
 
         TapHandler {
             acceptedButtons: Qt.LeftButton
 
-            onTapped: {
-                treeView.selectedRow = treeView.cellAtPosition(point.position).y
-                if (treeView.selectedRow === -1) return
-                const index = treeView.index(treeView.selectedRow, 0)
-                const item = treeView.itemAtIndex(index);
-                structureModule.markerInsert(treeView.model.data(index, Qt.WhatsThisRole))
-                if (item.isTreeNode && item.hasChildren) {
-                    treeView.toggleExpanded(treeView.selectedRow)
-                }
-            }
+            onTapped: treeView.selectedRow = -1
         }
 
         TapHandler {
