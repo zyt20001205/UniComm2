@@ -1,3 +1,5 @@
+#include <QFile>
+
 #include "luaModule/luaSMTP.h"
 
 #include <sol/error.hpp>
@@ -136,14 +138,37 @@ void LuaSMTP::mail(const std::string &portName, const std::string &from, const s
         throw sol::error(portName + ": SMTP DATA failed");
     }
 
+    QString boundary = QString::number(QDateTime::currentMSecsSinceEpoch());
+
     txData = "From: " + QByteArray::fromStdString(from) + "\r\n";
     txData += "To: " + QByteArray::fromStdString(to) + "\r\n";
     txData += "Subject: " + QByteArray::fromStdString(subject) + "\r\n";
     txData += "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n";
     txData += "MIME-Version: 1.0\r\n";
-    txData += "Content-Type: text/plain; charset=utf-8\r\n";
+    txData += "Content-Type: multipart/mixed; boundary=\"" + boundary.toUtf8() + "\"\r\n";
     txData += "\r\n";
-    txData += QByteArray::fromStdString(body) + "\r\n.";
+
+    txData += "--" + boundary.toUtf8() + "\r\n";
+    txData += "Content-Type: text/plain; charset=utf-8\r\n";
+    txData += "Content-Transfer-Encoding: 8bit\r\n";
+    txData += "\r\n";
+
+    txData += QByteArray::fromStdString(body) + "\r\n";
+
+    txData += "--" + boundary.toUtf8() + "\r\n";
+    txData += "Content-Type: image/png\r\n";
+    txData += "Content-Transfer-Encoding: base64\r\n";
+    txData += "Content-Disposition: attachment; filename=\"test.png\"\r\n";
+    txData += "\r\n";
+
+    QFile imageFile(QString::fromStdString("C:/Users/Administrator/Desktop/UniCommWorkspace/test.png"));
+    imageFile.open(QIODevice::ReadOnly);
+    QByteArray imageData = imageFile.readAll();
+    QByteArray base64Data = imageData.toBase64();
+    txData += base64Data + "\r\n";
+
+    txData += "--" + boundary.toUtf8() + "--\r\n.";
+
     status = false;
     rxData = {};
 
