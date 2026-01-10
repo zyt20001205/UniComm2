@@ -49,7 +49,7 @@ signals:
 
     void appendLog(const QString &message, const QString &level);
 
-    void newMessageDialog(const QString &threadId, const QString &text, const QEventLoop *eventloop) const;
+    void newMessageDialog(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 
     void listPort(QSet<QString> &portSet);
 

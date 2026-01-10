@@ -26,7 +26,7 @@ public:
 signals:
     void appendLog(const QString &message, const QString &level);
 
-    void newMessageDialog(const QString &text, const QEventLoop *eventloop) const;
+    void newMessageDialog(const QEventLoop *eventloop, const QString &text) const;
 };
 
 #endif //UNICOMM_LUAIO_H

@@ -67,7 +67,7 @@ signals:
 private:
     void threadAppend(int mode, const QString &name, const QString &threadId);
 
-    void messageDialogNew(const QString &threadId, const QString &text, const QEventLoop *eventloop) const;
+    void messageDialogNew(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 
     QHash<QString, QThread *> m_threadHash{};
     QHash<QString, LuaInterpreter *> m_interpreterHash{};

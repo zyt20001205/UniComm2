@@ -142,7 +142,7 @@ Item {
         }
     }
 
-    function messageDialogNew(title, text, eventloop) {
+    function messageDialogNew(eventloop, title, text) {
         const messageDialog = mainWindowMessageComponent.createObject(mainItem, {
             "title": title,
             "text": text
@@ -155,14 +155,14 @@ Item {
 
     ToolTip {
         id: mainWindowTooltip
-        onOpened: {
-            mainWindow.overlayPenetrate(true)
-            mainWindow.overlayShow()
-        }
-        onClosed: {
-            mainWindow.overlayPenetrate(false)
-            mainWindow.overlayHide()
-        }
+        // onOpened: {
+        //     mainWindow.overlayPenetrate(true)
+        //     mainWindow.overlayShow()
+        // }
+        // onClosed: {
+        //     mainWindow.overlayPenetrate(false)
+        //     mainWindow.overlayHide()
+        // }
     }
 
     // breakpoint module

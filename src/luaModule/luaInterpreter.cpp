@@ -73,8 +73,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     io.set_function("speak", [](const std::string &text) { LuaIO::speak(text); });
     m_lua["io"] = io;
     connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
-    connect(m_luaIO, &LuaIO::newMessageDialog, this, [this](const QString &text, const QEventLoop *eventloop) {
-        emit newMessageDialog(m_luaSession["threadId"].toString(), text, eventloop);
+    connect(m_luaIO, &LuaIO::newMessageDialog, this, [this](const QEventLoop *eventloop, const QString &text) {
+        emit newMessageDialog(eventloop, m_luaSession["threadId"].toString(), text);
     });
     // LuaModbus lib
     sol::table modbusRtu = m_lua.create_table();

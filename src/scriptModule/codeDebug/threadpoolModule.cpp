@@ -198,6 +198,6 @@ void ThreadpoolModule::threadAppend(const int mode, const QString &name, const Q
     });
 }
 
-void ThreadpoolModule::messageDialogNew(const QString &threadId, const QString &text, const QEventLoop *eventloop) const {
-    QMetaObject::invokeMethod(m_mainItem, "messageDialogNew", Q_ARG(QVariant, threadId), Q_ARG(QVariant, text), Q_ARG(QVariant, QVariant::fromValue(eventloop)));
+void ThreadpoolModule::messageDialogNew(const QEventLoop *eventloop, const QString &threadId, const QString &text) const {
+    QMetaObject::invokeMethod(m_mainItem, "messageDialogNew", Q_ARG(QVariant, QVariant::fromValue(eventloop)), Q_ARG(QVariant, threadId), Q_ARG(QVariant, text));
 }
