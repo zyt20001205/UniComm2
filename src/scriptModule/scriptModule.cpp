@@ -22,6 +22,12 @@ ScriptModule::ScriptModule(QWidget *parent)
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
         scriptOpen(QUrl(value.toString()));
     }
+    const auto focusedUrl = QUrl(m_scriptConfig["scriptFocused"].toString());
+    if (!focusedUrl.isEmpty() && m_scriptPageHash.contains(focusedUrl)) {
+        QTimer::singleShot(0, this, [this, focusedUrl] {
+            m_scriptPageHash[focusedUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
+        });
+    }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(this, &ScriptModule::responseCodeAction, m_codeAssistant, &CodeAssistant::dwellShowCodeAction);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
@@ -57,6 +63,7 @@ void ScriptModule::scriptConfigSave() {
         scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
+    m_scriptConfig["scriptFocused"] = m_focusedPage->m_scriptUrl.toString();
 
     g_workspaceConfig["scriptConfig"] = m_scriptConfig;
 }
@@ -189,7 +196,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::positionScript, this, &ScriptModule::positionScript);
-        connect(scriptPage, &ScriptPage::showMenu,this,&ScriptModule::menuShow);
+        connect(scriptPage, &ScriptPage::showMenu, this, &ScriptModule::menuShow);
         connect(scriptPage, &ScriptPage::insertMarker, this, &ScriptModule::markerInsert);
         connect(scriptPage, &ScriptPage::removeMarker, this, &ScriptModule::markerRemove);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
@@ -220,11 +227,10 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         } else {
             m_focusedPage->addDockWidgetAsTab(scriptPage);
         }
-        scriptFocus(scriptPage, true);
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
-    } else {
-        m_scriptPageHash[scriptUrl]->raise();
     }
+    m_scriptPageHash[scriptUrl]->raise();
+    m_scriptPageHash[scriptUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
 }
 
 void ScriptModule::collapseAll(const QUrl &scriptUrl) {
@@ -768,13 +774,10 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
 }
 
 // ScriptModule private
-void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
+void ScriptModule::scriptFocus(ScriptPage *scriptPage, bool status) {
     if (status) {
         m_focusedPage = scriptPage;
         emit focusScript(scriptPage->m_scriptUrl);
-        // logging
-        // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        // qDebug() << QString("[%1] %2 %3").arg(timestamp, scriptPage->m_scriptUrl.toString(), "focused");
     }
 }
 

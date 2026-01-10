@@ -128,10 +128,16 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             }
             // completion keys
             case Qt::Key_Tab: {
-                m_completionWidget->textReplace();
-                m_completionWidget->completionHide();
+                if (m_completionWidget->isVisible()) {
+                    m_completionWidget->textReplace();
+                    m_completionWidget->completionHide();
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
-                return true;
+
             default:
                 return false;
         }

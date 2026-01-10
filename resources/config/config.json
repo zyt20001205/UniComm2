@@ -48,6 +48,7 @@
     "markerDebugBackground" : "#ffa500",
     "markerDebugForeground" : "#000000",
     "markerDebugStyle" : 2,
+    "scriptFocused": "",
     "scriptList": [
     ]
   },

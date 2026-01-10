@@ -282,6 +282,7 @@ void EditorWidget::keyPressEvent(QKeyEvent *event) {
     m_dwellTimer->stop();
     emit hideDwellWidget();
     if (isReadOnly()) {
+        // TODO: exclude search
         emit requestPermission();
         event->accept();
         return;
