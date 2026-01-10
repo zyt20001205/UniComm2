@@ -138,7 +138,11 @@ void LuaSMTP::mail(const std::string &portName, const std::string &from, const s
 
     txData = "From: " + QByteArray::fromStdString(from) + "\r\n";
     txData += "To: " + QByteArray::fromStdString(to) + "\r\n";
-    txData += "Subject: " + QByteArray::fromStdString(subject) + "\r\n\r\n";
+    txData += "Subject: " + QByteArray::fromStdString(subject) + "\r\n";
+    txData += "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n";
+    txData += "MIME-Version: 1.0\r\n";
+    txData += "Content-Type: text/plain; charset=utf-8\r\n";
+    txData += "\r\n";
     txData += QByteArray::fromStdString(body) + "\r\n.";
     status = false;
     rxData = {};
