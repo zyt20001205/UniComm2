@@ -120,10 +120,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode) {
 }
 
 void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QString &threadId) {
-    QString relativePath = scriptPath;
-    relativePath = relativePath.replace('.', '/') + ".lua";
-    const QString fullPath = QDir::current().filePath(g_workspaceUrl.toLocalFile() + "/" + relativePath);
-    const auto scriptUrl = QUrl::fromLocalFile(fullPath);
+    const auto scriptUrl = QUrl::fromLocalFile(scriptPath);
     threadStart(scriptUrl, mode, threadId);
 }
 

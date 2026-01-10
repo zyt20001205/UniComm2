@@ -52,7 +52,7 @@ void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &k
     index = g_watchStandardItemModel->rowCount();
     auto *keyItem = new QStandardItem(key); // NOLINT
     keyItem->setData(scriptUrl, Qt::WhatsThisRole);
-    auto *valueItem = new QStandardItem("\\"); // NOLINT
+    auto *valueItem = new QStandardItem("nil"); // NOLINT
     valueItem->setData("nil", Qt::WhatsThisRole);
     g_watchStandardItemModel->insertRow(index, {keyItem, valueItem});
 }

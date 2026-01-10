@@ -13,7 +13,9 @@ QVariant lua2qvar(sol::object object, int depth = 0);
 
 QVariantList lua2qvarlist(sol::variadic_args args);
 
-QString lua_toqstring(lua_State *L, int idx);
+QString lua2qstring(sol::object object);
+
+QString lua2filepath(const std::string &luaPath);
 
 void lua_pushqstring(lua_State *L, int idx, const QString &value);
 

@@ -1,9 +1,12 @@
 #include "utils/luaUtils.h"
 
+#include <QDir>
 #include <QVariant>
 #include <sol/object.hpp>
 #include "sol/table_core.hpp"
 #include <sol/variadic_args.hpp>
+
+#include "globals.h"
 
 QVariant lua2qvar(sol::object object, int depth) {
     constexpr int MAX_DEPTH = 100;
@@ -94,29 +97,40 @@ QVariantList lua2qvarlist(sol::variadic_args args) {
     return parsedList;
 }
 
-QString lua_toqstring(lua_State *L, const int idx) {
-    switch (lua_type(L, idx)) {
-        case LUA_TNIL:
-            return QString("\\");
-        case LUA_TBOOLEAN:
-            return lua_toboolean(L, idx) ? "true" : "false";
-        case LUA_TLIGHTUSERDATA:
-            return QString("WIP");
-        case LUA_TNUMBER:
-            return lua_tostring(L, idx);
-        case LUA_TSTRING:
-            return lua_tostring(L, idx);
-        case LUA_TTABLE:
-            return QString("{...}");
-        case LUA_TFUNCTION:
-            return QString("\\");
-        case LUA_TUSERDATA:
-            return QString("WIP");
-        case LUA_TTHREAD:
-            return QString("\\");
+QString lua2qstring(sol::object object) {
+    switch (object.get_type()) {
+        case sol::type::nil:
+            return {"nil"};
+        case sol::type::boolean:
+            return object.as<bool>() ? "true" : "false";
+        case sol::type::lightuserdata:
+            return {"lightuserdata"};
+        case sol::type::number:
+            if (object.is<int>()) {
+                return QString::number(object.as<int>());
+            } else {
+                return QString::number(object.as<double>());
+            }
+        case sol::type::string:
+            return QString::fromStdString(object.as<std::string>());
+        case sol::type::table:
+            return {"{...}"};
+        case sol::type::function:
+            return {"function"};
+        case sol::type::userdata:
+            return {"userdata"};
+        case sol::type::thread:
+            return {"thread"};
         default:
-            return QString("?");
+            return {"?"};
     }
+}
+
+QString lua2filepath(const std::string &luaPath) {
+    const QString relativePath = QString::fromStdString(luaPath);
+    const QDir workspaceDir(g_workspaceUrl.toLocalFile());
+    const QString filePath = workspaceDir.absoluteFilePath(relativePath);
+    return filePath;
 }
 
 void lua_pushqstring(lua_State *L, const int idx, const QString &value) {

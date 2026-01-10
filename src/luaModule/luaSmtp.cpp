@@ -1,12 +1,14 @@
-#include <QFile>
-
 #include "luaModule/luaSMTP.h"
 
+#include <QFileInfo>
+#include <QMimeDatabase>
+#include <QMimeType>
 #include <sol/error.hpp>
 
 #include "globals.h"
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
+#include "utils/luaUtils.h"
 
 LuaSMTP::LuaSMTP(QObject *parent)
     : QObject(parent) {
@@ -87,7 +89,8 @@ void LuaSMTP::authLogin(const std::string &portName, const std::string &username
     }
 }
 
-void LuaSMTP::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body) {
+void LuaSMTP::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
+                   const std::string &attachment) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -155,17 +158,27 @@ void LuaSMTP::mail(const std::string &portName, const std::string &from, const s
 
     txData += QByteArray::fromStdString(body) + "\r\n";
 
-    txData += "--" + boundary.toUtf8() + "\r\n";
-    txData += "Content-Type: image/png\r\n";
-    txData += "Content-Transfer-Encoding: base64\r\n";
-    txData += "Content-Disposition: attachment; filename=\"test.png\"\r\n";
-    txData += "\r\n";
+    if (!attachment.empty()) {
+        const auto &filePath = lua2filepath(attachment);
+        QMimeDatabase mimeDb;
+        const auto &mimeType = mimeDb.mimeTypeForFile(filePath).name();
+        const auto &fileName = QFileInfo(filePath).fileName();
 
-    QFile imageFile(QString::fromStdString("C:/Users/Administrator/Desktop/UniCommWorkspace/test.png"));
-    imageFile.open(QIODevice::ReadOnly);
-    QByteArray imageData = imageFile.readAll();
-    QByteArray base64Data = imageData.toBase64();
-    txData += base64Data + "\r\n";
+        txData += "--" + boundary.toUtf8() + "\r\n";
+        txData += "Content-Type: " + mimeType.toUtf8() + "\r\n";
+        txData += "Content-Transfer-Encoding: base64\r\n";
+        txData += "Content-Disposition: attachment; filename=\"" + fileName.toUtf8() + "\"\r\n";
+        txData += "\r\n";
+
+        QFile imageFile(filePath);
+        if (imageFile.open(QIODevice::ReadOnly)) {
+            QByteArray imageData = imageFile.readAll();
+            QByteArray base64Data = imageData.toBase64();
+            txData += base64Data + "\r\n";
+        } else {
+            throw sol::error(portName + ": attachment invalid");
+        }
+    }
 
     txData += "--" + boundary.toUtf8() + "--\r\n.";
 

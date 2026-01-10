@@ -1,9 +1,11 @@
 {
   "completion": {
-    "keywordSnippet": "Disable"
+    "keywordSnippet": "Disable",
+    "requireSeparator": "/"
   },
   "runtime": {
     "special" : {
+      "SMTP.mail": "require",
       "thread.start": "require"
     }
   },

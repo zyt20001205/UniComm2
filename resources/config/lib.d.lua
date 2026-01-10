@@ -256,18 +256,18 @@ function port.write(name, data, peerIp) end
 --- port.read("COM3", 100)
 function port.read(name, timeout, length, peerIp) end
 
-smtp = {}
+SMTP = {}
 --- Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
 --- @param name portName Target port name.
 ---
-function smtp.ehlo(name) end
+function SMTP.ehlo(name) end
 
 --- Send AUTH LOGIN command to authenticate with SMTP server.
 --- @param name portName Target port name.
 --- @param username string SMTP username/email address.
 --- @param password string SMTP password.
 ---
-function smtp.authLogin(name, username, password) end
+function SMTP.authLogin(name, username, password) end
 
 --- Send a simple email.
 --- @param name portName Target port name.
@@ -275,8 +275,9 @@ function smtp.authLogin(name, username, password) end
 --- @param to string
 --- @param subject string
 --- @param body string
+--- @param attachment? string Path to the attachment.
 ---
-function smtp.mail(name, from, to,  subject, body) end
+function SMTP.mail(name, from, to,  subject, body, attachment) end
 
 thread = {}
 --- Spawns a thread using the given file path.

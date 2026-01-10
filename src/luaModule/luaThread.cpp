@@ -4,6 +4,7 @@
 #include <sol/sol.hpp>
 
 #include "globals.h"
+#include "utils/luaUtils.h"
 
 LuaThread::LuaThread(QObject *parent)
     : QObject(parent) {
@@ -14,7 +15,7 @@ std::string LuaThread::start(const sol::this_state ts, const std::string &script
     const auto session = lua["session"].get<QVariantMap *>();
     const int mode = (*session)["mode"].toInt();
     QString threadId{};
-    emit startThread(QString::fromStdString(scriptPath), mode, threadId);
+    emit startThread(lua2filepath(scriptPath), mode, threadId);
     return threadId.toStdString();
 }
 

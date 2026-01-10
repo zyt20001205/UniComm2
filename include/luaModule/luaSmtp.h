@@ -15,7 +15,7 @@ public:
 
     void authLogin(const std::string &portName, const std::string &username, const std::string &password);
 
-    void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body);
+    void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment);
 };
 
 #endif //UNICOMM_LUASMTP_H

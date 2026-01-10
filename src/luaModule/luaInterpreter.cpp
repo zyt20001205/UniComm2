@@ -94,17 +94,17 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
 
     sol::table modbusAscii = m_lua.create_table();
     modbusAscii.set_function("readHoldingRegisters",
-                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                               return m_luaModbusAscii->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
-                           });
+                             [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
+                                 return m_luaModbusAscii->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                             });
     modbusAscii.set_function("writeSingleRegister",
-                           [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
-                               m_luaModbusAscii->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
-                           });
+                             [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                                 m_luaModbusAscii->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                             });
     modbusAscii.set_function("writeMultipleRegisters",
-                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
-                               m_luaModbusAscii->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
-                           });
+                             [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                                 m_luaModbusAscii->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                             });
     m_lua["modbusAscii"] = modbusAscii;
     // LuaPort lib
     sol::table port = m_lua.create_table();
@@ -115,22 +115,25 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     port.set_function("write", [this](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
         m_luaPort->write(portName, data, peerIp.value_or(""));
     });
-    port.set_function("read", [this](const sol::this_state ts, const std::string &portName, const sol::optional<int> timeout, const sol::optional<int> length,
-                                     const sol::optional<std::string> &peerIp) {
-        return m_luaPort->read(ts, portName, timeout.value_or(0), length.value_or(0), peerIp.value_or(""));
-    });
+    port.set_function("read",
+                      [this](const sol::this_state ts, const std::string &portName, const sol::optional<int> timeout, const sol::optional<int> length,
+                             const sol::optional<std::string> &peerIp) {
+                          return m_luaPort->read(ts, portName, timeout.value_or(0), length.value_or(0), peerIp.value_or(""));
+                      });
     m_lua["port"] = port;
     connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
     // LuaSMTP lib
-    sol::table smtp = m_lua.create_table();
-    smtp.set_function("ehlo", [this](const std::string &portName) { m_luaSMTP->ehlo(portName); });
-    smtp.set_function("authLogin", [this](const std::string &portName, const std::string &username, const std::string &password) {
+    sol::table SMTP = m_lua.create_table();
+    SMTP.set_function("ehlo", [this](const std::string &portName) { m_luaSMTP->ehlo(portName); });
+    SMTP.set_function("authLogin", [this](const std::string &portName, const std::string &username, const std::string &password) {
         m_luaSMTP->authLogin(portName, username, password);
     });
-    smtp.set_function("mail", [this](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body) {
-        m_luaSMTP->mail(portName, from, to, subject, body);
-    });
-    m_lua["smtp"] = smtp;
+    SMTP.set_function("mail",
+                      [this](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
+                             const sol::optional<std::string> &attachment) {
+                          m_luaSMTP->mail(portName, from, to, subject, body, attachment.value_or(""));
+                      });
+    m_lua["SMTP"] = SMTP;
     // LuaThread lib
     sol::table thread = m_lua.create_table();
     thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_luaThread->start(ts, scriptPath); });
@@ -138,7 +141,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
     m_lua["thread"] = thread;
     connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
-    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread); {
+    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
+    {
         // // register control class
         // lua_newtable(L);
         // lua_pushcfunction(L, lua_leftClick);
@@ -310,7 +314,7 @@ void LuaInterpreter::luaRunHook(lua_State *L, lua_Debug *ar) {
 
 void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     // handle pause/terminate request
-    QThread* thread = QThread::currentThread();
+    QThread *thread = QThread::currentThread();
     thread->eventDispatcher()->processEvents(QEventLoop::AllEvents);
 
     sol::state_view lua(L);
@@ -451,10 +455,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     QString type = "nil";
                     if (result.valid()) {
                         sol::object obj = result;
-                        obj.push();
-                        type = lua_typename(L, lua_type(L, -1));
-                        val = lua_toqstring(L, -1);
-                        lua_pop(L, 1);
+                        type = lua_typename(L, static_cast<int>(obj.get_type()));
+                        val = lua2qstring(obj);
                     }
                     g_watchStandardItemModel->item(it.value(), 1)->setText(val);
                     g_watchStandardItemModel->item(it.value(), 1)->setData(type, Qt::WhatsThisRole);
