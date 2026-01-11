@@ -18,6 +18,8 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
     void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
 
     void scriptFocus(const QUrl &scriptUrl);
@@ -27,11 +29,15 @@ public:
 signals:
     void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const;
 
     QUrl m_currentScriptUrl{};
     QQuickWidget *m_structureWidget{};
+    QObject *m_structureTreeView{};
     QStandardItemModel *m_structureStandardItemModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
 

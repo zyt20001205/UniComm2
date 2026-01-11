@@ -124,4 +124,11 @@ Item {
             }
         }
     }
+
+    Component.onCompleted: {
+        const objects = {
+            "treeView": treeView
+        };
+        structureModule.propertyGet(objects)
+    }
 }

@@ -15,6 +15,7 @@ StructureModule::StructureModule()
       m_structureWidget(new QQuickWidget()),
       m_structureStandardItemModel(new QStandardItemModel()) {
     setWidget(m_structureWidget);
+    m_structureWidget->installEventFilter(this);
 }
 
 StructureModule::~StructureModule() {
@@ -29,6 +30,10 @@ void StructureModule::propertySet(const QVariantMap &objects) {
     m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/structureModule.qml"));
+}
+
+void StructureModule::propertyGet(const QVariantMap &objects) {
+    m_structureTreeView = qvariant_cast<QObject *>(objects["treeView"]);
 }
 
 void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
@@ -50,6 +55,16 @@ void StructureModule::scriptFocus(const QUrl &scriptUrl) {
 
 void StructureModule::markerInsert(const int row) {
     emit insertMarker(m_currentScriptUrl, MARKER_HINT, row, 1000);
+}
+
+// StructureModule protected
+bool StructureModule::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_structureWidget) {
+        if (event->type() == QEvent::FocusOut) {
+            m_structureTreeView->setProperty("selectedRow", -1);
+        }
+    }
+    return DockWidget::eventFilter(watched, event);
 }
 
 // StructureModule private
