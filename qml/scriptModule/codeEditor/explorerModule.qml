@@ -1,96 +1,122 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs
+import QtQuick.Layouts
 
-TreeView {
-    id: treeView
+Item {
+    id: rootItem
     anchors.fill: parent
-    clip: true
-    model: fileSystemModel
-    rootIndex: modelRootIndex
-    columnWidthProvider: function (col) {
-        return col === 0 ? treeView.width : 0
-    }
 
-    delegate: Item {
-        implicitWidth: treeView.width; implicitHeight: 24
-        required property TreeView treeView
-        required property bool isTreeNode
-        required property bool expanded
-        required property bool hasChildren
-        required property int depth
-        required property int row
-        required property int column
+    TreeView {
+        id: treeView
+        anchors.fill: parent
+        clip: true
+        model: fileSystemModel
+        rootIndex: modelRootIndex
+        columnWidthProvider: function (col) {
+            return col === 0 ? treeView.width : 0
+        }
+        property int selectedRow: -1
 
-        Item {
-            id: indicator
-            width: (depth + 1) * 24; height: 24
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
+        delegate: Item {
+            implicitWidth: treeView.width; implicitHeight: 24
+            required property TreeView treeView
+            required property bool isTreeNode
+            required property bool expanded
+            required property bool hasChildren
+            required property int depth
+            required property int row
+            required property int column
 
-            Image {
-                width: 16; height: 16
-                anchors.right: parent.right
-                anchors.rightMargin: 4
-                anchors.verticalCenter: parent.verticalCenter
-                visible: isTreeNode && hasChildren
-                source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
-
-                HoverHandler {
-                    cursorShape: Qt.PointingHandCursor
-                }
-
-                TapHandler {
-                    enabled: indicator.visible
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                    onSingleTapped: treeView.toggleExpanded(row)
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: "#ebebeb"
+                opacity: hoverHandler.hovered ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 150
+                    }
                 }
             }
-        }
 
-        Item {
-            id: icon
-            width: 24; height: 24
-            anchors.left: indicator.right
-            anchors.verticalCenter: parent.verticalCenter
-
-            Image {
-                width: 16; height: 16
-                anchors.centerIn: parent
-                source: isTreeNode && hasChildren ? "qrc:/icon/folder.svg" : "qrc:/icon/document.svg"
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
             }
-        }
 
-        Label {
-            id: text
-            anchors.left: icon.right; anchors.right: parent.right
-            anchors.leftMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
-            text: model.fileName
-        }
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
 
-        Rectangle {
-            id: highlightRect
-            anchors.fill: parent
-            z: -1
-            radius: 2
-            color: "#ebebeb"
-            opacity: 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 150
+                Item {
+                    Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
+                }
+
+                Item {
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    Image {
+                        anchors.centerIn: parent
+                        width: 16; height: 16
+                        source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                        visible: isTreeNode && hasChildren
+                    }
+                }
+
+                Item {
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    Image {
+                        anchors.centerIn: parent
+                        width: 16; height: 16
+                        source: isTreeNode && hasChildren ? "qrc:/icon/folder.svg" : "qrc:/icon/document.svg"
+                    }
+                }
+
+                Label {
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.fileName
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true; Layout.preferredHeight: 24
                 }
             }
-        }
 
-        HoverHandler {
-            onHoveredChanged: {
-                if (hovered) {
-                    cursorShape = Qt.PointingHandCursor
-                    highlightRect.opacity = 1
-                } else {
-                    highlightRect.opacity = 0
+            HoverHandler {
+                id: hoverHandler
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onTapped: {
+                    treeView.selectedRow = row
+                    if (isTreeNode && hasChildren) {
+                        treeView.toggleExpanded(row)
+                    }
+                }
+                onDoubleTapped: {
+                    if (!(isTreeNode && hasChildren)) {
+                        explorerModule.scriptOpen(model.filePath)
+                    }
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onTapped: {
+                    if (isTreeNode && hasChildren) {
+                        folderMenu.filePath = model.filePath
+                        folderMenu.fileName = model.fileName
+                        folderMenu.popup()
+                    } else {
+                        scriptMenu.filePath = model.filePath
+                        scriptMenu.fileName = model.fileName
+                        scriptMenu.popup()
+                    }
                 }
             }
         }
@@ -98,38 +124,17 @@ TreeView {
         TapHandler {
             acceptedButtons: Qt.LeftButton
 
-            onDoubleTapped: {
-                if (!isTreeNode || !hasChildren) {
-                    explorerModule.scriptOpen(model.filePath)
-                }
-            }
+            onTapped: treeView.selectedRow = -1
         }
 
         TapHandler {
             acceptedButtons: Qt.RightButton
-            gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-            onSingleTapped: {
-                if (isTreeNode && hasChildren) {
-                    folderMenu.filePath = model.filePath
-                    folderMenu.fileName = model.fileName
-                    folderMenu.popup()
-                } else {
-                    scriptMenu.filePath = model.filePath
-                    scriptMenu.fileName = model.fileName
-                    scriptMenu.popup()
-                }
+            onTapped: {
+                rootMenu.rootPath = modelRootPath
+                rootMenu.treeView = treeView
+                rootMenu.popup()
             }
-        }
-    }
-
-    TapHandler {
-        acceptedButtons: Qt.RightButton
-
-        onSingleTapped: {
-            rootMenu.rootPath = modelRootPath
-            rootMenu.treeView = treeView
-            rootMenu.popup()
         }
     }
 }
