@@ -5,7 +5,6 @@
 
 class QFileSystemModel;
 class QQuickWidget;
-class QTreeView;
 
 class ExplorerModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -17,11 +16,16 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
     Q_INVOKABLE void scriptRun(const QString &scriptPath);
 
     Q_INVOKABLE void scriptDebug(const QString &scriptPath);
 
     Q_INVOKABLE void scriptOpen(const QString &scriptPath);
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -33,7 +37,7 @@ signals:
 private:
     QQuickWidget *m_explorerWidget{};
     QFileSystemModel *m_explorerFileSystemModel{};
-    QTreeView *m_explorerTreeView{};
+    QObject *m_explorerTreeView{};
 };
 
 #endif //UNICOMM_EXPLORER_H

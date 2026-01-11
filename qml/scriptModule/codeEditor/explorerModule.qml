@@ -170,4 +170,11 @@ Item {
             }
         }
     }
+
+    Component.onCompleted: {
+        const objects = {
+            "treeView": treeView
+        };
+        explorerModule.propertyGet(objects)
+    }
 }
