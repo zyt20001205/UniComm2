@@ -69,8 +69,37 @@ Item {
 
                     Image {
                         anchors.centerIn: parent
-                        width: 16; height: 16
-                        source: isTreeNode && hasChildren ? "qrc:/icon/folder.svg" : "qrc:/icon/document.svg"
+                        width: 20; height: 20
+                        source: getIcon()
+
+                        function getIcon() {
+                            if (isTreeNode && hasChildren) {
+                                return "qrc:/icon/folder.svg"
+                            } else {
+                                const suffix = model.fileName.split('.').pop()
+                                switch (suffix) {
+                                    case "csv":
+                                        return "qrc:/icon/fileTypeCsv.svg"
+                                    case "bmp":
+                                    case "gif":
+                                    case "ico":
+                                    case "jpeg":
+                                    case "jpg":
+                                    case "png":
+                                    case "svg":
+                                    case "tif":
+                                    case "tiff":
+                                    case "webp":
+                                        return "qrc:/icon/fileTypeImage.svg"
+                                    case "json":
+                                        return "qrc:/icon/fileTypeJson.svg"
+                                    case "lua":
+                                        return "qrc:/icon/fileTypeLua.svg"
+                                    default:
+                                        return "qrc:/icon/document.svg"
+                                }
+                            }
+                        }
                     }
                 }
 
