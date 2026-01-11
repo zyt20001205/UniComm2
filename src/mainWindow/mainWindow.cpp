@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     setAttribute(Qt::WA_DeleteOnClose);
     QWidget::setWindowTitle("UniComm");
     QWidget::setWindowIcon(QIcon(":/icon/icon.ico"));
-    QWidget::resize(1600, 900);
+    QWidget::showMaximized();
 
     moduleInit();
     shortcutInit();
@@ -553,17 +553,23 @@ void MainWindow::layoutInit() {
     statusBar->addWidget(m_statusModule, 1);
 
     addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
-    addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, m_scriptModule->welcomePage(), KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
-    addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_portModule);
+    // left
+    addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(400, 0)));
+    addDockWidget(m_sendModule, KDDockWidgets::Location_OnBottom, m_portModule);
+    addDockWidget(m_explorerModule, KDDockWidgets::Location_OnBottom, m_sendModule);
     addDockWidget(m_structureModule, KDDockWidgets::Location_OnBottom, m_explorerModule);
-    addDockWidget(m_sendModule, KDDockWidgets::Location_OnRight, m_scriptModule->welcomePage(), KDDockWidgets::InitialVisibilityOption::StartHidden);
-    addDockWidget(m_databaseModule, KDDockWidgets::Location_OnBottom, m_sendModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-    addDockWidget(m_datatableModule, KDDockWidgets::Location_OnBottom, m_databaseModule, KDDockWidgets::InitialVisibilityOption::StartHidden);
-    addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom);
-    m_logModule->addDockWidgetAsTab(m_diagnosticsModule);
-    m_logModule->addDockWidgetAsTab(m_debugModule);
-    m_logModule->raise();
-    addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(100, 0)));
+    // right
+    addDockWidget(m_breakpointModule, KDDockWidgets::Location_OnRight, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(300, 0)));
+    addDockWidget(m_debugModule, KDDockWidgets::Location_OnBottom, m_breakpointModule);
+    addDockWidget(m_watchModule, KDDockWidgets::Location_OnBottom, m_debugModule);
+    // bottom
+    addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(0, 200)));
+    m_logModule->addDockWidgetAsTab(m_diagnosticsModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
+    addDockWidget(m_databaseModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(600, 0)));
+    m_databaseModule->addDockWidgetAsTab(m_datatableModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
+    m_databaseModule->addDockWidgetAsTab(m_dataplotModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
+    addDockWidget(m_threadpoolModule, KDDockWidgets::Location_OnRight, m_databaseModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(300, 0)));
+
     if (!m_mainConfig["state"].toString().isEmpty()) {
         const QByteArray layoutData = QByteArray::fromBase64(m_mainConfig["state"].toString().toLatin1());
         KDDockWidgets::LayoutSaver layoutSaver;
