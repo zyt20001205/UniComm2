@@ -200,6 +200,7 @@ Item {
         id: breakpointModuleLineMenu
         property url url
         property int line
+        property var treeView
 
         onAboutToShow: {
             widgetCount += 1
@@ -234,11 +235,47 @@ Item {
 
             onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = breakpointModuleLineMenu.treeView
+                    for (let i = 0; i < treeView.rows; ++i) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = breakpointModuleLineMenu.treeView
+                    for (let i = 0; i < treeView.rows; ++i) {
+                        treeView.expandRecursively(i)
+                    }
+                }
+            }
+        }
     }
 
     Menu {
         id: breakpointModuleFileMenu
         property url url
+        property var treeView
 
         onAboutToShow: {
             widgetCount += 1
@@ -262,10 +299,46 @@ Item {
                 }
             }
         }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = breakpointModuleFileMenu.treeView
+                    for (let i = 0; i < treeView.rows; ++i) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = breakpointModuleFileMenu.treeView
+                    for (let i = 0; i < treeView.rows; ++i) {
+                        treeView.expandRecursively(i)
+                    }
+                }
+            }
+        }
     }
 
     Menu {
         id: breakpointModuleRootMenu
+        property var treeView
 
         onAboutToShow: {
             widgetCount += 1
@@ -286,6 +359,41 @@ Item {
                     breakpointModule.allDelete()
                     progress = 0
                     breakpointModuleRootMenu.close()
+                }
+            }
+        }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Collapse All")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = breakpointModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; ++i) {
+                        treeView.collapseRecursively(i)
+                    }
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Expand All")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    const treeView = breakpointModuleRootMenu.treeView
+                    for (let i = 0; i < treeView.rows; ++i) {
+                        treeView.expandRecursively(i)
+                    }
                 }
             }
         }
@@ -698,6 +806,7 @@ Item {
         id: explorerModuleScriptMenu
         property string filePath
         property string fileName
+        property var treeView
 
         onAboutToShow: {
             widgetCount += 1
@@ -788,7 +897,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
+                    const treeView = explorerModuleScriptMenu.treeView
                     for (let i = 0; i < treeView.rows; ++i) {
                         treeView.collapseRecursively(i)
                     }
@@ -801,7 +910,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
+                    const treeView = explorerModuleScriptMenu.treeView
                     for (let i = 0; i < treeView.rows; ++i) {
                         treeView.expandRecursively(i)
                     }
@@ -814,6 +923,7 @@ Item {
         id: explorerModuleFolderMenu
         property string filePath
         property string fileName
+        property var treeView
 
         onAboutToShow: {
             widgetCount += 1
@@ -899,7 +1009,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
+                    const treeView = explorerModuleFolderMenu.treeView
                     for (let i = 0; i < treeView.rows; ++i) {
                         treeView.collapseRecursively(i)
                     }
@@ -912,7 +1022,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
+                    const treeView = explorerModuleFolderMenu.treeView
                     for (let i = 0; i < treeView.rows; ++i) {
                         treeView.expandRecursively(i)
                     }

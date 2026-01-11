@@ -144,10 +144,12 @@ Item {
                     if (isTreeNode && hasChildren) {
                         folderMenu.filePath = model.filePath
                         folderMenu.fileName = model.fileName
+                        folderMenu.treeView = treeView
                         folderMenu.popup()
                     } else {
                         scriptMenu.filePath = model.filePath
                         scriptMenu.fileName = model.fileName
+                        scriptMenu.treeView = treeView
                         scriptMenu.popup()
                     }
                 }

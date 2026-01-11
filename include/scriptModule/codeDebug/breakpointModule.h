@@ -17,6 +17,8 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
     void breakpointConfigSave();
 
     void breakpointInsert(const QUrl &scriptUrl, int line, const QVariantHash &session) const;
@@ -44,8 +46,12 @@ signals:
 
     void removeMarker(const QUrl &scriptUrl, int type, int line);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     QQuickWidget *m_breakpointWidget{};
+    QObject *m_breakpointTreeView{};
     QStandardItemModel *m_breakpointStandardItemModel{};
 };
 

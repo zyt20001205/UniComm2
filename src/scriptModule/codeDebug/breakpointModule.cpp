@@ -12,6 +12,7 @@ BreakpointModule::BreakpointModule()
       m_breakpointWidget(new QQuickWidget()),
       m_breakpointStandardItemModel(new QStandardItemModel()) {
     setWidget(m_breakpointWidget);
+    m_breakpointWidget->installEventFilter(this);
     auto breakpointConfig = g_workspaceConfig["breakpointConfig"].toObject();
     for (const auto &key: breakpointConfig.keys()) {
         const QUrl url(key);
@@ -38,6 +39,10 @@ void BreakpointModule::propertySet(const QVariantMap &objects) {
     m_breakpointWidget->rootContext()->setContextProperty("standardItemModel", m_breakpointStandardItemModel);
     m_breakpointWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_breakpointWidget->setSource(QUrl("qrc:/qml/scriptModule/codeDebug/breakpointModule.qml"));
+}
+
+void BreakpointModule::propertyGet(const QVariantMap &objects) {
+    m_breakpointTreeView = qvariant_cast<QObject *>(objects["treeView"]);
 }
 
 void BreakpointModule::breakpointConfigSave() {
@@ -147,4 +152,14 @@ void BreakpointModule::allDelete() {
         const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
         breakpointsDelete(scriptUrl);
     }
+}
+
+// BreakpointModule protected
+bool BreakpointModule::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_breakpointWidget) {
+        if (event->type() == QEvent::FocusOut) {
+            m_breakpointTreeView->setProperty("selectedRow", -1);
+        }
+    }
+    return DockWidget::eventFilter(watched, event);
 }

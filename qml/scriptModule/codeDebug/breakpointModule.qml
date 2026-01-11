@@ -33,6 +33,11 @@ Item {
         clip: true
         model: standardItemModel
         visible: modelVisible
+        property int selectedRow: -1
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
 
         delegate: Item {
             implicitWidth: treeView.width; implicitHeight: 24
@@ -42,50 +47,12 @@ Item {
             required property bool hasChildren
             required property int depth
             required property int row
-            required property int column
-
-            Item {
-                id: indicator
-                width: (depth + 1) * 24; height: 24
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-
-                Image {
-                    width: 16; height: 16
-                    anchors.right: parent.right
-                    anchors.rightMargin: 4
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: isTreeNode && hasChildren
-                    source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
-
-                    HoverHandler {
-                        cursorShape: Qt.PointingHandCursor
-                    }
-
-                    TapHandler {
-                        enabled: indicator.visible
-                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
-
-                        onSingleTapped: treeView.toggleExpanded(row)
-                    }
-                }
-            }
-
-            Label {
-                id: text
-                anchors.left: indicator.right; anchors.right: parent.right
-                anchors.leftMargin: 4
-                anchors.verticalCenter: parent.verticalCenter
-                text: model.display
-            }
 
             Rectangle {
-                id: highlightRect
                 anchors.fill: parent
-                z: -1
-                radius: 2
+                radius: 6
                 color: "#ebebeb"
-                opacity: 0
+                opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 150
@@ -93,20 +60,61 @@ Item {
                 }
             }
 
-            HoverHandler {
-                onHoveredChanged: {
-                    if (hovered) {
-                        highlightRect.opacity = 1
-                    } else {
-                        highlightRect.opacity = 0
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
+            }
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                Item {
+                    Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
+                }
+
+                Item {
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    Image {
+                        anchors.centerIn: parent
+                        width: 16; height: 16
+                        source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                        visible: isTreeNode && hasChildren
                     }
                 }
+
+                // Item {
+                //     Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                //
+                //     Image {
+                //         anchors.centerIn: parent
+                //         width: 16; height: 16
+                //         source: model.decoration
+                //     }
+                // }
+
+                Label {
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.display
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true; Layout.preferredHeight: 24
+                }
+            }
+
+            HoverHandler {
+                id: hoverHandler
             }
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
-                onSingleTapped: {
+                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                onTapped: {
+                    treeView.selectedRow = row
                     if (isTreeNode && hasChildren) {
+                        treeView.toggleExpanded(row)
                         breakpointModule.scriptOpen(model.whatsThis)
                     } else {
                         breakpointModule.markerInsert(model.whatsThis, model.display)
@@ -118,13 +126,15 @@ Item {
                 acceptedButtons: Qt.RightButton
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                onSingleTapped: {
+                onTapped: {
                     if (isTreeNode && hasChildren) {
                         fileMenu.url = model.whatsThis
+                        fileMenu.treeView = treeView
                         fileMenu.popup()
                     } else {
                         lineMenu.url = model.whatsThis
                         lineMenu.line = model.display
+                        lineMenu.treeView = treeView
                         lineMenu.popup()
                     }
                 }
@@ -132,9 +142,18 @@ Item {
         }
 
         TapHandler {
+            acceptedButtons: Qt.LeftButton
+
+            onTapped: treeView.selectedRow = -1
+        }
+
+        TapHandler {
             acceptedButtons: Qt.RightButton
 
-            onSingleTapped: rootMenu.popup()
+            onTapped: {
+                rootMenu.treeView = treeView
+                rootMenu.popup()
+            }
         }
     }
 
@@ -152,6 +171,13 @@ Item {
         function onModelReset() {
             modelVisible = false
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "treeView": treeView
+        };
+        breakpointModule.propertyGet(objects)
     }
 }
 
