@@ -17,6 +17,10 @@ Item {
         }
         property int selectedRow: -1
 
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+
         delegate: Item {
             implicitWidth: treeView.width; implicitHeight: 24
             required property TreeView treeView
