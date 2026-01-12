@@ -203,7 +203,7 @@ void LuaLanguageServer::jsonResponse() {
                 emit responseTypeDefinition(scriptUrl, result);
             } else {
                 qDebug() << "unknown lsp response";
-                qDebug() << json;
+                qDebug() << method << scriptUrl << json;
             }
         } else {
             const QString method = json["method"].toString();

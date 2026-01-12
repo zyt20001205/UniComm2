@@ -19,15 +19,6 @@ ScriptModule::ScriptModule(QWidget *parent)
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     m_welcomePage->setObjectName("welcomePage");
-    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
-        scriptOpen(QUrl(value.toString()));
-    }
-    const auto focusedUrl = QUrl(m_scriptConfig["scriptFocused"].toString());
-    if (!focusedUrl.isEmpty() && m_scriptPageHash.contains(focusedUrl)) {
-        QTimer::singleShot(0, this, [this, focusedUrl] {
-            m_scriptPageHash[focusedUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
-        });
-    }
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(this, &ScriptModule::responseCodeAction, m_codeAssistant, &CodeAssistant::dwellShowCodeAction);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
@@ -48,6 +39,16 @@ ScriptModule::~ScriptModule() {
 }
 
 void ScriptModule::propertySet(const QVariantMap &objects) {
+    for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
+        scriptOpen(QUrl(value.toString()));
+    }
+    const auto focusedUrl = QUrl(m_scriptConfig["scriptFocused"].toString());
+    if (!focusedUrl.isEmpty() && m_scriptPageHash.contains(focusedUrl)) {
+        QTimer::singleShot(0, this, [this, focusedUrl] {
+            m_scriptPageHash[focusedUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
+        });
+    }
+
     m_welcomePage->propertySet(QVariantMap());
     m_codeAssistant->propertySet(objects);
     m_codeAssistant->fontSet(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt());
