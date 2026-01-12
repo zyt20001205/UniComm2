@@ -1,4 +1,4 @@
-#include "scriptModule/codeAssistant/structureModule.h"
+#include "scriptModule/codeAnalysis/structureModule.h"
 
 #include <QJsonArray>
 #include <QQmlContext>
@@ -29,7 +29,7 @@ void StructureModule::propertySet(const QVariantMap &objects) {
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);
     m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/structureModule.qml"));
+    m_structureWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAnalysis/structureModule.qml"));
 }
 
 void StructureModule::propertyGet(const QVariantMap &objects) {

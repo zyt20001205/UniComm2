@@ -1,4 +1,4 @@
-#include "scriptModule/codeAssistant/dwellWidget.h"
+#include "scriptModule/codeAnalysis/dwellWidget.h"
 
 #include <QMenu>
 #include <QTextBrowser>

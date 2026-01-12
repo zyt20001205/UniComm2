@@ -1,4 +1,4 @@
-#include "scriptModule/codeAssistant/positionWidget.h"
+#include "scriptModule/codeAnalysis/positionWidget.h"
 
 #include <QCoreApplication>
 #include <QLabel>

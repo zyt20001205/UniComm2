@@ -71,14 +71,14 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/scriptModule.h
         include/scriptModule/scriptPage.h
         include/scriptModule/welcomePage.h
-        include/scriptModule/codeAssistant/codeAssistant.h
-        include/scriptModule/codeAssistant/completionWidget.h
-        include/scriptModule/codeAssistant/diagnosticsModule.h
-        include/scriptModule/codeAssistant/dwellWidget.h
-        include/scriptModule/codeAssistant/navigationWidget.h
-        include/scriptModule/codeAssistant/positionWidget.h
-        include/scriptModule/codeAssistant/signatureWidget.h
-        include/scriptModule/codeAssistant/structureModule.h
+        include/scriptModule/codeAnalysis/codeAssistant.h
+        include/scriptModule/codeAnalysis/completionWidget.h
+        include/scriptModule/codeAnalysis/diagnosticsModule.h
+        include/scriptModule/codeAnalysis/dwellWidget.h
+        include/scriptModule/codeAnalysis/navigationWidget.h
+        include/scriptModule/codeAnalysis/positionWidget.h
+        include/scriptModule/codeAnalysis/signatureWidget.h
+        include/scriptModule/codeAnalysis/structureModule.h
         include/scriptModule/codeDebug/breakpointModule.h
         include/scriptModule/codeDebug/debugModule.h
         include/scriptModule/codeDebug/threadpoolModule.h
@@ -136,14 +136,14 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/scriptModule.cpp
         src/scriptModule/scriptPage.cpp
         src/scriptModule/welcomePage.cpp
-        src/scriptModule/codeAssistant/codeAssistant.cpp
-        src/scriptModule/codeAssistant/completionWidget.cpp
-        src/scriptModule/codeAssistant/diagnosticsModule.cpp
-        src/scriptModule/codeAssistant/dwellWidget.cpp
-        src/scriptModule/codeAssistant/navigationWidget.cpp
-        src/scriptModule/codeAssistant/positionWidget.cpp
-        src/scriptModule/codeAssistant/signatureWidget.cpp
-        src/scriptModule/codeAssistant/structureModule.cpp
+        src/scriptModule/codeAnalysis/codeAssistant.cpp
+        src/scriptModule/codeAnalysis/completionWidget.cpp
+        src/scriptModule/codeAnalysis/diagnosticsModule.cpp
+        src/scriptModule/codeAnalysis/dwellWidget.cpp
+        src/scriptModule/codeAnalysis/navigationWidget.cpp
+        src/scriptModule/codeAnalysis/positionWidget.cpp
+        src/scriptModule/codeAnalysis/signatureWidget.cpp
+        src/scriptModule/codeAnalysis/structureModule.cpp
         src/scriptModule/codeDebug/breakpointModule.cpp
         src/scriptModule/codeDebug/debugModule.cpp
         src/scriptModule/codeDebug/threadpoolModule.cpp
@@ -179,8 +179,8 @@ qt_add_resources(UniComm "qml_resources"
         "qml/portModule/portSetting.qml"
         "qml/portModule/sendModule.qml"
         "qml/scriptModule/welcomePage.qml"
-        "qml/scriptModule/codeAssistant/diagnosticsModule.qml"
-        "qml/scriptModule/codeAssistant/structureModule.qml"
+        "qml/scriptModule/codeAnalysis/diagnosticsModule.qml"
+        "qml/scriptModule/codeAnalysis/structureModule.qml"
         "qml/scriptModule/codeDebug/breakpointModule.qml"
         "qml/scriptModule/codeDebug/debugModule.qml"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"
@@ -195,6 +195,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/icon.ico"
         "resources/icon/activateBreakpoints.svg"
         "resources/icon/add.svg"
+        "resources/icon/analysis.svg"
         "resources/icon/apps.svg"
         "resources/icon/arrowClockwise.svg"
         "resources/icon/arrowCollapse.svg"
@@ -214,6 +215,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/contrast.svg"
         "resources/icon/copy.svg"
         "resources/icon/crop.svg"
+        "resources/icon/data.svg"
         "resources/icon/database.svg"
         "resources/icon/debugContinue.svg"
         "resources/icon/debugStepInto.svg"

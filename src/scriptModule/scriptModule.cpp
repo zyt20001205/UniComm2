@@ -9,7 +9,7 @@
 #include "portModule/portModule.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/welcomePage.h"
-#include "scriptModule/codeAssistant/codeAssistant.h"
+#include "scriptModule/codeAnalysis/codeAssistant.h"
 #include "scriptModule/codeEditor/editorWidget.h"
 
 // ScriptModule public

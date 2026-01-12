@@ -1,4 +1,4 @@
-#include "scriptModule/codeAssistant/navigationWidget.h"
+#include "scriptModule/codeAnalysis/navigationWidget.h"
 
 #include <QJsonArray>
 #include <QLabel>

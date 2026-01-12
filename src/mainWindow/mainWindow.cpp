@@ -4,7 +4,6 @@
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QFileDialog>
-#include <QHBoxLayout>
 #include <QMediaDevices>
 #include <QQmlContext>
 #include <QQuickItem>
@@ -39,8 +38,8 @@
 #include "scriptModule/codeDebug/breakpointModule.h"
 #include "scriptModule/codeDebug/debugModule.h"
 #include "scriptModule/codeDebug/threadpoolModule.h"
-#include "scriptModule/codeAssistant/diagnosticsModule.h"
-#include "scriptModule/codeAssistant/structureModule.h"
+#include "scriptModule/codeAnalysis/diagnosticsModule.h"
+#include "scriptModule/codeAnalysis/structureModule.h"
 #include "scriptModule/codeDebug/watchModule.h"
 #include "settingModule/settingModule.h"
 
@@ -56,7 +55,6 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 
     moduleInit();
     shortcutInit();
-    menuInit();
     layoutInit();
     overlayInit();
 
@@ -102,6 +100,8 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("dataplotModuleAction", QVariant::fromValue(m_dataplotModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("datatableModuleAction", QVariant::fromValue(m_datatableModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("debugModuleAction", QVariant::fromValue(m_debugModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("diagnosticsModuleAction", QVariant::fromValue(m_diagnosticsModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("structureModuleAction", QVariant::fromValue(m_structureModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("watchModuleAction", QVariant::fromValue(m_watchModule->toggleAction()));
 }
 
@@ -110,7 +110,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
 
     const QVariantMap lualsObjects = {
-        {"lualsProgressDialog",objects["lualsProgressDialog"]}
+        {"lualsProgressDialog", objects["lualsProgressDialog"]}
     };
     m_luals->propertySet(lualsObjects);
 
@@ -169,7 +169,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"menuModuleViewMenu", objects["menuModuleViewMenu"]}
     };
     m_menuModule->propertySet(menuObjects);
-    
+
     const QVariantMap portObjects = {
         {"portModuleTableMenu", objects["portModuleTableMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
@@ -235,11 +235,11 @@ void MainWindow::quit() {
     constexpr float total = 2;
     int current = 0;
     // quit modules
-    current ++;
+    current++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for threadpool module..."));
     m_quitDialog->setProperty("primaryProgress", current / total);
     m_threadpoolModule->quit();
-    current ++;
+    current++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for lua language server module..."));
     m_quitDialog->setProperty("primaryProgress", current / total);
     m_luals->quit();
@@ -269,9 +269,9 @@ void MainWindow::workspaceOpen() {
     g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     // write to main config
     const QJsonObject json{
-            {"version", "1.0.0"},
-            {"workspace", g_workspaceUrl.toString()},
-        };
+        {"version", "1.0.0"},
+        {"workspace", g_workspaceUrl.toString()},
+    };
     const QJsonDocument doc(json);
     QFile mainConfig(QDir::current().filePath("config.json"));
     mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
@@ -439,7 +439,6 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
 
 
-
     connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
     connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
     connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);
@@ -475,102 +474,54 @@ void MainWindow::shortcutInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "shortcut initialized");
 }
 
-void MainWindow::menuInit() {
-    // // edit menu
-    // // {
-    // //     auto *fileMenu = new QMenu(tr("Edit")); // NOLINT
-    // //     menuBar->addMenu(fileMenu);
-    // //     auto *undoAction = new QAction(tr("Undo")); // NOLINT
-    // //     fileMenu->addAction(undoAction);
-    // //     auto *redoAction = new QAction(tr("Redo")); // NOLINT
-    // //     fileMenu->addAction(redoAction);
-    // // }
-    // // view menu
-    // {
-    //     auto *viewMenu = new QMenu(tr("View")); // NOLINT
-    //     auto *viewButton = new QToolButton(); // NOLINT
-    //     viewButton->setText(tr("View"));
-    //     viewButton->setMenu(viewMenu);
-    //     viewButton->setPopupMode(QToolButton::InstantPopup);
-    //     toolBar->addWidget(viewButton);
-    //
-    //     viewMenu->addAction(m_portModule->toggleAction());
-    //     m_portModule->toggleAction()->setText(tr("Port"));
-    //     viewMenu->addAction(m_explorerModule->toggleAction());
-    //     m_explorerModule->toggleAction()->setText(tr("Explorer"));
-    //     viewMenu->addAction(m_structureModule->toggleAction());
-    //     m_structureModule->toggleAction()->setText(tr("Structure"));
-    //     viewMenu->addAction(m_sendModule->toggleAction());
-    //     m_sendModule->toggleAction()->setText(tr("Send"));
-    //     viewMenu->addAction(m_portModule->toggleAction());
-    //     m_databaseModule->toggleAction()->setText(tr("Database"));
-    //     viewMenu->addAction(m_databaseModule->toggleAction());
-    //     m_datatableModule->toggleAction()->setText(tr("Data Table"));
-    //     viewMenu->addAction(m_datatableModule->toggleAction());
-    //     m_dataplotModule->toggleAction()->setText(tr("Data Plot"));
-    //     viewMenu->addAction(m_dataplotModule->toggleAction());
-    //     m_logModule->toggleAction()->setText(tr("Log"));
-    //     viewMenu->addAction(m_logModule->toggleAction());
-    //     viewMenu->addAction(m_diagnosticsModule->toggleAction());
-    //     m_diagnosticsModule->toggleAction()->setText(tr("Diagnostics"));
-    //     viewMenu->addAction(m_debugModule->toggleAction());
-    //     m_debugModule->toggleAction()->setText(tr("Debug"));
-    //     viewMenu->addAction(m_threadpoolModule->toggleAction());
-    //     m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
-    //     viewMenu->addAction(m_breakpointModule->toggleAction());
-    //     m_breakpointModule->toggleAction()->setText(tr("Breakpoint"));
-    //     viewMenu->addAction(m_watchModule->toggleAction());
-    //     m_watchModule->toggleAction()->setText(tr("Watch"));
-    // }
-    // // setting menu
-    // {
-    //     auto *settingAction = new QAction(tr("Setting"), this); // NOLINT
-    //     toolBar->addAction(settingAction);
-    //     connect(settingAction, &QAction::triggered, this, [this] {
-    //         const QJsonObject logConfig = g_workspaceConfig["logConfig"].toObject();
-    //         const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
-    //         const QJsonObject settingConfig = {
-    //             {"fontFamilyLog", logConfig["fontFamily"].toString()},
-    //             {"fontSizeLog", logConfig["fontSize"].toInt()},
-    //             {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
-    //             {"fontSizeScript", scriptConfig["fontSize"].toInt()},
-    //             {"indicatorErrorStyleScript", scriptConfig["indicatorErrorStyle"].toInt()},
-    //             {"indicatorErrorColorScript", scriptConfig["indicatorErrorColor"].toString()},
-    //             {"indicatorWarningStyleScript", scriptConfig["indicatorWarningStyle"].toInt()},
-    //             {"indicatorWarningColorScript", scriptConfig["indicatorWarningColor"].toString()},
-    //             {"indicatorInfoStyleScript", scriptConfig["indicatorInfoStyle"].toInt()},
-    //             {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
-    //             {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
-    //             {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
-    //             {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
-    //             {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()},
-    //             {"indicatorReadStyleScript", scriptConfig["indicatorReadStyle"].toInt()},
-    //             {"indicatorReadColorScript", scriptConfig["indicatorReadColor"].toString()},
-    //             {"indicatorWriteStyleScript", scriptConfig["indicatorWriteStyle"].toInt()},
-    //             {"indicatorWriteColorScript", scriptConfig["indicatorWriteColor"].toString()},
-    //             {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
-    //             {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
-    //             {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
-    //             {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
-    //             {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
-    //             {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
-    //             {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
-    //             {"markerBreakpointBackgroundScript", scriptConfig["markerBreakpointBackground"].toString()},
-    //             {"markerBreakpointForegroundScript", scriptConfig["markerBreakpointForeground"].toString()},
-    //             {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
-    //             {"markerDebugBackgroundScript", scriptConfig["markerDebugBackground"].toString()},
-    //             {"markerDebugForegroundScript", scriptConfig["markerDebugForeground"].toString()}
-    //         };
-    //         m_settingModule->settingImport(settingConfig);
-    //         if (m_settingModule->exec() == QDialog::Accepted) {
-    //             workspaceSave();
-    //         }
-    //     });
-    // }
-    // // logging
-    // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    // qDebug() << QString("[%1] %2").arg(timestamp, "menu initialized");
-}
+// // setting menu
+// {
+//     auto *settingAction = new QAction(tr("Setting"), this); // NOLINT
+//     toolBar->addAction(settingAction);
+//     connect(settingAction, &QAction::triggered, this, [this] {
+//         const QJsonObject logConfig = g_workspaceConfig["logConfig"].toObject();
+//         const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
+//         const QJsonObject settingConfig = {
+//             {"fontFamilyLog", logConfig["fontFamily"].toString()},
+//             {"fontSizeLog", logConfig["fontSize"].toInt()},
+//             {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
+//             {"fontSizeScript", scriptConfig["fontSize"].toInt()},
+//             {"indicatorErrorStyleScript", scriptConfig["indicatorErrorStyle"].toInt()},
+//             {"indicatorErrorColorScript", scriptConfig["indicatorErrorColor"].toString()},
+//             {"indicatorWarningStyleScript", scriptConfig["indicatorWarningStyle"].toInt()},
+//             {"indicatorWarningColorScript", scriptConfig["indicatorWarningColor"].toString()},
+//             {"indicatorInfoStyleScript", scriptConfig["indicatorInfoStyle"].toInt()},
+//             {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
+//             {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
+//             {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
+//             {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
+//             {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()},
+//             {"indicatorReadStyleScript", scriptConfig["indicatorReadStyle"].toInt()},
+//             {"indicatorReadColorScript", scriptConfig["indicatorReadColor"].toString()},
+//             {"indicatorWriteStyleScript", scriptConfig["indicatorWriteStyle"].toInt()},
+//             {"indicatorWriteColorScript", scriptConfig["indicatorWriteColor"].toString()},
+//             {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
+//             {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
+//             {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
+//             {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
+//             {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
+//             {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
+//             {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
+//             {"markerBreakpointBackgroundScript", scriptConfig["markerBreakpointBackground"].toString()},
+//             {"markerBreakpointForegroundScript", scriptConfig["markerBreakpointForeground"].toString()},
+//             {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
+//             {"markerDebugBackgroundScript", scriptConfig["markerDebugBackground"].toString()},
+//             {"markerDebugForegroundScript", scriptConfig["markerDebugForeground"].toString()}
+//         };
+//         m_settingModule->settingImport(settingConfig);
+//         if (m_settingModule->exec() == QDialog::Accepted) {
+//             workspaceSave();
+//         }
+//     });
+// }
+// // logging
+// QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+// qDebug() << QString("[%1] %2").arg(timestamp, "menu initialized");
 
 void MainWindow::layoutInit() {
     auto *toolBar = new QToolBar(); // NOLINT

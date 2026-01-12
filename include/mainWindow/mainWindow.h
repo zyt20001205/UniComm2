@@ -75,8 +75,6 @@ private:
 
     void shortcutInit();
 
-    void menuInit();
-
     void layoutInit();
 
     void overlayInit();

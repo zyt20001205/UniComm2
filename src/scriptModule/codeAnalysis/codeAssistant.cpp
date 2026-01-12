@@ -1,13 +1,13 @@
-#include "scriptModule/codeAssistant/codeAssistant.h"
+#include "scriptModule/codeAnalysis/codeAssistant.h"
 
 #include <QJsonObject>
 #include <QKeyEvent>
 
-#include "scriptModule/codeAssistant/completionWidget.h"
-#include "scriptModule/codeAssistant/dwellWidget.h"
-#include "scriptModule/codeAssistant/navigationWidget.h"
-#include "scriptModule/codeAssistant/positionWidget.h"
-#include "scriptModule/codeAssistant/signatureWidget.h"
+#include "scriptModule/codeAnalysis/completionWidget.h"
+#include "scriptModule/codeAnalysis/dwellWidget.h"
+#include "scriptModule/codeAnalysis/navigationWidget.h"
+#include "scriptModule/codeAnalysis/positionWidget.h"
+#include "scriptModule/codeAnalysis/signatureWidget.h"
 
 // CodeAssistant public
 CodeAssistant::CodeAssistant(QWidget *parent)

@@ -8,7 +8,6 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        Layout.alignment: Qt.AlignLeft
 
         Button {
             Layout.preferredWidth: 60; Layout.preferredHeight: 24
@@ -24,6 +23,10 @@ Item {
             text: "View"
 
             onClicked: viewMenu.popup()
+        }
+
+        Item {
+            Layout.fillWidth: true; Layout.preferredHeight: 24
         }
     }
 }

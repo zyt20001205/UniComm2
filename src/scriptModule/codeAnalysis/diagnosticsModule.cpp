@@ -1,4 +1,4 @@
-#include "scriptModule/codeAssistant/diagnosticsModule.h"
+#include "scriptModule/codeAnalysis/diagnosticsModule.h"
 
 #include <QClipboard>
 #include <QHeaderView>
@@ -30,7 +30,7 @@ void DiagnosticsModule::propertySet(const QVariantMap &objects) {
     m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticsModule", this);
     m_diagnosticsWidget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
     m_diagnosticsWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_diagnosticsWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAssistant/diagnosticsModule.qml"));
+    m_diagnosticsWidget->setSource(QUrl("qrc:/qml/scriptModule/codeAnalysis/diagnosticsModule.qml"));
     m_rootItem = m_diagnosticsWidget->rootObject();
 }
 

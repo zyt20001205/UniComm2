@@ -1286,14 +1286,36 @@ Item {
         onClosed: widgetCount -= 1
 
         Menu {
+            title: qsTr("Analysis")
+            icon.source: "qrc:/icon/analysis.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Diagnostics")
+                checkable: true
+                checked: diagnosticsModuleAction ? diagnosticsModuleAction.checked : false
+
+                onTriggered: diagnosticsModuleAction.toggle()
+            }
+
+            MenuItem {
+                text: qsTr("Structure")
+                checkable: true
+                checked: structureModuleAction ? structureModuleAction.checked : false
+
+                onTriggered: structureModuleAction.toggle()
+            }
+        }
+
+        Menu {
             title: qsTr("Data")
-            icon.source: "qrc:/icon/database.svg"
+            icon.source: "qrc:/icon/data.svg"
             icon.width: 16; icon.height: 16
 
             MenuItem {
                 text: qsTr("Database")
                 checkable: true
-                checked: databaseModuleAction.checked
+                checked: databaseModuleAction ? databaseModuleAction.checked : false
 
                 onTriggered: databaseModuleAction.toggle()
             }
@@ -1301,7 +1323,7 @@ Item {
             MenuItem {
                 text: qsTr("Datatable")
                 checkable: true
-                checked: datatableModuleAction.checked
+                checked: datatableModuleAction ? datatableModuleAction.checked : false
 
                 onTriggered: datatableModuleAction.toggle()
             }
@@ -1309,7 +1331,7 @@ Item {
             MenuItem {
                 text: qsTr("Dataplot")
                 checkable: true
-                checked: dataplotModuleAction.checked
+                checked: dataplotModuleAction ? dataplotModuleAction.checked : false
 
                 onTriggered: dataplotModuleAction.toggle()
             }
@@ -1323,7 +1345,7 @@ Item {
             MenuItem {
                 text: qsTr("Breakpoint")
                 checkable: true
-                checked: breakpointModuleAction.checked
+                checked: breakpointModuleAction ? breakpointModuleAction.checked : false
 
                 onTriggered: breakpointModuleAction.toggle()
             }
@@ -1331,7 +1353,7 @@ Item {
             MenuItem {
                 text: qsTr("Debug")
                 checkable: true
-                checked: debugModuleAction.checked
+                checked: debugModuleAction ? debugModuleAction.checked : false
 
                 onTriggered: debugModuleAction.toggle()
             }
@@ -1339,7 +1361,7 @@ Item {
             MenuItem {
                 text: qsTr("Watch")
                 checkable: true
-                checked: watchModuleAction.checked
+                checked: watchModuleAction ? watchModuleAction.checked : false
 
                 onTriggered: watchModuleAction.toggle()
             }

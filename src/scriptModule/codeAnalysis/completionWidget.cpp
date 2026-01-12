@@ -1,4 +1,4 @@
-#include "scriptModule/codeAssistant/completionWidget.h"
+#include "scriptModule/codeAnalysis/completionWidget.h"
 
 #include <QHeaderView>
 #include <QJsonArray>
