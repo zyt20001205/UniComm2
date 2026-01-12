@@ -10,19 +10,29 @@ Item {
         anchors.fill: parent
 
         Button {
-            Layout.preferredWidth: 60; Layout.preferredHeight: 24
+            id: fileMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "File"
 
-            onClicked: fileMenu.popup()
+            onClicked: {
+                const pos = fileMenuButton.mapToItem(fileMenu.parent, 0, fileMenuButton.height);
+                fileMenu.popup(pos.x, pos.y)
+            }
         }
 
         Button {
-            Layout.preferredWidth: 60; Layout.preferredHeight: 24
+            id: viewMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "View"
 
-            onClicked: viewMenu.popup()
+            onClicked: {
+                const pos = viewMenuButton.mapToItem(viewMenu.parent, 0, viewMenuButton.height);
+                viewMenu.popup(pos.x, pos.y)
+            }
         }
 
         Item {
