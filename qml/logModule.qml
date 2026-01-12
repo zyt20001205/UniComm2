@@ -57,7 +57,7 @@ RowLayout {
                 currentFolder: StandardPaths.standardLocations(StandardPaths.DesktopLocation)[0]
                 fileMode: FileDialog.SaveFile
                 nameFilters: ["Plain Text (*.txt)", "PDF (*.pdf)", "Rich Text (*.html)"]
-                selectedFile: "log_" + Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
+                currentFile: currentFolder + "/log_" + Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
                 onAccepted: logModule.logSave(selectedFile)
             }
         }

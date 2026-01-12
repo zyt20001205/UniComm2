@@ -172,13 +172,16 @@ void ConfigManager::workspaceInit() {
     }
 }
 
-void ConfigManager::workspaceConfigSave(QString &filePath) {
-    if (filePath.isEmpty()) {
+void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
+    QString configPath{};
+    if (configUrl.isEmpty()) {
         const auto workspacePath = g_workspaceUrl.toLocalFile();
-        filePath = QDir(workspacePath).filePath("config.json");
+        configPath = QDir(workspacePath).filePath("config.json");
+    } else {
+        configPath = configUrl.toLocalFile();
     }
-    if (QFile workspaceConfig(filePath); workspaceConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        const auto fileUrl = QUrl::fromLocalFile(filePath);
+    if (QFile workspaceConfig(configPath); workspaceConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        const auto fileUrl = QUrl::fromLocalFile(configPath);
         const QJsonDocument doc(g_workspaceConfig);
         workspaceConfig.write(doc.toJson(QJsonDocument::Indented));
         workspaceConfig.close();

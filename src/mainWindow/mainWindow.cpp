@@ -288,7 +288,7 @@ void MainWindow::workspaceOpen() {
     QApplication::quit();
 }
 
-void MainWindow::workspaceSave(QString filePath) {
+void MainWindow::workspaceSave(const QUrl &configUrl) {
     m_scriptModule->scriptConfigSave();
     m_breakpointModule->breakpointConfigSave();
     m_databaseModule->databaseConfigSave();
@@ -298,7 +298,7 @@ void MainWindow::workspaceSave(QString filePath) {
     m_sendModule->sendConfigSave();
     m_watchModule->watchConfigSave();
     mainConfigSave();
-    m_configManager->workspaceConfigSave(filePath);
+    m_configManager->workspaceConfigSave(configUrl);
 }
 
 void MainWindow::quitTrack(const float secondaryProgress, const QString &secondaryLog) const {

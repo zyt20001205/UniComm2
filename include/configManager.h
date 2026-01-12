@@ -16,7 +16,7 @@ public:
 
     void workspaceInit();
 
-    void workspaceConfigSave(QString &filePath);
+    void workspaceConfigSave(const QUrl &configUrl);
 
 signals:
     void appendLog(const QString &message, const QString &level);

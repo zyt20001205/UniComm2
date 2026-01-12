@@ -56,7 +56,7 @@ public:
 
     Q_INVOKABLE void workspaceOpen();
 
-    Q_INVOKABLE void workspaceSave(QString filePath = QString());
+    Q_INVOKABLE void workspaceSave(const QUrl &configUrl = QUrl());
 
     void quitTrack(float secondaryProgress, const QString &secondaryLog) const;
 

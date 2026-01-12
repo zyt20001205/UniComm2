@@ -1,5 +1,7 @@
+import QtCore
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import QtQuick.Layouts
 
 Item {
@@ -1269,10 +1271,19 @@ Item {
 
         MenuItem {
             text: qsTr("Save Workspace As")
-            icon.source: "qrc:/icon/save.svg"
+            icon.source: "qrc:/icon/saveAs.svg"
             icon.width: 16; icon.height: 16
 
-            // onTriggered: mainWindow.workspaceSave("")
+            onTriggered: menuModuleFileMenuSaveDialog.open()
+
+            FileDialog {
+                id: menuModuleFileMenuSaveDialog
+                currentFolder: StandardPaths.standardLocations(StandardPaths.DesktopLocation)[0]
+                fileMode: FileDialog.SaveFile
+                nameFilters: ["Json (*.json)"]
+                currentFile: currentFolder + "/config.json"
+                onAccepted: mainWindow.workspaceSave(selectedFile)
+            }
         }
     }
 
@@ -1325,86 +1336,77 @@ Item {
             onTriggered: threadpoolModuleAction.toggle()
         }
 
-        Menu {
-            title: qsTr("Analysis")
-            icon.source: "qrc:/icon/analysis.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Diagnostics")
-                checkable: true
-                checked: diagnosticsModuleAction ? diagnosticsModuleAction.checked : false
-
-                onTriggered: diagnosticsModuleAction.toggle()
-            }
-
-            MenuItem {
-                text: qsTr("Structure")
-                checkable: true
-                checked: structureModuleAction ? structureModuleAction.checked : false
-
-                onTriggered: structureModuleAction.toggle()
-            }
+        MenuSeparator {
         }
 
-        Menu {
-            title: qsTr("Data")
-            icon.source: "qrc:/icon/data.svg"
-            icon.width: 16; icon.height: 16
+        MenuItem {
+            text: qsTr("Diagnostics")
+            checkable: true
+            checked: diagnosticsModuleAction ? diagnosticsModuleAction.checked : false
 
-            MenuItem {
-                text: qsTr("Database")
-                checkable: true
-                checked: databaseModuleAction ? databaseModuleAction.checked : false
-
-                onTriggered: databaseModuleAction.toggle()
-            }
-
-            MenuItem {
-                text: qsTr("Datatable")
-                checkable: true
-                checked: datatableModuleAction ? datatableModuleAction.checked : false
-
-                onTriggered: datatableModuleAction.toggle()
-            }
-
-            MenuItem {
-                text: qsTr("Dataplot")
-                checkable: true
-                checked: dataplotModuleAction ? dataplotModuleAction.checked : false
-
-                onTriggered: dataplotModuleAction.toggle()
-            }
+            onTriggered: diagnosticsModuleAction.toggle()
         }
 
-        Menu {
-            title: qsTr("Debug")
-            icon.source: "qrc:/icon/bug.svg"
-            icon.width: 16; icon.height: 16
+        MenuItem {
+            text: qsTr("Structure")
+            checkable: true
+            checked: structureModuleAction ? structureModuleAction.checked : false
 
-            MenuItem {
-                text: qsTr("Breakpoint")
-                checkable: true
-                checked: breakpointModuleAction ? breakpointModuleAction.checked : false
+            onTriggered: structureModuleAction.toggle()
+        }
 
-                onTriggered: breakpointModuleAction.toggle()
-            }
+        MenuSeparator {
+        }
 
-            MenuItem {
-                text: qsTr("Debug")
-                checkable: true
-                checked: debugModuleAction ? debugModuleAction.checked : false
+        MenuItem {
+            text: qsTr("Database")
+            checkable: true
+            checked: databaseModuleAction ? databaseModuleAction.checked : false
 
-                onTriggered: debugModuleAction.toggle()
-            }
+            onTriggered: databaseModuleAction.toggle()
+        }
 
-            MenuItem {
-                text: qsTr("Watch")
-                checkable: true
-                checked: watchModuleAction ? watchModuleAction.checked : false
+        MenuItem {
+            text: qsTr("Datatable")
+            checkable: true
+            checked: datatableModuleAction ? datatableModuleAction.checked : false
 
-                onTriggered: watchModuleAction.toggle()
-            }
+            onTriggered: datatableModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Dataplot")
+            checkable: true
+            checked: dataplotModuleAction ? dataplotModuleAction.checked : false
+
+            onTriggered: dataplotModuleAction.toggle()
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Breakpoint")
+            checkable: true
+            checked: breakpointModuleAction ? breakpointModuleAction.checked : false
+
+            onTriggered: breakpointModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Debug")
+            checkable: true
+            checked: debugModuleAction ? debugModuleAction.checked : false
+
+            onTriggered: debugModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Watch")
+            checkable: true
+            checked: watchModuleAction ? watchModuleAction.checked : false
+
+            onTriggered: watchModuleAction.toggle()
         }
     }
 
