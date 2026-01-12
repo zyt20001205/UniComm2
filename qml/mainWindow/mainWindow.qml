@@ -171,6 +171,7 @@ Item {
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 600
+        closePolicy: Popup.NoAutoClose
         modal: true
         title: qsTr("Lua language server initializing...")
         topPadding: 30; bottomPadding: 20
