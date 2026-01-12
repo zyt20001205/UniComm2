@@ -21,11 +21,15 @@ LuaLanguageServer::~LuaLanguageServer() {
     qDebug() << QString("[%1] luals module destructed").arg(timestamp);
 }
 
+void LuaLanguageServer::propertySet(const QVariantMap &objects) {
+    m_progressDialog = qvariant_cast<QObject *>(objects["lualsProgressDialog"]);
+}
+
 void LuaLanguageServer::quit() {
     if (m_process->state() != QProcess::NotRunning) {
         exitNotification();
         QEventLoop eventLoop{};
-        connect(m_process, &QProcess::finished, this, [&eventLoop] {eventLoop.quit();});
+        connect(m_process, &QProcess::finished, this, [&eventLoop] { eventLoop.quit(); });
         eventLoop.exec();
     }
 }
@@ -197,21 +201,43 @@ void LuaLanguageServer::jsonResponse() {
                 if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
                 emit responseTypeDefinition(scriptUrl, result);
-            } 
-        } else if (json["method"].toString() == "textDocument/publishDiagnostics") {
-            // publish diagnostics notification
-            const QJsonObject params = json["params"].toObject();
-            const QJsonArray diagnostics = params["diagnostics"].toArray();
-            QString uri = params["uri"].toString();
-            uri = QUrl::fromPercentEncoding(uri.toUtf8());
-            if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
-                drive = drive.toUpper();
+            } else {
+                qDebug() << "unknown lsp response";
+                qDebug() << json;
             }
-            const QUrl scriptUrl(uri);
-            emit notificationPublishDiagnostics(scriptUrl, diagnostics);
         } else {
-            qDebug() << "unknown lsp pack";
-            qDebug() << json;
+            const QString method = json["method"].toString();
+            if (method == "textDocument/publishDiagnostics") {
+                // publish diagnostics notification
+                const QJsonObject params = json["params"].toObject();
+                const QJsonArray diagnostics = params["diagnostics"].toArray();
+                QString uri = params["uri"].toString();
+                uri = QUrl::fromPercentEncoding(uri.toUtf8());
+                if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
+                    drive = drive.toUpper();
+                }
+                const QUrl scriptUrl(uri);
+                emit notificationPublishDiagnostics(scriptUrl, diagnostics);
+            }
+            // else if (method == "$/progress") {
+            //     // progress notification
+            //     // qDebug() << json;
+            //     QMetaObject::invokeMethod(m_progressDialog, "open");
+            //     const QJsonObject params = json["params"].toObject();
+            //     const int token = params["token"].toInt();
+            //     const QJsonObject value = params["value"].toObject();
+            //     if (token == 2) {
+            //         const int percentage = value["percent"].toInt();
+            //         m_progressDialog->setProperty("token2", percentage / 100.0);
+            //     } else if (token == 3) {
+            //         const int percentage = value["percent"].toInt();
+            //         m_progressDialog->setProperty("token3", percentage / 100.0);
+            //     }
+            // }
+            else {
+                qDebug() << "unknown lsp notification";
+                qDebug() << json;
+            }
         }
         if (m_buffer.size() == 0) break;
     }

@@ -103,6 +103,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
     m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
 
+    const QVariantMap lualsObjects = {
+        {"lualsProgressDialog",objects["lualsProgressDialog"]}
+    };
+    m_luals->propertySet(lualsObjects);
+
     const QVariantMap breakpointObjects = {
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
         {"breakpointModuleFileMenu", objects["breakpointModuleFileMenu"]},

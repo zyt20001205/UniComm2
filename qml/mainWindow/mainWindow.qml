@@ -165,6 +165,43 @@ Item {
         // }
     }
 
+    // luals
+    Dialog {
+        id: lualsProgressDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Lua language server initializing...")
+        topPadding: 30; bottomPadding: 20
+        property real token2
+        property real token3
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+
+        ColumnLayout {
+            width: parent.width
+
+            ProgressBar {
+                value: lualsProgressDialog.token2
+                Layout.fillWidth: true
+            }
+
+            Item {
+                Layout.fillWidth: true; Layout.preferredHeight: 10
+            }
+
+            ProgressBar {
+                value: lualsProgressDialog.token3
+                Layout.fillWidth: true
+            }
+        }
+    }
+
     // breakpoint module
     Dialog {
         id: breakpointModuleConditionDialog
@@ -1890,6 +1927,8 @@ Item {
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowTooltip": mainWindowTooltip,
+
+            "lualsProgressDialog": lualsProgressDialog,
 
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,

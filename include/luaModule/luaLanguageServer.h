@@ -15,6 +15,8 @@ public:
 
     ~LuaLanguageServer() override;
 
+    void propertySet(const QVariantMap &objects);
+
     void quit();
 
     void jsonRequest(const QString &method, const QJsonObject &params);
@@ -63,6 +65,7 @@ private:
 
     void jsonResponse();
 
+    QObject* m_progressDialog{};
     QProcess *m_process{};
     QByteArray m_buffer{};
     int m_id = 0;
