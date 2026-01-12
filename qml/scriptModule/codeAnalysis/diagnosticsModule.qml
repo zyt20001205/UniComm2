@@ -103,13 +103,11 @@ Item {
                         border.width: 0
                     }
 
-                    contentItem: Text {
+                    contentItem: Label {
                         anchors.fill: parent
-                        clip: true
-                        font.family: "Segoe UI"
-                        font.pointSize: 10
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                         text: horizontalHeader[horizontalDelegate.index]
+                        elide: Text.ElideRight
                     }
                 }
             }
@@ -166,7 +164,7 @@ Item {
                         required property int row
                         
                         implicitWidth: {
-                            if (textCell.column === tableView.columns - 1) {
+                            if (column === tableView.columns - 1) {
                                 let usedWidth = 0
                                 for (let i = 0; i < tableView.columns - 1; i++) {
                                     usedWidth += tableView.columnWidth(i)
@@ -178,38 +176,32 @@ Item {
                         implicitHeight: 24
                         color: "white"
 
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 6
+                            color: "#ebebeb"
+                            opacity: hoverHandler.hovered ? 1 : 0
+                            Behavior on opacity {
+                                NumberAnimation { duration: 150 }
+                            }
+                        }
+
                         TextMetrics {
                             id: textMetrics
-                            font.family: "Segoe UI"
-                            font.pointSize: 10
+                            font: label.font
                             text: model.display || ""
                         }
 
-                        Text {
+                        Label {
+                            id: label
                             anchors.fill: parent
-                            z: 2
-                            font.family: "Segoe UI"
-                            font.pointSize: 10
-                            horizontalAlignment: Text.AlignLeft
-                            verticalAlignment: Text.AlignVCenter
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                             text: model.display
                             elide: Text.ElideRight
 
                             ToolTip.visible: hoverHandler.hovered
                             ToolTip.delay: 500
                             ToolTip.text: model.display
-                        }
-
-                        Rectangle {
-                            id: highlightRect
-                            anchors.fill: parent
-                            z: 1
-                            radius: 2
-                            color: "#ebebeb"
-                            opacity: hoverHandler.hovered ? 1 : 0
-                            Behavior on opacity {
-                                NumberAnimation { duration: 150 }
-                            }
                         }
 
                         HoverHandler {

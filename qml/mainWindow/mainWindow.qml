@@ -1758,10 +1758,12 @@ Item {
                     scriptModuleCompletionToolTip.completionWidget.detailReload(interestRow)
                     const index = scriptModuleCompletionTableView.index(interestRow, 0);
                     const item = scriptModuleCompletionTableView.itemAtIndex(index);
-                    let idealY = item.mapToItem(scriptModuleCompletionTableView, 0, 0).y
-                    idealY = Math.max(0, idealY)
-                    idealY = Math.min(scriptModuleCompletionTableView.height - item.height, idealY)
-                    scriptModuleCompletionDetailToolTip.y = idealY - 6
+                    if (item) {
+                        let idealY = item.mapToItem(scriptModuleCompletionTableView, 0, 0).y
+                        idealY = Math.max(0, idealY)
+                        idealY = Math.min(scriptModuleCompletionTableView.height - item.height, idealY)
+                        scriptModuleCompletionDetailToolTip.y = idealY - 6
+                    }
                 }
             }
 

@@ -5,11 +5,11 @@
 #include <QJsonArray>
 #include <QQmlContext>
 #include <QQuickItem>
-#include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QTimer>
 
 #include "globals.h"
+#include "utils/qtUtils.h"
 
 // DiagnosticsModule public
 DiagnosticsModule::DiagnosticsModule()
@@ -60,7 +60,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QString source = diagnostic["source"].toString();
         const QString code = diagnostic["code"].toString();
         const QString data = diagnostic["data"].toString();
-        const QString message = diagnostic["message"].toString();
+        const QString message = md2plain(diagnostic["message"].toString());
         auto *severityItem = new QStandardItem(); // NOLINT
         switch (severity) {
             case LEVEL_ERROR: {

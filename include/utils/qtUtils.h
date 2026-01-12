@@ -11,6 +11,6 @@ QByteArray fileHashCalc(const QUrl &fileInfo);
 
 QByteArray stringHashCalc(const QString &content);
 
-QIcon SvgIcon(const QString &svgPath, const QColor &color, const QSize &size = QSize(24, 24));
+QString md2plain(const QString &markdown);
 
 #endif //UNICOMM_QTUTILS_H
