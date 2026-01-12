@@ -30,6 +30,8 @@ public:
 
     Q_INVOKABLE void timestampToggle(bool status);
 
+    Q_INVOKABLE void wrapToggle(bool status);
+
     Q_INVOKABLE int heightGet();
 
     Q_INVOKABLE void heightSet(const QString &height);

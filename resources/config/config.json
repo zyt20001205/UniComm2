@@ -9,7 +9,8 @@
     "fontFamily": "Segoe UI",
     "fontSize": 9,
     "height": 1000,
-    "timestamp": true
+    "timestamp": true,
+    "wrap": true
   },
   "mainConfig": {
     "state": ""

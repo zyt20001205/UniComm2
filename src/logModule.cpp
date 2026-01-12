@@ -36,6 +36,9 @@ void LogModule::propertyGet(const QVariantMap &objects) {
     // set timestamp
     auto *timestampButton = qvariant_cast<QObject *>(objects["timestampButton"]);
     timestampButton->setProperty("checked", m_logConfig["timestamp"].toBool());
+    // set wrap
+    auto *wrapButton = qvariant_cast<QObject *>(objects["wrapButton"]);
+    wrapButton->setProperty("checked", m_logConfig["wrap"].toBool());
     // set font
     m_logTextArea = qvariant_cast<QObject *>(objects["textArea"]);
     const auto logFont = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
@@ -87,6 +90,10 @@ void LogModule::logAppend(const QString &message, const QString &level) {
 
 void LogModule::timestampToggle(const bool status) {
     m_logConfig["timestamp"] = status;
+}
+
+void LogModule::wrapToggle(const bool status) {
+    m_logConfig["wrap"] = status;
 }
 
 int LogModule::heightGet() {

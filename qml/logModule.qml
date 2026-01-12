@@ -28,6 +28,19 @@ RowLayout {
         }
 
         Button {
+            id: wrapButton
+            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            checkable: true
+            icon.source: "qrc:/icon/wrap.svg"
+            icon.width: 16; icon.height: 16
+            ToolTip.text: checked ? qsTr("Disable Wrap") : qsTr("Enable Wrap")
+            ToolTip.visible: hovered
+
+            onClicked: logModule.wrapToggle(checked)
+        }
+
+        Button {
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/autoFitHeight.svg"
@@ -88,6 +101,7 @@ RowLayout {
             id: textArea
             textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
+            wrapMode: wrapButton.checked ? TextEdit.Wrap : TextEdit.NoWrap
 
             HoverHandler {
                 id: hoverHandler
@@ -127,6 +141,7 @@ RowLayout {
     Component.onCompleted: {
         const objects = {
             "timestampButton": timestampButton,
+            "wrapButton": wrapButton,
             "textArea": textArea
         };
         logModule.propertyGet(objects)

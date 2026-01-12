@@ -288,6 +288,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/warning.svg"
         "resources/icon/wholeWord.svg"
         "resources/icon/wordStart.svg"
+        "resources/icon/wrap.svg"
 )
 
 qt_add_resources(UniComm "config_resources"
