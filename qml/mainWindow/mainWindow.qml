@@ -1285,6 +1285,46 @@ Item {
         }
         onClosed: widgetCount -= 1
 
+        MenuItem {
+            text: qsTr("Explorer")
+            checkable: true
+            checked: explorerModuleAction ? explorerModuleAction.checked : false
+
+            onTriggered: explorerModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Log")
+            checkable: true
+            checked: logModuleAction ? logModuleAction.checked : false
+
+            onTriggered: logModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Port")
+            checkable: true
+            checked: portModuleAction ? portModuleAction.checked : false
+
+            onTriggered: portModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Send")
+            checkable: true
+            checked: sendModuleAction ? sendModuleAction.checked : false
+
+            onTriggered: sendModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Threadpool")
+            checkable: true
+            checked: threadpoolModuleAction ? threadpoolModuleAction.checked : false
+
+            onTriggered: threadpoolModuleAction.toggle()
+        }
+
         Menu {
             title: qsTr("Analysis")
             icon.source: "qrc:/icon/analysis.svg"
