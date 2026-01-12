@@ -1241,6 +1241,111 @@ Item {
         }
     }
 
+    // menu module
+    Menu {
+        id: menuModuleFileMenu
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Open Workspace")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: mainWindow.workspaceOpen()
+        }
+
+        MenuItem {
+            text: qsTr("Save Workspace")
+            icon.source: "qrc:/icon/save.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: mainWindow.workspaceSave("")
+        }
+
+        MenuItem {
+            text: qsTr("Save Workspace As")
+            icon.source: "qrc:/icon/save.svg"
+            icon.width: 16; icon.height: 16
+
+            // onTriggered: mainWindow.workspaceSave("")
+        }
+    }
+
+    Menu {
+        id: menuModuleViewMenu
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+
+        Menu {
+            title: qsTr("Data")
+            icon.source: "qrc:/icon/database.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Database")
+                checkable: true
+                checked: databaseModuleAction.checked
+
+                onTriggered: databaseModuleAction.toggle()
+            }
+
+            MenuItem {
+                text: qsTr("Datatable")
+                checkable: true
+                checked: datatableModuleAction.checked
+
+                onTriggered: datatableModuleAction.toggle()
+            }
+
+            MenuItem {
+                text: qsTr("Dataplot")
+                checkable: true
+                checked: dataplotModuleAction.checked
+
+                onTriggered: dataplotModuleAction.toggle()
+            }
+        }
+
+        Menu {
+            title: qsTr("Debug")
+            icon.source: "qrc:/icon/bug.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Breakpoint")
+                checkable: true
+                checked: breakpointModuleAction.checked
+
+                onTriggered: breakpointModuleAction.toggle()
+            }
+
+            MenuItem {
+                text: qsTr("Debug")
+                checkable: true
+                checked: debugModuleAction.checked
+
+                onTriggered: debugModuleAction.toggle()
+            }
+
+            MenuItem {
+                text: qsTr("Watch")
+                checkable: true
+                checked: watchModuleAction.checked
+
+                onTriggered: watchModuleAction.toggle()
+            }
+        }
+    }
+
     // port module
     Menu {
         id: portModuleTableMenu
@@ -1955,6 +2060,9 @@ Item {
             "logModuleEmptyDialog": logModuleEmptyDialog,
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
+
+            "menuModuleFileMenu": menuModuleFileMenu,
+            "menuModuleViewMenu": menuModuleViewMenu,
 
             "portModuleTableMenu": portModuleTableMenu,
             "portModuleRootMenu": portModuleRootMenu,

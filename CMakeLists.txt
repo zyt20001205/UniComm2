@@ -53,6 +53,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaThread.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
+        include/mainWindow/menuModule.h
         include/mainWindow/statusModule.h
         include/portModule/basePort.h
         include/portModule/pixmapPreview.h
@@ -117,6 +118,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaThread.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
+        src/mainWindow/menuModule.cpp
         src/mainWindow/statusModule.cpp
         src/portModule/basePort.cpp
         src/portModule/pixmapPreview.cpp
@@ -171,6 +173,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/dataModule/dataplotModule.qml"
         "qml/dataModule/datatableModule.qml"
         "qml/mainWindow/mainWindow.qml"
+        "qml/mainWindow/menuModule.qml"
         "qml/mainWindow/statusModule.qml"
         "qml/portModule/portModule.qml"
         "qml/portModule/portSetting.qml"

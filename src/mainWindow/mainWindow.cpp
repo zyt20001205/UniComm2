@@ -6,8 +6,6 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QMediaDevices>
-#include <QMenuBar>
-#include <QMessageBox>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
@@ -16,7 +14,6 @@
 #include <QStatusBar>
 #include <QThread>
 #include <QToolBar>
-#include <QToolButton>
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
@@ -31,6 +28,7 @@
 #include "dataModule/datatableModule.h"
 #include "luaModule/luaInterpreter.h"
 #include "luaModule/luaLanguageServer.h"
+#include "mainWindow/menuModule.h"
 #include "mainWindow/statusModule.h"
 #include "portModule/portModule.h"
 #include "portModule/sendModule.h"
@@ -89,6 +87,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
+    m_overlay->rootContext()->setContextProperty("menuModule", m_menuModule);
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
     // m_overlay->rootContext()->setContextProperty("statusModule", m_statusModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
@@ -97,6 +96,13 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("systemModule", m_systemModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
     m_overlay->rootContext()->setContextProperty("watchModule", m_watchModule);
+
+    m_overlay->rootContext()->setContextProperty("breakpointModuleAction", QVariant::fromValue(m_breakpointModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("databaseModuleAction", QVariant::fromValue(m_databaseModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("dataplotModuleAction", QVariant::fromValue(m_dataplotModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("datatableModuleAction", QVariant::fromValue(m_datatableModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("debugModuleAction", QVariant::fromValue(m_debugModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("watchModuleAction", QVariant::fromValue(m_watchModule->toggleAction()));
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
@@ -158,6 +164,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_logModule->propertySet(logObjects);
 
+    const QVariantMap menuObjects = {
+        {"menuModuleFileMenu", objects["menuModuleFileMenu"]},
+        {"menuModuleViewMenu", objects["menuModuleViewMenu"]}
+    };
+    m_menuModule->propertySet(menuObjects);
+    
     const QVariantMap portObjects = {
         {"portModuleTableMenu", objects["portModuleTableMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
@@ -241,6 +253,49 @@ void MainWindow::terminate() {
     close();
 }
 
+void MainWindow::workspaceOpen() {
+    const QString workspaceDir = QFileDialog::getExistingDirectory(
+        g_mainWindow,
+        tr("Open Workspace"),
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+    if (workspaceDir.isEmpty()) return;
+    if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
+        qDebug() << "same as prev workspace";
+        return;
+    }
+    workspaceSave();
+    g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
+    // write to main config
+    const QJsonObject json{
+            {"version", "1.0.0"},
+            {"workspace", g_workspaceUrl.toString()},
+        };
+    const QJsonDocument doc(json);
+    QFile mainConfig(QDir::current().filePath("config.json"));
+    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    mainConfig.write(doc.toJson(QJsonDocument::Indented));
+    mainConfig.close();
+    // restart main process
+    QProcess::startDetached(QCoreApplication::applicationFilePath());
+    m_askForSaving = false;
+    QApplication::quit();
+}
+
+void MainWindow::workspaceSave(QString filePath) {
+    m_scriptModule->scriptConfigSave();
+    m_breakpointModule->breakpointConfigSave();
+    m_databaseModule->databaseConfigSave();
+    m_datatableModule->datatableConfigSave();
+    m_logModule->logConfigSave();
+    m_portModule->portConfigSave();
+    m_sendModule->sendConfigSave();
+    m_watchModule->watchConfigSave();
+    mainConfigSave();
+    m_configManager->workspaceConfigSave(filePath);
+}
+
 void MainWindow::quitTrack(const float secondaryProgress, const QString &secondaryLog) const {
     m_quitDialog->setProperty("secondaryProgress", secondaryProgress);
     m_quitDialog->setProperty("secondaryLog", secondaryLog);
@@ -281,6 +336,7 @@ void MainWindow::moduleInit() {
     m_explorerModule = new ExplorerModule();
     m_logModule = new LogModule();
     m_nuspellModule = new NuspellModule(this);
+    m_menuModule = new MenuModule(this);
     m_portModule = new PortModule();
     m_scriptModule = new ScriptModule();
     m_sendModule = new SendModule();
@@ -420,140 +476,108 @@ void MainWindow::shortcutInit() {
 }
 
 void MainWindow::menuInit() {
-    auto *toolBar = new QToolBar(); // NOLINT
-    addToolBar(Qt::TopToolBarArea, toolBar);
-    // file menu
-    {
-        auto *fileMenu = new QMenu(tr("File")); // NOLINT
-        auto *fileButton = new QToolButton(); // NOLINT
-        fileButton->setText(tr("File"));
-        fileButton->setMenu(fileMenu);
-        fileButton->setPopupMode(QToolButton::InstantPopup);
-        toolBar->addWidget(fileButton);
-
-        auto shortcutConfig = g_workspaceConfig["shortcutConfig"].toObject();
-        auto *openWorkspaceAction = new QAction(tr("Open Workspace") + "\t" + shortcutConfig["openWorkspace"].toString()); // NOLINT
-        fileMenu->addAction(openWorkspaceAction);
-        connect(openWorkspaceAction, &QAction::triggered, this, [this] { workspaceOpen(); });
-        auto *saveWorkspaceAction = new QAction(tr("Save Workspace") + "\t" + shortcutConfig["saveWorkspace"].toString()); // NOLINT
-        fileMenu->addAction(saveWorkspaceAction);
-        connect(saveWorkspaceAction, &QAction::triggered, this, [this] { workspaceSave(); });
-        auto *saveWorkspaceAsAction = new QAction(tr("Save Workspace As") + "\t" + shortcutConfig["saveWorkspaceAs"].toString()); // NOLINT
-        fileMenu->addAction(saveWorkspaceAsAction);
-        connect(saveWorkspaceAsAction, &QAction::triggered, this, [this] {
-            const QString filePath = QFileDialog::getSaveFileName(
-                nullptr,
-                tr("Save Workspace As"),
-                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/config",
-                "JSON File (*.json)"
-            );
-            if (filePath.endsWith(".json", Qt::CaseInsensitive)) {
-                workspaceSave(filePath);
-            }
-        });
-    }
-    // edit menu
+    // // edit menu
+    // // {
+    // //     auto *fileMenu = new QMenu(tr("Edit")); // NOLINT
+    // //     menuBar->addMenu(fileMenu);
+    // //     auto *undoAction = new QAction(tr("Undo")); // NOLINT
+    // //     fileMenu->addAction(undoAction);
+    // //     auto *redoAction = new QAction(tr("Redo")); // NOLINT
+    // //     fileMenu->addAction(redoAction);
+    // // }
+    // // view menu
     // {
-    //     auto *fileMenu = new QMenu(tr("Edit")); // NOLINT
-    //     menuBar->addMenu(fileMenu);
-    //     auto *undoAction = new QAction(tr("Undo")); // NOLINT
-    //     fileMenu->addAction(undoAction);
-    //     auto *redoAction = new QAction(tr("Redo")); // NOLINT
-    //     fileMenu->addAction(redoAction);
+    //     auto *viewMenu = new QMenu(tr("View")); // NOLINT
+    //     auto *viewButton = new QToolButton(); // NOLINT
+    //     viewButton->setText(tr("View"));
+    //     viewButton->setMenu(viewMenu);
+    //     viewButton->setPopupMode(QToolButton::InstantPopup);
+    //     toolBar->addWidget(viewButton);
+    //
+    //     viewMenu->addAction(m_portModule->toggleAction());
+    //     m_portModule->toggleAction()->setText(tr("Port"));
+    //     viewMenu->addAction(m_explorerModule->toggleAction());
+    //     m_explorerModule->toggleAction()->setText(tr("Explorer"));
+    //     viewMenu->addAction(m_structureModule->toggleAction());
+    //     m_structureModule->toggleAction()->setText(tr("Structure"));
+    //     viewMenu->addAction(m_sendModule->toggleAction());
+    //     m_sendModule->toggleAction()->setText(tr("Send"));
+    //     viewMenu->addAction(m_portModule->toggleAction());
+    //     m_databaseModule->toggleAction()->setText(tr("Database"));
+    //     viewMenu->addAction(m_databaseModule->toggleAction());
+    //     m_datatableModule->toggleAction()->setText(tr("Data Table"));
+    //     viewMenu->addAction(m_datatableModule->toggleAction());
+    //     m_dataplotModule->toggleAction()->setText(tr("Data Plot"));
+    //     viewMenu->addAction(m_dataplotModule->toggleAction());
+    //     m_logModule->toggleAction()->setText(tr("Log"));
+    //     viewMenu->addAction(m_logModule->toggleAction());
+    //     viewMenu->addAction(m_diagnosticsModule->toggleAction());
+    //     m_diagnosticsModule->toggleAction()->setText(tr("Diagnostics"));
+    //     viewMenu->addAction(m_debugModule->toggleAction());
+    //     m_debugModule->toggleAction()->setText(tr("Debug"));
+    //     viewMenu->addAction(m_threadpoolModule->toggleAction());
+    //     m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
+    //     viewMenu->addAction(m_breakpointModule->toggleAction());
+    //     m_breakpointModule->toggleAction()->setText(tr("Breakpoint"));
+    //     viewMenu->addAction(m_watchModule->toggleAction());
+    //     m_watchModule->toggleAction()->setText(tr("Watch"));
     // }
-    // view menu
-    {
-        auto *viewMenu = new QMenu(tr("View")); // NOLINT
-        auto *viewButton = new QToolButton(); // NOLINT
-        viewButton->setText(tr("View"));
-        viewButton->setMenu(viewMenu);
-        viewButton->setPopupMode(QToolButton::InstantPopup);
-        toolBar->addWidget(viewButton);
-
-        viewMenu->addAction(m_portModule->toggleAction());
-        m_portModule->toggleAction()->setText(tr("Port"));
-        viewMenu->addAction(m_explorerModule->toggleAction());
-        m_explorerModule->toggleAction()->setText(tr("Explorer"));
-        viewMenu->addAction(m_structureModule->toggleAction());
-        m_structureModule->toggleAction()->setText(tr("Structure"));
-        viewMenu->addAction(m_sendModule->toggleAction());
-        m_sendModule->toggleAction()->setText(tr("Send"));
-        viewMenu->addAction(m_portModule->toggleAction());
-        m_databaseModule->toggleAction()->setText(tr("Database"));
-        viewMenu->addAction(m_databaseModule->toggleAction());
-        m_datatableModule->toggleAction()->setText(tr("Data Table"));
-        viewMenu->addAction(m_datatableModule->toggleAction());
-        m_dataplotModule->toggleAction()->setText(tr("Data Plot"));
-        viewMenu->addAction(m_dataplotModule->toggleAction());
-        m_logModule->toggleAction()->setText(tr("Log"));
-        viewMenu->addAction(m_logModule->toggleAction());
-        viewMenu->addAction(m_diagnosticsModule->toggleAction());
-        m_diagnosticsModule->toggleAction()->setText(tr("Diagnostics"));
-        viewMenu->addAction(m_debugModule->toggleAction());
-        m_debugModule->toggleAction()->setText(tr("Debug"));
-        viewMenu->addAction(m_threadpoolModule->toggleAction());
-        m_threadpoolModule->toggleAction()->setText(tr("Thread Pool"));
-        viewMenu->addAction(m_breakpointModule->toggleAction());
-        m_breakpointModule->toggleAction()->setText(tr("Breakpoint"));
-        viewMenu->addAction(m_watchModule->toggleAction());
-        m_watchModule->toggleAction()->setText(tr("Watch"));
-    }
-    // setting menu
-    {
-        auto *settingAction = new QAction(tr("Setting"), this); // NOLINT
-        toolBar->addAction(settingAction);
-        connect(settingAction, &QAction::triggered, this, [this] {
-            const QJsonObject logConfig = g_workspaceConfig["logConfig"].toObject();
-            const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
-            const QJsonObject settingConfig = {
-                {"fontFamilyLog", logConfig["fontFamily"].toString()},
-                {"fontSizeLog", logConfig["fontSize"].toInt()},
-                {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
-                {"fontSizeScript", scriptConfig["fontSize"].toInt()},
-                {"indicatorErrorStyleScript", scriptConfig["indicatorErrorStyle"].toInt()},
-                {"indicatorErrorColorScript", scriptConfig["indicatorErrorColor"].toString()},
-                {"indicatorWarningStyleScript", scriptConfig["indicatorWarningStyle"].toInt()},
-                {"indicatorWarningColorScript", scriptConfig["indicatorWarningColor"].toString()},
-                {"indicatorInfoStyleScript", scriptConfig["indicatorInfoStyle"].toInt()},
-                {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
-                {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
-                {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
-                {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
-                {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()},
-                {"indicatorReadStyleScript", scriptConfig["indicatorReadStyle"].toInt()},
-                {"indicatorReadColorScript", scriptConfig["indicatorReadColor"].toString()},
-                {"indicatorWriteStyleScript", scriptConfig["indicatorWriteStyle"].toInt()},
-                {"indicatorWriteColorScript", scriptConfig["indicatorWriteColor"].toString()},
-                {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
-                {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
-                {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
-                {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
-                {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
-                {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
-                {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
-                {"markerBreakpointBackgroundScript", scriptConfig["markerBreakpointBackground"].toString()},
-                {"markerBreakpointForegroundScript", scriptConfig["markerBreakpointForeground"].toString()},
-                {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
-                {"markerDebugBackgroundScript", scriptConfig["markerDebugBackground"].toString()},
-                {"markerDebugForegroundScript", scriptConfig["markerDebugForeground"].toString()}
-            };
-            m_settingModule->settingImport(settingConfig);
-            if (m_settingModule->exec() == QDialog::Accepted) {
-                workspaceSave();
-            }
-        });
-    }
-    // separator
-    auto *spacer = new QWidget(); // NOLINT
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    toolBar->addWidget(spacer);
-    toolBar->addSeparator();
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "menu initialized");
+    // // setting menu
+    // {
+    //     auto *settingAction = new QAction(tr("Setting"), this); // NOLINT
+    //     toolBar->addAction(settingAction);
+    //     connect(settingAction, &QAction::triggered, this, [this] {
+    //         const QJsonObject logConfig = g_workspaceConfig["logConfig"].toObject();
+    //         const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
+    //         const QJsonObject settingConfig = {
+    //             {"fontFamilyLog", logConfig["fontFamily"].toString()},
+    //             {"fontSizeLog", logConfig["fontSize"].toInt()},
+    //             {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
+    //             {"fontSizeScript", scriptConfig["fontSize"].toInt()},
+    //             {"indicatorErrorStyleScript", scriptConfig["indicatorErrorStyle"].toInt()},
+    //             {"indicatorErrorColorScript", scriptConfig["indicatorErrorColor"].toString()},
+    //             {"indicatorWarningStyleScript", scriptConfig["indicatorWarningStyle"].toInt()},
+    //             {"indicatorWarningColorScript", scriptConfig["indicatorWarningColor"].toString()},
+    //             {"indicatorInfoStyleScript", scriptConfig["indicatorInfoStyle"].toInt()},
+    //             {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
+    //             {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
+    //             {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
+    //             {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
+    //             {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()},
+    //             {"indicatorReadStyleScript", scriptConfig["indicatorReadStyle"].toInt()},
+    //             {"indicatorReadColorScript", scriptConfig["indicatorReadColor"].toString()},
+    //             {"indicatorWriteStyleScript", scriptConfig["indicatorWriteStyle"].toInt()},
+    //             {"indicatorWriteColorScript", scriptConfig["indicatorWriteColor"].toString()},
+    //             {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
+    //             {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
+    //             {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
+    //             {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
+    //             {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
+    //             {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
+    //             {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
+    //             {"markerBreakpointBackgroundScript", scriptConfig["markerBreakpointBackground"].toString()},
+    //             {"markerBreakpointForegroundScript", scriptConfig["markerBreakpointForeground"].toString()},
+    //             {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
+    //             {"markerDebugBackgroundScript", scriptConfig["markerDebugBackground"].toString()},
+    //             {"markerDebugForegroundScript", scriptConfig["markerDebugForeground"].toString()}
+    //         };
+    //         m_settingModule->settingImport(settingConfig);
+    //         if (m_settingModule->exec() == QDialog::Accepted) {
+    //             workspaceSave();
+    //         }
+    //     });
+    // }
+    // // logging
+    // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    // qDebug() << QString("[%1] %2").arg(timestamp, "menu initialized");
 }
 
 void MainWindow::layoutInit() {
+    auto *toolBar = new QToolBar(); // NOLINT
+    addToolBar(Qt::TopToolBarArea, toolBar);
+    toolBar->addWidget(m_menuModule);
+    toolBar->setMovable(false);
+
     auto *statusBar = this->statusBar();
     statusBar->addWidget(m_statusModule, 1);
 
@@ -613,47 +637,4 @@ void MainWindow::mainConfigSave() {
 void MainWindow::maximizeToggle() {
     if (isMaximized()) showNormal();
     else showMaximized();
-}
-
-void MainWindow::workspaceOpen() {
-    const QString workspaceDir = QFileDialog::getExistingDirectory(
-        g_mainWindow,
-        tr("Open Workspace"),
-        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
-    );
-    if (workspaceDir.isEmpty()) return;
-    if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
-        qDebug() << "same as prev workspace";
-        return;
-    }
-    workspaceSave();
-    g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
-    // write to main config
-    const QJsonObject json{
-        {"version", "1.0.0"},
-        {"workspace", g_workspaceUrl.toString()},
-    };
-    const QJsonDocument doc(json);
-    QFile mainConfig(QDir::current().filePath("config.json"));
-    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-    mainConfig.write(doc.toJson(QJsonDocument::Indented));
-    mainConfig.close();
-    // restart main process
-    QProcess::startDetached(QCoreApplication::applicationFilePath());
-    m_askForSaving = false;
-    QApplication::quit();
-}
-
-void MainWindow::workspaceSave(QString filePath) {
-    m_scriptModule->scriptConfigSave();
-    m_breakpointModule->breakpointConfigSave();
-    m_databaseModule->databaseConfigSave();
-    m_datatableModule->datatableConfigSave();
-    m_logModule->logConfigSave();
-    m_portModule->portConfigSave();
-    m_sendModule->sendConfigSave();
-    m_watchModule->watchConfigSave();
-    mainConfigSave();
-    m_configManager->workspaceConfigSave(filePath);
 }

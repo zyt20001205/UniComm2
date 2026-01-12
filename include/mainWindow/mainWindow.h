@@ -21,6 +21,7 @@ class DiagnosticsModule;
 class ExplorerModule;
 class LogModule;
 class NuspellModule;
+class MenuModule;
 class PortModule;
 class ScriptModule;
 class SendModule;
@@ -53,6 +54,10 @@ public:
 
     Q_INVOKABLE void terminate();
 
+    Q_INVOKABLE void workspaceOpen();
+
+    Q_INVOKABLE void workspaceSave(QString filePath = QString());
+
     void quitTrack(float secondaryProgress, const QString &secondaryLog) const;
 
 signals:
@@ -80,10 +85,6 @@ private:
 
     void maximizeToggle();
 
-    void workspaceOpen();
-
-    void workspaceSave(QString filePath = QString());
-
     QJsonObject m_mainConfig{};
     QQuickWidget *m_overlay{};
     QObject *m_closeDialog{};
@@ -103,6 +104,7 @@ private:
     SystemModule *m_systemModule{};
     LogModule *m_logModule{};
     NuspellModule *m_nuspellModule{};
+    MenuModule *m_menuModule{};
     PortModule *m_portModule{};
     ScriptModule *m_scriptModule{};
     SendModule *m_sendModule{};
