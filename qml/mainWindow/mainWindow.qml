@@ -174,6 +174,7 @@ Item {
         modal: true
         title: qsTr("Lua language server initializing...")
         topPadding: 30; bottomPadding: 20
+        visible: !(token2 === 1.0 && token3 === 1.0)
         property real token2
         property real token3
 

@@ -219,21 +219,20 @@ void LuaLanguageServer::jsonResponse() {
                 const QUrl scriptUrl(uri);
                 emit notificationPublishDiagnostics(scriptUrl, diagnostics);
             }
-            // else if (method == "$/progress") {
-            //     // progress notification
-            //     // qDebug() << json;
-            //     QMetaObject::invokeMethod(m_progressDialog, "open");
-            //     const QJsonObject params = json["params"].toObject();
-            //     const int token = params["token"].toInt();
-            //     const QJsonObject value = params["value"].toObject();
-            //     if (token == 2) {
-            //         const int percentage = value["percent"].toInt();
-            //         m_progressDialog->setProperty("token2", percentage / 100.0);
-            //     } else if (token == 3) {
-            //         const int percentage = value["percent"].toInt();
-            //         m_progressDialog->setProperty("token3", percentage / 100.0);
-            //     }
-            // }
+            else if (method == "$/progress") {
+                // progress notification
+                // qDebug() << json;
+                const QJsonObject params = json["params"].toObject();
+                const int token = params["token"].toInt();
+                const QJsonObject value = params["value"].toObject();
+                if (token == 2) {
+                    const int percentage = value["percentage"].toInt(100);
+                    m_progressDialog->setProperty("token2", percentage / 100.0);
+                } else if (token == 3) {
+                    const int percentage = value["percentage"].toInt(100);
+                    m_progressDialog->setProperty("token3", percentage / 100.0);
+                }
+            }
             else {
                 qDebug() << "unknown lsp notification";
                 qDebug() << json;
