@@ -64,8 +64,11 @@ void ScriptModule::scriptConfigSave() {
         scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
-    m_scriptConfig["scriptFocused"] = m_focusedPage->m_scriptUrl.toString();
-
+    if (m_focusedPage == nullptr) {
+        m_scriptConfig["scriptFocused"] = "";
+    } else {
+        m_scriptConfig["scriptFocused"] = m_focusedPage->m_scriptUrl.toString();
+    }
     g_workspaceConfig["scriptConfig"] = m_scriptConfig;
 }
 
