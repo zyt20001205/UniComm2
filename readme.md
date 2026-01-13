@@ -27,6 +27,12 @@
 
 </div>
 
+<div align="center">
+
+<img src="resources/assets/screenshot/preview.png" alt="preview">
+
+</div>
+
 ```mermaid
 flowchart RL
     subgraph Lua Language Server
