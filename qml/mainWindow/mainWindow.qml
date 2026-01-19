@@ -290,12 +290,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    const treeView = breakpointModuleLineMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.collapseRecursively(i)
-                    }
-                }
+                onTriggered: breakpointModuleLineMenu.treeView.collapseRecursively()
             }
 
             MenuItem {
@@ -303,12 +298,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    const treeView = breakpointModuleLineMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.expandRecursively(i)
-                    }
-                }
+                onTriggered: breakpointModuleLineMenu.treeView.expandRecursively()
             }
         }
     }
@@ -354,12 +344,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    const treeView = breakpointModuleFileMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.collapseRecursively(i)
-                    }
-                }
+                onTriggered: breakpointModuleLineMenu.treeView.collapseRecursively()
             }
 
             MenuItem {
@@ -367,12 +352,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    const treeView = breakpointModuleFileMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.expandRecursively(i)
-                    }
-                }
+                onTriggered: breakpointModuleLineMenu.treeView.expandRecursively()
             }
         }
     }
@@ -417,12 +397,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    const treeView = breakpointModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.collapseRecursively(i)
-                    }
-                }
+                onTriggered: breakpointModuleLineMenu.treeView.collapseRecursively()
             }
 
             MenuItem {
@@ -430,12 +405,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    const treeView = breakpointModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.expandRecursively(i)
-                    }
-                }
+                onTriggered: breakpointModuleLineMenu.treeView.expandRecursively()
             }
         }
     }
