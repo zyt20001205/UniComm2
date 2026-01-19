@@ -55,8 +55,8 @@ MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
 
     moduleInit();
     shortcutInit();
-    layoutInit();
     overlayInit();
+    layoutInit();
 
     // logging
     const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
