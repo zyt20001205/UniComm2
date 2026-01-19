@@ -344,7 +344,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: breakpointModuleLineMenu.treeView.collapseRecursively()
+                onTriggered: breakpointModuleFileMenu.treeView.collapseRecursively()
             }
 
             MenuItem {
@@ -352,7 +352,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: breakpointModuleLineMenu.treeView.expandRecursively()
+                onTriggered: breakpointModuleFileMenu.treeView.expandRecursively()
             }
         }
     }
@@ -397,7 +397,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: breakpointModuleLineMenu.treeView.collapseRecursively()
+                onTriggered: breakpointModuleRootMenu.treeView.collapseRecursively()
             }
 
             MenuItem {
@@ -405,7 +405,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: breakpointModuleLineMenu.treeView.expandRecursively()
+                onTriggered: breakpointModuleRootMenu.treeView.expandRecursively()
             }
         }
     }
@@ -908,8 +908,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
-                        explorerModuleRootMenu.treeView.collapseRecursively(i)
+                    for (let i = 0; i < explorerModuleScriptMenu.treeView.rows; ++i) {
+                        explorerModuleScriptMenu.treeView.collapseRecursively(i)
                     }
                 }
             }
@@ -920,8 +920,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
-                        explorerModuleRootMenu.treeView.expandRecursively(i)
+                    for (let i = 0; i < explorerModuleScriptMenu.treeView.rows; ++i) {
+                        explorerModuleScriptMenu.treeView.expandRecursively(i)
                     }
                 }
             }
@@ -1018,8 +1018,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
-                        explorerModuleRootMenu.treeView.collapseRecursively(i)
+                    for (let i = 0; i < explorerModuleFolderMenu.treeView.rows; ++i) {
+                        explorerModuleFolderMenu.treeView.collapseRecursively(i)
                     }
                 }
             }
@@ -1030,8 +1030,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
-                        explorerModuleRootMenu.treeView.expandRecursively(i)
+                    for (let i = 0; i < explorerModuleFolderMenu.treeView.rows; ++i) {
+                        explorerModuleFolderMenu.treeView.expandRecursively(i)
                     }
                 }
             }
