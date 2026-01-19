@@ -938,9 +938,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleScriptMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.collapseRecursively(i)
+                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
+                        explorerModuleRootMenu.treeView.collapseRecursively(i)
                     }
                 }
             }
@@ -951,9 +950,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleScriptMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.expandRecursively(i)
+                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
+                        explorerModuleRootMenu.treeView.expandRecursively(i)
                     }
                 }
             }
@@ -1050,9 +1048,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleFolderMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.collapseRecursively(i)
+                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
+                        explorerModuleRootMenu.treeView.collapseRecursively(i)
                     }
                 }
             }
@@ -1063,9 +1060,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleFolderMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.expandRecursively(i)
+                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
+                        explorerModuleRootMenu.treeView.expandRecursively(i)
                     }
                 }
             }
@@ -1133,9 +1129,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.collapseRecursively(i)
+                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
+                        explorerModuleRootMenu.treeView.collapseRecursively(i)
                     }
                 }
             }
@@ -1146,9 +1141,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    const treeView = explorerModuleRootMenu.treeView
-                    for (let i = 0; i < treeView.rows; ++i) {
-                        treeView.expandRecursively(i)
+                    for (let i = 0; i < explorerModuleRootMenu.treeView.rows; ++i) {
+                        explorerModuleRootMenu.treeView.expandRecursively(i)
                     }
                 }
             }
@@ -1884,11 +1878,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    for (let i = 0; i < structureModuleRootMenu.treeView.rows; ++i) {
-                        structureModuleRootMenu.treeView.collapseRecursively(i)
-                    }
-                }
+                onTriggered: structureModuleRootMenu.treeView.collapseRecursively()
             }
 
             MenuItem {
@@ -1896,11 +1886,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: {
-                    for (let i = 0; i < structureModuleRootMenu.treeView.rows; ++i) {
-                        structureModuleRootMenu.treeView.expandRecursively(i)
-                    }
-                }
+                onTriggered: structureModuleRootMenu.treeView.expandRecursively()
             }
         }
     }
