@@ -1547,11 +1547,13 @@ Item {
             text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["word"] : false
-            ToolTip.visible: hovered
-            ToolTip.text: enabled ? scriptModuleEditorMenu.menuSession["word"] : qsTr("Right-click over a variable")
 
-            onTriggered: watchModule.watchInsert(-1, scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["word"])
+            onTriggered: {
+                watchModuleEditDialog.watchIndex = -1
+                watchModuleEditDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
+                watchModuleEditDialog.watchKey = scriptModuleEditorMenu.menuSession["word"]
+                watchModuleEditDialog.open()
+            }
         }
 
         MenuItem {

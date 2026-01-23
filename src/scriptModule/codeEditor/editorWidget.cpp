@@ -392,9 +392,11 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         // move cursor
         long charPos = SendScintilla(SCI_POSITIONFROMPOINT, localPos.x(), localPos.y());
         if (charPos != -1) {
-            line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
-            index = SendScintilla(SCI_GETCOLUMN, charPos);
-            setCursorPosition(line, index);
+            if (!hasSelectedText() || charPos < SendScintilla(SCI_GETSELECTIONSTART) || charPos >= SendScintilla(SCI_GETSELECTIONEND)) {
+                SendScintilla(SCI_GOTOPOS, charPos); // NOLINT
+            } else {
+                word = selectedText();
+            }
         }
         // get word property
         const long closePos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
@@ -403,12 +405,6 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         if (closePos != -1 && wordStart < wordEnd) {
             // get style
             const int LUA_TOKEN = SendScintilla(SCI_GETSTYLEAT, closePos);
-            // watch menu
-            if (LUA_TOKEN == LUA_TOKEN_VARIABLE) {
-                word = text(wordStart, wordEnd);
-            } else {
-                qDebug() << "attempt to watch" << LUA_TOKEN;
-            }
             // goto menu
             if (LUA_TOKEN >= LUA_TOKEN_MACRO || LUA_TOKEN == 0) {
                 gotoMenu = false;
