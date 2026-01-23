@@ -145,7 +145,9 @@ Item {
                             }
                         }
                         Behavior on opacity {
-                            NumberAnimation { duration: 150 }
+                            NumberAnimation {
+                                duration: 150
+                            }
                         }
                     }
 
@@ -191,11 +193,21 @@ Item {
                         gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                         onTapped: {
-                            tableMenu.watchIndex = model.row
-                            const index = tableView.index(row, 0);
-                            tableMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
-                            tableMenu.watchExpression = tableView.model.data(index, Qt.DisplayRole)
-                            tableMenu.popup()
+                            if (column === 0) {
+                                expressionMenu.watchIndex = model.row
+                                const index = tableView.index(row, 0);
+                                expressionMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
+                                expressionMenu.watchExpression = tableView.model.data(index, Qt.DisplayRole)
+                                expressionMenu.popup()
+                            } else if (column === 1) {
+                                valueMenu.watchIndex = model.row
+                                const expressionIndex = tableView.index(row, 0);
+                                valueMenu.watchUrl = tableView.model.data(expressionIndex, Qt.WhatsThisRole)
+                                valueMenu.watchExpression = tableView.model.data(expressionIndex, Qt.DisplayRole)
+                                const valueIndex = tableView.index(row, 1);
+                                valueMenu.currentValue = tableView.model.data(valueIndex, Qt.DisplayRole)
+                                valueMenu.popup()
+                            }
                         }
                     }
                 }
@@ -230,6 +242,7 @@ Item {
             modelVisible = false
         }
     }
+
     function reload() {
         tableLoader.active = false
         tableLoader.active = true

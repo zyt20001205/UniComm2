@@ -1615,7 +1615,7 @@ Item {
             widgetCount -= 1
             scriptModuleCompletionDetailToolTip.close()
         }
- 
+
         contentItem: TableView {
             id: scriptModuleCompletionTableView
             anchors.fill: parent
@@ -2007,7 +2007,7 @@ Item {
     }
 
     Menu {
-        id: watchModuleTableMenu
+        id: watchModuleExpressionMenu
         property int watchIndex
         property url watchUrl
         property string watchExpression
@@ -2024,9 +2024,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                watchModuleEditDialog.watchIndex = watchModuleTableMenu.watchIndex
-                watchModuleEditDialog.watchUrl = watchModuleTableMenu.watchUrl
-                watchModuleEditDialog.watchExpression = watchModuleTableMenu.watchExpression
+                watchModuleEditDialog.watchIndex = watchModuleExpressionMenu.watchIndex
+                watchModuleEditDialog.watchUrl = watchModuleExpressionMenu.watchUrl
+                watchModuleEditDialog.watchExpression = watchModuleExpressionMenu.watchExpression
                 watchModuleEditDialog.open()
             }
         }
@@ -2036,7 +2036,7 @@ Item {
             icon.source: "qrc:/icon/eraser.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: watchModule.watchClear(watchModuleTableMenu.watchIndex)
+            onTriggered: watchModule.watchClear(watchModuleExpressionMenu.watchIndex)
         }
 
         MenuItem {
@@ -2044,7 +2044,50 @@ Item {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: watchModule.watchRemove(watchModuleTableMenu.watchIndex)
+            onTriggered: watchModule.watchRemove(watchModuleExpressionMenu.watchIndex)
+        }
+    }
+
+    Menu {
+        id: watchModuleValueMenu
+        property int watchIndex
+        property url watchUrl
+        property string watchExpression
+        property string currentValue
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Hot Update")
+            icon.source: "qrc:/icon/edit.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                console.log(watchModuleValueMenu.watchIndex,
+                    watchModuleValueMenu.watchUrl,
+                    watchModuleValueMenu.watchExpression,
+                    watchModuleValueMenu.currentValue)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Clear")
+            icon.source: "qrc:/icon/eraser.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: watchModule.watchClear(watchModuleExpressionMenu.watchIndex)
+        }
+
+        MenuItem {
+            text: qsTr("Delete")
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: watchModule.watchRemove(watchModuleExpressionMenu.watchIndex)
         }
     }
 
@@ -2128,7 +2171,8 @@ Item {
 
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,
 
-            "watchModuleTableMenu": watchModuleTableMenu,
+            "watchModuleExpressionMenu": watchModuleExpressionMenu,
+            "watchModuleValueMenu": watchModuleValueMenu,
             "watchModuleRootMenu": watchModuleRootMenu,
         };
         mainWindow.propertyGet(objects)

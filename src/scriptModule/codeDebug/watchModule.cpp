@@ -28,7 +28,8 @@ WatchModule::~WatchModule() {
 }
 
 void WatchModule::propertySet(const QVariantMap &objects) {
-    m_watchWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["watchModuleTableMenu"]));
+    m_watchWidget->rootContext()->setContextProperty("expressionMenu", qvariant_cast<QObject *>(objects["watchModuleExpressionMenu"]));
+    m_watchWidget->rootContext()->setContextProperty("valueMenu", qvariant_cast<QObject *>(objects["watchModuleValueMenu"]));
     m_watchWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["watchModuleRootMenu"]));
 
     m_watchWidget->rootContext()->setContextProperty("watchModule", this);
