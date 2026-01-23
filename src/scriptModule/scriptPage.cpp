@@ -65,6 +65,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
     m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
     m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+    m_editorWidget->SendScintilla(QsciScintilla::SCI_INDICSETALPHA, INDICATOR_HIGHLIGHT, 127);
     m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorReadStyle"].toInt()), INDICATOR_READ);
     m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorReadColor"].toString()), INDICATOR_READ);
     m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_READ);

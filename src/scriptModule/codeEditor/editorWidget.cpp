@@ -381,6 +381,7 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         return;
     }
     if (event->button() == Qt::RightButton) {
+        QsciScintilla::mousePressEvent(event);
         m_dwellTimer->stop();
         bool gotoMenu = true;
         int line = 0;
@@ -393,6 +394,7 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         if (charPos != -1) {
             line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
             index = SendScintilla(SCI_GETCOLUMN, charPos);
+            setCursorPosition(line, index);
         }
         // get word property
         const long closePos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
