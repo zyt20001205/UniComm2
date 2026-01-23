@@ -22,6 +22,7 @@ Item {
 
                 onClicked: {
                     editDialog.databaseIndex = -1
+                    editDialog.databaseKey = ""
                     editDialog.open()
                 }
             }

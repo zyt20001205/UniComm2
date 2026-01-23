@@ -423,10 +423,11 @@ Item {
         property string databaseKey
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             databaseModuleNameTextField.text = databaseModuleEditDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
             databaseModuleNameTextField.selectAll()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: {
@@ -551,10 +552,11 @@ Item {
         property string datatableKey
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             datatableModuleNameTextField.text = datatableModuleEditDialog.datatableKey
             datatableModuleNameTextField.forceActiveFocus()
             datatableModuleNameTextField.selectAll()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: {
@@ -1940,11 +1942,12 @@ Item {
         property string watchKey
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             watchModuleUrlTextField.text = watchModuleEditDialog.watchUrl
             watchModuleKeyTextField.text = watchModuleEditDialog.watchKey
             watchModuleKeyTextField.forceActiveFocus()
             watchModuleKeyTextField.selectAll()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: {
