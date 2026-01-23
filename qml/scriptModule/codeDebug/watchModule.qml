@@ -194,18 +194,18 @@ Item {
 
                         onTapped: {
                             if (column === 0) {
-                                expressionMenu.watchIndex = model.row
+                                expressionMenu.watchIndex = row
                                 const index = tableView.index(row, 0);
                                 expressionMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
                                 expressionMenu.watchExpression = tableView.model.data(index, Qt.DisplayRole)
                                 expressionMenu.popup()
                             } else if (column === 1) {
-                                valueMenu.watchIndex = model.row
                                 const expressionIndex = tableView.index(row, 0);
                                 valueMenu.watchUrl = tableView.model.data(expressionIndex, Qt.WhatsThisRole)
                                 valueMenu.watchExpression = tableView.model.data(expressionIndex, Qt.DisplayRole)
                                 const valueIndex = tableView.index(row, 1);
                                 valueMenu.currentValue = tableView.model.data(valueIndex, Qt.DisplayRole)
+                                valueMenu.currentType = tableView.model.data(valueIndex, Qt.WhatsThisRole)
                                 valueMenu.popup()
                             }
                         }

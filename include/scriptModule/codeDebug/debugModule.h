@@ -32,9 +32,11 @@ public:
 
     void debugStop(const QString &threadId);
 
+    Q_INVOKABLE QString threadGet() const;
+
     Q_INVOKABLE void stateSet(const QString &threadId, int state);
 
-    Q_INVOKABLE QString threadGet() const;
+    Q_INVOKABLE bool valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
 
     void callStackInsert(const QString &threadId, QStandardItemModel *callStackModel);
 

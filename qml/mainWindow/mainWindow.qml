@@ -1568,10 +1568,10 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                watchModuleEditDialog.watchIndex = -1
-                watchModuleEditDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
-                watchModuleEditDialog.watchExpression = scriptModuleEditorMenu.menuSession["word"]
-                watchModuleEditDialog.open()
+                watchModuleExpressionDialog.watchIndex = -1
+                watchModuleExpressionDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
+                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession["word"]
+                watchModuleExpressionDialog.open()
             }
         }
 
@@ -1956,7 +1956,7 @@ Item {
 
     // watch module
     Dialog {
-        id: watchModuleEditDialog
+        id: watchModuleExpressionDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 600
@@ -1970,17 +1970,17 @@ Item {
         onAboutToShow: {
             widgetCount += 1
             mainWindow.overlayFocus()
-            watchModuleUrlTextField.text = watchModuleEditDialog.watchUrl
-            watchModuleExpressionTextField.text = watchModuleEditDialog.watchExpression
+            watchModuleUrlTextField.text = watchModuleExpressionDialog.watchUrl
+            watchModuleExpressionTextField.text = watchModuleExpressionDialog.watchExpression
             watchModuleExpressionTextField.forceActiveFocus()
             watchModuleExpressionTextField.selectAll()
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (watchModuleEditDialog.watchIndex === -1 || !watchModuleEditDialog.watchExpression) {
-                watchModule.watchInsert(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
+            if (watchModuleExpressionDialog.watchIndex === -1 || !watchModuleExpressionDialog.watchExpression) {
+                watchModule.watchInsert(watchModuleExpressionDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
             } else {
-                watchModule.watchRename(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
+                watchModule.watchRename(watchModuleExpressionDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
             }
         }
 
@@ -1999,8 +1999,8 @@ Item {
                 placeholderText: qsTr("Enter url:")
                 Layout.fillWidth: true
 
-                onAccepted: watchModuleEditDialog.accept()
-                Keys.onEscapePressed: watchModuleEditDialog.reject()
+                onAccepted: watchModuleExpressionDialog.accept()
+                Keys.onEscapePressed: watchModuleExpressionDialog.reject()
             }
 
             Label {
@@ -2015,8 +2015,87 @@ Item {
                 placeholderText: qsTr("Enter expression:")
                 Layout.fillWidth: true
 
-                onAccepted: watchModuleEditDialog.accept()
-                Keys.onEscapePressed: watchModuleEditDialog.reject()
+                onAccepted: watchModuleExpressionDialog.accept()
+                Keys.onEscapePressed: watchModuleExpressionDialog.reject()
+            }
+        }
+    }
+
+    Dialog {
+        id: watchModuleValueDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Edit Value")
+        standardButtons: Dialog.Ok
+        property string currentThread
+        property url watchUrl
+        property string watchExpression
+        property string currentValue
+        property string currentType
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+            watchModuleValueTextField.text = watchModuleValueDialog.currentValue
+            watchModuleValueTextField.forceActiveFocus()
+            watchModuleValueTextField.selectAll()
+            watchModuleValueComboBox.currentValue = watchModuleValueDialog.currentType
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: {
+            debugModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text, watchModuleValueComboBox.currentValue)
+        }
+
+        ColumnLayout {
+            width: parent.width
+
+            Label {
+                text: watchModuleValueDialog.currentThread
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: watchModuleValueDialog.watchUrl
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: watchModuleValueDialog.watchExpression
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+
+                TextField {
+                    id: watchModuleValueTextField
+                    placeholderText: qsTr("Enter new value:")
+                    Layout.fillWidth: true
+
+                    onAccepted: watchModuleValueDialog.accept()
+                    Keys.onEscapePressed: watchModuleValueDialog.reject()
+                }
+
+                ComboBox {
+                    id: watchModuleValueComboBox
+                    model: ListModel {
+                        ListElement {
+                            text: "boolean"; value: "boolean"
+                        }
+                        ListElement {
+                            text: "number"; value: "number"
+                        }
+                        ListElement {
+                            text: "string"; value: "string"
+                        }
+                    }
+                    textRole: "text"
+                    valueRole: "value"
+                }
             }
         }
     }
@@ -2039,10 +2118,10 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                watchModuleEditDialog.watchIndex = watchModuleExpressionMenu.watchIndex
-                watchModuleEditDialog.watchUrl = watchModuleExpressionMenu.watchUrl
-                watchModuleEditDialog.watchExpression = watchModuleExpressionMenu.watchExpression
-                watchModuleEditDialog.open()
+                watchModuleExpressionDialog.watchIndex = watchModuleExpressionMenu.watchIndex
+                watchModuleExpressionDialog.watchUrl = watchModuleExpressionMenu.watchUrl
+                watchModuleExpressionDialog.watchExpression = watchModuleExpressionMenu.watchExpression
+                watchModuleExpressionDialog.open()
             }
         }
 
@@ -2065,10 +2144,10 @@ Item {
 
     Menu {
         id: watchModuleValueMenu
-        property int watchIndex
         property url watchUrl
         property string watchExpression
         property string currentValue
+        property string currentType
 
         onAboutToShow: {
             widgetCount += 1
@@ -2085,13 +2164,13 @@ Item {
                 if (!debugModule.threadGet()) {
                     debugModuleErrorDialog.open()
                 } else {
-
+                    watchModuleValueDialog.currentThread = debugModule.threadGet()
+                    watchModuleValueDialog.watchUrl = watchModuleValueMenu.watchUrl
+                    watchModuleValueDialog.watchExpression = watchModuleValueMenu.watchExpression
+                    watchModuleValueDialog.currentValue = watchModuleValueMenu.currentValue
+                    watchModuleValueDialog.currentType = watchModuleValueMenu.currentType
+                    watchModuleValueDialog.open()
                 }
-                console.log(debugModule.threadGet(),
-                    watchModuleValueMenu.watchIndex,
-                    watchModuleValueMenu.watchUrl,
-                    watchModuleValueMenu.watchExpression,
-                    watchModuleValueMenu.currentValue)
             }
         }
 

@@ -61,6 +61,10 @@ void DebugModule::debugStop(const QString &threadId) {
     m_callStackModelHash.remove(threadId);
 }
 
+QString DebugModule::threadGet() const {
+    return m_threadComboBox->property("currentText").toString();
+}
+
 void DebugModule::stateSet(const QString &threadId, const int state) {
     const auto &currenThread = m_threadComboBox->property("currentText").toString();
     if (currenThread.isEmpty()) {
@@ -76,8 +80,9 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
     }
 }
 
-QString DebugModule::threadGet() const {
-    return m_threadComboBox->property("currentText").toString();
+bool DebugModule::valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+    qDebug() << threadId << scriptUrl << expression << value << type;
+    return true;
 }
 
 void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {
