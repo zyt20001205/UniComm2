@@ -163,7 +163,7 @@ Item {
                             tableMenu.watchIndex = model.row
                             const index = tableView.index(row, 0);
                             tableMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
-                            tableMenu.watchKey = tableView.model.data(index, Qt.DisplayRole)
+                            tableMenu.watchExpression = tableView.model.data(index, Qt.DisplayRole)
                             tableMenu.popup()
                         }
                     }

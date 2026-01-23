@@ -17,8 +17,8 @@ WatchModule::WatchModule()
     for (const auto &value : watchConfig) {
         const auto pair = value.toArray();
         const auto scriptUrl = QUrl(pair[0].toString());
-        const QString key = pair[1].toString();
-        watchInsert(-1, scriptUrl, key);
+        const QString expression = pair[1].toString();
+        watchInsert(-1, scriptUrl, expression);
     }
 }
 
@@ -42,28 +42,28 @@ void WatchModule::watchConfigSave() const {
     auto watchArray = QJsonArray();
     for (int i = 0; i < g_watchStandardItemModel->rowCount(); ++i) {
         const QString url = g_watchStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toString();
-        const QString key = g_watchStandardItemModel->item(i, 0)->text();
-        watchArray.append(QJsonArray({url, key}));
+        const QString expression = g_watchStandardItemModel->item(i, 0)->text();
+        watchArray.append(QJsonArray({url, expression}));
     }
     g_workspaceConfig["watchConfig"] = watchArray;
 }
 
-void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &key) {
+void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &expression) {
     index = g_watchStandardItemModel->rowCount();
-    auto *keyItem = new QStandardItem(key); // NOLINT
-    keyItem->setData(scriptUrl, Qt::WhatsThisRole);
+    auto *expressionItem = new QStandardItem(expression); // NOLINT
+    expressionItem->setData(scriptUrl, Qt::WhatsThisRole);
     auto *valueItem = new QStandardItem("nil"); // NOLINT
     valueItem->setData("nil", Qt::WhatsThisRole);
-    g_watchStandardItemModel->insertRow(index, {keyItem, valueItem});
+    g_watchStandardItemModel->insertRow(index, {expressionItem, valueItem});
 }
 
 void WatchModule::watchRemove(const int index) {
     g_watchStandardItemModel->removeRow(index);
 }
 
-void WatchModule::watchRename(const int index, const QUrl &scriptUrl, const QString &key) {
+void WatchModule::watchRename(const int index, const QUrl &scriptUrl, const QString &expression) {
     g_watchStandardItemModel->item(index, 0)->setData(scriptUrl, Qt::WhatsThisRole);
-    g_watchStandardItemModel->item(index, 0)->setText(key);
+    g_watchStandardItemModel->item(index, 0)->setText(expression);
 }
 
 void WatchModule::watchSwap(const int src, const int dst) {

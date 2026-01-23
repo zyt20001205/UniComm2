@@ -219,10 +219,11 @@ Item {
         property int line
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
             breakpointModuleConditionTextField.selectAll()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: breakpointModule.conditionSet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line, breakpointModuleConditionTextField.text)
@@ -431,10 +432,10 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (databaseModuleEditDialog.databaseKey) {
-                databaseModule.databaseRename(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
-            } else {
+            if (databaseModuleEditDialog.databaseIndex === -1 || !databaseModuleEditDialog.databaseKey) {
                 databaseModule.databaseInsert(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
+            } else {
+                databaseModule.databaseRename(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
             }
         }
 
@@ -560,10 +561,10 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (datatableModuleEditDialog.datatableKey) {
-                datatableModule.datatableRename(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
-            } else {
+            if (datatableModuleEditDialog.datatableIndex === -1 || !datatableModuleEditDialog.datatableKey) {
                 datatableModule.datatableInsert(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
+            } else {
+                datatableModule.datatableRename(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
             }
         }
 
@@ -770,9 +771,10 @@ Item {
         property string filePath
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             explorerModuleScriptNameTextField.clear()
             explorerModuleScriptNameTextField.forceActiveFocus()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: systemModule.fileNew("file:///" + explorerModuleScriptNewDialog.filePath + "/" + explorerModuleScriptNameTextField.text + ".lua")
@@ -798,9 +800,10 @@ Item {
         property string filePath
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: systemModule.fileNew("file:///" + explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
@@ -1148,9 +1151,10 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             logModuleHeightSpinBox.value = logModule.heightGet()
             logModuleHeightSpinBox.forceActiveFocus()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: logModule.heightSet(logModuleHeightSpinBox.value)
@@ -1551,7 +1555,7 @@ Item {
             onTriggered: {
                 watchModuleEditDialog.watchIndex = -1
                 watchModuleEditDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
-                watchModuleEditDialog.watchKey = scriptModuleEditorMenu.menuSession["word"]
+                watchModuleEditDialog.watchExpression = scriptModuleEditorMenu.menuSession["word"]
                 watchModuleEditDialog.open()
             }
         }
@@ -1611,7 +1615,7 @@ Item {
             widgetCount -= 1
             scriptModuleCompletionDetailToolTip.close()
         }
-
+ 
         contentItem: TableView {
             id: scriptModuleCompletionTableView
             anchors.fill: parent
@@ -1816,6 +1820,10 @@ Item {
     }
 
     ToolTip {
+        id: scriptModuleHoverToolTip
+    }
+
+    ToolTip {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
         x: position.x; y: position.y - implicitHeight
@@ -1892,10 +1900,11 @@ Item {
         property string fileUrl
 
         onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
             systemModuleRenameTextField.clear()
             systemModuleRenameTextField.forceActiveFocus()
             systemModuleRenameTextField.selectAll()
-            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: systemModule.fileRename(systemModuleRenameDialog.fileUrl, systemModuleRenameTextField.text)
@@ -1941,22 +1950,22 @@ Item {
         standardButtons: Dialog.Ok
         property int watchIndex
         property url watchUrl
-        property string watchKey
+        property string watchExpression
 
         onAboutToShow: {
             widgetCount += 1
             mainWindow.overlayFocus()
             watchModuleUrlTextField.text = watchModuleEditDialog.watchUrl
-            watchModuleKeyTextField.text = watchModuleEditDialog.watchKey
-            watchModuleKeyTextField.forceActiveFocus()
-            watchModuleKeyTextField.selectAll()
+            watchModuleExpressionTextField.text = watchModuleEditDialog.watchExpression
+            watchModuleExpressionTextField.forceActiveFocus()
+            watchModuleExpressionTextField.selectAll()
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            if (watchModuleEditDialog.watchKey) {
-                watchModule.watchRename(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleKeyTextField.text)
+            if (watchModuleEditDialog.watchIndex === -1 || !watchModuleEditDialog.watchExpression) {
+                watchModule.watchInsert(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
             } else {
-                watchModule.watchInsert(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleKeyTextField.text)
+                watchModule.watchRename(watchModuleEditDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
             }
         }
 
@@ -1980,15 +1989,15 @@ Item {
             }
 
             Label {
-                text: qsTr("Key")
+                text: qsTr("Expression")
                 horizontalAlignment: Text.AlignLeft
                 Layout.fillWidth: true
             }
 
             TextField {
-                id: watchModuleKeyTextField
+                id: watchModuleExpressionTextField
                 width: parent.width
-                placeholderText: qsTr("Enter key:")
+                placeholderText: qsTr("Enter expression:")
                 Layout.fillWidth: true
 
                 onAccepted: watchModuleEditDialog.accept()
@@ -2001,7 +2010,7 @@ Item {
         id: watchModuleTableMenu
         property int watchIndex
         property url watchUrl
-        property string watchKey
+        property string watchExpression
 
         onAboutToShow: {
             widgetCount += 1
@@ -2017,7 +2026,7 @@ Item {
             onTriggered: {
                 watchModuleEditDialog.watchIndex = watchModuleTableMenu.watchIndex
                 watchModuleEditDialog.watchUrl = watchModuleTableMenu.watchUrl
-                watchModuleEditDialog.watchKey = watchModuleTableMenu.watchKey
+                watchModuleEditDialog.watchExpression = watchModuleTableMenu.watchExpression
                 watchModuleEditDialog.open()
             }
         }
