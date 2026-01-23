@@ -49,14 +49,14 @@ public:
 public slots:
     void charAdded(int ch);
 
-    void scriptPosition(int row, int column);
+    void scriptPosition(int r, int c);
 
 signals:
     void appendLog(const QString &message, const QString &level);
 
     void closeScript(const QUrl &scriptUrl);
 
-    void positionScript(int row, int column);
+    void positionScript(const QVariantHash &positionSession);
 
     void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
 

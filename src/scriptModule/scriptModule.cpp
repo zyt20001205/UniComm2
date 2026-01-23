@@ -260,7 +260,7 @@ void ScriptModule::cursorPositionGet() const {
     m_focusedPage->m_editorWidget->getCursorPosition(&line, &index);
     g_cursorPosition = {
         {"url", scriptUrl},
-        {"line", line + 1},
+        {"line", line},
         {"character", index}
     };
 }

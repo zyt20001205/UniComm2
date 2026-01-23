@@ -24,6 +24,8 @@ public:
 
     void cursorPositionGet(int *line, int *index) const;
 
+    void selectionGet(int &indexFrom, int &indexTo, int &lineFrom, int &lineTo) const;
+
     void textSet(const QString &text);
 
     void textInsert(const QString &text, int line = -1, int index = -1);

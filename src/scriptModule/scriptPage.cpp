@@ -216,8 +216,24 @@ void ScriptPage::scriptClose() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
 }
 
-void ScriptPage::scriptPosition(const int row, const int column) {
-    emit positionScript(row + 1, column);
+void ScriptPage::scriptPosition(const int r, const int c) {
+    int row{};
+    int col{};
+    m_editorWidget->cursorPositionGet(&row, &col);
+    int indexFrom{};
+    int indexTo{};
+    int lineFrom{};
+    int lineTo{};
+    m_editorWidget->selectionGet(indexFrom, indexTo, lineFrom, lineTo);
+    const QVariantHash positionSession = {
+        {"row", row},
+        {"col", col},
+        {"indexFrom", indexFrom},
+        {"indexTo", indexTo},
+        {"lineFrom", lineFrom},
+        {"lineTo", lineTo},
+    };
+    emit positionScript(positionSession);
 }
 
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {

@@ -187,6 +187,14 @@ void EditorWidget::cursorPositionSet(const int line, const int index) {
 
 void EditorWidget::cursorPositionGet(int *line, int *index) const {
     getCursorPosition(line, index);
+    *line += 1;
+}
+
+void EditorWidget::selectionGet(int &indexFrom, int &indexTo, int &lineFrom, int &lineTo) const {
+    indexFrom = SendScintilla(SCI_GETSELECTIONSTART);
+    indexTo = SendScintilla(SCI_GETSELECTIONEND);
+    lineFrom = SendScintilla(SCI_LINEFROMPOSITION, indexFrom);
+    lineTo = SendScintilla(SCI_LINEFROMPOSITION, indexTo);
 }
 
 // TODO: This method is not undoable!

@@ -17,7 +17,7 @@ public:
 
     void scriptFocus(const QUrl &scriptUrl) const;
 
-    void scriptPosition(int row, int column) const;
+    void scriptPosition(const QVariantHash &positionSession) const;
 
     void threadRefresh(int run, int debug) const;
 
