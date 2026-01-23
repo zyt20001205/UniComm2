@@ -11,9 +11,7 @@
 #include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QStringListModel>
-#include <QTableView>
 #include <QThread>
-#include <QTreeView>
 
 #include "globals.h"
 #include "luaModule/luaInterpreter.h"
@@ -78,11 +76,6 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
     } else {
         emit setState(threadId, state);
     }
-}
-
-bool DebugModule::valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
-    qDebug() << threadId << scriptUrl << expression << value << type;
-    return true;
 }
 
 void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {

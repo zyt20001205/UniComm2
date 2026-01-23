@@ -163,6 +163,15 @@ void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
     }
 }
 
+void ThreadpoolModule::valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+    if (m_interpreterHash.contains(threadId)) {
+        auto *interpreter = m_interpreterHash[threadId];
+        QMetaObject::invokeMethod(interpreter, [interpreter, scriptUrl, expression, value, type] {
+            interpreter->valueSet(scriptUrl, expression, value, type);
+        }, Qt::BlockingQueuedConnection);
+    }
+}
+
 // ThreadpoolModule private
 void ThreadpoolModule::threadAppend(const int mode, const QString &name, const QString &threadId) {
     const auto currentTime = QDateTime::currentDateTime();

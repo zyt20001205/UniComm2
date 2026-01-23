@@ -141,8 +141,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
     m_lua["thread"] = thread;
     connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
-    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
-    {
+    connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread); {
         // // register control class
         // lua_newtable(L);
         // lua_pushcfunction(L, lua_leftClick);
@@ -201,107 +200,8 @@ void LuaInterpreter::stateSet(const int state) {
     if (state != DEBUG_PAUSE) emit quitLoop();
 }
 
-void LuaInterpreter::hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const {
-    lua_State *L = m_lua.lua_state();
-    lua_Debug ar;
-    if (varScope == "local") {
-        // local table
-        if (varName.contains(".")) {
-            QStringList path = varName.split('.');
-
-            if (lua_getstack(L, 0, &ar)) {
-                int i = 1;
-                QString firstname;
-                while ((firstname = lua_getlocal(L, &ar, i)) != nullptr) {
-                    if (path.first() == firstname) {
-                        break;
-                    }
-                    lua_pop(L, 1);
-                    i++;
-                }
-
-                for (int j = 1; j + 1 < path.size(); ++j) {
-                    const QString &part = path[j];
-                    lua_pushstring(L, part.toUtf8().constData());
-                    lua_gettable(L, -2);
-                    lua_remove(L, -2);
-                }
-
-                const QByteArray lastname = path.last().toUtf8();
-                lua_pushstring(L, lastname.constData());
-                lua_gettable(L, -2);
-                lua_pushqstring(L, -1, varValue);
-                lua_remove(L, -2);
-                lua_setfield(L, -2, lastname.constData());
-                lua_pop(L, 1);
-
-                qDebug() << "local table" << varName << "updated to" << varValue;
-            }
-        } else {
-            // local boolean/number/string
-            if (lua_getstack(L, 0, &ar)) {
-                int i = 1;
-                QString name;
-                while ((name = lua_getlocal(L, &ar, i)) != nullptr) {
-                    if (varName == name) {
-                        lua_pushqstring(L, -1, varValue);
-                        lua_setlocal(L, &ar, i);
-                        lua_pop(L, 1);
-                        qDebug() << "local variable" << varName << "updated to" << varValue;
-                        break;
-                    }
-                    lua_pop(L, 1);
-                    i++;
-                }
-            }
-        }
-    } else {
-        if (lua_getstack(L, 0, &ar)) {
-            lua_getinfo(L, "f", &ar);
-            int i = 1;
-            // up table
-            if (varName.contains('.')) {
-                QStringList path = varName.split('.');
-                QString firstname;
-                while ((firstname = lua_getupvalue(L, -1, i)) != nullptr) {
-                    if (path.first() == firstname) {
-                        break;
-                    }
-                    lua_pop(L, 1);
-                    i++;
-                }
-                for (int j = 1; j + 1 < path.size(); ++j) {
-                    const QString &part = path[j];
-                    lua_pushstring(L, part.toUtf8().constData());
-                    lua_gettable(L, -2);
-                    lua_remove(L, -2);
-                }
-                const QByteArray lastname = path.last().toUtf8();
-                lua_pushstring(L, lastname.constData());
-                lua_gettable(L, -2);
-                lua_pushqstring(L, -1, varValue);
-                lua_remove(L, -2);
-                lua_setfield(L, -2, lastname.constData());
-                lua_pop(L, 1);
-                qDebug() << "up table" << varName << "updated to" << varValue;
-                lua_pop(L, 1);
-            } else {
-                // up boolean/number/string
-                QString name;
-                while ((name = lua_getupvalue(L, -1, i)) != nullptr) {
-                    if (varName == name) {
-                        lua_pushqstring(L, -1, varValue);
-                        lua_setupvalue(L, -3, i);
-                        qDebug() << "up variable" << varName << "updated to" << varValue;
-                        break;
-                    }
-                    lua_pop(L, 1);
-                    i++;
-                }
-                lua_pop(L, 1);
-            }
-        }
-    }
+void LuaInterpreter::valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+    emit setValue(scriptUrl, expression, value, type);
 }
 
 // LuaInterpreter private
@@ -465,6 +365,51 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             // hold thread
             QEventLoop loop;
             connect(This, &LuaInterpreter::quitLoop, &loop, &QEventLoop::quit);
+            connect(This, &LuaInterpreter::setValue, This,
+                    [This, L, ar, currentUrl](const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+                        disconnect(This, &LuaInterpreter::setValue, This, nullptr);
+                        if (currentUrl != scriptUrl) {
+                            emit This->appendLog(QString("Hot update failed: Not in the current file scope"), "error");
+                            return;
+                        }
+                        bool updated = false;
+                        // try local value
+                        const char *local_name = nullptr;
+                        int local_i = 1;
+                        while ((local_name = lua_getlocal(L, ar, local_i)) != nullptr) {
+                            if (expression == local_name) {
+                                lua_pushqstring(L, -1, value);
+                                lua_setlocal(L, ar, local_i);
+                                updated = true;
+                                emit This->appendLog(QString("Hot update executed: local %1 = %2").arg(expression, value), "info");
+                                break;
+                            }
+                            lua_pop(L, 1);
+                            local_i++;
+                        }
+                        // try up value
+                        if (!updated) {
+                            if (lua_getinfo(L, "f", ar)) {
+                                const char *upvalue_name = nullptr;
+                                int upvalue_i = 1;
+                                while ((upvalue_name = lua_getupvalue(L, -1, upvalue_i)) != nullptr) {
+                                    if (expression == upvalue_name) {
+                                        lua_pushqstring(L, -1, value);
+                                        lua_setupvalue(L, -3, upvalue_i);
+                                        updated = true;
+                                        emit This->appendLog(QString("Hot update executed: upvalue %1 = %2").arg(expression, value), "info");
+                                        break;
+                                    }
+                                    lua_pop(L, 1);
+                                    upvalue_i++;
+                                }
+                                lua_pop(L, 1);
+                            }
+                        }
+                        if (!updated) {
+                            emit This->appendLog(QString("Hot update failed: variable '%1' not found").arg(expression), "error");
+                        }
+                    });
             loop.exec();
         }
         if (QThread::currentThread()->isInterruptionRequested()) {

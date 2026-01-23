@@ -28,7 +28,7 @@ public:
 
     void stateSet(int state);
 
-    void hotUpdate(const QString &varScope, const QString &varName, const QString &varValue) const;
+    void valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
 
 signals:
     void openScript(const QUrl &scriptUrl);
@@ -56,6 +56,8 @@ signals:
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
     void stopThread(const QString &threadId);
+
+    void setValue(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
 
     void quitLoop();
 
