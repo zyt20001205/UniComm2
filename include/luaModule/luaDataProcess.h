@@ -2,6 +2,7 @@
 #define UNICOMM_LUADATAPROCESS_H
 
 #include <QObject>
+#include "sol/object.hpp"
 
 class LuaDataProcess final : public QObject {
     Q_OBJECT
@@ -13,11 +14,11 @@ public:
 
     std::vector<std::string> databaseList();
 
-    void databaseWrite(const std::string &key, const std::string &value);
+    void databaseWrite(const std::string &key, const sol::object &value);
 
     std::vector<std::string> datatableList();
 
-    void datatableWrite(const std::string &key, const std::string &value);
+    void datatableWrite(const std::string &key, const sol::object &value);
 
 signals:
     void listDatabase(QSet<QString> &databaseSet);

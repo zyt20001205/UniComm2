@@ -81,7 +81,7 @@ function database.list() end
 
 --- Writes data to a key in database.
 --- @param key databaseKey The key to write to.
---- @param value string|number The value to write.
+--- @param value boolean|number|string The value to write.
 --- @return nil
 function database.write(key, value) end
 
@@ -95,7 +95,7 @@ function datatable.list() end
 
 --- Writes data to a key in datatable.
 --- @param key datatableKey The key to write to.
---- @param value string|number The value to write.
+--- @param value boolean|number|string The value to write.
 --- @return nil
 function datatable.write(key, value) end
 

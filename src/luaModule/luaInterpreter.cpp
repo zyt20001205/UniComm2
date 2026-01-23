@@ -55,14 +55,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaDataProcess lib
     sol::table database = m_lua.create_table();
     database.set_function("list", [this] { return sol::as_table(m_luaDataProcess->databaseList()); });
-    database.set_function("write", [this](const std::string &key, const std::string &value) { m_luaDataProcess->databaseWrite(key, value); });
+    database.set_function("write", [this](const std::string &key, const sol::object &value) { m_luaDataProcess->databaseWrite(key, value); });
     m_lua["database"] = database;
     connect(m_luaDataProcess, &LuaDataProcess::listDatabase, this, &LuaInterpreter::listDatabase);
     connect(m_luaDataProcess, &LuaDataProcess::writeDatabase, this, &LuaInterpreter::writeDatabase);
 
     sol::table datatable = m_lua.create_table();
     datatable.set_function("list", [this] { return sol::as_table(m_luaDataProcess->datatableList()); });
-    datatable.set_function("write", [this](const std::string &key, const std::string &value) { m_luaDataProcess->datatableWrite(key, value); });
+    datatable.set_function("write", [this](const std::string &key, const sol::object &value) { m_luaDataProcess->datatableWrite(key, value); });
     m_lua["datatable"] = datatable;
     connect(m_luaDataProcess, &LuaDataProcess::listDatatable, this, &LuaInterpreter::listDatatable);
     connect(m_luaDataProcess, &LuaDataProcess::writeDatatable, this, &LuaInterpreter::writeDatatable);
