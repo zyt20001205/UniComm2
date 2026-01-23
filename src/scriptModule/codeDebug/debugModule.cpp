@@ -33,6 +33,8 @@ DebugModule::~DebugModule() {
 }
 
 void DebugModule::propertySet(const QVariantMap &objects) {
+    m_errorDialog = qvariant_cast<QObject *>(objects["debugModuleErrorDialog"]);
+
     m_debugWidget->rootContext()->setContextProperty("debugModule", this);
     m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);
     m_debugWidget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());
@@ -60,13 +62,22 @@ void DebugModule::debugStop(const QString &threadId) {
 }
 
 void DebugModule::stateSet(const QString &threadId, const int state) {
+    const auto &currenThread = m_threadComboBox->property("currentText").toString();
+    if (currenThread.isEmpty()) {
+        QMetaObject::invokeMethod(m_errorDialog, "open");
+        return;
+    }
     if (state == DEBUG_RUNTOCURSOR) {
         emit getCursorPosition();
-        const QString &currentThreadId = m_threadComboBox->property("currentText").toString();
+        const QString &currentThreadId = currenThread;
         emit setState(currentThreadId, state);
     } else {
         emit setState(threadId, state);
     }
+}
+
+QString DebugModule::threadGet() const {
+    return m_threadComboBox->property("currentText").toString();
 }
 
 void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *callStackModel) {

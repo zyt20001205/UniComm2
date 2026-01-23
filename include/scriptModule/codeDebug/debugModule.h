@@ -34,6 +34,8 @@ public:
 
     Q_INVOKABLE void stateSet(const QString &threadId, int state);
 
+    Q_INVOKABLE QString threadGet() const;
+
     void callStackInsert(const QString &threadId, QStandardItemModel *callStackModel);
 
     Q_INVOKABLE void callStackSwitch(const QString &threadId) const;
@@ -51,6 +53,7 @@ signals:
 
 private:
     QQuickWidget *m_debugWidget{};
+    QObject *m_errorDialog{};
     QObject *m_threadComboBox{};
     QStringListModel *m_threadStringListModel{};
     QHash<QString, QStandardItemModel *> m_callStackModelHash{};

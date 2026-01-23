@@ -729,6 +729,21 @@ Item {
     }
 
     // debug module
+    Dialog {
+        id: debugModuleErrorDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Select a Thread First")
+        standardButtons: Dialog.Ok
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+    }
 
     // diagnostics module
     Menu {
@@ -2067,7 +2082,13 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                console.log(watchModuleValueMenu.watchIndex,
+                if (!debugModule.threadGet()) {
+                    debugModuleErrorDialog.open()
+                } else {
+
+                }
+                console.log(debugModule.threadGet(),
+                    watchModuleValueMenu.watchIndex,
                     watchModuleValueMenu.watchUrl,
                     watchModuleValueMenu.watchExpression,
                     watchModuleValueMenu.currentValue)
@@ -2141,6 +2162,8 @@ Item {
             "datatableModuleRootMenu": datatableModuleRootMenu,
 
             "dataplotModuleRootMenu": dataplotModuleRootMenu,
+
+            "debugModuleErrorDialog": debugModuleErrorDialog,
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 

@@ -146,7 +146,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_datatableModule->propertySet(datatableObjects);
 
     const QVariantMap debugObjects = {
-        //
+        {"debugModuleErrorDialog", objects["debugModuleErrorDialog"]}
     };
     m_debugModule->propertySet(debugObjects);
 
