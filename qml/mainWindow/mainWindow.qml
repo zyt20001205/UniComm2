@@ -1935,7 +1935,7 @@ Item {
         id: watchModuleEditDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Enter Watch")
         standardButtons: Dialog.Ok
@@ -1963,6 +1963,12 @@ Item {
         ColumnLayout {
             width: parent.width
 
+            Label {
+                text: qsTr("Url")
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+            }
+
             TextField {
                 id: watchModuleUrlTextField
                 width: parent.width
@@ -1971,6 +1977,12 @@ Item {
 
                 onAccepted: watchModuleEditDialog.accept()
                 Keys.onEscapePressed: watchModuleEditDialog.reject()
+            }
+
+            Label {
+                text: qsTr("Key")
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
             }
 
             TextField {
