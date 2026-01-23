@@ -51,7 +51,7 @@ void DatabaseModule::databaseList(QSet<QString> &databaseList) const {
 }
 
 void DatabaseModule::databaseInsert(int index, const QString &key) {
-    index = g_databaseStandardItemModel->rowCount();
+    if (index == -1) index = g_databaseStandardItemModel->rowCount();
     auto *keyItem = new QStandardItem(key); // NOLINT
     keyItem->setData(false, Qt::WhatsThisRole);
     auto *valueItem = new QStandardItem(); // NOLINT

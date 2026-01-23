@@ -160,9 +160,7 @@ Item {
 
                     Rectangle {
                         id: textCell
-                        required property int column
-                        required property int row
-                        
+                        color: "white"
                         implicitWidth: {
                             if (column === tableView.columns - 1) {
                                 let usedWidth = 0
@@ -171,10 +169,11 @@ Item {
                                 }
                                 return tableView.width - usedWidth
                             }
-                            return Math.max(textMetrics.width + 16, 60)
+                            return Math.max(textMetrics.width + 12, 60)
                         }
                         implicitHeight: 24
-                        color: "white"
+                        required property int column
+                        required property int row
 
                         Rectangle {
                             anchors.fill: parent
@@ -195,6 +194,7 @@ Item {
                         Label {
                             id: label
                             anchors.fill: parent
+                            leftPadding: 6
                             horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                             text: model.display
                             elide: Text.ElideRight

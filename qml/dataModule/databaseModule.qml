@@ -44,18 +44,18 @@ Item {
             VerticalHeaderView {
                 id: verticalHeaderView
                 anchors.left: parent.left
-                width: 32; height: parent.height
+                width: 24; height: parent.height
                 syncView: tableView
                 clip: true
                 interactive: false
                 movableRows: true
                 delegate: VerticalHeaderViewDelegate {
                     id: verticalHeaderViewDelegate
-                    implicitWidth: verticalHeaderView.width; implicitHeight: 32
+                    implicitWidth: verticalHeaderView.width; implicitHeight: 24
                     padding: 0
 
                     contentItem: Rectangle {
-                        width: 32; height: 32
+                        width: 24; height: 24
                         color: "white"
 
                         Image {
@@ -114,25 +114,67 @@ Item {
                 resizableColumns: true
                 model: standardItemModel
                 contentWidth: width
-                delegate: ItemDelegate {
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#e0e0e0"
+                    z: -1
+                }
+
+                delegate: Rectangle {
+                    color: "white"
                     implicitWidth: {
-                        if (column === 0) {
-                            return tableView.width / 3
-                        } else {
-                            return tableView.width - tableView.columnWidth(0)
+                        if (column === tableView.columns - 1) {
+                            let usedWidth = 0
+                            for (let i = 0; i < tableView.columns - 1; i++) {
+                                usedWidth += tableView.columnWidth(i)
+                            }
+                            return tableView.width - usedWidth
+                        }
+                        return Math.max(textMetrics.width + 12, 60)
+                    }
+                    implicitHeight: 24
+                    required property int column
+                    required property int row
+                    property bool valueChanged: false
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: "#ebebeb"
+                        opacity: {
+                            if (column === 0 && hoverHandler.hovered) {
+                                return 1
+                            } else if (column === 1 && valueChanged) {
+                                return 1
+                            } else {
+                                return 0
+                            }
+                        }
+                        Behavior on opacity {
+                            NumberAnimation { duration: 150 }
                         }
                     }
-                    implicitHeight: 32
-                    text: model.display
-                    font.pixelSize: 16
-                    background: Rectangle {
-                        color: "white"
+
+                    TextMetrics {
+                        id: textMetrics
+                        font: label.font
+                        text: model.display || ""
                     }
 
-                    onTextChanged: {
-                        if (column === 1) {
-                            highlightRect.opacity = 1
-                            highlightTimer.restart()
+                    Label {
+                        id: label
+                        anchors.fill: parent
+                        leftPadding: 6
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+
+                        onTextChanged: {
+                            if (column === 1) {
+                                valueChanged = true
+                                highlightTimer.restart()
+                            }
                         }
                     }
 
@@ -140,20 +182,7 @@ Item {
                         id: highlightTimer
                         interval: 500
 
-                        onTriggered: highlightRect.opacity = 0
-                    }
-
-                    Rectangle {
-                        id: highlightRect
-                        anchors.fill: parent
-                        radius: 2
-                        color: "#ebebeb"
-                        opacity: hoverHandler.hovered ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 150
-                            }
-                        }
+                        onTriggered: valueChanged = false
                     }
 
                     HoverHandler {
@@ -171,12 +200,6 @@ Item {
                             tableMenu.popup()
                         }
                     }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
                 }
 
                 TapHandler {
