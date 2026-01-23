@@ -81,13 +81,14 @@ EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_NUMBER, static_cast<long>(0xEB5017)); // NOLINT
     SendScintilla(QsciScintillaBase::SCI_STYLESETFORE, LUA_TOKEN_OPERATOR, static_cast<long>(0x000000)); // NOLINT
     // script scintilla settings
-    setScrollWidth(1);
     QsciScintilla::setBraceMatching(SloppyBraceMatch);
     QsciScintilla::setBackspaceUnindents(true);
     QsciScintilla::setEolMode(EolWindows);
     // QsciScintilla::setEolVisibility(true);
     QsciScintilla::setIndentationGuides(true);
     QsciScintilla::setTabWidth(4);
+    setScrollWidth(1);
+    setScrollWidthTracking(true);
     // connect
     connect(this, SIGNAL(SCN_CHARADDED(int)), this, SLOT(pairHandle(int)));
     connect(this, SIGNAL(textChanged()), this, SLOT(typeHandle()));
@@ -384,7 +385,6 @@ void EditorWidget::mousePressEvent(QMouseEvent *event) {
         if (charPos != -1) {
             line = SendScintilla(SCI_LINEFROMPOSITION, charPos);
             index = SendScintilla(SCI_GETCOLUMN, charPos);
-            setCursorPosition(line, index);
         }
         // get word property
         const long closePos = SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());

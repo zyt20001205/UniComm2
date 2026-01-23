@@ -18,6 +18,51 @@ int main(int argc, char *argv[]) {
         QMainWindow {
             background-color: #ffffff;
         }
+
+        QScrollBar:horizontal {
+            background-color: transparent;
+            height: 10px;
+            margin: 0px 0px 0px 0px;
+            border: none;
+        }
+        QScrollBar::handle:horizontal {
+            background-color: #b3b3b3;
+            border-radius: 3px;
+            margin: 2px;
+        }
+        QScrollBar::handle:horizontal:pressed {
+            background-color: #e0e0e0;
+        }
+        QScrollBar::add-line:horizontal,
+        QScrollBar::sub-line:horizontal {
+            width: 0px;
+            background: none;
+        }
+
+        QScrollBar:vertical {
+            background-color: transparent;
+            width: 10px;
+            margin: 0px 0px 0px 0px;
+            border: none;
+        }
+        QScrollBar::handle:vertical {
+            background-color: #b3b3b3;
+            border-radius: 3px;
+            margin: 2px;
+        }
+        QScrollBar::handle:vertical:pressed {
+            background-color: #e0e0e0;
+        }
+        QScrollBar::add-line:vertical,
+        QScrollBar::sub-line:vertical {
+            height: 0px;
+            background: none;
+        }
+
+        QAbstractScrollArea::corner {
+             background: #ffffff;
+         }
+
         QTabBar::tab {
             background: transparent;
             border: none;
