@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
             border-bottom: 3px solid #ebebeb;
         }
         QTabBar::tab:selected {
-            border-bottom: 3px solid #0f548c;
+            border-bottom: 3px solid #1973bb;
             color: #000000;
             font-weight: 600;
         }
