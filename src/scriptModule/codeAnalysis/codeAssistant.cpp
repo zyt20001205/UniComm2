@@ -38,6 +38,9 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
         {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]},
         {"scriptModuleCompletionDetailTableView", objects["scriptModuleCompletionDetailTableView"]}
     });
+    m_dwellWidget->propertySet(QVariantMap{
+        {"scriptModuleDwellToolTip", objects["scriptModuleDwellToolTip"]}
+    });
     m_signatureWidget->propertySet(QVariantMap{
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
         {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
@@ -49,7 +52,7 @@ void CodeAssistant::fontSet(const QString &family, const int pointSize) const {
     m_signatureWidget->fontSet(family, pointSize);
 }
 
-void CodeAssistant::completionShow(const QVariantMap &completionSession, const QJsonArray &items) const {
+void CodeAssistant::completionShow(const QVariantHash &completionSession, const QJsonArray &items) const {
     m_completionWidget->completionShow(completionSession, items);
 }
 
@@ -61,8 +64,8 @@ void CodeAssistant::dwellShowDiagnostic(const QUrl &scriptUrl, const QString &me
     m_dwellWidget->dwellShowDiagnostic(scriptUrl, message);
 }
 
-void CodeAssistant::dwellShowHover(const QString &message) const {
-    m_dwellWidget->dwellShowHover(message);
+void CodeAssistant::hoverShow(const QVariantHash &hoverSession, const QString &message) const {
+    m_dwellWidget->hoverShow(hoverSession, message);
 }
 
 void CodeAssistant::dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const {
@@ -77,7 +80,7 @@ void CodeAssistant::dwellLeave() const {
     m_dwellWidget->dwellLeave();
 }
 
-void CodeAssistant::navigationShow(const QVariantMap &navigationSession, const QJsonArray &navigations) const {
+void CodeAssistant::navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) const {
     m_navigationWidget->navigationShow(navigationSession, navigations);
 }
 
@@ -89,7 +92,7 @@ void CodeAssistant::positionShow(const QVariantMap &positionSession) const {
     m_positionWidget->positionShow(positionSession);
 }
 
-void CodeAssistant::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const {
+void CodeAssistant::signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const {
     m_signatureWidget->signatureShow(signatureSession, signature);
 }
 

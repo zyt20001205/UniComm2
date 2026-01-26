@@ -14,11 +14,13 @@ public:
 
     ~DwellWidget() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
     void dwellLeave();
 
     void dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message);
 
-    void dwellShowHover(const QString &message);
+    void hoverShow(const QVariantHash &hoverSession, const QString &message);
 
     void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
 
@@ -38,6 +40,8 @@ protected:
 
 private:
     void dwellShowSuggestions(const QStringList &suggestions);
+
+    QObject *m_tooltip{};
 
     QTextBrowser *m_diagnosticTextBrowser{};
     QTextBrowser *m_hoverTextBrowser{};

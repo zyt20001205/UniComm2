@@ -28,7 +28,7 @@ bool SignatureWidget::isVisible() const {
     return m_tooltip->property("visible").toBool();
 }
 
-void SignatureWidget::signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const {
+void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const {
     QString helpText;
     int index = 0;
     const int activeParameter = signature["activeParameter"].toInt();

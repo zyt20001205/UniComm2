@@ -60,6 +60,10 @@ DwellWidget::DwellWidget(QWidget *parent)
         "#hoverTextBrowser { background-color: #fafafa; border: none; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; padding: 10px; }");
 }
 
+void DwellWidget::propertySet(const QVariantMap &objects) {
+    m_tooltip = qvariant_cast<QObject *>(objects["scriptModuleDwellToolTip"]);
+}
+
 void DwellWidget::dwellLeave() {
     QTimer::singleShot(200, this, [this] {
         if (isVisible() && !geometry().contains(QCursor::pos())) dwellHide();
@@ -80,7 +84,11 @@ void DwellWidget::dwellShowDiagnostic(const QUrl &scriptUrl, const QString &mess
     });
 }
 
-void DwellWidget::dwellShowHover(const QString &message) {
+void DwellWidget::hoverShow(const QVariantHash &hoverSession, const QString &message) {
+    const auto position = hoverSession["position"].toPoint();
+    m_tooltip->setProperty("position", position);
+    QMetaObject::invokeMethod(m_tooltip, "open");
+
     m_hoverTextBrowser->setMarkdown(message);
     m_hoverTextBrowser->document()->setTextWidth(600);
     m_hoverTextBrowser->setFixedWidth(600 + 20);

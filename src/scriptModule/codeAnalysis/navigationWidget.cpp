@@ -41,7 +41,7 @@ NavigationWidget::NavigationWidget(QWidget *parent)
     m_navigationLabel->setStyleSheet("#navigationLabel { background-color: white; border: 1px solid #cccccc; border-radius: 10px; padding: 2px; }");
 }
 
-void NavigationWidget::navigationShow(const QVariantMap &navigationSession, const QJsonArray &navigations) {
+void NavigationWidget::navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) {
     m_navigationSession = navigationSession;
     int row = 0;
     for (const auto &value: navigations) {

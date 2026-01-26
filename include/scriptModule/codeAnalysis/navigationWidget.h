@@ -15,7 +15,7 @@ public:
 
     ~NavigationWidget() override = default;
 
-    void navigationShow(const QVariantMap &navigationSession, const QJsonArray &navigations);
+    void navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations);
 
     void navigationHide();
 
@@ -42,7 +42,7 @@ private:
 
     void navigationRequest();
 
-    QVariantMap m_navigationSession{};
+    QVariantHash m_navigationSession{};
     QListView *m_navigationListView{};
     QStandardItemModel *m_navigationModel{};
     QLabel *m_navigationLabel{};

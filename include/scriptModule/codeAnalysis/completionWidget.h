@@ -23,7 +23,7 @@ public:
 
     bool isVisible() const;
 
-    void completionShow(const QVariantMap &completionSession, const QJsonArray &items);
+    void completionShow(const QVariantHash &completionSession, const QJsonArray &items);
 
     void completionHide() const;
 
@@ -55,7 +55,7 @@ private:
 
     QObject *m_tooltip{};
     QObject *m_tableView{};
-    QVariantMap m_completionSession{};
+    QVariantHash m_completionSession{};
     QSet<QString > m_placeholderSet{};
     QStandardItemModel *m_completionModel{};
     QStandardItemModel *m_detailModel{};

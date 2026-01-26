@@ -1835,7 +1835,15 @@ Item {
     }
 
     ToolTip {
-        id: scriptModuleHoverToolTip
+        id: scriptModuleDwellToolTip
+        parent: Overlay.overlay
+        x: position.x; y: position.y
+        property point position
+
+        contentItem: Label {
+            id: scriptModuleDwellLabel
+            text: "test"
+        }
     }
 
     ToolTip {
@@ -2280,6 +2288,7 @@ Item {
             "scriptModuleCompletionToolTip": scriptModuleCompletionToolTip,
             "scriptModuleCompletionTableView": scriptModuleCompletionTableView,
             "scriptModuleCompletionDetailTableView": scriptModuleCompletionDetailTableView,
+            "scriptModuleDwellToolTip": scriptModuleDwellToolTip,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 

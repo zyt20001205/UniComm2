@@ -428,7 +428,7 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call completion show
-    const QVariantMap completionSession = {
+    const QVariantHash completionSession = {
         {"scriptUrl", scriptUrl},
         {"position", position},
         {"line", line},
@@ -467,7 +467,7 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
     // call navigation show
-    const QVariantMap navigationSession = {
+    const QVariantHash navigationSession = {
         {"type", "definition"},
         {"scriptUrl", scriptUrl},
         {"position", position}
@@ -570,7 +570,14 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 }
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
-    m_codeAssistant->dwellShowHover(message);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
+    const QPoint position = editor->mapTo(editor->window(), QCursor::pos() + QPoint(10, 10));
+    // call hover show
+    const QVariantHash hoverSession = {
+        {"position", position}
+    };
+    m_codeAssistant->hoverShow(hoverSession, message);
 }
 
 void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, const int character) {
@@ -602,7 +609,7 @@ void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArra
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
     // call navigation show
-    const QVariantMap navigationSession = {
+    const QVariantHash navigationSession = {
         {"type", "implementation"},
         {"scriptUrl", scriptUrl},
         {"position", position}
@@ -675,7 +682,7 @@ void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &r
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
     // call navigation show
-    const QVariantMap navigationSession = {
+    const QVariantHash navigationSession = {
         {"type", "reference"},
         {"scriptUrl", scriptUrl},
         {"position", position}
@@ -727,7 +734,7 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
     const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call signature show
-    const QVariantMap signatureSession = {
+    const QVariantHash signatureSession = {
         {"scriptUrl", scriptUrl},
         {"position", position}
     };
@@ -769,7 +776,7 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
     const QPoint position = editor->mapToGlobal(QPoint(x, y));
     // call navigation show
-    const QVariantMap navigationSession = {
+    const QVariantHash navigationSession = {
         {"type", "typeDefinition"},
         {"scriptUrl", scriptUrl},
         {"position", position}

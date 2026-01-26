@@ -20,7 +20,7 @@ public:
 
     bool isVisible() const;
 
-    void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const;
+    void signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const;
 
     void signatureHide() const;
 

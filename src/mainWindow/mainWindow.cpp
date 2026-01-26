@@ -186,6 +186,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
         {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]},
         {"scriptModuleCompletionDetailTableView", objects["scriptModuleCompletionDetailTableView"]},
+        {"scriptModuleDwellToolTip", objects["scriptModuleDwellToolTip"]},
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
         {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
     };

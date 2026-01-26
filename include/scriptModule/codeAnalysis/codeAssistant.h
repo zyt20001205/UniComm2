@@ -20,13 +20,13 @@ public:
 
     void fontSet(const QString &family, int pointSize) const;
 
-    void completionShow(const QVariantMap &completionSession, const QJsonArray &items) const;
+    void completionShow(const QVariantHash &completionSession, const QJsonArray &items) const;
 
     void completionHide() const;
 
     void dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message) const;
 
-    void dwellShowHover(const QString &message) const;
+    void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
     void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
 
@@ -34,13 +34,13 @@ public:
 
     void dwellLeave() const;
 
-    void navigationShow(const QVariantMap &navigationSession, const QJsonArray &navigations) const;
+    void navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) const;
 
     void navigationResponse(const QString &hint) const;
 
     void positionShow(const QVariantMap &positionSession) const;
 
-    void signatureShow(const QVariantMap &signatureSession, const QJsonObject &signature) const;
+    void signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const;
 
 signals:
     void addChar(const QUrl &scriptUrl, QChar character);
