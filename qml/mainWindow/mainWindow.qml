@@ -1935,6 +1935,22 @@ Item {
     }
 
     // threadpool module
+    Dialog {
+        id: threadpoolModuleErrorDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 400
+        modal: true
+        title: qsTr("Terminate Request Has Been Sent")
+        standardButtons: Dialog.Ok
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+        }
+        onClosed: widgetCount -= 1
+    }
+
     Menu {
         id: threadpoolModuleThreadMenu
         property string threadId
@@ -2271,6 +2287,7 @@ Item {
 
             "systemModuleErrorDialog": systemModuleErrorDialog,
 
+            "threadpoolModuleErrorDialog": threadpoolModuleErrorDialog,
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,
 
             "watchModuleExpressionMenu": watchModuleExpressionMenu,

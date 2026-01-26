@@ -167,7 +167,7 @@ Item {
                         anchors.fill: parent
                         leftPadding: 6
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display
+                        text: model.display || ""
                         elide: Text.ElideRight
 
                         onTextChanged: {

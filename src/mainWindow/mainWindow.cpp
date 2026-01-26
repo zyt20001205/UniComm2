@@ -214,6 +214,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap threadpoolObjects = {
         {"mainItem", objects["mainItem"]},
+        {"threadpoolModuleErrorDialog", objects["threadpoolModuleErrorDialog"]},
         {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}
     };
     m_threadpoolModule->propertySet(threadpoolObjects);

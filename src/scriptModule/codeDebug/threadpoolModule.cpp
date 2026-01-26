@@ -29,6 +29,7 @@ ThreadpoolModule::~ThreadpoolModule() {
 void ThreadpoolModule::propertySet(const QVariantMap &objects) {
     const auto mainObject = qvariant_cast<QObject *>(objects["mainItem"]);
     m_mainItem = qobject_cast<QQuickItem *>(mainObject);
+    m_errorDialog = qvariant_cast<QObject *>(objects["threadpoolModuleErrorDialog"]);
     m_threadpoolWidget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
 
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};
@@ -127,7 +128,7 @@ void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QS
 void ThreadpoolModule::threadStop(const QString &threadId) {
     if (m_threadHash.contains(threadId)) {
         if (m_threadHash[threadId]->isInterruptionRequested()) {
-            qDebug() << "terminate request has been sent";
+            QMetaObject::invokeMethod(m_errorDialog, "open");
             return;
         }
         for (int row = 0; row < m_threadpoolStandardItemModel->rowCount(); ++row) {

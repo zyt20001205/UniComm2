@@ -75,6 +75,7 @@ private:
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     QQuickWidget *m_threadpoolWidget{};
     QQuickItem *m_mainItem{};
+    QObject* m_errorDialog{};
     int m_run = 0;
     int m_debug = 0;
     QStandardItemModel *m_threadpoolStandardItemModel{};
