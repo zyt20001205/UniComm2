@@ -42,6 +42,7 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
         {"scriptModuleDwellToolTip", objects["scriptModuleDwellToolTip"]},
         {"scriptModuleDwellDiagnosticTextArea", objects["scriptModuleDwellDiagnosticTextArea"]},
         {"scriptModuleDwellHoverTextArea", objects["scriptModuleDwellHoverTextArea"]},
+        {"scriptModuleDwellCodeActionMenu", objects["scriptModuleDwellCodeActionMenu"]},
         {"scriptModuleDwellSuggestionMenu", objects["scriptModuleDwellSuggestionMenu"]}
     });
     m_signatureWidget->propertySet(QVariantMap{
@@ -71,8 +72,8 @@ void CodeAssistant::hoverShow(const QVariantHash &hoverSession, const QString &m
     m_dwellWidget->hoverShow(hoverSession, message);
 }
 
-void CodeAssistant::dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const {
-    m_dwellWidget->dwellShowCodeAction(scriptUrl, result);
+void CodeAssistant::codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const {
+    m_dwellWidget->codeActionShow(scriptUrl, result);
 }
 
 void CodeAssistant::dwellHide() const {

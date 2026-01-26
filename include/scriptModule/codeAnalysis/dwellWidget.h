@@ -20,7 +20,7 @@ public:
 
     void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
-    void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
+    void codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const;
 
     void dwellHide() const;
 
@@ -37,6 +37,7 @@ private:
     QObject *m_tooltip{};
     QObject *m_diagnosticTextArea{};
     QObject *m_hoverTextArea{};
+    QObject *m_codeActionMenu{};
     QObject *m_suggestionMenu{};
 
     QUrl m_scriptUrl{};

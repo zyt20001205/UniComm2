@@ -125,7 +125,7 @@ void LuaLanguageServer::jsonResponse() {
                 emit shutdowned();
             } else if (method == "textDocument/codeAction") {
                 // code action request
-                if (!json["result"].isArray()) return; // null result
+                // if (!json["result"].isArray()) return; // null result
                 const QJsonArray result = json["result"].toArray();
                 emit responseCodeAction(scriptUrl, result);
             } else if (method == "textDocument/completion") {

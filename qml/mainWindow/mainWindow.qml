@@ -1841,6 +1841,7 @@ Item {
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var dwellWidget
+        property var codeActions
         property var suggestions
 
         onAboutToShow: widgetCount += 1
@@ -1902,6 +1903,37 @@ Item {
                             Qt.openUrlExternally(scriptModuleDwellHoverTextArea.hoveredLink)
                         }
                     }
+                }
+            }
+        }
+
+        Menu {
+            id: scriptModuleDwellCodeActionMenu
+            x: scriptModuleDwellToolTip.width - 5; y: -8
+
+            onAboutToShow: {
+                for (var i = scriptModuleDwellCodeActionMenu.count - 1; i >= 0; --i) {
+                    var item = scriptModuleDwellCodeActionMenu.itemAt(i)
+                    scriptModuleDwellCodeActionMenu.removeItem(item)
+                    item.destroy()
+                }
+                for (let i = 0; i < scriptModuleDwellToolTip.codeActions.length; ++i) {
+                    var menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
+                        scriptModuleDwellCodeActionMenu,
+                        {
+                            text: scriptModuleDwellToolTip.codeActions[i]
+                        }
+                    )
+                    scriptModuleDwellCodeActionMenu.addItem(menuItem)
+                }
+            }
+
+            Component {
+                id: scriptModuleDwellCodeActionMenuComponent
+
+                MenuItem {
+                    ToolTip.visible: hovered
+                    ToolTip.text: text
                 }
             }
         }
@@ -2402,6 +2434,7 @@ Item {
             "scriptModuleDwellToolTip": scriptModuleDwellToolTip,
             "scriptModuleDwellDiagnosticTextArea": scriptModuleDwellDiagnosticTextArea,
             "scriptModuleDwellHoverTextArea": scriptModuleDwellHoverTextArea,
+            "scriptModuleDwellCodeActionMenu": scriptModuleDwellCodeActionMenu,
             "scriptModuleDwellSuggestionMenu": scriptModuleDwellSuggestionMenu,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,

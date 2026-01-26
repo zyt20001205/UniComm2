@@ -1,9 +1,6 @@
 #include "scriptModule/codeAnalysis/dwellWidget.h"
 
-#include <QMenu>
-#include <QTextBrowser>
-#include <QTimer>
-#include <QVBoxLayout>
+#include <QJsonArray>
 
 #include "globals.h"
 #include "scriptModule/nuspellModule.h"
@@ -18,6 +15,7 @@ void DwellWidget::propertySet(const QVariantMap &objects) {
     m_tooltip->setProperty("dwellWidget", QVariant::fromValue(this));
     m_diagnosticTextArea = qvariant_cast<QObject *>(objects["scriptModuleDwellDiagnosticTextArea"]);
     m_hoverTextArea = qvariant_cast<QObject *>(objects["scriptModuleDwellHoverTextArea"]);
+    m_codeActionMenu = qvariant_cast<QObject *>(objects["scriptModuleDwellCodeActionMenu"]);
     m_suggestionMenu = qvariant_cast<QObject *>(objects["scriptModuleDwellSuggestionMenu"]);
 }
 
@@ -36,8 +34,17 @@ void DwellWidget::hoverShow(const QVariantHash &hoverSession, const QString &mes
     QMetaObject::invokeMethod(m_tooltip, "open");
 }
 
-void DwellWidget::dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const {
+void DwellWidget::codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const {
     qDebug() << result;
+    QVariantList codeActions{};
+    for (const auto &value: result) {
+        const QJsonObject action = value.toObject();
+        if (action.contains("edit")) {
+            codeActions.append(action["title"]);
+        }
+    }
+    m_tooltip->setProperty("codeActions", codeActions);
+    QMetaObject::invokeMethod(m_codeActionMenu, "open");
 }
 
 void DwellWidget::dwellHide() const {

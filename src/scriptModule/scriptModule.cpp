@@ -20,7 +20,7 @@ ScriptModule::ScriptModule(QWidget *parent)
       m_codeAssistant(new CodeAssistant(parent)) {
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
-    connect(this, &ScriptModule::responseCodeAction, m_codeAssistant, &CodeAssistant::dwellShowCodeAction);
+    connect(this, &ScriptModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
     connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
     connect(m_codeAssistant, &CodeAssistant::getText, this, &ScriptModule::textGet);

@@ -28,7 +28,7 @@ public:
 
     void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
-    void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
+    void codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const;
 
     void dwellHide() const;
 
