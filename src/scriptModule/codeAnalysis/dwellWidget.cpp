@@ -35,12 +35,14 @@ void DwellWidget::hoverShow(const QVariantHash &hoverSession, const QString &mes
 }
 
 void DwellWidget::codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const {
-    qDebug() << result;
     QVariantList codeActions{};
     for (const auto &value: result) {
         const QJsonObject action = value.toObject();
         if (action.contains("edit")) {
-            codeActions.append(action["title"]);
+            codeActions.append(QVariantMap{
+                {"title", action["title"]},
+                {"edit", action["edit"]}
+            });
         }
     }
     m_tooltip->setProperty("codeActions", codeActions);
@@ -74,6 +76,32 @@ void DwellWidget::linkClick(const QUrl &commandLine) {
     }
 }
 
-void DwellWidget::textReplace(const QString &text) {
+void DwellWidget::suggestionAccept(const QString &text) {
     emit replaceText(m_scriptUrl, text, m_typoLineFrom, m_typoIndexFrom, m_typoLineTo, m_typoIndexTo);
+}
+
+void DwellWidget::codeActionAccept(const QJsonObject &codeAction) {
+    const auto changes = codeAction["changes"].toObject();
+    for (auto it = changes.begin(); it != changes.end(); ++it) {
+        QString uri = it.key();
+        uri = QUrl::fromPercentEncoding(uri.toUtf8());
+        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
+            drive = drive.toUpper();
+        }
+        const QUrl scriptUrl(uri);
+        const QJsonArray changeArray = it.value().toArray();
+        for (const auto &value: changeArray) {
+            const auto change = value.toObject();
+            const auto newText = change["newText"].toString();
+            const QJsonObject range = change["range"].toObject();
+            const QJsonObject start = range["start"].toObject();
+            const QJsonObject end = range["end"].toObject();
+            const int startLine = start["line"].toInt();
+            const int startCharacter = start["character"].toInt();
+            const int endLine = end["line"].toInt();
+            const int endCharacter = end["character"].toInt();
+            emit replaceText(scriptUrl, newText, startLine, startCharacter, endLine, endCharacter);
+        }
+    }
+    qDebug() << codeAction;
 }

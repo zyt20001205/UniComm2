@@ -1920,17 +1920,16 @@ Item {
                 if (scriptModuleDwellToolTip.codeActions.length) {
                     for (let i = 0; i < scriptModuleDwellToolTip.codeActions.length; ++i) {
                         const menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
-                            scriptModuleDwellCodeActionMenu,
                             null,
                             {
-                                text: scriptModuleDwellToolTip.codeActions[i]
+                                text: scriptModuleDwellToolTip.codeActions[i]["title"],
+                                codeAction: scriptModuleDwellToolTip.codeActions[i]["edit"]
                             }
                         )
                         scriptModuleDwellCodeActionMenu.addItem(menuItem)
                     }
                 } else {
                     const menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
-                        scriptModuleDwellCodeActionMenu,
                         null,
                         {
                             text: qsTr("No fixes available")
@@ -1944,6 +1943,13 @@ Item {
                 id: scriptModuleDwellCodeActionMenuComponent
 
                 MenuItem {
+                    property var codeAction
+
+                    onTriggered: {
+                        scriptModuleDwellToolTip.dwellWidget.codeActionAccept(codeAction)
+                        scriptModuleDwellToolTip.close()
+                    }
+
                     ToolTip.visible: hovered
                     ToolTip.text: text
                 }
@@ -1958,7 +1964,7 @@ Item {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[0] : ""
 
                 onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
                     scriptModuleDwellToolTip.close()
                 }
             }
@@ -1967,7 +1973,7 @@ Item {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[1] : ""
 
                 onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
                     scriptModuleDwellToolTip.close()
                 }
             }
@@ -1976,7 +1982,7 @@ Item {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[2] : ""
 
                 onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
                     scriptModuleDwellToolTip.close()
                 }
             }
@@ -1985,7 +1991,7 @@ Item {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[3] : ""
 
                 onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
                     scriptModuleDwellToolTip.close()
                 }
             }
@@ -1994,7 +2000,7 @@ Item {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[4] : ""
 
                 onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
                     scriptModuleDwellToolTip.close()
                 }
             }

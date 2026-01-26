@@ -26,7 +26,9 @@ public:
 
     Q_INVOKABLE void linkClick(const QUrl &commandLine);
 
-    Q_INVOKABLE void textReplace(const QString &text);
+    Q_INVOKABLE void suggestionAccept(const QString &text);
+
+    Q_INVOKABLE void codeActionAccept(const QJsonObject &codeAction);
 
 signals:
     void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
