@@ -408,6 +408,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                                 lua_pop(L, 1);
                             }
                         }
+                        // value not found
                         if (!updated) {
                             emit This->appendLog(QString("Hot update failed: variable '%1' not found").arg(expression), "error");
                         }
