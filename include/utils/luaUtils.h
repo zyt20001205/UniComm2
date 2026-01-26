@@ -17,8 +17,8 @@ QString lua2qstring(sol::object object);
 
 QString lua2filepath(const std::string &luaPath);
 
-void lua_pushqstring(lua_State *L, int idx, const QString &value);
+void lua_pushvariant(lua_State *L, const QString &variant, const QString &type);
 
-void lua_pushqvariant(lua_State *L, const QVariant &value);
+// void lua_pushqvariant(lua_State *L, const QVariant &value);
 
 #endif //UNICOMM_LUAUTILS_H

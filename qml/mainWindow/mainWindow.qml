@@ -2045,7 +2045,8 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text)        }
+            threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text, watchModuleValueComboBox.currentValue)
+        }
 
         ColumnLayout {
             width: parent.width

@@ -378,8 +378,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         int local_i = 1;
                         while ((localValue = lua_getlocal(L, ar, local_i)) != nullptr) {
                             if (expression == localValue) {
-                                lua_pushqstring(L, -1, value);
+                                lua_pushvariant(L, value, type);
                                 lua_setlocal(L, ar, local_i);
+                                lua_pop(L, 1);
                                 updated = true;
                                 emit This->appendLog(QString("Hot update executed: local %1 = %2").arg(expression, value), "info");
                                 break;
@@ -394,8 +395,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                                 int upvalue_i = 1;
                                 while ((upValue = lua_getupvalue(L, -1, upvalue_i)) != nullptr) {
                                     if (expression == upValue) {
-                                        lua_pushqstring(L, -1, value);
+                                        lua_pushvariant(L, value, type);
                                         lua_setupvalue(L, -3, upvalue_i);
+                                        lua_pop(L, 1);
                                         updated = true;
                                         emit This->appendLog(QString("Hot update executed: upvalue %1 = %2").arg(expression, value), "info");
                                         break;
