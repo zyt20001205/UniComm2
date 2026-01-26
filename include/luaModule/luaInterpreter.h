@@ -28,6 +28,8 @@ public:
 
     void stateSet(int state);
 
+    static void stackSet(lua_State *L, lua_Debug *ar);
+
     static void watchSet(lua_State *L, lua_Debug *ar);
 
     void valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);

@@ -200,6 +200,30 @@ void LuaInterpreter::stateSet(const int state) {
     if (state != DEBUG_PAUSE) emit quitLoop();
 }
 
+void LuaInterpreter::stackSet(lua_State *L, lua_Debug *ar) {
+    sol::state_view lua(L);
+    QVariantMap &session = *lua["session"].get<QVariantMap *>();
+    auto *This = qvariant_cast<LuaInterpreter *>(session["this"]);
+    auto *callStackModel = new QStandardItemModel(); // NOLINT
+    int level = 0;
+    while (lua_getstack(L, level, ar)) {
+        lua_getinfo(L, "nSl", ar);
+        const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
+        const int line = ar->currentline;
+        const QVariantHash position = {
+            {"scriptUrl", scriptUrl},
+            {"line", line}
+        };
+        auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
+        fileItem->setData(position, Qt::WhatsThisRole);
+        auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
+        auto *nameItem = new QStandardItem(ar->name ? ar->name : "main"); // NOLINT
+        callStackModel->insertRow(0, {fileItem, lineItem, nameItem});
+        level++;
+    }
+    emit This->insertCallStack(session["threadId"].toString(), callStackModel);
+}
+
 void LuaInterpreter::watchSet(lua_State *L, lua_Debug *ar) {
     lua_getstack(L, 0, ar);
     lua_getinfo(L, "S", ar);
@@ -353,24 +377,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             // line handle
             emit This->insertMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
             // call stack handle
-            auto *callStackModel = new QStandardItemModel(); // NOLINT
-            int level = 0;
-            while (lua_getstack(L, level, ar)) {
-                lua_getinfo(L, "nSl", ar);
-                const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
-                const int line = ar->currentline;
-                const QVariantHash position = {
-                    {"scriptUrl", scriptUrl},
-                    {"line", line}
-                };
-                auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
-                fileItem->setData(position, Qt::WhatsThisRole);
-                auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-                auto *nameItem = new QStandardItem(ar->name ? ar->name : "main"); // NOLINT
-                callStackModel->insertRow(0, {fileItem, lineItem, nameItem});
-                level++;
-            }
-            emit This->insertCallStack(session["threadId"].toString(), callStackModel);
+            stackSet(L, ar);
             // watch handle
             watchSet(L, ar);
             // hold thread
