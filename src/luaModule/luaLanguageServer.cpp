@@ -162,11 +162,15 @@ void LuaLanguageServer::jsonResponse() {
                 emit responseFormatting(scriptUrl, newText);
             } else if (method == "textDocument/hover") {
                 // hover request
-                if (!json["result"].isObject()) return; // null result
-                const QJsonObject result = json["result"].toObject();
-                const QJsonObject contents = result["contents"].toObject();
-                const QString value = contents["value"].toString();
-                emit responseHover(scriptUrl, value);
+                if (!json["result"].isObject()) {
+                    // null result
+                    emit responseHover(scriptUrl, "");
+                } else {
+                    const QJsonObject result = json["result"].toObject();
+                    const QJsonObject contents = result["contents"].toObject();
+                    const QString value = contents["value"].toString();
+                    emit responseHover(scriptUrl, value);
+                }
             } else if (method == "textDocument/implementation") {
                 // implementation request
                 if (!json["result"].isArray()) return; // null result

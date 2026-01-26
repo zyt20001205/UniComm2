@@ -1,7 +1,6 @@
 #ifndef UNICOMM_SIGNATUREWIDGET_H
 #define UNICOMM_SIGNATUREWIDGET_H
 
-#include <QMap>
 #include <QObject>
 
 class QLabel;

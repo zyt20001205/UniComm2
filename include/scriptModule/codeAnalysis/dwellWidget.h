@@ -2,11 +2,11 @@
 #define UNICOMM_DWELLWIDGET_H
 
 #include <QUrl>
-#include <QWidget>
+#include <QObject>
 
 class QTextBrowser;
 
-class DwellWidget final : public QWidget {
+class DwellWidget final : public QObject {
     Q_OBJECT
 
 public:
@@ -16,36 +16,28 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void dwellLeave();
+    void diagnosticShow(const QVariantHash &diagnosticSession, const QString &message);
 
-    void dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message);
-
-    void hoverShow(const QVariantHash &hoverSession, const QString &message);
+    void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
     void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
 
-    void dwellHide();
+    void dwellHide() const;
+
+    Q_INVOKABLE void linkClick(const QUrl &commandLine);
+
+    Q_INVOKABLE void textReplace(const QString &text);
 
 signals:
     void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     void requestCodeAction(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
-protected:
-    void enterEvent(QEnterEvent *event) override;
-
-    void hideEvent(QHideEvent *event) override;
-
-    void leaveEvent(QEvent *event) override;
-
 private:
-    void dwellShowSuggestions(const QStringList &suggestions);
-
     QObject *m_tooltip{};
-
-    QTextBrowser *m_diagnosticTextBrowser{};
-    QTextBrowser *m_hoverTextBrowser{};
-    QMenu *m_suggestionMenu{};
+    QObject *m_diagnosticTextArea{};
+    QObject *m_hoverTextArea{};
+    QObject *m_suggestionMenu{};
 
     QUrl m_scriptUrl{};
     int m_diagnosticLineFrom{};

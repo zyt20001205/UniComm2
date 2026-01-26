@@ -53,8 +53,6 @@ signals:
 
     void hideDwellWidget();
 
-    void leaveDwellWidget();
-
     void requestDefinition();
 
     void requestDocumentHighlight();

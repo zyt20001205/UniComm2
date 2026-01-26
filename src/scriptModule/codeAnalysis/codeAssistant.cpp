@@ -39,7 +39,10 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
         {"scriptModuleCompletionDetailTableView", objects["scriptModuleCompletionDetailTableView"]}
     });
     m_dwellWidget->propertySet(QVariantMap{
-        {"scriptModuleDwellToolTip", objects["scriptModuleDwellToolTip"]}
+        {"scriptModuleDwellToolTip", objects["scriptModuleDwellToolTip"]},
+        {"scriptModuleDwellDiagnosticTextArea", objects["scriptModuleDwellDiagnosticTextArea"]},
+        {"scriptModuleDwellHoverTextArea", objects["scriptModuleDwellHoverTextArea"]},
+        {"scriptModuleDwellSuggestionMenu", objects["scriptModuleDwellSuggestionMenu"]}
     });
     m_signatureWidget->propertySet(QVariantMap{
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
@@ -60,8 +63,8 @@ void CodeAssistant::completionHide() const {
     m_completionWidget->completionHide();
 }
 
-void CodeAssistant::dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message) const {
-    m_dwellWidget->dwellShowDiagnostic(scriptUrl, message);
+void CodeAssistant::diagnosticShow(const QVariantHash &diagnosticSession, const QString &message) const {
+    m_dwellWidget->diagnosticShow(diagnosticSession, message);
 }
 
 void CodeAssistant::hoverShow(const QVariantHash &hoverSession, const QString &message) const {
@@ -74,10 +77,6 @@ void CodeAssistant::dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray 
 
 void CodeAssistant::dwellHide() const {
     m_dwellWidget->dwellHide();
-}
-
-void CodeAssistant::dwellLeave() const {
-    m_dwellWidget->dwellLeave();
 }
 
 void CodeAssistant::navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) const {

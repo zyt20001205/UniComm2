@@ -24,15 +24,13 @@ public:
 
     void completionHide() const;
 
-    void dwellShowDiagnostic(const QUrl &scriptUrl, const QString &message) const;
+    void diagnosticShow(const QVariantHash &diagnosticSession, const QString &message) const;
 
     void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
     void dwellShowCodeAction(const QUrl &scriptUrl, const QJsonArray &result) const;
 
     void dwellHide() const;
-
-    void dwellLeave() const;
 
     void navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) const;
 

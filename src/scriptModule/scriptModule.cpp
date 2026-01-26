@@ -220,9 +220,8 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestSpellCheck, this, &ScriptModule::requestSpellCheck);
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
-        connect(scriptPage, &ScriptPage::showDiagnosticDwell, m_codeAssistant, &CodeAssistant::dwellShowDiagnostic);
+        connect(scriptPage, &ScriptPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
         connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
-        connect(scriptPage, &ScriptPage::leaveDwell, m_codeAssistant, &CodeAssistant::dwellLeave);
         qApp->installEventFilter(m_codeAssistant);
         if (m_focusedPage == nullptr) {
             m_welcomePage->open();
@@ -572,7 +571,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const QPoint position = editor->mapTo(editor->window(), QCursor::pos() + QPoint(10, 10));
+    const QPoint position = editor->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     // call hover show
     const QVariantHash hoverSession = {
         {"position", position}

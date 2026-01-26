@@ -344,7 +344,6 @@ void EditorWidget::mouseMoveEvent(QMouseEvent *event) {
     if (wordStart != m_currentWord.wordStart || wordEnd != m_currentWord.wordEnd) {
         m_currentWord.wordStart = wordStart;
         m_currentWord.wordEnd = wordEnd;
-        emit leaveDwellWidget();
         m_dwellTimer->start();
     }
     if (event->modifiers() == Qt::ControlModifier) {

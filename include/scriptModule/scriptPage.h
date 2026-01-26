@@ -98,11 +98,9 @@ signals:
     
     void notificationJson(const QString &method, const QJsonObject &params);
 
-    void showDiagnosticDwell(const QUrl &scriptUrl, const QString &message);
+    void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
     void hideDwell();
-
-    void leaveDwell();
 
     void showPositionWidget();
 

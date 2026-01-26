@@ -115,7 +115,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
     connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
     connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);
-    connect(m_editorWidget, &EditorWidget::leaveDwellWidget, this, &ScriptPage::leaveDwell);
     connect(m_editorWidget, &EditorWidget::requestDefinition, this, &ScriptPage::definitionRequest);
     connect(m_editorWidget, &EditorWidget::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
     connect(m_editorWidget, &EditorWidget::requestHover, this, &ScriptPage::hoverRequest);
@@ -685,9 +684,17 @@ void ScriptPage::hoverRequest() {
             diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
         }
     }
-    if (diagnosticText != "<table width='100%'>") {
+    // call diagnostic show
+    const QPoint position = m_editorWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
+    const QVariantHash diagnosticSession = {
+        {"scriptUrl", m_scriptUrl},
+        {"position", position}
+    };
+    if (diagnosticText == "<table width='100%'>") {
+        emit showDiagnostic(diagnosticSession, "");
+    } else {
         diagnosticText += "</table>";
-        emit showDiagnosticDwell(m_scriptUrl, diagnosticText);
+        emit showDiagnostic(diagnosticSession, diagnosticText);
     }
     // hover request to script module
     emit requestHover(m_scriptUrl, line, character);

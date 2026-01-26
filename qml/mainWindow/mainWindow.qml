@@ -1838,11 +1838,122 @@ Item {
         id: scriptModuleDwellToolTip
         parent: Overlay.overlay
         x: position.x; y: position.y
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
+        property var dwellWidget
+        property var suggestions
 
-        contentItem: Label {
-            id: scriptModuleDwellLabel
-            text: "test"
+        onAboutToShow: widgetCount += 1
+        onClosed: widgetCount -= 1
+
+        contentItem: ColumnLayout {
+
+            TextArea {
+                id: scriptModuleDwellDiagnosticTextArea
+                background: null
+                readOnly: true
+                textFormat: TextEdit.RichText
+                verticalAlignment: TextEdit.AlignTop
+                visible: text
+                wrapMode: Text.Wrap
+                Layout.minimumWidth: 400; Layout.maximumWidth: 800
+
+                HoverHandler {
+                    id: diagnosticHoverHandler
+                    cursorShape: scriptModuleDwellDiagnosticTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    onTapped: {
+                        if (scriptModuleDwellDiagnosticTextArea.hoveredLink) {
+                            scriptModuleDwellToolTip.dwellWidget.linkClick(scriptModuleDwellDiagnosticTextArea.hoveredLink)
+                        }
+                    }
+                }
+            }
+
+            TextArea {
+                id: scriptModuleDwellHoverTextArea
+                background: null
+                readOnly: true
+                textFormat: TextEdit.MarkdownText
+                verticalAlignment: TextEdit.AlignTop
+                visible: text
+                wrapMode: Text.Wrap
+                Layout.minimumWidth: 400; Layout.maximumWidth: 800
+
+                HoverHandler {
+                    id: dwellHoverHandler
+                    cursorShape: scriptModuleDwellHoverTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                }
+
+                ToolTip {
+                    visible: scriptModuleDwellHoverTextArea.hoveredLink
+                    text: "Click to open link"
+                    x: dwellHoverHandler.point.position.x + 10
+                    y: dwellHoverHandler.point.position.y + 10
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    onTapped: {
+                        if (scriptModuleDwellHoverTextArea.hoveredLink) {
+                            Qt.openUrlExternally(scriptModuleDwellHoverTextArea.hoveredLink)
+                        }
+                    }
+                }
+            }
+        }
+
+        Menu {
+            id: scriptModuleDwellSuggestionMenu
+            x: scriptModuleDwellToolTip.width - 5; y: -8
+
+            MenuItem {
+                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[0] : ""
+
+                onTriggered: {
+                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[1] : ""
+
+                onTriggered: {
+                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[2] : ""
+
+                onTriggered: {
+                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[3] : ""
+
+                onTriggered: {
+                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[4] : ""
+
+                onTriggered: {
+                    scriptModuleDwellToolTip.dwellWidget.textReplace(text)
+                    scriptModuleDwellToolTip.close()
+                }
+            }
         }
     }
 
@@ -2289,6 +2400,9 @@ Item {
             "scriptModuleCompletionTableView": scriptModuleCompletionTableView,
             "scriptModuleCompletionDetailTableView": scriptModuleCompletionDetailTableView,
             "scriptModuleDwellToolTip": scriptModuleDwellToolTip,
+            "scriptModuleDwellDiagnosticTextArea": scriptModuleDwellDiagnosticTextArea,
+            "scriptModuleDwellHoverTextArea": scriptModuleDwellHoverTextArea,
+            "scriptModuleDwellSuggestionMenu": scriptModuleDwellSuggestionMenu,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 
