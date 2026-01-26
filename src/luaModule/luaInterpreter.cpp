@@ -374,10 +374,10 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         }
                         bool updated = false;
                         // try local value
-                        const char *local_name = nullptr;
+                        const char *localValue = nullptr;
                         int local_i = 1;
-                        while ((local_name = lua_getlocal(L, ar, local_i)) != nullptr) {
-                            if (expression == local_name) {
+                        while ((localValue = lua_getlocal(L, ar, local_i)) != nullptr) {
+                            if (expression == localValue) {
                                 lua_pushqstring(L, -1, value);
                                 lua_setlocal(L, ar, local_i);
                                 updated = true;
@@ -390,10 +390,10 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         // try up value
                         if (!updated) {
                             if (lua_getinfo(L, "f", ar)) {
-                                const char *upvalue_name = nullptr;
+                                const char *upValue = nullptr;
                                 int upvalue_i = 1;
-                                while ((upvalue_name = lua_getupvalue(L, -1, upvalue_i)) != nullptr) {
-                                    if (expression == upvalue_name) {
+                                while ((upValue = lua_getupvalue(L, -1, upvalue_i)) != nullptr) {
+                                    if (expression == upValue) {
                                         lua_pushqstring(L, -1, value);
                                         lua_setupvalue(L, -3, upvalue_i);
                                         updated = true;
