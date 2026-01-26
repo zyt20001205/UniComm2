@@ -257,7 +257,7 @@ void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine,
 void ScriptModule::cursorPositionGet() const {
     const QUrl scriptUrl = m_focusedPage->m_scriptUrl;
     int line, index;
-    m_focusedPage->m_editorWidget->getCursorPosition(&line, &index);
+    m_focusedPage->m_editorWidget->cursorPositionGet(&line, &index);
     g_cursorPosition = {
         {"url", scriptUrl},
         {"line", line},

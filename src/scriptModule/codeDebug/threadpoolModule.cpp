@@ -130,13 +130,15 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
             qDebug() << "terminate request has been sent";
             return;
         }
-        m_threadHash[threadId]->requestInterruption();
         for (int row = 0; row < m_threadpoolStandardItemModel->rowCount(); ++row) {
-            if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toString() == threadId) {
-                m_threadpoolStandardItemModel->item(row, THREADID_COL)->setText(threadId + " (Terminating)");
+            if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->text() == threadId) {
+                if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt() == LUATHREAD_DEBUG) {
+                    stateSet(threadId, DEBUG_TERMINATE);
+                }
                 break;
             }
         }
+        m_threadHash[threadId]->requestInterruption();
     }
 }
 
