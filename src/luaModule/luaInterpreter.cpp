@@ -200,6 +200,61 @@ void LuaInterpreter::stateSet(const int state) {
     if (state != DEBUG_PAUSE) emit quitLoop();
 }
 
+void LuaInterpreter::watchSet(lua_State *L, lua_Debug *ar) {
+    lua_getstack(L, 0, ar);
+    lua_getinfo(L, "S", ar);
+    QUrl currentUrl;
+    if (ar->source[0] == '@' && ar->source[1] != '\0') {
+        currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
+    }
+    sol::state_view lua(L);
+    QHash<QString, int> watchHash{};
+    for (int i = 0; i < g_watchStandardItemModel->rowCount(); ++i) {
+        const QString url = g_watchStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toString();
+        if (url == currentUrl) {
+            const QString key = g_watchStandardItemModel->item(i, 0)->text();
+            watchHash.insert(key, i);
+        }
+    }
+    if (!watchHash.isEmpty()) {
+        // create env table
+        sol::environment env(lua, sol::create);
+        sol::table mt = lua.create_table();
+        mt[sol::meta_function::index] = lua.globals();
+        env[sol::metatable_key] = mt;
+        // load upvalues
+        if (lua_getinfo(L, "f", ar)) {
+            const char *name = nullptr;
+            int i = 1;
+            while ((name = lua_getupvalue(L, -1, i++)) != nullptr) {
+                if (name[0] != '(') env[name] = sol::object(L, -1);
+                lua_pop(L, 1);
+            }
+            lua_pop(L, 1);
+        }
+        // load locals
+        const char *name = nullptr;
+        int i = 1;
+        while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
+            if (name[0] != '(') env[name] = sol::object(L, -1);
+            lua_pop(L, 1);
+        }
+        // eval
+        for (auto it = watchHash.constBegin(); it != watchHash.constEnd(); ++it) {
+            const auto result = lua.safe_script("return " + it.key().toStdString(), env, sol::script_pass_on_error);
+            QString val = "nil";
+            QString type = "nil";
+            if (result.valid()) {
+                sol::object obj = result;
+                type = lua_typename(L, static_cast<int>(obj.get_type()));
+                val = lua2qstring(obj);
+            }
+            g_watchStandardItemModel->item(it.value(), 1)->setText(val);
+            g_watchStandardItemModel->item(it.value(), 1)->setData(type, Qt::WhatsThisRole);
+        }
+    }
+}
+
 void LuaInterpreter::valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
     emit setValue(scriptUrl, expression, value, type);
 }
@@ -317,51 +372,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             }
             emit This->insertCallStack(session["threadId"].toString(), callStackModel);
             // watch handle
-            QHash<QString, int> watchHash{};
-            for (int i = 0; i < g_watchStandardItemModel->rowCount(); ++i) {
-                const QString url = g_watchStandardItemModel->item(i, 0)->data(Qt::WhatsThisRole).toString();
-                if (url == currentUrl) {
-                    const QString key = g_watchStandardItemModel->item(i, 0)->text();
-                    watchHash.insert(key, i);
-                }
-            }
-            if (!watchHash.isEmpty()) {
-                // create env table
-                sol::environment env(lua, sol::create);
-                sol::table mt = lua.create_table();
-                mt[sol::meta_function::index] = lua.globals();
-                env[sol::metatable_key] = mt;
-                // load upvalues
-                if (lua_getinfo(L, "f", ar)) {
-                    const char *name = nullptr;
-                    int i = 1;
-                    while ((name = lua_getupvalue(L, -1, i++)) != nullptr) {
-                        if (name[0] != '(') env[name] = sol::object(L, -1);
-                        lua_pop(L, 1);
-                    }
-                    lua_pop(L, 1);
-                }
-                // load locals
-                const char *name = nullptr;
-                int i = 1;
-                while ((name = lua_getlocal(L, ar, i++)) != nullptr) {
-                    if (name[0] != '(') env[name] = sol::object(L, -1);
-                    lua_pop(L, 1);
-                }
-                // eval
-                for (auto it = watchHash.constBegin(); it != watchHash.constEnd(); ++it) {
-                    const auto result = lua.safe_script("return " + it.key().toStdString(), env, sol::script_pass_on_error);
-                    QString val = "nil";
-                    QString type = "nil";
-                    if (result.valid()) {
-                        sol::object obj = result;
-                        type = lua_typename(L, static_cast<int>(obj.get_type()));
-                        val = lua2qstring(obj);
-                    }
-                    g_watchStandardItemModel->item(it.value(), 1)->setText(val);
-                    g_watchStandardItemModel->item(it.value(), 1)->setData(type, Qt::WhatsThisRole);
-                }
-            }
+            watchSet(L, ar);
             // hold thread
             QEventLoop loop;
             connect(This, &LuaInterpreter::quitLoop, &loop, &QEventLoop::quit);
@@ -412,7 +423,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         if (!updated) {
                             emit This->appendLog(QString("Hot update failed: variable '%1' not found").arg(expression), "error");
                         } else {
-
+                            // watch handle
+                            watchSet(L, ar);
                         }
                     });
             loop.exec();
