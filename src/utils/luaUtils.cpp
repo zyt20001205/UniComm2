@@ -3,8 +3,9 @@
 #include <QDir>
 #include <QVariant>
 #include <sol/object.hpp>
-#include "sol/table_core.hpp"
+#include <sol/table_core.hpp>
 #include <sol/variadic_args.hpp>
+#include <sol/userdata.hpp>
 
 #include "globals.h"
 
@@ -77,6 +78,11 @@ QVariant lua2qvar(sol::object object, int depth) {
                 map[key_str] = lua2qvar(value, depth + 1);
             }
             parsed = QVariant::fromValue(map);
+        }
+        break;
+        case sol::type::userdata: {
+            auto mapPtr = object.as<sol::userdata>().as<QVariantMap*>();
+            parsed = QVariant::fromValue(*mapPtr);
         }
         break;
         default: {
