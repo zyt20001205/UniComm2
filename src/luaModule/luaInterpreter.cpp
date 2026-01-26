@@ -200,8 +200,8 @@ void LuaInterpreter::stateSet(const int state) {
     if (state != DEBUG_PAUSE) emit quitLoop();
 }
 
-void LuaInterpreter::valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
-    emit setValue(scriptUrl, expression, value, type);
+void LuaInterpreter::valueSet(const QString &scriptUrl, const QString &expression, const QString &value) {
+    emit setValue(scriptUrl, expression, value);
 }
 
 // LuaInterpreter private
@@ -366,7 +366,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             QEventLoop loop;
             connect(This, &LuaInterpreter::quitLoop, &loop, &QEventLoop::quit);
             connect(This, &LuaInterpreter::setValue, This,
-                    [This, L, ar, currentUrl](const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+                    [This, L, ar, currentUrl](const QString &scriptUrl, const QString &expression, const QString &value) {
                         disconnect(This, &LuaInterpreter::setValue, This, nullptr);
                         if (currentUrl != scriptUrl) {
                             emit This->appendLog(QString("Hot update failed: Not in the current file scope"), "error");

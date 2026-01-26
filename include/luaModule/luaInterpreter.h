@@ -28,7 +28,7 @@ public:
 
     void stateSet(int state);
 
-    void valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
+    void valueSet(const QString &scriptUrl, const QString &expression, const QString &value);
 
 signals:
     void openScript(const QUrl &scriptUrl);
@@ -57,7 +57,7 @@ signals:
 
     void stopThread(const QString &threadId);
 
-    void setValue(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
+    void setValue(const QString &scriptUrl, const QString &expression, const QString &value);
 
     void quitLoop();
 

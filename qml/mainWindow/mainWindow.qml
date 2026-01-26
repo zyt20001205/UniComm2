@@ -2033,7 +2033,6 @@ Item {
         property url watchUrl
         property string watchExpression
         property string currentValue
-        property string currentType
 
         onAboutToShow: {
             widgetCount += 1
@@ -2041,11 +2040,10 @@ Item {
             watchModuleValueTextField.text = watchModuleValueDialog.currentValue
             watchModuleValueTextField.forceActiveFocus()
             watchModuleValueTextField.selectAll()
-            watchModuleValueComboBox.currentValue = watchModuleValueDialog.currentType
         }
         onClosed: widgetCount -= 1
         onAccepted: {
-            threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text, watchModuleValueComboBox.currentValue)
+            threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text)
         }
 
         ColumnLayout {
@@ -2069,33 +2067,13 @@ Item {
                 Layout.fillWidth: true
             }
 
-            RowLayout {
+            TextField {
+                id: watchModuleValueTextField
+                placeholderText: qsTr("Enter new value:")
+                Layout.fillWidth: true
 
-                TextField {
-                    id: watchModuleValueTextField
-                    placeholderText: qsTr("Enter new value:")
-                    Layout.fillWidth: true
-
-                    onAccepted: watchModuleValueDialog.accept()
-                    Keys.onEscapePressed: watchModuleValueDialog.reject()
-                }
-
-                ComboBox {
-                    id: watchModuleValueComboBox
-                    model: ListModel {
-                        ListElement {
-                            text: "boolean"; value: "boolean"
-                        }
-                        ListElement {
-                            text: "number"; value: "number"
-                        }
-                        ListElement {
-                            text: "string"; value: "string"
-                        }
-                    }
-                    textRole: "text"
-                    valueRole: "value"
-                }
+                onAccepted: watchModuleValueDialog.accept()
+                Keys.onEscapePressed: watchModuleValueDialog.reject()
             }
         }
     }
@@ -2147,7 +2125,6 @@ Item {
         property url watchUrl
         property string watchExpression
         property string currentValue
-        property string currentType
 
         onAboutToShow: {
             widgetCount += 1
@@ -2168,7 +2145,6 @@ Item {
                     watchModuleValueDialog.watchUrl = watchModuleValueMenu.watchUrl
                     watchModuleValueDialog.watchExpression = watchModuleValueMenu.watchExpression
                     watchModuleValueDialog.currentValue = watchModuleValueMenu.currentValue
-                    watchModuleValueDialog.currentType = watchModuleValueMenu.currentType
                     watchModuleValueDialog.open()
                 }
             }

@@ -35,7 +35,7 @@ public:
 
     void stateSet(const QString &threadId, int state);
 
-    Q_INVOKABLE void valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
+    Q_INVOKABLE void valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value);
 
 signals:
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;

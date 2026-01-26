@@ -163,11 +163,11 @@ void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
     }
 }
 
-void ThreadpoolModule::valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+void ThreadpoolModule::valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value) {
     if (m_interpreterHash.contains(threadId)) {
         auto *interpreter = m_interpreterHash[threadId];
-        QMetaObject::invokeMethod(interpreter, [interpreter, scriptUrl, expression, value, type] {
-            interpreter->valueSet(scriptUrl, expression, value, type);
+        QMetaObject::invokeMethod(interpreter, [interpreter, scriptUrl, expression, value] {
+            interpreter->valueSet(scriptUrl, expression, value);
         }, Qt::BlockingQueuedConnection);
     }
 }

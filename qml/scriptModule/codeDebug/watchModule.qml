@@ -205,7 +205,6 @@ Item {
                                 valueMenu.watchExpression = tableView.model.data(expressionIndex, Qt.DisplayRole)
                                 const valueIndex = tableView.index(row, 1);
                                 valueMenu.currentValue = tableView.model.data(valueIndex, Qt.DisplayRole)
-                                valueMenu.currentType = tableView.model.data(valueIndex, Qt.WhatsThisRole)
                                 valueMenu.popup()
                             }
                         }
