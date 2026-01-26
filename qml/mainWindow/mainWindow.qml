@@ -1917,11 +1917,23 @@ Item {
                     scriptModuleDwellCodeActionMenu.removeItem(item)
                     item.destroy()
                 }
-                for (let i = 0; i < scriptModuleDwellToolTip.codeActions.length; ++i) {
-                    var menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
+                if (scriptModuleDwellToolTip.codeActions.length) {
+                    for (let i = 0; i < scriptModuleDwellToolTip.codeActions.length; ++i) {
+                        const menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
+                            scriptModuleDwellCodeActionMenu,
+                            null,
+                            {
+                                text: scriptModuleDwellToolTip.codeActions[i]
+                            }
+                        )
+                        scriptModuleDwellCodeActionMenu.addItem(menuItem)
+                    }
+                } else {
+                    const menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
                         scriptModuleDwellCodeActionMenu,
+                        null,
                         {
-                            text: scriptModuleDwellToolTip.codeActions[i]
+                            text: qsTr("No fixes available")
                         }
                     )
                     scriptModuleDwellCodeActionMenu.addItem(menuItem)
