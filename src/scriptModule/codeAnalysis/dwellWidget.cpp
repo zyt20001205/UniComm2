@@ -103,5 +103,4 @@ void DwellWidget::codeActionAccept(const QJsonObject &codeAction) {
             emit replaceText(scriptUrl, newText, startLine, startCharacter, endLine, endCharacter);
         }
     }
-    qDebug() << codeAction;
 }
