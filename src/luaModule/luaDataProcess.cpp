@@ -28,8 +28,6 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
         case sol::type::number: {
             if (value.is<int>()) {
                 valueStr = QString::number(value.as<int>());
-            } else if (value.is<double>()) {
-                valueStr = QString::number(value.as<double>());
             } else {
                 valueStr = QString::number(value.as<double>());
             }
@@ -71,8 +69,6 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
         case sol::type::number: {
             if (value.is<int>()) {
                 valueStr = QString::number(value.as<int>());
-            } else if (value.is<double>()) {
-                valueStr = QString::number(value.as<double>());
             } else {
                 valueStr = QString::number(value.as<double>());
             }
