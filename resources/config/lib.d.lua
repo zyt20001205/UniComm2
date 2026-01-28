@@ -100,13 +100,14 @@ function datatable.list() end
 function datatable.write(key, value) end
 
 --- Clears a column of datatable using a key identifier.
---- @param key? datatableKey The target column key identifier. ; when omitted or set to "all" clears all columns.
+--- @param key? datatableKey The target column key identifier; when omitted or set to "all" clears all columns.
 --- @return nil
 function datatable.clear(key) end
 
 --- Exports the datatable to a CSV file.
+--- @param fileName? string The name of csv file; when omitted uses timestamp as file name.
 --- @return nil
-function datatable.export() end
+function datatable.export(fileName) end
 
 io = {}
 --- Logging.

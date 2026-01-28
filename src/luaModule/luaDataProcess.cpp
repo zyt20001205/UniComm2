@@ -92,3 +92,7 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
         throw sol::error("failed to write to datatable key: " + key);
     }
 }
+
+void LuaDataProcess::datatableExport(const std::string &fileName) {
+    emit exportDatatable(QString::fromStdString(fileName));
+}

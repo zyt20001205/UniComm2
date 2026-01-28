@@ -51,6 +51,8 @@ signals:
 
     void writeDatatable(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 
+    void exportDatatable(const QString &fileName);
+
     void appendLog(const QString &message, const QString &level);
 
     void newMessageDialog(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;

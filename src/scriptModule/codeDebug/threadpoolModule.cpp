@@ -90,6 +90,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(interpreter, &LuaInterpreter::writeDatabase, this, &ThreadpoolModule::writeDatabase);
     connect(interpreter, &LuaInterpreter::listDatatable, this, &ThreadpoolModule::listDatatable, Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::writeDatatable, this, &ThreadpoolModule::writeDatatable);
+    connect(interpreter, &LuaInterpreter::exportDatatable, this, &ThreadpoolModule::exportDatatable);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::newMessageDialog, this, &ThreadpoolModule::messageDialogNew);
     connect(interpreter, &LuaInterpreter::listPort, this, &ThreadpoolModule::listPort, Qt::BlockingQueuedConnection);

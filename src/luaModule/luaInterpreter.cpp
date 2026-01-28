@@ -63,9 +63,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     sol::table datatable = m_lua.create_table();
     datatable.set_function("list", [this] { return sol::as_table(m_luaDataProcess->datatableList()); });
     datatable.set_function("write", [this](const std::string &key, const sol::object &value) { m_luaDataProcess->datatableWrite(key, value); });
+    datatable.set_function("export", [this](const sol::optional<std::string> &fileName) { m_luaDataProcess->datatableExport(fileName.value_or("")); });
     m_lua["datatable"] = datatable;
     connect(m_luaDataProcess, &LuaDataProcess::listDatatable, this, &LuaInterpreter::listDatatable);
     connect(m_luaDataProcess, &LuaDataProcess::writeDatatable, this, &LuaInterpreter::writeDatatable);
+    connect(m_luaDataProcess, &LuaDataProcess::exportDatatable, this, &LuaInterpreter::exportDatatable);
     // LuaIO lib
     sol::table io = m_lua.create_table();
     io.set_function("log", [this](const sol::variadic_args &args) { m_luaIO->log(args); });

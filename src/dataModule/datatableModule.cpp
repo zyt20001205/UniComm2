@@ -103,12 +103,17 @@ void DatatableModule::datatableClear() {
     g_datatableStandardItemModel->clear();
 }
 
-void DatatableModule::datatableExport() {
+void DatatableModule::datatableExport(const QString &fileName) {
     const auto workspacePath = g_workspaceUrl.toLocalFile();
-    const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-    const auto filePath = QDir(workspacePath).filePath(defaultName);
+    QString filePath{};
+    if (fileName.isEmpty()) {
+        const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+        filePath = QDir(workspacePath).filePath(defaultName);
+    } else {
+        filePath = QDir(workspacePath).filePath(fileName + ".csv");
+    }
     QFile file(filePath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
     QTextStream out(&file);
     // write header
     QStringList keyList{};

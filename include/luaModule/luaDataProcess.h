@@ -22,6 +22,8 @@ public:
 
     void datatableWrite(const std::string &key, const sol::object &value);
 
+    void datatableExport(const std::string &fileName);
+
 signals:
     void listDatabase(QSet<QString> &databaseSet);
 
@@ -30,6 +32,8 @@ signals:
     void listDatatable(QSet<QString> &datatableSet);
 
     void writeDatatable(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
+
+    void exportDatatable(const QString &fileName);
 };
 
 #endif //UNICOMM_LUADATAPROCESS_H

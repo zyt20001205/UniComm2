@@ -648,7 +648,7 @@ Item {
             icon.source: "qrc:/icon/share.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: datatableModule.datatableExport()
+            onTriggered: datatableModule.datatableExport("")
         }
 
         Menu {
