@@ -34,7 +34,7 @@ public:
 
     Q_INVOKABLE void datatableExport();
 
-    void datatableWrite(const QString &key, const QString &value, bool &status);
+    void datatableWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 
 signals:
     void appendLog(const QString &message, const QString &level);

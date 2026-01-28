@@ -138,14 +138,15 @@ void DatatableModule::datatableExport() {
     qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
-void DatatableModule::datatableWrite(const QString &key, const QString &value, bool &status) {
+void DatatableModule::datatableWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value) {
     if (!m_datatableHash.contains(key)) return;
     const auto col = m_datatableHash[key];
     const auto row = m_datatableSession[key]["length"].toInt();
     auto *item = new QStandardItem(value); // NOLINT
     g_datatableStandardItemModel->setItem(row, col, item);
     m_datatableSession[key]["length"] = m_datatableSession[key]["length"].toInt() + 1;
-    status = true;
+    *status = true;
+    eventloop->quit();
 }
 
 // DatatableModule private

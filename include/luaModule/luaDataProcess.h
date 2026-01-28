@@ -4,6 +4,8 @@
 #include <QObject>
 #include "sol/object.hpp"
 
+class QEventLoop;
+
 class LuaDataProcess final : public QObject {
     Q_OBJECT
 
@@ -23,29 +25,11 @@ public:
 signals:
     void listDatabase(QSet<QString> &databaseSet);
 
-    void writeDatabase(const QString &key, const QString &value, bool &status);
+    void writeDatabase(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 
     void listDatatable(QSet<QString> &datatableSet);
 
-    void writeDatatable(const QString &key, const QString &value, bool &status);
+    void writeDatatable(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 };
-
-// int lua_databaseList(lua_State *L);
-//
-// int lua_databaseWrite(lua_State *L);
-//
-// int lua_databaseClear(lua_State *L);
-//
-// int lua_datatableList(lua_State *L);
-//
-// int lua_datatableWrite(lua_State *L);
-//
-// int lua_datatableClear(lua_State *L);
-//
-// int lua_datatableExport(lua_State *L);
-//
-// int lua_dataplotAppend(lua_State *L);
-//
-// int lua_dataplotRemove(lua_State *L);
 
 #endif //UNICOMM_LUADATAPROCESS_H

@@ -86,11 +86,12 @@ void DatabaseModule::databaseClear(const int index) {
     }
 }
 
-void DatabaseModule::databaseWrite(const QString &key, const QString &value, bool &status) {
+void DatabaseModule::databaseWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value) {
     if (!m_databaseHash.contains(key)) return;
     const auto index = m_databaseHash[key];
     g_databaseStandardItemModel->item(index, 1)->setText(value);
-    status = true;
+    *status = true;
+    eventloop->quit();
 }
 
 void DatabaseModule::databaseIndex() {

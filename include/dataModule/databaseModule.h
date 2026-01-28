@@ -32,7 +32,7 @@ public:
 
     Q_INVOKABLE void databaseClear(int index);
 
-    void databaseWrite(const QString &key, const QString &value, bool &status);
+    void databaseWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 
 signals:
     void appendLog(const QString &message, const QString &level);
