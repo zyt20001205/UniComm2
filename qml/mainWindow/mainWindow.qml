@@ -1855,7 +1855,6 @@ Item {
                 readOnly: true
                 textFormat: TextEdit.RichText
                 verticalAlignment: TextEdit.AlignTop
-                visible: text
                 wrapMode: Text.Wrap
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
 
@@ -1880,7 +1879,6 @@ Item {
                 readOnly: true
                 textFormat: TextEdit.MarkdownText
                 verticalAlignment: TextEdit.AlignTop
-                visible: text
                 wrapMode: Text.Wrap
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
 
@@ -1962,6 +1960,7 @@ Item {
 
             MenuItem {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[0] : ""
+                visible: text
 
                 onTriggered: {
                     scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
@@ -1971,6 +1970,7 @@ Item {
 
             MenuItem {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[1] : ""
+                visible: text
 
                 onTriggered: {
                     scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
@@ -1980,6 +1980,7 @@ Item {
 
             MenuItem {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[2] : ""
+                visible: text
 
                 onTriggered: {
                     scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
@@ -1989,6 +1990,7 @@ Item {
 
             MenuItem {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[3] : ""
+                visible: text
 
                 onTriggered: {
                     scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
@@ -1998,6 +2000,7 @@ Item {
 
             MenuItem {
                 text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[4] : ""
+                visible: text
 
                 onTriggered: {
                     scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)

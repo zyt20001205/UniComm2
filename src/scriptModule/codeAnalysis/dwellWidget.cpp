@@ -22,16 +22,26 @@ void DwellWidget::propertySet(const QVariantMap &objects) {
 void DwellWidget::diagnosticShow(const QVariantHash &diagnosticSession, const QString &message) {
     m_scriptUrl = diagnosticSession["scriptUrl"].toUrl();
     m_diagnosticTextArea->setProperty("text", message);
-    const auto position = diagnosticSession["position"].toPoint();
-    m_tooltip->setProperty("position", position);
-    QMetaObject::invokeMethod(m_tooltip, "open");
+    if (message.isEmpty()) {
+        m_diagnosticTextArea->setProperty("visible", false);
+    } else {
+        m_diagnosticTextArea->setProperty("visible", true);
+        const auto position = diagnosticSession["position"].toPoint();
+        m_tooltip->setProperty("position", position);
+        QMetaObject::invokeMethod(m_tooltip, "open");
+    }
 }
 
 void DwellWidget::hoverShow(const QVariantHash &hoverSession, const QString &message) const {
     m_hoverTextArea->setProperty("text", message);
-    const auto position = hoverSession["position"].toPoint();
-    m_tooltip->setProperty("position", position);
-    QMetaObject::invokeMethod(m_tooltip, "open");
+    if (message.isEmpty()) {
+        m_hoverTextArea->setProperty("visible", false);
+    } else {
+        m_hoverTextArea->setProperty("visible", true);
+        const auto position = hoverSession["position"].toPoint();
+        m_tooltip->setProperty("position", position);
+        QMetaObject::invokeMethod(m_tooltip, "open");
+    }
 }
 
 void DwellWidget::codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const {
