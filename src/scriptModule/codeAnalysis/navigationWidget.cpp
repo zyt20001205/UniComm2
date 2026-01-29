@@ -1,11 +1,6 @@
 #include "scriptModule/codeAnalysis/navigationWidget.h"
 
-#include <QJsonArray>
-#include <QLabel>
-#include <QListView>
 #include <QStandardItemModel>
-#include <QTimer>
-#include <QVBoxLayout>
 
 #include "globals.h"
 
