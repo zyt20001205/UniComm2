@@ -14,6 +14,8 @@ public:
 
     void breakpointLoad();
 
+    void regionLoad();
+
     void textSearch(const QString &text, int flag);
 
     void prevSearch();

@@ -438,7 +438,19 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 // ScriptPage private slots
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
-        if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
+        if (m_editorWidget->markersAtLine(line) & 1 << MARKER_REGION) {
+            const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
+            for (int current = line; current < m_editorWidget->lines(); ++current) {
+                const QString lineText = m_editorWidget->text(current);
+                if (lineText.contains("--#endregion")) {
+                    const int endPos = m_editorWidget->positionFromLineIndex(current, 0);
+                    qDebug() << m_editorWidget->text(startPos, endPos);
+                    return;
+                }
+            }
+            qDebug() << "error: --#endregion not found";
+        }
+        else if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             emit removeBreakpoint(m_scriptUrl, line + 1);
             emit removeMarker(m_scriptUrl, MARKER_BREAKPOINT, line);
         } else {
