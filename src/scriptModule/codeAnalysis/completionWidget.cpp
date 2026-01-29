@@ -97,6 +97,10 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
                     iconSource = "qrc:/icon/symbolKeyword.svg";
                 }
                 break;
+                case COMPLETION_KIND_SNIPPET: {
+                    iconSource = "qrc:/icon/symbolSnippet.svg";
+                }
+                    break;
                 case COMPLETION_KIND_FILE: {
                     iconSource = "qrc:/icon/symbolFile.svg";
                 }
@@ -105,6 +109,10 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
                     iconSource = "qrc:/icon/symbolEnumMember.svg";
                 }
                 break;
+                case COMPLETION_KIND_EVENT: {
+                    iconSource = "qrc:/icon/symbolEvent.svg";
+                }
+                    break;
                 default: {
                     iconSource = "qrc:/icon/symbolMisc.svg";
                     qDebug() << "WIP completion kind:" << kind << insertText;
