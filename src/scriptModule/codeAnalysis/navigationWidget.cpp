@@ -34,7 +34,7 @@ bool NavigationWidget::isVisible() const {
 
 void NavigationWidget::navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) {
     m_navigationSession = navigationSession;
-    int row = 0;
+    m_navigationModel->clear();
     for (const auto &value: navigations) {
         const QJsonObject navigation = value.toObject();
         QString uri = navigation["uri"].toString();
@@ -64,7 +64,6 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
             {"endCharacter", end["character"].toInt()}
         }), Qt::WhatsThisRole);
         m_navigationModel->appendRow(standardItem);
-        row++;
     }
     if (m_navigationModel->rowCount() > 0) {
         const auto position = navigationSession["position"].toPoint();
