@@ -1,5 +1,6 @@
 #include "scriptModule/codeAnalysis/navigationWidget.h"
 
+#include <QJsonArray>
 #include <QStandardItemModel>
 
 #include "globals.h"
