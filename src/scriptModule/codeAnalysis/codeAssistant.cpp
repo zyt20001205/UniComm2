@@ -45,6 +45,11 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
         {"scriptModuleDwellCodeActionMenu", objects["scriptModuleDwellCodeActionMenu"]},
         {"scriptModuleDwellSuggestionMenu", objects["scriptModuleDwellSuggestionMenu"]}
     });
+    m_navigationWidget->propertySet(QVariantMap{
+        {"scriptModuleNavigationToolTip", objects["scriptModuleNavigationToolTip"]},
+        {"scriptModuleNavigationTableView", objects["scriptModuleNavigationTableView"]},
+        {"scriptModuleNavigationDetailLabel", objects["scriptModuleNavigationDetailLabel"]}
+    });
     m_signatureWidget->propertySet(QVariantMap{
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
         {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
@@ -53,6 +58,7 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
 
 void CodeAssistant::fontSet(const QString &family, const int pointSize) const {
     m_completionWidget->fontSet(family, pointSize);
+    m_navigationWidget->fontSet(family, pointSize);
     m_signatureWidget->fontSet(family, pointSize);
 }
 
@@ -115,6 +121,9 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->completionPrev();
                     return true;
+                } else if (m_navigationWidget->isVisible()) {
+                    m_navigationWidget->navigationPrev();
+                    return true;
                 } else {
                     m_signatureWidget->signatureHide();
                     return false;
@@ -123,6 +132,9 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             case Qt::Key_Down: {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->completionNext();
+                    return true;
+                } else if (m_navigationWidget->isVisible()) {
+                    m_navigationWidget->navigationNext();
                     return true;
                 } else {
                     m_signatureWidget->signatureHide();
@@ -133,41 +145,23 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             case Qt::Key_Tab: {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->textReplace();
-                    m_completionWidget->completionHide();
                     return true;
-                }
-                else {
+                } else {
                     return false;
                 }
             }
-
+            // navigation keys
+            case Qt::Key_Return:
+            case Qt::Key_Enter: {
+                if (m_navigationWidget->isVisible()) {
+                    m_navigationWidget->indicatorInsert();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
             default:
                 return false;
-        }
-    }
-    if (m_navigationWidget->isVisible()) {
-        if (event->type() == QEvent::KeyPress) {
-            const auto *keyEvent = static_cast<QKeyEvent *>(event);
-            switch (keyEvent->key()) {
-                case Qt::Key_Up: {
-                    m_navigationWidget->navigationPrev();
-                }
-                    return true;
-                case Qt::Key_Down: {
-                    m_navigationWidget->navigationNext();
-                }
-                    return true;
-                case Qt::Key_Return:
-                case Qt::Key_Escape:
-                case Qt::Key_Backspace:
-                case Qt::Key_Left:
-                case Qt::Key_Right: {
-                    m_navigationWidget->navigationHide();
-                }
-                    return false;
-                default:
-                    return false;
-            }
         }
     }
     if (m_positionWidget->isVisible()) {

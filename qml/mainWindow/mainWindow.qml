@@ -2011,6 +2011,188 @@ Item {
     }
 
     ToolTip {
+        id: scriptModuleNavigationToolTip
+        parent: Overlay.overlay
+        x: position.x - 30; y: position.y
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+        property var navigationWidget
+
+        onAboutToShow: {
+            widgetCount += 1
+            scriptModuleNavigationDetailToolTip.open()
+            scriptModuleNavigationDetailTimer.restart()
+        }
+        onClosed: {
+            widgetCount -= 1
+            scriptModuleNavigationDetailToolTip.close()
+        }
+
+        contentItem: TableView {
+            id: scriptModuleNavigationTableView
+            anchors.fill: parent
+            anchors.margins: 6
+            implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            flickableDirection: Flickable.VerticalFlick
+            property int idealWidth; property int idealHeight
+            property int hoveredRow: -1
+            property int selectedRow: -1
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
+
+            delegate: Item {
+                implicitWidth: scriptModuleNavigationTableView.width; implicitHeight: textMetrics.height + 4
+                required property int row
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: "#ebebeb"
+                    opacity: hoverHandler.hovered ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: scriptModuleNavigationTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                }
+
+                TextMetrics {
+                    id: textMetrics
+                    font: scriptModuleNavigationToolTip.font
+                    text: model.display
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 0
+
+                    Item {
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                        Image {
+                            anchors.centerIn: parent
+                            width: 8; height: 8
+                            source: model.decoration
+                        }
+                    }
+
+                    Label {
+                        font: scriptModuleNavigationToolTip.font
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true; Layout.preferredHeight: 24
+                    }
+                }
+
+                HoverHandler {
+                    id: hoverHandler
+
+                    onPointChanged: scriptModuleNavigationTableView.hoveredRow = row
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            scriptModuleNavigationTableView.hoveredRow = -1
+                            scriptModuleNavigationDetailTimer.restart()
+                        }
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+
+                    onTapped: scriptModuleNavigationTableView.selectedRow = row
+                    onDoubleTapped: scriptModuleNavigationToolTip.navigationWidget.indicatorInsert()
+                }
+
+                Component.onCompleted: {
+                    scriptModuleNavigationTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, scriptModuleNavigationTableView.idealWidth)
+                    scriptModuleNavigationTableView.idealHeight = textMetrics.height + 4 + scriptModuleNavigationTableView.idealHeight
+                }
+            }
+
+            onHoveredRowChanged: scriptModuleNavigationDetailTimer.restart()
+
+            onSelectedRowChanged: {
+                positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+                scriptModuleNavigationDetailTimer.restart()
+            }
+
+            Timer {
+                id: scriptModuleNavigationDetailTimer
+                interval: 150
+
+                onTriggered: {
+                    var interestRow
+                    if (scriptModuleNavigationTableView.hoveredRow !== -1) {
+                        interestRow = scriptModuleNavigationTableView.hoveredRow
+                    } else {
+                        interestRow = scriptModuleNavigationTableView.selectedRow
+                    }
+                    scriptModuleNavigationToolTip.navigationWidget.detailReload(interestRow)
+                    const index = scriptModuleNavigationTableView.index(interestRow, 0);
+                    const item = scriptModuleNavigationTableView.itemAtIndex(index);
+                    if (item) {
+                        let idealY = item.mapToItem(scriptModuleNavigationTableView, 0, 0).y
+                        idealY = Math.max(0, idealY)
+                        idealY = Math.min(scriptModuleNavigationTableView.height - item.height, idealY)
+                        scriptModuleNavigationDetailToolTip.y = idealY - 6
+                    }
+                }
+            }
+
+            function navigationPrev() {
+                if (selectedRow > 0) {
+                    selectedRow = selectedRow - 1
+                }
+                // else {
+                //     selectedRow = model.rowCount() - 1
+                // }
+            }
+
+            function navigationNext() {
+                if (selectedRow < model.rowCount() - 1) {
+                    selectedRow = selectedRow + 1
+                }
+                // else {
+                //     selectedRow = 0
+                // }
+            }
+
+            Connections {
+                target: scriptModuleNavigationTableView.model
+
+                function onModelReset() {
+                    scriptModuleNavigationTableView.idealWidth = 0
+                    scriptModuleNavigationTableView.idealHeight = 0
+                    scriptModuleNavigationDetailTimer.restart()
+                }
+            }
+        }
+
+        ToolTip {
+            id: scriptModuleNavigationDetailToolTip
+            x: scriptModuleNavigationToolTip.width - 5
+
+            contentItem: Label {
+                id: scriptModuleNavigationDetailLabel
+                anchors.fill: parent
+                anchors.margins: 6
+            }
+        }
+    }
+    
+    ToolTip {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
         x: position.x; y: position.y - implicitHeight
@@ -2457,6 +2639,9 @@ Item {
             "scriptModuleDwellHoverTextArea": scriptModuleDwellHoverTextArea,
             "scriptModuleDwellCodeActionMenu": scriptModuleDwellCodeActionMenu,
             "scriptModuleDwellSuggestionMenu": scriptModuleDwellSuggestionMenu,
+            "scriptModuleNavigationToolTip": scriptModuleNavigationToolTip,
+            "scriptModuleNavigationTableView": scriptModuleNavigationTableView,
+            "scriptModuleNavigationDetailLabel": scriptModuleNavigationDetailLabel,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
 

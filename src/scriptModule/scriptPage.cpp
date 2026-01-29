@@ -250,12 +250,12 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
         const QJsonObject diagnostic = value.toObject();
         const int severity = diagnostic["severity"].toInt();
         const QJsonObject range = diagnostic["range"].toObject();
-        const QJsonObject startPos = range["start"].toObject();
-        const QJsonObject endPos = range["end"].toObject();
-        const int startLine = startPos["line"].toInt();
-        const int startCharacter = startPos["character"].toInt();
-        const int endLine = endPos["line"].toInt();
-        const int endCharacter = endPos["character"].toInt();
+        const QJsonObject start = range["start"].toObject();
+        const QJsonObject end = range["end"].toObject();
+        const int startLine = start["line"].toInt();
+        const int startCharacter = start["character"].toInt();
+        const int endLine = end["line"].toInt();
+        const int endCharacter = end["character"].toInt();
         m_editorWidget->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
     }
 }
@@ -633,12 +633,12 @@ void ScriptPage::hoverRequest() {
     for (const auto &value: m_scriptDiagnostic) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
-        const QJsonObject startPos = range["start"].toObject();
-        const QJsonObject endPos = range["end"].toObject();
-        const int startLine = startPos["line"].toInt();
-        const int startCharacter = startPos["character"].toInt();
-        const int endLine = endPos["line"].toInt();
-        const int endCharacter = endPos["character"].toInt();
+        const QJsonObject start = range["start"].toObject();
+        const QJsonObject end = range["end"].toObject();
+        const int startLine = start["line"].toInt();
+        const int startCharacter = start["character"].toInt();
+        const int endLine = end["line"].toInt();
+        const int endCharacter = end["character"].toInt();
         if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
             const int severity = diagnostic["severity"].toInt();
             QString severityString{};

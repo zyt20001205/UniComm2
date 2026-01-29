@@ -349,12 +349,12 @@ void ScriptModule::codeActionRequest(const QUrl &scriptUrl, const int lineFrom, 
     for (const auto &value: m_diagnosticsHash[scriptUrl]) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
-        const QJsonObject startPos = range["start"].toObject();
-        const QJsonObject endPos = range["end"].toObject();
-        const int startLine = startPos["line"].toInt();
-        const int startCharacter = startPos["character"].toInt();
-        const int endLine = endPos["line"].toInt();
-        const int endCharacter = endPos["character"].toInt();
+        const QJsonObject start = range["start"].toObject();
+        const QJsonObject end = range["end"].toObject();
+        const int startLine = start["line"].toInt();
+        const int startCharacter = start["character"].toInt();
+        const int endLine = end["line"].toInt();
+        const int endCharacter = end["character"].toInt();
         if (lineFrom == startLine && lineTo == endLine && indexFrom == startCharacter && indexTo == endCharacter) {
             diagnosticArray.append(diagnostic);
         }
@@ -461,10 +461,10 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "definition"},
@@ -603,10 +603,10 @@ void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArra
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "implementation"},
@@ -676,10 +676,10 @@ void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &r
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "reference"},
@@ -770,10 +770,10 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
     const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
     const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
     // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos) - 2;
+    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
     const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
     const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapToGlobal(QPoint(x, y));
+    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "typeDefinition"},

@@ -206,6 +206,7 @@ void CompletionWidget::textReplace() {
     } else if (kind == COMPLETION_KIND_FIELD) {
         emit addChar(m_completionSession["scriptUrl"].toUrl(), '.');
     }
+    completionHide();
 }
 
 void CompletionWidget::placeholderExpand(const QString &placeholder) const {
