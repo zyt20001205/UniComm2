@@ -26,11 +26,11 @@ public:
 
     void navigationHide() const;
 
-    void navigationPrev();
+    void navigationPrev() const;
 
-    void navigationNext();
+    void navigationNext() const;
 
-    Q_INVOKABLE void detailReload();
+    Q_INVOKABLE void detailReload(int index);
 
     Q_INVOKABLE void indicatorInsert();
 
@@ -49,6 +49,7 @@ private:
     QObject *m_label{};
     QVariantHash m_navigationSession{};
     QStandardItemModel *m_navigationModel{};
+    int m_detailIndex = -1;
 };
 
 #endif //UNICOMM_NAVIGATIONWIDGET_H

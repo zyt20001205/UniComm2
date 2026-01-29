@@ -84,20 +84,18 @@ void NavigationWidget::navigationHide() const {
     QMetaObject::invokeMethod(m_tooltip, "close");
 }
 
-void NavigationWidget::navigationPrev() {
+void NavigationWidget::navigationPrev() const {
     QMetaObject::invokeMethod(m_tableView, "navigationPrev");
-    detailReload();
 }
 
-void NavigationWidget::navigationNext() {
+void NavigationWidget::navigationNext() const {
     QMetaObject::invokeMethod(m_tableView, "navigationNext");
-    detailReload();
 }
 
-void NavigationWidget::detailReload() {
-    // const QUrl scriptUrl = m_navigationModel->data(index, Qt::UserRole + 1).toUrl();
-    // const int lineFrom = m_navigationModel->data(index, Qt::UserRole + 2).toInt();
-    // emit getText(scriptUrl, lineFrom, -1, -1, -1);
+void NavigationWidget::detailReload(const int index) {
+    m_detailIndex = index;
+    const auto position = m_navigationModel->item(m_detailIndex, 0)->data(Qt::WhatsThisRole).toHash();
+    emit getText(position["scriptUrl"].toUrl(), position["startLine"].toInt(), -1, -1, -1);
 }
 
 void NavigationWidget::indicatorInsert() {
@@ -119,17 +117,12 @@ void NavigationWidget::indicatorInsert() {
 }
 
 void NavigationWidget::navigationResponse(const QString &hint) const {
-    // const QModelIndex index = m_navigationListView->currentIndex();
-    // if (!index.isValid()) {
-    //     m_navigationLabel->hide();
-    //     return;
-    // }
-    // const int indexFrom = m_navigationModel->data(index, Qt::UserRole + 3).toInt();
-    // const int indexTo = m_navigationModel->data(index, Qt::UserRole + 5).toInt();
-    // const auto hintText = QString("<span style='white-space: pre;'>%1<span style='color: orange;'>%2</span>%3</span>").arg(
-    //     hint.left(indexFrom).toHtmlEscaped(),
-    //     hint.mid(indexFrom, indexTo - indexFrom).toHtmlEscaped(),
-    //     hint.mid(indexTo).toHtmlEscaped());
-    // m_navigationLabel->setText(hintText);
-    // m_navigationLabel->show();
+    const auto position = m_navigationModel->item(m_detailIndex, 0)->data(Qt::WhatsThisRole).toHash();
+    const int startCharacter = position["startCharacter"].toInt();
+    const int endCharacter = position["endCharacter"].toInt();
+    const auto hintText = QString("<span style='white-space: pre;'>%1<span style='color: orange;'>%2</span>%3</span>").arg(
+        hint.left(startCharacter).toHtmlEscaped(),
+        hint.mid(startCharacter, endCharacter - startCharacter).toHtmlEscaped(),
+        hint.mid(endCharacter).toHtmlEscaped());
+    m_label->setProperty("text", hintText);
 }

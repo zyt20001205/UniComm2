@@ -2188,6 +2188,8 @@ Item {
                 id: scriptModuleNavigationDetailLabel
                 anchors.fill: parent
                 anchors.margins: 6
+                font: scriptModuleNavigationToolTip.font
+                textFormat: Text.RichText
             }
         }
     }
