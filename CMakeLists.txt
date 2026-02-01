@@ -49,7 +49,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/luaModule/luaModbusAscii.h
         include/luaModule/luaModbusRtu.h
         include/luaModule/luaPort.h
-        include/luaModule/luaSMTP.h
+        include/luaModule/luaSmtp.h
         include/luaModule/luaThread.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
@@ -114,7 +114,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/luaModule/luaModbusAscii.cpp
         src/luaModule/luaModbusRtu.cpp
         src/luaModule/luaPort.cpp
-        src/luaModule/luaSMTP.cpp
+        src/luaModule/luaSmtp.cpp
         src/luaModule/luaThread.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
