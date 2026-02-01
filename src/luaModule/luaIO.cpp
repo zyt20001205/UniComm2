@@ -44,10 +44,9 @@ void LuaIO::log(const sol::variadic_args &args) {
 }
 
 void LuaIO::message(const std::string &text) const {
-    auto *eventloop = new QEventLoop();
-    emit newMessageDialog(eventloop, QString::fromStdString(text));
+    const auto eventloop = std::make_unique<QEventLoop>();
+    emit newMessageDialog(eventloop.get(), QString::fromStdString(text));
     eventloop->exec();
-    delete eventloop;
 }
 
 void LuaIO::speak(const std::string &text) {

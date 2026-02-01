@@ -45,11 +45,13 @@ signals:
 
     void listDatabase(QSet<QString> &databaseSet);
 
-    void writeDatabase(const QString &key, const QString &value, bool &status);
+    void writeDatabase(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 
     void listDatatable(QSet<QString> &datatableSet);
 
-    void writeDatatable(const QString &key, const QString &value, bool &status);
+    void writeDatatable(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
+
+    void exportDatatable(const QString &fileName);
 
     void appendLog(const QString &message, const QString &level);
 

@@ -1,6 +1,5 @@
 #include "scriptModule/codeEditor/editorWidget.h"
 
-#include <QMenu>
 #include <QMessageBox>
 
 #include "globals.h"
@@ -21,26 +20,15 @@ EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
     setContextMenuPolicy(Qt::NoContextMenu);
     setFrameStyle(NoFrame);
     // set markers
+    markerDefine(RightTriangle, MARKER_REGION);
+    setMarkerBackgroundColor(Qt::cyan, MARKER_REGION);
+    setMarkerForegroundColor(Qt::cyan, MARKER_REGION);
+
     markerDefine(Background, MARKER_ERROR);
     setMarkerBackgroundColor(QColor(255, 230, 230), MARKER_ERROR);
 
     markerDefine(Background, MARKER_HINT);
     setMarkerBackgroundColor(Qt::cyan, MARKER_HINT);
-
-    markerDefine(Background, MARKER_HEATMAP0);
-    setMarkerBackgroundColor(QColor(235, 245, 235), MARKER_HEATMAP0);
-
-    markerDefine(Background, MARKER_HEATMAP25);
-    setMarkerBackgroundColor(QColor(175, 225, 175), MARKER_HEATMAP25);
-
-    markerDefine(Background, MARKER_HEATMAP50);
-    setMarkerBackgroundColor(QColor(110, 200, 110), MARKER_HEATMAP50);
-
-    markerDefine(Background, MARKER_HEATMAP75);
-    setMarkerBackgroundColor(QColor(40, 160, 40), MARKER_HEATMAP75);
-
-    markerDefine(Background, MARKER_HEATMAP100);
-    setMarkerBackgroundColor(QColor(20, 100, 20), MARKER_HEATMAP100);
 
     // set margins
     setMarginType(0, NumberMargin);
@@ -100,13 +88,26 @@ EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
     m_typeTimer->setSingleShot(true);
     connect(m_typeTimer, &QTimer::timeout, this, &EditorWidget::requestIdle);
     // load breakpoints
-    QTimer::singleShot(0, this, [this] { breakpointLoad(); });
+    QTimer::singleShot(0, this, [this] {
+        breakpointLoad();
+        // regionLoad();
+    });
 }
 
 void EditorWidget::breakpointLoad() {
     if (g_breakpoints.contains(m_scriptUrl)) {
         for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
             markerInsert(MARKER_BREAKPOINT, line - 1);
+        }
+    }
+}
+
+// TODO: To be added in the near future!
+void EditorWidget::regionLoad() {
+    for (int line = 1; line < lines(); ++line) {
+        const QString lineText = text(line);
+        if (lineText.contains("--#region")) {
+            markerInsert(MARKER_REGION, line);
         }
     }
 }
@@ -201,6 +202,7 @@ void EditorWidget::selectionGet(int &indexFrom, int &indexTo, int &lineFrom, int
 void EditorWidget::textSet(const QString &text) {
     setText(text);
     breakpointLoad();
+    // regionLoad();
 }
 
 void EditorWidget::textInsert(const QString &text, const int line, const int index) {

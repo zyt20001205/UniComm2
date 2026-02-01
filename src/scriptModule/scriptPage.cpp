@@ -250,12 +250,12 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
         const QJsonObject diagnostic = value.toObject();
         const int severity = diagnostic["severity"].toInt();
         const QJsonObject range = diagnostic["range"].toObject();
-        const QJsonObject startPos = range["start"].toObject();
-        const QJsonObject endPos = range["end"].toObject();
-        const int startLine = startPos["line"].toInt();
-        const int startCharacter = startPos["character"].toInt();
-        const int endLine = endPos["line"].toInt();
-        const int endCharacter = endPos["character"].toInt();
+        const QJsonObject start = range["start"].toObject();
+        const QJsonObject end = range["end"].toObject();
+        const int startLine = start["line"].toInt();
+        const int startCharacter = start["character"].toInt();
+        const int endLine = end["line"].toInt();
+        const int endCharacter = end["character"].toInt();
         m_editorWidget->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
     }
 }
@@ -438,7 +438,19 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 // ScriptPage private slots
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
-        if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
+        if (m_editorWidget->markersAtLine(line) & 1 << MARKER_REGION) {
+            const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
+            for (int current = line; current < m_editorWidget->lines(); ++current) {
+                const QString lineText = m_editorWidget->text(current);
+                if (lineText.contains("--#endregion")) {
+                    const int endPos = m_editorWidget->positionFromLineIndex(current, 0);
+                    qDebug() << m_editorWidget->text(startPos, endPos);
+                    return;
+                }
+            }
+            qDebug() << "error: --#endregion not found";
+        }
+        else if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             emit removeBreakpoint(m_scriptUrl, line + 1);
             emit removeMarker(m_scriptUrl, MARKER_BREAKPOINT, line);
         } else {
@@ -633,12 +645,12 @@ void ScriptPage::hoverRequest() {
     for (const auto &value: m_scriptDiagnostic) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
-        const QJsonObject startPos = range["start"].toObject();
-        const QJsonObject endPos = range["end"].toObject();
-        const int startLine = startPos["line"].toInt();
-        const int startCharacter = startPos["character"].toInt();
-        const int endLine = endPos["line"].toInt();
-        const int endCharacter = endPos["character"].toInt();
+        const QJsonObject start = range["start"].toObject();
+        const QJsonObject end = range["end"].toObject();
+        const int startLine = start["line"].toInt();
+        const int startCharacter = start["character"].toInt();
+        const int endLine = end["line"].toInt();
+        const int endCharacter = end["character"].toInt();
         if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
             const int severity = diagnostic["severity"].toInt();
             QString severityString{};

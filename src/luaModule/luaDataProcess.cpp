@@ -18,7 +18,8 @@ std::vector<std::string> LuaDataProcess::databaseList() {
 }
 
 void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
-    bool status = false;
+    const auto eventloop = std::make_unique<QEventLoop>();
+    const auto status = std::make_unique<bool>();
     QString valueStr{};
     switch (value.get_type()) {
         case sol::type::boolean: {
@@ -28,8 +29,6 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
         case sol::type::number: {
             if (value.is<int>()) {
                 valueStr = QString::number(value.as<int>());
-            } else if (value.is<double>()) {
-                valueStr = QString::number(value.as<double>());
             } else {
                 valueStr = QString::number(value.as<double>());
             }
@@ -44,8 +43,9 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
         }
         break;
     }
-    emit writeDatabase(QString::fromStdString(key), valueStr, status);
-    if (!status) {
+    emit writeDatabase(eventloop.get(), status.get(), QString::fromStdString(key), valueStr);
+    eventloop->exec();
+    if (!*status) {
         throw sol::error("failed to write to database key: " + key);
     }
 }
@@ -61,7 +61,8 @@ std::vector<std::string> LuaDataProcess::datatableList() {
 }
 
 void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {
-    bool status = false;
+    const auto eventloop = std::make_unique<QEventLoop>();
+    const auto status = std::make_unique<bool>();
     QString valueStr{};
     switch (value.get_type()) {
         case sol::type::boolean: {
@@ -71,8 +72,6 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
         case sol::type::number: {
             if (value.is<int>()) {
                 valueStr = QString::number(value.as<int>());
-            } else if (value.is<double>()) {
-                valueStr = QString::number(value.as<double>());
             } else {
                 valueStr = QString::number(value.as<double>());
             }
@@ -87,8 +86,13 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
         }
         break;
     }
-    emit writeDatabase(QString::fromStdString(key), valueStr, status);
-    if (!status) {
+    emit writeDatatable(eventloop.get(), status.get(), QString::fromStdString(key), valueStr);
+    eventloop->exec();
+    if (!*status) {
         throw sol::error("failed to write to datatable key: " + key);
     }
+}
+
+void LuaDataProcess::datatableExport(const std::string &fileName) {
+    emit exportDatatable(QString::fromStdString(fileName));
 }

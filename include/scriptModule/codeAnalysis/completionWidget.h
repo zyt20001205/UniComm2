@@ -1,12 +1,9 @@
 #ifndef UNICOMM_COMPLETIONPOPUP_H
 #define UNICOMM_COMPLETIONPOPUP_H
 
-#include <QSortFilterProxyModel>
-#include <QWidget>
+#include <QObject>
+#include <QSet>
 
-class QLabel;
-class QListView;
-class QPushButton;
 class QStandardItemModel;
 
 class CompletionWidget final : public QObject {

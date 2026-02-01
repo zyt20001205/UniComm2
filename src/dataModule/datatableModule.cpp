@@ -103,12 +103,17 @@ void DatatableModule::datatableClear() {
     g_datatableStandardItemModel->clear();
 }
 
-void DatatableModule::datatableExport() {
+void DatatableModule::datatableExport(const QString &fileName) {
     const auto workspacePath = g_workspaceUrl.toLocalFile();
-    const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-    const auto filePath = QDir(workspacePath).filePath(defaultName);
+    QString filePath{};
+    if (fileName.isEmpty()) {
+        const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+        filePath = QDir(workspacePath).filePath(defaultName);
+    } else {
+        filePath = QDir(workspacePath).filePath(fileName + ".csv");
+    }
     QFile file(filePath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
     QTextStream out(&file);
     // write header
     QStringList keyList{};
@@ -138,14 +143,15 @@ void DatatableModule::datatableExport() {
     qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
-void DatatableModule::datatableWrite(const QString &key, const QString &value, bool &status) {
+void DatatableModule::datatableWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value) {
     if (!m_datatableHash.contains(key)) return;
     const auto col = m_datatableHash[key];
     const auto row = m_datatableSession[key]["length"].toInt();
     auto *item = new QStandardItem(value); // NOLINT
     g_datatableStandardItemModel->setItem(row, col, item);
     m_datatableSession[key]["length"] = m_datatableSession[key]["length"].toInt() + 1;
-    status = true;
+    *status = true;
+    eventloop->quit();
 }
 
 // DatatableModule private

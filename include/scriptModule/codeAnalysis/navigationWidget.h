@@ -1,13 +1,14 @@
 #ifndef UNICOMM_NAVIGATIONWIDGET_H
 #define UNICOMM_NAVIGATIONWIDGET_H
 
-#include <QWidget>
+#include <QHash>
+#include <QObject>
 
 class QLabel;
 class QListView;
 class QStandardItemModel;
 
-class NavigationWidget final : public QWidget {
+class NavigationWidget final : public QObject {
     Q_OBJECT
 
 public:
@@ -15,13 +16,23 @@ public:
 
     ~NavigationWidget() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
+    void fontSet(const QString &family, int pointSize) const;
+
+    bool isVisible() const;
+
     void navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations);
 
-    void navigationHide();
+    void navigationHide() const;
 
-    void navigationPrev();
+    void navigationPrev() const;
 
-    void navigationNext();
+    void navigationNext() const;
+
+    Q_INVOKABLE void detailReload(int index);
+
+    Q_INVOKABLE void indicatorInsert();
 
     void navigationResponse(const QString &hint) const;
 
@@ -32,27 +43,13 @@ signals:
 
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-protected:
-    void hideEvent(QHideEvent *event) override;
-
-    void leaveEvent(QEvent *event) override;
-
 private:
-    void navigationJump(const QModelIndex &index);
-
-    void navigationRequest();
-
+    QObject *m_tooltip{};
+    QObject *m_tableView{};
+    QObject *m_label{};
     QVariantHash m_navigationSession{};
-    QListView *m_navigationListView{};
     QStandardItemModel *m_navigationModel{};
-    QLabel *m_navigationLabel{};
-
-    enum {
-        DEFINITION,
-        IMPLEMENTATION,
-        REFERENCES,
-        TYPEDEFINITION
-    };
+    int m_detailIndex = -1;
 };
 
 #endif //UNICOMM_NAVIGATIONWIDGET_H

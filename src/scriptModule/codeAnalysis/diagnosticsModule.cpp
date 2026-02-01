@@ -46,14 +46,14 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QJsonObject diagnostic = value.toObject();
         // range
         const QJsonObject range = diagnostic["range"].toObject();
-        const QJsonObject startPos = range["start"].toObject();
-        const QJsonObject endPos = range["end"].toObject();
+        const QJsonObject start = range["start"].toObject();
+        const QJsonObject end = range["end"].toObject();
         const QVariantHash position = {
             {"scriptUrl", scriptUrl},
-            {"startLine", startPos["line"].toInt()},
-            {"startCharacter", startPos["character"].toInt()},
-            {"endLine", endPos["line"].toInt()},
-            {"endCharacter", endPos["character"].toInt()}
+            {"startLine", start["line"].toInt()},
+            {"startCharacter", start["character"].toInt()},
+            {"endLine", end["line"].toInt()},
+            {"endCharacter", end["character"].toInt()}
         };
         // information
         const int severity = diagnostic["severity"].toInt();
