@@ -8,7 +8,6 @@
 
 class QEventLoop;
 class QStandardItemModel;
-
 class LuaDataProcess;
 class LuaIO;
 class LuaModbusAscii;
