@@ -5,7 +5,6 @@
 #include <sol/sol.hpp>
 
 #include "globals.h"
-#include "luaModule/luaAT.h"
 #include "luaModule/luaControl.h"
 #include "luaModule/luaDataProcess.h"
 #include "luaModule/luaIO.h"
@@ -21,37 +20,21 @@
 LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
-      m_luaAT(new LuaAT(this)),
       m_luaDataProcess(new LuaDataProcess(this)),
       m_luaIO(new LuaIO(this)),
       m_luaModbusAscii(new LuaModbusAscii(this)),
       m_luaModbusRtu(new LuaModbusRtu(this)),
       m_luaPort(new LuaPort(this)),
-      m_luaSMTP(new LuaSMTP(this)),
+      m_luaSmtp(new LuaSmtp(this)),
       m_luaThread(new LuaThread(this)) {
     // standard lib
     m_lua.open_libraries();
     // add workspace to search path
     sol::table package = m_lua["package"];
-    const std::string current_path = package["path"];
+    const std::string currentPath = package["path"];
     const QString workspacePath = QString("%1/?.lua").arg(m_luaSession["workspaceUrl"].toUrl().toLocalFile());
-    const QString new_path = QString("%1;%2").arg(QString::fromStdString(current_path), workspacePath);
-    package["path"] = new_path.toStdString();
-    // LuaAT lib
-    sol::table AT = m_lua.create_table();
-    AT.set_function("exec", [this](const std::string &portName, const std::string &command, const sol::optional<std::string> &peerIp) {
-        m_luaAT->exec(portName, command, peerIp.value_or(""));
-    });
-    AT.set_function("read", [this](const std::string &portName, const std::string &command, const sol::optional<std::string> &peerIp) {
-        m_luaAT->read(portName, command, peerIp.value_or(""));
-    });
-    AT.set_function("set", [this](const std::string &portName, const std::string &command, const std::string &data, const sol::optional<std::string> &peerIp) {
-        m_luaAT->set(portName, command, data, peerIp.value_or(""));
-    });
-    AT.set_function("test", [this](const std::string &portName, const std::string &command, const sol::optional<std::string> &peerIp) {
-        m_luaAT->test(portName, command, peerIp.value_or(""));
-    });
-    m_lua["AT"] = AT;
+    const QString newPath = QString("%1;%2").arg(QString::fromStdString(currentPath), workspacePath);
+    package["path"] = newPath.toStdString();
     // LuaDataProcess lib
     sol::table database = m_lua.create_table();
     database.set_function("list", [this] { return sol::as_table(m_luaDataProcess->databaseList()); });
@@ -124,18 +107,18 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                       });
     m_lua["port"] = port;
     connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
-    // LuaSMTP lib
-    sol::table SMTP = m_lua.create_table();
-    SMTP.set_function("ehlo", [this](const std::string &portName) { m_luaSMTP->ehlo(portName); });
-    SMTP.set_function("authLogin", [this](const std::string &portName, const std::string &username, const std::string &password) {
-        m_luaSMTP->authLogin(portName, username, password);
+    // LuaSmtp lib
+    sol::table smtp = m_lua.create_table();
+    smtp.set_function("ehlo", [this](const std::string &portName) { m_luaSmtp->ehlo(portName); });
+    smtp.set_function("authLogin", [this](const std::string &portName, const std::string &username, const std::string &password) {
+        m_luaSmtp->authLogin(portName, username, password);
     });
-    SMTP.set_function("mail",
+    smtp.set_function("mail",
                       [this](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
                              const sol::optional<std::string> &attachment) {
-                          m_luaSMTP->mail(portName, from, to, subject, body, attachment.value_or(""));
+                          m_luaSmtp->mail(portName, from, to, subject, body, attachment.value_or(""));
                       });
-    m_lua["SMTP"] = SMTP;
+    m_lua["smtp"] = smtp;
     // LuaThread lib
     sol::table thread = m_lua.create_table();
     thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_luaThread->start(ts, scriptPath); });

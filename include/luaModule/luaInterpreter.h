@@ -9,13 +9,12 @@
 class QEventLoop;
 class QStandardItemModel;
 
-class LuaAT;
 class LuaDataProcess;
 class LuaIO;
 class LuaModbusAscii;
 class LuaModbusRtu;
 class LuaPort;
-class LuaSMTP;
+class LuaSmtp;
 class LuaThread;
 
 class LuaInterpreter final : public QObject {
@@ -74,13 +73,12 @@ private:
 
     sol::state m_lua{};
     QVariantMap m_luaSession{};
-    LuaAT *m_luaAT{};
     LuaDataProcess *m_luaDataProcess{};
     LuaIO *m_luaIO{};
     LuaModbusAscii *m_luaModbusAscii{};
     LuaModbusRtu *m_luaModbusRtu{};
     LuaPort *m_luaPort{};
-    LuaSMTP *m_luaSMTP{};
+    LuaSmtp *m_luaSmtp{};
     LuaThread *m_luaThread{};
 };
 

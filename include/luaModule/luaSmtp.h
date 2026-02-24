@@ -3,13 +3,13 @@
 
 #include <QObject>
 
-class LuaSMTP final : public QObject {
+class LuaSmtp final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaSMTP(QObject *parent = nullptr);
+    explicit LuaSmtp(QObject *parent = nullptr);
 
-    ~LuaSMTP() override = default;
+    ~LuaSmtp() override = default;
 
     void ehlo(const std::string &portName);
 

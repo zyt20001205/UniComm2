@@ -40,40 +40,6 @@
 --- | '"Y"'
 --- | '"Z"'
 
-AT = {}
---- Executes an action.
---- @param name portName Target port name.
---- @param command string The command to exec.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
---- @return nil
----
-function AT.exec(name, command, peerIp) end
-
---- Returns the current value of the parameter(s).
---- @param name portName Target port name.
---- @param command string The command to read.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
---- @return nil
----
-function AT.read(name, command, peerIp) end
-
---- Sets the parameter values.
---- @param name portName Target port name.
---- @param command string The command to set.
---- @param value string The value to be written.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
---- @return nil
----
-function AT.set(name, command, value, peerIp) end
-
---- Returns the supported parameter values or value range.
---- @param name portName Target port name.
---- @param command string The command to test.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, broadcast to all connected clients.
---- @return nil
----
-function AT.test(name, command, peerIp) end
-
 database = {}
 --- Retrieves a list of all available database keys.
 --- @return table
@@ -257,18 +223,18 @@ function port.write(name, data, peerIp) end
 --- port.read("COM3", 100)
 function port.read(name, timeout, length, peerIp) end
 
-SMTP = {}
+smtp = {}
 --- Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
 --- @param name portName Target port name.
 ---
-function SMTP.ehlo(name) end
+function smtp.ehlo(name) end
 
 --- Send AUTH LOGIN command to authenticate with SMTP server.
 --- @param name portName Target port name.
 --- @param username string SMTP username/email address.
 --- @param password string SMTP password.
 ---
-function SMTP.authLogin(name, username, password) end
+function smtp.authLogin(name, username, password) end
 
 --- Send a simple email.
 --- @param name portName Target port name.
@@ -278,7 +244,7 @@ function SMTP.authLogin(name, username, password) end
 --- @param body string
 --- @param attachment? string Path to the attachment.
 ---
-function SMTP.mail(name, from, to,  subject, body, attachment) end
+function smtp.mail(name, from, to,  subject, body, attachment) end
 
 thread = {}
 --- Spawns a thread using the given file path.
