@@ -372,6 +372,11 @@ set(QSCINTILLA_INCLUDE "${QSCINTILLA_DIR}/include")
 file(GLOB QSCINTILLA_LIB "${QSCINTILLA_DIR}/lib/*.a")
 set(QSCINTILLA_BIN "${QSCINTILLA_DIR}/bin")
 
+set(SCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/scintilla-5.5.9")
+set(SCINTILLA_INCLUDE "${SCINTILLA_DIR}/include")
+file(GLOB SCINTILLA_LIB "${SCINTILLA_DIR}/lib/*.a")
+set(SCINTILLA_BIN "${SCINTILLA_DIR}/bin")
+
 set(SOL2_DIR "${CMAKE_SOURCE_DIR}/3rd/sol2-3.5.0")
 set(SOL2_INCLUDE "${SOL2_DIR}/include")
 
@@ -526,12 +531,18 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${OPENCV_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "OPENCV BIN COPIED")
-#qscintilla-5.4.8
+#qscintilla-2.14.1
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${QSCINTILLA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "QSCINTILLA BIN COPIED")
+#scintilla-5.5.9
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${SCINTILLA_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "SCINTILLA BIN COPIED")
 #tesseract-5.5.1
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
