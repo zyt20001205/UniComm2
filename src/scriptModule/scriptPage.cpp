@@ -44,21 +44,23 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->setSpacing(0);
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_scintillaWidget);
-    layout->addWidget(m_editorWidget); {
+    layout->addWidget(m_editorWidget);
+    // TODO: replace qscintilla with scintilla
+    {
         // font
-        m_scintillaWidget->setFontN(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        m_scintillaWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
         // indicator
 
         // margin
         {
-            m_scintillaWidget->setMargin(
+            m_scintillaWidget->marginSet(
                 0,
                 QJsonObject{
                     {"type", 1},
                     {"width", 32},
                     {"back", 0x00ffff}
                 });
-            m_scintillaWidget->setMargin(
+            m_scintillaWidget->marginSet(
                 1,
                 QJsonObject{
                     {"type", 0},
@@ -72,7 +74,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             // QsciScintilla::setMarginWidth(2, 16);
             // QsciScintilla::setMarginSensitivity(2, true);
             // QsciScintilla::setFolding(CircledTreeFoldStyle);
-            m_scintillaWidget->setMargin(
+            m_scintillaWidget->marginSet(
                 3,
                 QJsonObject{
                     {"type", 6},
@@ -82,21 +84,35 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         }
         // marker
         {
-            m_scintillaWidget->setMarker(
+            m_scintillaWidget->markerSet(
                 MARKER_REGION,
                 QJsonObject{
                     {"symbol", 2},
                     {"fore", 0x00ffff},
                     {"back", 0x00ffff}
                 });
-            m_scintillaWidget->setMarker(
+            m_scintillaWidget->markerSet(
+                MARKER_BREAKPOINT,
+                QJsonObject{
+                    {"symbol", 0},
+                    {"fore", 0x0000ff},
+                    {"back", 0x0000ff}
+                });
+            m_scintillaWidget->markerSet(
+                MARKER_DEBUG,
+                QJsonObject{
+                    {"symbol", 2},
+                    {"fore", 0x000000},
+                    {"back", 0xa500ff}
+                });
+            m_scintillaWidget->markerSet(
                 MARKER_ERROR,
                 QJsonObject{
                     {"symbol", 22},
                     {"fore", 0xffe6e6},
                     {"back", 0xffe6e6}
                 });
-            m_scintillaWidget->setMarker(
+            m_scintillaWidget->markerSet(
                 MARKER_HINT,
                 QJsonObject{
                     {"symbol", 22},
@@ -104,6 +120,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"back", 0xffe6e6}
                 });
         }
+        // script
         const QUrl &url(m_scriptUrl);
         const QString scriptPath = url.toLocalFile();
         QFile file(scriptPath);
@@ -112,9 +129,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         const QString script = in.readAll();
         file.close();
         m_scintillaWidget->setText(script.toUtf8().constData());
-    }
-    // TODO: replace qscintilla with scintilla
-    {
+        // signals
+        connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClicked);
+    } {
         // font
         m_editorWidget->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
         // indicator diagnostic
@@ -528,6 +545,30 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
         } else {
             emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
             emit insertMarker(m_scriptUrl, MARKER_BREAKPOINT, line, -1);
+        }
+    }
+}
+
+void ScriptPage::marginClicked(const Scintilla::Position position, Scintilla::KeyMod modifiers, const int margin) {
+    const int line = m_scintillaWidget->send(SCI_LINEFROMPOSITION, position);
+    if (margin == 1 && line >= 0) {
+        if (m_scintillaWidget->send(SCI_MARKERGET, line) & 1 << MARKER_REGION) {
+            const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
+            for (int current = line; current < m_editorWidget->lines(); ++current) {
+                const QString lineText = m_editorWidget->text(current);
+                if (lineText.contains("--#endregion")) {
+                    const int endPos = m_editorWidget->positionFromLineIndex(current, 0);
+                    qDebug() << m_editorWidget->text(startPos, endPos);
+                    return;
+                }
+            }
+            qDebug() << "error: --#endregion not found";
+        } else if (m_scintillaWidget->send(SCI_MARKERGET, line) & 1 << MARKER_BREAKPOINT) {
+            // emit removeBreakpoint(m_scriptUrl, line + 1);
+            m_scintillaWidget->markerDelete(MARKER_BREAKPOINT, line);
+        } else {
+            // emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
+            m_scintillaWidget->markerAdd(MARKER_BREAKPOINT, line, -1);
         }
     }
 }

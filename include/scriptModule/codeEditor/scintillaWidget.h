@@ -13,13 +13,17 @@ public:
 
     ~ScintillaWidget() override = default;
 
-    void setFontN(const QFont &font);
+    void fontSet(const QFont &font);
 
-    void setIndicator(int indicator, const QJsonObject &config) const;
+    void indicatorSet(int indicator, const QJsonObject &config) const;
 
-    void setMargin(int margin, const QJsonObject &config) const;
+    void marginSet(int margin, const QJsonObject &config) const;
 
-    void setMarker(int marker, const QJsonObject &config) const;
+    void markerSet(int marker, const QJsonObject &config) const;
+
+    void markerAdd(int marker, int line, int time) const;
+
+    void markerDelete(int marker, int line) const;
 
 private:
 };

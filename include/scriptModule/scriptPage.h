@@ -5,6 +5,8 @@
 #include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
+#include "ScintillaTypes.h"
+
 class QFileSystemWatcher;
 class QLabel;
 class QLineEdit;
@@ -112,6 +114,8 @@ private slots:
     void marginClick(int margin, int line, Qt::KeyboardModifiers state);
 
 private:
+    void marginClicked(Scintilla::Position position, Scintilla::KeyMod modifiers, int margin);
+
     void scriptReadonly(bool status);
 
     void scriptModify(bool status);

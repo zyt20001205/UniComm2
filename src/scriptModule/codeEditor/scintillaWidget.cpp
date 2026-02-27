@@ -12,12 +12,12 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     styleSetBack(STYLE_LINENUMBER, 0xffffff);
 }
 
-void ScintillaWidget::setFontN(const QFont &font) {
+void ScintillaWidget::fontSet(const QFont &font) {
     styleSetFont(STYLE_DEFAULT, font.family().toUtf8().constData());
     styleSetSize(STYLE_DEFAULT, font.pointSize());
 }
 
-void ScintillaWidget::setIndicator(const int indicator, const QJsonObject &config) const {
+void ScintillaWidget::indicatorSet(const int indicator, const QJsonObject &config) const {
     if (config.contains("style")) send(SCI_INDICSETSTYLE, indicator, config["style"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_INDICSETFORE, indicator, config["fore"].toInt()); // NOLINT
     if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, indicator, config["strokeWidth"].toInt()); // NOLINT
@@ -29,7 +29,7 @@ void ScintillaWidget::setIndicator(const int indicator, const QJsonObject &confi
     // if (config.contains("flags")) send(SCI_INDICSETFLAGS, indicator, config["flags"].toInt()); // NOLINT
 }
 
-void ScintillaWidget::setMargin(const int margin, const QJsonObject &config) const {
+void ScintillaWidget::marginSet(const int margin, const QJsonObject &config) const {
     if (config.contains("type")) send(SCI_SETMARGINTYPEN, margin, config["type"].toInt()); // NOLINT
     if (config.contains("width")) send(SCI_SETMARGINWIDTHN, margin, config["width"].toInt()); // NOLINT
     // if (config.contains("mask")) send(SCI_SETMARGINMASKN, margin, config["mask"].toInt()); // NOLINT
@@ -46,7 +46,7 @@ void ScintillaWidget::setMargin(const int margin, const QJsonObject &config) con
     // if (config.contains("options")) send(SCI_SETMARGINOPTIONS, margin, config["options"].toInt()); // NOLINT
 }
 
-void ScintillaWidget::setMarker(const int marker, const QJsonObject &config) const {
+void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) const {
     if (config.contains("symbol")) send(SCI_MARKERDEFINE, marker, config["style"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_MARKERSETFORE, marker, config["fore"].toInt()); // NOLINT
     // if (config.contains("foreTranslucent")) send(SCI_MARKERSETFORETRANSLUCENT, marker, config["foreTranslucent"].toInt()); // NOLINT
@@ -58,4 +58,15 @@ void ScintillaWidget::setMarker(const int marker, const QJsonObject &config) con
     // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, marker, config["enableHighlight"].toBool()); // NOLINT
     // if (config.contains("layer")) send(SCI_MARKERSETLAYER, marker, config["layer"].toInt()); // NOLINT
     // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, marker, config["alpha"].toInt()); // NOLINT
+}
+
+void ScintillaWidget::markerAdd(const int marker, const int line, const int time) const {
+    send(SCI_MARKERADD, line, marker); // NOLINT
+    if (time != -1) {
+
+    }
+}
+
+void ScintillaWidget::markerDelete(const int marker, const int line) const {
+    send(SCI_MARKERDELETE, line, marker); // NOLINT
 }
