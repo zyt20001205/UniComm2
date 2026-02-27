@@ -10,10 +10,10 @@
 #include <QShortcut>
 #include <QVBoxLayout>
 #include <kddockwidgets/core/DockWidget.h>
-#include <kddockwidgets/core/Group.h>
 
 #include "globals.h"
 #include "scriptModule/codeEditor/editorWidget.h"
+#include "scriptModule/codeEditor/scintillaWidget.h"
 #include "scriptModule/codeEditor/searchWidget.h"
 #include "utils/cmarkUtils.h"
 #include "utils/qtUtils.h"
@@ -24,6 +24,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_editorWidget(new EditorWidget(scriptUrl)),
       m_scriptUrl(scriptUrl),
       m_fileWatcher(new QFileSystemWatcher()),
+      m_scintillaWidget(new ScintillaWidget(scriptUrl)),
       m_searchWidget(new SearchWidget()),
       m_completionTrigger{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpTrigger{'(', ','},
@@ -42,93 +43,165 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(m_searchWidget);
-    layout->addWidget(m_editorWidget);
-    // font
-    m_editorWidget->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-    // indicator diagnostic
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorErrorColor"].toString()), INDICATOR_ERROR);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_ERROR);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWarningColor"].toString()), INDICATOR_WARNING);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WARNING);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorInfoColor"].toString()), INDICATOR_INFO);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_INFO);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HINT);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorTypoStyle"].toInt()), INDICATOR_TYPO);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorTypoColor"].toString()), INDICATOR_TYPO);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_TYPO);
-    // indicator highlight
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
-    // TODO: looking for a better solution
-    m_editorWidget->SendScintilla(QsciScintilla::SCI_INDICSETALPHA, INDICATOR_HIGHLIGHT, 127);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorReadStyle"].toInt()), INDICATOR_READ);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorReadColor"].toString()), INDICATOR_READ);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_READ);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWriteColor"].toString()), INDICATOR_WRITE);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WRITE);
-    // indicator search
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
-    // indicator hyperlink
-    m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
-    m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
-    m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
-    // marker
-    m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
-    m_editorWidget->setMarkerBackgroundColor(QColor(scriptConfig["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
-    m_editorWidget->setMarkerForegroundColor(QColor(scriptConfig["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
-    m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerDebugStyle"].toInt()), MARKER_DEBUG);
-    m_editorWidget->setMarkerBackgroundColor(QColor(scriptConfig["markerDebugBackground"].toString()), MARKER_DEBUG);
-    m_editorWidget->setMarkerForegroundColor(QColor(scriptConfig["markerDebugForeground"].toString()), MARKER_DEBUG);
+    layout->addWidget(m_scintillaWidget);
+    layout->addWidget(m_editorWidget); {
+        // font
+        m_scintillaWidget->setFontN(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        // indicator
 
-    const QUrl &url(m_scriptUrl);
-    const QString scriptPath = url.toLocalFile();
-    // read-only check
-    if (const QFileInfo fileInfo(scriptPath); !fileInfo.isWritable()) {
-        scriptReadonly(true);
+        // margin
+        {
+            m_scintillaWidget->setMargin(
+                0,
+                QJsonObject{
+                    {"type", 1},
+                    {"width", 32},
+                    {"back", 0x00ffff}
+                });
+            m_scintillaWidget->setMargin(
+                1,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 16},
+                    {"sensitive", true}
+                });
+            // setMarginType(2, SymbolMargin);
+            // SendScintilla(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS); // NOLINT
+            // SendScintilla(SCI_SETFOLDMARGINHICOLOUR, true, QColor(Qt::white));
+            // SendScintilla(SCI_SETFOLDMARGINCOLOUR, true, QColor(Qt::white));
+            // QsciScintilla::setMarginWidth(2, 16);
+            // QsciScintilla::setMarginSensitivity(2, true);
+            // QsciScintilla::setFolding(CircledTreeFoldStyle);
+            m_scintillaWidget->setMargin(
+                3,
+                QJsonObject{
+                    {"type", 6},
+                    {"width", 1},
+                    {"back", 0x000000}
+                });
+        }
+        // marker
+        {
+            m_scintillaWidget->setMarker(
+                MARKER_REGION,
+                QJsonObject{
+                    {"symbol", 2},
+                    {"fore", 0x00ffff},
+                    {"back", 0x00ffff}
+                });
+            m_scintillaWidget->setMarker(
+                MARKER_ERROR,
+                QJsonObject{
+                    {"symbol", 22},
+                    {"fore", 0xffe6e6},
+                    {"back", 0xffe6e6}
+                });
+            m_scintillaWidget->setMarker(
+                MARKER_HINT,
+                QJsonObject{
+                    {"symbol", 22},
+                    {"fore", 0xffe6e6},
+                    {"back", 0xffe6e6}
+                });
+        }
+        const QUrl &url(m_scriptUrl);
+        const QString scriptPath = url.toLocalFile();
+        QFile file(scriptPath);
+        if (!file.open(QIODevice::ReadOnly)) return;
+        QTextStream in(&file);
+        const QString script = in.readAll();
+        file.close();
+        m_scintillaWidget->setText(script.toUtf8().constData());
     }
-    // load script
-    QFile file(scriptPath);
-    file.open(QIODevice::ReadOnly);
-    QTextStream in(&file);
-    const QString content = in.readAll();
-    file.close();
-    m_fileWatcher->addPath(scriptPath);
-    m_editorWidget->setText(content);
-    m_scriptHash = stringHashCalc(m_editorWidget->text());
-    // connect signals
-    connect(m_editorWidget, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
-    connect(m_editorWidget, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(scriptPosition(int,int)));
-    connect(m_editorWidget, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
-    connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) { emit showMenu(m_scriptUrl, menuSession); });
-    connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
-    connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
-    connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);
-    connect(m_editorWidget, &EditorWidget::requestDefinition, this, &ScriptPage::definitionRequest);
-    connect(m_editorWidget, &EditorWidget::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
-    connect(m_editorWidget, &EditorWidget::requestHover, this, &ScriptPage::hoverRequest);
-    connect(m_editorWidget, &EditorWidget::requestImplementation, this, &ScriptPage::implementationRequest);
-    connect(m_editorWidget, &EditorWidget::requestOnTypeFormatting, this, &ScriptPage::onTypeFormattingRequest);
-    connect(m_editorWidget, &EditorWidget::requestReferences, this, &ScriptPage::referencesRequest);
-    connect(m_editorWidget, &EditorWidget::requestTypeDefinition, this, &ScriptPage::typeDefinitionRequest);
-    connect(m_editorWidget, &EditorWidget::setStat, m_searchWidget, &SearchWidget::statSet);
-    connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
-    connect(m_searchWidget, &SearchWidget::searchText, m_editorWidget, &EditorWidget::textSearch);
-    connect(m_searchWidget, &SearchWidget::searchPrev, m_editorWidget, &EditorWidget::prevSearch);
-    connect(m_searchWidget, &SearchWidget::searchNext, m_editorWidget, &EditorWidget::nextSearch);
-    connect(m_searchWidget, &SearchWidget::replaceText, m_editorWidget, qOverload<const QString &>(&EditorWidget::textReplace));
-    connect(m_searchWidget, &SearchWidget::replaceAllText, m_editorWidget, &EditorWidget::textReplaceAll);
+    // TODO: replace qscintilla with scintilla
+    {
+        // font
+        m_editorWidget->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        // indicator diagnostic
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorErrorColor"].toString()), INDICATOR_ERROR);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_ERROR);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWarningColor"].toString()), INDICATOR_WARNING);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WARNING);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorInfoColor"].toString()), INDICATOR_INFO);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_INFO);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHintStyle"].toInt()), INDICATOR_HINT);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHintColor"].toString()), INDICATOR_HINT);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HINT);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorTypoStyle"].toInt()), INDICATOR_TYPO);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorTypoColor"].toString()), INDICATOR_TYPO);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_TYPO);
+        // indicator highlight
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+        // TODO: looking for a better solution
+        m_editorWidget->SendScintilla(SCI_INDICSETALPHA, INDICATOR_HIGHLIGHT, 127);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorReadStyle"].toInt()), INDICATOR_READ);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorReadColor"].toString()), INDICATOR_READ);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_READ);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorWriteColor"].toString()), INDICATOR_WRITE);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WRITE);
+        // indicator search
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
+        // indicator hyperlink
+        m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(scriptConfig["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
+        m_editorWidget->setIndicatorForegroundColor(QColor(scriptConfig["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
+        m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+        // marker
+        m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
+        m_editorWidget->setMarkerBackgroundColor(QColor(scriptConfig["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
+        m_editorWidget->setMarkerForegroundColor(QColor(scriptConfig["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
+        m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(scriptConfig["markerDebugStyle"].toInt()), MARKER_DEBUG);
+        m_editorWidget->setMarkerBackgroundColor(QColor(scriptConfig["markerDebugBackground"].toString()), MARKER_DEBUG);
+        m_editorWidget->setMarkerForegroundColor(QColor(scriptConfig["markerDebugForeground"].toString()), MARKER_DEBUG);
+
+        const QUrl &url(m_scriptUrl);
+        const QString scriptPath = url.toLocalFile();
+        // read-only check
+        if (const QFileInfo fileInfo(scriptPath); !fileInfo.isWritable()) {
+            scriptReadonly(true);
+        }
+        // load script
+        QFile file(scriptPath);
+        file.open(QIODevice::ReadOnly);
+        QTextStream in(&file);
+        const QString content = in.readAll();
+        file.close();
+        m_fileWatcher->addPath(scriptPath);
+        m_editorWidget->setText(content);
+        m_scriptHash = stringHashCalc(m_editorWidget->text());
+        // connect signals
+        connect(m_editorWidget, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
+        connect(m_editorWidget, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(scriptPosition(int,int)));
+        connect(m_editorWidget, SIGNAL(marginClicked(int,int,Qt::KeyboardModifiers)), this, SLOT(marginClick(int,int,Qt::KeyboardModifiers)));
+        connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) { emit showMenu(m_scriptUrl, menuSession); });
+        connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
+        connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
+        connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);
+        connect(m_editorWidget, &EditorWidget::requestDefinition, this, &ScriptPage::definitionRequest);
+        connect(m_editorWidget, &EditorWidget::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
+        connect(m_editorWidget, &EditorWidget::requestHover, this, &ScriptPage::hoverRequest);
+        connect(m_editorWidget, &EditorWidget::requestImplementation, this, &ScriptPage::implementationRequest);
+        connect(m_editorWidget, &EditorWidget::requestOnTypeFormatting, this, &ScriptPage::onTypeFormattingRequest);
+        connect(m_editorWidget, &EditorWidget::requestReferences, this, &ScriptPage::referencesRequest);
+        connect(m_editorWidget, &EditorWidget::requestTypeDefinition, this, &ScriptPage::typeDefinitionRequest);
+        connect(m_editorWidget, &EditorWidget::setStat, m_searchWidget, &SearchWidget::statSet);
+        connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ScriptPage::scriptReload);
+        connect(m_searchWidget, &SearchWidget::searchText, m_editorWidget, &EditorWidget::textSearch);
+        connect(m_searchWidget, &SearchWidget::searchPrev, m_editorWidget, &EditorWidget::prevSearch);
+        connect(m_searchWidget, &SearchWidget::searchNext, m_editorWidget, &EditorWidget::nextSearch);
+        connect(m_searchWidget, &SearchWidget::replaceText, m_editorWidget, qOverload<const QString &>(&EditorWidget::textReplace));
+        connect(m_searchWidget, &SearchWidget::replaceAllText, m_editorWidget, &EditorWidget::textReplaceAll);
+    }
     QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
@@ -295,9 +368,9 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
     for (int line = 0; line < m_editorWidget->lines(); line++) {
         const int deltaDepth = deltaDepthMap.value(line, 0);
         currentDepth += deltaDepth;
-        int level = QsciScintilla::SC_FOLDLEVELBASE + currentDepth;
-        if (deltaDepthMap.value(line + 1, 0) > 0) level |= QsciScintilla::SC_FOLDLEVELHEADERFLAG;
-        m_editorWidget->SendScintilla(QsciScintilla::SCI_SETFOLDLEVEL, line, level); // NOLINT
+        int level = SC_FOLDLEVELBASE + currentDepth;
+        if (deltaDepthMap.value(line + 1, 0) > 0) level |= SC_FOLDLEVELHEADERFLAG;
+        m_editorWidget->SendScintilla(SCI_SETFOLDLEVEL, line, level); // NOLINT
     }
 }
 
@@ -319,8 +392,8 @@ void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
 
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
-    m_editorWidget->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, 0); // NOLINT
-    m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, m_editorWidget->length(), static_cast<long>(0));
+    m_editorWidget->SendScintilla(SCI_STARTSTYLING, 0); // NOLINT
+    m_editorWidget->SendScintilla(SCI_SETSTYLING, m_editorWidget->length(), static_cast<long>(0));
     int currentLine = 0;
     int currentChar = 0;
     for (int i = 0; i < data.size(); i += 5) {
@@ -340,56 +413,56 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
             continue;
         }
         // start styling
-        m_editorWidget->SendScintilla(QsciScintillaBase::SCI_STARTSTYLING, startPos); // NOLINT
+        m_editorWidget->SendScintilla(SCI_STARTSTYLING, startPos); // NOLINT
         switch (tokenType) {
             case TOKENTYPE_NAMESPACE:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_NAMESPACE); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NAMESPACE); // NOLINT
                 break;
             case TOKENTYPE_CLASS:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_CLASS); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_CLASS); // NOLINT
                 break;
             case TOKENTYPE_TYPE:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_TYPE); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_TYPE); // NOLINT
                 break;
             case TOKENTYPE_PARAMETER:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_PARAMETER); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PARAMETER); // NOLINT
                 break;
             case TOKENTYPE_VARIABLE:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_VARIABLE); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_VARIABLE); // NOLINT
                 break;
             case TOKENTYPE_PROPERTY:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_PROPERTY); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PROPERTY); // NOLINT
                 break;
             case TOKENTYPE_ENUMMEMBAER:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_ENUMMEMBAER); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_ENUMMEMBAER); // NOLINT
                 break;
             case TOKENTYPE_FUNCTION:
                 if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
-                    m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_DECLARATION); // NOLINT
+                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_DECLARATION); // NOLINT
                 } else {
-                    m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_CALL); // NOLINT
+                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_CALL); // NOLINT
                 }
                 break;
             case TOKENTYPE_METHOD:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_METHOD); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_METHOD); // NOLINT
                 break;
             case TOKENTYPE_MACRO:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_MACRO); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_MACRO); // NOLINT
                 break;
             case TOKENTYPE_KEYWORD:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_KEYWORD); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_KEYWORD); // NOLINT
                 break;
             case TOKENTYPE_COMMENT:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_COMMENT); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_COMMENT); // NOLINT
                 break;
             case TOKENTYPE_STRING:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_STRING); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_STRING); // NOLINT
                 break;
             case TOKENTYPE_NUMBER:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_NUMBER); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NUMBER); // NOLINT
                 break;
             case TOKENTYPE_OPERATOR:
-                m_editorWidget->SendScintilla(QsciScintillaBase::SCI_SETSTYLING, length, LUA_TOKEN_OPERATOR); // NOLINT
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_OPERATOR); // NOLINT
                 break;
             default:
                 qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
@@ -449,8 +522,7 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
                 }
             }
             qDebug() << "error: --#endregion not found";
-        }
-        else if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
+        } else if (m_editorWidget->markersAtLine(line) & 1 << MARKER_BREAKPOINT) {
             emit removeBreakpoint(m_scriptUrl, line + 1);
             emit removeMarker(m_scriptUrl, MARKER_BREAKPOINT, line);
         } else {
@@ -635,7 +707,7 @@ void ScriptPage::hoverRequest() {
     const QPoint localPos = mapFromGlobal(globalPos);
     if (!rect().contains(localPos)) return;
     // get cursor position
-    const long charPos = m_editorWidget->SendScintilla(QsciScintilla::SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
+    const long charPos = m_editorWidget->SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
     if (charPos == -1) return;
     int line, character;
     m_editorWidget->lineIndexFromPosition(charPos, &line, &character);
@@ -766,9 +838,9 @@ void ScriptPage::typeDefinitionRequest() {
 void ScriptPage::positionFill(const int x, const int y) const {
     const QString text = QString("%1, %2").arg(QString::number(x), QString::number(y));
     m_editorWidget->insert(text);
-    const long currentPos = m_editorWidget->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    const long currentPos = m_editorWidget->SendScintilla(SCI_GETCURRENTPOS);
     const long cursorPos = currentPos + text.length();
-    m_editorWidget->SendScintilla(QsciScintilla::SCI_SETCURRENTPOS, cursorPos); // NOLINT
-    m_editorWidget->SendScintilla(QsciScintilla::SCI_SETSELECTIONSTART, cursorPos); // NOLINT
-    m_editorWidget->SendScintilla(QsciScintilla::SCI_SETSELECTIONEND, cursorPos); // NOLINT
+    m_editorWidget->SendScintilla(SCI_SETCURRENTPOS, cursorPos); // NOLINT
+    m_editorWidget->SendScintilla(SCI_SETSELECTIONSTART, cursorPos); // NOLINT
+    m_editorWidget->SendScintilla(SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }

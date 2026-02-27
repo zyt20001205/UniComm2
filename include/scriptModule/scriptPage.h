@@ -10,6 +10,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 
+class ScintillaWidget;
 class SearchWidget;
 class EditorWidget;
 
@@ -158,6 +159,7 @@ private:
     void positionFill(int x, int y) const;
 
     QFileSystemWatcher *m_fileWatcher{};
+    ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
     bool m_readonly = false;
     bool m_modified = false;

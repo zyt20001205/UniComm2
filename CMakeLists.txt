@@ -84,6 +84,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeDebug/watchModule.h
         include/scriptModule/codeEditor/editorWidget.h
         include/scriptModule/codeEditor/explorerModule.h
+        include/scriptModule/codeEditor/scintillaWidget.h
         include/scriptModule/codeEditor/searchWidget.h
         include/settingModule/fontSettingLog.h
         include/settingModule/fontSettingScript.h
@@ -148,6 +149,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeDebug/watchModule.cpp
         src/scriptModule/codeEditor/editorWidget.cpp
         src/scriptModule/codeEditor/explorerModule.cpp
+        src/scriptModule/codeEditor/scintillaWidget.cpp
         src/scriptModule/codeEditor/searchWidget.cpp
         src/settingModule/fontSettingLog.cpp
         src/settingModule/fontSettingScript.cpp
@@ -403,6 +405,7 @@ target_include_directories(UniComm PRIVATE
         ${NUSPELL_INCLUDE}
         ${OPENCV_INCLUDE}
         ${QSCINTILLA_INCLUDE}
+        ${SCINTILLA_INCLUDE}
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
@@ -433,6 +436,7 @@ target_link_libraries(UniComm PRIVATE
         ${NUSPELL_LIB}
         ${OPENCV_LIB}
         ${QSCINTILLA_LIB}
+        ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
         #???
         ${VISA_LIB}
