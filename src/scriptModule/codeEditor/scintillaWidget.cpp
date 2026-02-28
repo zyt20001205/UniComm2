@@ -11,7 +11,7 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     : ScintillaEdit(parent) {
     setContextMenuPolicy(Qt::NoContextMenu);
     setFrameStyle(NoFrame);
-    // folding
+    // folders
     send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
     send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
     send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
@@ -29,6 +29,8 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
     send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
     send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
+    // history
+    send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
     // style
     send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
     send(SCI_STYLESETFORE, STYLE_INDENTGUIDE, 0x000000); // NOLINT
@@ -76,7 +78,7 @@ void ScintillaWidget::marginSet(const int margin, const QJsonObject &config) con
     if (config.contains("mask")) send(SCI_SETMARGINMASKN, margin, config["mask"].toInt()); // NOLINT
     if (config.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, margin, config["sensitive"].toBool()); // NOLINT
     // if (config.contains("cursor")) send(SCI_SETMARGINCURSORN, margin, config["cursor"].toInt()); // NOLINT
-    if (config.contains("back")) send(SCI_SETMARGINBACKN, margin, config["back"].toInt()); // NOLINT
+    // if (config.contains("back")) send(SCI_SETMARGINBACKN, margin, config["back"].toInt()); // NOLINT
     // if (config.contains("left")) send(SCI_SETMARGINLEFT, margin, config["left"].toInt()); // NOLINT
     // if (config.contains("right")) send(SCI_SETMARGINRIGHT, margin, config["right"].toInt()); // NOLINT
     // if (config.contains("text")) send(SCI_MARGINSETTEXT, margin, reinterpret_cast<sptr_t>(config["text"].toString().toUtf8().constData())); // NOLINT
@@ -112,6 +114,10 @@ void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) con
     // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, marker, config["enableHighlight"].toBool()); // NOLINT
     // if (config.contains("layer")) send(SCI_MARKERSETLAYER, marker, config["layer"].toInt()); // NOLINT
     // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, marker, config["alpha"].toInt()); // NOLINT
+}
+
+void ScintillaWidget::savepointSet() const {
+    send(SCI_SETSAVEPOINT); // NOLINT
 }
 
 void ScintillaWidget::textSet(const QString &text) const {

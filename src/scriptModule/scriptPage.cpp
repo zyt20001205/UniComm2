@@ -65,26 +65,25 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             QJsonObject{
                 {"type", 0},
                 {"width", 16},
+                {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
                 {"sensitive", true}
             });
         // folding
         m_scintillaWidget->marginSet(
-            MARGIN_FOLDING,
+            MARGIN_FOLDERS,
             QJsonObject{
                 {"type", 0},
                 {"width", 16},
-                {"mask", static_cast<int>(0xfe000000)},
-                {"sensitive", true},
-                {"color", 0xffffff},
-                {"hiColour", 0xffffff},
+                {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+                {"sensitive", true}
             });
-        // separator
+        // history
         m_scintillaWidget->marginSet(
-            MARGIN_SEPARATOR,
+            MARGIN_HISTORY,
             QJsonObject{
-                {"type", 6},
-                {"width", 1},
-                {"back", 0x000000}
+                {"type", 0},
+                {"width", 8},
+                {"mask", SC_MASK_HISTORY},
             });
     }
     // marker
@@ -134,6 +133,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     const QString script = in.readAll();
     file.close();
     m_scintillaWidget->textSet(script);
+    m_scintillaWidget->savepointSet();
     // signals
     connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClicked);
     // TODO: delete later
