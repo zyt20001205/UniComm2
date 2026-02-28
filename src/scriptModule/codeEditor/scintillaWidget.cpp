@@ -1,5 +1,7 @@
 #include "scriptModule/codeEditor/scintillaWidget.h"
 
+#include <QTimer>
+
 #include "globals.h"
 
 using namespace Scintilla;
@@ -9,7 +11,30 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     : ScintillaEdit(parent) {
     setContextMenuPolicy(Qt::NoContextMenu);
     setFrameStyle(NoFrame);
-    styleSetBack(STYLE_LINENUMBER, 0xffffff);
+    // line
+    send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
+    // folding
+    send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
+    send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
+    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
+    for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
+        send(SCI_MARKERSETFORE, i, 0xffffff); // NOLINT
+        send(SCI_MARKERSETBACK, i, 0x000000); // NOLINT
+    }
+    send(SCI_SETFOLDMARGINCOLOUR, true, 0xffffff); // NOLINT
+    send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
+    // misc
+    send(SCI_SETTABWIDTH, 4); // NOLINT
+}
+
+void ScintillaWidget::foldLevelSet(const int line, const int depth) const {
+    send(SCI_SETFOLDLEVEL, line, depth); // NOLINT
 }
 
 void ScintillaWidget::fontSet(const QFont &font) {
@@ -29,17 +54,19 @@ void ScintillaWidget::indicatorSet(const int indicator, const QJsonObject &confi
     // if (config.contains("flags")) send(SCI_INDICSETFLAGS, indicator, config["flags"].toInt()); // NOLINT
 }
 
+int ScintillaWidget::lineCountGet() const {
+    return static_cast<int>(send(SCI_GETLINECOUNT));
+}
+
 void ScintillaWidget::marginSet(const int margin, const QJsonObject &config) const {
     if (config.contains("type")) send(SCI_SETMARGINTYPEN, margin, config["type"].toInt()); // NOLINT
     if (config.contains("width")) send(SCI_SETMARGINWIDTHN, margin, config["width"].toInt()); // NOLINT
-    // if (config.contains("mask")) send(SCI_SETMARGINMASKN, margin, config["mask"].toInt()); // NOLINT
+    if (config.contains("mask")) send(SCI_SETMARGINMASKN, margin, config["mask"].toInt()); // NOLINT
     if (config.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, margin, config["sensitive"].toBool()); // NOLINT
     // if (config.contains("cursor")) send(SCI_SETMARGINCURSORN, margin, config["cursor"].toInt()); // NOLINT
     if (config.contains("back")) send(SCI_SETMARGINBACKN, margin, config["back"].toInt()); // NOLINT
     // if (config.contains("left")) send(SCI_SETMARGINLEFT, margin, config["left"].toInt()); // NOLINT
     // if (config.contains("right")) send(SCI_SETMARGINRIGHT, margin, config["right"].toInt()); // NOLINT
-    // if (config.contains("color")) send(SCI_SETFOLDMARGINCOLOUR, margin, config["color"].toInt()); // NOLINT
-    // if (config.contains("hiColour")) send(SCI_SETFOLDMARGINHICOLOUR, margin, config["hiColour"].toInt()); // NOLINT
     // if (config.contains("text")) send(SCI_MARGINSETTEXT, margin, reinterpret_cast<sptr_t>(config["text"].toString().toUtf8().constData())); // NOLINT
     // if (config.contains("style")) send(SCI_MARGINSETSTYLE, margin, config["style"].toInt()); // NOLINT
     // if (config.contains("styleOffset")) send(SCI_MARGINSETSTYLEOFFSET, margin); // NOLINT
@@ -62,9 +89,9 @@ void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) con
 
 void ScintillaWidget::markerAdd(const int marker, const int line, const int time) const {
     send(SCI_MARKERADD, line, marker); // NOLINT
-    if (time != -1) {
-
-    }
+    send(SCI_ENSUREVISIBLE, line); // NOLINT
+    if (time == -1) return;
+    QTimer::singleShot(time, [this, marker, line] {markerDelete(marker, line);});
 }
 
 void ScintillaWidget::markerDelete(const int marker, const int line) const {

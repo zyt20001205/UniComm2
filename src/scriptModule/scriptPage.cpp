@@ -45,93 +45,99 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_scintillaWidget);
     layout->addWidget(m_editorWidget);
-    // TODO: replace qscintilla with scintilla
+    // font
+    m_scintillaWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+    // indicator
     {
-        // font
-        m_scintillaWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-        // indicator
-
-        // margin
-        {
-            m_scintillaWidget->marginSet(
-                0,
-                QJsonObject{
-                    {"type", 1},
-                    {"width", 32},
-                    {"back", 0x00ffff}
-                });
-            m_scintillaWidget->marginSet(
-                1,
-                QJsonObject{
-                    {"type", 0},
-                    {"width", 16},
-                    {"sensitive", true}
-                });
-            // setMarginType(2, SymbolMargin);
-            // SendScintilla(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS); // NOLINT
-            // SendScintilla(SCI_SETFOLDMARGINHICOLOUR, true, QColor(Qt::white));
-            // SendScintilla(SCI_SETFOLDMARGINCOLOUR, true, QColor(Qt::white));
-            // QsciScintilla::setMarginWidth(2, 16);
-            // QsciScintilla::setMarginSensitivity(2, true);
-            // QsciScintilla::setFolding(CircledTreeFoldStyle);
-            m_scintillaWidget->marginSet(
-                3,
-                QJsonObject{
-                    {"type", 6},
-                    {"width", 1},
-                    {"back", 0x000000}
-                });
-        }
-        // marker
-        {
-            m_scintillaWidget->markerSet(
-                MARKER_REGION,
-                QJsonObject{
-                    {"symbol", 2},
-                    {"fore", 0x00ffff},
-                    {"back", 0x00ffff}
-                });
-            m_scintillaWidget->markerSet(
-                MARKER_BREAKPOINT,
-                QJsonObject{
-                    {"symbol", 0},
-                    {"fore", 0x0000ff},
-                    {"back", 0x0000ff}
-                });
-            m_scintillaWidget->markerSet(
-                MARKER_DEBUG,
-                QJsonObject{
-                    {"symbol", 2},
-                    {"fore", 0x000000},
-                    {"back", 0xa500ff}
-                });
-            m_scintillaWidget->markerSet(
-                MARKER_ERROR,
-                QJsonObject{
-                    {"symbol", 22},
-                    {"fore", 0xffe6e6},
-                    {"back", 0xffe6e6}
-                });
-            m_scintillaWidget->markerSet(
-                MARKER_HINT,
-                QJsonObject{
-                    {"symbol", 22},
-                    {"fore", 0xffe6e6},
-                    {"back", 0xffe6e6}
-                });
-        }
-        // script
-        const QUrl &url(m_scriptUrl);
-        const QString scriptPath = url.toLocalFile();
-        QFile file(scriptPath);
-        if (!file.open(QIODevice::ReadOnly)) return;
-        QTextStream in(&file);
-        const QString script = in.readAll();
-        file.close();
-        m_scintillaWidget->setText(script.toUtf8().constData());
-        // signals
-        connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClicked);
-    } {
+    }
+    // margin
+    {
+        // number
+        m_scintillaWidget->marginSet(
+            0,
+            QJsonObject{
+                {"type", 1},
+                {"width", 32}
+            });
+        // breakpoint
+        m_scintillaWidget->marginSet(
+            1,
+            QJsonObject{
+                {"type", 0},
+                {"width", 16},
+                {"sensitive", true}
+            });
+        // folding
+        m_scintillaWidget->marginSet(
+            2,
+            QJsonObject{
+                {"type", 0},
+                {"width", 16},
+                {"mask", static_cast<int>(0xfe000000)},
+                {"sensitive", true},
+                {"color", 0xffffff},
+                {"hiColour", 0xffffff},
+            });
+        // separator
+        m_scintillaWidget->marginSet(
+            3,
+            QJsonObject{
+                {"type", 6},
+                {"width", 1},
+                {"back", 0x000000}
+            });
+    }
+    // marker
+    {
+        m_scintillaWidget->markerSet(
+            MARKER_REGION,
+            QJsonObject{
+                {"symbol", 2},
+                {"fore", 0x00ffff},
+                {"back", 0x00ffff}
+            });
+        m_scintillaWidget->markerSet(
+            MARKER_BREAKPOINT,
+            QJsonObject{
+                {"symbol", 0},
+                {"fore", 0x0000ff},
+                {"back", 0x0000ff}
+            });
+        m_scintillaWidget->markerSet(
+            MARKER_DEBUG,
+            QJsonObject{
+                {"symbol", 2},
+                {"fore", 0x000000},
+                {"back", 0xa500ff}
+            });
+        m_scintillaWidget->markerSet(
+            MARKER_ERROR,
+            QJsonObject{
+                {"symbol", 22},
+                {"fore", 0xffe6e6},
+                {"back", 0xffe6e6}
+            });
+        m_scintillaWidget->markerSet(
+            MARKER_HINT,
+            QJsonObject{
+                {"symbol", 22},
+                {"fore", 0xffe6e6},
+                {"back", 0xffe6e6}
+            });
+    }
+    // script
+    const QUrl &url(m_scriptUrl);
+    const QString scriptPath = url.toLocalFile();
+    QFile file(scriptPath);
+    if (!file.open(QIODevice::ReadOnly)) return;
+    QTextStream in(&file);
+    const QString script = in.readAll();
+    file.close();
+    m_scintillaWidget->setText(script.toUtf8().constData());
+    // signals
+    connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClicked);
+    // TODO: delete later
+    {
         // font
         m_editorWidget->setFont(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
         // indicator diagnostic
@@ -229,6 +235,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
 }
 
+// ScriptPage public: file service
 void ScriptPage::pathDisambiguation() {
     const QString scriptPath = m_scriptUrl.toLocalFile();
     const QString workspacePath = g_workspaceUrl.toLocalFile();
@@ -327,6 +334,7 @@ void ScriptPage::scriptPosition(const int r, const int c) {
     emit positionScript(positionSession);
 }
 
+// ScriptPage public: lsp service
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_scriptDiagnostic = diagnostics;
@@ -373,6 +381,23 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
 }
 
 void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
+    QHash<int, int> deltaDepthHash{};
+    for (const auto &value: result) {
+        const QJsonObject valueObject = value.toObject();
+        const int startLine = valueObject["startLine"].toInt();
+        const int endLine = valueObject["endLine"].toInt();
+        deltaDepthHash.insert(startLine + 1, deltaDepthHash.value(startLine + 1, 0) + 1);
+        deltaDepthHash.insert(endLine + 1, deltaDepthHash.value(endLine + 1, 0) - 1);
+    }
+    int depth = 0;
+    for (int line = 0; line < m_scintillaWidget->lineCountGet(); line++) {
+        const int deltaDepth = deltaDepthHash.value(line, 0);
+        depth += deltaDepth;
+        int level = SC_FOLDLEVELBASE + depth;
+        if (deltaDepthHash.value(line + 1, 0) > 0) level |= SC_FOLDLEVELHEADERFLAG;
+        m_scintillaWidget->foldLevelSet(line, level);
+    }
+    // TODO: delete later
     QMap<int, int> deltaDepthMap;
     for (const auto &value: result) {
         const QJsonObject valueObject = value.toObject();

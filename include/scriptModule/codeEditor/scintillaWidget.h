@@ -13,9 +13,13 @@ public:
 
     ~ScintillaWidget() override = default;
 
+    void foldLevelSet(int line, int depth) const;
+
     void fontSet(const QFont &font);
 
     void indicatorSet(int indicator, const QJsonObject &config) const;
+
+    [[nodiscard]] int lineCountGet() const;
 
     void marginSet(int margin, const QJsonObject &config) const;
 
