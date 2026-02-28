@@ -33,6 +33,8 @@ public:
 
     void markerSet(int marker, const QJsonObject &config) const;
 
+    void textSet(const QString &text) const;
+
 private:
 };
 

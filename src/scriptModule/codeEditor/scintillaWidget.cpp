@@ -31,9 +31,14 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
     // style
     send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
-    send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xeeeeee); // NOLINT
-    // misc
-    send(SCI_SETTABWIDTH, 4); // NOLINT
+    send(SCI_STYLESETFORE, STYLE_INDENTGUIDE, 0x000000); // NOLINT
+    send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xe0e0e0); // NOLINT
+    // indent
+    send(SCI_SETUSETABS, false); // NOLINT
+    send(SCI_SETINDENT, 4); // NOLINT
+    send(SCI_SETTABINDENTS, true); // NOLINT
+    send(SCI_SETBACKSPACEUNINDENTS, true); // NOLINT
+    send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
 }
 
 void ScintillaWidget::foldLevelSet(const int line, const int level) const {
@@ -84,7 +89,7 @@ void ScintillaWidget::markerAdd(const int marker, const int line, const int time
     send(SCI_MARKERADD, line, marker); // NOLINT
     send(SCI_ENSUREVISIBLE, line); // NOLINT
     if (time == -1) return;
-    QTimer::singleShot(time, [this, marker, line] {markerDelete(marker, line);});
+    QTimer::singleShot(time, [this, marker, line] { markerDelete(marker, line); });
 }
 
 void ScintillaWidget::markerDelete(const int marker, const int line) const {
@@ -107,4 +112,8 @@ void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) con
     // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, marker, config["enableHighlight"].toBool()); // NOLINT
     // if (config.contains("layer")) send(SCI_MARKERSETLAYER, marker, config["layer"].toInt()); // NOLINT
     // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, marker, config["alpha"].toInt()); // NOLINT
+}
+
+void ScintillaWidget::textSet(const QString &text) const {
+    send(SCI_SETTEXT, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
 }

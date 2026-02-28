@@ -133,7 +133,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     QTextStream in(&file);
     const QString script = in.readAll();
     file.close();
-    m_scintillaWidget->setText(script.toUtf8().constData());
+    m_scintillaWidget->textSet(script);
     // signals
     connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClicked);
     // TODO: delete later
@@ -417,6 +417,8 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
 }
 
 void ScriptPage::formattingResponse(const QString &newText) const {
+    m_scintillaWidget->textSet(newText);
+    // TODO: delete later
     m_editorWidget->textSet(newText);
 }
 
@@ -551,6 +553,7 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 }
 
 // ScriptPage private slots
+// TODO: delete later
 void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModifiers state) {
     if (margin == 1 && line >= 0) {
         if (m_editorWidget->markersAtLine(line) & 1 << MARKER_REGION) {
