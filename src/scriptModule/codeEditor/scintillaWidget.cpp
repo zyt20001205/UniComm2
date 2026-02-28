@@ -52,16 +52,39 @@ void ScintillaWidget::fontSet(const QFont &font) {
     styleSetSize(STYLE_DEFAULT, font.pointSize());
 }
 
-void ScintillaWidget::indicatorSet(const int indicator, const QJsonObject &config) const {
-    if (config.contains("style")) send(SCI_INDICSETSTYLE, indicator, config["style"].toInt()); // NOLINT
-    if (config.contains("fore")) send(SCI_INDICSETFORE, indicator, config["fore"].toInt()); // NOLINT
-    if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, indicator, config["strokeWidth"].toInt()); // NOLINT
-    // if (config.contains("alpha")) send(SCI_INDICSETALPHA, indicator, config["alpha"].toInt()); // NOLINT
-    // if (config.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, indicator, config["outlineAlpha"].toInt()); // NOLINT
-    if (config.contains("setUnder")) send(SCI_INDICSETUNDER, indicator, config["setUnder"].toBool()); // NOLINT
-    if (config.contains("hoverStyle")) send(SCI_INDICSETHOVERSTYLE, indicator, config["hoverStyle"].toInt()); // NOLINT
-    if (config.contains("hoverFore")) send(SCI_INDICSETHOVERFORE, indicator, config["hoverFore"].toInt()); // NOLINT
-    // if (config.contains("flags")) send(SCI_INDICSETFLAGS, indicator, config["flags"].toInt()); // NOLINT
+void ScintillaWidget::indicatorClear(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
+    Position start{};
+    Position lengthFill{};
+    if (startLine != -1) {
+        start = positionGet(startLine, startCharacter);
+        lengthFill = positionGet(endLine, endCharacter) - start;
+    } else {
+        lengthFill = send(SCI_GETTEXTLENGTH);
+    }
+    send(SCI_SETINDICATORCURRENT, type); // NOLINT
+    send(SCI_INDICATORCLEARRANGE, start, lengthFill); // NOLINT
+}
+
+void ScintillaWidget::indicatorFill(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) const {
+    const Position start = positionGet(startLine, startCharacter);
+    const Position lengthFill = positionGet(endLine, endCharacter) - start;
+    if (lengthFill <= 0) return;
+    send(SCI_SETINDICATORCURRENT, type); // NOLINT
+    send(SCI_INDICATORFILLRANGE, start, lengthFill); // NOLINT
+    if (time == -1) return;
+    QTimer::singleShot(time, [this, type, startLine, startCharacter, endLine, endCharacter] { indicatorClear(type, startLine, startCharacter, endLine, endCharacter); });
+}
+
+void ScintillaWidget::indicatorSet(const int type, const QJsonObject &config) const {
+    if (config.contains("style")) send(SCI_INDICSETSTYLE, type, config["style"].toInt()); // NOLINT
+    if (config.contains("fore")) send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
+    // if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
+    if (config.contains("alpha")) send(SCI_INDICSETALPHA, type, config["alpha"].toInt()); // NOLINT
+    if (config.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, type, config["outlineAlpha"].toInt()); // NOLINT
+    if (config.contains("setUnder")) send(SCI_INDICSETUNDER, type, config["setUnder"].toBool()); // NOLINT
+    // if (config.contains("hoverStyle")) send(SCI_INDICSETHOVERSTYLE, type, config["hoverStyle"].toInt()); // NOLINT
+    // if (config.contains("hoverFore")) send(SCI_INDICSETHOVERFORE, type, config["hoverFore"].toInt()); // NOLINT
+    // if (config.contains("flags")) send(SCI_INDICSETFLAGS, type, config["flags"].toInt()); // NOLINT
 }
 
 int ScintillaWidget::lineCountGet() const {
@@ -69,51 +92,55 @@ int ScintillaWidget::lineCountGet() const {
 }
 
 int ScintillaWidget::lineGet(const Position position) const {
-    return send(SCI_LINEFROMPOSITION, position);
+    return static_cast<int>(send(SCI_LINEFROMPOSITION, position));
 }
 
-void ScintillaWidget::marginSet(const int margin, const QJsonObject &config) const {
-    if (config.contains("type")) send(SCI_SETMARGINTYPEN, margin, config["type"].toInt()); // NOLINT
-    if (config.contains("width")) send(SCI_SETMARGINWIDTHN, margin, config["width"].toInt()); // NOLINT
-    if (config.contains("mask")) send(SCI_SETMARGINMASKN, margin, config["mask"].toInt()); // NOLINT
-    if (config.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, margin, config["sensitive"].toBool()); // NOLINT
-    // if (config.contains("cursor")) send(SCI_SETMARGINCURSORN, margin, config["cursor"].toInt()); // NOLINT
-    // if (config.contains("back")) send(SCI_SETMARGINBACKN, margin, config["back"].toInt()); // NOLINT
-    // if (config.contains("left")) send(SCI_SETMARGINLEFT, margin, config["left"].toInt()); // NOLINT
-    // if (config.contains("right")) send(SCI_SETMARGINRIGHT, margin, config["right"].toInt()); // NOLINT
-    // if (config.contains("text")) send(SCI_MARGINSETTEXT, margin, reinterpret_cast<sptr_t>(config["text"].toString().toUtf8().constData())); // NOLINT
-    // if (config.contains("style")) send(SCI_MARGINSETSTYLE, margin, config["style"].toInt()); // NOLINT
-    // if (config.contains("styleOffset")) send(SCI_MARGINSETSTYLEOFFSET, margin); // NOLINT
-    // if (config.contains("options")) send(SCI_SETMARGINOPTIONS, margin, config["options"].toInt()); // NOLINT
+void ScintillaWidget::marginSet(const int type, const QJsonObject &config) const {
+    if (config.contains("type")) send(SCI_SETMARGINTYPEN, type, config["type"].toInt()); // NOLINT
+    if (config.contains("width")) send(SCI_SETMARGINWIDTHN, type, config["width"].toInt()); // NOLINT
+    if (config.contains("mask")) send(SCI_SETMARGINMASKN, type, config["mask"].toInt()); // NOLINT
+    if (config.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, type, config["sensitive"].toBool()); // NOLINT
+    // if (config.contains("cursor")) send(SCI_SETMARGINCURSORN, type, config["cursor"].toInt()); // NOLINT
+    // if (config.contains("back")) send(SCI_SETMARGINBACKN, type, config["back"].toInt()); // NOLINT
+    // if (config.contains("left")) send(SCI_SETMARGINLEFT, type, config["left"].toInt()); // NOLINT
+    // if (config.contains("right")) send(SCI_SETMARGINRIGHT, type, config["right"].toInt()); // NOLINT
+    // if (config.contains("text")) send(SCI_MARGINSETTEXT, type, reinterpret_cast<sptr_t>(config["text"].toString().toUtf8().constData())); // NOLINT
+    // if (config.contains("style")) send(SCI_MARGINSETSTYLE, type, config["style"].toInt()); // NOLINT
+    // if (config.contains("styleOffset")) send(SCI_MARGINSETSTYLEOFFSET, type); // NOLINT
+    // if (config.contains("options")) send(SCI_SETMARGINOPTIONS, type, config["options"].toInt()); // NOLINT
 }
 
-void ScintillaWidget::markerAdd(const int marker, const int line, const int time) const {
-    send(SCI_MARKERADD, line, marker); // NOLINT
+void ScintillaWidget::markerAdd(const int type, const int line, const int time) const {
+    send(SCI_MARKERADD, line, type); // NOLINT
     send(SCI_ENSUREVISIBLE, line); // NOLINT
     if (time == -1) return;
-    QTimer::singleShot(time, [this, marker, line] { markerDelete(marker, line); });
+    QTimer::singleShot(time, [this, type, line] { markerDelete(type, line); });
 }
 
-void ScintillaWidget::markerDelete(const int marker, const int line) const {
-    send(SCI_MARKERDELETE, line, marker); // NOLINT
+void ScintillaWidget::markerDelete(const int type, const int line) const {
+    send(SCI_MARKERDELETE, line, type); // NOLINT
 }
 
 int ScintillaWidget::markerGet(const int line) const {
-    return send(SCI_MARKERGET, line);
+    return static_cast<int>(send(SCI_MARKERGET, line));
 }
 
-void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) const {
-    if (config.contains("symbol")) send(SCI_MARKERDEFINE, marker, config["style"].toInt()); // NOLINT
-    if (config.contains("fore")) send(SCI_MARKERSETFORE, marker, config["fore"].toInt()); // NOLINT
-    // if (config.contains("foreTranslucent")) send(SCI_MARKERSETFORETRANSLUCENT, marker, config["foreTranslucent"].toInt()); // NOLINT
-    if (config.contains("back")) send(SCI_MARKERSETBACK, marker, config["back"].toInt()); // NOLINT
-    // if (config.contains("backTranslucent")) send(SCI_MARKERSETBACKTRANSLUCENT, marker, config["backTranslucent"].toInt()); // NOLINT
-    // if (config.contains("backSelected")) send(SCI_MARKERSETBACKSELECTED, marker, config["backSelected"].toInt()); // NOLINT
-    // if (config.contains("backSelectedTranslucent")) send(SCI_MARKERSETBACKSELECTEDTRANSLUCENT, marker, config["backSelectedTranslucent"].toInt()); // NOLINT
-    // if (config.contains("strokeWidth")) send(SCI_MARKERSETSTROKEWIDTH, marker, config["strokeWidth"].toInt()); // NOLINT
-    // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, marker, config["enableHighlight"].toBool()); // NOLINT
-    // if (config.contains("layer")) send(SCI_MARKERSETLAYER, marker, config["layer"].toInt()); // NOLINT
-    // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, marker, config["alpha"].toInt()); // NOLINT
+void ScintillaWidget::markerSet(const int type, const QJsonObject &config) const {
+    if (config.contains("symbol")) send(SCI_MARKERDEFINE, type, config["style"].toInt()); // NOLINT
+    if (config.contains("fore")) send(SCI_MARKERSETFORE, type, config["fore"].toInt()); // NOLINT
+    // if (config.contains("foreTranslucent")) send(SCI_MARKERSETFORETRANSLUCENT, type, config["foreTranslucent"].toInt()); // NOLINT
+    if (config.contains("back")) send(SCI_MARKERSETBACK, type, config["back"].toInt()); // NOLINT
+    // if (config.contains("backTranslucent")) send(SCI_MARKERSETBACKTRANSLUCENT, type, config["backTranslucent"].toInt()); // NOLINT
+    // if (config.contains("backSelected")) send(SCI_MARKERSETBACKSELECTED, type, config["backSelected"].toInt()); // NOLINT
+    // if (config.contains("backSelectedTranslucent")) send(SCI_MARKERSETBACKSELECTEDTRANSLUCENT, type, config["backSelectedTranslucent"].toInt()); // NOLINT
+    // if (config.contains("strokeWidth")) send(SCI_MARKERSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
+    // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, type, config["enableHighlight"].toBool()); // NOLINT
+    // if (config.contains("layer")) send(SCI_MARKERSETLAYER, type, config["layer"].toInt()); // NOLINT
+    // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, type, config["alpha"].toInt()); // NOLINT
+}
+
+Position ScintillaWidget::positionGet(const int line, const int character) const {
+    return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);
 }
 
 void ScintillaWidget::savepointSet() const {

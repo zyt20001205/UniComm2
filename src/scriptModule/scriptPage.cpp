@@ -49,17 +49,112 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scintillaWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     // indicator
     {
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_ERROR,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0xe6e6ff},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_WARNING,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0xe6f5ff},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_INFO,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0xfaf0e6},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_HINT,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0xf5f5f5},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_TYPO,
+            QJsonObject{
+                {"style", 14},
+                {"fore", 0xabd180},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_HIGHLIGHT,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0xe0e0e0},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_READ,
+            QJsonObject{
+                {"style", 17},
+                {"fore", 0xb85f00},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_WRITE,
+            QJsonObject{
+                {"style", 17},
+                {"fore", 0x2828c6},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_SEARCH,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0x7ed4fc},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_SELECTION,
+            QJsonObject{
+                {"style", 8},
+                {"fore", 0x3372c4},
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", true}
+            });
+        m_scintillaWidget->indicatorSet(
+            INDICATOR_HYPERLINK,
+            QJsonObject{
+                {"style", 17},
+                {"fore", 0xcc6d00},
+                {"setUnder", true}
+            });
     }
     // margin
     {
-        // number
         m_scintillaWidget->marginSet(
             MARGIN_NUMBER,
             QJsonObject{
                 {"type", 1},
                 {"width", 32}
             });
-        // breakpoint
         m_scintillaWidget->marginSet(
             MARGIN_BREAKPOINT,
             QJsonObject{
@@ -68,7 +163,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
                 {"sensitive", true}
             });
-        // folding
         m_scintillaWidget->marginSet(
             MARGIN_FOLDERS,
             QJsonObject{
@@ -77,7 +171,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"mask", static_cast<int>(SC_MASK_FOLDERS)},
                 {"sensitive", true}
             });
-        // history
         m_scintillaWidget->marginSet(
             MARGIN_HISTORY,
             QJsonObject{
@@ -339,10 +432,10 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_scriptDiagnostic = diagnostics;
     // clear previous diagnostics
-    m_editorWidget->indicatorRemove(INDICATOR_ERROR);
-    m_editorWidget->indicatorRemove(INDICATOR_WARNING);
-    m_editorWidget->indicatorRemove(INDICATOR_INFO);
-    m_editorWidget->indicatorRemove(INDICATOR_HINT);
+     m_scintillaWidget->indicatorClear(INDICATOR_ERROR);
+     m_scintillaWidget->indicatorClear(INDICATOR_WARNING);
+     m_scintillaWidget->indicatorClear(INDICATOR_INFO);
+     m_scintillaWidget->indicatorClear(INDICATOR_HINT);
     // publish diagnostics
     for (const auto &value: diagnostics) {
         const QJsonObject diagnostic = value.toObject();
@@ -354,15 +447,15 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
         const int startCharacter = start["character"].toInt();
         const int endLine = end["line"].toInt();
         const int endCharacter = end["character"].toInt();
-        m_editorWidget->indicatorInsert(severity, startLine, startCharacter, endLine, endCharacter);
+        m_scintillaWidget->indicatorFill(severity, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
 void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
     // clear previous highlight
-    m_editorWidget->indicatorRemove(INDICATOR_HIGHLIGHT);
-    m_editorWidget->indicatorRemove(INDICATOR_READ);
-    m_editorWidget->indicatorRemove(INDICATOR_WRITE);
+    m_scintillaWidget->indicatorClear(INDICATOR_HIGHLIGHT);
+    m_scintillaWidget->indicatorClear(INDICATOR_READ);
+    m_scintillaWidget->indicatorClear(INDICATOR_WRITE);
     // highlight
     for (const auto &highlight: result) {
         const QJsonObject highlightObject = highlight.toObject();
@@ -374,9 +467,9 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
         const int startCharacter = highlightStartPos["character"].toInt();
         const int endLine = highlightEndPos["line"].toInt();
         const int endCharacter = highlightEndPos["character"].toInt();
-        m_editorWidget->indicatorInsert(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
-        if (kind == 2) m_editorWidget->indicatorInsert(INDICATOR_READ, startLine, startCharacter, endLine, endCharacter);
-        else if (kind == 3) m_editorWidget->indicatorInsert(INDICATOR_WRITE, startLine, startCharacter, endLine, endCharacter);
+        m_scintillaWidget->indicatorFill(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
+        if (kind == 2) m_scintillaWidget->indicatorFill(INDICATOR_READ, startLine, startCharacter, endLine, endCharacter);
+        else if (kind == 3) m_scintillaWidget->indicatorFill(INDICATOR_WRITE, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -396,23 +489,6 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
         int level = SC_FOLDLEVELBASE + depth;
         if (deltaDepthHash.value(line + 1, 0) > 0) level |= SC_FOLDLEVELHEADERFLAG;
         m_scintillaWidget->foldLevelSet(line, level);
-    }
-    // TODO: delete later
-    QMap<int, int> deltaDepthMap;
-    for (const auto &value: result) {
-        const QJsonObject valueObject = value.toObject();
-        const int startLine = valueObject["startLine"].toInt();
-        const int endLine = valueObject["endLine"].toInt();
-        deltaDepthMap.insert(startLine + 1, deltaDepthMap.value(startLine + 1, 0) + 1);
-        deltaDepthMap.insert(endLine + 1, deltaDepthMap.value(endLine + 1, 0) - 1);
-    }
-    int currentDepth = 0;
-    for (int line = 0; line < m_editorWidget->lines(); line++) {
-        const int deltaDepth = deltaDepthMap.value(line, 0);
-        currentDepth += deltaDepth;
-        int level = SC_FOLDLEVELBASE + currentDepth;
-        if (deltaDepthMap.value(line + 1, 0) > 0) level |= SC_FOLDLEVELHEADERFLAG;
-        m_editorWidget->SendScintilla(SCI_SETFOLDLEVEL, line, level); // NOLINT
     }
 }
 
@@ -596,7 +672,7 @@ void ScriptPage::marginClicked(const Scintilla::Position position, Scintilla::Ke
             m_scintillaWidget->markerDelete(MARKER_BREAKPOINT, line);
         } else {
             // emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
-            m_scintillaWidget->markerAdd(MARKER_BREAKPOINT, line, -1);
+            m_scintillaWidget->markerAdd(MARKER_BREAKPOINT, line);
         }
     }
 }
