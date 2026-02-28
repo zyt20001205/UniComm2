@@ -387,7 +387,7 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
         const int startLine = valueObject["startLine"].toInt();
         const int endLine = valueObject["endLine"].toInt();
         deltaDepthHash.insert(startLine + 1, deltaDepthHash.value(startLine + 1, 0) + 1);
-        deltaDepthHash.insert(endLine + 1, deltaDepthHash.value(endLine + 1, 0) - 1);
+        deltaDepthHash.insert(endLine + 2, deltaDepthHash.value(endLine + 2, 0) - 1);
     }
     int depth = 0;
     for (int line = 0; line < m_scintillaWidget->lineCountGet(); line++) {
