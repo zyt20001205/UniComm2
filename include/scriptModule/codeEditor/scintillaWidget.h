@@ -13,7 +13,7 @@ public:
 
     ~ScintillaWidget() override = default;
 
-    void foldLevelSet(int line, int depth) const;
+    void foldLevelSet(int line, int level) const;
 
     void fontSet(const QFont &font);
 
@@ -21,13 +21,17 @@ public:
 
     [[nodiscard]] int lineCountGet() const;
 
-    void marginSet(int margin, const QJsonObject &config) const;
+    int lineGet(Scintilla::Position position) const;
 
-    void markerSet(int marker, const QJsonObject &config) const;
+    void marginSet(int margin, const QJsonObject &config) const;
 
     void markerAdd(int marker, int line, int time) const;
 
     void markerDelete(int marker, int line) const;
+
+    int markerGet(int line) const;
+
+    void markerSet(int marker, const QJsonObject &config) const;
 
 private:
 };

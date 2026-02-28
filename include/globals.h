@@ -82,6 +82,13 @@ enum {
 };
 
 enum {
+    MARGIN_NUMBER,
+    MARGIN_BREAKPOINT,
+    MARGIN_FOLDING,
+    MARGIN_SEPARATOR
+};
+
+enum {
     MARKER_REGION,
     MARKER_BREAKPOINT,
     MARKER_DEBUG,

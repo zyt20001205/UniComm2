@@ -54,14 +54,14 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     {
         // number
         m_scintillaWidget->marginSet(
-            0,
+            MARGIN_NUMBER,
             QJsonObject{
                 {"type", 1},
                 {"width", 32}
             });
         // breakpoint
         m_scintillaWidget->marginSet(
-            1,
+            MARGIN_BREAKPOINT,
             QJsonObject{
                 {"type", 0},
                 {"width", 16},
@@ -69,7 +69,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             });
         // folding
         m_scintillaWidget->marginSet(
-            2,
+            MARGIN_FOLDING,
             QJsonObject{
                 {"type", 0},
                 {"width", 16},
@@ -80,7 +80,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             });
         // separator
         m_scintillaWidget->marginSet(
-            3,
+            MARGIN_SEPARATOR,
             QJsonObject{
                 {"type", 6},
                 {"width", 1},
@@ -575,9 +575,9 @@ void ScriptPage::marginClick(const int margin, const int line, Qt::KeyboardModif
 }
 
 void ScriptPage::marginClicked(const Scintilla::Position position, Scintilla::KeyMod modifiers, const int margin) {
-    const int line = m_scintillaWidget->send(SCI_LINEFROMPOSITION, position);
-    if (margin == 1 && line >= 0) {
-        if (m_scintillaWidget->send(SCI_MARKERGET, line) & 1 << MARKER_REGION) {
+    const int line = m_scintillaWidget->lineGet(position);
+    if (margin == MARGIN_BREAKPOINT) {
+        if (m_scintillaWidget->markerGet(line) & 1 << MARKER_REGION) {
             const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
             for (int current = line; current < m_editorWidget->lines(); ++current) {
                 const QString lineText = m_editorWidget->text(current);
@@ -588,7 +588,7 @@ void ScriptPage::marginClicked(const Scintilla::Position position, Scintilla::Ke
                 }
             }
             qDebug() << "error: --#endregion not found";
-        } else if (m_scintillaWidget->send(SCI_MARKERGET, line) & 1 << MARKER_BREAKPOINT) {
+        } else if (m_scintillaWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
             // emit removeBreakpoint(m_scriptUrl, line + 1);
             m_scintillaWidget->markerDelete(MARKER_BREAKPOINT, line);
         } else {

@@ -11,8 +11,6 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     : ScintillaEdit(parent) {
     setContextMenuPolicy(Qt::NoContextMenu);
     setFrameStyle(NoFrame);
-    // line
-    send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
     // folding
     send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
     send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
@@ -29,12 +27,17 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     }
     send(SCI_SETFOLDMARGINCOLOUR, true, 0xffffff); // NOLINT
     send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
+    send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
+    send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
+    // style
+    send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
+    send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xeeeeee); // NOLINT
     // misc
     send(SCI_SETTABWIDTH, 4); // NOLINT
 }
 
-void ScintillaWidget::foldLevelSet(const int line, const int depth) const {
-    send(SCI_SETFOLDLEVEL, line, depth); // NOLINT
+void ScintillaWidget::foldLevelSet(const int line, const int level) const {
+    send(SCI_SETFOLDLEVEL, line, level); // NOLINT
 }
 
 void ScintillaWidget::fontSet(const QFont &font) {
@@ -58,6 +61,10 @@ int ScintillaWidget::lineCountGet() const {
     return static_cast<int>(send(SCI_GETLINECOUNT));
 }
 
+int ScintillaWidget::lineGet(const Position position) const {
+    return send(SCI_LINEFROMPOSITION, position);
+}
+
 void ScintillaWidget::marginSet(const int margin, const QJsonObject &config) const {
     if (config.contains("type")) send(SCI_SETMARGINTYPEN, margin, config["type"].toInt()); // NOLINT
     if (config.contains("width")) send(SCI_SETMARGINWIDTHN, margin, config["width"].toInt()); // NOLINT
@@ -73,6 +80,21 @@ void ScintillaWidget::marginSet(const int margin, const QJsonObject &config) con
     // if (config.contains("options")) send(SCI_SETMARGINOPTIONS, margin, config["options"].toInt()); // NOLINT
 }
 
+void ScintillaWidget::markerAdd(const int marker, const int line, const int time) const {
+    send(SCI_MARKERADD, line, marker); // NOLINT
+    send(SCI_ENSUREVISIBLE, line); // NOLINT
+    if (time == -1) return;
+    QTimer::singleShot(time, [this, marker, line] {markerDelete(marker, line);});
+}
+
+void ScintillaWidget::markerDelete(const int marker, const int line) const {
+    send(SCI_MARKERDELETE, line, marker); // NOLINT
+}
+
+int ScintillaWidget::markerGet(const int line) const {
+    return send(SCI_MARKERGET, line);
+}
+
 void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) const {
     if (config.contains("symbol")) send(SCI_MARKERDEFINE, marker, config["style"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_MARKERSETFORE, marker, config["fore"].toInt()); // NOLINT
@@ -85,15 +107,4 @@ void ScintillaWidget::markerSet(const int marker, const QJsonObject &config) con
     // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, marker, config["enableHighlight"].toBool()); // NOLINT
     // if (config.contains("layer")) send(SCI_MARKERSETLAYER, marker, config["layer"].toInt()); // NOLINT
     // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, marker, config["alpha"].toInt()); // NOLINT
-}
-
-void ScintillaWidget::markerAdd(const int marker, const int line, const int time) const {
-    send(SCI_MARKERADD, line, marker); // NOLINT
-    send(SCI_ENSUREVISIBLE, line); // NOLINT
-    if (time == -1) return;
-    QTimer::singleShot(time, [this, marker, line] {markerDelete(marker, line);});
-}
-
-void ScintillaWidget::markerDelete(const int marker, const int line) const {
-    send(SCI_MARKERDELETE, line, marker); // NOLINT
 }
