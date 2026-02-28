@@ -82,7 +82,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             MARGIN_HISTORY,
             QJsonObject{
                 {"type", 0},
-                {"width", 8},
+                {"width", 4},
                 {"mask", SC_MASK_HISTORY},
             });
     }
