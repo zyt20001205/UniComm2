@@ -17,7 +17,7 @@ public:
 
     void scriptFocus(const QUrl &scriptUrl) const;
 
-    void scriptPosition(const QVariantHash &positionSession) const;
+    void selectionChange(const QHash<QString, int> &selection) const;
 
     void threadRefresh(int run, int debug) const;
 

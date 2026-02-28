@@ -41,6 +41,9 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     send(SCI_SETTABINDENTS, true); // NOLINT
     send(SCI_SETBACKSPACEUNINDENTS, true); // NOLINT
     send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
+    // misc
+    send(SCI_SETSCROLLWIDTH, 1); // NOLINT
+    send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
 }
 
 void ScintillaWidget::foldLevelSet(const int line, const int level) const {
@@ -145,6 +148,24 @@ Position ScintillaWidget::positionGet(const int line, const int character) const
 
 void ScintillaWidget::savepointSet() const {
     send(SCI_SETSAVEPOINT); // NOLINT
+}
+
+QHash<QString, int> ScintillaWidget::selectionGet() const {
+    const Position position = send(SCI_GETCURRENTPOS);
+    const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, position));
+    const int character = static_cast<int>(send(SCI_GETCOLUMN, position));
+    const Position startPosition = send(SCI_GETSELECTIONSTART);
+    const Position endPosition = send(SCI_GETSELECTIONEND);
+    const int characters = static_cast<int>(send(SCI_COUNTCHARACTERS, startPosition, endPosition));
+    const int startLine = static_cast<int>(send(SCI_LINEFROMPOSITION, startPosition));
+    const int endLine = static_cast<int>(send(SCI_LINEFROMPOSITION, endPosition));
+    const int lines = endLine - startLine;
+    return QHash<QString, int>{
+        {"line", line},
+        {"character", character},
+        {"lines", lines},
+        {"characters", characters}
+    };
 }
 
 void ScintillaWidget::textSet(const QString &text) const {

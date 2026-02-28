@@ -52,20 +52,14 @@ public:
 public slots:
     void charAdded(int ch);
 
-    void scriptPosition(int r, int c);
-
 signals:
     void appendLog(const QString &message, const QString &level);
 
     void closeScript(const QUrl &scriptUrl);
 
-    void positionScript(const QVariantHash &positionSession);
+    void changeSelection(const QHash<QString, int> &selection);
 
     void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
-
-    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
-
-    void removeMarker(const QUrl &scriptUrl, int type, int line);
 
     void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
 
@@ -110,11 +104,12 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-private slots:
-    void marginClick(int margin, int line, Qt::KeyboardModifiers state);
-
 private:
-    void marginClicked(Scintilla::Position position, Scintilla::KeyMod modifiers, int margin);
+    void marginClick(Scintilla::Position position, Scintilla::KeyMod modifiers, int margin);
+
+    void uiUpdate(Scintilla::Update updated) const;
+
+    void selectionChange();
 
     void scriptReadonly(bool status);
 
@@ -156,11 +151,14 @@ private:
 
     void signatureHelpRequest();
 
-    void spellCheckRequest();
-
     void typeDefinitionRequest();
 
+    void spellCheckRequest();
+
     void positionFill(int x, int y) const;
+
+    QTimer *m_selectionTimer{};
+    QHash<QString, int> m_selection{};
 
     QFileSystemWatcher *m_fileWatcher{};
     ScintillaWidget *m_scintillaWidget{};

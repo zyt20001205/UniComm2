@@ -425,7 +425,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_scriptModule, &ScriptModule::focusScript, m_statusModule, &StatusModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::positionScript, m_statusModule, &StatusModule::scriptPosition);
+    connect(m_scriptModule, &ScriptModule::changeSelection, m_statusModule, &StatusModule::selectionChange);
     connect(m_scriptModule, &ScriptModule::insertPort, m_portModule, [this] { m_portModule->portInsert(-1, QJsonObject()); });
     connect(m_scriptModule, &ScriptModule::insertDatabase, m_databaseModule, [this] { m_databaseModule->databaseInsert(-1, QString()); });
     connect(m_scriptModule, &ScriptModule::insertDatatable, m_datatableModule, [this] { m_datatableModule->datatableInsert(-1, QString()); });

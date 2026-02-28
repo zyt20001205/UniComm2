@@ -38,15 +38,11 @@ void StatusModule::scriptFocus(const QUrl &scriptUrl) const {
     QMetaObject::invokeMethod(m_rootItem, "scriptPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
 }
 
-void StatusModule::scriptPosition(const QVariantHash &positionSession) const {
-    const auto row = positionSession["row"].toInt();
-    const auto col = positionSession["col"].toInt();
-    const auto indexText = QString("%1:%2").arg(QString::number(row), QString::number(col));
-    const auto chars = positionSession["indexTo"].toInt() - positionSession["indexFrom"].toInt();
-    const auto charsText = chars == 0 ? "" : QString(" [%1 chars]").arg(QString::number(chars));
-    const auto lines = positionSession["lineTo"].toInt() - positionSession["lineFrom"].toInt();
-    const auto linesText = lines == 0 ? "" : QString(" [%1 lines]").arg(QString::number(lines));
-    m_positionButton->setProperty("text", QString("%1%2%3").arg(indexText, charsText, linesText));
+void StatusModule::selectionChange(const QHash<QString, int> &selection) const {
+    const auto current = QString("%1:%2").arg(QString::number(selection["line"] + 1), QString::number(selection["character"]));
+    const auto charsText = selection["characters"] == 0 ? "" : QString(" [%1 chars]").arg(QString::number(selection["characters"]));
+    const auto linesText = selection["lines"] == 0 ? "" : QString(" [%1 lines]").arg(QString::number(selection["lines"]));
+    m_positionButton->setProperty("text", QString("%1%2%3").arg(current, charsText, linesText));
 }
 
 void StatusModule::threadRefresh(const int run, const int debug) const {

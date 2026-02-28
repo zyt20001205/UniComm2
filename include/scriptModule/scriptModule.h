@@ -133,7 +133,7 @@ signals:
 
     void focusScript(const QUrl &scriptUrl);
 
-    void positionScript(const QVariantHash &positionSession);
+    void changeSelection(const QHash<QString, int> &selection);
 
     void insertPort();
 

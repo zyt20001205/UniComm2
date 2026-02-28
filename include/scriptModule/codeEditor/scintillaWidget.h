@@ -41,6 +41,8 @@ public:
 
     void savepointSet() const;
 
+    [[nodiscard]] QHash<QString, int> selectionGet() const;
+
     void textSet(const QString &text) const;
 
 private:
