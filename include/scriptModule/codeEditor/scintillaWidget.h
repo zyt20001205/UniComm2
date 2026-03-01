@@ -17,17 +17,19 @@ public:
 
     void fontSet(const QFont &font);
 
+    void indicatorDefine(int type, const QJsonObject &config) const;
+
     void indicatorClear(int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
     void indicatorFill(int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1) const;
-
-    void indicatorSet(int type, const QJsonObject &config) const;
 
     [[nodiscard]] int lineCountGet() const;
 
     [[nodiscard]] int lineGet(Scintilla::Position position) const;
 
-    void marginSet(int type, const QJsonObject &config) const;
+    void marginDefine(int type, const QJsonObject &config) const;
+
+    void markerDefine(int type, const QJsonObject &config) const;
 
     void markerAdd(int type, int line, int time = -1) const;
 
@@ -35,13 +37,13 @@ public:
 
     [[nodiscard]] int markerGet(int line) const;
 
-    void markerSet(int type, const QJsonObject &config) const;
-
     [[nodiscard]] Scintilla::Position positionGet(int line, int character = -1) const;
 
     void savepointSet() const;
 
     [[nodiscard]] QHash<QString, int> selectionGet() const;
+
+    void styleDefine(int type, const QJsonObject &config) const;
 
     void textSet(const QString &text) const;
 

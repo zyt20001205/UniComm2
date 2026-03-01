@@ -55,7 +55,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scintillaWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
     // indicator
     {
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_ERROR,
             QJsonObject{
                 {"style", 8},
@@ -64,7 +64,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_WARNING,
             QJsonObject{
                 {"style", 8},
@@ -73,7 +73,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_INFO,
             QJsonObject{
                 {"style", 8},
@@ -82,7 +82,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_HINT,
             QJsonObject{
                 {"style", 8},
@@ -91,7 +91,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_TYPO,
             QJsonObject{
                 {"style", 14},
@@ -100,7 +100,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_HIGHLIGHT,
             QJsonObject{
                 {"style", 8},
@@ -109,7 +109,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_READ,
             QJsonObject{
                 {"style", 17},
@@ -118,7 +118,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_WRITE,
             QJsonObject{
                 {"style", 17},
@@ -127,7 +127,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_SEARCH,
             QJsonObject{
                 {"style", 8},
@@ -136,7 +136,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_SELECTION,
             QJsonObject{
                 {"style", 8},
@@ -145,7 +145,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
-        m_scintillaWidget->indicatorSet(
+        m_scintillaWidget->indicatorDefine(
             INDICATOR_HYPERLINK,
             QJsonObject{
                 {"style", 17},
@@ -155,13 +155,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     }
     // margin
     {
-        m_scintillaWidget->marginSet(
+        m_scintillaWidget->marginDefine(
             MARGIN_NUMBER,
             QJsonObject{
                 {"type", 1},
                 {"width", 32}
             });
-        m_scintillaWidget->marginSet(
+        m_scintillaWidget->marginDefine(
             MARGIN_BREAKPOINT,
             QJsonObject{
                 {"type", 0},
@@ -169,7 +169,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
                 {"sensitive", true}
             });
-        m_scintillaWidget->marginSet(
+        m_scintillaWidget->marginDefine(
             MARGIN_FOLDERS,
             QJsonObject{
                 {"type", 0},
@@ -177,7 +177,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"mask", static_cast<int>(SC_MASK_FOLDERS)},
                 {"sensitive", true}
             });
-        m_scintillaWidget->marginSet(
+        m_scintillaWidget->marginDefine(
             MARGIN_HISTORY,
             QJsonObject{
                 {"type", 0},
@@ -187,40 +187,123 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     }
     // marker
     {
-        m_scintillaWidget->markerSet(
+        m_scintillaWidget->markerDefine(
             MARKER_REGION,
             QJsonObject{
                 {"symbol", 2},
                 {"fore", 0x00ffff},
                 {"back", 0x00ffff}
             });
-        m_scintillaWidget->markerSet(
+        m_scintillaWidget->markerDefine(
             MARKER_BREAKPOINT,
             QJsonObject{
                 {"symbol", 0},
                 {"fore", 0x0000ff},
                 {"back", 0x0000ff}
             });
-        m_scintillaWidget->markerSet(
+        m_scintillaWidget->markerDefine(
             MARKER_DEBUG,
             QJsonObject{
                 {"symbol", 2},
                 {"fore", 0x000000},
                 {"back", 0xa500ff}
             });
-        m_scintillaWidget->markerSet(
+        m_scintillaWidget->markerDefine(
             MARKER_ERROR,
             QJsonObject{
                 {"symbol", 22},
                 {"fore", 0xffe6e6},
                 {"back", 0xffe6e6}
             });
-        m_scintillaWidget->markerSet(
+        m_scintillaWidget->markerDefine(
             MARKER_HINT,
             QJsonObject{
                 {"symbol", 22},
                 {"fore", 0xffe6e6},
                 {"back", 0xffe6e6}
+            });
+    }
+    // style
+    {
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_NAMESPACE,
+            QJsonObject{
+                {"fore", 0x008080}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_CLASS,
+            QJsonObject{
+                {"fore", 0x008080}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_TYPE,
+            QJsonObject{
+                {"fore", 0x0033b3}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_PARAMETER,
+            QJsonObject{
+                {"fore", 0x000000}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_VARIABLE,
+            QJsonObject{
+                {"fore", 0x000000}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_PROPERTY,
+            QJsonObject{
+                {"fore", 0x660e7a}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_ENUMMEMBAER,
+            QJsonObject{
+                {"fore", 0x871094}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_FUNCTION_DECLARATION,
+            QJsonObject{
+                {"fore", 0x00627a}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_FUNCTION_CALL,
+            QJsonObject{
+                {"fore", 0x000000}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_METHOD,
+            QJsonObject{
+                {"fore", 0x000000}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_MACRO,
+            QJsonObject{
+                {"fore", 0x1f542e}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_KEYWORD,
+            QJsonObject{
+                {"fore", 0x0033b3}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_COMMENT,
+            QJsonObject{
+                {"fore", 0x8c8c8c}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_STRING,
+            QJsonObject{
+                {"fore", 0x067d17}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_NUMBER,
+            QJsonObject{
+                {"fore", 0x1750eb}
+            });
+        m_scintillaWidget->styleDefine(
+            LUA_TOKEN_OPERATOR,
+            QJsonObject{
+                {"fore", 0x000000}
             });
     }
     // script
@@ -502,6 +585,84 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     m_editorWidget->SendScintilla(SCI_SETSTYLING, m_editorWidget->length(), static_cast<long>(0));
     int currentLine = 0;
     int currentChar = 0;
+    for (int i = 0; i < data.size(); i += 5) {
+        // semantic tokens response extract
+        const int deltaLine = data[i].toInt();
+        const int deltaStartChar = data[i + 1].toInt();
+        const int length = data[i + 2].toInt();
+        const int tokenType = data[i + 3].toInt();
+        const int tokenModifiers = data[i + 4].toInt();
+        // calculate start position
+        currentLine += deltaLine;
+        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
+        const int startPos = m_editorWidget->positionFromLineIndex(currentLine, currentChar);
+        const int endPos = startPos + length;
+        if (startPos < 0 || endPos > m_editorWidget->length() || length <= 0) {
+            qDebug() << "long string skipped" << currentLine << currentChar;
+            continue;
+        }
+        // start styling
+        m_editorWidget->SendScintilla(SCI_STARTSTYLING, startPos); // NOLINT
+        switch (tokenType) {
+            case TOKENTYPE_NAMESPACE:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NAMESPACE); // NOLINT
+                break;
+            case TOKENTYPE_CLASS:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_CLASS); // NOLINT
+                break;
+            case TOKENTYPE_TYPE:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_TYPE); // NOLINT
+                break;
+            case TOKENTYPE_PARAMETER:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PARAMETER); // NOLINT
+                break;
+            case TOKENTYPE_VARIABLE:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_VARIABLE); // NOLINT
+                break;
+            case TOKENTYPE_PROPERTY:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PROPERTY); // NOLINT
+                break;
+            case TOKENTYPE_ENUMMEMBAER:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_ENUMMEMBAER); // NOLINT
+                break;
+            case TOKENTYPE_FUNCTION:
+                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
+                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_DECLARATION); // NOLINT
+                } else {
+                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_CALL); // NOLINT
+                }
+                break;
+            case TOKENTYPE_METHOD:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_METHOD); // NOLINT
+                break;
+            case TOKENTYPE_MACRO:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_MACRO); // NOLINT
+                break;
+            case TOKENTYPE_KEYWORD:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_KEYWORD); // NOLINT
+                break;
+            case TOKENTYPE_COMMENT:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_COMMENT); // NOLINT
+                break;
+            case TOKENTYPE_STRING:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_STRING); // NOLINT
+                break;
+            case TOKENTYPE_NUMBER:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NUMBER); // NOLINT
+                break;
+            case TOKENTYPE_OPERATOR:
+                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_OPERATOR); // NOLINT
+                break;
+            default:
+                qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
+                break;
+        }
+    }
+    // clear
+    m_editorWidget->SendScintilla(SCI_STARTSTYLING, 0); // NOLINT
+    m_editorWidget->SendScintilla(SCI_SETSTYLING, m_editorWidget->length(), static_cast<long>(0));
+    currentLine = 0;
+    currentChar = 0;
     for (int i = 0; i < data.size(); i += 5) {
         // semantic tokens response extract
         const int deltaLine = data[i].toInt();
