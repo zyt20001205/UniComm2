@@ -46,11 +46,10 @@ public:
 
     void spellCheckResponse(const QVariantList &typos);
 
+    void charAdd(int ch);
+
     EditorWidget *m_editorWidget{};
     QUrl m_scriptUrl{};
-
-public slots:
-    void charAdded(int ch);
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -111,13 +110,13 @@ private:
 
     void selectionChange();
 
+    void contentChange();
+
     void scriptReadonly(bool status);
 
     void scriptModify(bool status);
 
     void permissionRequest();
-
-    void idleRequest();
 
     void didOpenNotification();
 
@@ -159,6 +158,7 @@ private:
 
     QTimer *m_selectionTimer{};
     QHash<QString, int> m_selection{};
+    QTimer *m_contentTimer{};
 
     QFileSystemWatcher *m_fileWatcher{};
     ScintillaWidget *m_scintillaWidget{};

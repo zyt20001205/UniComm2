@@ -18,12 +18,13 @@
 #include "utils/cmarkUtils.h"
 #include "utils/qtUtils.h"
 
-// ScriptPage public
+// public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
       m_editorWidget(new EditorWidget(scriptUrl)),
       m_scriptUrl(scriptUrl),
       m_selectionTimer(new QTimer(this)),
+      m_contentTimer(new QTimer(this)),
       m_fileWatcher(new QFileSystemWatcher()),
       m_scintillaWidget(new ScintillaWidget(scriptUrl)),
       m_searchWidget(new SearchWidget()),
@@ -38,10 +39,14 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
 
-    // 100ms debounce for selection
+    // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
     m_selectionTimer->setInterval(100);
     connect(m_selectionTimer, &QTimer::timeout, this, &ScriptPage::selectionChange);
+    // 500ms debounce for content change
+    m_contentTimer->setSingleShot(true);
+    m_contentTimer->setInterval(500);
+    connect(m_contentTimer, &QTimer::timeout, this, &ScriptPage::contentChange);
 
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
@@ -317,8 +322,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_scintillaWidget->textSet(script);
     m_scintillaWidget->savepointSet();
     // signals
-    connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, &ScriptPage::uiUpdate);
+    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
     connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
+    connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, &ScriptPage::uiUpdate);
     // TODO: delete later
     {
         // font
@@ -386,11 +392,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_editorWidget->setText(content);
         m_scriptHash = stringHashCalc(m_editorWidget->text());
         // connect signals
-        connect(m_editorWidget, SIGNAL(SCN_CHARADDED(int)), this, SLOT(charAdded(int)));
-        connect(m_editorWidget, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(scriptPosition(int,int)));
         connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) { emit showMenu(m_scriptUrl, menuSession); });
         connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
-        connect(m_editorWidget, &EditorWidget::requestIdle, this, &ScriptPage::idleRequest);
         connect(m_editorWidget, &EditorWidget::hideDwellWidget, this, &ScriptPage::hideDwell);
         connect(m_editorWidget, &EditorWidget::requestDefinition, this, &ScriptPage::definitionRequest);
         connect(m_editorWidget, &EditorWidget::requestDocumentHighlight, this, &ScriptPage::documentHighlightRequest);
@@ -417,7 +420,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
 }
 
-// ScriptPage public: file service
+// public: file
 void ScriptPage::pathDisambiguation() {
     const QString scriptPath = m_scriptUrl.toLocalFile();
     const QString workspacePath = g_workspaceUrl.toLocalFile();
@@ -496,7 +499,7 @@ void ScriptPage::scriptClose() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
 }
 
-// ScriptPage public: lsp service
+// public: lsp
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_scriptDiagnostic = diagnostics;
@@ -620,7 +623,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
                 else type = LUA_TOKEN_FUNCTION_CALL;
                 break;
             case TOKENTYPE_METHOD:
-                type =  LUA_TOKEN_METHOD;
+                type = LUA_TOKEN_METHOD;
                 break;
             case TOKENTYPE_MACRO:
                 type = LUA_TOKEN_MACRO;
@@ -648,7 +651,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     }
 }
 
-// ScriptPage public: typo service
+// public: typo
 void ScriptPage::spellCheckResponse(const QVariantList &typos) {
     m_scriptTypo = typos;
     // clear previous typo
@@ -664,8 +667,9 @@ void ScriptPage::spellCheckResponse(const QVariantList &typos) {
     }
 }
 
-// ScriptPage public slots
-void ScriptPage::charAdded(const int ch) {
+// public: slot
+void ScriptPage::charAdd(const int ch) {
+    m_selection = m_scintillaWidget->selectionGet();
     const QChar character(ch);
     if (character.isLetter() || m_completionTrigger.contains(character)) {
         didChangeNotification();
@@ -680,13 +684,13 @@ void ScriptPage::charAdded(const int ch) {
     }
 }
 
-// ScriptPage protected
+// protected
 void ScriptPage::closeEvent(QCloseEvent *event) {
     scriptClose();
     event->accept();
 }
 
-// ScriptPage private: slots
+// private: slot
 void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyMod modifiers, const int margin) {
     const int line = m_scintillaWidget->lineGet(position);
     if (margin == MARGIN_BREAKPOINT) {
@@ -712,7 +716,9 @@ void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyM
 }
 
 void ScriptPage::uiUpdate(const Scintilla::Update updated) const {
-    if (updated == Scintilla::Update::Selection) {
+    if (updated == Scintilla::Update::Content) {
+        m_contentTimer->start();
+    } else if (updated == Scintilla::Update::Selection) {
         m_selectionTimer->start();
     }
 }
@@ -725,7 +731,30 @@ void ScriptPage::selectionChange() {
     }
 }
 
-// ScriptPage private: file service
+void ScriptPage::contentChange() {
+    m_selection = m_scintillaWidget->selectionGet();
+    // lsp request
+    didChangeNotification();
+    documentHighlightRequest();
+    documentSymbolRequest();
+    foldingRangeRequest();
+    semanticTokensRequest();
+    // nuspell request
+    spellCheckRequest();
+    // TODO
+    // modification check
+    // bool modified{};
+    // if (const QString script = m_editorWidget->text(); stringHashCalc(script) != m_scriptHash) {
+    //     modified = true;
+    // } else {
+    //     modified = false;
+    // }
+    // if (modified != m_modified) {
+    //     scriptModify(modified);
+    // }
+}
+
+// private: file
 void ScriptPage::scriptReadonly(const bool status) {
     m_readonly = status;
     m_editorWidget->setReadOnly(status);
@@ -772,30 +801,7 @@ void ScriptPage::permissionRequest() {
     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
 }
 
-// ScriptPage private: lsp service
-void ScriptPage::idleRequest() {
-    int line, character;
-    m_editorWidget->getCursorPosition(&line, &character);
-    // lsp request
-    didChangeNotification();
-    documentHighlightRequest();
-    documentSymbolRequest();
-    foldingRangeRequest();
-    semanticTokensRequest();
-    // nuspell request
-    spellCheckRequest();
-    // modification check
-    bool modified{};
-    if (const QString script = m_editorWidget->text(); stringHashCalc(script) != m_scriptHash) {
-        modified = true;
-    } else {
-        modified = false;
-    }
-    if (modified != m_modified) {
-        scriptModify(modified);
-    }
-}
-
+// private: lsp
 void ScriptPage::didOpenNotification() {
     // did open notification to lua language server
     const QJsonObject didOpenParams{
@@ -813,7 +819,7 @@ void ScriptPage::didOpenNotification() {
 
 void ScriptPage::didChangeNotification() {
     // did change notification to lua language server
-    const QString content = m_editorWidget->text();
+    const auto content = m_scintillaWidget->textGet();
     const QJsonObject didChangeParams{
         {
             "textDocument", QJsonObject{
@@ -857,11 +863,8 @@ void ScriptPage::didCloseNotification() {
 }
 
 void ScriptPage::completionRequest() {
-    // get cursor position
-    int line, character;
-    m_editorWidget->getCursorPosition(&line, &character);
     // completion request to script module
-    emit requestCompletion(m_scriptUrl, line, character);
+    emit requestCompletion(m_scriptUrl, m_selection["line"], m_selection["character"]);
 }
 
 void ScriptPage::definitionRequest() {
@@ -992,11 +995,8 @@ void ScriptPage::referencesRequest() {
 }
 
 void ScriptPage::onTypeFormattingRequest() {
-    // get cursor position
-    int line, character;
-    m_editorWidget->getCursorPosition(&line, &character);
     // on type formatting request to script module
-    emit requestOnTypeFormatting(m_scriptUrl, line, character);
+    emit requestOnTypeFormatting(m_scriptUrl, m_selection["line"], m_selection["character"]);
 }
 
 void ScriptPage::semanticTokensRequest() {
@@ -1005,11 +1005,8 @@ void ScriptPage::semanticTokensRequest() {
 }
 
 void ScriptPage::signatureHelpRequest() {
-    // get cursor position
-    int line, character;
-    m_editorWidget->getCursorPosition(&line, &character);
     // signature help request to script module
-    emit requestSignatureHelp(m_scriptUrl, line, character);
+    emit requestSignatureHelp(m_scriptUrl, m_selection["line"], m_selection["character"]);
 }
 
 void ScriptPage::typeDefinitionRequest() {
@@ -1020,14 +1017,14 @@ void ScriptPage::typeDefinitionRequest() {
     emit requestTypeDefinition(m_scriptUrl, line, character);
 }
 
-// ScriptPage private: typo service
+// private: typo
 void ScriptPage::spellCheckRequest() {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     // spell check request to script module
     emit requestSpellCheck(m_scriptUrl, m_editorWidget->text());
 }
 
-// ScriptPage private:
+// private:
 void ScriptPage::positionFill(const int x, const int y) const {
     const QString text = QString("%1, %2").arg(QString::number(x), QString::number(y));
     m_editorWidget->insert(text);

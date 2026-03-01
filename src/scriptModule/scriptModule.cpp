@@ -819,5 +819,5 @@ void ScriptModule::textReplace(const QUrl &scriptUrl, const QString &text, const
 }
 
 void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {
-    m_scriptPageHash[scriptUrl]->charAdded(character.toLatin1());
+    m_scriptPageHash[scriptUrl]->charAdd(character.toLatin1());
 }

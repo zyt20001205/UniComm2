@@ -71,7 +71,7 @@ QHash<QString, int> ScintillaWidget::indexGet(const Position position) const {
 void ScintillaWidget::indicatorDefine(const int type, const QJsonObject &config) const {
     if (config.contains("style")) send(SCI_INDICSETSTYLE, type, config["style"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
-send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
+    send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
     // if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
     if (config.contains("alpha")) send(SCI_INDICSETALPHA, type, config["alpha"].toInt()); // NOLINT
     if (config.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, type, config["outlineAlpha"].toInt()); // NOLINT
@@ -224,6 +224,23 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
 }
 
 // public: text
+QString ScintillaWidget::textGet(const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
+    int start{};
+    int end{};
+    int length{};
+    if (startLine == -1) {
+        end = static_cast<int>(send(SCI_GETLENGTH));
+        length = static_cast<int>(send(SCI_GETLENGTH));
+        QByteArray buffer(length + 1, '\0');
+        Sci_TextRange tr = {{start, end}, buffer.data()};
+        send(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));
+        buffer.chop(1); // Remove extra NUL
+        return QString::fromUtf8(buffer.constData(), length);
+    } else {
+        return {};
+    }
+}
+
 void ScintillaWidget::textSet(const QString &text) const {
     send(SCI_SETTEXT, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
 }
