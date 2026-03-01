@@ -228,17 +228,17 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_NAMESPACE,
             QJsonObject{
-                {"fore", 0x008080}
+                {"fore", 0x808000}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_CLASS,
             QJsonObject{
-                {"fore", 0x008080}
+                {"fore", 0x808000}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_TYPE,
             QJsonObject{
-                {"fore", 0x0033b3}
+                {"fore", 0xb33300}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_PARAMETER,
@@ -253,17 +253,17 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_PROPERTY,
             QJsonObject{
-                {"fore", 0x660e7a}
+                {"fore", 0x7a0e66}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_ENUMMEMBAER,
             QJsonObject{
-                {"fore", 0x871094}
+                {"fore", 0x941087}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_FUNCTION_DECLARATION,
             QJsonObject{
-                {"fore", 0x00627a}
+                {"fore", 0x7a6200}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_FUNCTION_CALL,
@@ -278,12 +278,12 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_MACRO,
             QJsonObject{
-                {"fore", 0x1f542e}
+                {"fore", 0x2e541f}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_KEYWORD,
             QJsonObject{
-                {"fore", 0x0033b3}
+                {"fore", 0xb33300}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_COMMENT,
@@ -293,12 +293,12 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_STRING,
             QJsonObject{
-                {"fore", 0x067d17}
+                {"fore", 0x177d06}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_NUMBER,
             QJsonObject{
-                {"fore", 0x1750eb}
+                {"fore", 0xeb5017}
             });
         m_scintillaWidget->styleDefine(
             LUA_TOKEN_OPERATOR,
@@ -581,160 +581,70 @@ void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
 
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
-    m_editorWidget->SendScintilla(SCI_STARTSTYLING, 0); // NOLINT
-    m_editorWidget->SendScintilla(SCI_SETSTYLING, m_editorWidget->length(), static_cast<long>(0));
-    int currentLine = 0;
-    int currentChar = 0;
+    m_scintillaWidget->styleSet(LUA_TOKEN_UNUSED);
+    int line = 0;
+    int character = 0;
     for (int i = 0; i < data.size(); i += 5) {
-        // semantic tokens response extract
         const int deltaLine = data[i].toInt();
-        const int deltaStartChar = data[i + 1].toInt();
+        const int deltaCharacter = data[i + 1].toInt();
         const int length = data[i + 2].toInt();
         const int tokenType = data[i + 3].toInt();
         const int tokenModifiers = data[i + 4].toInt();
-        // calculate start position
-        currentLine += deltaLine;
-        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
-        const int startPos = m_editorWidget->positionFromLineIndex(currentLine, currentChar);
-        const int endPos = startPos + length;
-        if (startPos < 0 || endPos > m_editorWidget->length() || length <= 0) {
-            qDebug() << "long string skipped" << currentLine << currentChar;
-            continue;
-        }
-        // start styling
-        m_editorWidget->SendScintilla(SCI_STARTSTYLING, startPos); // NOLINT
+        line += deltaLine;
+        character = deltaLine > 0 ? deltaCharacter : character + deltaCharacter;
+        int type{};
         switch (tokenType) {
             case TOKENTYPE_NAMESPACE:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NAMESPACE); // NOLINT
+                type = LUA_TOKEN_NAMESPACE;
                 break;
             case TOKENTYPE_CLASS:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_CLASS); // NOLINT
+                type = LUA_TOKEN_CLASS;
                 break;
             case TOKENTYPE_TYPE:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_TYPE); // NOLINT
+                type = LUA_TOKEN_TYPE;
                 break;
             case TOKENTYPE_PARAMETER:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PARAMETER); // NOLINT
+                type = LUA_TOKEN_PARAMETER;
                 break;
             case TOKENTYPE_VARIABLE:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_VARIABLE); // NOLINT
+                type = LUA_TOKEN_VARIABLE;
                 break;
             case TOKENTYPE_PROPERTY:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PROPERTY); // NOLINT
+                type = LUA_TOKEN_PROPERTY;
                 break;
             case TOKENTYPE_ENUMMEMBAER:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_ENUMMEMBAER); // NOLINT
+                type = LUA_TOKEN_ENUMMEMBAER;
                 break;
             case TOKENTYPE_FUNCTION:
-                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
-                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_DECLARATION); // NOLINT
-                } else {
-                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_CALL); // NOLINT
-                }
+                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) type = LUA_TOKEN_FUNCTION_DECLARATION;
+                else type = LUA_TOKEN_FUNCTION_CALL;
                 break;
             case TOKENTYPE_METHOD:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_METHOD); // NOLINT
+                type =  LUA_TOKEN_METHOD;
                 break;
             case TOKENTYPE_MACRO:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_MACRO); // NOLINT
+                type = LUA_TOKEN_MACRO;
                 break;
             case TOKENTYPE_KEYWORD:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_KEYWORD); // NOLINT
+                type = LUA_TOKEN_KEYWORD;
                 break;
             case TOKENTYPE_COMMENT:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_COMMENT); // NOLINT
+                type = LUA_TOKEN_COMMENT;
                 break;
             case TOKENTYPE_STRING:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_STRING); // NOLINT
+                type = LUA_TOKEN_STRING;
                 break;
             case TOKENTYPE_NUMBER:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NUMBER); // NOLINT
+                type = LUA_TOKEN_NUMBER;
                 break;
             case TOKENTYPE_OPERATOR:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_OPERATOR); // NOLINT
+                type = LUA_TOKEN_OPERATOR;
                 break;
             default:
-                qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
+                qDebug() << "skip token" << line << character << length << tokenType;
                 break;
         }
-    }
-    // clear
-    m_editorWidget->SendScintilla(SCI_STARTSTYLING, 0); // NOLINT
-    m_editorWidget->SendScintilla(SCI_SETSTYLING, m_editorWidget->length(), static_cast<long>(0));
-    currentLine = 0;
-    currentChar = 0;
-    for (int i = 0; i < data.size(); i += 5) {
-        // semantic tokens response extract
-        const int deltaLine = data[i].toInt();
-        const int deltaStartChar = data[i + 1].toInt();
-        const int length = data[i + 2].toInt();
-        const int tokenType = data[i + 3].toInt();
-        const int tokenModifiers = data[i + 4].toInt();
-        // calculate start position
-        currentLine += deltaLine;
-        currentChar = deltaLine > 0 ? deltaStartChar : currentChar + deltaStartChar;
-        const int startPos = m_editorWidget->positionFromLineIndex(currentLine, currentChar);
-        const int endPos = startPos + length;
-        if (startPos < 0 || endPos > m_editorWidget->length() || length <= 0) {
-            qDebug() << "long string skipped" << currentLine << currentChar;
-            continue;
-        }
-        // start styling
-        m_editorWidget->SendScintilla(SCI_STARTSTYLING, startPos); // NOLINT
-        switch (tokenType) {
-            case TOKENTYPE_NAMESPACE:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NAMESPACE); // NOLINT
-                break;
-            case TOKENTYPE_CLASS:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_CLASS); // NOLINT
-                break;
-            case TOKENTYPE_TYPE:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_TYPE); // NOLINT
-                break;
-            case TOKENTYPE_PARAMETER:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PARAMETER); // NOLINT
-                break;
-            case TOKENTYPE_VARIABLE:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_VARIABLE); // NOLINT
-                break;
-            case TOKENTYPE_PROPERTY:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_PROPERTY); // NOLINT
-                break;
-            case TOKENTYPE_ENUMMEMBAER:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_ENUMMEMBAER); // NOLINT
-                break;
-            case TOKENTYPE_FUNCTION:
-                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) {
-                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_DECLARATION); // NOLINT
-                } else {
-                    m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_FUNCTION_CALL); // NOLINT
-                }
-                break;
-            case TOKENTYPE_METHOD:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_METHOD); // NOLINT
-                break;
-            case TOKENTYPE_MACRO:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_MACRO); // NOLINT
-                break;
-            case TOKENTYPE_KEYWORD:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_KEYWORD); // NOLINT
-                break;
-            case TOKENTYPE_COMMENT:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_COMMENT); // NOLINT
-                break;
-            case TOKENTYPE_STRING:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_STRING); // NOLINT
-                break;
-            case TOKENTYPE_NUMBER:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_NUMBER); // NOLINT
-                break;
-            case TOKENTYPE_OPERATOR:
-                m_editorWidget->SendScintilla(SCI_SETSTYLING, length, LUA_TOKEN_OPERATOR); // NOLINT
-                break;
-            default:
-                qDebug() << "skip token" << currentLine << currentChar << length << tokenType;
-                break;
-        }
+        m_scintillaWidget->styleSet(type, line, character, length);
     }
 }
 

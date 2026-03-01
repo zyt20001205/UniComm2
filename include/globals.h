@@ -97,6 +97,7 @@ enum {
 };
 
 enum {
+    LUA_TOKEN_UNUSED,
     LUA_TOKEN_NAMESPACE,
     LUA_TOKEN_CLASS,
     LUA_TOKEN_TYPE,

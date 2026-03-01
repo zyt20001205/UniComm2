@@ -71,6 +71,7 @@ QHash<QString, int> ScintillaWidget::indexGet(const Position position) const {
 void ScintillaWidget::indicatorDefine(const int type, const QJsonObject &config) const {
     if (config.contains("style")) send(SCI_INDICSETSTYLE, type, config["style"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
+send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
     // if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
     if (config.contains("alpha")) send(SCI_INDICSETALPHA, type, config["alpha"].toInt()); // NOLINT
     if (config.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, type, config["outlineAlpha"].toInt()); // NOLINT
@@ -95,10 +96,10 @@ void ScintillaWidget::indicatorClear(const int type, const int startLine, const 
 
 void ScintillaWidget::indicatorFill(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) const {
     const Position start = positionGet(startLine, startCharacter);
-    const Position lengthFill = positionGet(endLine, endCharacter) - start;
-    if (lengthFill <= 0) return;
+    const Position length = positionGet(endLine, endCharacter) - start;
+    if (length <= 0) return;
     send(SCI_SETINDICATORCURRENT, type); // NOLINT
-    send(SCI_INDICATORFILLRANGE, start, lengthFill); // NOLINT
+    send(SCI_INDICATORFILLRANGE, start, length); // NOLINT
     if (time == -1) return;
     QTimer::singleShot(time, [this, type, startLine, startCharacter, endLine, endCharacter] { indicatorClear(type, startLine, startCharacter, endLine, endCharacter); });
 }
@@ -193,8 +194,8 @@ void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) con
     // if (config.contains("stretch")) send(SCI_STYLESETSTRETCH, type, config["stretch"].toInt()); // NOLINT
     // if (config.contains("italic")) send(SCI_STYLESETITALIC, type, config["italic"].toBool()); // NOLINT
     // if (config.contains("underline")) send(SCI_STYLESETUNDERLINE, type, config["underline"].toBool()); // NOLINT
-    if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT
-    if (config.contains("back")) send(SCI_STYLESETBACK, type, config["back"].toInt()); // NOLINT
+    if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT    if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT
+    // if (config.contains("back")) send(SCI_STYLESETBACK, type, config["back"].toInt()); // NOLINT
     // if (config.contains("eolFilled")) send(SCI_STYLESETEOLFILLED, type, config["eolFilled"].toBool()); // NOLINT
     // if (config.contains("characterSet")) send(SCI_STYLESETCHARACTERSET, type, config["characterSet"].toInt()); // NOLINT
     // if (config.contains("case")) send(SCI_STYLESETCASE, type, config["case"].toInt()); // NOLINT
@@ -204,6 +205,22 @@ void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) con
     // if (config.contains("checkMonospaced")) send(SCI_STYLESETCHECKMONOSPACED, type, config["checkMonospaced"].toBool()); // NOLINT
     // if (config.contains("representation")) send(SCI_STYLESETINVISIBLEREPRESENTATION, type, reinterpret_cast<sptr_t>(config["bold"].toString().toUtf8().constData())); // NOLINT
     // if (config.contains("locale")) send(SCI_SETFONTLOCALE, type, reinterpret_cast<sptr_t>(config["locale"].toString().toUtf8().constData())); // NOLINT
+}
+
+void ScintillaWidget::styleSet(const int type, const int startLine, const int startCharacter, int length) const {
+    Position start{};
+    if (startLine != -1) {
+        start = positionGet(startLine, startCharacter);
+    } else {
+        length = static_cast<int>(send(SCI_GETLENGTH));
+    }
+    // TODO: safety check
+    // if (startPos < 0 || endPos > m_editorWidget->length() || length <= 0) {
+    //     qDebug() << "long string skipped" << currentLine << currentChar;
+    //     continue;
+    // }
+    send(SCI_STARTSTYLING, start); // NOLINT
+    send(SCI_SETSTYLING, length, type); // NOLINT
 }
 
 // public: text

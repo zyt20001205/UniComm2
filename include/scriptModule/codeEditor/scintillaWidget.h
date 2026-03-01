@@ -47,6 +47,8 @@ public:
 
     void styleDefine(int type, const QJsonObject &config) const;
 
+    void styleSet(int type, int startLine = -1, int startCharacter = -1, int length = -1) const;
+
     void textSet(const QString &text) const;
 
 private:
