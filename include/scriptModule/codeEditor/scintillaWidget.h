@@ -17,6 +17,8 @@ public:
 
     void fontSet(const QFont &font);
 
+    [[nodiscard]] QHash<QString, int> indexGet(Scintilla::Position position) const;
+
     void indicatorDefine(int type, const QJsonObject &config) const;
 
     void indicatorClear(int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;

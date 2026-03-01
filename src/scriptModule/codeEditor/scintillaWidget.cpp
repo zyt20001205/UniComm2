@@ -57,6 +57,16 @@ void ScintillaWidget::fontSet(const QFont &font) {
     styleSetSize(STYLE_DEFAULT, font.pointSize());
 }
 
+// public: index
+QHash<QString, int> ScintillaWidget::indexGet(const Position position) const {
+    const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, position));
+    const int character = static_cast<int>(send(SCI_GETCOLUMN, position));
+    return QHash<QString, int>{
+        {"line", line},
+        {"character", character}
+    };
+}
+
 // public: indicator
 void ScintillaWidget::indicatorDefine(const int type, const QJsonObject &config) const {
     if (config.contains("style")) send(SCI_INDICSETSTYLE, type, config["style"].toInt()); // NOLINT
@@ -161,8 +171,7 @@ void ScintillaWidget::savepointSet() const {
 // public: selection
 QHash<QString, int> ScintillaWidget::selectionGet() const {
     const Position position = send(SCI_GETCURRENTPOS);
-    const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, position));
-    const int character = static_cast<int>(send(SCI_GETCOLUMN, position));
+    const auto index = indexGet(position);
     const Position startPosition = send(SCI_GETSELECTIONSTART);
     const Position endPosition = send(SCI_GETSELECTIONEND);
     const int characters = static_cast<int>(send(SCI_COUNTCHARACTERS, startPosition, endPosition));
@@ -170,8 +179,8 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
     const int endLine = static_cast<int>(send(SCI_LINEFROMPOSITION, endPosition));
     const int lines = endLine - startLine;
     return QHash<QString, int>{
-        {"line", line},
-        {"character", character},
+        {"line", index["line"]},
+        {"character", index["character"]},
         {"lines", lines},
         {"characters", characters}
     };
