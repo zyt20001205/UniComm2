@@ -576,7 +576,7 @@ void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
     const int startCharacter = start["character"].toInt();
     const int endLine = end["line"].toInt();
     const int endCharacter = end["character"].toInt();
-    m_editorWidget->textReplace(text, startLine, startCharacter, endLine, endCharacter);
+    m_scintillaWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {

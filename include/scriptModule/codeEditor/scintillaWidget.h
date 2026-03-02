@@ -47,13 +47,15 @@ public:
 
     [[nodiscard]] QHash<QString, int> selectionGet() const;
 
+    void selectionSet(int startLine, int startCharacter, int endLine, int endCharacter) const;
+
     void styleDefine(int type, const QJsonObject &config) const;
 
     void styleSet(int type, int startLine = -1, int startCharacter = -1, int length = -1) const;
 
     [[nodiscard]] QString textGet(int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
-    void textSet(const QString &text) const;
+    void textSet(const QString &text, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
 private:
 };

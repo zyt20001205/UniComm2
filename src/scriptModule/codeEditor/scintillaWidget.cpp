@@ -192,6 +192,12 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
     };
 }
 
+void ScintillaWidget::selectionSet(const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
+    const Position anchor = positionGet(startLine, startCharacter);
+    const Position caret = positionGet(endLine, endCharacter);
+    send(SCI_SETSEL, anchor, caret); // NOLINT
+}
+
 // public: style
 void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) const {
     // if (config.contains("bold")) send(SCI_STYLESETBOLD, type, config["bold"].toBool()); // NOLINT
@@ -246,6 +252,11 @@ QString ScintillaWidget::textGet(const int startLine, const int startCharacter, 
     }
 }
 
-void ScintillaWidget::textSet(const QString &text) const {
-    send(SCI_SETTEXT, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
+void ScintillaWidget::textSet(const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
+    if (startLine == -1) {
+        send(SCI_SETTEXT, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
+    } else {
+        selectionSet(startLine, startCharacter, endLine, endCharacter);
+        send(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData()));
+    }
 }
