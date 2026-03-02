@@ -2,6 +2,8 @@
 #define UNICOMM_CODEASSISTANT_H
 #include <QObject>
 
+#include "ScintillaTypes.h"
+
 class CompletionWidget;
 class DwellWidget;
 class NavigationWidget;
@@ -43,13 +45,13 @@ public:
 signals:
     void addChar(const QUrl &scriptUrl, QChar character);
 
-    void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
+    void setIndex(const QUrl &scriptUrl, int line, int character);
+
+    void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void getText(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void insertText(const QUrl &scriptUrl, const QString &text, int line, int index);
-
-    void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
 
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 

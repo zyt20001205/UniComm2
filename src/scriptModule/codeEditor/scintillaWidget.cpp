@@ -51,10 +51,28 @@ void ScintillaWidget::foldLevelSet(const int line, const int level) const {
     send(SCI_SETFOLDLEVEL, line, level); // NOLINT
 }
 
+
+void ScintillaWidget::foldContractTop() const {
+    send(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); // NOLINT
+}
+
+void ScintillaWidget::foldContractRecursively() const {
+    send(SCI_FOLDALL, SC_FOLDACTION_CONTRACT | SC_FOLDACTION_CONTRACT_EVERY_LEVEL); // NOLINT
+}
+
+void ScintillaWidget::foldExpandRecursively() const {
+    send(SCI_FOLDALL, SC_FOLDACTION_EXPAND); // NOLINT
+}
+
 // public: font
 void ScintillaWidget::fontSet(const QFont &font) {
     styleSetFont(STYLE_DEFAULT, font.family().toUtf8().constData());
     styleSetSize(STYLE_DEFAULT, font.pointSize());
+}
+
+// public: height
+int ScintillaWidget::heightGet() const {
+    return send(SCI_TEXTHEIGHT, 0);
 }
 
 // public: index
@@ -65,6 +83,29 @@ QHash<QString, int> ScintillaWidget::indexGet(const Position position) const {
         {"line", line},
         {"character", character}
     };
+}
+
+QHash<QString, int> ScintillaWidget::wordIndexGet(const Position position, const bool onlyWordCharacters) const {
+    const Position startPosition = send(SCI_WORDSTARTPOSITION, position, onlyWordCharacters);
+    const Position endPosition = send(SCI_WORDENDPOSITION, position, onlyWordCharacters);
+    const auto startIndex = indexGet(startPosition);
+    const auto endIndex = indexGet(endPosition);
+    return QHash<QString, int>{
+            {"startLine", startIndex["line"]},
+            {"startCharacter", startIndex["character"]},
+            {"endLine", endIndex["line"]},
+            {"endCharacter", endIndex["character"]}
+    };
+}
+
+QHash<QString, int> ScintillaWidget::wordIndexGet(const int line, const int character, const bool onlyWordCharacters) const {
+    const auto position = positionGet(line, character);
+    return wordIndexGet(position, onlyWordCharacters);
+}
+
+void ScintillaWidget::indexSet(const int line, const int character) const {
+    const auto position = positionGet(line, character);
+    positionSet(position);
 }
 
 // public: indicator
@@ -164,9 +205,32 @@ bool ScintillaWidget::modifyGet() const {
     return send(SCI_GETMODIFY);
 }
 
+// public: point
+QHash<QString, int> ScintillaWidget::pointGet(const int line, const int character) const {
+    const auto position = positionGet(line, character);
+    const int x = send(SCI_POINTXFROMPOSITION, 0, position);
+    const int y = send(SCI_POINTYFROMPOSITION, 0, position);
+    return QHash<QString, int>{
+        {"x", x},
+        {"y", y}
+    };
+}
+
 // public: position
 Position ScintillaWidget::positionGet(const int line, const int character) const {
-    return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);
+    if (line == -1) {
+        return send(SCI_GETCURRENTPOS);
+    } else {
+        return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);
+    }
+}
+
+Position ScintillaWidget::positionGet(const QPoint &point) const {
+    return send(SCI_POSITIONFROMPOINT, point.x(), point.y());
+}
+
+void ScintillaWidget::positionSet(const Position position) const {
+    send(SCI_GOTOPOS, position); // NOLINT
 }
 
 // public: savepoint
@@ -176,8 +240,7 @@ void ScintillaWidget::savepointSet() const {
 
 // public: selection
 QHash<QString, int> ScintillaWidget::selectionGet() const {
-    const Position position = send(SCI_GETCURRENTPOS);
-    const auto index = indexGet(position);
+    const auto index = indexGet(positionGet());
     const Position startPosition = send(SCI_GETSELECTIONSTART);
     const Position endPosition = send(SCI_GETSELECTIONEND);
     const int characters = static_cast<int>(send(SCI_COUNTCHARACTERS, startPosition, endPosition));
@@ -250,6 +313,14 @@ QString ScintillaWidget::textGet(const int startLine, const int startCharacter, 
     } else {
         return {};
     }
+}
+
+QString ScintillaWidget::textGetSelected() const {
+    const int length = static_cast<int>(send(SCI_GETSELTEXT, 0, NULL));
+    QByteArray buffer(length + 1, '\0');
+    send(SCI_GETSELTEXT, 0, reinterpret_cast<sptr_t>(buffer.data()));
+    buffer.chop(1); // Remove extra NUL
+    return QString::fromUtf8(buffer.constData(), length);
 }
 
 void ScintillaWidget::textSet(const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {

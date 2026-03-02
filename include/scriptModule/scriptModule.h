@@ -46,11 +46,13 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
-    Q_INVOKABLE void collapseAll(const QUrl &scriptUrl);
+    Q_INVOKABLE void foldContractTop(const QUrl &scriptUrl);
 
-    Q_INVOKABLE void expandAll(const QUrl &scriptUrl);
+    Q_INVOKABLE void foldContractRecursively(const QUrl &scriptUrl);
 
-    void cursorPositionSet(const QUrl &scriptUrl, int startLine, int startCharacter);
+    Q_INVOKABLE void foldExpandRecursively(const QUrl &scriptUrl);
+
+    void indexSet(const QUrl &scriptUrl, int line, int character);
 
     void cursorPositionGet() const;
 
@@ -118,11 +120,11 @@ public:
 
     void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
 
-    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
-
     Q_INVOKABLE void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 
     void typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const;
+
+    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
 
     ScriptPage *m_focusedPage{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};
@@ -162,9 +164,9 @@ private:
 
     void menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const;
 
-    void textInsert(const QUrl &scriptUrl, const QString &text, int line, int index);
+    void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void textReplace(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void textInsert(const QUrl &scriptUrl, const QString &text, int line, int index);
 
     void charAdd(const QUrl &scriptUrl, QChar character) const;
 

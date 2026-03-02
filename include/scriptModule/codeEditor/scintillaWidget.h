@@ -15,9 +15,23 @@ public:
 
     void foldLevelSet(int line, int level) const;
 
+    void foldContractTop() const;
+
+    void foldContractRecursively() const;
+
+    void foldExpandRecursively() const;
+
     void fontSet(const QFont &font);
 
+    [[nodiscard]] int heightGet() const;
+
     [[nodiscard]] QHash<QString, int> indexGet(Scintilla::Position position) const;
+
+    [[nodiscard]] QHash<QString, int> wordIndexGet(Scintilla::Position position, bool onlyWordCharacters = true) const;
+
+    [[nodiscard]] QHash<QString, int> wordIndexGet(int line = -1, int character = -1, bool onlyWordCharacters = true) const;
+
+    void indexSet(int line, int character) const;
 
     void indicatorDefine(int type, const QJsonObject &config) const;
 
@@ -41,7 +55,13 @@ public:
 
     [[nodiscard]] bool modifyGet() const;
 
-    [[nodiscard]] Scintilla::Position positionGet(int line, int character = -1) const;
+    [[nodiscard]] QHash<QString, int> pointGet(int line, int character) const;
+
+    [[nodiscard]] Scintilla::Position positionGet(int line = -1, int character = -1) const;
+
+    [[nodiscard]] Scintilla::Position positionGet(const QPoint &point) const;
+
+    void positionSet(Scintilla::Position position) const;
 
     void savepointSet() const;
 
@@ -54,6 +74,8 @@ public:
     void styleSet(int type, int startLine = -1, int startCharacter = -1, int length = -1) const;
 
     [[nodiscard]] QString textGet(int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
+
+    [[nodiscard]] QString textGetSelected() const;
 
     void textSet(const QString &text, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 

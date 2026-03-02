@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QSet>
 
+#include "ScintillaTypes.h"
+
 class QStandardItemModel;
 
 class CompletionWidget final : public QObject {
@@ -33,9 +35,9 @@ public:
     Q_INVOKABLE void textReplace();
 
 signals:
-    void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
+    void setIndex(const QUrl &scriptUrl, int line, int character);
 
-    void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void addChar(const QUrl &scriptUrl, QChar character);
 

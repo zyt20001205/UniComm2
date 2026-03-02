@@ -11,8 +11,9 @@
 #include "scriptModule/welcomePage.h"
 #include "scriptModule/codeAnalysis/codeAssistant.h"
 #include "scriptModule/codeEditor/editorWidget.h"
+#include "scriptModule/codeEditor/scintillaWidget.h"
 
-// ScriptModule public
+// public
 ScriptModule::ScriptModule(QWidget *parent)
     : QObject(parent),
       m_scriptConfig(g_workspaceConfig["scriptConfig"].toObject()),
@@ -22,10 +23,10 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &ScriptModule::openWorkspace);
     connect(this, &ScriptModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &ScriptModule::charAdd);
-    connect(m_codeAssistant, &CodeAssistant::setCursorPosition, this, &ScriptModule::cursorPositionSet);
+    connect(m_codeAssistant, &CodeAssistant::setIndex, this, &ScriptModule::indexSet);
     connect(m_codeAssistant, &CodeAssistant::getText, this, &ScriptModule::textGet);
+    connect(m_codeAssistant, &CodeAssistant::setText, this, &ScriptModule::textSet);
     connect(m_codeAssistant, &CodeAssistant::insertText, this, &ScriptModule::textInsert);
-    connect(m_codeAssistant, &CodeAssistant::replaceText, this, &ScriptModule::textReplace);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorInsert);
     connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &ScriptModule::codeActionRequest);
     connect(m_codeAssistant, &CodeAssistant::insertPort, this, &ScriptModule::insertPort);
@@ -174,6 +175,7 @@ void ScriptModule::scriptMarkerSave(const QJsonObject &markerConfigScript) {
     m_scriptConfig["markerDebugForeground"] = markerConfigScript["markerDebugForeground"].toString();
 }
 
+// public: file
 void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     // open page
     if (!m_scriptPageHash.contains(scriptUrl)) {
@@ -234,21 +236,33 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     m_scriptPageHash[scriptUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
 }
 
-void ScriptModule::collapseAll(const QUrl &scriptUrl) {
+// public: document
+void ScriptModule::foldContractTop(const QUrl &scriptUrl) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->SendScintilla(QsciScintillaBase::SCI_FOLDALL, QsciScintillaBase::SC_FOLDACTION_CONTRACT); // NOLINT
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    scintilla->foldContractTop();
 }
 
-void ScriptModule::expandAll(const QUrl &scriptUrl) {
+void ScriptModule::foldContractRecursively(const QUrl &scriptUrl) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->SendScintilla(QsciScintillaBase::SCI_FOLDALL, QsciScintillaBase::SC_FOLDACTION_EXPAND); // NOLINT
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    scintilla->foldContractRecursively();
 }
 
-void ScriptModule::cursorPositionSet(const QUrl &scriptUrl, const int startLine, const int startCharacter) {
-    scriptOpen(scriptUrl);
+void ScriptModule::foldExpandRecursively(const QUrl &scriptUrl) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->setCursorPosition(startLine, startCharacter);
-    scriptPage->m_editorWidget->setFocus();
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    scintilla->foldExpandRecursively();
+}
+
+void ScriptModule::indexSet(const QUrl &scriptUrl, const int line, const int character) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    scintilla->indexSet(line, character);
 }
 
 void ScriptModule::cursorPositionGet() const {
@@ -335,6 +349,7 @@ void ScriptModule::annotationRemove(const QUrl &scriptUrl, const int line) {
     }
 }
 
+// public: lsp
 void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(scriptUrl, diagnostics);
     if (m_scriptPageHash.contains(scriptUrl)) {
@@ -411,26 +426,25 @@ void ScriptModule::completionRequest(const QUrl &scriptUrl, int line, int charac
 
 void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    const long wordEndPos = editor->SendScintilla(QsciScintilla::SCI_WORDENDPOSITION, currentPos, true);
-    // get completion replace range
-    const int line = editor->SendScintilla(QsciScintilla::SCI_LINEFROMPOSITION, wordStartPos);
-    const int indexFrom = wordStartPos - editor->SendScintilla(QsciScintilla::SCI_POSITIONFROMLINE, line);
-    const int indexTo = wordEndPos - editor->SendScintilla(QsciScintilla::SCI_POSITIONFROMLINE, line);
-    // get completion display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto wordIndex = scintilla->wordIndexGet();
+    const auto startLine = wordIndex["startLine"];
+    const auto startCharacter = wordIndex["startCharacter"];
+    const auto endLine = wordIndex["endLine"];
+    const auto endCharacter = wordIndex["endCharacter"];
+    const auto height = scintilla->heightGet();
+    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto x = point["x"];
+    const auto y = point["y"] + height;
+    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
     // call completion show
     const QVariantHash completionSession = {
         {"scriptUrl", scriptUrl},
         {"position", position},
-        {"line", line},
-        {"indexFrom", indexFrom},
-        {"indexTo", indexTo}
+        {"startLine", startLine},
+        {"startCharacter", startCharacter},
+        {"endLine", endLine},
+        {"endCharacter", endCharacter}
     };
     m_codeAssistant->completionShow(completionSession, items);
 }
@@ -454,22 +468,22 @@ void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, cons
 }
 
 void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "definition"},
-        {"scriptUrl", scriptUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, definitions);
+    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
+    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // // get navigation display position
+    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
+    // // call navigation show
+    // const QVariantHash navigationSession = {
+    //     {"type", "definition"},
+    //     {"scriptUrl", scriptUrl},
+    //     {"position", position}
+    // };
+    // m_codeAssistant->navigationShow(navigationSession, definitions);
 }
 
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
@@ -596,22 +610,22 @@ void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, 
 }
 
 void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "implementation"},
-        {"scriptUrl", scriptUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, implementations);
+    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
+    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // // get navigation display position
+    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
+    // // call navigation show
+    // const QVariantHash navigationSession = {
+    //     {"type", "implementation"},
+    //     {"scriptUrl", scriptUrl},
+    //     {"position", position}
+    // };
+    // m_codeAssistant->navigationShow(navigationSession, implementations);
 }
 
 void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character) {
@@ -669,22 +683,22 @@ void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int charac
 }
 
 void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "reference"},
-        {"scriptUrl", scriptUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, references);
+    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
+    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // // get navigation display position
+    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
+    // // call navigation show
+    // const QVariantHash navigationSession = {
+    //     {"type", "reference"},
+    //     {"scriptUrl", scriptUrl},
+    //     {"position", position}
+    // };
+    // m_codeAssistant->navigationShow(navigationSession, references);
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
@@ -722,26 +736,20 @@ void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int cha
 }
 
 void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get signature display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
-    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // call signature show
-    const QVariantHash signatureSession = {
-        {"scriptUrl", scriptUrl},
-        {"position", position}
-    };
-    m_codeAssistant->signatureShow(signatureSession, signature);
-}
-
-void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos) {
-    if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->spellCheckResponse(typos);
-    }
+    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
+    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // // get signature display position
+    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
+    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
+    // // call signature show
+    // const QVariantHash signatureSession = {
+    //     {"scriptUrl", scriptUrl},
+    //     {"position", position}
+    // };
+    // m_codeAssistant->signatureShow(signatureSession, signature);
 }
 
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {
@@ -763,25 +771,32 @@ void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, 
 }
 
 void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // get navigation display position
-    const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "typeDefinition"},
-        {"scriptUrl", scriptUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
+    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
+    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
+    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
+    // // get navigation display position
+    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
+    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
+    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
+    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
+    // // call navigation show
+    // const QVariantHash navigationSession = {
+    //     {"type", "typeDefinition"},
+    //     {"scriptUrl", scriptUrl},
+    //     {"position", position}
+    // };
+    // m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
 }
 
-// ScriptModule private
+// public: typo
+void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos) {
+    if (m_scriptPageHash.contains(scriptUrl)) {
+        m_scriptPageHash[scriptUrl]->spellCheckResponse(typos);
+    }
+}
+
+// private
 void ScriptModule::scriptFocus(ScriptPage *scriptPage, bool status) {
     if (status) {
         m_focusedPage = scriptPage;
@@ -806,16 +821,17 @@ void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSessi
     QMetaObject::invokeMethod(m_editorMenu, "popup");
 }
 
+void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    scintilla->textSet(text, startLine, startCharacter, endLine, endCharacter);
+}
+
 void ScriptModule::textInsert(const QUrl &scriptUrl, const QString &text, const int line, const int index) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     scriptPage->m_editorWidget->textInsert(text, line, index);
-}
-
-void ScriptModule::textReplace(const QUrl &scriptUrl, const QString &text, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
-    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->textReplace(text, lineFrom, indexFrom, lineTo, indexTo);
 }
 
 void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {

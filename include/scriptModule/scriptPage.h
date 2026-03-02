@@ -48,8 +48,9 @@ public:
 
     void charAdd(int ch);
 
-    EditorWidget *m_editorWidget{};
     QUrl m_scriptUrl{};
+    ScintillaWidget *m_scintillaWidget{};
+    EditorWidget *m_editorWidget{};
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -102,6 +103,8 @@ signals:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void marginClick(Scintilla::Position position, Scintilla::KeyMod modifiers, int margin);
@@ -161,7 +164,6 @@ private:
     QTimer *m_contentTimer{};
 
     QFileSystemWatcher *m_fileWatcher{};
-    ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
     bool m_readonly = false;
     // bool m_modified = false;

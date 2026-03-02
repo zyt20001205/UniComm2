@@ -184,30 +184,30 @@ void CompletionWidget::textReplace() {
         if (insertText == "\"Position Hint\"") {
             const QVariantMap gotoSession = {
                 {"scriptUrl", m_completionSession["scriptUrl"].toUrl()},
-                {"line", m_completionSession["line"].toInt()},
-                {"index", m_completionSession["indexFrom"].toInt()}
+                {"line", m_completionSession["startLine"].toInt()},
+                {"index", m_completionSession["startCharacter"].toInt()}
             };
             emit showPosition(gotoSession);
             return;
         }
         insertText.replace("\\", "\\\\");
     }
-    emit replaceText(
+    emit setText(
         m_completionSession["scriptUrl"].toUrl(),
         insertText,
-        m_completionSession["line"].toInt(),
-        m_completionSession["indexFrom"].toInt(),
-        m_completionSession["line"].toInt(),
-        m_completionSession["indexTo"].toInt());
+        m_completionSession["startLine"].toInt(),
+        m_completionSession["startCharacter"].toInt(),
+        m_completionSession["endLine"].toInt(),
+        m_completionSession["endCharacter"].toInt());
     int cursorPosition = 0;
     if (kind == COMPLETION_KIND_FUNCTION) {
-        cursorPosition = m_completionSession["indexFrom"].toInt() + insertText.length() - 1;
+        cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.length() - 1;
     } else {
-        cursorPosition = m_completionSession["indexFrom"].toInt() + insertText.length();
+        cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.length();
     }
-    emit setCursorPosition(
+    emit setIndex(
         m_completionSession["scriptUrl"].toUrl(),
-        m_completionSession["line"].toInt(),
+        m_completionSession["startLine"].toInt(),
         cursorPosition);
     if (kind == COMPLETION_KIND_FUNCTION) {
         emit addChar(m_completionSession["scriptUrl"].toUrl(), '(');

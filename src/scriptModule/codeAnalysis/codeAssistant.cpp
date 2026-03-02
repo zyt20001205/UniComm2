@@ -17,16 +17,16 @@ CodeAssistant::CodeAssistant(QWidget *parent)
       m_navigationWidget(new NavigationWidget(parent)),
       m_positionWidget(new PositionWidget(parent)),
       m_signatureWidget(new SignatureWidget(parent)) {
-    connect(m_completionWidget, &CompletionWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
-    connect(m_completionWidget, &CompletionWidget::replaceText, this, &CodeAssistant::replaceText);
+    connect(m_completionWidget, &CompletionWidget::setIndex, this, &CodeAssistant::setIndex);
+    connect(m_completionWidget, &CompletionWidget::setText, this, &CodeAssistant::setText);
     connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
     connect(m_completionWidget, &CompletionWidget::insertPort, this, &CodeAssistant::insertPort);
     connect(m_completionWidget, &CompletionWidget::insertDatabase, this, &CodeAssistant::insertDatabase);
     connect(m_completionWidget, &CompletionWidget::insertDatatable, this, &CodeAssistant::insertDatatable);
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
-    connect(m_dwellWidget, &DwellWidget::replaceText, this, &CodeAssistant::replaceText);
+    // connect(m_dwellWidget, &DwellWidget::replaceText, this, &CodeAssistant::replaceText);
     connect(m_dwellWidget, &DwellWidget::requestCodeAction, this, &CodeAssistant::requestCodeAction);
-    connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setCursorPosition);
+    connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setIndex);
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
     connect(m_positionWidget, &PositionWidget::insertText, this, &CodeAssistant::insertText);

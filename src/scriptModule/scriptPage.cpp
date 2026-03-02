@@ -325,6 +325,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
     connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
     connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, &ScriptPage::uiUpdate);
+    m_scintillaWidget->viewport()->installEventFilter(this);
     // TODO: delete later
     {
         // font
@@ -686,6 +687,34 @@ void ScriptPage::charAdd(const int ch) {
 void ScriptPage::closeEvent(QCloseEvent *event) {
     scriptClose();
     event->accept();
+}
+
+bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_scintillaWidget->viewport()) {
+        if (event->type() == QEvent::MouseButtonPress) {
+            const auto *mouseEvent = static_cast<QMouseEvent *>(event);
+            if (mouseEvent->button() == Qt::RightButton) {
+                bool gotoMenu = true;
+                QString selected{};
+                const QPoint globalPos = QCursor::pos();
+                const QPoint localPos = m_scintillaWidget->viewport()->mapFromGlobal(globalPos);
+                const auto position = m_scintillaWidget->positionGet(localPos);
+                const auto index = m_scintillaWidget->indexGet(position);
+                selected = m_scintillaWidget->textGetSelected();
+                if (selected.isEmpty()) m_scintillaWidget->positionSet(position);
+
+                const QVariantHash menuSession = {
+                    {"gotoMenu", gotoMenu},
+                    {"line", index["line"]},
+                    {"character", index["character"]},
+                    {"selected", selected}
+                };
+                emit showMenu(m_scriptUrl ,menuSession);
+                return true;
+            }
+        }
+    }
+    return DockWidget::eventFilter(watched, event);
 }
 
 // private: slot

@@ -1496,19 +1496,27 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("Collapse All")
+                text: qsTr("Contract Top")
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.collapseAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.foldContractTop(scriptModuleEditorMenu.scriptUrl)
             }
 
             MenuItem {
-                text: qsTr("Expand All")
+                text: qsTr("Contract Recursively")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.foldContractRecursively(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Expand Recursively")
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.expandAll(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.foldExpandRecursively(scriptModuleEditorMenu.scriptUrl)
             }
         }
 
@@ -1566,11 +1574,14 @@ Item {
             text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["selected"] : false
+            ToolTip.visible: hovered && !enabled
+            ToolTip.text: qsTr("Select something to watch")
 
             onTriggered: {
                 watchModuleExpressionDialog.watchIndex = -1
                 watchModuleExpressionDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
-                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession["word"]
+                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession["selected"]
                 watchModuleExpressionDialog.open()
             }
         }
