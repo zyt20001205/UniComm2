@@ -114,7 +114,7 @@ private:
 
     void scriptReadonly(bool status);
 
-    void scriptModify(bool status);
+    void scriptModify();
 
     void permissionRequest();
 
@@ -164,8 +164,8 @@ private:
     ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
     bool m_readonly = false;
-    bool m_modified = false;
-    QByteArray m_scriptHash{};
+    // bool m_modified = false;
+    // QByteArray m_scriptHash{};
     QJsonArray m_scriptDiagnostic{};
     QVariantList m_scriptTypo{};
     int m_version = 1;

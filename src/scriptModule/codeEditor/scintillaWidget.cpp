@@ -159,6 +159,11 @@ int ScintillaWidget::markerGet(const int line) const {
     return static_cast<int>(send(SCI_MARKERGET, line));
 }
 
+// public: modify
+bool ScintillaWidget::modifyGet() const {
+    return send(SCI_GETMODIFY);
+}
+
 // public: position
 Position ScintillaWidget::positionGet(const int line, const int character) const {
     return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);

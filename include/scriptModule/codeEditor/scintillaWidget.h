@@ -39,6 +39,8 @@ public:
 
     [[nodiscard]] int markerGet(int line) const;
 
+    [[nodiscard]] bool modifyGet() const;
+
     [[nodiscard]] Scintilla::Position positionGet(int line, int character = -1) const;
 
     void savepointSet() const;

@@ -390,7 +390,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         file.close();
         m_fileWatcher->addPath(scriptPath);
         m_editorWidget->setText(content);
-        m_scriptHash = stringHashCalc(m_editorWidget->text());
         // connect signals
         connect(m_editorWidget, &EditorWidget::showMenu, this, [this](const QVariantHash &menuSession) { emit showMenu(m_scriptUrl, menuSession); });
         connect(m_editorWidget, &EditorWidget::requestPermission, this, &ScriptPage::permissionRequest);
@@ -455,19 +454,19 @@ void ScriptPage::scriptReload() {
 }
 
 void ScriptPage::scriptSave() {
-    if (!m_modified) return;
+    if (!m_scintillaWidget->modifyGet()) return;
     // update status
-    scriptModify(false);
-    m_scriptHash = fileHashCalc(m_editorWidget->text());
+    m_scintillaWidget->savepointSet();
+    scriptModify();
     didSaveNotification();
     // block file watcher signals
     m_fileWatcher->blockSignals(true);
     // save file
     const QString scriptPath = m_scriptUrl.toLocalFile();
     QFile file(scriptPath);
-    file.open(QIODevice::WriteOnly);
+    if (!file.open(QIODevice::WriteOnly)) return;
     QTextStream out(&file);
-    out << m_editorWidget->text();
+    out << m_scintillaWidget->textGet();
     file.close();
     // logging
     emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
@@ -479,7 +478,7 @@ void ScriptPage::scriptSave() {
 
 void ScriptPage::scriptClose() {
     // ask for saving
-    if (m_modified) {
+    if (m_scintillaWidget->modifyGet()) {
         const QMessageBox::StandardButton reply = QMessageBox::question(
             nullptr,
             tr("Close Script"),
@@ -503,12 +502,12 @@ void ScriptPage::scriptClose() {
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_scriptDiagnostic = diagnostics;
-    // clear previous diagnostics
+    // clear
     m_scintillaWidget->indicatorClear(INDICATOR_ERROR);
     m_scintillaWidget->indicatorClear(INDICATOR_WARNING);
     m_scintillaWidget->indicatorClear(INDICATOR_INFO);
     m_scintillaWidget->indicatorClear(INDICATOR_HINT);
-    // publish diagnostics
+    // publish
     for (const auto &value: diagnostics) {
         const QJsonObject diagnostic = value.toObject();
         const int severity = diagnostic["severity"].toInt();
@@ -566,8 +565,6 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
 
 void ScriptPage::formattingResponse(const QString &newText) const {
     m_scintillaWidget->textSet(newText);
-    // TODO: delete later
-    m_editorWidget->textSet(newText);
 }
 
 void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
@@ -585,6 +582,7 @@ void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
     m_scintillaWidget->styleSet(LUA_TOKEN_UNUSED);
+    // publish
     int line = 0;
     int character = 0;
     for (int i = 0; i < data.size(); i += 5) {
@@ -654,16 +652,16 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
 // public: typo
 void ScriptPage::spellCheckResponse(const QVariantList &typos) {
     m_scriptTypo = typos;
-    // clear previous typo
-    m_editorWidget->indicatorRemove(INDICATOR_TYPO);
-    // publish typo
+    // clear
+    m_scintillaWidget->indicatorClear(INDICATOR_TYPO);
+    // publish
     for (const auto &value: typos) {
         auto typo = value.toMap();
-        const int lineFrom = typo["line"].toInt();
-        const int lineTo = typo["line"].toInt();
-        const int indexFrom = typo["indexFrom"].toInt();
-        const int indexTo = typo["indexTo"].toInt();
-        m_editorWidget->indicatorInsert(INDICATOR_TYPO, lineFrom, indexFrom, lineTo, indexTo);
+        const int startLine = typo["line"].toInt();
+        const int endLine = typo["line"].toInt();
+        const int startCharacter = typo["startCharacter"].toInt();
+        const int endCharacter = typo["endCharacter"].toInt();
+        m_scintillaWidget->indicatorFill(INDICATOR_TYPO, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -741,17 +739,8 @@ void ScriptPage::contentChange() {
     semanticTokensRequest();
     // nuspell request
     spellCheckRequest();
-    // TODO
     // modification check
-    // bool modified{};
-    // if (const QString script = m_editorWidget->text(); stringHashCalc(script) != m_scriptHash) {
-    //     modified = true;
-    // } else {
-    //     modified = false;
-    // }
-    // if (modified != m_modified) {
-    //     scriptModify(modified);
-    // }
+    scriptModify();
 }
 
 // private: file
@@ -765,12 +754,11 @@ void ScriptPage::scriptReadonly(const bool status) {
     }
 }
 
-void ScriptPage::scriptModify(const bool status) {
-    m_modified = status;
+void ScriptPage::scriptModify() {
     const QString pageName = title();
-    if (status) {
+    if (m_scintillaWidget->modifyGet() && !pageName.endsWith('*')) {
         setTitle(pageName + "*");
-    } else {
+    } else if (!m_scintillaWidget->modifyGet() && pageName.endsWith('*')) {
         setTitle(pageName.chopped(1));
     }
 }
@@ -1021,7 +1009,7 @@ void ScriptPage::typeDefinitionRequest() {
 void ScriptPage::spellCheckRequest() {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     // spell check request to script module
-    emit requestSpellCheck(m_scriptUrl, m_editorWidget->text());
+    emit requestSpellCheck(m_scriptUrl, m_scintillaWidget->textGet());
 }
 
 // private:

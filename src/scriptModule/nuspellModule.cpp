@@ -30,19 +30,19 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
                 ++currentIndex;
                 continue;
             }
-            int indexFrom = currentIndex;
+            int startCharacter = currentIndex;
             ++currentIndex;
-            int indexTo = indexFrom;
+            int endCharacter = startCharacter;
             while (currentIndex < line.length() && line[currentIndex].isLower()) {
-                indexTo = currentIndex;
+                endCharacter = currentIndex;
                 ++currentIndex;
             }
-            const QString word = line.mid(indexFrom, indexTo - indexFrom + 1);
+            const QString word = line.mid(startCharacter, endCharacter - startCharacter + 1);
             if (!m_dict.spell(word.toStdString())) {
                 QVariantMap map = {};
                 map["line"] = currentLine;
-                map["indexFrom"] = indexFrom;
-                map["indexTo"] = indexTo + 1;
+                map["startCharacter"] = startCharacter;
+                map["endCharacter"] = endCharacter + 1;
                 typos.append(map);
             }
         }
