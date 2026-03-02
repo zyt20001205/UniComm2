@@ -311,16 +311,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"fore", 0x000000}
             });
     }
-    // script
-    const QUrl &url(m_scriptUrl);
-    const QString scriptPath = url.toLocalFile();
-    QFile file(scriptPath);
-    if (!file.open(QIODevice::ReadOnly)) return;
-    QTextStream in(&file);
-    const QString script = in.readAll();
-    file.close();
-    m_scintillaWidget->textSet(script);
-    m_scintillaWidget->savepointSet();
     // signals
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
     connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
