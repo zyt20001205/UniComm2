@@ -21,12 +21,12 @@
 // public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
-      m_editorWidget(new EditorWidget(scriptUrl)),
       m_scriptUrl(scriptUrl),
+      m_scintillaWidget(new ScintillaWidget(scriptUrl)),
+      m_editorWidget(new EditorWidget(scriptUrl)),
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
       m_fileWatcher(new QFileSystemWatcher()),
-      m_scintillaWidget(new ScintillaWidget(scriptUrl)),
       m_searchWidget(new SearchWidget()),
       m_completionTrigger{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpTrigger{'(', ','},

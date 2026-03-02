@@ -736,20 +736,21 @@ void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int cha
 }
 
 void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {
-    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // // get signature display position
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos);
-    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // // call signature show
-    // const QVariantHash signatureSession = {
-    //     {"scriptUrl", scriptUrl},
-    //     {"position", position}
-    // };
-    // m_codeAssistant->signatureShow(signatureSession, signature);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto wordIndex = scintilla->wordIndexGet();
+    const auto startLine = wordIndex["startLine"];
+    const auto startCharacter = wordIndex["startCharacter"];
+    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto x = point["x"];
+    const auto y = point["y"];
+    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    // call signature show
+    const QVariantHash signatureSession = {
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->signatureShow(signatureSession, signature);
 }
 
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {
