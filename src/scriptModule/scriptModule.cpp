@@ -239,30 +239,22 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
 // public: document
 void ScriptModule::foldContractTop(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
-    scintilla->foldContractTop();
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->foldContractTop();
 }
 
 void ScriptModule::foldContractRecursively(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
-    scintilla->foldContractRecursively();
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->foldContractRecursively();
 }
 
 void ScriptModule::foldExpandRecursively(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
-    scintilla->foldExpandRecursively();
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->foldExpandRecursively();
 }
 
 void ScriptModule::indexSet(const QUrl &scriptUrl, const int line, const int character) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
-    scintilla->indexSet(line, character);
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->indexSet(line, character);
 }
 
 void ScriptModule::cursorPositionGet() const {
@@ -311,32 +303,27 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
 
 void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->indicatorInsert(type, lineFrom, indexFrom, lineTo, indexTo, time);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->indicatorInsert(type, lineFrom, indexFrom, lineTo, indexTo, time);
 }
 
 void ScriptModule::indicatorRemove(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->indicatorRemove(type, lineFrom, indexFrom, lineTo, indexTo);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->indicatorRemove(type, lineFrom, indexFrom, lineTo, indexTo);
 }
 
 void ScriptModule::markerInsert(const QUrl &scriptUrl, const int type, const int line, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->markerInsert(type, line, time);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->markerInsert(type, line, time);
 }
 
 void ScriptModule::markerRemove(const QUrl &scriptUrl, const int type, const int line) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->markerRemove(type, line);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->markerRemove(type, line);
 }
 
 void ScriptModule::annotationInsert(const QUrl &scriptUrl, const int line, const QString &annotation) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->annotate(line - 1, annotation, 0);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->annotate(line - 1, annotation, 0);
 }
 
 void ScriptModule::annotationRemove(const QUrl &scriptUrl, const int line) {
@@ -792,9 +779,8 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
 
 // public: typo
 void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos) {
-    if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->spellCheckResponse(typos);
-    }
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    m_scriptPageHash[scriptUrl]->spellCheckResponse(typos);
 }
 
 // private
@@ -824,15 +810,12 @@ void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSessi
 
 void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
-    scintilla->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ScriptModule::textInsert(const QUrl &scriptUrl, const QString &text, const int line, const int index) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    scriptPage->m_editorWidget->textInsert(text, line, index);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->textInsert(text, line, index);
 }
 
 void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {
