@@ -1574,14 +1574,14 @@ Item {
             text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["selected"] : false
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["text"] : false
             ToolTip.visible: hovered && !enabled
-            ToolTip.text: qsTr("Select something to watch")
+            ToolTip.text: qsTr("Nothing selected")
 
             onTriggered: {
                 watchModuleExpressionDialog.watchIndex = -1
                 watchModuleExpressionDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
-                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession["selected"]
+                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession["text"]
                 watchModuleExpressionDialog.open()
             }
         }

@@ -94,7 +94,6 @@ void ScintillaWidget::foldLevelSet(const int line, const int level) const {
     send(SCI_SETFOLDLEVEL, line, level); // NOLINT
 }
 
-
 void ScintillaWidget::foldContractTop() const {
     send(SCI_FOLDALL, SC_FOLDACTION_CONTRACT); // NOLINT
 }
@@ -322,6 +321,10 @@ void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) con
     // if (config.contains("checkMonospaced")) send(SCI_STYLESETCHECKMONOSPACED, type, config["checkMonospaced"].toBool()); // NOLINT
     // if (config.contains("representation")) send(SCI_STYLESETINVISIBLEREPRESENTATION, type, reinterpret_cast<sptr_t>(config["bold"].toString().toUtf8().constData())); // NOLINT
     // if (config.contains("locale")) send(SCI_SETFONTLOCALE, type, reinterpret_cast<sptr_t>(config["locale"].toString().toUtf8().constData())); // NOLINT
+}
+
+int ScintillaWidget::styleGet(const Position position) const {
+    return send(SCI_GETSTYLEAT, position); // NOLINT
 }
 
 void ScintillaWidget::styleSet(const int type, const int startLine, const int startCharacter, int length) const {

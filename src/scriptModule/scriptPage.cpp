@@ -684,22 +684,23 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
         if (event->type() == QEvent::MouseButtonPress) {
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             if (mouseEvent->button() == Qt::RightButton) {
-                bool gotoMenu = true;
-                QString selected{};
+                bool gotoMenu = false;
+                QString text{};
                 const QPoint globalPos = QCursor::pos();
                 const QPoint localPos = m_scintillaWidget->viewport()->mapFromGlobal(globalPos);
                 const auto position = m_scintillaWidget->positionGet(localPos);
                 const auto index = m_scintillaWidget->indexGet(position);
-                selected = m_scintillaWidget->textGetSelected();
-                if (selected.isEmpty()) m_scintillaWidget->positionSet(position);
-
+                text = m_scintillaWidget->textGetSelected();
+                if (text.isEmpty()) m_scintillaWidget->positionSet(position);
+                const int type = m_scintillaWidget->styleGet(position);
+                if (type > 0 && type < LUA_TOKEN_MACRO) gotoMenu = true;
                 const QVariantHash menuSession = {
                     {"gotoMenu", gotoMenu},
                     {"line", index["line"]},
                     {"character", index["character"]},
-                    {"selected", selected}
+                    {"text", text}
                 };
-                emit showMenu(m_scriptUrl ,menuSession);
+                emit showMenu(m_scriptUrl, menuSession);
                 return true;
             }
         }
