@@ -26,6 +26,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_editorWidget(new EditorWidget(scriptUrl)),
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
+      m_dwellTimer(new QTimer(this)),
       m_fileWatcher(new QFileSystemWatcher()),
       m_searchWidget(new SearchWidget()),
       m_completionTrigger{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
@@ -47,6 +48,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     m_contentTimer->setSingleShot(true);
     m_contentTimer->setInterval(500);
     connect(m_contentTimer, &QTimer::timeout, this, &ScriptPage::contentChange);
+    // 1000ms debounce for dwell change
+    m_dwellTimer->setSingleShot(true);
+    m_dwellTimer->setInterval(1000);
+    connect(m_dwellTimer, &QTimer::timeout, this, &ScriptPage::dwellChange);
 
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
@@ -314,7 +319,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // signals
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
     connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
-    connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, &ScriptPage::uiUpdate);
+    connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
+        if (updated == Scintilla::Update::Selection) m_selectionTimer->start();
+    });
+    connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &ScriptPage::savepointChange);
     m_scintillaWidget->viewport()->installEventFilter(this);
     // TODO: delete later
     {
@@ -403,6 +411,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
+        contentChange();
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -448,7 +457,6 @@ void ScriptPage::scriptSave() {
     if (!m_scintillaWidget->modifyGet()) return;
     // update status
     m_scintillaWidget->savepointSet();
-    scriptModify();
     didSaveNotification();
     // block file watcher signals
     m_fileWatcher->blockSignals(true);
@@ -681,13 +689,13 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 
 bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scintillaWidget->viewport()) {
+        const QPoint globalPos = QCursor::pos();
+        const QPoint localPos = m_scintillaWidget->viewport()->mapFromGlobal(globalPos);
         if (event->type() == QEvent::MouseButtonPress) {
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             if (mouseEvent->button() == Qt::RightButton) {
                 bool gotoMenu = false;
                 QString text{};
-                const QPoint globalPos = QCursor::pos();
-                const QPoint localPos = m_scintillaWidget->viewport()->mapFromGlobal(globalPos);
                 const auto position = m_scintillaWidget->positionGet(localPos);
                 const auto index = m_scintillaWidget->indexGet(position);
                 text = m_scintillaWidget->textGetSelected();
@@ -703,6 +711,8 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                 emit showMenu(m_scriptUrl, menuSession);
                 return true;
             }
+        } else if (event->type() == QEvent::MouseMove) {
+            m_dwellTimer->start();
         }
     }
     return DockWidget::eventFilter(watched, event);
@@ -733,14 +743,6 @@ void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyM
     }
 }
 
-void ScriptPage::uiUpdate(const Scintilla::Update updated) const {
-    if (updated == Scintilla::Update::Content) {
-        m_contentTimer->start();
-    } else if (updated == Scintilla::Update::Selection) {
-        m_selectionTimer->start();
-    }
-}
-
 void ScriptPage::selectionChange() {
     m_selection = m_scintillaWidget->selectionGet();
     emit changeSelection(m_selection);
@@ -759,8 +761,20 @@ void ScriptPage::contentChange() {
     semanticTokensRequest();
     // nuspell request
     spellCheckRequest();
-    // modification check
-    scriptModify();
+}
+
+void ScriptPage::dwellChange() {
+    hoverRequest();
+}
+
+void ScriptPage::savepointChange(const bool status) {
+    m_contentTimer->start();
+    const QString pageName = title();
+    if (status) {
+        setTitle(pageName + "*");
+    } else {
+        setTitle(pageName.chopped(1));
+    }
 }
 
 // private: file
@@ -771,15 +785,6 @@ void ScriptPage::scriptReadonly(const bool status) {
         setIcon(QIcon(":/icon/lockClosed.svg"));
     } else {
         setIcon(QIcon());
-    }
-}
-
-void ScriptPage::scriptModify() {
-    const QString pageName = title();
-    if (m_scintillaWidget->modifyGet() && !pageName.endsWith('*')) {
-        setTitle(pageName + "*");
-    } else if (!m_scintillaWidget->modifyGet() && pageName.endsWith('*')) {
-        setTitle(pageName.chopped(1));
     }
 }
 
@@ -904,15 +909,14 @@ void ScriptPage::formattingRequest() {
 }
 
 void ScriptPage::hoverRequest() {
-    // get mouse position
-    const QPoint globalPos = QCursor::pos();
-    const QPoint localPos = mapFromGlobal(globalPos);
+    const auto globalPos = QCursor::pos();
+    const auto localPos = m_scintillaWidget->mapFromGlobal(globalPos);
     if (!rect().contains(localPos)) return;
-    // get cursor position
-    const long charPos = m_editorWidget->SendScintilla(SCI_POSITIONFROMPOINTCLOSE, localPos.x(), localPos.y());
-    if (charPos == -1) return;
-    int line, character;
-    m_editorWidget->lineIndexFromPosition(charPos, &line, &character);
+    const auto closePosition = m_scintillaWidget->closePositionGet(localPos);
+    if (closePosition == -1) return;
+    const auto index = m_scintillaWidget->indexGet(closePosition);
+    const auto line = index["line"];
+    const auto character = index["character"];
     if (line == 0 && character == 0) return;
     // show diagnostic if exists
     QString diagnosticText = "<table width='100%'>";
@@ -957,16 +961,16 @@ void ScriptPage::hoverRequest() {
     // show typo if exists
     for (const auto &value: m_scriptTypo) {
         auto typo = value.toMap();
-        const int lineFrom = typo["line"].toInt();
-        const int lineTo = typo["line"].toInt();
-        const int indexFrom = typo["indexFrom"].toInt();
-        const int indexTo = typo["indexTo"].toInt();
-        if (line >= lineFrom && line <= lineTo && character >= indexFrom && character <= indexTo) {
-            const int startPos = m_editorWidget->positionFromLineIndex(lineFrom, indexFrom);
-            const int endPos = m_editorWidget->positionFromLineIndex(lineTo, indexTo);
+        const int startLine = typo["line"].toInt();
+        const int endLine = typo["line"].toInt();
+        const int startCharacter = typo["startCharacter"].toInt();
+        const int endCharacter = typo["endCharacter"].toInt();
+        if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
+            const int startPos = m_editorWidget->positionFromLineIndex(startLine, startCharacter);
+            const int endPos = m_editorWidget->positionFromLineIndex(endLine, endCharacter);
             const QString word = m_editorWidget->text(startPos, endPos);
             const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
-                word, QString::number(lineFrom), QString::number(indexFrom), QString::number(lineTo), QString::number(indexTo));
+                word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
             diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
         }
     }

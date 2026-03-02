@@ -61,6 +61,8 @@ public:
 
     [[nodiscard]] Scintilla::Position positionGet(const QPoint &point) const;
 
+    [[nodiscard]] Scintilla::Position closePositionGet(const QPoint &point) const;
+
     void positionSet(Scintilla::Position position) const;
 
     void savepointSet() const;

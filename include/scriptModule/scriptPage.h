@@ -109,15 +109,15 @@ protected:
 private:
     void marginClick(Scintilla::Position position, Scintilla::KeyMod modifiers, int margin);
 
-    void uiUpdate(Scintilla::Update updated) const;
-
     void selectionChange();
 
     void contentChange();
 
-    void scriptReadonly(bool status);
+    void dwellChange();
 
-    void scriptModify();
+    void savepointChange(bool status);
+
+    void scriptReadonly(bool status);
 
     void permissionRequest();
 
@@ -162,6 +162,7 @@ private:
     QTimer *m_selectionTimer{};
     QHash<QString, int> m_selection{};
     QTimer *m_contentTimer{};
+    QTimer *m_dwellTimer{};
 
     QFileSystemWatcher *m_fileWatcher{};
     SearchWidget *m_searchWidget{};

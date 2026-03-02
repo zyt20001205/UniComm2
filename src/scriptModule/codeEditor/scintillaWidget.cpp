@@ -271,6 +271,10 @@ Position ScintillaWidget::positionGet(const QPoint &point) const {
     return send(SCI_POSITIONFROMPOINT, point.x(), point.y());
 }
 
+Position ScintillaWidget::closePositionGet(const QPoint &point) const {
+    return send(SCI_POSITIONFROMPOINTCLOSE, point.x(), point.y());
+}
+
 void ScintillaWidget::positionSet(const Position position) const {
     send(SCI_GOTOPOS, position); // NOLINT
 }
