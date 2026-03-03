@@ -25,7 +25,7 @@ public:
 
     [[nodiscard]] int heightGet() const;
 
-    [[nodiscard]] QHash<QString, int> indexGet(Scintilla::Position position) const;
+    [[nodiscard]] QHash<QString, int> indexGet(Scintilla::Position position = -1) const;
 
     [[nodiscard]] QHash<QString, int> wordIndexGet(Scintilla::Position position, bool onlyWordCharacters = true) const;
 
@@ -81,7 +81,9 @@ public:
 
     [[nodiscard]] QString textGetSelected() const;
 
-    void textSet(const QString &text, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
+    void textSet(const QString &text, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+
+    void textSetSelected(const QString &text) const;
 
 private:
 };

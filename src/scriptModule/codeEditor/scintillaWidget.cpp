@@ -124,7 +124,8 @@ int ScintillaWidget::heightGet() const {
 }
 
 // public: index
-QHash<QString, int> ScintillaWidget::indexGet(const Position position) const {
+QHash<QString, int> ScintillaWidget::indexGet(Position position) const {
+    if (position == -1) position = positionGet();
     const int line = static_cast<int>(send(SCI_LINEFROMPOSITION, position));
     const int character = static_cast<int>(send(SCI_GETCOLUMN, position));
     return QHash<QString, int>{
@@ -383,11 +384,15 @@ QString ScintillaWidget::textGetSelected() const {
     return QString::fromUtf8(buffer.constData(), length);
 }
 
-void ScintillaWidget::textSet(const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
+void ScintillaWidget::textSet(const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (startLine == -1) {
         send(SCI_SETTEXT, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
     } else {
         selectionSet(startLine, startCharacter, endLine, endCharacter);
-        send(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData()));
+        textSetSelected(text);
     }
+}
+
+void ScintillaWidget::textSetSelected(const QString &text) const {
+    send(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData()));
 }

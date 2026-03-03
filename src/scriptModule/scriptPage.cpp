@@ -29,9 +29,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_dwellTimer(new QTimer(this)),
       m_fileWatcher(new QFileSystemWatcher()),
       m_searchWidget(new SearchWidget()),
-      m_completionTrigger{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
-      m_signatureHelpTrigger{'(', ','},
-      m_onTypeFormattingTrigger{'\n'} {
+      m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
+      m_signatureHelpSet{'(', ','},
+      m_onTypeFormattingSet{'\n'},
+      m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}} {
     setTitle(scriptUrl.fileName());
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
@@ -40,8 +41,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(shortcutComment, &QShortcut::activated, this, &ScriptPage::commentToggle);
     shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
-    shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
+    shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
 
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
@@ -333,6 +334,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         if (updated == Scintilla::Update::Selection) m_selectionTimer->start();
     });
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &ScriptPage::savepointChange);
+    m_scintillaWidget->installEventFilter(this);
     m_scintillaWidget->viewport()->installEventFilter(this);
     // TODO: delete later
     {
@@ -679,14 +681,14 @@ void ScriptPage::charAdd(const int ch) {
     m_contentTimer->start();
     m_selection = m_scintillaWidget->selectionGet();
     const QChar character(ch);
-    if (character.isLetter() || m_completionTrigger.contains(character)) {
+    if (character.isLetter() || m_completionSet.contains(character)) {
         didChangeNotification();
         completionRequest();
-    } else if (m_signatureHelpTrigger.contains(character)) {
+    } else if (m_signatureHelpSet.contains(character)) {
         didChangeNotification();
         completionRequest();
         signatureHelpRequest();
-    } else if (m_onTypeFormattingTrigger.contains(character)) {
+    } else if (m_onTypeFormattingSet.contains(character)) {
         didChangeNotification();
         onTypeFormattingRequest();
     }
@@ -724,6 +726,30 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             }
         } else if (event->type() == QEvent::MouseMove) {
             m_dwellTimer->start();
+            return false;
+        }
+    }
+    if (watched == m_scintillaWidget) {
+        if (event->type() == QEvent::KeyPress) {
+            const auto *keyEvent = static_cast<QKeyEvent *>(event);
+            switch (keyEvent->key()) {
+                case Qt::Key_QuoteDbl:
+                    symbolPair('"');
+                    return true;
+                case Qt::Key_Apostrophe:
+                    symbolPair('\'');
+                    return true;
+                case Qt::Key_ParenLeft:
+                    symbolPair('(');
+                    return true;
+                case Qt::Key_BracketLeft:
+                    symbolPair('[');
+                    return true;
+                case Qt::Key_BraceLeft:
+                    symbolPair('{');
+                    return true;
+                default: return false;
+            }
         }
     }
     return DockWidget::eventFilter(watched, event);
@@ -1058,6 +1084,20 @@ void ScriptPage::commentToggle() {
         text = "--" + text;
     }
     m_scintillaWidget->textSet(text, index["line"], 0, index["line"], -1);
+    contentChange();
+}
+
+void ScriptPage::symbolPair(const QChar character) {
+    auto selected = m_scintillaWidget->textGetSelected();
+    if (selected.isEmpty()) {
+        selected = character + selected + m_pairHash[character];
+        m_scintillaWidget->textSetSelected(selected);
+        const auto position = m_scintillaWidget->positionGet();
+        m_scintillaWidget->positionSet(position - 1);
+    } else {
+        selected = character + selected + m_pairHash[character];
+        m_scintillaWidget->textSetSelected(selected);
+    }
     contentChange();
 }
 

@@ -166,6 +166,8 @@ private:
     // private:
     void commentToggle();
 
+    void symbolPair(QChar character);
+
     void positionFill(int x, int y) const;
 
     QTimer *m_selectionTimer{};
@@ -181,9 +183,10 @@ private:
     QJsonArray m_scriptDiagnostic{};
     QVariantList m_scriptTypo{};
     int m_version = 1;
-    QSet<QChar> m_completionTrigger{};
-    QSet<QChar> m_signatureHelpTrigger{};
-    QSet<QChar> m_onTypeFormattingTrigger{};
+    QSet<QChar> m_completionSet{};
+    QSet<QChar> m_signatureHelpSet{};
+    QSet<QChar> m_onTypeFormattingSet{};
+    QHash<QChar, QChar> m_pairHash{};
 
     // semantic enum
     enum {
