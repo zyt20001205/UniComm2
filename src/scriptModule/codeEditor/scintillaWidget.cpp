@@ -81,7 +81,7 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
     send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
     // for debug
-    send(SCI_SETVIEWEOL, true); // NOLINT
+    // send(SCI_SETVIEWEOL, true); // NOLINT
     // script
     const QUrl &url(scriptUrl);
     const QString scriptPath = url.toLocalFile();
