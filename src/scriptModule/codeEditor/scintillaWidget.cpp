@@ -221,7 +221,7 @@ void ScintillaWidget::marginDefine(const int type, const QJsonObject &config) co
 
 // public: marker
 void ScintillaWidget::markerDefine(const int type, const QJsonObject &config) const {
-    if (config.contains("symbol")) send(SCI_MARKERDEFINE, type, config["style"].toInt()); // NOLINT
+    if (config.contains("symbol")) send(SCI_MARKERDEFINE, type, config["symbol"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_MARKERSETFORE, type, config["fore"].toInt()); // NOLINT
     // if (config.contains("foreTranslucent")) send(SCI_MARKERSETFORETRANSLUCENT, type, config["foreTranslucent"].toInt()); // NOLINT
     if (config.contains("back")) send(SCI_MARKERSETBACK, type, config["back"].toInt()); // NOLINT
