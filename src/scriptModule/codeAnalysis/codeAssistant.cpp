@@ -29,7 +29,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setIndex);
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
-    connect(m_positionWidget, &PositionWidget::insertText, this, &CodeAssistant::insertText);
+    // connect(m_positionWidget, &PositionWidget::insertText, this, &CodeAssistant::insertText);
 }
 
 void CodeAssistant::propertySet(const QVariantMap &objects) const {

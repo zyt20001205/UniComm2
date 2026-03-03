@@ -51,8 +51,6 @@ signals:
 
     void getText(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void insertText(const QUrl &scriptUrl, const QString &text, int line, int index);
-
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
     void requestCodeAction(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);

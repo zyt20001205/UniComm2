@@ -54,21 +54,17 @@ public:
 
     void indexSet(const QUrl &scriptUrl, int line, int character);
 
-    void cursorPositionGet() const;
+    void indexGet() const;
 
     QString textGet(const QUrl &scriptUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
-    void indicatorInsert(const QUrl &scriptUrl, int type, int lineFrom, int indexFrom, int lineTo, int indexTo, int time = -1);
+    void indicatorFill(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1);
 
-    void indicatorRemove(const QUrl &scriptUrl, int type, int lineFrom = -1, int indexFrom = -1, int lineTo = -1, int indexTo = -1);
+    void indicatorClear(const QUrl &scriptUrl, int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
-    void markerInsert(const QUrl &scriptUrl, int type, int line, int time = -1);
+    void markerAdd(const QUrl &scriptUrl, int type, int line, int time = -1);
 
-    void markerRemove(const QUrl &scriptUrl, int type, int line = -1);
-
-    void annotationInsert(const QUrl &scriptUrl, int line, const QString &annotation);
-
-    void annotationRemove(const QUrl &scriptUrl, int line = -1);
+    void markerDelete(const QUrl &scriptUrl, int type, int line = -1);
 
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
@@ -166,12 +162,10 @@ private:
 
     void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void textInsert(const QUrl &scriptUrl, const QString &text, int line, int index);
-
     void charAdd(const QUrl &scriptUrl, QChar character) const;
 
     QJsonObject m_scriptConfig{};
-    QObject *m_editorMenu{};
+    QObject *m_scintillaMenu{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};

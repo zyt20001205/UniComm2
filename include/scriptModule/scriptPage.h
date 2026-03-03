@@ -53,7 +53,6 @@ public:
 
     QUrl m_scriptUrl{};
     ScintillaWidget *m_scintillaWidget{};
-    EditorWidget *m_editorWidget{};
 
 signals:
     void appendLog(const QString &message, const QString &level);

@@ -113,14 +113,13 @@ void BreakpointModule::scriptOpen(const QUrl &scriptUrl) {
     emit openScript(scriptUrl);
 }
 
-void BreakpointModule::markerInsert(const QUrl &scriptUrl, const int line) {
-    emit openScript(scriptUrl);
-    emit insertMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
+void BreakpointModule::markerAdd(const QUrl &scriptUrl, const int line) {
+    emit addMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
 }
 
 void BreakpointModule::breakpointDelete(const QUrl &scriptUrl, const int line) {
     breakpointRemove(scriptUrl, line);
-    emit removeMarker(scriptUrl, MARKER_BREAKPOINT, line - 1);
+    emit deleteMarker(scriptUrl, MARKER_BREAKPOINT, line - 1);
 }
 
 void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {

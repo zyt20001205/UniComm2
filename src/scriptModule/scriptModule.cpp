@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QShortcut>
 #include <QTextBrowser>
+#include <QTimer>
 
 #include "globals.h"
 #include "luaModule/luaControl.h"
@@ -10,7 +11,6 @@
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/welcomePage.h"
 #include "scriptModule/codeAnalysis/codeAssistant.h"
-#include "scriptModule/codeEditor/editorWidget.h"
 #include "scriptModule/codeEditor/scintillaWidget.h"
 
 // public
@@ -26,8 +26,7 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::setIndex, this, &ScriptModule::indexSet);
     connect(m_codeAssistant, &CodeAssistant::getText, this, &ScriptModule::textGet);
     connect(m_codeAssistant, &CodeAssistant::setText, this, &ScriptModule::textSet);
-    connect(m_codeAssistant, &CodeAssistant::insertText, this, &ScriptModule::textInsert);
-    connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorInsert);
+    connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorFill);
     connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &ScriptModule::codeActionRequest);
     connect(m_codeAssistant, &CodeAssistant::insertPort, this, &ScriptModule::insertPort);
     connect(m_codeAssistant, &CodeAssistant::insertDatabase, this, &ScriptModule::insertDatabase);
@@ -46,14 +45,14 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     const auto focusedUrl = QUrl(m_scriptConfig["scriptFocused"].toString());
     if (!focusedUrl.isEmpty() && m_scriptPageHash.contains(focusedUrl)) {
         QTimer::singleShot(0, this, [this, focusedUrl] {
-            m_scriptPageHash[focusedUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
+            m_scriptPageHash[focusedUrl]->m_scintillaWidget->setFocus(Qt::MouseFocusReason);
         });
     }
 
     m_welcomePage->propertySet(QVariantMap());
     m_codeAssistant->propertySet(objects);
     m_codeAssistant->fontSet(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt());
-    m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
+    m_scintillaMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -74,10 +73,10 @@ void ScriptModule::scriptConfigSave() {
 }
 
 void ScriptModule::scriptFontReload(const QJsonObject &fontConfigScript) const {
-    const auto scriptFont = QFont(fontConfigScript["fontFamily"].toString(), fontConfigScript["fontSize"].toInt());
-    for (const auto &scriptPage: m_scriptPageHash) {
-        scriptPage->m_editorWidget->setFont(scriptFont);
-    }
+    // const auto scriptFont = QFont(fontConfigScript["fontFamily"].toString(), fontConfigScript["fontSize"].toInt());
+    // for (const auto &scriptPage: m_scriptPageHash) {
+    //     scriptPage->m_editorWidget->setFont(scriptFont);
+    // }
 }
 
 void ScriptModule::scriptFontSave(const QJsonObject &fontConfigScript) {
@@ -86,44 +85,44 @@ void ScriptModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 }
 
 void ScriptModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScript) const {
-    for (const auto &scriptPage: m_scriptPageHash) {
-        // diagnostic
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorErrorColor"].toString()), INDICATOR_ERROR);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_ERROR);
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWarningColor"].toString()), INDICATOR_WARNING);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WARNING);
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorInfoColor"].toString()), INDICATOR_INFO);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_INFO);
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHintStyle"].toInt()), INDICATOR_HINT);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHintColor"].toString()), INDICATOR_HINT);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HINT);
-        // highlight
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorReadStyle"].toInt()), INDICATOR_READ);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorReadColor"].toString()), INDICATOR_READ);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_READ);
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWriteColor"].toString()), INDICATOR_WRITE);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WRITE);
-        // search
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
-        // hyperlink
-        scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
-        scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
-        scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
-        // recolor
-        scriptPage->m_editorWidget->recolor();
-    }
+    // for (const auto &scriptPage: m_scriptPageHash) {
+    //     // diagnostic
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorErrorColor"].toString()), INDICATOR_ERROR);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_ERROR);
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWarningColor"].toString()), INDICATOR_WARNING);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WARNING);
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorInfoColor"].toString()), INDICATOR_INFO);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_INFO);
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHintStyle"].toInt()), INDICATOR_HINT);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHintColor"].toString()), INDICATOR_HINT);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    //     // highlight
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorReadStyle"].toInt()), INDICATOR_READ);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorReadColor"].toString()), INDICATOR_READ);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_READ);
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWriteColor"].toString()), INDICATOR_WRITE);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WRITE);
+    //     // search
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
+    //     // hyperlink
+    //     scriptPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
+    //     scriptPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
+    //     scriptPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+    //     // recolor
+    //     scriptPage->m_editorWidget->recolor();
+    // }
 }
 
 void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript) {
@@ -154,16 +153,16 @@ void ScriptModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript)
 }
 
 void ScriptModule::scriptMarkerReload(const QJsonObject &markerConfigScript) const {
-    for (const auto &scriptPage: m_scriptPageHash) {
-        scriptPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
-        scriptPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
-        scriptPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
-        scriptPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerDebugStyle"].toInt()), MARKER_DEBUG);
-        scriptPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugBackground"].toString()), MARKER_DEBUG);
-        scriptPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerDebugForeground"].toString()), MARKER_DEBUG);
-        // recolor
-        scriptPage->m_editorWidget->recolor();
-    }
+    // for (const auto &scriptPage: m_scriptPageHash) {
+    //     scriptPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT);
+    //     scriptPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT);
+    //     scriptPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT);
+    //     scriptPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerDebugStyle"].toInt()), MARKER_DEBUG);
+    //     scriptPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugBackground"].toString()), MARKER_DEBUG);
+    //     scriptPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerDebugForeground"].toString()), MARKER_DEBUG);
+    //     // recolor
+    //     scriptPage->m_editorWidget->recolor();
+    // }
 }
 
 void ScriptModule::scriptMarkerSave(const QJsonObject &markerConfigScript) {
@@ -233,7 +232,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
     }
     m_scriptPageHash[scriptUrl]->raise();
-    m_scriptPageHash[scriptUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->setFocus(Qt::MouseFocusReason);
 }
 
 // public: document
@@ -257,83 +256,67 @@ void ScriptModule::indexSet(const QUrl &scriptUrl, const int line, const int cha
     m_scriptPageHash[scriptUrl]->m_scintillaWidget->indexSet(line, character);
 }
 
-void ScriptModule::cursorPositionGet() const {
-    const QUrl scriptUrl = m_focusedPage->m_scriptUrl;
-    int line, index;
-    m_focusedPage->m_editorWidget->cursorPositionGet(&line, &index);
+void ScriptModule::indexGet() const {
+    const auto scriptUrl = m_focusedPage->m_scriptUrl;
+    const auto index = m_focusedPage->m_scintillaWidget->indexGet();
     g_cursorPosition = {
         {"url", scriptUrl},
-        {"line", line},
-        {"character", index}
+        {"line", index["line"]},
+        {"character", index["character"]}
     };
 }
 
+// TODO: rewrite later
 QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
-    QString script{};
-    // get text from editor
-    if (m_scriptPageHash.contains(scriptUrl)) {
-        const auto *scriptPage = m_scriptPageHash[scriptUrl];
-        script = scriptPage->m_editorWidget->text();
-        script.replace("\r\n", "\n");
-    }
-    // get text from file
-    else {
-        QFile file(scriptUrl.toLocalFile());
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QTextStream in(&file);
-            script = in.readAll();
-            file.close();
-        }
-    }
-    // get full script if start line is -1
-    if (startLine == -1) {
-        return script;
-    }
-    // split script into lines
-    const QStringList lines = script.split("\n");
-    // get full line if start character is -1
-    if (startCharacter == -1) {
-        const QString &line = lines[startLine];
-        m_codeAssistant->navigationResponse(line);
-        return line;
-    }
-    // TODO: cover other conditions
-    return {};
+    // QString script{};
+    // // get text from editor
+    // if (m_scriptPageHash.contains(scriptUrl)) {
+    //     const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    //     script = scriptPage->m_editorWidget->text();
+    //     script.replace("\r\n", "\n");
+    // }
+    // // get text from file
+    // else {
+    //     QFile file(scriptUrl.toLocalFile());
+    //     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    //         QTextStream in(&file);
+    //         script = in.readAll();
+    //         file.close();
+    //     }
+    // }
+    // // get full script if start line is -1
+    // if (startLine == -1) {
+    //     return script;
+    // }
+    // // split script into lines
+    // const QStringList lines = script.split("\n");
+    // // get full line if start character is -1
+    // if (startCharacter == -1) {
+    //     const QString &line = lines[startLine];
+    //     m_codeAssistant->navigationResponse(line);
+    //     return line;
+    // }
+    // return {};
 }
 
-void ScriptModule::indicatorInsert(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo, const int time) {
+void ScriptModule::indicatorFill(const QUrl &scriptUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_editorWidget->indicatorInsert(type, lineFrom, indexFrom, lineTo, indexTo, time);
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
 }
 
-void ScriptModule::indicatorRemove(const QUrl &scriptUrl, const int type, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
+void ScriptModule::indicatorClear(const QUrl &scriptUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
-    m_scriptPageHash[scriptUrl]->m_editorWidget->indicatorRemove(type, lineFrom, indexFrom, lineTo, indexTo);
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
 }
 
-void ScriptModule::markerInsert(const QUrl &scriptUrl, const int type, const int line, const int time) {
+void ScriptModule::markerAdd(const QUrl &scriptUrl, const int type, const int line, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_editorWidget->markerInsert(type, line, time);
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->markerAdd(type, line, time);
 }
 
-void ScriptModule::markerRemove(const QUrl &scriptUrl, const int type, const int line) {
+void ScriptModule::markerDelete(const QUrl &scriptUrl, const int type, const int line) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
-    m_scriptPageHash[scriptUrl]->m_editorWidget->markerRemove(type, line);
-}
-
-void ScriptModule::annotationInsert(const QUrl &scriptUrl, const int line, const QString &annotation) {
-    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_editorWidget->annotate(line - 1, annotation, 0);
-}
-
-void ScriptModule::annotationRemove(const QUrl &scriptUrl, const int line) {
-    if (!m_scriptPageHash.contains(scriptUrl)) return;
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    if (line == -1) {
-        scriptPage->m_editorWidget->clearAnnotations();
-    } else {
-        scriptPage->m_editorWidget->annotate(line - 1, "", 0);
-    }
+    m_scriptPageHash[scriptUrl]->m_scintillaWidget->markerDelete(type, line);
 }
 
 // public: lsp
@@ -570,8 +553,8 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    const QPoint position = editor->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const QPoint position = scintilla->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     // call hover show
     const QVariantHash hoverSession = {
         {"position", position}
@@ -807,19 +790,14 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
 }
 
 void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const {
-    m_editorMenu->setProperty("scriptUrl", scriptUrl.toString());
-    m_editorMenu->setProperty("menuSession", menuSession);
-    QMetaObject::invokeMethod(m_editorMenu, "popup");
+    m_scintillaMenu->setProperty("scriptUrl", scriptUrl.toString());
+    m_scintillaMenu->setProperty("menuSession", menuSession);
+    QMetaObject::invokeMethod(m_scintillaMenu, "popup");
 }
 
 void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     m_scriptPageHash[scriptUrl]->m_scintillaWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
-}
-
-void ScriptModule::textInsert(const QUrl &scriptUrl, const QString &text, const int line, const int index) {
-    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_editorWidget->textInsert(text, line, index);
 }
 
 void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {

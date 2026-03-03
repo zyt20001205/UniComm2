@@ -82,15 +82,9 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeDebug/debugModule.h
         include/scriptModule/codeDebug/threadpoolModule.h
         include/scriptModule/codeDebug/watchModule.h
-        include/scriptModule/codeEditor/editorWidget.h
         include/scriptModule/codeEditor/explorerModule.h
         include/scriptModule/codeEditor/scintillaWidget.h
         include/scriptModule/codeEditor/searchWidget.h
-        include/settingModule/fontSettingLog.h
-        include/settingModule/fontSettingScript.h
-        include/settingModule/indicatorSettingScript.h
-        include/settingModule/markerSettingScript.h
-        include/settingModule/settingModule.h
         include/undoModule.h
         include/utils/cmarkUtils.h
         include/utils/cvUtils.h
@@ -147,15 +141,9 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeDebug/debugModule.cpp
         src/scriptModule/codeDebug/threadpoolModule.cpp
         src/scriptModule/codeDebug/watchModule.cpp
-        src/scriptModule/codeEditor/editorWidget.cpp
         src/scriptModule/codeEditor/explorerModule.cpp
         src/scriptModule/codeEditor/scintillaWidget.cpp
         src/scriptModule/codeEditor/searchWidget.cpp
-        src/settingModule/fontSettingLog.cpp
-        src/settingModule/fontSettingScript.cpp
-        src/settingModule/indicatorSettingScript.cpp
-        src/settingModule/markerSettingScript.cpp
-        src/settingModule/settingModule.cpp
         src/undoModule.cpp
         src/utils/cmarkUtils.cpp
         src/utils/cvUtils.cpp
@@ -369,11 +357,6 @@ set(OPENCV_INCLUDE "${OPENCV_DIR}/include")
 file(GLOB OPENCV_LIB "${OPENCV_DIR}/lib/*.a")
 set(OPENCV_BIN "${OPENCV_DIR}/bin")
 
-set(QSCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/qscintilla-2.14.1")
-set(QSCINTILLA_INCLUDE "${QSCINTILLA_DIR}/include")
-file(GLOB QSCINTILLA_LIB "${QSCINTILLA_DIR}/lib/*.a")
-set(QSCINTILLA_BIN "${QSCINTILLA_DIR}/bin")
-
 set(SCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/scintilla-5.5.9")
 set(SCINTILLA_INCLUDE "${SCINTILLA_DIR}/include")
 file(GLOB SCINTILLA_LIB "${SCINTILLA_DIR}/lib/*.a")
@@ -404,7 +387,6 @@ target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE}
         ${NUSPELL_INCLUDE}
         ${OPENCV_INCLUDE}
-        ${QSCINTILLA_INCLUDE}
         ${SCINTILLA_INCLUDE}
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
@@ -435,7 +417,6 @@ target_link_libraries(UniComm PRIVATE
         ${LUA_LIB}
         ${NUSPELL_LIB}
         ${OPENCV_LIB}
-        ${QSCINTILLA_LIB}
         ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
         #???
@@ -535,12 +516,6 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${OPENCV_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "OPENCV BIN COPIED")
-#qscintilla-2.14.1
-add_custom_command(TARGET UniComm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${QSCINTILLA_BIN}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "QSCINTILLA BIN COPIED")
 #scintilla-5.5.9
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

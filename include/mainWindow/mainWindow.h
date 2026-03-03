@@ -32,7 +32,6 @@ class ThreadpoolModule;
 class WatchModule;
 
 class UndoModule;
-class SettingModule;
 
 class MainWindow final : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
@@ -106,7 +105,6 @@ private:
     PortModule *m_portModule{};
     ScriptModule *m_scriptModule{};
     SendModule *m_sendModule{};
-    SettingModule *m_settingModule{};
     StatusModule *m_statusModule{};
     StructureModule *m_structureModule{};
     ThreadpoolModule *m_threadpoolModule{};

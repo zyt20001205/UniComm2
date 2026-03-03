@@ -4,7 +4,6 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <Qsci/qsciscintilla.h>
 
 // SearchWidget public
 SearchWidget::SearchWidget(QWidget *parent)
@@ -36,11 +35,11 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_wholeWordButton->setIcon(QIcon(":/icon/wholeWord.svg"));
     m_wholeWordButton->setToolTip(tr("Whole Word"));
     connect(m_wholeWordButton, &QPushButton::clicked, this, [this](const bool status) {
-        if (status) {
-            m_searchFlag |= QsciScintilla::SCFIND_WHOLEWORD;
-        } else {
-            m_searchFlag &= ~QsciScintilla::SCFIND_WHOLEWORD;
-        }
+        // if (status) {
+        //     m_searchFlag |= QsciScintilla::SCFIND_WHOLEWORD;
+        // } else {
+        //     m_searchFlag &= ~QsciScintilla::SCFIND_WHOLEWORD;
+        // }
         emit searchText(m_searchLineEdit->text(), m_searchFlag);
     });
     searchLayout->addWidget(m_matchCaseButton);
@@ -49,11 +48,11 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_matchCaseButton->setIcon(QIcon(":/icon/matchCase.svg"));
     m_matchCaseButton->setToolTip(tr("Match Case"));
     connect(m_matchCaseButton, &QPushButton::clicked, this, [this](const bool status) {
-        if (status) {
-            m_searchFlag |= QsciScintilla::SCFIND_MATCHCASE;
-        } else {
-            m_searchFlag &= ~QsciScintilla::SCFIND_MATCHCASE;
-        }
+        // if (status) {
+        //     m_searchFlag |= QsciScintilla::SCFIND_MATCHCASE;
+        // } else {
+        //     m_searchFlag &= ~QsciScintilla::SCFIND_MATCHCASE;
+        // }
         emit searchText(m_searchLineEdit->text(), m_searchFlag);
     });
     searchLayout->addWidget(m_wordStartButton);
@@ -62,11 +61,11 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_wordStartButton->setIcon(QIcon(":/icon/wordStart.svg"));
     m_wordStartButton->setToolTip(tr("Word Start"));
     connect(m_wordStartButton, &QPushButton::clicked, this, [this](const bool status) {
-        if (status) {
-            m_searchFlag |= QsciScintilla::SCFIND_WORDSTART;
-        } else {
-            m_searchFlag &= ~QsciScintilla::SCFIND_WORDSTART;
-        }
+        // if (status) {
+        //     m_searchFlag |= QsciScintilla::SCFIND_WORDSTART;
+        // } else {
+        //     m_searchFlag &= ~QsciScintilla::SCFIND_WORDSTART;
+        // }
         emit searchText(m_searchLineEdit->text(), m_searchFlag);
     });
     searchLayout->addWidget(m_regExpButton);
@@ -75,12 +74,12 @@ SearchWidget::SearchWidget(QWidget *parent)
     m_regExpButton->setIcon(QIcon(":/icon/regExp.svg"));
     m_regExpButton->setToolTip(tr("Regular Expression"));
     connect(m_regExpButton, &QPushButton::clicked, this, [this](const bool status) {
-        if (status) {
-            m_searchFlag |= QsciScintilla::SCFIND_REGEXP;
-        } else {
-            m_searchFlag &= ~QsciScintilla::SCFIND_REGEXP;
-        }
-        emit searchText(m_searchLineEdit->text(), m_searchFlag);
+        // if (status) {
+        //     m_searchFlag |= QsciScintilla::SCFIND_REGEXP;
+        // } else {
+        //     m_searchFlag &= ~QsciScintilla::SCFIND_REGEXP;
+        // }
+        // emit searchText(m_searchLineEdit->text(), m_searchFlag);
     });
     searchLayout->addStretch();
     searchLayout->addWidget(m_statLabel);

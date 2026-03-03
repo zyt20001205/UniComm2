@@ -27,7 +27,7 @@ public:
 
     Q_INVOKABLE void scriptOpen(const QUrl &scriptUrl);
 
-    Q_INVOKABLE void markerInsert(const QUrl &scriptUrl, int line);
+    Q_INVOKABLE void markerAdd(const QUrl &scriptUrl, int line);
 
     Q_INVOKABLE void breakpointDelete(const QUrl &scriptUrl, int line);
 
@@ -42,9 +42,9 @@ public:
 signals:
     void openScript(const QUrl &scriptUrl);
 
-    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
 
-    void removeMarker(const QUrl &scriptUrl, int type, int line);
+    void deleteMarker(const QUrl &scriptUrl, int type, int line);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

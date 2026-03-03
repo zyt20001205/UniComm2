@@ -33,7 +33,6 @@
 #include "portModule/sendModule.h"
 #include "scriptModule/nuspellModule.h"
 #include "scriptModule/scriptModule.h"
-#include "scriptModule/codeEditor/editorWidget.h"
 #include "scriptModule/codeEditor/explorerModule.h"
 #include "scriptModule/codeDebug/breakpointModule.h"
 #include "scriptModule/codeDebug/debugModule.h"
@@ -41,7 +40,6 @@
 #include "scriptModule/codeAnalysis/diagnosticsModule.h"
 #include "scriptModule/codeAnalysis/structureModule.h"
 #include "scriptModule/codeDebug/watchModule.h"
-#include "settingModule/settingModule.h"
 
 // MainWindow public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -355,7 +353,6 @@ void MainWindow::moduleInit() {
     m_portModule = new PortModule();
     m_scriptModule = new ScriptModule();
     m_sendModule = new SendModule();
-    m_settingModule = new SettingModule(this);
     m_statusModule = new StatusModule(this);
     m_structureModule = new StructureModule();
     m_systemModule = new SystemModule();
@@ -394,21 +391,21 @@ void MainWindow::moduleInit() {
     connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
 
     connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_breakpointModule, &BreakpointModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
-    connect(m_breakpointModule, &BreakpointModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
+    connect(m_breakpointModule, &BreakpointModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
+    connect(m_breakpointModule, &BreakpointModule::deleteMarker, m_scriptModule, &ScriptModule::markerDelete);
 
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_debugModule, &DebugModule::getCursorPosition, m_scriptModule, &ScriptModule::cursorPositionGet);
-    connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_debugModule, &DebugModule::getCursorPosition, m_scriptModule, &ScriptModule::indexGet);
+    connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerAdd);
     connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
 
     connect(m_diagnosticsModule, &DiagnosticsModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
     connect(m_diagnosticsModule, &DiagnosticsModule::setCursorPosition, m_scriptModule, &ScriptModule::indexSet);
-    connect(m_diagnosticsModule, &DiagnosticsModule::insertIndicator, m_scriptModule, &ScriptModule::indicatorInsert);
+    connect(m_diagnosticsModule, &DiagnosticsModule::insertIndicator, m_scriptModule, &ScriptModule::indicatorFill);
 
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
@@ -432,7 +429,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
-    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
+    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerAdd);
 
     connect(m_systemModule, &SystemModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_systemModule, &SystemModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
@@ -441,8 +438,8 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::trackQuit, this, &MainWindow::quitTrack);
     connect(m_threadpoolModule, &ThreadpoolModule::refreshThread, m_statusModule, &StatusModule::threadRefresh);
     connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerInsert);
-    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerRemove);
+    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerAdd);
+    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerDelete);
     connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
@@ -453,16 +450,6 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::exportDatatable, m_datatableModule, &DatatableModule::datatableExport);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
-
-
-    connect(m_settingModule, &SettingModule::reloadLogFont, m_logModule, &LogModule::logFontReload);
-    connect(m_settingModule, &SettingModule::saveLogFont, m_logModule, &LogModule::logFontSave);
-    connect(m_settingModule, &SettingModule::reloadScriptFont, m_scriptModule, &ScriptModule::scriptFontReload);
-    connect(m_settingModule, &SettingModule::saveScriptFont, m_scriptModule, &ScriptModule::scriptFontSave);
-    connect(m_settingModule, &SettingModule::reloadScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorReload);
-    connect(m_settingModule, &SettingModule::saveScriptIndicator, m_scriptModule, &ScriptModule::scriptIndicatorSave);
-    connect(m_settingModule, &SettingModule::reloadScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerReload);
-    connect(m_settingModule, &SettingModule::saveScriptMarker, m_scriptModule, &ScriptModule::scriptMarkerSave);
 }
 
 void MainWindow::shortcutInit() {

@@ -171,6 +171,16 @@ void ScintillaWidget::indicatorDefine(const int type, const QJsonObject &config)
     // if (config.contains("flags")) send(SCI_INDICSETFLAGS, type, config["flags"].toInt()); // NOLINT
 }
 
+void ScintillaWidget::indicatorFill(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) const {
+    const Position start = positionGet(startLine, startCharacter);
+    const Position length = positionGet(endLine, endCharacter) - start;
+    if (length <= 0) return;
+    send(SCI_SETINDICATORCURRENT, type); // NOLINT
+    send(SCI_INDICATORFILLRANGE, start, length); // NOLINT
+    if (time == -1) return;
+    QTimer::singleShot(time, [this, type, startLine, startCharacter, endLine, endCharacter] { indicatorClear(type, startLine, startCharacter, endLine, endCharacter); });
+}
+
 void ScintillaWidget::indicatorClear(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     Position start{};
     Position lengthFill{};
@@ -182,16 +192,6 @@ void ScintillaWidget::indicatorClear(const int type, const int startLine, const 
     }
     send(SCI_SETINDICATORCURRENT, type); // NOLINT
     send(SCI_INDICATORCLEARRANGE, start, lengthFill); // NOLINT
-}
-
-void ScintillaWidget::indicatorFill(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) const {
-    const Position start = positionGet(startLine, startCharacter);
-    const Position length = positionGet(endLine, endCharacter) - start;
-    if (length <= 0) return;
-    send(SCI_SETINDICATORCURRENT, type); // NOLINT
-    send(SCI_INDICATORFILLRANGE, start, length); // NOLINT
-    if (time == -1) return;
-    QTimer::singleShot(time, [this, type, startLine, startCharacter, endLine, endCharacter] { indicatorClear(type, startLine, startCharacter, endLine, endCharacter); });
 }
 
 // public: line
