@@ -75,6 +75,12 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     // misc
     send(SCI_SETSCROLLWIDTH, 1); // NOLINT
     send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
+
+    send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
+    send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+    send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
+    send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
+    send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
     // script
     const QUrl &url(scriptUrl);
     const QString scriptPath = url.toLocalFile();
