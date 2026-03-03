@@ -335,7 +335,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &ScriptPage::savepointChange);
     connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
-        if (static_cast<int>(type) & SC_PERFORMED_UNDO || static_cast<int>(type) & SC_PERFORMED_REDO) m_contentTimer->start();
+        if (static_cast<int>(type) & (SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
     });
     m_scintillaWidget->installEventFilter(this);
     m_scintillaWidget->viewport()->installEventFilter(this);
