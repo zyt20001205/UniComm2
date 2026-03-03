@@ -36,6 +36,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
+    auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
+    connect(shortcutComment, &QShortcut::activated, this, &ScriptPage::commentToggle);
+    shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
@@ -74,6 +77,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 {"outlineAlpha", 255},
                 {"setUnder", true}
             });
+        // QJsonObject{
+        //             {"style", 1},
+        //             {"fore", 0x1f0fc5},
+        //             {"alpha", 255},
+        //             {"outlineAlpha", 255},
+        //             {"setUnder", true}
+        // });
         m_scintillaWidget->indicatorDefine(
             INDICATOR_WARNING,
             QJsonObject{
@@ -666,6 +676,7 @@ void ScriptPage::spellCheckResponse(const QVariantList &typos) {
 
 // public: slot
 void ScriptPage::charAdd(const int ch) {
+    m_contentTimer->start();
     m_selection = m_scintillaWidget->selectionGet();
     const QChar character(ch);
     if (character.isLetter() || m_completionTrigger.contains(character)) {
@@ -768,7 +779,6 @@ void ScriptPage::dwellChange() {
 }
 
 void ScriptPage::savepointChange(const bool status) {
-    m_contentTimer->start();
     const QString pageName = title();
     if (status) {
         setTitle(pageName + "*");
@@ -1037,6 +1047,20 @@ void ScriptPage::spellCheckRequest() {
 }
 
 // private:
+void ScriptPage::commentToggle() {
+    // TODO: multiline not supported! use [[]] later!
+    const auto position = m_scintillaWidget->positionGet();
+    const auto index = m_scintillaWidget->indexGet(position);
+    auto text = m_scintillaWidget->textGet(index["line"], 0, index["line"], -1);
+    if (text.contains("--")) {
+        text.remove("--");
+    } else {
+        text = "--" + text;
+    }
+    m_scintillaWidget->textSet(text, index["line"], 0, index["line"], -1);
+    contentChange();
+}
+
 void ScriptPage::positionFill(const int x, const int y) const {
     const QString text = QString("%1, %2").arg(QString::number(x), QString::number(y));
     m_editorWidget->insert(text);

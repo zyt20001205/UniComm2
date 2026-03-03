@@ -24,6 +24,7 @@ public:
 
     ~ScriptPage() override = default;
 
+    // public: file
     void pathDisambiguation();
 
     void scriptReload();
@@ -32,6 +33,7 @@ public:
 
     void scriptClose();
 
+    // public: lsp
     void diagnosticsResponse(const QJsonArray &diagnostics);
 
     void documentHighlightResponse(const QJsonArray &result) const;
@@ -44,6 +46,7 @@ public:
 
     void semanticTokensResponse(const QJsonArray &data) const;
 
+    // public: typo
     void spellCheckResponse(const QVariantList &typos);
 
     void charAdd(int ch);
@@ -80,7 +83,7 @@ signals:
     void requestHover(const QUrl &scriptUrl, int line, int character);
 
     void requestImplementation(const QUrl &scriptUrl, int line, int character);
-    
+
     void requestOnTypeFormatting(const QUrl &scriptUrl, int line, int character);
 
     void requestReferences(const QUrl &scriptUrl, int line, int character);
@@ -92,7 +95,7 @@ signals:
     void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
 
     void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
-    
+
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
@@ -117,10 +120,12 @@ private:
 
     void savepointChange(bool status);
 
+    // private: file
     void scriptReadonly(bool status);
 
     void permissionRequest();
 
+    // private: lsp
     void didOpenNotification();
 
     void didChangeNotification();
@@ -155,7 +160,11 @@ private:
 
     void typeDefinitionRequest();
 
+    // private: typo
     void spellCheckRequest();
+
+    // private:
+    void commentToggle();
 
     void positionFill(int x, int y) const;
 
