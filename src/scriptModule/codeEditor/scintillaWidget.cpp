@@ -133,10 +133,10 @@ QHash<QString, int> ScintillaWidget::wordIndexGet(const Position position, const
     const auto startIndex = indexGet(startPosition);
     const auto endIndex = indexGet(endPosition);
     return QHash<QString, int>{
-            {"startLine", startIndex["line"]},
-            {"startCharacter", startIndex["character"]},
-            {"endLine", endIndex["line"]},
-            {"endCharacter", endIndex["character"]}
+        {"startLine", startIndex["line"]},
+        {"startCharacter", startIndex["character"]},
+        {"endLine", endIndex["line"]},
+        {"endCharacter", endIndex["character"]}
     };
 }
 
@@ -262,9 +262,11 @@ QHash<QString, int> ScintillaWidget::pointGet(const int line, const int characte
 Position ScintillaWidget::positionGet(const int line, const int character) const {
     if (line == -1) {
         return send(SCI_GETCURRENTPOS);
-    } else {
-        return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);
     }
+    if (character == -1) {
+        return send(SCI_GETLINEENDPOSITION, line);
+    }
+    return send(SCI_POSITIONRELATIVE, send(SCI_POSITIONFROMLINE, line), character);
 }
 
 Position ScintillaWidget::positionGet(const QPoint &point) const {
@@ -349,20 +351,22 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
 
 // public: text
 QString ScintillaWidget::textGet(const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
-    int start{};
-    int end{};
-    int length{};
+    Position startPosition{};
+    Position endPosition{};
+    Position length{};
     if (startLine == -1) {
-        end = static_cast<int>(send(SCI_GETLENGTH));
-        length = static_cast<int>(send(SCI_GETLENGTH));
-        QByteArray buffer(length + 1, '\0');
-        Sci_TextRange tr = {{start, end}, buffer.data()};
-        send(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));
-        buffer.chop(1); // Remove extra NUL
-        return QString::fromUtf8(buffer.constData(), length);
+        endPosition = send(SCI_GETLENGTH);
+        length = send(SCI_GETLENGTH);
     } else {
-        return {};
+        startPosition = positionGet(startLine, startCharacter);
+        endPosition = positionGet(endLine, endCharacter);
+        length = endPosition - startPosition;
     }
+    QByteArray buffer(static_cast<int>(length + 1), '\0');
+    Sci_TextRange tr = {{static_cast<int>(startPosition), static_cast<int>(endPosition)}, buffer.data()};
+    send(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));
+    buffer.chop(1); // Remove extra NUL
+    return QString::fromUtf8(buffer.constData(), static_cast<int>(length));
 }
 
 QString ScintillaWidget::textGetSelected() const {

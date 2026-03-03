@@ -1539,7 +1539,7 @@ Item {
                 icon.source: "qrc:/icon/definition.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.definitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
+                onTriggered: scriptModule.definitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
             }
 
             MenuItem {
@@ -1547,7 +1547,7 @@ Item {
                 icon.source: "qrc:/icon/reference.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.referencesRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
+                onTriggered: scriptModule.referencesRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
             }
 
             MenuItem {
@@ -1555,7 +1555,7 @@ Item {
                 icon.source: "qrc:/icon/implementation.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.implementationRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
+                onTriggered: scriptModule.implementationRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
             }
 
             MenuItem {
@@ -1563,7 +1563,7 @@ Item {
                 icon.source: "qrc:/icon/typeDefinition.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["index"])
+                onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
             }
         }
 

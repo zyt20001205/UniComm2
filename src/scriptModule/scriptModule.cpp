@@ -455,22 +455,23 @@ void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, cons
 }
 
 void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const {
-    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // // get navigation display position
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // // call navigation show
-    // const QVariantHash navigationSession = {
-    //     {"type", "definition"},
-    //     {"scriptUrl", scriptUrl},
-    //     {"position", position}
-    // };
-    // m_codeAssistant->navigationShow(navigationSession, definitions);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto wordIndex = scintilla->wordIndexGet();
+    const auto startLine = wordIndex["startLine"];
+    const auto startCharacter = wordIndex["startCharacter"];
+    const auto height = scintilla->heightGet();
+    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto x = point["x"];
+    const auto y = point["y"] + height;
+    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    // call navigation show
+    const QVariantHash navigationSession = {
+        {"type", "definition"},
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->navigationShow(navigationSession, definitions);
 }
 
 void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
@@ -597,22 +598,23 @@ void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, 
 }
 
 void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const {
-    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // // get navigation display position
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // // call navigation show
-    // const QVariantHash navigationSession = {
-    //     {"type", "implementation"},
-    //     {"scriptUrl", scriptUrl},
-    //     {"position", position}
-    // };
-    // m_codeAssistant->navigationShow(navigationSession, implementations);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto wordIndex = scintilla->wordIndexGet();
+    const auto startLine = wordIndex["startLine"];
+    const auto startCharacter = wordIndex["startCharacter"];
+    const auto height = scintilla->heightGet();
+    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto x = point["x"];
+    const auto y = point["y"] + height;
+    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    // call navigation show
+    const QVariantHash navigationSession = {
+        {"type", "implementation"},
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->navigationShow(navigationSession, implementations);
 }
 
 void ScriptModule::onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character) {
@@ -670,22 +672,23 @@ void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int charac
 }
 
 void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const {
-    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // // get navigation display position
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // // call navigation show
-    // const QVariantHash navigationSession = {
-    //     {"type", "reference"},
-    //     {"scriptUrl", scriptUrl},
-    //     {"position", position}
-    // };
-    // m_codeAssistant->navigationShow(navigationSession, references);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto wordIndex = scintilla->wordIndexGet();
+    const auto startLine = wordIndex["startLine"];
+    const auto startCharacter = wordIndex["startCharacter"];
+    const auto height = scintilla->heightGet();
+    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto x = point["x"];
+    const auto y = point["y"] + height;
+    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    // call navigation show
+    const QVariantHash navigationSession = {
+        {"type", "reference"},
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->navigationShow(navigationSession, references);
 }
 
 void ScriptModule::semanticTokensRequest(const QUrl &scriptUrl) {
@@ -759,22 +762,23 @@ void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, 
 }
 
 void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const {
-    // const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    // const auto *editor = static_cast<QsciScintilla *>(scriptPage->m_editorWidget);
-    // const long currentPos = editor->SendScintilla(QsciScintilla::SCI_GETCURRENTPOS);
-    // const long wordStartPos = editor->SendScintilla(QsciScintilla::SCI_WORDSTARTPOSITION, currentPos, true);
-    // // get navigation display position
-    // const int x = editor->SendScintilla(QsciScintilla::SCI_POINTXFROMPOSITION, 0, wordStartPos);
-    // const int lineHeight = editor->SendScintilla(QsciScintilla::SCI_TEXTHEIGHT, 0);
-    // const int y = editor->SendScintilla(QsciScintilla::SCI_POINTYFROMPOSITION, 0, wordStartPos) + lineHeight;
-    // const QPoint position = editor->mapTo(editor->window(), QPoint(x, y));
-    // // call navigation show
-    // const QVariantHash navigationSession = {
-    //     {"type", "typeDefinition"},
-    //     {"scriptUrl", scriptUrl},
-    //     {"position", position}
-    // };
-    // m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
+    const auto *scriptPage = m_scriptPageHash[scriptUrl];
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto wordIndex = scintilla->wordIndexGet();
+    const auto startLine = wordIndex["startLine"];
+    const auto startCharacter = wordIndex["startCharacter"];
+    const auto height = scintilla->heightGet();
+    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto x = point["x"];
+    const auto y = point["y"] + height;
+    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    // call navigation show
+    const QVariantHash navigationSession = {
+        {"type", "typeDefinition"},
+        {"scriptUrl", scriptUrl},
+        {"position", position}
+    };
+    m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
 }
 
 // public: typo

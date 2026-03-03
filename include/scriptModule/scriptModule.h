@@ -26,7 +26,7 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    KDDockWidgets::QtWidgets::DockWidget *welcomePage() const {
+    [[nodiscard]] KDDockWidgets::QtWidgets::DockWidget *welcomePage() const {
         return m_welcomePage;
     }
 
