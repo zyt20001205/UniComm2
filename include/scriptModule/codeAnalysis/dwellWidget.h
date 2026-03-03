@@ -31,9 +31,9 @@ public:
     Q_INVOKABLE void codeActionAccept(const QJsonObject &codeAction);
 
 signals:
-    void replaceText(const QUrl &scriptUrl, const QString &text, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void requestCodeAction(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void requestCodeAction(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
     QObject *m_tooltip{};
@@ -43,14 +43,14 @@ private:
     QObject *m_suggestionMenu{};
 
     QUrl m_scriptUrl{};
-    int m_diagnosticLineFrom{};
-    int m_diagnosticLineTo{};
-    int m_diagnosticIndexFrom{};
-    int m_diagnosticIndexTo{};
-    int m_typoLineFrom{};
-    int m_typoLineTo{};
-    int m_typoIndexFrom{};
-    int m_typoIndexTo{};
+    int m_diagnosticStartLine{};
+    int m_diagnosticEndLine{};
+    int m_diagnosticStartCharacter{};
+    int m_diagnosticEndCharacter{};
+    int m_typoStartLine{};
+    int m_typoEndLine{};
+    int m_typoStartCharacter{};
+    int m_typoEndCharacter{};
 };
 
 #endif //UNICOMM_DWELLWIDGET_H

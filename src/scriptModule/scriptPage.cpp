@@ -16,7 +16,6 @@
 #include "scriptModule/codeEditor/scintillaWidget.h"
 #include "scriptModule/codeEditor/searchWidget.h"
 #include "utils/cmarkUtils.h"
-#include "utils/qtUtils.h"
 
 // public
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
@@ -333,7 +332,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &ScriptPage::savepointChange);
     connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
-        if (static_cast<int>(type) & (SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
+        if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
     });
     m_scintillaWidget->installEventFilter(this);
     m_scintillaWidget->viewport()->installEventFilter(this);
@@ -912,21 +911,19 @@ void ScriptPage::hoverRequest() {
         }
     }
     // show typo if exists
-    // for (const auto &value: m_scriptTypo) {
-    //     auto typo = value.toMap();
-    //     const int startLine = typo["line"].toInt();
-    //     const int endLine = typo["line"].toInt();
-    //     const int startCharacter = typo["startCharacter"].toInt();
-    //     const int endCharacter = typo["endCharacter"].toInt();
-    //     if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
-    //         const int startPos = m_editorWidget->positionFromLineIndex(startLine, startCharacter);
-    //         const int endPos = m_editorWidget->positionFromLineIndex(endLine, endCharacter);
-    //         const QString word = m_editorWidget->text(startPos, endPos);
-    //         const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
-    //             word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-    //         diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
-    //     }
-    // }
+    for (const auto &value: m_scriptTypo) {
+        auto typo = value.toMap();
+        const int startLine = typo["line"].toInt();
+        const int endLine = typo["line"].toInt();
+        const int startCharacter = typo["startCharacter"].toInt();
+        const int endCharacter = typo["endCharacter"].toInt();
+        if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
+            const QString word = m_scintillaWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+            const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
+                word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+            diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
+        }
+    }
     // call diagnostic show
     const QPoint position = m_scintillaWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     const QVariantHash diagnosticSession = {

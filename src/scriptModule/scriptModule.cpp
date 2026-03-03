@@ -327,18 +327,14 @@ void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArr
     }
 }
 
-void ScriptModule::codeActionRequest(const QUrl &scriptUrl, const int lineFrom, const int indexFrom, const int lineTo, const int indexTo) {
+void ScriptModule::codeActionRequest(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     QJsonArray diagnosticArray{};
     for (const auto &value: m_diagnosticsHash[scriptUrl]) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
         const QJsonObject start = range["start"].toObject();
         const QJsonObject end = range["end"].toObject();
-        const int startLine = start["line"].toInt();
-        const int startCharacter = start["character"].toInt();
-        const int endLine = end["line"].toInt();
-        const int endCharacter = end["character"].toInt();
-        if (lineFrom == startLine && lineTo == endLine && indexFrom == startCharacter && indexTo == endCharacter) {
+        if (startLine == start["line"].toInt() && startCharacter == start["character"].toInt() && endLine == end["line"].toInt() && endCharacter == end["character"].toInt()) {
             diagnosticArray.append(diagnostic);
         }
     }
@@ -353,14 +349,14 @@ void ScriptModule::codeActionRequest(const QUrl &scriptUrl, const int lineFrom, 
             "range", QJsonObject{
                 {
                     "start", QJsonObject{
-                        {"line", lineFrom},
-                        {"character", indexFrom}
+                        {"line", startLine},
+                        {"character", startCharacter}
                     }
                 },
                 {
                     "end", QJsonObject{
-                        {"line", lineTo},
-                        {"character", indexTo}
+                        {"line", endLine},
+                        {"character", endCharacter}
                     }
                 }
             }

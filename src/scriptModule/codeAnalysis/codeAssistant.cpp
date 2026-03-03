@@ -24,7 +24,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_completionWidget, &CompletionWidget::insertDatabase, this, &CodeAssistant::insertDatabase);
     connect(m_completionWidget, &CompletionWidget::insertDatatable, this, &CodeAssistant::insertDatatable);
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
-    // connect(m_dwellWidget, &DwellWidget::replaceText, this, &CodeAssistant::replaceText);
+    connect(m_dwellWidget, &DwellWidget::textSet, this, &CodeAssistant::setText);
     connect(m_dwellWidget, &DwellWidget::requestCodeAction, this, &CodeAssistant::requestCodeAction);
     connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setIndex);
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);

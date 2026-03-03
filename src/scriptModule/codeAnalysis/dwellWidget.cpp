@@ -68,18 +68,18 @@ void DwellWidget::linkClick(const QUrl &commandLine) {
     const QString command = commandLine.scheme();
     if (command == "requestcodeaction") {
         const QStringList arguments = commandLine.path().split('/');
-        m_diagnosticLineFrom = arguments[1].toInt();
-        m_diagnosticIndexFrom = arguments[2].toInt();
-        m_diagnosticLineTo = arguments[3].toInt();
-        m_diagnosticIndexTo = arguments[4].toInt();
-        emit requestCodeAction(m_scriptUrl, m_diagnosticLineFrom, m_diagnosticIndexFrom, m_diagnosticLineTo, m_diagnosticIndexTo);
+        m_diagnosticStartLine = arguments[1].toInt();
+        m_diagnosticStartCharacter = arguments[2].toInt();
+        m_diagnosticEndLine = arguments[3].toInt();
+        m_diagnosticEndCharacter = arguments[4].toInt();
+        emit requestCodeAction(m_scriptUrl, m_diagnosticStartLine, m_diagnosticStartCharacter, m_diagnosticEndLine, m_diagnosticEndCharacter);
     } else if (command == "requestspellsuggest") {
         const QString word = commandLine.host();
         const QStringList arguments = commandLine.path().split('/');
-        m_typoLineFrom = arguments[1].toInt();
-        m_typoIndexFrom = arguments[2].toInt();
-        m_typoLineTo = arguments[3].toInt();
-        m_typoIndexTo = arguments[4].toInt();
+        m_typoStartLine = arguments[1].toInt();
+        m_typoStartCharacter = arguments[2].toInt();
+        m_typoEndLine = arguments[3].toInt();
+        m_typoEndCharacter = arguments[4].toInt();
         const QStringList suggestions = g_nuspell->spellSuggestRequest(word);
         m_tooltip->setProperty("suggestions", suggestions);
         QMetaObject::invokeMethod(m_suggestionMenu, "open");
@@ -87,7 +87,7 @@ void DwellWidget::linkClick(const QUrl &commandLine) {
 }
 
 void DwellWidget::suggestionAccept(const QString &text) {
-    emit replaceText(m_scriptUrl, text, m_typoLineFrom, m_typoIndexFrom, m_typoLineTo, m_typoIndexTo);
+    emit textSet(m_scriptUrl, text, m_typoStartLine, m_typoStartCharacter, m_typoEndLine, m_typoEndCharacter);
 }
 
 void DwellWidget::codeActionAccept(const QJsonObject &codeAction) {
@@ -110,7 +110,7 @@ void DwellWidget::codeActionAccept(const QJsonObject &codeAction) {
             const int startCharacter = start["character"].toInt();
             const int endLine = end["line"].toInt();
             const int endCharacter = end["character"].toInt();
-            emit replaceText(scriptUrl, newText, startLine, startCharacter, endLine, endCharacter);
+            emit textSet(scriptUrl, newText, startLine, startCharacter, endLine, endCharacter);
         }
     }
 }

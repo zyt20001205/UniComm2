@@ -68,7 +68,7 @@ public:
 
     void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
 
-    void codeActionRequest(const QUrl &scriptUrl, int lineFrom, int indexFrom, int lineTo, int indexTo);
+    void codeActionRequest(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void completionRequest(const QUrl &scriptUrl, int line, int character);
 
