@@ -70,7 +70,7 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
         return;
     }
     if (state == DEBUG_RUNTOCURSOR) {
-        emit getCursorPosition();
+        emit getIndex();
         const QString &currentThreadId = currenThread;
         emit setState(currentThreadId, state);
     } else {
@@ -100,9 +100,8 @@ void DebugModule::callStackSwitch(const QString &threadId) const {
     m_debugWidget->rootContext()->setContextProperty("standardItemModel", callStackModel);
 }
 
-void DebugModule::markerInsert(const QVariantHash &position) {
-    emit openScript(position["scriptUrl"].toUrl());
-    emit insertMarker(
+void DebugModule::markerAdd(const QVariantHash &position) {
+    emit addMarker(
         position["scriptUrl"].toUrl(),
         MARKER_HINT,
         position["line"].toInt() - 1,

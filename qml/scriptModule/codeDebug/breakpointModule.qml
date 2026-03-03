@@ -117,7 +117,7 @@ Item {
                         treeView.toggleExpanded(row)
                         breakpointModule.scriptOpen(model.whatsThis)
                     } else {
-                        breakpointModule.markerInsert(model.whatsThis, model.display)
+                        breakpointModule.markerAdd(model.whatsThis, model.display)
                     }
                 }
             }

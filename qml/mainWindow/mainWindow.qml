@@ -770,7 +770,7 @@ Item {
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: diagnosticsModule.indicatorInsert(diagnosticsModuleDiagnosticMenu.position)
+            onTriggered: diagnosticsModule.indicatorFill(diagnosticsModuleDiagnosticMenu.position)
         }
     }
 

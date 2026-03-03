@@ -164,7 +164,7 @@ Item {
 
             function markerInsert(row) {
                 const index = model.index(row, 0);
-                debugModule.markerInsert(model.data(index, Qt.WhatsThisRole))
+                debugModule.markerAdd(model.data(index, Qt.WhatsThisRole))
             }
         }
     }

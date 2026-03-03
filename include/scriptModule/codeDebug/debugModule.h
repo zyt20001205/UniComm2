@@ -40,14 +40,12 @@ public:
 
     Q_INVOKABLE void callStackSwitch(const QString &threadId) const;
 
-    Q_INVOKABLE void markerInsert(const QVariantHash &position);
+    Q_INVOKABLE void markerAdd(const QVariantHash &position);
 
 signals:
-    void openScript(const QUrl &scriptUrl);
+    void getIndex();
 
-    void getCursorPosition();
-
-    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
 
     void setState(const QString &threadId, int state);
 

@@ -11,7 +11,7 @@
 #include "globals.h"
 #include "utils/qtUtils.h"
 
-// DiagnosticsModule public
+// public
 DiagnosticsModule::DiagnosticsModule()
     : DockWidget("Diagnostics"),
       m_diagnosticsWidget(new QQuickWidget()) {
@@ -101,12 +101,12 @@ void DiagnosticsModule::diagnosticCopy(const QString &diagnostic) {
     clipboard->setText(diagnostic);
 }
 
-void DiagnosticsModule::indicatorInsert(const QVariantHash &position) {
-    emit setCursorPosition(
+void DiagnosticsModule::indicatorFill(const QVariantHash &position) {
+    emit setIndex(
         position["scriptUrl"].toUrl(),
         position["startLine"].toInt(),
         position["startCharacter"].toInt());
-    emit insertIndicator(
+    emit fillIndicator(
         position["scriptUrl"].toUrl(),
         INDICATOR_SELECTION,
         position["startLine"].toInt(),

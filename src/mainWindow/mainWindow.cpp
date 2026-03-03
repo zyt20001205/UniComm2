@@ -398,14 +398,12 @@ void MainWindow::moduleInit() {
 
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
 
-    connect(m_debugModule, &DebugModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_debugModule, &DebugModule::getCursorPosition, m_scriptModule, &ScriptModule::indexGet);
-    connect(m_debugModule, &DebugModule::insertMarker, m_scriptModule, &ScriptModule::markerAdd);
+    connect(m_debugModule, &DebugModule::getIndex, m_scriptModule, &ScriptModule::indexGet);
+    connect(m_debugModule, &DebugModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
     connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
 
-    connect(m_diagnosticsModule, &DiagnosticsModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_diagnosticsModule, &DiagnosticsModule::setCursorPosition, m_scriptModule, &ScriptModule::indexSet);
-    connect(m_diagnosticsModule, &DiagnosticsModule::insertIndicator, m_scriptModule, &ScriptModule::indicatorFill);
+    connect(m_diagnosticsModule, &DiagnosticsModule::setIndex, m_scriptModule, &ScriptModule::indexSet);
+    connect(m_diagnosticsModule, &DiagnosticsModule::fillIndicator, m_scriptModule, &ScriptModule::indicatorFill);
 
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);

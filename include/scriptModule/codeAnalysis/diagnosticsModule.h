@@ -23,14 +23,12 @@ public:
 
     Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
 
-    Q_INVOKABLE void indicatorInsert(const QVariantHash &position);
+    Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 
 signals:
-    void openScript(const QUrl &scriptUrl);
+    void setIndex(const QUrl &scriptUrl, int startLine, int startCharacter);
 
-    void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
-
-    void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void fillIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
     QQuickWidget *m_diagnosticsWidget{};

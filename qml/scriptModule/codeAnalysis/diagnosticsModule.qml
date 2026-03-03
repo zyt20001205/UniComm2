@@ -212,7 +212,7 @@ Item {
                             acceptedButtons: Qt.LeftButton
                             onTapped: {
                                 const index = tableView.index(row, 0);
-                                diagnosticsModule.indicatorInsert(tableView.model.data(index, Qt.WhatsThisRole))
+                                diagnosticsModule.indicatorFill(tableView.model.data(index, Qt.WhatsThisRole))
                             }
                         }
 

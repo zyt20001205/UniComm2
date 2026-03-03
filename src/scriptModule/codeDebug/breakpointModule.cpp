@@ -6,7 +6,7 @@
 
 #include "globals.h"
 
-// BreakpointModule public
+// public
 BreakpointModule::BreakpointModule()
     : DockWidget("Breakpoint"),
       m_breakpointWidget(new QQuickWidget()),
@@ -153,7 +153,7 @@ void BreakpointModule::allDelete() {
     }
 }
 
-// BreakpointModule protected
+// protected
 bool BreakpointModule::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_breakpointWidget) {
         if (event->type() == QEvent::FocusOut) {
