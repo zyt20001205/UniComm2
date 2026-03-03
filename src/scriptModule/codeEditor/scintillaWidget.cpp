@@ -75,12 +75,13 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     // misc
     send(SCI_SETSCROLLWIDTH, 1); // NOLINT
     send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
-
     send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
     send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
     send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
     send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
     send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+    // for debug
+    send(SCI_SETVIEWEOL, true); // NOLINT
     // script
     const QUrl &url(scriptUrl);
     const QString scriptPath = url.toLocalFile();
@@ -299,13 +300,16 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
     const Position startPosition = send(SCI_GETSELECTIONSTART);
     const Position endPosition = send(SCI_GETSELECTIONEND);
     const int characters = static_cast<int>(send(SCI_COUNTCHARACTERS, startPosition, endPosition));
-    const int startLine = static_cast<int>(send(SCI_LINEFROMPOSITION, startPosition));
-    const int endLine = static_cast<int>(send(SCI_LINEFROMPOSITION, endPosition));
-    const int lines = endLine - startLine;
+    const auto startIndex = indexGet(startPosition);
+    const auto endIndex = indexGet(endPosition);
     return QHash<QString, int>{
         {"line", index["line"]},
         {"character", index["character"]},
-        {"lines", lines},
+        {"startLine", startIndex["line"]},
+        {"startCharacter", startIndex["character"]},
+        {"endLine", endIndex["line"]},
+        {"endCharacter", endIndex["character"]},
+        {"lines", endIndex["line"] - startIndex["line"]},
         {"characters", characters}
     };
 }
