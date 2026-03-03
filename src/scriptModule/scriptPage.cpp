@@ -334,6 +334,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
         if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
     });
+    connect(m_scintillaWidget, &ScintillaEdit::hotSpotClick, this, [this](Scintilla::Position position, Scintilla::KeyMod modifiers) {
+        qDebug() << "hotspot triggered!";
+    });
     m_scintillaWidget->installEventFilter(this);
     m_scintillaWidget->viewport()->installEventFilter(this);
     QTimer::singleShot(0, this, [this] {
