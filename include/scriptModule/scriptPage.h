@@ -44,6 +44,8 @@ public:
 
     void onTypeFormattingResponse(const QJsonObject &newText) const;
 
+    void rangeFormattingResponse(const QString &newText) const;
+
     void semanticTokensResponse(const QJsonArray &data) const;
 
     // public: typo

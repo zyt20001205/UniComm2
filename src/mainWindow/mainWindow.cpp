@@ -385,6 +385,7 @@ void MainWindow::moduleInit() {
     connect(m_luals, &LuaLanguageServer::responseHover, m_scriptModule, &ScriptModule::hoverResponse);
     connect(m_luals, &LuaLanguageServer::responseImplementation, m_scriptModule, &ScriptModule::implementationResponse);
     connect(m_luals, &LuaLanguageServer::responseOnTypeFormatting, m_scriptModule, &ScriptModule::onTypeFormattingResponse);
+    connect(m_luals, &LuaLanguageServer::responseRangeFormatting, m_scriptModule, &ScriptModule::rangeFormattingResponse);
     connect(m_luals, &LuaLanguageServer::responseReferences, m_scriptModule, &ScriptModule::referencesResponse);
     connect(m_luals, &LuaLanguageServer::responseSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensResponse);
     connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);

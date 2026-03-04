@@ -104,6 +104,10 @@ public:
 
     void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const;
 
+    Q_INVOKABLE void rangeFormattingRequest(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+
+    void rangeFormattingResponse(const QUrl &scriptUrl, const QString &newText) const;
+
     Q_INVOKABLE void referencesRequest(const QUrl &scriptUrl, int line, int character);
 
     void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const;

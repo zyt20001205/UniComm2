@@ -50,6 +50,8 @@ signals:
 
     void responseOnTypeFormatting(const QUrl &scriptUrl, const QJsonObject &newText);
 
+    void responseRangeFormatting(const QUrl &scriptUrl, const QString &newText);
+
     void responseReferences(const QUrl &scriptUrl, const QJsonArray &ranges);
 
     void responseSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);

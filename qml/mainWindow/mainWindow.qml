@@ -1520,16 +1520,33 @@ Item {
             }
         }
 
-        MenuItem {
-            text: qsTr("Formatting")
+        Menu {
+            title: qsTr("Formatting")
             icon.source: "qrc:/icon/brush.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
+            MenuItem {
+                text: qsTr("Document")
+                icon.source: "qrc:/icon/document.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Range")
+                icon.source: "qrc:/icon/documentRange.svg"
+                icon.width: 16; icon.height: 16
+                enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["rangeFormatting"] : false
+                ToolTip.visible: hovered && !enabled
+                ToolTip.text: qsTr("Nothing selected")
+
+                onTriggered: scriptModule.rangeFormattingRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["startLine"], scriptModuleEditorMenu.menuSession["startCharacter"], scriptModuleEditorMenu.menuSession["endLine"], scriptModuleEditorMenu.menuSession["endCharacter"])
+            }
         }
 
         Menu {
-            title: qsTr("Goto")
+            title: qsTr("Navigation")
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
             enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["navigation"] : false

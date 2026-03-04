@@ -627,6 +627,46 @@ void ScriptModule::onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonOb
     m_scriptPageHash[scriptUrl]->onTypeFormattingResponse(newText);
 }
 
+void ScriptModule::rangeFormattingRequest(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    // rangeFormatting request to lua language server
+    const QJsonObject rangeFormattingParams{
+        {
+            "textDocument", QJsonObject{
+                {"uri", scriptUrl.toString()}
+            }
+        },
+        {
+            "range", QJsonObject{
+                {
+                    "start", QJsonObject{
+                        {"line", startLine},
+                        {"character", startCharacter}
+                    }
+                },
+                {
+                    "end", QJsonObject{
+                        {"line", endLine},
+                        {"character", endCharacter}
+                    }
+                }
+            }
+        },
+        {
+            "options", QJsonObject{
+                {"tabSize", 4},
+                {"insertSpaces", true},
+                {"trimTrailingWhitespace", true},
+                {"insertFinalNewline", true}
+            }
+        }
+    };
+    emit requestJson("textDocument/rangeFormatting", rangeFormattingParams);
+}
+
+void ScriptModule::rangeFormattingResponse(const QUrl &scriptUrl, const QString &newText) const {
+    m_scriptPageHash[scriptUrl]->rangeFormattingResponse(newText);
+}
+
 void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {
     // references request to lua language server
     const QJsonObject referencesParams{

@@ -182,6 +182,12 @@ void LuaLanguageServer::jsonResponse() {
                 const QJsonArray result = json["result"].toArray();
                 const QJsonObject newText = result[0].toObject();
                 emit responseOnTypeFormatting(scriptUrl, newText);
+            } else if (method == "textDocument/rangeFormatting") {
+                // range formatting request
+                if (!json["result"].isArray()) return; // null result
+                const QJsonArray result = json["result"].toArray();
+                const QString newText = result[0]["newText"].toString();
+                emit responseRangeFormatting(scriptUrl, newText);
             } else if (method == "textDocument/references") {
                 // references request
                 if (!json["result"].isArray()) return; // null result

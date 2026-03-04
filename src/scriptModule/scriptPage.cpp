@@ -509,6 +509,10 @@ void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
     m_scintillaWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
+void ScriptPage::rangeFormattingResponse(const QString &newText) const {
+    m_scintillaWidget->textSetSelected(newText);
+}
+
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
     m_scintillaWidget->styleSet(LUA_TOKEN_UNUSED);
@@ -628,17 +632,27 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             if (mouseEvent->button() == Qt::RightButton) {
                 bool navigation = false;
+                bool rangeFormatting = false;
                 QString text{};
                 const auto position = m_scintillaWidget->positionGet(localPos);
                 const auto index = m_scintillaWidget->indexGet(position);
                 text = m_scintillaWidget->textGetSelected();
-                if (text.isEmpty()) m_scintillaWidget->positionSet(position);
+                if (text.isEmpty()) {
+                    m_scintillaWidget->positionSet(position);
+                } else {
+                    rangeFormatting = true;
+                }
                 const int type = m_scintillaWidget->styleGet(position);
                 if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
                 const QVariantHash menuSession = {
                     {"navigation", navigation},
+                    {"rangeFormatting", rangeFormatting},
                     {"line", index["line"]},
                     {"character", index["character"]},
+                    {"startLine", m_selection["startLine"]},
+                    {"startCharacter", m_selection["startCharacter"]},
+                    {"endLine", m_selection["endLine"]},
+                    {"endCharacter", m_selection["endCharacter"]},
                     {"text", text}
                 };
                 emit showMenu(m_scriptUrl, menuSession);
