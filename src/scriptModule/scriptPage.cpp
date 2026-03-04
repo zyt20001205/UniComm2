@@ -752,8 +752,8 @@ void ScriptPage::assemblyToggle(const bool status) {
         if (!error.isEmpty()) {
             m_assemblyWidget->textSet(error);
         } else {
+            m_editorWidget->eolAnnotationClear();
             m_assemblyWidget->textClear();
-            m_assemblyWidget->eolAnnotationClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
             int startLine{};
@@ -780,8 +780,8 @@ void ScriptPage::assemblyToggle(const bool status) {
         }
         m_assemblyWidget->show();
     } else {
+        m_editorWidget->eolAnnotationClear();
         m_assemblyWidget->textClear();
-        m_assemblyWidget->eolAnnotationClear();
         m_assemblyWidget->hide();
     }
 }
