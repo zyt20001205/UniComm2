@@ -14,6 +14,15 @@ ScintillaWidget::ScintillaWidget(QWidget *parent)
     setFrameStyle(NoFrame);
 }
 
+// public: eol annotation
+void ScintillaWidget::eolAnnotationClear() const {
+    send(SCI_EOLANNOTATIONCLEARALL); // NOLINT
+}
+
+void ScintillaWidget::eolAnnotationSet(const int line, const QString &annotation) const {
+    send(SCI_EOLANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
+}
+
 // public: fold
 void ScintillaWidget::foldLevelSet(const int line, const int level) const {
     send(SCI_SETFOLDLEVEL, line, level); // NOLINT
@@ -283,6 +292,15 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
 }
 
 // public: text
+void ScintillaWidget::textAppend(const QString &text) const {
+    const auto ba = text.toUtf8();
+    send(SCI_APPENDTEXT, ba.length(), reinterpret_cast<sptr_t>(ba.constData()));
+}
+
+void ScintillaWidget::textClear() const {
+    send(SCI_CLEARALL); // NOLINT
+}
+
 QString ScintillaWidget::textGet(const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     Position startPosition{};
     Position endPosition{};

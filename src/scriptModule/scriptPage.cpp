@@ -99,6 +99,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             m_editorWidget->send(SCI_SETBACKSPACEUNINDENTS, true); // NOLINT
             m_editorWidget->send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
 
+            m_editorWidget->send(SCI_EOLANNOTATIONSETVISIBLE, EOLANNOTATION_STANDARD); // NOLINT
+
             m_editorWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
             m_editorWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
@@ -745,10 +747,32 @@ void ScriptPage::assemblyToggle(const bool status) {
         tempFile.close();
         QProcess process;
         process.start("luac", QStringList() << "-l" << tempFile.fileName());
-        if (!process.waitForFinished(5000)) return;
-        const auto output = process.readAllStandardOutput();
-        const auto error = process.readAllStandardError();
-        m_assemblyWidget->textSet(output);
+        if (!process.waitForFinished(1000)) return;
+        const auto error = QString::fromUtf8(process.readAllStandardError());
+        if (!error.isEmpty()) {
+            m_assemblyWidget->textSet(error);
+        } else {
+            m_assemblyWidget->textClear();
+            // m_assemblyWidget->textSet(process.readAllStandardOutput());
+            const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
+            int startLine{};
+            int endLine{};
+            for (const auto &text: output) {
+                if (text.contains('<') && text.contains('>')) {
+                    // parse range from :x,y>
+                    const int tmp1 = text.lastIndexOf(':');
+                    const int tmp2 = text.lastIndexOf(',');
+                    const int tmp3 = text.lastIndexOf('>');
+                    startLine = text.mid(tmp1 + 1, tmp2 - tmp1 - 1).toInt();
+                    endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
+                    qDebug() << startLine << endLine;
+                } else if (text.contains("params")) {
+                    m_editorWidget->eolAnnotationSet(startLine, text);
+                } else {
+                    m_assemblyWidget->textAppend(text + "\r\n");
+                }
+            }
+        }
         m_assemblyWidget->show();
     } else {
         m_assemblyWidget->hide();

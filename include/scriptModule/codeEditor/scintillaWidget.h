@@ -13,6 +13,10 @@ public:
 
     ~ScintillaWidget() override = default;
 
+    void eolAnnotationClear() const;
+
+    void eolAnnotationSet(int line, const QString &annotation) const;
+
     void foldLevelSet(int line, int level) const;
 
     void foldContractTop() const;
@@ -78,6 +82,10 @@ public:
     [[nodiscard]] int styleGet(Scintilla::Position position) const;
 
     void styleSet(int type, int startLine = -1, int startCharacter = -1, int length = -1) const;
+
+    void textAppend(const QString &text) const;
+
+    void textClear() const;
 
     [[nodiscard]] QString textGet(int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
