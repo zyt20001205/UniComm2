@@ -664,7 +664,9 @@ void ScriptModule::rangeFormattingRequest(const QUrl &scriptUrl, const int start
 }
 
 void ScriptModule::rangeFormattingResponse(const QUrl &scriptUrl, const QString &newText) const {
-    m_scriptPageHash[scriptUrl]->rangeFormattingResponse(newText);
+    auto text = newText;
+    if (text.endsWith("\r\n")) text.chop(2);
+    m_scriptPageHash[scriptUrl]->rangeFormattingResponse(text);
 }
 
 void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int character) {
