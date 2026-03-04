@@ -53,7 +53,7 @@ public:
 
     void charAdd(int ch);
 
-    void assemblyToggle(bool status);
+    void assemblyToggle(bool status) const;
 
     QUrl m_scriptUrl{};
     ScintillaWidget *m_editorWidget{};

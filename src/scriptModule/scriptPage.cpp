@@ -707,7 +707,7 @@ void ScriptPage::charAdd(const int ch) {
     }
 }
 
-void ScriptPage::assemblyToggle(const bool status) {
+void ScriptPage::assemblyToggle(const bool status) const {
     if (status) {
         QTemporaryFile tempFile;
         if (!tempFile.open()) return;
@@ -728,8 +728,10 @@ void ScriptPage::assemblyToggle(const bool status) {
             int startLine{};
             int endLine{};
             for (const auto &text: output) {
-                if (text.isEmpty()) continue;
-                if (text.contains('<') && text.contains('>')) {
+                if (text.isEmpty()) {
+                    if (m_assemblyWidget->lineCountGet() == 1) continue;
+                    m_assemblyWidget->textAppend("\r\n");
+                } else if (text.contains('<') && text.contains('>')) {
                     // parse type from space
                     const auto tmp0 = text.indexOf(' ');
                     type = text.mid(0, tmp0);
@@ -739,19 +741,23 @@ void ScriptPage::assemblyToggle(const bool status) {
                     const auto tmp3 = text.lastIndexOf('>');
                     startLine = text.mid(tmp1 + 1, tmp2 - tmp1 - 1).toInt();
                     endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
-                    qDebug() << text;
-                    qDebug() << type << startLine << endLine;
-                    m_assemblyWidget->textAppend(type + "\r\n");
+                    m_assemblyWidget->textAppend(QString("%1 %2-%3\r\n").arg(type, QString::number(startLine), QString::number(endLine)));
                     // 1 based
                     if (startLine > 1) startLine--;
                     if (endLine > 1) endLine--;
-                } else if (text.contains("params")) {
+                } else if (text.contains("param")
+                    && text.contains("slot")
+                    && text.contains("upvalue")
+                    && text.contains("local")
+                    && text.contains("constant")
+                    && text.contains("function")) {
+                    if (text.startsWith("0+")) continue;
                     m_editorWidget->annotationSet(startLine, text);
                 } else {
                     const auto detail = text.split('\t');
-                    m_assemblyWidget->textAppend(detail[3] + '\t' + detail[4] + "\r\n");
+                    m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
                     const auto line = m_assemblyWidget->lineCountGet();
-                    m_assemblyWidget->send(SCI_MARGINSETTEXT, line - 2, reinterpret_cast<sptr_t>(detail[1].toUtf8().constData()));
+                    m_assemblyWidget->send(SCI_MARGINSETTEXT, line - 2, reinterpret_cast<sptr_t>(detail.at(1).toUtf8().constData()));
                 }
             }
         }
@@ -862,7 +868,7 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
 // private: slot
 void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyMod modifiers, const int margin) {
     const int line = m_editorWidget->lineGet(position);
-    if (margin == MARGIN_BREAKPOINT) {
+    if (margin == 1) {
         if (m_editorWidget->markerGet(line) & 1 << MARKER_REGION) {
             qDebug() << "WIP";
             // const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
