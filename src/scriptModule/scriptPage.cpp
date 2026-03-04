@@ -753,11 +753,13 @@ void ScriptPage::assemblyToggle(const bool status) {
             m_assemblyWidget->textSet(error);
         } else {
             m_assemblyWidget->textClear();
+            m_assemblyWidget->eolAnnotationClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
             int startLine{};
             int endLine{};
             for (const auto &text: output) {
+                if (text.isEmpty()) continue;
                 if (text.contains('<') && text.contains('>')) {
                     // parse range from :x,y>
                     const int tmp1 = text.lastIndexOf(':');
@@ -766,6 +768,9 @@ void ScriptPage::assemblyToggle(const bool status) {
                     startLine = text.mid(tmp1 + 1, tmp2 - tmp1 - 1).toInt();
                     endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
                     qDebug() << startLine << endLine;
+                    // 1 based
+                    if (startLine > 1) startLine--;
+                    if (endLine > 1) endLine--;
                 } else if (text.contains("params")) {
                     m_editorWidget->eolAnnotationSet(startLine, text);
                 } else {
@@ -775,6 +780,8 @@ void ScriptPage::assemblyToggle(const bool status) {
         }
         m_assemblyWidget->show();
     } else {
+        m_assemblyWidget->textClear();
+        m_assemblyWidget->eolAnnotationClear();
         m_assemblyWidget->hide();
     }
 }
