@@ -168,7 +168,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             QJsonObject{
                 {"style", 17},
                 {"fore", 0xcc6d00},
-                {"setUnder", true}
+                {"alpha", 255},
+                {"outlineAlpha", 255},
+                {"setUnder", false}
             });
     }
     // margin
@@ -630,6 +632,19 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
         if (event->type() == QEvent::MouseButtonPress) {
             m_dwellTimer->stop();
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
+            const auto modifiers = mouseEvent->modifiers();
+            if (mouseEvent->button() == Qt::LeftButton) {
+                if (modifiers == Qt::ControlModifier) {
+                    const auto position = m_scintillaWidget->positionGet(localPos);
+                    m_scintillaWidget->positionSet(position);
+                    if (m_scintillaWidget->indicatorGet(position) & 1 << INDICATOR_HYPERLINK) {
+                        const auto index = m_scintillaWidget->indexGet(position);
+                        emit requestDefinition(m_scriptUrl, index["line"], index["character"]);
+                        emit requestReferences(m_scriptUrl, index["line"], index["character"]);
+                    }
+                    return false;
+                }
+            }
             if (mouseEvent->button() == Qt::RightButton) {
                 bool navigation = false;
                 bool rangeFormatting = false;
@@ -659,7 +674,16 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                 return true;
             }
         } else if (event->type() == QEvent::MouseMove) {
+            const auto *mouseEvent = static_cast<QMouseEvent *>(event);
+            const auto modifiers = mouseEvent->modifiers();
+            if (modifiers == Qt::ControlModifier) {
+                m_dwellTimer->stop();
+                const auto position = m_scintillaWidget->positionGet(localPos);
+                navigationToggle(position);
+                return true;
+            }
             m_dwellTimer->start();
+            navigationToggle();
             return false;
         }
     }
@@ -1031,6 +1055,20 @@ void ScriptPage::symbolPair(const QChar character) {
         m_scintillaWidget->textSetSelected(selected);
     }
     contentChange();
+}
+
+void ScriptPage::navigationToggle(const Scintilla::Position position) const {
+    if (position == -1) {
+        m_scintillaWidget->indicatorClear(INDICATOR_HYPERLINK);
+    } else {
+        const int type = m_scintillaWidget->styleGet(position);
+        if (type > 0 && type < LUA_TOKEN_MACRO) {
+            const auto wordIndex = m_scintillaWidget->wordIndexGet(position);
+            m_scintillaWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
+        } else {
+            m_scintillaWidget->indicatorClear(INDICATOR_HYPERLINK);
+        }
+    }
 }
 
 void ScriptPage::positionFill(const int x, const int y) const {

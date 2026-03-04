@@ -90,10 +90,6 @@ void CodeAssistant::navigationShow(const QVariantHash &navigationSession, const 
     m_navigationWidget->navigationShow(navigationSession, navigations);
 }
 
-void CodeAssistant::navigationResponse(const QString &hint) const {
-    m_navigationWidget->navigationResponse(hint);
-}
-
 void CodeAssistant::positionShow(const QVariantMap &positionSession) const {
     m_positionWidget->positionShow(positionSession);
 }

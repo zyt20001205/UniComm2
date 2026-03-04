@@ -34,8 +34,6 @@ public:
 
     Q_INVOKABLE void indicatorInsert();
 
-    void navigationResponse(const QString &hint) const;
-
 signals:
     void setCursorPosition(const QUrl &scriptUrl, int startLine, int startCharacter);
 

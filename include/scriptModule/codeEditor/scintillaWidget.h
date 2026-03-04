@@ -39,6 +39,8 @@ public:
 
     void indicatorClear(int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
+    [[nodiscard]] int indicatorGet(Scintilla::Position position) const;
+
     [[nodiscard]] int lineCountGet() const;
 
     [[nodiscard]] int lineGet(Scintilla::Position position) const;

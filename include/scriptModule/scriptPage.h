@@ -169,6 +169,8 @@ private:
 
     void symbolPair(QChar character);
 
+    void navigationToggle(Scintilla::Position position = -1) const;
+
     void positionFill(int x, int y) const;
 
     QTimer *m_selectionTimer{};

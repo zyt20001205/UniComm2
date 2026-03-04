@@ -266,8 +266,12 @@ void ScriptModule::indexGet() const {
     };
 }
 
-// TODO: rewrite later
 QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    if (m_scriptPageHash.contains(scriptUrl)) {
+        return m_scriptPageHash[scriptUrl]->m_scintillaWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+    }
+    // TODO: rewrite text get from file later
+    return {};
     // QString script{};
     // // get text from editor
     // if (m_scriptPageHash.contains(scriptUrl)) {

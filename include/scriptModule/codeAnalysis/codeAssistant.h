@@ -36,8 +36,6 @@ public:
 
     void navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) const;
 
-    void navigationResponse(const QString &hint) const;
-
     void positionShow(const QVariantMap &positionSession) const;
 
     void signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const;

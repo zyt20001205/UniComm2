@@ -197,6 +197,10 @@ void ScintillaWidget::indicatorClear(const int type, const int startLine, const 
     send(SCI_INDICATORCLEARRANGE, start, lengthFill); // NOLINT
 }
 
+int ScintillaWidget::indicatorGet(const Position position) const {
+    return send(SCI_INDICATORALLONFOR, position);
+}
+
 // public: line
 int ScintillaWidget::lineCountGet() const {
     return static_cast<int>(send(SCI_GETLINECOUNT));

@@ -4,6 +4,7 @@
 #include <QStandardItemModel>
 
 #include "globals.h"
+#include "scriptModule/scriptModule.h"
 
 // NavigationWidget public
 NavigationWidget::NavigationWidget(QWidget *parent)
@@ -90,7 +91,14 @@ void NavigationWidget::navigationNext() const {
 void NavigationWidget::detailReload(const int index) {
     m_detailIndex = index;
     const auto position = m_navigationModel->item(m_detailIndex, 0)->data(Qt::WhatsThisRole).toHash();
-    emit getText(position["scriptUrl"].toUrl(), position["startLine"].toInt(), -1, -1, -1);
+    const auto hint = g_script->textGet(position["scriptUrl"].toUrl(), position["startLine"].toInt(), 0, position["startLine"].toInt(), -1);
+    const int startCharacter = position["startCharacter"].toInt();
+    const int endCharacter = position["endCharacter"].toInt();
+    const auto hintText = QString("<span style='white-space: pre;'>%1<span style='color: orange;'>%2</span>%3</span>").arg(
+        hint.left(startCharacter).toHtmlEscaped(),
+        hint.mid(startCharacter, endCharacter - startCharacter).toHtmlEscaped(),
+        hint.mid(endCharacter).toHtmlEscaped());
+    m_label->setProperty("text", hintText);
 }
 
 void NavigationWidget::indicatorInsert() {
@@ -109,15 +117,4 @@ void NavigationWidget::indicatorInsert() {
         position["endCharacter"].toInt(),
         1000);
     navigationHide();
-}
-
-void NavigationWidget::navigationResponse(const QString &hint) const {
-    const auto position = m_navigationModel->item(m_detailIndex, 0)->data(Qt::WhatsThisRole).toHash();
-    const int startCharacter = position["startCharacter"].toInt();
-    const int endCharacter = position["endCharacter"].toInt();
-    const auto hintText = QString("<span style='white-space: pre;'>%1<span style='color: orange;'>%2</span>%3</span>").arg(
-        hint.left(startCharacter).toHtmlEscaped(),
-        hint.mid(startCharacter, endCharacter - startCharacter).toHtmlEscaped(),
-        hint.mid(endCharacter).toHtmlEscaped());
-    m_label->setProperty("text", hintText);
 }
