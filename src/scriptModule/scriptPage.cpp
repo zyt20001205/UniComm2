@@ -982,16 +982,26 @@ void ScriptPage::spellCheckRequest() {
 
 // private:
 void ScriptPage::commentToggle() {
-    // TODO: multiline not supported! use [[]] later!
-    const auto position = m_scintillaWidget->positionGet();
-    const auto index = m_scintillaWidget->indexGet(position);
-    auto text = m_scintillaWidget->textGet(index["line"], 0, index["line"], -1);
-    if (text.contains("--")) {
-        text.remove("--");
+    if (m_scintillaWidget->textGetSelected().isEmpty()) {
+        const auto position = m_scintillaWidget->positionGet();
+        const auto index = m_scintillaWidget->indexGet(position);
+        auto text = m_scintillaWidget->textGet(index["line"], 0, index["line"], -1);
+        if (text.contains("--")) {
+            text.remove("--");
+        } else {
+            text = "--" + text;
+        }
+        m_scintillaWidget->textSet(text, index["line"], 0, index["line"], -1);
     } else {
-        text = "--" + text;
+        auto text = m_scintillaWidget->textGetSelected();
+        if (text.contains("--[[") || text.contains("]]")) {
+            text.remove("--[[");
+            text.remove("]]");
+        } else {
+            text = "--[[" + text + "]]";
+        }
+        m_scintillaWidget->textSetSelected(text);
     }
-    m_scintillaWidget->textSet(text, index["line"], 0, index["line"], -1);
     contentChange();
 }
 

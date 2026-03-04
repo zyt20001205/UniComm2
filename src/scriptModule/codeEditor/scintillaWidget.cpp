@@ -66,6 +66,7 @@ ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
     send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
     send(SCI_STYLESETFORE, STYLE_INDENTGUIDE, 0x000000); // NOLINT
     send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xe0e0e0); // NOLINT
+    // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
     send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
     // indent
     send(SCI_SETUSETABS, false); // NOLINT
