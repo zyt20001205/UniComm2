@@ -1620,8 +1620,6 @@ Item {
             text: qsTr("Assembly")
             icon.source: "qrc:/icon/assembly.svg"
             icon.width: 16; icon.height: 16
-            checkable: true
-            checked: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["assembly"] : false
 
             onTriggered: scriptModule.assemblyToggle(scriptModuleEditorMenu.scriptUrl, !scriptModuleEditorMenu.menuSession["assembly"])
         }
