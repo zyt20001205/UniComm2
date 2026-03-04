@@ -1618,8 +1618,8 @@ Item {
         MenuItem {
             id: scriptModuleEditorMenuAssemblyItem
             text: qsTr("Assembly")
-            // icon.source: "qrc:/icon/debugContinue.svg"
-            // icon.width: 16; icon.height: 16
+            icon.source: "qrc:/icon/assembly.svg"
+            icon.width: 16; icon.height: 16
             checkable: true
             checked: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["assembly"] : false
 
