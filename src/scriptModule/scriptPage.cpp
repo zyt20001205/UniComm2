@@ -128,31 +128,31 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // margin
         {
             m_editorWidget->marginDefine(
-                MARGIN_NUMBER,
+                0,
                 QJsonObject{
-                    {"type", 1},
+                    {"type", SC_MARGIN_NUMBER},
                     {"width", 32}
                 });
             m_editorWidget->marginDefine(
-                MARGIN_BREAKPOINT,
+                1,
                 QJsonObject{
-                    {"type", 0},
+                    {"type", SC_MARGIN_SYMBOL},
                     {"width", 16},
                     {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
                     {"sensitive", true}
                 });
             m_editorWidget->marginDefine(
-                MARGIN_FOLDERS,
+                2,
                 QJsonObject{
-                    {"type", 0},
+                    {"type", SC_MARGIN_SYMBOL},
                     {"width", 16},
                     {"mask", static_cast<int>(SC_MASK_FOLDERS)},
                     {"sensitive", true}
                 });
             m_editorWidget->marginDefine(
-                MARGIN_HISTORY,
+                3,
                 QJsonObject{
-                    {"type", 0},
+                    {"type", SC_MARGIN_SYMBOL},
                     {"width", 4},
                     {"mask", SC_MASK_HISTORY},
                 });
@@ -264,38 +264,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"alpha", 255},
                     {"outlineAlpha", 255},
                     {"setUnder", false}
-                });
-        }
-        // margin
-        {
-            m_editorWidget->marginDefine(
-                MARGIN_NUMBER,
-                QJsonObject{
-                    {"type", 1},
-                    {"width", 32}
-                });
-            m_editorWidget->marginDefine(
-                MARGIN_BREAKPOINT,
-                QJsonObject{
-                    {"type", 0},
-                    {"width", 16},
-                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
-                    {"sensitive", true}
-                });
-            m_editorWidget->marginDefine(
-                MARGIN_FOLDERS,
-                QJsonObject{
-                    {"type", 0},
-                    {"width", 16},
-                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-                    {"sensitive", true}
-                });
-            m_editorWidget->marginDefine(
-                MARGIN_HISTORY,
-                QJsonObject{
-                    {"type", 0},
-                    {"width", 4},
-                    {"mask", SC_MASK_HISTORY},
                 });
         }
         // marker
@@ -454,9 +422,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // margin
         {
             m_assemblyWidget->marginDefine(
-                MARGIN_NUMBER,
+                0,
                 QJsonObject{
-                    {"type", 1},
+                    {"type", SC_MARGIN_TEXT},
                     {"width", 32}
                 });
         }
@@ -756,25 +724,34 @@ void ScriptPage::assemblyToggle(const bool status) {
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
+            QString type{};
             int startLine{};
             int endLine{};
             for (const auto &text: output) {
                 if (text.isEmpty()) continue;
                 if (text.contains('<') && text.contains('>')) {
+                    // parse type from space
+                    const auto tmp0 = text.indexOf(' ');
+                    type = text.mid(0, tmp0);
                     // parse range from :x,y>
-                    const int tmp1 = text.lastIndexOf(':');
-                    const int tmp2 = text.lastIndexOf(',');
-                    const int tmp3 = text.lastIndexOf('>');
+                    const auto tmp1 = text.lastIndexOf(':');
+                    const auto tmp2 = text.lastIndexOf(',');
+                    const auto tmp3 = text.lastIndexOf('>');
                     startLine = text.mid(tmp1 + 1, tmp2 - tmp1 - 1).toInt();
                     endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
-                    qDebug() << startLine << endLine;
+                    qDebug() << text;
+                    qDebug() << type << startLine << endLine;
+                    m_assemblyWidget->textAppend(type + "\r\n");
                     // 1 based
                     if (startLine > 1) startLine--;
                     if (endLine > 1) endLine--;
                 } else if (text.contains("params")) {
                     m_editorWidget->annotationSet(startLine, text);
                 } else {
-                    m_assemblyWidget->textAppend(text + "\r\n");
+                    const auto detail = text.split('\t');
+                    m_assemblyWidget->textAppend(detail[3] + '\t' + detail[4] + "\r\n");
+                    const auto line = m_assemblyWidget->lineCountGet();
+                    m_assemblyWidget->send(SCI_MARGINSETTEXT, line - 2, reinterpret_cast<sptr_t>(detail[1].toUtf8().constData()));
                 }
             }
         }

@@ -82,13 +82,6 @@ enum {
 };
 
 enum {
-    MARGIN_NUMBER,
-    MARGIN_BREAKPOINT,
-    MARGIN_FOLDERS,
-    MARGIN_HISTORY
-};
-
-enum {
     MARKER_REGION,
     MARKER_BREAKPOINT,
     MARKER_DEBUG,
