@@ -627,16 +627,16 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             m_dwellTimer->stop();
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             if (mouseEvent->button() == Qt::RightButton) {
-                bool gotoMenu = false;
+                bool navigation = false;
                 QString text{};
                 const auto position = m_scintillaWidget->positionGet(localPos);
                 const auto index = m_scintillaWidget->indexGet(position);
                 text = m_scintillaWidget->textGetSelected();
                 if (text.isEmpty()) m_scintillaWidget->positionSet(position);
                 const int type = m_scintillaWidget->styleGet(position);
-                if (type > 0 && type < LUA_TOKEN_MACRO) gotoMenu = true;
+                if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
                 const QVariantHash menuSession = {
-                    {"gotoMenu", gotoMenu},
+                    {"navigation", navigation},
                     {"line", index["line"]},
                     {"character", index["character"]},
                     {"text", text}
