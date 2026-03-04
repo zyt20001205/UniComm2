@@ -23,6 +23,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
       m_scriptUrl(scriptUrl),
       m_editorWidget(new ScintillaWidget(this)),
+      m_assemblyWidget(new ScintillaWidget(this)),
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
       m_dwellTimer(new QTimer(this)),
@@ -58,11 +59,12 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
-    auto *layout = new QVBoxLayout(widget); // NOLINT
+    auto *layout = new QHBoxLayout(widget); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    layout->addWidget(m_searchWidget);
+    // layout->addWidget(m_searchWidget);
     layout->addWidget(m_editorWidget);
+    layout->addWidget(m_assemblyWidget);
     // editor init
     {
         // misc
@@ -431,6 +433,27 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_editorWidget->installEventFilter(this);
         m_editorWidget->viewport()->installEventFilter(this);
     }
+    // assembly init
+    {
+        m_assemblyWidget->hide();
+        // misc
+        {
+            m_assemblyWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
+            m_assemblyWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
+            m_assemblyWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
+        }
+        // font
+        m_assemblyWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        // margin
+        {
+            m_assemblyWidget->marginDefine(
+                MARGIN_NUMBER,
+                QJsonObject{
+                    {"type", 1},
+                    {"width", 32}
+                });
+        }
+    }
     QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
@@ -709,6 +732,24 @@ void ScriptPage::charAdd(const int ch) {
     }
 }
 
+void ScriptPage::assemblyToggle(const bool status) {
+    if (status) {
+        QTemporaryFile tempFile;
+        if (!tempFile.open()) return;
+        tempFile.write(m_editorWidget->textGet().toUtf8());
+        tempFile.close();
+        QProcess process;
+        process.start("luac", QStringList() << "-l" << tempFile.fileName());
+        if (!process.waitForFinished(5000)) return;
+        const auto output = process.readAllStandardOutput();
+        const auto error = process.readAllStandardError();
+        m_assemblyWidget->textSet(output);
+        m_assemblyWidget->show();
+    } else {
+        m_assemblyWidget->hide();
+    }
+}
+
 // protected
 void ScriptPage::closeEvent(QCloseEvent *event) {
     scriptClose();
@@ -752,6 +793,7 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                 const QVariantHash menuSession = {
                     {"navigation", navigation},
                     {"rangeFormatting", rangeFormatting},
+                    {"assembly", m_assemblyWidget->isVisible()},
                     {"line", index["line"]},
                     {"character", index["character"]},
                     {"startLine", m_selection["startLine"]},
@@ -848,6 +890,8 @@ void ScriptPage::contentChange() {
     semanticTokensRequest();
     // nuspell request
     spellCheckRequest();
+    // assembly request
+    assemblyToggle(m_assemblyWidget->isVisible());
 }
 
 void ScriptPage::dwellChange() {
@@ -987,7 +1031,6 @@ void ScriptPage::foldingRangeRequest() {
 }
 
 void ScriptPage::formattingRequest() {
-    assemblyToggle(true);
     // formatting request to script module
     emit requestFormatting(m_scriptUrl);
 }
@@ -1146,19 +1189,6 @@ void ScriptPage::symbolPair(const QChar character) {
         m_editorWidget->textSetSelected(selected);
     }
     contentChange();
-}
-
-void ScriptPage::assemblyToggle(const bool status) {
-    QTemporaryFile tempFile;
-    if (!tempFile.open()) return;
-    tempFile.write(m_editorWidget->textGet().toUtf8());
-    tempFile.close();
-    QProcess process;
-    process.start("luac", QStringList() << "-l" << "-l" << tempFile.fileName());
-    if (!process.waitForFinished(5000)) return;
-    const auto output = process.readAllStandardOutput();
-    const auto error = process.readAllStandardError();
-    qDebug() << output << error;
 }
 
 void ScriptPage::navigationToggle(const Scintilla::Position position) const {

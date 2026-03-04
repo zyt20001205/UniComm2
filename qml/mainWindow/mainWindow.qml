@@ -1615,6 +1615,17 @@ Item {
             onTriggered: debugModule.stateSet("", 6)
         }
 
+        MenuItem {
+            id: scriptModuleEditorMenuAssemblyItem
+            text: qsTr("Assembly")
+            // icon.source: "qrc:/icon/debugContinue.svg"
+            // icon.width: 16; icon.height: 16
+            checkable: true
+            checked: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["assembly"] : false
+
+            onTriggered: scriptModule.assemblyToggle(scriptModuleEditorMenu.scriptUrl, !scriptModuleEditorMenu.menuSession["assembly"])
+        }
+
         MenuSeparator {
         }
 

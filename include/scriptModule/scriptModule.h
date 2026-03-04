@@ -52,6 +52,8 @@ public:
 
     Q_INVOKABLE void foldExpandRecursively(const QUrl &scriptUrl);
 
+    Q_INVOKABLE void assemblyToggle(const QUrl &scriptUrl, bool status);
+
     void indexSet(const QUrl &scriptUrl, int line, int character);
 
     void indexGet() const;
