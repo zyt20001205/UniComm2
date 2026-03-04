@@ -45,7 +45,7 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     const auto focusedUrl = QUrl(m_scriptConfig["scriptFocused"].toString());
     if (!focusedUrl.isEmpty() && m_scriptPageHash.contains(focusedUrl)) {
         QTimer::singleShot(0, this, [this, focusedUrl] {
-            m_scriptPageHash[focusedUrl]->m_scintillaWidget->setFocus(Qt::MouseFocusReason);
+            m_scriptPageHash[focusedUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
         });
     }
 
@@ -232,33 +232,33 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
     }
     m_scriptPageHash[scriptUrl]->raise();
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->setFocus(Qt::MouseFocusReason);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
 }
 
 // public: document
 void ScriptModule::foldContractTop(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->foldContractTop();
+    m_scriptPageHash[scriptUrl]->m_editorWidget->foldContractTop();
 }
 
 void ScriptModule::foldContractRecursively(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->foldContractRecursively();
+    m_scriptPageHash[scriptUrl]->m_editorWidget->foldContractRecursively();
 }
 
 void ScriptModule::foldExpandRecursively(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->foldExpandRecursively();
+    m_scriptPageHash[scriptUrl]->m_editorWidget->foldExpandRecursively();
 }
 
 void ScriptModule::indexSet(const QUrl &scriptUrl, const int line, const int character) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->indexSet(line, character);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->indexSet(line, character);
 }
 
 void ScriptModule::indexGet() const {
     const auto scriptUrl = m_focusedPage->m_scriptUrl;
-    const auto index = m_focusedPage->m_scintillaWidget->indexGet();
+    const auto index = m_focusedPage->m_editorWidget->indexGet();
     g_cursorPosition = {
         {"url", scriptUrl},
         {"line", index["line"]},
@@ -268,7 +268,7 @@ void ScriptModule::indexGet() const {
 
 QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (m_scriptPageHash.contains(scriptUrl)) {
-        return m_scriptPageHash[scriptUrl]->m_scintillaWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+        return m_scriptPageHash[scriptUrl]->m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
     }
     // TODO: rewrite text get from file later
     return {};
@@ -305,22 +305,22 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
 
 void ScriptModule::indicatorFill(const QUrl &scriptUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
 }
 
 void ScriptModule::indicatorClear(const QUrl &scriptUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ScriptModule::markerAdd(const QUrl &scriptUrl, const int type, const int line, const int time) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->markerAdd(type, line, time);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->markerAdd(type, line, time);
 }
 
 void ScriptModule::markerDelete(const QUrl &scriptUrl, const int type, const int line) {
     if (!m_scriptPageHash.contains(scriptUrl)) return;
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->markerDelete(type, line);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->markerDelete(type, line);
 }
 
 // public: lsp
@@ -396,7 +396,7 @@ void ScriptModule::completionRequest(const QUrl &scriptUrl, int line, int charac
 
 void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
@@ -439,7 +439,7 @@ void ScriptModule::definitionRequest(const QUrl &scriptUrl, const int line, cons
 
 void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
@@ -553,7 +553,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const QPoint position = scintilla->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     // call hover show
     const QVariantHash hoverSession = {
@@ -582,7 +582,7 @@ void ScriptModule::implementationRequest(const QUrl &scriptUrl, const int line, 
 
 void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
@@ -698,7 +698,7 @@ void ScriptModule::referencesRequest(const QUrl &scriptUrl, int line, int charac
 
 void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
@@ -752,7 +752,7 @@ void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int cha
 
 void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
@@ -788,7 +788,7 @@ void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, 
 
 void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_scintillaWidget);
+    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
@@ -839,7 +839,7 @@ void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSessi
 
 void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
-    m_scriptPageHash[scriptUrl]->m_scintillaWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {

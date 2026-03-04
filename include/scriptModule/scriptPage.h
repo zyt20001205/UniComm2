@@ -54,7 +54,7 @@ public:
     void charAdd(int ch);
 
     QUrl m_scriptUrl{};
-    ScintillaWidget *m_scintillaWidget{};
+    ScintillaWidget *m_editorWidget{};
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -168,6 +168,8 @@ private:
     void commentToggle();
 
     void symbolPair(QChar character);
+
+    void assemblyToggle(bool status);
 
     void navigationToggle(Scintilla::Position position = -1) const;
 

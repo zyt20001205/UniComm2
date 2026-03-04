@@ -9,7 +9,7 @@ class ScintillaWidget final : public ScintillaEdit {
     Q_OBJECT
 
 public:
-    explicit ScintillaWidget(const QUrl &scriptUrl, QWidget *parent = nullptr);
+    explicit ScintillaWidget(QWidget *parent = nullptr);
 
     ~ScintillaWidget() override = default;
 

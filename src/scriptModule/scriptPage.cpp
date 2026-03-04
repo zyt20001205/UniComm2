@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QShortcut>
+#include <QTemporaryFile>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <kddockwidgets/core/DockWidget.h>
@@ -21,7 +22,7 @@
 ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
       m_scriptUrl(scriptUrl),
-      m_scintillaWidget(new ScintillaWidget(scriptUrl)),
+      m_editorWidget(new ScintillaWidget(this)),
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
       m_dwellTimer(new QTimer(this)),
@@ -61,286 +62,375 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(m_searchWidget);
-    layout->addWidget(m_scintillaWidget);
-    // font
-    m_scintillaWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-    // indicator
+    layout->addWidget(m_editorWidget);
+    // editor init
     {
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_ERROR,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0xe6e6ff},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        // QJsonObject{
-        //             {"style", 1},
-        //             {"fore", 0x1f0fc5},
-        //             {"alpha", 255},
-        //             {"outlineAlpha", 255},
-        //             {"setUnder", true}
-        // });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_WARNING,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0xe6f5ff},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_INFO,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0xfaf0e6},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_HINT,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0xf5f5f5},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_TYPO,
-            QJsonObject{
-                {"style", 14},
-                {"fore", 0xabd180},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_HIGHLIGHT,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0xe0e0e0},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_READ,
-            QJsonObject{
-                {"style", 17},
-                {"fore", 0xb85f00},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_WRITE,
-            QJsonObject{
-                {"style", 17},
-                {"fore", 0x2828c6},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_SEARCH,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0x7ed4fc},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_SELECTION,
-            QJsonObject{
-                {"style", 8},
-                {"fore", 0x3372c4},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", true}
-            });
-        m_scintillaWidget->indicatorDefine(
-            INDICATOR_HYPERLINK,
-            QJsonObject{
-                {"style", 17},
-                {"fore", 0xcc6d00},
-                {"alpha", 255},
-                {"outlineAlpha", 255},
-                {"setUnder", false}
-            });
+        // misc
+        {
+            m_editorWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
+            m_editorWidget->send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
+            m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
+            for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
+                m_editorWidget->send(SCI_MARKERSETFORE, i, 0xffffff); // NOLINT
+                m_editorWidget->send(SCI_MARKERSETBACK, i, 0x000000); // NOLINT
+            }
+            m_editorWidget->send(SCI_SETFOLDMARGINCOLOUR, true, 0xffffff); // NOLINT
+            m_editorWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
+            m_editorWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
+            m_editorWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
+
+            m_editorWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
+            m_editorWidget->send(SCI_STYLESETFORE, STYLE_INDENTGUIDE, 0x000000); // NOLINT
+            m_editorWidget->send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xe0e0e0); // NOLINT
+            // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
+            m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
+
+            m_editorWidget->send(SCI_SETUSETABS, false); // NOLINT
+            m_editorWidget->send(SCI_SETINDENT, 4); // NOLINT
+            m_editorWidget->send(SCI_SETTABINDENTS, true); // NOLINT
+            m_editorWidget->send(SCI_SETBACKSPACEUNINDENTS, true); // NOLINT
+            m_editorWidget->send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
+
+            m_editorWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
+            m_editorWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
+            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
+            m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+            m_editorWidget->send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
+            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
+            m_editorWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+            // for debug
+            // m_editorWidget->send(SCI_SETVIEWEOL, true); // NOLINT
+            // script
+            const QUrl &url(scriptUrl);
+            const QString scriptPath = url.toLocalFile();
+            QFile file(scriptPath);
+            if (!file.open(QIODevice::ReadOnly)) return;
+            QTextStream in(&file);
+            const QString script = in.readAll();
+            file.close();
+            m_editorWidget->textSet(script);
+            // history
+            m_editorWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
+            m_editorWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
+        }
+        // font
+        m_editorWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        // margin
+        {
+            m_editorWidget->marginDefine(
+                MARGIN_NUMBER,
+                QJsonObject{
+                    {"type", 1},
+                    {"width", 32}
+                });
+            m_editorWidget->marginDefine(
+                MARGIN_BREAKPOINT,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 16},
+                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
+                    {"sensitive", true}
+                });
+            m_editorWidget->marginDefine(
+                MARGIN_FOLDERS,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 16},
+                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+                    {"sensitive", true}
+                });
+            m_editorWidget->marginDefine(
+                MARGIN_HISTORY,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 4},
+                    {"mask", SC_MASK_HISTORY},
+                });
+        }
+        // indicator
+        {
+            m_editorWidget->indicatorDefine(
+                INDICATOR_ERROR,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xe6e6ff},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            // QJsonObject{
+            //             {"style", 1},
+            //             {"fore", 0x1f0fc5},
+            //             {"alpha", 255},
+            //             {"outlineAlpha", 255},
+            //             {"setUnder", true}
+            // });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_WARNING,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xe6f5ff},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_INFO,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xfaf0e6},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_HINT,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xf5f5f5},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_TYPO,
+                QJsonObject{
+                    {"style", 14},
+                    {"fore", 0xabd180},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_HIGHLIGHT,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xe0e0e0},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_READ,
+                QJsonObject{
+                    {"style", 17},
+                    {"fore", 0xb85f00},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_WRITE,
+                QJsonObject{
+                    {"style", 17},
+                    {"fore", 0x2828c6},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_SEARCH,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0x7ed4fc},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_SELECTION,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0x3372c4},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_HYPERLINK,
+                QJsonObject{
+                    {"style", 17},
+                    {"fore", 0xcc6d00},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", false}
+                });
+        }
+        // margin
+        {
+            m_editorWidget->marginDefine(
+                MARGIN_NUMBER,
+                QJsonObject{
+                    {"type", 1},
+                    {"width", 32}
+                });
+            m_editorWidget->marginDefine(
+                MARGIN_BREAKPOINT,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 16},
+                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
+                    {"sensitive", true}
+                });
+            m_editorWidget->marginDefine(
+                MARGIN_FOLDERS,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 16},
+                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+                    {"sensitive", true}
+                });
+            m_editorWidget->marginDefine(
+                MARGIN_HISTORY,
+                QJsonObject{
+                    {"type", 0},
+                    {"width", 4},
+                    {"mask", SC_MASK_HISTORY},
+                });
+        }
+        // marker
+        {
+            m_editorWidget->markerDefine(
+                MARKER_REGION,
+                QJsonObject{
+                    {"symbol", 2},
+                    {"fore", 0x00ffff},
+                    {"back", 0x00ffff}
+                });
+            m_editorWidget->markerDefine(
+                MARKER_BREAKPOINT,
+                QJsonObject{
+                    {"symbol", 0},
+                    {"fore", 0x0000ff},
+                    {"back", 0x0000ff}
+                });
+            m_editorWidget->markerDefine(
+                MARKER_DEBUG,
+                QJsonObject{
+                    {"symbol", 2},
+                    {"fore", 0x000000},
+                    {"back", 0xa500ff}
+                });
+            m_editorWidget->markerDefine(
+                MARKER_ERROR,
+                QJsonObject{
+                    {"symbol", 22},
+                    {"fore", 0xffe6e6},
+                    {"back", 0xffe6e6}
+                });
+            m_editorWidget->markerDefine(
+                MARKER_HINT,
+                QJsonObject{
+                    {"symbol", 22},
+                    {"fore", 0xffe6e6},
+                    {"back", 0xffe6e6}
+                });
+        }
+        // style
+        {
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_NAMESPACE,
+                QJsonObject{
+                    {"fore", 0x808000}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_CLASS,
+                QJsonObject{
+                    {"fore", 0x808000}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_TYPE,
+                QJsonObject{
+                    {"fore", 0xb33300}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_PARAMETER,
+                QJsonObject{
+                    {"fore", 0x000000}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_VARIABLE,
+                QJsonObject{
+                    {"fore", 0x000000}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_PROPERTY,
+                QJsonObject{
+                    {"fore", 0x7a0e66}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_ENUMMEMBAER,
+                QJsonObject{
+                    {"fore", 0x941087}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_FUNCTION_DECLARATION,
+                QJsonObject{
+                    {"fore", 0x7a6200}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_FUNCTION_CALL,
+                QJsonObject{
+                    {"fore", 0x000000}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_METHOD,
+                QJsonObject{
+                    {"fore", 0x000000}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_MACRO,
+                QJsonObject{
+                    {"fore", 0x2e541f}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_KEYWORD,
+                QJsonObject{
+                    {"fore", 0xb33300}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_COMMENT,
+                QJsonObject{
+                    {"fore", 0x8c8c8c}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_STRING,
+                QJsonObject{
+                    {"fore", 0x177d06}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_NUMBER,
+                QJsonObject{
+                    {"fore", 0xeb5017}
+                });
+            m_editorWidget->styleDefine(
+                LUA_TOKEN_OPERATOR,
+                QJsonObject{
+                    {"fore", 0x000000}
+                });
+        }
+        // signals
+        connect(m_editorWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
+        connect(m_editorWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
+        connect(m_editorWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
+            if (updated == Scintilla::Update::Selection) m_selectionTimer->start();
+        });
+        connect(m_editorWidget, &ScintillaEdit::savePointChanged, this, &ScriptPage::savepointChange);
+        connect(m_editorWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
+            if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
+        });
+        connect(m_editorWidget, &ScintillaEdit::hotSpotClick, this, [this](Scintilla::Position position, Scintilla::KeyMod modifiers) {
+            qDebug() << "hotspot triggered!";
+        });
+        m_editorWidget->installEventFilter(this);
+        m_editorWidget->viewport()->installEventFilter(this);
     }
-    // margin
-    {
-        m_scintillaWidget->marginDefine(
-            MARGIN_NUMBER,
-            QJsonObject{
-                {"type", 1},
-                {"width", 32}
-            });
-        m_scintillaWidget->marginDefine(
-            MARGIN_BREAKPOINT,
-            QJsonObject{
-                {"type", 0},
-                {"width", 16},
-                {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
-                {"sensitive", true}
-            });
-        m_scintillaWidget->marginDefine(
-            MARGIN_FOLDERS,
-            QJsonObject{
-                {"type", 0},
-                {"width", 16},
-                {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-                {"sensitive", true}
-            });
-        m_scintillaWidget->marginDefine(
-            MARGIN_HISTORY,
-            QJsonObject{
-                {"type", 0},
-                {"width", 4},
-                {"mask", SC_MASK_HISTORY},
-            });
-    }
-    // marker
-    {
-        m_scintillaWidget->markerDefine(
-            MARKER_REGION,
-            QJsonObject{
-                {"symbol", 2},
-                {"fore", 0x00ffff},
-                {"back", 0x00ffff}
-            });
-        m_scintillaWidget->markerDefine(
-            MARKER_BREAKPOINT,
-            QJsonObject{
-                {"symbol", 0},
-                {"fore", 0x0000ff},
-                {"back", 0x0000ff}
-            });
-        m_scintillaWidget->markerDefine(
-            MARKER_DEBUG,
-            QJsonObject{
-                {"symbol", 2},
-                {"fore", 0x000000},
-                {"back", 0xa500ff}
-            });
-        m_scintillaWidget->markerDefine(
-            MARKER_ERROR,
-            QJsonObject{
-                {"symbol", 22},
-                {"fore", 0xffe6e6},
-                {"back", 0xffe6e6}
-            });
-        m_scintillaWidget->markerDefine(
-            MARKER_HINT,
-            QJsonObject{
-                {"symbol", 22},
-                {"fore", 0xffe6e6},
-                {"back", 0xffe6e6}
-            });
-    }
-    // style
-    {
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_NAMESPACE,
-            QJsonObject{
-                {"fore", 0x808000}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_CLASS,
-            QJsonObject{
-                {"fore", 0x808000}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_TYPE,
-            QJsonObject{
-                {"fore", 0xb33300}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_PARAMETER,
-            QJsonObject{
-                {"fore", 0x000000}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_VARIABLE,
-            QJsonObject{
-                {"fore", 0x000000}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_PROPERTY,
-            QJsonObject{
-                {"fore", 0x7a0e66}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_ENUMMEMBAER,
-            QJsonObject{
-                {"fore", 0x941087}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_FUNCTION_DECLARATION,
-            QJsonObject{
-                {"fore", 0x7a6200}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_FUNCTION_CALL,
-            QJsonObject{
-                {"fore", 0x000000}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_METHOD,
-            QJsonObject{
-                {"fore", 0x000000}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_MACRO,
-            QJsonObject{
-                {"fore", 0x2e541f}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_KEYWORD,
-            QJsonObject{
-                {"fore", 0xb33300}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_COMMENT,
-            QJsonObject{
-                {"fore", 0x8c8c8c}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_STRING,
-            QJsonObject{
-                {"fore", 0x177d06}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_NUMBER,
-            QJsonObject{
-                {"fore", 0xeb5017}
-            });
-        m_scintillaWidget->styleDefine(
-            LUA_TOKEN_OPERATOR,
-            QJsonObject{
-                {"fore", 0x000000}
-            });
-    }
-    // signals
-    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
-    connect(m_scintillaWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
-    connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
-        if (updated == Scintilla::Update::Selection) m_selectionTimer->start();
-    });
-    connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &ScriptPage::savepointChange);
-    connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
-        if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
-    });
-    connect(m_scintillaWidget, &ScintillaEdit::hotSpotClick, this, [this](Scintilla::Position position, Scintilla::KeyMod modifiers) {
-        qDebug() << "hotspot triggered!";
-    });
-    m_scintillaWidget->installEventFilter(this);
-    m_scintillaWidget->viewport()->installEventFilter(this);
     QTimer::singleShot(0, this, [this] {
         // lsp
         didOpenNotification();
@@ -387,9 +477,9 @@ void ScriptPage::scriptReload() {
 }
 
 void ScriptPage::scriptSave() {
-    if (!m_scintillaWidget->modifyGet()) return;
+    if (!m_editorWidget->modifyGet()) return;
     // update status
-    m_scintillaWidget->savepointSet();
+    m_editorWidget->savepointSet();
     didSaveNotification();
     // block file watcher signals
     m_fileWatcher->blockSignals(true);
@@ -398,7 +488,7 @@ void ScriptPage::scriptSave() {
     QFile file(scriptPath);
     if (!file.open(QIODevice::WriteOnly)) return;
     QTextStream out(&file);
-    out << m_scintillaWidget->textGet();
+    out << m_editorWidget->textGet();
     file.close();
     // logging
     emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
@@ -410,7 +500,7 @@ void ScriptPage::scriptSave() {
 
 void ScriptPage::scriptClose() {
     // ask for saving
-    if (m_scintillaWidget->modifyGet()) {
+    if (m_editorWidget->modifyGet()) {
         const QMessageBox::StandardButton reply = QMessageBox::question(
             nullptr,
             tr("Close Script"),
@@ -435,10 +525,10 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_scriptDiagnostic = diagnostics;
     // clear
-    m_scintillaWidget->indicatorClear(INDICATOR_ERROR);
-    m_scintillaWidget->indicatorClear(INDICATOR_WARNING);
-    m_scintillaWidget->indicatorClear(INDICATOR_INFO);
-    m_scintillaWidget->indicatorClear(INDICATOR_HINT);
+    m_editorWidget->indicatorClear(INDICATOR_ERROR);
+    m_editorWidget->indicatorClear(INDICATOR_WARNING);
+    m_editorWidget->indicatorClear(INDICATOR_INFO);
+    m_editorWidget->indicatorClear(INDICATOR_HINT);
     // publish
     for (const auto &value: diagnostics) {
         const QJsonObject diagnostic = value.toObject();
@@ -450,15 +540,15 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
         const int startCharacter = start["character"].toInt();
         const int endLine = end["line"].toInt();
         const int endCharacter = end["character"].toInt();
-        m_scintillaWidget->indicatorFill(severity, startLine, startCharacter, endLine, endCharacter);
+        m_editorWidget->indicatorFill(severity, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
 void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
     // clear previous highlight
-    m_scintillaWidget->indicatorClear(INDICATOR_HIGHLIGHT);
-    m_scintillaWidget->indicatorClear(INDICATOR_READ);
-    m_scintillaWidget->indicatorClear(INDICATOR_WRITE);
+    m_editorWidget->indicatorClear(INDICATOR_HIGHLIGHT);
+    m_editorWidget->indicatorClear(INDICATOR_READ);
+    m_editorWidget->indicatorClear(INDICATOR_WRITE);
     // highlight
     for (const auto &highlight: result) {
         const QJsonObject highlightObject = highlight.toObject();
@@ -470,9 +560,9 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
         const int startCharacter = highlightStartPos["character"].toInt();
         const int endLine = highlightEndPos["line"].toInt();
         const int endCharacter = highlightEndPos["character"].toInt();
-        m_scintillaWidget->indicatorFill(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
-        if (kind == 2) m_scintillaWidget->indicatorFill(INDICATOR_READ, startLine, startCharacter, endLine, endCharacter);
-        else if (kind == 3) m_scintillaWidget->indicatorFill(INDICATOR_WRITE, startLine, startCharacter, endLine, endCharacter);
+        m_editorWidget->indicatorFill(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
+        if (kind == 2) m_editorWidget->indicatorFill(INDICATOR_READ, startLine, startCharacter, endLine, endCharacter);
+        else if (kind == 3) m_editorWidget->indicatorFill(INDICATOR_WRITE, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -486,17 +576,17 @@ void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
         deltaDepthHash.insert(endLine + 2, deltaDepthHash.value(endLine + 2, 0) - 1);
     }
     int depth = 0;
-    for (int line = 0; line < m_scintillaWidget->lineCountGet(); line++) {
+    for (int line = 0; line < m_editorWidget->lineCountGet(); line++) {
         const int deltaDepth = deltaDepthHash.value(line, 0);
         depth += deltaDepth;
         int level = SC_FOLDLEVELBASE + depth;
         if (deltaDepthHash.value(line + 1, 0) > 0) level |= SC_FOLDLEVELHEADERFLAG;
-        m_scintillaWidget->foldLevelSet(line, level);
+        m_editorWidget->foldLevelSet(line, level);
     }
 }
 
 void ScriptPage::formattingResponse(const QString &newText) const {
-    m_scintillaWidget->textSet(newText);
+    m_editorWidget->textSet(newText);
 }
 
 void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
@@ -508,16 +598,16 @@ void ScriptPage::onTypeFormattingResponse(const QJsonObject &newText) const {
     const int startCharacter = start["character"].toInt();
     const int endLine = end["line"].toInt();
     const int endCharacter = end["character"].toInt();
-    m_scintillaWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ScriptPage::rangeFormattingResponse(const QString &newText) const {
-    m_scintillaWidget->textSetSelected(newText);
+    m_editorWidget->textSetSelected(newText);
 }
 
 void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
     // clear
-    m_scintillaWidget->styleSet(LUA_TOKEN_UNUSED);
+    m_editorWidget->styleSet(LUA_TOKEN_UNUSED);
     // publish
     int line = 0;
     int character = 0;
@@ -581,7 +671,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
                 qDebug() << "skip token" << line << character << length << tokenType;
                 break;
         }
-        m_scintillaWidget->styleSet(type, line, character, length);
+        m_editorWidget->styleSet(type, line, character, length);
     }
 }
 
@@ -589,7 +679,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
 void ScriptPage::spellCheckResponse(const QVariantList &typos) {
     m_scriptTypo = typos;
     // clear
-    m_scintillaWidget->indicatorClear(INDICATOR_TYPO);
+    m_editorWidget->indicatorClear(INDICATOR_TYPO);
     // publish
     for (const auto &value: typos) {
         auto typo = value.toMap();
@@ -597,14 +687,14 @@ void ScriptPage::spellCheckResponse(const QVariantList &typos) {
         const int endLine = typo["line"].toInt();
         const int startCharacter = typo["startCharacter"].toInt();
         const int endCharacter = typo["endCharacter"].toInt();
-        m_scintillaWidget->indicatorFill(INDICATOR_TYPO, startLine, startCharacter, endLine, endCharacter);
+        m_editorWidget->indicatorFill(INDICATOR_TYPO, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
 // public: slot
 void ScriptPage::charAdd(const int ch) {
     m_contentTimer->start();
-    m_selection = m_scintillaWidget->selectionGet();
+    m_selection = m_editorWidget->selectionGet();
     const QChar character(ch);
     if (character.isLetter() || m_completionSet.contains(character)) {
         didChangeNotification();
@@ -626,19 +716,19 @@ void ScriptPage::closeEvent(QCloseEvent *event) {
 }
 
 bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_scintillaWidget->viewport()) {
+    if (watched == m_editorWidget->viewport()) {
         const QPoint globalPos = QCursor::pos();
-        const QPoint localPos = m_scintillaWidget->viewport()->mapFromGlobal(globalPos);
+        const QPoint localPos = m_editorWidget->viewport()->mapFromGlobal(globalPos);
         if (event->type() == QEvent::MouseButtonPress) {
             m_dwellTimer->stop();
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             const auto modifiers = mouseEvent->modifiers();
             if (mouseEvent->button() == Qt::LeftButton) {
                 if (modifiers == Qt::ControlModifier) {
-                    const auto position = m_scintillaWidget->positionGet(localPos);
-                    m_scintillaWidget->positionSet(position);
-                    if (m_scintillaWidget->indicatorGet(position) & 1 << INDICATOR_HYPERLINK) {
-                        const auto index = m_scintillaWidget->indexGet(position);
+                    const auto position = m_editorWidget->positionGet(localPos);
+                    m_editorWidget->positionSet(position);
+                    if (m_editorWidget->indicatorGet(position) & 1 << INDICATOR_HYPERLINK) {
+                        const auto index = m_editorWidget->indexGet(position);
                         emit requestDefinition(m_scriptUrl, index["line"], index["character"]);
                         emit requestReferences(m_scriptUrl, index["line"], index["character"]);
                     }
@@ -649,15 +739,15 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                 bool navigation = false;
                 bool rangeFormatting = false;
                 QString text{};
-                const auto position = m_scintillaWidget->positionGet(localPos);
-                const auto index = m_scintillaWidget->indexGet(position);
-                text = m_scintillaWidget->textGetSelected();
+                const auto position = m_editorWidget->positionGet(localPos);
+                const auto index = m_editorWidget->indexGet(position);
+                text = m_editorWidget->textGetSelected();
                 if (text.isEmpty()) {
-                    m_scintillaWidget->positionSet(position);
+                    m_editorWidget->positionSet(position);
                 } else {
                     rangeFormatting = true;
                 }
-                const int type = m_scintillaWidget->styleGet(position);
+                const int type = m_editorWidget->styleGet(position);
                 if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
                 const QVariantHash menuSession = {
                     {"navigation", navigation},
@@ -678,7 +768,7 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             const auto modifiers = mouseEvent->modifiers();
             if (modifiers == Qt::ControlModifier) {
                 m_dwellTimer->stop();
-                const auto position = m_scintillaWidget->positionGet(localPos);
+                const auto position = m_editorWidget->positionGet(localPos);
                 navigationToggle(position);
                 return true;
             }
@@ -687,7 +777,7 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             return false;
         }
     }
-    if (watched == m_scintillaWidget) {
+    if (watched == m_editorWidget) {
         if (event->type() == QEvent::KeyPress) {
             m_dwellTimer->stop();
             const auto *keyEvent = static_cast<QKeyEvent *>(event);
@@ -716,9 +806,9 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
 
 // private: slot
 void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyMod modifiers, const int margin) {
-    const int line = m_scintillaWidget->lineGet(position);
+    const int line = m_editorWidget->lineGet(position);
     if (margin == MARGIN_BREAKPOINT) {
-        if (m_scintillaWidget->markerGet(line) & 1 << MARKER_REGION) {
+        if (m_editorWidget->markerGet(line) & 1 << MARKER_REGION) {
             qDebug() << "WIP";
             // const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
             // for (int current = line; current < m_editorWidget->lines(); ++current) {
@@ -730,18 +820,18 @@ void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyM
             //     }
             // }
             // qDebug() << "error: --#endregion not found";
-        } else if (m_scintillaWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
+        } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
             emit removeBreakpoint(m_scriptUrl, line + 1);
-            m_scintillaWidget->markerDelete(MARKER_BREAKPOINT, line);
+            m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);
         } else {
             emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
-            m_scintillaWidget->markerAdd(MARKER_BREAKPOINT, line);
+            m_editorWidget->markerAdd(MARKER_BREAKPOINT, line);
         }
     }
 }
 
 void ScriptPage::selectionChange() {
-    m_selection = m_scintillaWidget->selectionGet();
+    m_selection = m_editorWidget->selectionGet();
     emit changeSelection(m_selection);
     if (m_selection["lines"] == 0 && m_selection["characters"] == 0) {
         documentHighlightRequest();
@@ -749,7 +839,7 @@ void ScriptPage::selectionChange() {
 }
 
 void ScriptPage::contentChange() {
-    m_selection = m_scintillaWidget->selectionGet();
+    m_selection = m_editorWidget->selectionGet();
     // lsp request
     didChangeNotification();
     documentHighlightRequest();
@@ -819,7 +909,7 @@ void ScriptPage::didOpenNotification() {
                 {"uri", m_scriptUrl.toString()},
                 {"languageId", "lua"},
                 {"version", m_version++},
-                {"text", m_scintillaWidget->textGet()}
+                {"text", m_editorWidget->textGet()}
             }
         }
     };
@@ -828,7 +918,7 @@ void ScriptPage::didOpenNotification() {
 
 void ScriptPage::didChangeNotification() {
     // did change notification to lua language server
-    const auto content = m_scintillaWidget->textGet();
+    const auto content = m_editorWidget->textGet();
     const QJsonObject didChangeParams{
         {
             "textDocument", QJsonObject{
@@ -897,17 +987,18 @@ void ScriptPage::foldingRangeRequest() {
 }
 
 void ScriptPage::formattingRequest() {
+    assemblyToggle(true);
     // formatting request to script module
     emit requestFormatting(m_scriptUrl);
 }
 
 void ScriptPage::hoverRequest() {
     const auto globalPos = QCursor::pos();
-    const auto localPos = m_scintillaWidget->mapFromGlobal(globalPos);
+    const auto localPos = m_editorWidget->mapFromGlobal(globalPos);
     if (!rect().contains(localPos)) return;
-    const auto closePosition = m_scintillaWidget->closePositionGet(localPos);
+    const auto closePosition = m_editorWidget->closePositionGet(localPos);
     if (closePosition == -1) return;
-    const auto index = m_scintillaWidget->indexGet(closePosition);
+    const auto index = m_editorWidget->indexGet(closePosition);
     const auto line = index["line"];
     const auto character = index["character"];
     if (line == 0 && character == 0) return;
@@ -959,14 +1050,14 @@ void ScriptPage::hoverRequest() {
         const int startCharacter = typo["startCharacter"].toInt();
         const int endCharacter = typo["endCharacter"].toInt();
         if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
-            const QString word = m_scintillaWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+            const QString word = m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
             const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
                 word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
             diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
         }
     }
     // call diagnostic show
-    const QPoint position = m_scintillaWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
+    const QPoint position = m_editorWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     const QVariantHash diagnosticSession = {
         {"scriptUrl", m_scriptUrl},
         {"position", position}
@@ -1015,58 +1106,71 @@ void ScriptPage::typeDefinitionRequest() {
 void ScriptPage::spellCheckRequest() {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     // spell check request to script module
-    emit requestSpellCheck(m_scriptUrl, m_scintillaWidget->textGet());
+    emit requestSpellCheck(m_scriptUrl, m_editorWidget->textGet());
 }
 
 // private:
 void ScriptPage::commentToggle() {
-    if (m_scintillaWidget->textGetSelected().isEmpty()) {
-        const auto position = m_scintillaWidget->positionGet();
-        const auto index = m_scintillaWidget->indexGet(position);
-        auto text = m_scintillaWidget->textGet(index["line"], 0, index["line"], -1);
+    if (m_editorWidget->textGetSelected().isEmpty()) {
+        const auto position = m_editorWidget->positionGet();
+        const auto index = m_editorWidget->indexGet(position);
+        auto text = m_editorWidget->textGet(index["line"], 0, index["line"], -1);
         if (text.contains("--")) {
             text.remove("--");
         } else {
             text = "--" + text;
         }
-        m_scintillaWidget->textSet(text, index["line"], 0, index["line"], -1);
+        m_editorWidget->textSet(text, index["line"], 0, index["line"], -1);
     } else {
-        auto text = m_scintillaWidget->textGetSelected();
+        auto text = m_editorWidget->textGetSelected();
         if (text.contains("--[[") || text.contains("]]")) {
             text.remove("--[[");
             text.remove("]]");
         } else {
             text = "--[[" + text + "]]";
         }
-        m_scintillaWidget->textSetSelected(text);
+        m_editorWidget->textSetSelected(text);
     }
     contentChange();
 }
 
 void ScriptPage::symbolPair(const QChar character) {
-    auto selected = m_scintillaWidget->textGetSelected();
+    auto selected = m_editorWidget->textGetSelected();
     if (selected.isEmpty()) {
         selected = character + selected + m_pairHash[character];
-        m_scintillaWidget->textSetSelected(selected);
-        const auto position = m_scintillaWidget->positionGet();
-        m_scintillaWidget->positionSet(position - 1);
+        m_editorWidget->textSetSelected(selected);
+        const auto position = m_editorWidget->positionGet();
+        m_editorWidget->positionSet(position - 1);
     } else {
         selected = character + selected + m_pairHash[character];
-        m_scintillaWidget->textSetSelected(selected);
+        m_editorWidget->textSetSelected(selected);
     }
     contentChange();
 }
 
+void ScriptPage::assemblyToggle(const bool status) {
+    QTemporaryFile tempFile;
+    if (!tempFile.open()) return;
+    tempFile.write(m_editorWidget->textGet().toUtf8());
+    tempFile.close();
+    QProcess process;
+    process.start("luac", QStringList() << "-l" << "-l" << tempFile.fileName());
+    if (!process.waitForFinished(5000)) return;
+    const auto output = process.readAllStandardOutput();
+    const auto error = process.readAllStandardError();
+    qDebug() << output << error;
+}
+
 void ScriptPage::navigationToggle(const Scintilla::Position position) const {
     if (position == -1) {
-        m_scintillaWidget->indicatorClear(INDICATOR_HYPERLINK);
+        m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
     } else {
-        const int type = m_scintillaWidget->styleGet(position);
+        const int type = m_editorWidget->styleGet(position);
         if (type > 0 && type < LUA_TOKEN_MACRO) {
-            const auto wordIndex = m_scintillaWidget->wordIndexGet(position);
-            m_scintillaWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
+            const auto wordIndex = m_editorWidget->wordIndexGet(position);
+            m_editorWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
         } else {
-            m_scintillaWidget->indicatorClear(INDICATOR_HYPERLINK);
+            m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
         }
     }
 }

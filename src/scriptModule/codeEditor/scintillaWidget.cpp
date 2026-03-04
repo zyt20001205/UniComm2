@@ -8,94 +8,10 @@
 using namespace Scintilla;
 
 // public
-ScintillaWidget::ScintillaWidget(const QUrl &scriptUrl, QWidget *parent)
+ScintillaWidget::ScintillaWidget(QWidget *parent)
     : ScintillaEdit(parent) {
     setContextMenuPolicy(Qt::NoContextMenu);
     setFrameStyle(NoFrame);
-    // margin
-    {
-        marginDefine(
-            MARGIN_NUMBER,
-            QJsonObject{
-                {"type", 1},
-                {"width", 32}
-            });
-        marginDefine(
-            MARGIN_BREAKPOINT,
-            QJsonObject{
-                {"type", 0},
-                {"width", 16},
-                {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
-                {"sensitive", true}
-            });
-        marginDefine(
-            MARGIN_FOLDERS,
-            QJsonObject{
-                {"type", 0},
-                {"width", 16},
-                {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-                {"sensitive", true}
-            });
-        marginDefine(
-            MARGIN_HISTORY,
-            QJsonObject{
-                {"type", 0},
-                {"width", 4},
-                {"mask", SC_MASK_HISTORY},
-            });
-    }
-    // folders
-    send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
-    send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
-    send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
-    for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
-        send(SCI_MARKERSETFORE, i, 0xffffff); // NOLINT
-        send(SCI_MARKERSETBACK, i, 0x000000); // NOLINT
-    }
-    send(SCI_SETFOLDMARGINCOLOUR, true, 0xffffff); // NOLINT
-    send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
-    send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
-    send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
-    // style
-    send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
-    send(SCI_STYLESETFORE, STYLE_INDENTGUIDE, 0x000000); // NOLINT
-    send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xe0e0e0); // NOLINT
-    // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
-    send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
-    // indent
-    send(SCI_SETUSETABS, false); // NOLINT
-    send(SCI_SETINDENT, 4); // NOLINT
-    send(SCI_SETTABINDENTS, true); // NOLINT
-    send(SCI_SETBACKSPACEUNINDENTS, true); // NOLINT
-    send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
-    // misc
-    send(SCI_SETSCROLLWIDTH, 1); // NOLINT
-    send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
-    send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
-    send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-    send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
-    send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
-    send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-    // for debug
-    // send(SCI_SETVIEWEOL, true); // NOLINT
-    // script
-    const QUrl &url(scriptUrl);
-    const QString scriptPath = url.toLocalFile();
-    QFile file(scriptPath);
-    if (!file.open(QIODevice::ReadOnly)) return;
-    QTextStream in(&file);
-    const QString script = in.readAll();
-    file.close();
-    textSet(script);
-    // history
-    send(SCI_EMPTYUNDOBUFFER); // NOLINT
-    send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
 }
 
 // public: fold
