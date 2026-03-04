@@ -13,9 +13,9 @@ public:
 
     ~ScintillaWidget() override = default;
 
-    void eolAnnotationClear() const;
+    void annotationClear() const;
 
-    void eolAnnotationSet(int line, const QString &annotation) const;
+    void annotationSet(int line, const QString &annotation) const;
 
     void foldLevelSet(int line, int level) const;
 

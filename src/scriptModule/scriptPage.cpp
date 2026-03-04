@@ -99,7 +99,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             m_editorWidget->send(SCI_SETBACKSPACEUNINDENTS, true); // NOLINT
             m_editorWidget->send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
 
-            m_editorWidget->send(SCI_EOLANNOTATIONSETVISIBLE, EOLANNOTATION_STANDARD); // NOLINT
+            m_editorWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
 
             m_editorWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
             m_editorWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
@@ -752,7 +752,7 @@ void ScriptPage::assemblyToggle(const bool status) {
         if (!error.isEmpty()) {
             m_assemblyWidget->textSet(error);
         } else {
-            m_editorWidget->eolAnnotationClear();
+            m_editorWidget->annotationClear();
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
@@ -772,7 +772,7 @@ void ScriptPage::assemblyToggle(const bool status) {
                     if (startLine > 1) startLine--;
                     if (endLine > 1) endLine--;
                 } else if (text.contains("params")) {
-                    m_editorWidget->eolAnnotationSet(startLine, text);
+                    m_editorWidget->annotationSet(startLine, text);
                 } else {
                     m_assemblyWidget->textAppend(text + "\r\n");
                 }
@@ -780,7 +780,7 @@ void ScriptPage::assemblyToggle(const bool status) {
         }
         m_assemblyWidget->show();
     } else {
-        m_editorWidget->eolAnnotationClear();
+        m_editorWidget->annotationClear();
         m_assemblyWidget->textClear();
         m_assemblyWidget->hide();
     }

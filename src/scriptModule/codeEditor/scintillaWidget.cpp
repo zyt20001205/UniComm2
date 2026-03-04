@@ -14,13 +14,13 @@ ScintillaWidget::ScintillaWidget(QWidget *parent)
     setFrameStyle(NoFrame);
 }
 
-// public: eol annotation
-void ScintillaWidget::eolAnnotationClear() const {
-    send(SCI_EOLANNOTATIONCLEARALL); // NOLINT
+// public: annotation
+void ScintillaWidget::annotationClear() const {
+    send(SCI_ANNOTATIONCLEARALL); // NOLINT
 }
 
-void ScintillaWidget::eolAnnotationSet(const int line, const QString &annotation) const {
-    send(SCI_EOLANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
+void ScintillaWidget::annotationSet(const int line, const QString &annotation) const {
+    send(SCI_ANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
 }
 
 // public: fold
