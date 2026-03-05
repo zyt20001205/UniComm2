@@ -89,7 +89,6 @@ void ScintillaWidget::indexSet(const int line, const int character) const {
 void ScintillaWidget::indicatorDefine(const int type, const QJsonObject &config) const {
     if (config.contains("style")) send(SCI_INDICSETSTYLE, type, config["style"].toInt()); // NOLINT
     if (config.contains("fore")) send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
-    send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
     // if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
     if (config.contains("alpha")) send(SCI_INDICSETALPHA, type, config["alpha"].toInt()); // NOLINT
     if (config.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, type, config["outlineAlpha"].toInt()); // NOLINT

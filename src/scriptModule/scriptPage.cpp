@@ -125,38 +125,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         }
         // font
         m_editorWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
-        // margin
-        {
-            m_editorWidget->marginDefine(
-                0,
-                QJsonObject{
-                    {"type", SC_MARGIN_NUMBER},
-                    {"width", 32}
-                });
-            m_editorWidget->marginDefine(
-                1,
-                QJsonObject{
-                    {"type", SC_MARGIN_SYMBOL},
-                    {"width", 16},
-                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
-                    {"sensitive", true}
-                });
-            m_editorWidget->marginDefine(
-                2,
-                QJsonObject{
-                    {"type", SC_MARGIN_SYMBOL},
-                    {"width", 16},
-                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-                    {"sensitive", true}
-                });
-            m_editorWidget->marginDefine(
-                3,
-                QJsonObject{
-                    {"type", SC_MARGIN_SYMBOL},
-                    {"width", 4},
-                    {"mask", SC_MASK_HISTORY},
-                });
-        }
         // indicator
         {
             m_editorWidget->indicatorDefine(
@@ -266,6 +234,38 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"setUnder", false}
                 });
         }
+        // margin
+        {
+            m_editorWidget->marginDefine(
+                0,
+                QJsonObject{
+                    {"type", SC_MARGIN_NUMBER},
+                    {"width", 32}
+                });
+            m_editorWidget->marginDefine(
+                1,
+                QJsonObject{
+                    {"type", SC_MARGIN_SYMBOL},
+                    {"width", 16},
+                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
+                    {"sensitive", true}
+                });
+            m_editorWidget->marginDefine(
+                2,
+                QJsonObject{
+                    {"type", SC_MARGIN_SYMBOL},
+                    {"width", 16},
+                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+                    {"sensitive", true}
+                });
+            m_editorWidget->marginDefine(
+                3,
+                QJsonObject{
+                    {"type", SC_MARGIN_SYMBOL},
+                    {"width", 4},
+                    {"mask", SC_MASK_HISTORY},
+                });
+        }
         // marker
         {
             m_editorWidget->markerDefine(
@@ -281,6 +281,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"symbol", 0},
                     {"fore", 0x0000ff},
                     {"back", 0x0000ff}
+                });
+            m_editorWidget->markerDefine(
+                MARKER_NAVIGATION,
+                QJsonObject{
+                    {"symbol", 24},
+                    {"fore", 0x000000},
+                    {"back", 0x000000}
                 });
             m_editorWidget->markerDefine(
                 MARKER_DEBUG,
@@ -426,6 +433,16 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 QJsonObject{
                     {"type", SC_MARGIN_TEXT},
                     {"width", 32}
+                });
+        }
+        // marker
+        {
+            m_assemblyWidget->markerDefine(
+                MARKER_NAVIGATION,
+                QJsonObject{
+                    {"symbol", 24},
+                    {"fore", 0x00ffff},
+                    {"back", 0x00ffff}
                 });
         }
     }
@@ -743,14 +760,17 @@ void ScriptPage::assemblyToggle(const bool status) const {
                     endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
                     m_assemblyWidget->textAppend(QString("%1 %2-%3\r\n").arg(type, QString::number(startLine), QString::number(endLine)));
                     // 1 based
-                    if (startLine > 1) startLine--;
+                    if (startLine > 1) {
+                        startLine--;
+                        m_editorWidget->markerAdd(MARKER_NAVIGATION, startLine);
+                    }
                     if (endLine > 1) endLine--;
                 } else if (text.contains("param")
-                    && text.contains("slot")
-                    && text.contains("upvalue")
-                    && text.contains("local")
-                    && text.contains("constant")
-                    && text.contains("function")) {
+                           && text.contains("slot")
+                           && text.contains("upvalue")
+                           && text.contains("local")
+                           && text.contains("constant")
+                           && text.contains("function")) {
                     if (text.startsWith("0+")) continue;
                     m_editorWidget->annotationSet(startLine, text);
                 } else {
