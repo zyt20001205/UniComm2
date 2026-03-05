@@ -52,6 +52,7 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     m_welcomePage->propertySet(QVariantMap());
     m_codeAssistant->propertySet(objects);
     m_codeAssistant->fontSet(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt());
+    m_toolTip = qvariant_cast<QObject *>(objects["scriptModuleToolTip"]);
     m_scintillaMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
@@ -202,6 +203,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::changeSelection, this, &ScriptModule::changeSelection);
         connect(scriptPage, &ScriptPage::showMenu, this, &ScriptModule::menuShow);
+        connect(scriptPage, &ScriptPage::setTooltip, this, &ScriptModule::tooltipSet);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestCompletion, this, &ScriptModule::completionRequest);
@@ -835,10 +837,8 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
     }
 }
 
-void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const {
-    m_scintillaMenu->setProperty("scriptUrl", scriptUrl.toString());
-    m_scintillaMenu->setProperty("menuSession", menuSession);
-    QMetaObject::invokeMethod(m_scintillaMenu, "popup");
+void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {
+    m_scriptPageHash[scriptUrl]->charAdd(character.toLatin1());
 }
 
 void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
@@ -846,6 +846,13 @@ void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int
     m_scriptPageHash[scriptUrl]->m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
-void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {
-    m_scriptPageHash[scriptUrl]->charAdd(character.toLatin1());
+void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const {
+    m_scintillaMenu->setProperty("scriptUrl", scriptUrl.toString());
+    m_scintillaMenu->setProperty("menuSession", menuSession);
+    QMetaObject::invokeMethod(m_scintillaMenu, "popup");
+}
+
+void ScriptModule::tooltipSet(const QPoint &position, const QString &text) const {
+    m_toolTip->setProperty("position", position);
+    m_toolTip->setProperty("text", text);
 }

@@ -68,6 +68,8 @@ signals:
 
     void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
 
+    void setTooltip(const QPoint &position, const QString &text);
+
     void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);
@@ -172,7 +174,7 @@ private:
 
     void symbolPair(QChar character);
 
-    void navigationToggle(Scintilla::Position position = -1) const;
+    void navigationToggle(Scintilla::Position position = -1);
 
     void positionFill(int x, int y) const;
 

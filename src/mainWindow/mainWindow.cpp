@@ -193,7 +193,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"scriptModuleNavigationTableView", objects["scriptModuleNavigationTableView"]},
         {"scriptModuleNavigationDetailLabel", objects["scriptModuleNavigationDetailLabel"]},
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
-        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
+        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]},
+        {"scriptModuleToolTip", objects["scriptModuleToolTip"]}
     };
     m_scriptModule->propertySet(scriptObjects);
 

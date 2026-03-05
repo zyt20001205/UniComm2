@@ -1651,6 +1651,15 @@ Item {
     }
 
     ToolTip {
+        id: scriptModuleToolTip
+        parent: Overlay.overlay
+        x: position.x + 10; y: position.y + 10
+        closePolicy: Popup.NoAutoClose
+        visible: text
+        property point position
+    }
+
+    ToolTip {
         id: scriptModuleCompletionToolTip
         parent: Overlay.overlay
         x: position.x - 30; y: position.y
@@ -2681,6 +2690,7 @@ Item {
             "scriptModuleNavigationDetailLabel": scriptModuleNavigationDetailLabel,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
+            "scriptModuleToolTip": scriptModuleToolTip,
 
             "structureModuleRootMenu": structureModuleRootMenu,
 
