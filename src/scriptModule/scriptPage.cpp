@@ -904,6 +904,8 @@ void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyM
         } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
             emit removeBreakpoint(m_scriptUrl, line + 1);
             m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);
+        } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
+            qDebug() << "navigation required";
         } else {
             emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
             m_editorWidget->markerAdd(MARKER_BREAKPOINT, line);
