@@ -69,6 +69,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     {
         // misc
         {
+            m_editorWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
+            m_editorWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
+
+            m_editorWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
+
             m_editorWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
             m_editorWidget->send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
             m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
@@ -86,12 +91,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             m_editorWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
             m_editorWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
             m_editorWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
-
-            m_editorWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
-            m_editorWidget->send(SCI_STYLESETFORE, STYLE_INDENTGUIDE, 0x000000); // NOLINT
             m_editorWidget->send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xe0e0e0); // NOLINT
             // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
-            m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
+            // m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
 
             m_editorWidget->send(SCI_SETUSETABS, false); // NOLINT
             m_editorWidget->send(SCI_SETINDENT, 4); // NOLINT
@@ -101,8 +103,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
             m_editorWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
 
-            m_editorWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
-            m_editorWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
             m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             m_editorWidget->send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
@@ -415,9 +415,32 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         m_assemblyWidget->hide();
         // misc
         {
-            m_assemblyWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
             m_assemblyWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
             m_assemblyWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
+
+            m_assemblyWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
+
+            m_assemblyWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
+            m_assemblyWidget->send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
+            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
+            for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
+                m_assemblyWidget->send(SCI_MARKERSETFORE, i, 0xffffff); // NOLINT
+                m_assemblyWidget->send(SCI_MARKERSETBACK, i, 0x000000); // NOLINT
+            }
+            m_assemblyWidget->send(SCI_SETFOLDMARGINCOLOUR, true, 0xffffff); // NOLINT
+            m_assemblyWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, 0xffffff); // NOLINT
+            m_assemblyWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
+            m_assemblyWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
+            m_assemblyWidget->send(SCI_STYLESETBACK, STYLE_FOLDDISPLAYTEXT, 0xe0e0e0); // NOLINT
+            // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
+            // m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
+
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
             m_assemblyWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             m_assemblyWidget->send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
@@ -433,6 +456,22 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 QJsonObject{
                     {"type", SC_MARGIN_TEXT},
                     {"width", 32}
+                });
+            m_assemblyWidget->marginDefine(
+                1,
+                QJsonObject{
+                    {"type", SC_MARGIN_SYMBOL},
+                    {"width", 16},
+                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
+                    {"sensitive", true}
+                });
+            m_assemblyWidget->marginDefine(
+                2,
+                QJsonObject{
+                    {"type", SC_MARGIN_SYMBOL},
+                    {"width", 16},
+                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+                    {"sensitive", true}
                 });
         }
         // marker
@@ -738,6 +777,7 @@ void ScriptPage::assemblyToggle(const bool status) const {
             m_assemblyWidget->textSet(error);
         } else {
             m_editorWidget->annotationClear();
+            m_assemblyWidget->readonlySet(false);
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
@@ -759,6 +799,8 @@ void ScriptPage::assemblyToggle(const bool status) const {
                     startLine = text.mid(tmp1 + 1, tmp2 - tmp1 - 1).toInt();
                     endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
                     m_assemblyWidget->textAppend(QString("%1 %2-%3\r\n").arg(type, QString::number(startLine), QString::number(endLine)));
+                    m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 3, SC_FOLDLEVELBASE);
+                    m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 2, SC_FOLDLEVELBASE + SC_FOLDLEVELHEADERFLAG);
                     // 1 based
                     if (startLine > 1) {
                         startLine--;
@@ -776,10 +818,11 @@ void ScriptPage::assemblyToggle(const bool status) const {
                 } else {
                     const auto detail = text.split('\t');
                     m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
-                    const auto line = m_assemblyWidget->lineCountGet();
-                    m_assemblyWidget->send(SCI_MARGINSETTEXT, line - 2, reinterpret_cast<sptr_t>(detail.at(1).toUtf8().constData()));
+                    m_assemblyWidget->marginTextSet(m_assemblyWidget->lineCountGet() - 2, detail.at(1));
+                    m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 2, SC_FOLDLEVELBASE + 1);
                 }
             }
+            m_assemblyWidget->readonlySet(true);
         }
         m_assemblyWidget->show();
     } else {

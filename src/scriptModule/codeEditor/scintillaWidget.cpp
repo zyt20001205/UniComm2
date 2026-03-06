@@ -14,6 +14,15 @@ ScintillaWidget::ScintillaWidget(QWidget *parent)
     setFrameStyle(NoFrame);
 }
 
+// public: file
+bool ScintillaWidget::modifyGet() const {
+    return send(SCI_GETMODIFY);
+}
+
+void ScintillaWidget::readonlySet(const bool status) const {
+    send(SCI_SETREADONLY, status); // NOLINT
+}
+
 // public: annotation
 void ScintillaWidget::annotationClear() const {
     send(SCI_ANNOTATIONCLEARALL); // NOLINT
@@ -150,6 +159,10 @@ void ScintillaWidget::marginDefine(const int type, const QJsonObject &config) co
     // if (config.contains("options")) send(SCI_SETMARGINOPTIONS, type, config["options"].toInt()); // NOLINT
 }
 
+void ScintillaWidget::marginTextSet(const int line, const QString &text) const {
+    send(SCI_MARGINSETTEXT, line, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
+}
+
 // public: marker
 void ScintillaWidget::markerDefine(const int type, const QJsonObject &config) const {
     if (config.contains("symbol")) send(SCI_MARKERDEFINE, type, config["symbol"].toInt()); // NOLINT
@@ -178,11 +191,6 @@ void ScintillaWidget::markerDelete(const int type, const int line) const {
 
 int ScintillaWidget::markerGet(const int line) const {
     return static_cast<int>(send(SCI_MARKERGET, line));
-}
-
-// public: modify
-bool ScintillaWidget::modifyGet() const {
-    return send(SCI_GETMODIFY);
 }
 
 // public: point

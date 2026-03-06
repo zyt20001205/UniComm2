@@ -13,6 +13,10 @@ public:
 
     ~ScintillaWidget() override = default;
 
+    [[nodiscard]] bool modifyGet() const;
+
+    void readonlySet(bool status) const;
+
     void annotationClear() const;
 
     void annotationSet(int line, const QString &annotation) const;
@@ -51,6 +55,8 @@ public:
 
     void marginDefine(int type, const QJsonObject &config) const;
 
+    void marginTextSet(int line, const QString &text) const;
+
     void markerDefine(int type, const QJsonObject &config) const;
 
     void markerAdd(int type, int line, int time = -1) const;
@@ -58,8 +64,6 @@ public:
     void markerDelete(int type, int line) const;
 
     [[nodiscard]] int markerGet(int line) const;
-
-    [[nodiscard]] bool modifyGet() const;
 
     [[nodiscard]] QHash<QString, int> pointGet(int line, int character) const;
 
