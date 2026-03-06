@@ -21,6 +21,10 @@ public:
 
     void annotationSet(int line, const QString &annotation) const;
 
+    void eolAnnotationClear() const;
+
+    void eolAnnotationSet(int line, const QString &annotation) const;
+
     void foldLevelSet(int line, int level) const;
 
     void foldContractTop() const;

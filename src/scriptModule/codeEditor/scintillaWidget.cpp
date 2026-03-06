@@ -30,6 +30,15 @@ void ScintillaWidget::annotationClear() const {
 
 void ScintillaWidget::annotationSet(const int line, const QString &annotation) const {
     send(SCI_ANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
+    send(SCI_ANNOTATIONSETSTYLE, line, STYLE_ANNOTATION); // NOLINT
+}
+
+void ScintillaWidget::eolAnnotationClear() const {
+    send(SCI_EOLANNOTATIONCLEARALL); // NOLINT
+}
+
+void ScintillaWidget::eolAnnotationSet(int line, const QString &annotation) const {
+    send(SCI_EOLANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
 }
 
 // public: fold

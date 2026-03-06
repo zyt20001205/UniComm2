@@ -108,6 +108,7 @@ enum {
     LUA_TOKEN_STRING,
     LUA_TOKEN_NUMBER,
     LUA_TOKEN_OPERATOR,
+    STYLE_ANNOTATION = 40
 };
 
 enum {

@@ -102,6 +102,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             m_editorWidget->send(SCI_SETINDENTATIONGUIDES, SC_IV_REAL); // NOLINT
 
             m_editorWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
+            m_editorWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
 
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
             m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
@@ -393,6 +394,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 QJsonObject{
                     {"fore", 0x000000}
                 });
+            m_editorWidget->styleDefine(
+                STYLE_ANNOTATION,
+                QJsonObject{
+                    {"fore", 0x8c8c8c}
+                });
         }
         // signals
         connect(m_editorWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
@@ -441,6 +447,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
             // m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
 
+            m_assemblyWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
+            m_assemblyWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
+
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
             m_assemblyWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             m_assemblyWidget->send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
@@ -482,6 +491,14 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"symbol", 24},
                     {"fore", 0x00ffff},
                     {"back", 0x00ffff}
+                });
+        }
+        // style
+        {
+            m_assemblyWidget->styleDefine(
+                STYLE_ANNOTATION,
+                QJsonObject{
+                    {"fore", 0x8c8c8c}
                 });
         }
     }
@@ -771,13 +788,14 @@ void ScriptPage::assemblyToggle(const bool status) const {
         tempFile.close();
         QProcess process;
         process.start("luac", QStringList() << "-l" << tempFile.fileName());
+        // process.start("luac", QStringList() << "-l" << "-l" << tempFile.fileName());
         if (!process.waitForFinished(1000)) return;
         const auto error = QString::fromUtf8(process.readAllStandardError());
+        m_assemblyWidget->readonlySet(false);
         if (!error.isEmpty()) {
             m_assemblyWidget->textSet(error);
         } else {
             m_editorWidget->annotationClear();
-            m_assemblyWidget->readonlySet(false);
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
@@ -817,13 +835,14 @@ void ScriptPage::assemblyToggle(const bool status) const {
                     m_editorWidget->annotationSet(startLine, text);
                 } else {
                     const auto detail = text.split('\t');
-                    m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
+                    if (detail.length() == 6) m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + '\t' + detail.at(5) + "\r\n");
+                    else m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
                     m_assemblyWidget->marginTextSet(m_assemblyWidget->lineCountGet() - 2, detail.at(1));
                     m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 2, SC_FOLDLEVELBASE + 1);
                 }
             }
-            m_assemblyWidget->readonlySet(true);
         }
+        m_assemblyWidget->readonlySet(true);
         m_assemblyWidget->show();
     } else {
         m_editorWidget->annotationClear();
