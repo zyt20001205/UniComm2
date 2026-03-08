@@ -36,7 +36,7 @@ public:
 
     Q_INVOKABLE [[nodiscard]] static bool enabledGet(const QUrl &scriptUrl, int line);
 
-    Q_INVOKABLE static void enabledSet(const QUrl &scriptUrl, int line, bool status);
+    Q_INVOKABLE void enabledSet(const QUrl &scriptUrl, int line, bool status);
 
     Q_INVOKABLE [[nodiscard]] static QString conditionGet(const QUrl &scriptUrl, int line);
 

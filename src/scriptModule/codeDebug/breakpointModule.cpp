@@ -151,6 +151,13 @@ bool BreakpointModule::enabledGet(const QUrl &scriptUrl, const int line) {
 
 void BreakpointModule::enabledSet(const QUrl &scriptUrl, const int line, const bool status) {
     g_breakpoints[scriptUrl][line]["enabled"] = status;
+    if (status) {
+        emit addMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1, -1);
+        emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_DISABLED, line - 1);
+    } else {
+        emit addMarker(scriptUrl, MARKER_BREAKPOINT_DISABLED, line - 1, -1);
+        emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+    }
 }
 
 QString BreakpointModule::conditionGet(const QUrl &scriptUrl, const int line) {
