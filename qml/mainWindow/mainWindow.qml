@@ -26,7 +26,7 @@ Item {
         id: mainWindowBusyDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         standardButtons: Dialog.Abort
         topPadding: 30; bottomPadding: 20
@@ -48,7 +48,7 @@ Item {
         id: mainWindowCloseDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Save and Exit?")
         standardButtons: Dialog.Yes | Dialog.No
@@ -123,7 +123,7 @@ Item {
             id: mainWindowMessageDialog
             parent: Overlay.overlay
             anchors.centerIn: parent
-            width: 400
+            width: 600
             modal: true
             standardButtons: Dialog.Ok
             property string text
@@ -436,7 +436,7 @@ Item {
         id: databaseModuleEditDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Enter Key Name")
         standardButtons: Dialog.Ok
@@ -565,7 +565,7 @@ Item {
         id: datatableModuleEditDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Enter Key Name")
         standardButtons: Dialog.Ok
@@ -753,7 +753,7 @@ Item {
         id: debugModuleErrorDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Select a Thread First")
         standardButtons: Dialog.Ok
@@ -799,7 +799,7 @@ Item {
         id: explorerModuleScriptNewDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("New Script")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -828,7 +828,7 @@ Item {
         id: explorerModuleFolderNewDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("New Folder")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -1164,7 +1164,7 @@ Item {
         id: logModuleEmptyDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Log Is Empty")
         standardButtons: Dialog.Ok
@@ -1180,7 +1180,7 @@ Item {
         id: logModuleHeightDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Set Max Line Count")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -2313,7 +2313,7 @@ Item {
         id: systemModuleErrorDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         standardButtons: Dialog.Ok
 
@@ -2328,7 +2328,7 @@ Item {
         id: systemModuleRenameDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Rename")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -2354,12 +2354,38 @@ Item {
         }
     }
 
+    Dialog {
+        id: systemModulePermissionDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Permission Management")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string fileUrl
+        property bool readonly
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+            systemModulePermissionLabel.text = readonly ? qsTr("This file is writable. Would you like to make it read-only?") : qsTr("This file is read-only. Would you like to make it writable?")
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: systemModule.filePermission(systemModulePermissionDialog.fileUrl, systemModulePermissionDialog.readonly)
+
+        Label {
+            id: systemModulePermissionLabel
+            width: parent.width
+            horizontalAlignment: Text.AlignLeft
+        }
+    }
+
     // threadpool module
     Dialog {
         id: threadpoolModuleErrorDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
         title: qsTr("Terminate Request Has Been Sent")
         standardButtons: Dialog.Ok
@@ -2716,6 +2742,7 @@ Item {
             "structureModuleRootMenu": structureModuleRootMenu,
 
             "systemModuleErrorDialog": systemModuleErrorDialog,
+            "systemModulePermissionDialog": systemModulePermissionDialog,
 
             "threadpoolModuleErrorDialog": threadpoolModuleErrorDialog,
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,

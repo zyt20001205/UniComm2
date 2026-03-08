@@ -33,11 +33,6 @@ public:
 
     void scriptClose();
 
-    // public: state
-    void breakpointLoad() const;
-
-    void regionLoad() const;
-
     // public: lsp
     void diagnosticsResponse(const QJsonArray &diagnostics);
 
@@ -72,6 +67,8 @@ signals:
     void startThread(const QUrl &scriptUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void changeSelection(const QHash<QString, int> &selection);
+
+    void setPermission(const QUrl &scriptUrl, bool readonly);
 
     void editBreakpoint(const QUrl &scriptUrl, int line);
 
@@ -136,9 +133,11 @@ private:
     void savepointChange(bool status);
 
     // private: file
-    void scriptReadonly(bool status);
+    void permissionLoad();
 
-    void permissionRequest();
+    void breakpointLoad() const;
+
+    void regionLoad() const;
 
     // private: lsp
     void didOpenNotification();

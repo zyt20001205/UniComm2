@@ -408,6 +408,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 });
         }
         // signals
+        connect(m_editorWidget, &ScintillaEdit::modifyAttemptReadOnly, this, [this] { emit setPermission(m_scriptUrl, !m_editorWidget->readonlyGet()); });
         connect(m_editorWidget, &ScintillaEdit::notify, this, [this](const Scintilla::NotificationData *pscn) {
             switch (pscn->nmhdr.code) {
                 case Scintilla::Notification::MarginClick: {
@@ -530,6 +531,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     }
     QTimer::singleShot(0, this, [this] {
         // state
+        permissionLoad();
         breakpointLoad();
         regionLoad();
         // lsp
@@ -618,28 +620,6 @@ void ScriptPage::scriptClose() {
     emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
-}
-
-// public: state
-void ScriptPage::breakpointLoad() const {
-    m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED);
-    m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED);
-    if (g_breakpoints.contains(m_scriptUrl)) {
-        for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
-            if (g_breakpoints[m_scriptUrl][line]["enabled"].toBool()) m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line - 1);
-            else m_editorWidget->markerAdd(MARKER_BREAKPOINT_DISABLED, line - 1);
-        }
-    }
-}
-
-void ScriptPage::regionLoad() const {
-    m_editorWidget->markerDelete(MARKER_REGION);
-    for (int line = 0; line < m_editorWidget->lineCountGet(); ++line) {
-        const QString text = m_editorWidget->textGet(line, 0, line, -1);
-        if (text.contains("--#region")) {
-            m_editorWidget->markerAdd(MARKER_REGION, line);
-        }
-    }
 }
 
 // public: lsp
@@ -1078,40 +1058,52 @@ void ScriptPage::savepointChange(const bool status) {
 }
 
 // private: file
-void ScriptPage::scriptReadonly(const bool status) {
-    // m_readonly = status;
-    // m_editorWidget->setReadOnly(status);
-    // if (status) {
-    //     setIcon(QIcon(":/icon/lockClosed.svg"));
-    // } else {
-    //     setIcon(QIcon());
-    // }
+void ScriptPage::permissionLoad() {
+    const QString scriptPath = m_scriptUrl.toLocalFile();
+    const QFileInfo fileInfo(scriptPath);
+    if (fileInfo.isWritable()) {
+        setIcon(QIcon());
+        m_editorWidget->readonlySet(false);
+    } else {
+        setIcon(QIcon(":/icon/lockClosed.svg"));
+        m_editorWidget->readonlySet(true);
+    }
 }
 
-void ScriptPage::permissionRequest() {
-    const QMessageBox::StandardButton reply = QMessageBox::question(
-        this,
-        tr("Warning"),
-        tr("This file is read-only. Would you like to make it writable?"),
-        QMessageBox::Yes | QMessageBox::No,
-        QMessageBox::No);
-    if (reply != QMessageBox::Yes) {
-        return;
+// void ScriptPage::permissionRequest() {
+//     // block file watcher signals
+//     m_fileWatcher->blockSignals(true);
+//     const QString scriptPath = m_scriptUrl.toLocalFile();
+//     QFile::setPermissions(
+//         scriptPath,
+//         QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+//     // logging
+//     emit appendLog(QString("<a href='%1'>%2</a> permitted").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+//     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+//     qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
+//     // restore file watcher signals 1 sec later
+//     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
+// }
+
+void ScriptPage::breakpointLoad() const {
+    m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED);
+    m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED);
+    if (g_breakpoints.contains(m_scriptUrl)) {
+        for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
+            if (g_breakpoints[m_scriptUrl][line]["enabled"].toBool()) m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line - 1);
+            else m_editorWidget->markerAdd(MARKER_BREAKPOINT_DISABLED, line - 1);
+        }
     }
-    // update status
-    scriptReadonly(false);
-    // block file watcher signals
-    m_fileWatcher->blockSignals(true);
-    const QString scriptPath = m_scriptUrl.toLocalFile();
-    QFile::setPermissions(
-        scriptPath,
-        QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> permitted").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
-    // restore file watcher signals 1 sec later
-    QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
+}
+
+void ScriptPage::regionLoad() const {
+    m_editorWidget->markerDelete(MARKER_REGION);
+    for (int line = 0; line < m_editorWidget->lineCountGet(); ++line) {
+        const QString text = m_editorWidget->textGet(line, 0, line, -1);
+        if (text.contains("--#region")) {
+            m_editorWidget->markerAdd(MARKER_REGION, line);
+        }
+    }
 }
 
 // private: lsp

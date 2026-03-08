@@ -170,6 +170,8 @@ private:
 
     void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
+    void permissionSet(const QUrl &scriptUrl, bool readonly) const;
+
     void breakpointEdit(const QUrl &scriptUrl, int line) const;
 
     void menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const;
@@ -178,6 +180,7 @@ private:
 
     QJsonObject m_scriptConfig{};
     QObject *m_breakpointEditDialog{};
+    QObject *m_permissionDialog{};
     QObject *m_toolTip{};
     QObject *m_menu{};
     WelcomePage *m_welcomePage{};

@@ -31,6 +31,10 @@ void ScintillaWidget::readonlySet(const bool status) const {
     send(SCI_SETREADONLY, status); // NOLINT
 }
 
+bool ScintillaWidget::readonlyGet() const {
+    return send(SCI_GETREADONLY);
+}
+
 void ScintillaWidget::savepointSet() const {
     send(SCI_SETSAVEPOINT); // NOLINT
 }

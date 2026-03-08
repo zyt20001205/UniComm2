@@ -21,6 +21,8 @@ public:
 
     void readonlySet(bool status) const;
 
+    [[nodiscard]] bool readonlyGet() const;
+
     void savepointSet() const;
 
     void annotationClear() const;
