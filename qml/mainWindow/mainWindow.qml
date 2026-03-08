@@ -208,7 +208,7 @@ Item {
 
     // breakpoint module
     Dialog {
-        id: breakpointModuleConditionDialog
+        id: breakpointModuleSettingDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 400
@@ -221,20 +221,20 @@ Item {
         onAboutToShow: {
             widgetCount += 1
             mainWindow.overlayFocus()
-            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line)
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleSettingDialog.url, breakpointModuleSettingDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
             breakpointModuleConditionTextField.selectAll()
         }
         onClosed: widgetCount -= 1
-        onAccepted: breakpointModule.conditionSet(breakpointModuleConditionDialog.url, breakpointModuleConditionDialog.line, breakpointModuleConditionTextField.text)
+        onAccepted: breakpointModule.conditionSet(breakpointModuleSettingDialog.url, breakpointModuleSettingDialog.line, breakpointModuleConditionTextField.text)
 
         TextField {
             id: breakpointModuleConditionTextField
             width: parent.width
             placeholderText: qsTr("true")
 
-            onAccepted: breakpointModuleConditionDialog.accept()
-            Keys.onEscapePressed: breakpointModuleConditionDialog.reject()
+            onAccepted: breakpointModuleSettingDialog.accept()
+            Keys.onEscapePressed: breakpointModuleSettingDialog.reject()
         }
     }
 
@@ -255,18 +255,18 @@ Item {
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.markerInsert(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
+            onTriggered: breakpointModule.markerAdd(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
         }
 
         MenuItem {
-            text: qsTr("Condition")
-            icon.source: "qrc:/icon/equalCircle.svg"
+            text: qsTr("Setting")
+            icon.source: "qrc:/icon/settings.svg"
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                breakpointModuleConditionDialog.url = breakpointModuleLineMenu.url
-                breakpointModuleConditionDialog.line = breakpointModuleLineMenu.line
-                breakpointModuleConditionDialog.open()
+                breakpointModuleSettingDialog.url = breakpointModuleLineMenu.url
+                breakpointModuleSettingDialog.line = breakpointModuleLineMenu.line
+                breakpointModuleSettingDialog.open()
             }
         }
 
@@ -2237,7 +2237,7 @@ Item {
             }
         }
     }
-    
+
     ToolTip {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
