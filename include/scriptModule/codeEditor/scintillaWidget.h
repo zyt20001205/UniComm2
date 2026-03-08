@@ -13,6 +13,8 @@ public:
 
     ~ScintillaWidget() override = default;
 
+    [[nodiscard]] int codePageGet() const;
+
     [[nodiscard]] int eolModeGet() const;
 
     [[nodiscard]] bool modifyGet() const;

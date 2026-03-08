@@ -25,6 +25,7 @@ private:
     QQuickItem *m_rootItem{};
     QObject *m_positionButton{};
     QObject *m_eolModeButton{};
+    QObject *m_codePageButton{};
     QObject *m_threadButton{};
 };
 

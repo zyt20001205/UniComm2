@@ -15,6 +15,10 @@ ScintillaWidget::ScintillaWidget(QWidget *parent)
 }
 
 // public: file
+int ScintillaWidget::codePageGet() const {
+    return send(SCI_GETCODEPAGE);
+}
+
 int ScintillaWidget::eolModeGet() const {
     return send(SCI_GETEOLMODE);
 }

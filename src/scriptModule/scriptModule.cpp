@@ -826,7 +826,8 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     if (status) {
         m_focusedPage = scriptPage;
         const QVariantHash session = {
-            {"eolMode", scriptPage->m_editorWidget->eolModeGet()},
+            {"codePage", scriptPage->m_editorWidget->codePageGet()},
+            {"eolMode", scriptPage->m_editorWidget->eolModeGet()}
         };
         emit focusScript(scriptPage->m_scriptUrl, session);
     }

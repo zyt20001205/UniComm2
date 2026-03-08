@@ -92,6 +92,21 @@ Item {
         }
 
         Button {
+            id: codePageButton
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            Layout.preferredWidth: codePageButtonTextMetrics.width + 8; Layout.preferredHeight: 20
+
+            // onClicked:
+
+            TextMetrics {
+                id: codePageButtonTextMetrics
+                text: codePageButton.text
+                font: codePageButton.font
+            }
+        }
+
+        Button {
             id: threadButton
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
@@ -112,6 +127,7 @@ Item {
         const objects = {
             "positionButton": positionButton,
             "eolModeButton": eolModeButton,
+            "codePageButton": codePageButton,
             "threadButton": threadButton
         };
         statusModule.propertyGet(objects)

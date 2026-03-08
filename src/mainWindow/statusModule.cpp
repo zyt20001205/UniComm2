@@ -28,6 +28,7 @@ void StatusModule::propertySet(const QVariantMap &objects) {
 void StatusModule::propertyGet(const QVariantMap &objects) {
     m_positionButton = qvariant_cast<QObject *>(objects["positionButton"]);
     m_eolModeButton = qvariant_cast<QObject *>(objects["eolModeButton"]);
+    m_codePageButton = qvariant_cast<QObject *>(objects["codePageButton"]);
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
@@ -45,6 +46,22 @@ void StatusModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &sessio
         case SC_EOL_CR: m_eolModeButton->setProperty("text", tr("CR"));
             break;
         case SC_EOL_LF: m_eolModeButton->setProperty("text", tr("LF"));
+            break;
+        default: break;
+    }
+
+    switch (session["codePage"].toInt()) {
+        case 65001: m_codePageButton->setProperty("text", "UTF-8");
+            break;
+        case 932: m_codePageButton->setProperty("text", "Shift-JIS");
+            break;
+        case 936: m_codePageButton->setProperty("text", "GBK");
+            break;
+        case 949: m_codePageButton->setProperty("text", "EUC-KR");
+            break;
+        case 950: m_codePageButton->setProperty("text", "Big5");
+            break;
+        case 1361: m_codePageButton->setProperty("text", "JOHAB");
             break;
         default: break;
     }
