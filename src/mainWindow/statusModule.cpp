@@ -29,7 +29,7 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
-void StatusModule::scriptFocus(const QUrl &scriptUrl) const {
+void StatusModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &session) const {
     const QString scriptPath = scriptUrl.toLocalFile();
     const QString workspacePath = g_workspaceUrl.toLocalFile();
     const QDir workspaceDir(workspacePath);

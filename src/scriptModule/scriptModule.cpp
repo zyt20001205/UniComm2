@@ -822,10 +822,11 @@ void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList 
 }
 
 // private
-void ScriptModule::scriptFocus(ScriptPage *scriptPage, bool status) {
+void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     if (status) {
         m_focusedPage = scriptPage;
-        emit focusScript(scriptPage->m_scriptUrl);
+        const QVariantHash session{};
+        emit focusScript(scriptPage->m_scriptUrl, session);
     }
 }
 

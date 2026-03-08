@@ -22,7 +22,7 @@ public:
 
     void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
 
-    void scriptFocus(const QUrl &scriptUrl);
+    void scriptFocus(const QUrl &scriptUrl, const QVariantHash &session);
 
     Q_INVOKABLE void markerInsert(int row);
 

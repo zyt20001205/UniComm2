@@ -44,7 +44,7 @@ void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonA
     }
 }
 
-void StructureModule::scriptFocus(const QUrl &scriptUrl) {
+void StructureModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &session) {
     if (scriptUrl == m_currentScriptUrl) return;
     m_currentScriptUrl = scriptUrl;
     m_structureStandardItemModel->clear();

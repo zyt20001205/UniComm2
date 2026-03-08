@@ -137,7 +137,7 @@ signals:
 
     void startThread(const QUrl &scriptUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void focusScript(const QUrl &scriptUrl);
+    void focusScript(const QUrl &scriptUrl, const QVariantHash &session);
 
     void changeSelection(const QHash<QString, int> &selection);
 
