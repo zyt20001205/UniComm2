@@ -1015,6 +1015,9 @@ void ScriptPage::selectionChange() {
 
 void ScriptPage::contentChange() {
     m_selection = m_editorWidget->selectionGet();
+    // status refresh
+    breakpointLoad();
+    regionLoad();
     // lsp request
     didChangeNotification();
     documentHighlightRequest();
