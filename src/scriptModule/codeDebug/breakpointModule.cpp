@@ -119,7 +119,7 @@ void BreakpointModule::markerAdd(const QUrl &scriptUrl, const int line) {
 
 void BreakpointModule::breakpointDelete(const QUrl &scriptUrl, const int line) {
     breakpointRemove(scriptUrl, line);
-    emit deleteMarker(scriptUrl, MARKER_BREAKPOINT, line - 1);
+    emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
 }
 
 void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
@@ -143,6 +143,14 @@ void BreakpointModule::allDelete() {
         const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
         breakpointsDelete(scriptUrl);
     }
+}
+
+bool BreakpointModule::enabledGet(const QUrl &scriptUrl, const int line) {
+    return g_breakpoints[scriptUrl][line]["enabled"].toBool();
+}
+
+void BreakpointModule::enabledSet(const QUrl &scriptUrl, const int line, const bool status) {
+    g_breakpoints[scriptUrl][line]["enabled"] = status;
 }
 
 QString BreakpointModule::conditionGet(const QUrl &scriptUrl, const int line) {

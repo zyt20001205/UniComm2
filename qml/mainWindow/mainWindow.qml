@@ -221,12 +221,16 @@ Item {
         onAboutToShow: {
             widgetCount += 1
             mainWindow.overlayFocus()
+            breakpointModuleEnabledCheckBox.checkState = breakpointModule.enabledGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line) ? Qt.Checked : Qt.Unchecked
             breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
             breakpointModuleConditionTextField.selectAll()
         }
         onClosed: widgetCount -= 1
-        onAccepted: breakpointModule.conditionSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
+        onAccepted: {
+            breakpointModule.enabledSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleEnabledCheckBox.checked)
+            breakpointModule.conditionSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
+        }
 
         ColumnLayout {
             width: parent.width
@@ -236,6 +240,11 @@ Item {
                 horizontalAlignment: Text.AlignLeft
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
+            }
+
+            CheckBox {
+                id: breakpointModuleEnabledCheckBox
+                text: qsTr("Enabled")
             }
 
             TextField {

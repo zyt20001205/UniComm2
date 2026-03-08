@@ -277,7 +277,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"back", 0x9fd89f}
                 });
             m_editorWidget->markerDefine(
-                MARKER_BREAKPOINT,
+                MARKER_BREAKPOINT_ENABLED,
                 QJsonObject{
                     {"symbol", 0},
                     {"fore", 0x0000ff},
@@ -615,10 +615,10 @@ void ScriptPage::scriptClose() {
 
 // public: state
 void ScriptPage::breakpointLoad() const {
-    m_editorWidget->markerDelete(MARKER_BREAKPOINT);
+    m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED);
     if (g_breakpoints.contains(m_scriptUrl)) {
         for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
-            m_editorWidget->markerAdd(MARKER_BREAKPOINT, line - 1);
+            m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line - 1);
         }
     }
 }
@@ -1007,17 +1007,20 @@ void ScriptPage::marginClick(const Scintilla::Position position, const int mouse
                     }
                 }
                 qDebug() << "error: --#endregion not found";
-            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
+            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED) {
                 emit removeBreakpoint(m_scriptUrl, line + 1);
-                m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);
+                m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED, line);
             } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
                 m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
             } else {
-                emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
-                m_editorWidget->markerAdd(MARKER_BREAKPOINT, line);
+                emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash({
+                                          {"condition", ""},
+                                          {"enabled", true}
+                                      }));
+                m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line);
             }
         } else if (mouseButton == Qt::RightButton) {
-            if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
+            if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED) {
                 emit editBreakpoint(m_scriptUrl, line + 1);
             }
         }

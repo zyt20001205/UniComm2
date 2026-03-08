@@ -18,7 +18,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void breakpointConfigSave();
+    static void breakpointConfigSave();
 
     void breakpointInsert(const QUrl &scriptUrl, int line, const QVariantHash &session) const;
 
@@ -34,7 +34,11 @@ public:
 
     Q_INVOKABLE void allDelete();
 
-    Q_INVOKABLE static QString conditionGet(const QUrl &scriptUrl, int line);
+    Q_INVOKABLE [[nodiscard]] static bool enabledGet(const QUrl &scriptUrl, int line);
+
+    Q_INVOKABLE static void enabledSet(const QUrl &scriptUrl, int line, bool status);
+
+    Q_INVOKABLE [[nodiscard]] static QString conditionGet(const QUrl &scriptUrl, int line);
 
     Q_INVOKABLE static void conditionSet(const QUrl &scriptUrl, int line, const QString &condition);
 

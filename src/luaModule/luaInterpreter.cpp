@@ -300,6 +300,8 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         // debug state machine
         if (session["state"].toInt() == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(currentLine)) {
+                // enabled check
+                if (!g_breakpoints[currentUrl][currentLine]["enabled"].toBool()) return;
                 // conditional breakpoint
                 {
                     QString condition = g_breakpoints[currentUrl][currentLine]["condition"].toString();

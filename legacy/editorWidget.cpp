@@ -97,7 +97,7 @@ EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
 void EditorWidget::breakpointLoad() {
     if (g_breakpoints.contains(m_scriptUrl)) {
         for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
-            markerInsert(MARKER_BREAKPOINT, line - 1);
+            markerInsert(MARKER_BREAKPOINT_ENABLED, line - 1);
         }
     }
 }
