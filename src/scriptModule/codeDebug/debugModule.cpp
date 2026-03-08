@@ -17,7 +17,7 @@
 #include "luaModule/luaInterpreter.h"
 #include "scriptModule/scriptModule.h"
 
-// DebugModule public
+// public
 DebugModule::DebugModule()
     : DockWidget("Debug"),
       m_debugWidget(new QQuickWidget()),

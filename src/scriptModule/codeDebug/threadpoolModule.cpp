@@ -13,7 +13,7 @@
 #include "luaModule/luaInterpreter.h"
 #include "scriptModule/scriptModule.h"
 
-// ThreadpoolModule public
+// public
 ThreadpoolModule::ThreadpoolModule()
     : DockWidget("Threadpool"),
       m_threadpoolWidget(new QQuickWidget()),
@@ -64,7 +64,7 @@ void ThreadpoolModule::quit() {
     }
 }
 
-void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QString &threadId) {
+void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
     // preload thread with lua session
@@ -98,7 +98,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     // load thread with script
-    const QString script = g_script->textGet(scriptUrl);
+    const QString script = g_script->textGet(scriptUrl, startLine, startCharacter, endLine, endCharacter);
     connect(worker, &QThread::started, [interpreter, script] {
         interpreter->start(script);
         QThread::currentThread()->quit();
@@ -176,7 +176,7 @@ void ThreadpoolModule::valueSet(const QString &threadId, const QString &scriptUr
     }
 }
 
-// ThreadpoolModule private
+// private
 void ThreadpoolModule::threadAppend(const int mode, const QString &name, const QString &threadId) {
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT

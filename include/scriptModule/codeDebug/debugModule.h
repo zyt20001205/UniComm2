@@ -1,7 +1,6 @@
 #ifndef UNICOMM_DEBUG_H
 #define UNICOMM_DEBUG_H
 
-#include <QSortFilterProxyModel>
 #include <qstandarditemmodel.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
@@ -32,7 +31,7 @@ public:
 
     void debugStop(const QString &threadId);
 
-    Q_INVOKABLE QString threadGet() const;
+    Q_INVOKABLE [[nodiscard]] QString threadGet() const;
 
     Q_INVOKABLE void stateSet(const QString &threadId, int state);
 

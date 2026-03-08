@@ -6,7 +6,7 @@
 
 #include "globals.h"
 
-// DatabaseModule public
+// public
 DatabaseModule::DatabaseModule()
     : DockWidget("Database"),
       m_databaseWidget(new QQuickWidget()) {
@@ -94,6 +94,7 @@ void DatabaseModule::databaseWrite(QEventLoop *eventloop, bool *status, const QS
     eventloop->quit();
 }
 
+// private
 void DatabaseModule::databaseIndex() {
     m_databaseHash.clear();
     for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {

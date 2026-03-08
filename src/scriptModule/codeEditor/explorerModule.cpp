@@ -5,7 +5,7 @@
 
 #include "globals.h"
 
-// ExplorerModule public
+// public
 ExplorerModule::ExplorerModule()
     : DockWidget("Explorer"),
       m_explorerWidget(new QQuickWidget()),
@@ -42,13 +42,13 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 void ExplorerModule::scriptRun(const QString &scriptPath) {
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
     QString threadId{};
-    emit startThread(scriptUrl, LUATHREAD_RUN, threadId);
+    emit startThread(scriptUrl, LUATHREAD_RUN, threadId, -1, -1, -1, -1);
 }
 
 void ExplorerModule::scriptDebug(const QString &scriptPath) {
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
     QString threadId{};
-    emit startThread(scriptUrl, LUATHREAD_DEBUG, threadId);
+    emit startThread(scriptUrl, LUATHREAD_DEBUG, threadId, -1, -1, -1, -1);
 }
 
 void ExplorerModule::scriptOpen(const QString &scriptPath) {
@@ -56,6 +56,7 @@ void ExplorerModule::scriptOpen(const QString &scriptPath) {
     emit openScript(scriptUrl);
 }
 
+// protected
 bool ExplorerModule::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_explorerWidget) {
         if (event->type() == QEvent::FocusOut) {

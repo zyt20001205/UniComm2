@@ -30,7 +30,7 @@ public:
 
     Q_INVOKABLE void databaseSwap(int src, int dst);
 
-    Q_INVOKABLE void databaseClear(int index);
+    Q_INVOKABLE static void databaseClear(int index);
 
     void databaseWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
 

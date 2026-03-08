@@ -53,7 +53,7 @@ public:
 
     void charAdd(int ch);
 
-    void assemblyToggle(bool status) const;
+    void assemblyToggle(bool status);
 
     QUrl m_scriptUrl{};
     ScintillaWidget *m_editorWidget{};
@@ -186,8 +186,7 @@ private:
     QFileSystemWatcher *m_fileWatcher{};
     SearchWidget *m_searchWidget{};
     bool m_readonly = false;
-    // bool m_modified = false;
-    // QByteArray m_scriptHash{};
+
     QJsonArray m_scriptDiagnostic{};
     QVariantList m_scriptTypo{};
     int m_version = 1;
@@ -195,6 +194,7 @@ private:
     QSet<QChar> m_signatureHelpSet{};
     QSet<QChar> m_onTypeFormattingSet{};
     QHash<QChar, QChar> m_pairHash{};
+    QHash<int, int> m_l2aHash{};
 
     // semantic enum
     enum {

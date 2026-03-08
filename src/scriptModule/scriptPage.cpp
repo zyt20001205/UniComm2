@@ -308,8 +308,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 MARKER_HINT,
                 QJsonObject{
                     {"symbol", 22},
-                    {"fore", 0xffe6e6},
-                    {"back", 0xffe6e6}
+                    {"fore", 0xe0e0e0},
+                    {"back", 0xe0e0e0}
                 });
         }
         // style
@@ -471,7 +471,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 QJsonObject{
                     {"type", SC_MARGIN_SYMBOL},
                     {"width", 16},
-                    {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
+                    {"mask", static_cast<int>(~SC_MASK_FOLDERS)},
                     {"sensitive", true}
                 });
             m_assemblyWidget->marginDefine(
@@ -491,6 +491,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"symbol", 24},
                     {"fore", 0x00ffff},
                     {"back", 0x00ffff}
+                });
+            m_assemblyWidget->markerDefine(
+                MARKER_HINT,
+                QJsonObject{
+                    {"symbol", 22},
+                    {"fore", 0xe0e0e0},
+                    {"back", 0xe0e0e0}
                 });
         }
         // style
@@ -780,7 +787,7 @@ void ScriptPage::charAdd(const int ch) {
     }
 }
 
-void ScriptPage::assemblyToggle(const bool status) const {
+void ScriptPage::assemblyToggle(const bool status) {
     if (status) {
         QTemporaryFile tempFile;
         if (!tempFile.open()) return;
@@ -796,6 +803,7 @@ void ScriptPage::assemblyToggle(const bool status) const {
             m_assemblyWidget->textSet(error);
         } else {
             m_editorWidget->annotationClear();
+            m_l2aHash.clear();
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
@@ -823,6 +831,7 @@ void ScriptPage::assemblyToggle(const bool status) const {
                     if (startLine > 1) {
                         startLine--;
                         m_editorWidget->markerAdd(MARKER_NAVIGATION, startLine);
+                        m_l2aHash.insert(startLine, m_assemblyWidget->lineCountGet() - 2);
                     }
                     if (endLine > 1) endLine--;
                 } else if (text.contains("param")
@@ -846,6 +855,7 @@ void ScriptPage::assemblyToggle(const bool status) const {
         m_assemblyWidget->show();
     } else {
         m_editorWidget->annotationClear();
+        m_l2aHash.clear();
         m_assemblyWidget->textClear();
         m_assemblyWidget->hide();
     }
@@ -967,7 +977,7 @@ void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyM
             emit removeBreakpoint(m_scriptUrl, line + 1);
             m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);
         } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
-            qDebug() << "navigation required";
+            m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
         } else {
             emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
             m_editorWidget->markerAdd(MARKER_BREAKPOINT, line);

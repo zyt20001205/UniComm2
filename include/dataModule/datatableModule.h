@@ -18,7 +18,7 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void datatableConfigSave() const;
+    static void datatableConfigSave() ;
 
     void datatableList(QSet<QString> &datatableList) const;
 

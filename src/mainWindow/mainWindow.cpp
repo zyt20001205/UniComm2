@@ -41,7 +41,7 @@
 #include "scriptModule/codeAnalysis/structureModule.h"
 #include "scriptModule/codeDebug/watchModule.h"
 
-// MainWindow public
+// public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName, KDDockWidgets::MainWindowOption_None, parent) {
     // mainWindow ui init
@@ -315,7 +315,7 @@ void MainWindow::quitTrack(const float secondaryProgress, const QString &seconda
     m_quitDialog->setProperty("secondaryLog", secondaryLog);
 }
 
-// MainWindow protected
+// protected
 void MainWindow::closeEvent(QCloseEvent *event) {
     if (m_askForSaving) {
         event->ignore();
@@ -332,7 +332,7 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     }
 }
 
-// MainWindow private
+// private
 void MainWindow::moduleInit() {
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -409,7 +409,7 @@ void MainWindow::moduleInit() {
 
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &>(&ThreadpoolModule::threadStart));
+    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
 

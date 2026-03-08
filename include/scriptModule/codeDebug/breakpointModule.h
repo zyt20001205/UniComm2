@@ -1,7 +1,6 @@
 #ifndef UNICOMM_BREAKPOINTMODULE_H
 #define UNICOMM_BREAKPOINTMODULE_H
 
-#include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
 class QQuickWidget;
@@ -33,11 +32,11 @@ public:
 
     Q_INVOKABLE void breakpointsDelete(const QUrl &scriptUrl);
 
+    Q_INVOKABLE void allDelete();
+
     Q_INVOKABLE static QString conditionGet(const QUrl &scriptUrl, int line);
 
-    Q_INVOKABLE void conditionSet(const QUrl &scriptUrl, int line, const QString &condition);
-
-    Q_INVOKABLE void allDelete();
+    Q_INVOKABLE static void conditionSet(const QUrl &scriptUrl, int line, const QString &condition);
 
 signals:
     void openScript(const QUrl &scriptUrl);

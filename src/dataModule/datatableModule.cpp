@@ -10,6 +10,7 @@
 
 #include "globals.h"
 
+// public
 DatatableModule::DatatableModule()
     : DockWidget("Data Table"),
       m_datatableWidget(new QQuickWidget()) {
@@ -40,7 +41,7 @@ void DatatableModule::propertySet(const QVariantMap &objects) {
     m_rootItem = m_datatableWidget->rootObject();
 }
 
-void DatatableModule::datatableConfigSave() const {
+void DatatableModule::datatableConfigSave() {
     QJsonArray keyArray{};
     for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {
         const QString key = g_datatableHeaderItemModel->item(i, 0)->text();
@@ -154,7 +155,7 @@ void DatatableModule::datatableWrite(QEventLoop *eventloop, bool *status, const 
     eventloop->quit();
 }
 
-// DatatableModule private
+// private
 void DatatableModule::datatableIndex() {
     m_datatableHash.clear();
     for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {

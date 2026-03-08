@@ -21,7 +21,7 @@ public:
 
     void quit();
 
-    void threadStart(const QUrl &scriptUrl, int mode, QString &threadId);
+    void threadStart(const QUrl &scriptUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
     Q_INVOKABLE void threadStart(const QUrl &scriptUrl, int mode);
 
@@ -29,9 +29,9 @@ public:
 
     Q_INVOKABLE void threadStop(const QString &threadId);
 
-    Q_INVOKABLE bool debugging() const;
+    Q_INVOKABLE [[nodiscard]] bool debugging() const;
 
-    Q_INVOKABLE QString lifetimeCalc(int row) const;
+    Q_INVOKABLE [[nodiscard]] QString lifetimeCalc(int row) const;
 
     void stateSet(const QString &threadId, int state);
 

@@ -136,21 +136,21 @@ void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
     }
 }
 
+void BreakpointModule::allDelete() {
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
+    for (int i = indent0->rowCount() - 1; i >= 0; --i) {
+        const auto *indent1 = indent0->child(i);
+        const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
+        breakpointsDelete(scriptUrl);
+    }
+}
+
 QString BreakpointModule::conditionGet(const QUrl &scriptUrl, const int line) {
     return g_breakpoints[scriptUrl][line]["condition"].toString();
 }
 
 void BreakpointModule::conditionSet(const QUrl &scriptUrl, const int line, const QString &condition) {
     g_breakpoints[scriptUrl][line]["condition"] = condition;
-}
-
-void BreakpointModule::allDelete() {
-    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
-    for (int i = indent0->rowCount() - 1; i >= 0; --i) {
-        auto *indent1 = indent0->child(i);
-        const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
-        breakpointsDelete(scriptUrl);
-    }
 }
 
 // protected
