@@ -195,7 +195,8 @@ void ScintillaWidget::markerAdd(const int type, const int line, const int time) 
 }
 
 void ScintillaWidget::markerDelete(const int type, const int line) const {
-    send(SCI_MARKERDELETE, line, type); // NOLINT
+    if (line == -1) send(SCI_MARKERDELETEALL, type); // NOLINT
+    else send(SCI_MARKERDELETE, line, type); // NOLINT
 }
 
 int ScintillaWidget::markerGet(const int line) const {

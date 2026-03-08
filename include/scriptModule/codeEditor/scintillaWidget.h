@@ -65,7 +65,7 @@ public:
 
     void markerAdd(int type, int line, int time = -1) const;
 
-    void markerDelete(int type, int line) const;
+    void markerDelete(int type, int line = -1) const;
 
     [[nodiscard]] int markerGet(int line) const;
 

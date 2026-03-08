@@ -273,8 +273,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 MARKER_REGION,
                 QJsonObject{
                     {"symbol", 2},
-                    {"fore", 0x00ffff},
-                    {"back", 0x00ffff}
+                    {"fore", 0x107c10},
+                    {"back", 0x9fd89f}
                 });
             m_editorWidget->markerDefine(
                 MARKER_BREAKPOINT,
@@ -510,6 +510,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         }
     }
     QTimer::singleShot(0, this, [this] {
+        // state
+        breakpointLoad();
+        regionLoad();
         // lsp
         didOpenNotification();
         contentChange();
@@ -596,6 +599,26 @@ void ScriptPage::scriptClose() {
     emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
+}
+
+// public: state
+void ScriptPage::breakpointLoad() const {
+    m_editorWidget->markerDelete(MARKER_BREAKPOINT);
+    if (g_breakpoints.contains(m_scriptUrl)) {
+        for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
+            m_editorWidget->markerAdd(MARKER_BREAKPOINT, line - 1);
+        }
+    }
+}
+
+void ScriptPage::regionLoad() const {
+    m_editorWidget->markerDelete(MARKER_REGION);
+    for (int line = 0; line < m_editorWidget->lineCountGet(); ++line) {
+        const QString text = m_editorWidget->textGet(line, 0, line, -1);
+        if (text.contains("--#region")) {
+            m_editorWidget->markerAdd(MARKER_REGION, line);
+        }
+    }
 }
 
 // public: lsp

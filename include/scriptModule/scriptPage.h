@@ -33,6 +33,11 @@ public:
 
     void scriptClose();
 
+    // public: state
+    void breakpointLoad() const;
+
+    void regionLoad() const;
+
     // public: lsp
     void diagnosticsResponse(const QJsonArray &diagnostics);
 
