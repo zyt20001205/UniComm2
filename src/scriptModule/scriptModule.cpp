@@ -825,7 +825,9 @@ void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList 
 void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
     if (status) {
         m_focusedPage = scriptPage;
-        const QVariantHash session{};
+        const QVariantHash session = {
+            {"eolMode", scriptPage->m_editorWidget->eolModeGet()},
+        };
         emit focusScript(scriptPage->m_scriptUrl, session);
     }
 }

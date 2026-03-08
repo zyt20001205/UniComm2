@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <Scintilla.h>
 
 #include "globals.h"
 
@@ -26,6 +27,7 @@ void StatusModule::propertySet(const QVariantMap &objects) {
 
 void StatusModule::propertyGet(const QVariantMap &objects) {
     m_positionButton = qvariant_cast<QObject *>(objects["positionButton"]);
+    m_eolModeButton = qvariant_cast<QObject *>(objects["eolModeButton"]);
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
@@ -36,6 +38,16 @@ void StatusModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &sessio
     const QString relativePath = workspaceDir.relativeFilePath(scriptPath);
     const QVariantList pathList = QVariant::fromValue(relativePath.split('/')).toList();
     QMetaObject::invokeMethod(m_rootItem, "scriptPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
+
+    switch (session["eolMode"].toInt()) {
+        case SC_EOL_CRLF: m_eolModeButton->setProperty("text", tr("CRLF"));
+            break;
+        case SC_EOL_CR: m_eolModeButton->setProperty("text", tr("CR"));
+            break;
+        case SC_EOL_LF: m_eolModeButton->setProperty("text", tr("LF"));
+            break;
+        default: break;
+    }
 }
 
 void StatusModule::selectionChange(const QHash<QString, int> &selection) const {

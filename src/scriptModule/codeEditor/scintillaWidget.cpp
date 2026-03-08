@@ -15,12 +15,20 @@ ScintillaWidget::ScintillaWidget(QWidget *parent)
 }
 
 // public: file
+int ScintillaWidget::eolModeGet() const {
+    return send(SCI_GETEOLMODE);
+}
+
 bool ScintillaWidget::modifyGet() const {
     return send(SCI_GETMODIFY);
 }
 
 void ScintillaWidget::readonlySet(const bool status) const {
     send(SCI_SETREADONLY, status); // NOLINT
+}
+
+void ScintillaWidget::savepointSet() const {
+    send(SCI_SETSAVEPOINT); // NOLINT
 }
 
 // public: annotation
@@ -250,11 +258,6 @@ Position ScintillaWidget::closePositionGet(const QPoint &point) const {
 
 void ScintillaWidget::positionSet(const Position position) const {
     send(SCI_GOTOPOS, position); // NOLINT
-}
-
-// public: savepoint
-void ScintillaWidget::savepointSet() const {
-    send(SCI_SETSAVEPOINT); // NOLINT
 }
 
 // public: selection

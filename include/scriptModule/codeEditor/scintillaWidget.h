@@ -13,9 +13,13 @@ public:
 
     ~ScintillaWidget() override = default;
 
+    [[nodiscard]] int eolModeGet() const;
+
     [[nodiscard]] bool modifyGet() const;
 
     void readonlySet(bool status) const;
+
+    void savepointSet() const;
 
     void annotationClear() const;
 
@@ -82,8 +86,6 @@ public:
     [[nodiscard]] Scintilla::Position closePositionGet(const QPoint &point) const;
 
     void positionSet(Scintilla::Position position) const;
-
-    void savepointSet() const;
 
     [[nodiscard]] QHash<QString, int> selectionGet() const;
 

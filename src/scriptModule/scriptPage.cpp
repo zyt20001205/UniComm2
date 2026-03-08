@@ -1016,9 +1016,12 @@ void ScriptPage::marginClick(const Scintilla::Position position, const int mouse
                     }
                 }
                 qDebug() << "error: --#endregion not found";
-            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED || m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
+            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED) {
                 emit removeBreakpoint(m_scriptUrl, line + 1);
                 m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED, line);
+            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
+                emit removeBreakpoint(m_scriptUrl, line + 1);
+                m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED, line);
             } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
                 m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
             } else {

@@ -77,6 +77,21 @@ Item {
         }
 
         Button {
+            id: eolModeButton
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            Layout.preferredWidth: eolModeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
+
+            // onClicked:
+
+            TextMetrics {
+                id: eolModeButtonTextMetrics
+                text: eolModeButton.text
+                font: eolModeButton.font
+            }
+        }
+
+        Button {
             id: threadButton
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
@@ -96,6 +111,7 @@ Item {
     Component.onCompleted: {
         const objects = {
             "positionButton": positionButton,
+            "eolModeButton": eolModeButton,
             "threadButton": threadButton
         };
         statusModule.propertyGet(objects)
