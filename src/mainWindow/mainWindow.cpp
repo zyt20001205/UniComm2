@@ -180,6 +180,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_portModule->propertySet(portObjects);
 
     const QVariantMap scriptObjects = {
+        {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
         {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]},

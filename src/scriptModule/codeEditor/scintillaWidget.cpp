@@ -172,6 +172,21 @@ void ScintillaWidget::marginTextSet(const int line, const QString &text) const {
     send(SCI_MARGINSETTEXT, line, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
 }
 
+int ScintillaWidget::marginCountGet() const {
+    return send(SCI_GETMARGINS); // NOLINT
+}
+
+int ScintillaWidget::marginWidthGet(const int col) const {
+    if (col == -1) {
+        int width = 0;
+        for (int current = 0; current < marginCountGet(); ++current) {
+            width += send(SCI_GETMARGINWIDTHN, current);
+        }
+        return width;
+    }
+    return send(SCI_GETMARGINWIDTHN, col);
+}
+
 // public: marker
 void ScintillaWidget::markerDefine(const int type, const QJsonObject &config) const {
     if (config.contains("symbol")) send(SCI_MARKERDEFINE, type, config["symbol"].toInt()); // NOLINT

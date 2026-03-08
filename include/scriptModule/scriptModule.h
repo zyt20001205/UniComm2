@@ -170,13 +170,16 @@ private:
 
     void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
+    void breakpointEdit(const QUrl &scriptUrl, int line) const;
+
     void menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const;
 
     void tooltipSet(const QPoint &position, const QString &text) const;
 
     QJsonObject m_scriptConfig{};
+    QObject *m_breakpointEditDialog{};
     QObject *m_toolTip{};
-    QObject *m_scintillaMenu{};
+    QObject *m_menu{};
     WelcomePage *m_welcomePage{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};

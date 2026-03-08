@@ -128,11 +128,11 @@ Item {
 
                 onTapped: {
                     if (isTreeNode && hasChildren) {
-                        fileMenu.url = model.whatsThis
+                        fileMenu.scriptUrl = model.whatsThis
                         fileMenu.treeView = treeView
                         fileMenu.popup()
                     } else {
-                        lineMenu.url = model.whatsThis
+                        lineMenu.scriptUrl = model.whatsThis
                         lineMenu.line = model.display
                         lineMenu.treeView = treeView
                         lineMenu.popup()

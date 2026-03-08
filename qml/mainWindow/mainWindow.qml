@@ -208,39 +208,50 @@ Item {
 
     // breakpoint module
     Dialog {
-        id: breakpointModuleSettingDialog
+        id: breakpointModuleEditDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: 400
+        width: 600
         modal: true
-        title: qsTr("Enter Condition")
+        title: qsTr("Breakpoint Setting")
         standardButtons: Dialog.Ok
-        property url url
+        property url scriptUrl
         property int line
 
         onAboutToShow: {
             widgetCount += 1
             mainWindow.overlayFocus()
-            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleSettingDialog.url, breakpointModuleSettingDialog.line)
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
             breakpointModuleConditionTextField.selectAll()
         }
         onClosed: widgetCount -= 1
-        onAccepted: breakpointModule.conditionSet(breakpointModuleSettingDialog.url, breakpointModuleSettingDialog.line, breakpointModuleConditionTextField.text)
+        onAccepted: breakpointModule.conditionSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
 
-        TextField {
-            id: breakpointModuleConditionTextField
+        ColumnLayout {
             width: parent.width
-            placeholderText: qsTr("true")
 
-            onAccepted: breakpointModuleSettingDialog.accept()
-            Keys.onEscapePressed: breakpointModuleSettingDialog.reject()
+            Label {
+                text: breakpointModuleEditDialog.scriptUrl + ":" + breakpointModuleEditDialog.line
+                horizontalAlignment: Text.AlignLeft
+                wrapMode: Text.Wrap
+                Layout.fillWidth: true
+            }
+
+            TextField {
+                id: breakpointModuleConditionTextField
+                placeholderText: qsTr("true")
+                Layout.fillWidth: true
+
+                onAccepted: breakpointModuleEditDialog.accept()
+                Keys.onEscapePressed: breakpointModuleEditDialog.reject()
+            }
         }
     }
 
     Menu {
         id: breakpointModuleLineMenu
-        property url url
+        property url scriptUrl
         property int line
         property var treeView
 
@@ -255,7 +266,7 @@ Item {
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.markerAdd(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
+            onTriggered: breakpointModule.markerAdd(breakpointModuleLineMenu.scriptUrl, breakpointModuleLineMenu.line)
         }
 
         MenuItem {
@@ -264,9 +275,9 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                breakpointModuleSettingDialog.url = breakpointModuleLineMenu.url
-                breakpointModuleSettingDialog.line = breakpointModuleLineMenu.line
-                breakpointModuleSettingDialog.open()
+                breakpointModuleEditDialog.scriptUrl = breakpointModuleLineMenu.scriptUrl
+                breakpointModuleEditDialog.line = breakpointModuleLineMenu.line
+                breakpointModuleEditDialog.open()
             }
         }
 
@@ -275,7 +286,7 @@ Item {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.url, breakpointModuleLineMenu.line)
+            onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.scriptUrl, breakpointModuleLineMenu.line)
         }
 
         MenuSeparator {
@@ -306,7 +317,7 @@ Item {
 
     Menu {
         id: breakpointModuleFileMenu
-        property url url
+        property url scriptUrl
         property var treeView
 
         onAboutToShow: {
@@ -325,7 +336,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    breakpointModule.breakpointsDelete(breakpointModuleFileMenu.url)
+                    breakpointModule.breakpointsDelete(breakpointModuleFileMenu.scriptUrl)
                     progress = 0
                     breakpointModuleFileMenu.close()
                 }
@@ -2644,6 +2655,7 @@ Item {
 
             "lualsProgressDialog": lualsProgressDialog,
 
+            "breakpointModuleEditDialog": breakpointModuleEditDialog,
             "breakpointModuleLineMenu": breakpointModuleLineMenu,
             "breakpointModuleFileMenu": breakpointModuleFileMenu,
             "breakpointModuleRootMenu": breakpointModuleRootMenu,

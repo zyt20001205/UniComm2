@@ -73,6 +73,8 @@ signals:
 
     void changeSelection(const QHash<QString, int> &selection);
 
+    void editBreakpoint(const QUrl &scriptUrl, int line);
+
     void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
 
     void setTooltip(const QPoint &position, const QString &text);
@@ -123,7 +125,7 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
-    void marginClick(Scintilla::Position position, Scintilla::KeyMod modifiers, int margin);
+    void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
 
     void selectionChange();
 

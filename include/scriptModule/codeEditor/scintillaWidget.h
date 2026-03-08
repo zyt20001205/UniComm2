@@ -61,6 +61,10 @@ public:
 
     void marginTextSet(int line, const QString &text) const;
 
+    [[nodiscard]] int marginCountGet() const;
+
+    [[nodiscard]] int marginWidthGet(int col = -1) const;
+
     void markerDefine(int type, const QJsonObject &config) const;
 
     void markerAdd(int type, int line, int time = -1) const;

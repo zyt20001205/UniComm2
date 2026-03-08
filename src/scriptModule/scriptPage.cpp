@@ -401,8 +401,20 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 });
         }
         // signals
+        connect(m_editorWidget, &ScintillaEdit::notify, this, [this](const Scintilla::NotificationData *pscn) {
+            switch (pscn->nmhdr.code) {
+                case Scintilla::Notification::MarginClick: {
+                    marginClick(pscn->position, Qt::LeftButton, pscn->modifiers, pscn->margin);
+                }
+                break;
+                case Scintilla::Notification::MarginRightClick: {
+                    marginClick(pscn->position, Qt::RightButton, pscn->modifiers, pscn->margin);
+                }
+                break;
+                default: break;
+            }
+        });
         connect(m_editorWidget, &ScintillaEdit::charAdded, this, &ScriptPage::charAdd);
-        connect(m_editorWidget, &ScintillaEdit::marginClicked, this, &ScriptPage::marginClick);
         connect(m_editorWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
             if (updated == Scintilla::Update::Selection) m_selectionTimer->start();
         });
@@ -898,12 +910,15 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             m_dwellTimer->stop();
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             const auto modifiers = mouseEvent->modifiers();
+            const auto position = m_editorWidget->positionGet(localPos);
+            const auto index = m_editorWidget->indexGet(position);
+            // margin click
+            if (localPos.x() < m_editorWidget->marginWidthGet()) return false;
+            // text area click
             if (mouseEvent->button() == Qt::LeftButton) {
                 if (modifiers == Qt::ControlModifier) {
-                    const auto position = m_editorWidget->positionGet(localPos);
                     m_editorWidget->positionSet(position);
                     if (m_editorWidget->indicatorGet(position) & 1 << INDICATOR_HYPERLINK) {
-                        const auto index = m_editorWidget->indexGet(position);
                         emit requestDefinition(m_scriptUrl, index["line"], index["character"]);
                         emit requestReferences(m_scriptUrl, index["line"], index["character"]);
                     }
@@ -914,8 +929,6 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                 bool navigation = false;
                 bool rangeFormatting = false;
                 QString text{};
-                const auto position = m_editorWidget->positionGet(localPos);
-                const auto index = m_editorWidget->indexGet(position);
                 text = m_editorWidget->textGetSelected();
                 if (text.isEmpty()) {
                     m_editorWidget->positionSet(position);
@@ -981,26 +994,32 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
 }
 
 // private: slot
-void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyMod modifiers, const int margin) {
+void ScriptPage::marginClick(const Scintilla::Position position, const int mouseButton, Scintilla::KeyMod modifiers, const int margin) {
     const int line = m_editorWidget->lineGet(position);
     if (margin == 1) {
-        if (m_editorWidget->markerGet(line) & 1 << MARKER_REGION) {
-            for (int current = line; current < m_editorWidget->lineCountGet(); ++current) {
-                const QString text = m_editorWidget->textGet(current, 0, current, -1);
-                if (text.contains("--#endregion")) {
-                    emit startThread(m_scriptUrl, LUATHREAD_RUN, line + 1, 0, current - 1, -1);
-                    return;
+        if (mouseButton == Qt::LeftButton) {
+            if (m_editorWidget->markerGet(line) & 1 << MARKER_REGION) {
+                for (int current = line; current < m_editorWidget->lineCountGet(); ++current) {
+                    const QString text = m_editorWidget->textGet(current, 0, current, -1);
+                    if (text.contains("--#endregion")) {
+                        emit startThread(m_scriptUrl, LUATHREAD_RUN, line + 1, 0, current - 1, -1);
+                        return;
+                    }
                 }
+                qDebug() << "error: --#endregion not found";
+            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
+                emit removeBreakpoint(m_scriptUrl, line + 1);
+                m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);
+            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
+                m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
+            } else {
+                emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
+                m_editorWidget->markerAdd(MARKER_BREAKPOINT, line);
             }
-            qDebug() << "error: --#endregion not found";
-        } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
-            emit removeBreakpoint(m_scriptUrl, line + 1);
-            m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);
-        } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
-            m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
-        } else {
-            emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash());
-            m_editorWidget->markerAdd(MARKER_BREAKPOINT, line);
+        } else if (mouseButton == Qt::RightButton) {
+            if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
+                emit editBreakpoint(m_scriptUrl, line + 1);
+            }
         }
     }
 }
