@@ -69,6 +69,8 @@ signals:
 
     void closeScript(const QUrl &scriptUrl);
 
+    void startThread(const QUrl &scriptUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
+
     void changeSelection(const QHash<QString, int> &selection);
 
     void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);

@@ -985,17 +985,14 @@ void ScriptPage::marginClick(const Scintilla::Position position, Scintilla::KeyM
     const int line = m_editorWidget->lineGet(position);
     if (margin == 1) {
         if (m_editorWidget->markerGet(line) & 1 << MARKER_REGION) {
-            qDebug() << "WIP";
-            // const int startPos = m_editorWidget->positionFromLineIndex(line + 1, 0);
-            // for (int current = line; current < m_editorWidget->lines(); ++current) {
-            //     const QString lineText = m_editorWidget->text(current);
-            //     if (lineText.contains("--#endregion")) {
-            //         const int endPos = m_editorWidget->positionFromLineIndex(current, 0);
-            //         qDebug() << m_editorWidget->text(startPos, endPos);
-            //         return;
-            //     }
-            // }
-            // qDebug() << "error: --#endregion not found";
+            for (int current = line; current < m_editorWidget->lineCountGet(); ++current) {
+                const QString text = m_editorWidget->textGet(current, 0, current, -1);
+                if (text.contains("--#endregion")) {
+                    emit startThread(m_scriptUrl, LUATHREAD_RUN, line + 1, 0, current - 1, -1);
+                    return;
+                }
+            }
+            qDebug() << "error: --#endregion not found";
         } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT) {
             emit removeBreakpoint(m_scriptUrl, line + 1);
             m_editorWidget->markerDelete(MARKER_BREAKPOINT, line);

@@ -345,7 +345,7 @@ QString ScintillaWidget::textGetSelected() const {
     return QString::fromUtf8(buffer.constData(), length);
 }
 
-void ScintillaWidget::textSet(const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+void ScintillaWidget::textSet(const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     if (startLine == -1) {
         send(SCI_SETTEXT, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData())); // NOLINT
     } else {

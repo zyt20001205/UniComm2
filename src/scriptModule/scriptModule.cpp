@@ -201,6 +201,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         });
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
+        connect(scriptPage, &ScriptPage::startThread, this, &ScriptModule::startThread);
         connect(scriptPage, &ScriptPage::changeSelection, this, &ScriptModule::changeSelection);
         connect(scriptPage, &ScriptPage::showMenu, this, &ScriptModule::menuShow);
         connect(scriptPage, &ScriptPage::setTooltip, this, &ScriptModule::tooltipSet);

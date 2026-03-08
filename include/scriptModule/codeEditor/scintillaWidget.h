@@ -99,7 +99,7 @@ public:
 
     [[nodiscard]] QString textGetSelected() const;
 
-    void textSet(const QString &text, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    void textSet(const QString &text, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
     void textSetSelected(const QString &text) const;
 

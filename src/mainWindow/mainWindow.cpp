@@ -409,7 +409,7 @@ void MainWindow::moduleInit() {
 
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, QString &, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
+    connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
 
@@ -420,6 +420,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
     connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
+    connect(m_scriptModule, &ScriptModule::startThread, m_threadpoolModule, qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
     connect(m_scriptModule, &ScriptModule::focusScript, m_statusModule, &StatusModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
     connect(m_scriptModule, &ScriptModule::changeSelection, m_statusModule, &StatusModule::selectionChange);

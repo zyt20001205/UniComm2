@@ -116,9 +116,9 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     }
 }
 
-void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode) {
+void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     QString threadId{};
-    threadStart(scriptUrl, mode, threadId);
+    threadStart(scriptUrl, mode, threadId, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QString &threadId) {
