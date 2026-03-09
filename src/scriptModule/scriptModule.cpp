@@ -240,6 +240,22 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     m_scriptPageHash[scriptUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
+int ScriptModule::eolModeGet(const QUrl &scriptUrl) const {
+    return m_scriptPageHash[scriptUrl]->m_editorWidget->eolModeGet();
+}
+
+void ScriptModule::eolModeSet(const QUrl &scriptUrl, const int eolMode) const {
+    m_scriptPageHash[scriptUrl]->m_editorWidget->eolModeSet(eolMode);
+}
+
+bool ScriptModule::eolViewGet(const QUrl &scriptUrl) {
+    return m_scriptPageHash[scriptUrl]->m_editorWidget->eolViewGet();
+}
+
+void ScriptModule::eolViewSet(const QUrl &scriptUrl, const bool status) const {
+    m_scriptPageHash[scriptUrl]->m_editorWidget->eolViewSet(status);
+}
+
 // public: document
 void ScriptModule::foldContractTop(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);

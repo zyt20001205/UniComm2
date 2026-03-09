@@ -2274,6 +2274,60 @@ Item {
         }
     }
 
+    // status module
+    Menu {
+        id: statusModuleEolModeMenu
+        property var eolModeButton
+        property url scriptUrl
+        property int eolMode
+
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus()
+            statusModuleEolModeMenu.eolMode = scriptModule.eolModeGet(scriptUrl)
+            statusModuleEolModeViewItem.checked = scriptModule.eolViewGet(scriptUrl)
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: "CRLF"
+            enabled: statusModuleEolModeMenu.eolMode !== 0
+            onTriggered: {
+                scriptModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 0)
+                statusModuleEolModeMenu.eolModeButton.text = "CRLF"
+            }
+        }
+
+        MenuItem {
+            text: "CR"
+            enabled: statusModuleEolModeMenu.eolMode !== 1
+            onTriggered: {
+                scriptModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 1)
+                statusModuleEolModeMenu.eolModeButton.text = "CR"
+            }
+        }
+
+        MenuItem {
+            text: "LF"
+            enabled: statusModuleEolModeMenu.eolMode !== 2
+            onTriggered: {
+                scriptModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 2)
+                statusModuleEolModeMenu.eolModeButton.text = "LF"
+            }
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            id: statusModuleEolModeViewItem
+            checkable: true
+            text: qsTr("View EOL")
+
+            onTriggered: scriptModule.eolViewSet(statusModuleEolModeMenu.scriptUrl, statusModuleEolModeViewItem.checked)
+        }
+    }
+
     // structure module
     Menu {
         id: structureModuleRootMenu
@@ -2738,6 +2792,8 @@ Item {
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
             "scriptModuleToolTip": scriptModuleToolTip,
+
+            "statusModuleEolModeMenu": statusModuleEolModeMenu,
 
             "structureModuleRootMenu": structureModuleRootMenu,
 

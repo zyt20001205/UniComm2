@@ -17,6 +17,12 @@ public:
 
     [[nodiscard]] int eolModeGet() const;
 
+    void eolModeSet(int eolMode) const;
+
+    [[nodiscard]] bool eolViewGet() const;
+
+    void eolViewSet(bool status) const;
+
     [[nodiscard]] bool modifyGet() const;
 
     void readonlySet(bool status) const;

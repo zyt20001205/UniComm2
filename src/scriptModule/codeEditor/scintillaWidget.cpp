@@ -23,6 +23,19 @@ int ScintillaWidget::eolModeGet() const {
     return send(SCI_GETEOLMODE);
 }
 
+void ScintillaWidget::eolModeSet(const int eolMode) const {
+    send(SCI_SETEOLMODE, eolMode); // NOLINT
+    send(SCI_CONVERTEOLS, eolMode); // NOLINT
+}
+
+bool ScintillaWidget::eolViewGet() const {
+    return send(SCI_GETVIEWEOL);
+}
+
+void ScintillaWidget::eolViewSet(const bool status) const {
+    send(SCI_SETVIEWEOL, status); // NOLINT
+}
+
 bool ScintillaWidget::modifyGet() const {
     return send(SCI_GETMODIFY);
 }

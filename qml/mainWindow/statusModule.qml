@@ -82,7 +82,12 @@ Item {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             Layout.preferredWidth: eolModeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
-            // onClicked:
+            onClicked: {
+                eolModeMenu.eolModeButton = eolModeButton
+                eolModeMenu.scriptUrl = scriptUrl
+                const pos = eolModeButton.mapToItem(eolModeMenu.parent, 0, -eolModeMenu.height);
+                eolModeMenu.popup(pos.x, pos.y)
+            }
 
             TextMetrics {
                 id: eolModeButtonTextMetrics

@@ -46,6 +46,14 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
+    Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &scriptUrl) const;
+
+    Q_INVOKABLE void eolModeSet(const QUrl &scriptUrl, const int eolMode) const;
+
+    Q_INVOKABLE [[nodiscard]] bool eolViewGet(const QUrl &scriptUrl);
+
+    Q_INVOKABLE void eolViewSet(const QUrl &scriptUrl, bool status) const;
+
     Q_INVOKABLE void foldContractTop(const QUrl &scriptUrl);
 
     Q_INVOKABLE void foldContractRecursively(const QUrl &scriptUrl);

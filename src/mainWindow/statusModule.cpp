@@ -20,6 +20,7 @@ StatusModule::~StatusModule() {
 void StatusModule::propertySet(const QVariantMap &objects) {
     rootContext()->setContextProperty("statusModule", this);
     rootContext()->setContextProperty("workspaceName", g_workspaceUrl.fileName());
+    rootContext()->setContextProperty("eolModeMenu", qvariant_cast<QObject *>(objects["statusModuleEolModeMenu"]));
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/mainWindow/statusModule.qml"));
     m_rootItem = rootObject();
@@ -33,6 +34,7 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
 }
 
 void StatusModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &session) const {
+    rootContext()->setContextProperty("scriptUrl", scriptUrl);
     const QString scriptPath = scriptUrl.toLocalFile();
     const QString workspacePath = g_workspaceUrl.toLocalFile();
     const QDir workspaceDir(workspacePath);

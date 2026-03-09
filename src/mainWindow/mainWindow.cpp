@@ -206,7 +206,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_sendModule->propertySet(sendObjects);
 
     const QVariantMap statusObjects = {
-        //
+        {"statusModuleEolModeMenu", objects["statusModuleEolModeMenu"]}
     };
     m_statusModule->propertySet(statusObjects);
 
