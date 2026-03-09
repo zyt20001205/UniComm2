@@ -45,7 +45,7 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     const auto focusedUrl = QUrl(m_scriptConfig["scriptFocused"].toString());
     if (!focusedUrl.isEmpty() && m_scriptPageHash.contains(focusedUrl)) {
         QTimer::singleShot(0, this, [this, focusedUrl] {
-            m_scriptPageHash[focusedUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
+            m_scriptPageHash[focusedUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
         });
     }
 
@@ -198,9 +198,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         }
         // insert url to hash
         m_scriptPageHash[scriptUrl] = scriptPage;
-        connect(scriptPage, &KDDockWidgets::QtWidgets::DockWidget::isFocusedChanged, this, [this, scriptPage](const bool status) {
-            scriptFocus(scriptPage, status);
-        });
+        connect(scriptPage, &ScriptPage::isFocusedChanged, this, [this, scriptPage](const bool status) {scriptFocus(scriptPage, status);});
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::startThread, this, &ScriptModule::startThread);
@@ -239,7 +237,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
     }
     m_scriptPageHash[scriptUrl]->raise();
-    m_scriptPageHash[scriptUrl]->m_editorWidget->setFocus(Qt::MouseFocusReason);
+    m_scriptPageHash[scriptUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
 // public: document

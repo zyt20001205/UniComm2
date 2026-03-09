@@ -9,7 +9,7 @@ LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     : QWidget(parent),
       m_process(new QProcess(this)) {
     m_process->start(QCoreApplication::applicationDirPath() + "/lua-language-server/bin/lua-language-server.exe", {});
-    connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonResponse);
+    connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonParser);
     if (!m_process->waitForStarted()) {
         qDebug() << "failed to start process";
     }
@@ -96,19 +96,54 @@ void LuaLanguageServer::exitNotification() {
     jsonNotification("exit", QJsonObject{});
 }
 
-void LuaLanguageServer::jsonResponse() {
+void LuaLanguageServer::jsonParser() {
+    // append to buffer
+    m_buffer.append(m_process->readAllStandardOutput());
     while (true) {
-        // append to buffer
-        m_buffer.append(m_process->readAllStandardOutput());
         // extract header to get pack length
-        const long long headerFrontIndex = m_buffer.indexOf("Content-Length: ") + 16;
+        const long long headerStartIndex = m_buffer.indexOf("Content-Length: ") + 16;
         const long long headerEndIndex = m_buffer.indexOf("\r\n\r\n");
-        const QByteArray lengthBytes = m_buffer.mid(headerFrontIndex, headerEndIndex - headerFrontIndex);
+        if (headerEndIndex == -1) break;
+        const QByteArray lengthBytes = m_buffer.mid(headerStartIndex, headerEndIndex - headerStartIndex);
+        const int length = lengthBytes.toInt();
+        if (m_buffer.size() < headerEndIndex + 4 + length) break;
         const QByteArray dataBytes = m_buffer.mid(headerEndIndex + 4, lengthBytes.toInt());
         const QJsonObject json = QJsonDocument::fromJson(dataBytes).object();
         // qDebug() << json;
-        m_buffer.remove(0, headerEndIndex + 4 + lengthBytes.toInt());
-        if (json.contains("id")) {
+        m_buffer.remove(0, headerEndIndex + 4 + length);
+        if (json.contains("method")) {
+            const QString method = json["method"].toString();
+            if (method == "textDocument/publishDiagnostics") {
+                // publish diagnostics notification
+                const QJsonObject params = json["params"].toObject();
+                const QJsonArray diagnostics = params["diagnostics"].toArray();
+                QString uri = params["uri"].toString();
+                uri = QUrl::fromPercentEncoding(uri.toUtf8());
+                if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
+                    drive = drive.toUpper();
+                }
+                const QUrl scriptUrl(uri);
+                emit notificationPublishDiagnostics(scriptUrl, diagnostics);
+            }
+            else if (method == "$/progress") {
+                // progress notification
+                // qDebug() << json;
+                const QJsonObject params = json["params"].toObject();
+                const int token = params["token"].toInt();
+                const QJsonObject value = params["value"].toObject();
+                if (token == 2) {
+                    const int percentage = value["percentage"].toInt(100);
+                    m_progressDialog->setProperty("token2", percentage / 100.0);
+                } else if (token == 3) {
+                    const int percentage = value["percentage"].toInt(100);
+                    m_progressDialog->setProperty("token3", percentage / 100.0);
+                }
+            }
+            else {
+                qDebug() << "unknown lsp pack";
+                qDebug() << json;
+            }
+        } else if (json.contains("id")) {
             // return from request
             const int id = json["id"].toInt();
             const QString method = m_methods[id];
@@ -212,41 +247,12 @@ void LuaLanguageServer::jsonResponse() {
                 const QJsonArray result = json["result"].toArray();
                 emit responseTypeDefinition(scriptUrl, result);
             } else {
-                qDebug() << "unknown lsp response";
-                qDebug() << method << scriptUrl << json;
-            }
-        } else {
-            const QString method = json["method"].toString();
-            if (method == "textDocument/publishDiagnostics") {
-                // publish diagnostics notification
-                const QJsonObject params = json["params"].toObject();
-                const QJsonArray diagnostics = params["diagnostics"].toArray();
-                QString uri = params["uri"].toString();
-                uri = QUrl::fromPercentEncoding(uri.toUtf8());
-                if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
-                    drive = drive.toUpper();
-                }
-                const QUrl scriptUrl(uri);
-                emit notificationPublishDiagnostics(scriptUrl, diagnostics);
-            }
-            else if (method == "$/progress") {
-                // progress notification
-                // qDebug() << json;
-                const QJsonObject params = json["params"].toObject();
-                const int token = params["token"].toInt();
-                const QJsonObject value = params["value"].toObject();
-                if (token == 2) {
-                    const int percentage = value["percentage"].toInt(100);
-                    m_progressDialog->setProperty("token2", percentage / 100.0);
-                } else if (token == 3) {
-                    const int percentage = value["percentage"].toInt(100);
-                    m_progressDialog->setProperty("token3", percentage / 100.0);
-                }
-            }
-            else {
-                qDebug() << "unknown lsp notification";
+                qDebug() << "unknown lsp pack";
                 qDebug() << json;
             }
+        } else {
+            qDebug() << "unknown lsp pack";
+            qDebug() << json;
         }
         if (m_buffer.size() == 0) break;
     }

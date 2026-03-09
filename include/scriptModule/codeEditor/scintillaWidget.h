@@ -33,6 +33,8 @@ public:
 
     void eolAnnotationSet(int line, const QString &annotation) const;
 
+    void focusSet(bool status) const;
+
     void foldLevelSet(int line, int level) const;
 
     void foldContractTop() const;

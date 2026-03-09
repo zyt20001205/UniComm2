@@ -53,8 +53,12 @@ void ScintillaWidget::eolAnnotationClear() const {
     send(SCI_EOLANNOTATIONCLEARALL); // NOLINT
 }
 
-void ScintillaWidget::eolAnnotationSet(int line, const QString &annotation) const {
+void ScintillaWidget::eolAnnotationSet(const int line, const QString &annotation) const {
     send(SCI_EOLANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
+}
+
+void ScintillaWidget::focusSet(const bool status) const {
+    send(SCI_SETFOCUS, status); // NOLINT
 }
 
 // public: fold

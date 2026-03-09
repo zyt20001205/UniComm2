@@ -65,7 +65,7 @@ private:
 
     void exitNotification();
 
-    void jsonResponse();
+    void jsonParser();
 
     QObject* m_progressDialog{};
     QProcess *m_process{};
