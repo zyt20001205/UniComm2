@@ -1010,6 +1010,7 @@ void ScriptPage::marginClick(const Scintilla::Position position, const int mouse
                                           {"enabled", true}
                                       }));
                 m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line);
+                if (modifiers == Scintilla::KeyMod::Ctrl) emit editBreakpoint(m_scriptUrl, line + 1);
             }
         } else if (mouseButton == Qt::RightButton) {
             if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED || m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
