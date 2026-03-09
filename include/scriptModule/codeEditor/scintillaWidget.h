@@ -71,6 +71,8 @@ public:
 
     [[nodiscard]] int lineCountGet() const;
 
+    void lineDuplicate() const;
+
     [[nodiscard]] int lineGet(Scintilla::Position position) const;
 
     void marginDefine(int type, const QJsonObject &config) const;

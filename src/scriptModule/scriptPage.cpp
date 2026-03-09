@@ -34,6 +34,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_onTypeFormattingSet{'\n'},
       m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}} {
     setTitle(scriptUrl.fileName());
+    auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
+    connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
+    shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);

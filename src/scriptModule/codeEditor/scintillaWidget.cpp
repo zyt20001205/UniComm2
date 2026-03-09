@@ -181,6 +181,10 @@ int ScintillaWidget::lineCountGet() const {
     return static_cast<int>(send(SCI_GETLINECOUNT));
 }
 
+void ScintillaWidget::lineDuplicate() const {
+    send(SCI_LINEDUPLICATE); // NOLINT
+}
+
 int ScintillaWidget::lineGet(const Position position) const {
     return static_cast<int>(send(SCI_LINEFROMPOSITION, position));
 }
