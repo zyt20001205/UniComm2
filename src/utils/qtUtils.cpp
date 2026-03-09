@@ -2,9 +2,6 @@
 
 #include <QCryptographicHash>
 #include <QFile>
-#include <QIcon>
-#include <QPainter>
-#include <QSvgRenderer>
 #include <QTextDocument>
 #include <QUrl>
 
@@ -22,12 +19,6 @@ QByteArray fileHashCalc(const QString &fileInfo) {
 QByteArray fileHashCalc(const QUrl &fileInfo) {
     const QString filePath = fileInfo.toLocalFile();
     return fileHashCalc(filePath);
-}
-
-QByteArray stringHashCalc(const QString &content) {
-    QCryptographicHash hash(QCryptographicHash::Sha256);
-    hash.addData(content.toUtf8());
-    return hash.result();
 }
 
 QString md2plain(const QString &markdown) {

@@ -1,15 +1,13 @@
 #ifndef UNICOMM_QTUTILS_H
 #define UNICOMM_QTUTILS_H
 
-#include <QIcon>
+#include <QByteArray>
 
 class QUrl;
 
 QByteArray fileHashCalc(const QString &fileInfo);
 
 QByteArray fileHashCalc(const QUrl &fileInfo);
-
-QByteArray stringHashCalc(const QString &content);
 
 QString md2plain(const QString &markdown);
 
