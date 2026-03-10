@@ -4,6 +4,7 @@
 #include <QJsonObject>
 
 #include "basePort.h"
+#include "utils/qtUtils.h"
 
 class QSerialPort;
 
@@ -53,6 +54,7 @@ private:
     // port config
     QJsonObject m_portConfig{};
     //
+    RingBuffer m_buffer;
     bool m_syncMode = false;
     qint64 m_bufferSize = 0;
     QByteArray m_rxBuffer{};
