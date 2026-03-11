@@ -2,7 +2,6 @@
 
 
 #include <QCryptographicHash>
-#include <QCoreApplication>
 #include <QDeadlineTimer>
 #include <QFile>
 #include <QTextDocument>
@@ -39,19 +38,16 @@ RingBuffer::RingBuffer(const qsizetype capacity)
 
 qsizetype RingBuffer::write(const QByteArray &data) {
     const qsizetype length = data.size();
-    {
-        QMutexLocker locker(&m_mutex);
-        if (length == 0 || length > m_capacity - m_used) return 0;
-        const qsizetype firstChunk = qMin(length, m_capacity - m_writePos);
-        const qsizetype secondChunk = length - firstChunk;
-        if (firstChunk > 0) m_buffer.replace(m_writePos, firstChunk, data.constData(), firstChunk);
-        if (secondChunk > 0) m_buffer.replace(static_cast<qsizetype>(0), secondChunk, data.constData() + firstChunk, secondChunk);
+    QMutexLocker locker(&m_mutex);
+    if (length == 0 || length > m_capacity - m_used) return 0;
+    const qsizetype firstChunk = qMin(length, m_capacity - m_writePos);
+    const qsizetype secondChunk = length - firstChunk;
+    if (firstChunk > 0) m_buffer.replace(m_writePos, firstChunk, data.constData(), firstChunk);
+    if (secondChunk > 0) m_buffer.replace(static_cast<qsizetype>(0), secondChunk, data.constData() + firstChunk, secondChunk);
 
-        m_writePos = (m_writePos + length) % m_capacity;
-        m_used += length;
-    } // 显式释放锁，让 read 函数在 processEvents 期间能尽快获取到数据状态
-
-    m_condition.wakeOne(); // 唤醒等待者（虽然本例主要靠轮询，但保留此机制兼容多线程）
+    m_writePos = (m_writePos + length) % m_capacity;
+    m_used += length;
+    m_condition.wakeOne();
     return length;
 }
 
@@ -63,15 +59,7 @@ QByteArray RingBuffer::read(qsizetype length, const int timeout) {
         if (timeout == 0) return {};
         const QDeadlineTimer deadline(timeout);
         while (m_used < length) {
-            if (deadline.hasExpired()) return {};
-
-            // 关键逻辑：暂时释放锁，并手动驱动事件循环
-            locker.unlock();
-            QCoreApplication::processEvents(); // 让同一线程的 Timer 或网络事件有机会执行 write
-            QThread::msleep(1);                // 避免 CPU 100% 占用，短暂休眠
-            locker.relock();                   // 重新加锁检查 m_used
-
-            // 注意：这种方式比 wait() 略有延迟，但解决了单线程死锁问题
+            if (!m_condition.wait(&m_mutex, deadline)) return {};
         }
     }
     QByteArray data;
