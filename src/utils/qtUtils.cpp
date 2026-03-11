@@ -1,10 +1,12 @@
 #include "utils/qtUtils.h"
 
 
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDeadlineTimer>
 #include <QFile>
 #include <QTextDocument>
+#include <QThread>
 #include <QUrl>
 
 QByteArray fileHashCalc(const QString &fileInfo) {
@@ -59,7 +61,11 @@ QByteArray RingBuffer::read(qsizetype length, const int timeout) {
         if (timeout == 0) return {};
         const QDeadlineTimer deadline(timeout);
         while (m_used < length) {
-            if (!m_condition.wait(&m_mutex, deadline)) return {};
+            if (deadline.hasExpired()) return {};
+            locker.unlock();
+            QCoreApplication::processEvents();
+            QThread::msleep(1);
+            locker.relock();
         }
     }
     QByteArray data;
