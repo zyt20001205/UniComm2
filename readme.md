@@ -92,9 +92,8 @@ gantt
     section coding
         scintilla migration: done, 02-11, 30d
         status bar: done, 3d
-        
+        textDocument/rename: 03-31, 30d
         search bar: 03-31, 30d
-        
         git integration: 04-30, 30d
 
     section infra
@@ -105,26 +104,23 @@ gantt
         setting window: 03-31, 30d
 ```
 
+# APIS
+
+## Port Communication
+
+### [Base APIS](#base-apis)
+
+### [Modbus APIS](#modbus-apis)
+
+### [SMTP APIS](#smtp-apis)
+
+## Data Process
+
+### [Database APIS](#database-apis)
+
+### [Datatable APIS](#datatable-apis)
+
 # Port Module
-
-## Architecture
-
-```mermaid
-flowchart LR
-    port[Port]
-
-    subgraph Lua Basic APIS
-        portControl[Port Control]
-        portIO[Port IO]
-    end
-
-    subgraph Lua Service APIS
-        modbus[Modbus]
-    end
-
-    port --> portControl & portIO
-    portIO --> modbus
-```
 
 ## Support Port Types
 
@@ -143,7 +139,7 @@ flowchart LR
         <td>Presentation</td>
         <td colspan="2"></td>
         <td colspan="2"></td>
-        <td align = "center" colspan="2">Image Processing</td>
+        <td align = "center" colspan="2"><a href ="#video-stream">Video Stream</a></td>
     </tr>
     <tr>
         <td>Session</td>
@@ -174,53 +170,12 @@ flowchart LR
         <td>Physical</td>
         <td align = "center" colspan="2">RJ45</td>
         <td align = "center" colspan="2"><a href ="#serial-port">Serial Port</a></td>
-        <td align = "center"><a href ="#screen">Screen</a></td>
-        <td align = "center"><a href ="#camera">Camera</a></td>
+        <td align = "center">Screen</td>
+        <td align = "center">Camera</td>
     </tr>
 </table>
 
-### Serial Port
-
-| Feature      | Status                                                              |
-|--------------|---------------------------------------------------------------------|
-| Baud Rate    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| Data Bits    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| Parity       | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| Stop Bits    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| Flow Control | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-
-### TCP
-
-| Feature              | Status                                                              |
-|----------------------|---------------------------------------------------------------------|
-| TCP Client           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| TCP Server Unicast   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| TCP Server Broadcast | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-
-### UDP
-
-| Feature    | Status                                                              |
-|------------|---------------------------------------------------------------------|
-| UDP Socket | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-
-### Screen
-
-| Feature          | Status                                                              |
-|------------------|---------------------------------------------------------------------|
-| Area Selection   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| Image Processing | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| OCR              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| DPI Adapt        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-
-### Camera
-
-| Feature          | Status                                                              |
-|------------------|---------------------------------------------------------------------|
-| Area Selection   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| Image Processing | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| OCR              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-
-## APIS
+## Base APIS
 
 |    APIS    |                             Serial Port                             |                             Tcp Client                              |                             Tcp Server                              |                                 Udp Socket                                 |                               Screen                                |                               Camera                                |
 |:----------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|:--------------------------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
@@ -230,28 +185,45 @@ flowchart LR
 | port.read  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | port.write | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Partial Pass](https://img.shields.io/badge/Status-Partial%20Pass-yellow) |    ![Unsupported](https://img.shields.io/badge/unsupported-red)     |    ![Unsupported](https://img.shields.io/badge/unsupported-red)     |
 
-- [How is data processed in the write method?](#write-method-data-process)
-
-- [How does timeout argument work in the read method?](#difference-between-blocking--non-blocking)
-
 ## Modbus APIS
 
-| Function Code & Name                             | RTU Mode                                                            | ASCII Mode                                             |
-|:-------------------------------------------------|:--------------------------------------------------------------------|:-------------------------------------------------------|
-| 01 (0x01) Read Coils                             | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 02 (0x02) Read Discrete Inputs                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 03 (0x03) Read Holding Registers                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 04 (0x04) Read Input Registers                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 05 (0x05) Write Single Coil                      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 06 (0x06) Write Single Register                  | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 08 (0x08) Diagnostics                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 11 (0x0B) Get Comm Event Counter                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 15 (0x0F) Write Multiple Coils                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 16 (0x10) Write Multiple Registers               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 17 (0x11) Report Server ID                       | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 22 (0x16) Mask Write Register                    | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 23 (0x17) Read/Write Multiple Registers          | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
-| 43 / 14 (0x2B / 0x0E) Read Device Identification | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow) |
+| Modbus Protocol                                  |                                  APIS                                  | RTU Mode                                                            | ASCII Mode                                                          |
+|:-------------------------------------------------|:----------------------------------------------------------------------:|:--------------------------------------------------------------------|:--------------------------------------------------------------------|
+| 01 (0x01) Read Coils                             |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 02 (0x02) Read Discrete Inputs                   |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 03 (0x03) Read Holding Registers                 |      modbusRtu.readHoldRegisters<br>modbusAscii.readHoldRegisters      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| 04 (0x04) Read Input Registers                   |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 05 (0x05) Write Single Coil                      |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 06 (0x06) Write Single Register                  |    modbusRtu.writeSingleRegister<br>modbusAscii.writeSingleRegister    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| 08 (0x08) Diagnostics                            |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 11 (0x0B) Get Comm Event Counter                 |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 15 (0x0F) Write Multiple Coils                   |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 16 (0x10) Write Multiple Registers               | modbusRtu.writeMultipleRegisters<br>modbusAscii.writeMultipleRegisters | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| 17 (0x11) Report Server ID                       |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 22 (0x16) Mask Write Register                    |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 23 (0x17) Read/Write Multiple Registers          |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| 43 / 14 (0x2B / 0x0E) Read Device Identification |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+
+## SMTP APIS
+
+|   RFC 4954    |      APIS      |                               Status                                |                           
+|:-------------:|:--------------:|:-------------------------------------------------------------------:|
+|  AUTH LOGIN   | smtp.authLogin | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|  AUTH PLAIN   |                |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+| AUTH CRAM-MD5 |                |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+
+|               RFC 5321                |   APIS    |                               Status                                |                           
+|:-------------------------------------:|:---------:|:-------------------------------------------------------------------:|
+| Extended HELLO (EHLO) or HELLO (HELO) | smtp.ehlo | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|              MAIL (MAIL)              | smtp.mail | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|           RECIPIENT (RCPT)            |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|              DATA (DATA)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             RESET (RSET)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             VERIFY (VRFY)             |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             EXPAND (EXPN)             |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|              HELP (HELP)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|              NOOP (NOOP)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|              QUIT (QUIT)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 
 # Script Module
 
@@ -288,30 +260,26 @@ flowchart LR
 
 ## Supported LSP Specifications
 
-| LSP Specification                                                  | Type         | Status                                                                      |
-|:-------------------------------------------------------------------|:-------------|:----------------------------------------------------------------------------|
-| textDocument/didChange                                             | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/didClose                                              | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/didOpen                                               | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/didSave                                               | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/publishDiagnostics](#textdocumentpublishdiagnostics) | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/codeAction                                            | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                      |
-| textDocument/codeLens                                              | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                      |
-| [textDocument/completion](#textdocumentcompletion)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/definition](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/documentHighlight](#textdocumentdocumentHighlight)   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/foldingRange](#textdocumentfoldingrange)             | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/formatting](#textdocumentformatting)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/hover](#textdocumenthover)                           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/implementation](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/onTypeFormatting                                      | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/rangeFormatting                                       | Request      | ![Not Planned](https://img.shields.io/badge/Status-Not%20Planned-lightgrey) |
-| [textDocument/references](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| textDocument/rename                                                | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)                      |
-| [textDocument/semanticTokens](#textdocumentsemantictokens)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/signatureHelp](#textdocumentsignaturehelp)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
-| [textDocument/typeDefinition](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen)         |
+| LSP Specification                                                  | Type         | Status                                                              |
+|:-------------------------------------------------------------------|:-------------|:--------------------------------------------------------------------|
+| [textDocument/publishDiagnostics](#textdocumentpublishdiagnostics) | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/codeAction                                            | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/codeLens                                              | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| [textDocument/completion](#textdocumentcompletion)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/definition](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/documentHighlight](#textdocumentdocumentHighlight)   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/foldingRange](#textdocumentfoldingrange)             | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/formatting](#textdocumentformatting)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/hover](#textdocumenthover)                           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/implementation](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/onTypeFormatting                                      | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/rangeFormatting                                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/references](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/rename                                                | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| [textDocument/semanticTokens](#textdocumentsemantictokens)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/signatureHelp](#textdocumentsignaturehelp)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| [textDocument/typeDefinition](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ### textDocument/publishDiagnostics
 
@@ -372,7 +340,6 @@ Ctrl+Alt+L
 | [variable watch](#variable-operation)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [variable hot update](#variable-operation)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [callstack](#callstack)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [heatmap](#heatmap)                               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | [multithreading](#multithreading)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ### stop
@@ -419,10 +386,6 @@ Ctrl+Alt+L
 
 ![callstack](resources/assets/debug/callstack.gif)
 
-### heatmap
-
-![heatmap](resources/assets/debug/heatmap.gif)
-
 ### multithreading
 
 ![multithreading](resources/assets/debug/multithreading.gif)
@@ -431,7 +394,7 @@ Ctrl+Alt+L
 
 ## Database Module
 
-### APIS
+### Database APIS
 
 |      APIS      |                               Status                                |                           
 |:--------------:|:-------------------------------------------------------------------:|
@@ -439,129 +402,13 @@ Ctrl+Alt+L
 | database.write | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | database.clear | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
-# FAQ
+## Datatable Module
 
-## write method data process
+### Datatable APIS
 
-```mermaid
-flowchart RL
-    subgraph dataProcessWorkFlow[data process workflow]
-        input[/input/]
-        write["write()"]
-        handleWrite["handleWrite()"]
-        output[/output/]
-    end
-
-    input --> write
-    write -->|reformat\nsuffix| handleWrite
-    handleWrite --> output
-```
-
-- example: hex & modbus crc
-
-```lua
-port.write("Actual Port", "0103 0000 0001")
-```
-
-```mermaid
-flowchart TB
-    input[/0103 0000 0001/]
-    step1[010300000001]
-    step2["\x01\x03\x00\x00\x00\x01"]
-    step3[/"\x01\x03\x00\x00\x00\x01\x84\x0A"/]
-    input -->|space removed| step1
-    step1 -->|formatted| step2
-    step2 -->|suffix appended| step3
-```
-
-- example: ascii & crlf
-
-```lua
-port.write("Actual Port", "AT+STACH1=1")
-```
-
-```mermaid
-flowchart TB
-    input[/AT+STACH1=1/]
-    step1["\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"]
-    step2[/"\x41\x54\x2B\x53\x54\x41\x43\x48\x31\x3D\x31"\x0D\x0A/]
-    input -->|formatted| step1
-    step1 -->|suffix appended| step2
-```
-
-## difference between blocking & non-blocking
-
-### blocking dataflow
-
-```lua
-port.write("Actual Port", "How are you?")
-local rx = port.read("Actual Port", 1000, 6)
-```
-
-```mermaid
-sequenceDiagram
-    participant Lua Thread
-    participant Port Thread
-    participant Physical Port
-    Lua Thread ->> Port Thread: write
-    Note over Lua Thread, Port Thread: "How are you?"
-    activate Port Thread
-    Port Thread ->> Physical Port: dataflow
-    deactivate Port Thread
-    Note over Port Thread, Physical Port: "/x48/x6F/x77..."
-    Lua Thread ->> Port Thread: read
-    activate Port Thread
-    loop check every 10ms
-        Physical Port ->> Port Thread: dataflow
-    end
-    deactivate Port Thread
-    alt time <= 1000ms && length == 6bytes
-        Note over Port Thread, Physical Port: "/x47/x72/x65..."
-        Port Thread ->> Lua Thread: return
-        Note over Lua Thread, Port Thread: "Great!"
-        Note over Lua Thread: rx = "Great!"
-    else time > 1000ms || length != 6bytes
-        Port Thread ->> Lua Thread: return
-        Note over Lua Thread, Port Thread: ""
-        Note over Lua Thread: rx = ""
-    end
-
-```
-
-### non-blocking dataflow
-
-```lua
-port.write("Actual Port", "How are you?")
-sleep(1000)
-local rx = port.read("Actual Port", 0)
-```
-
-```mermaid
-
-sequenceDiagram
-    participant Lua Thread
-    participant Port Thread
-    participant Physical Port
-    Lua Thread ->> Port Thread: write
-    activate Lua Thread
-    Note over Lua Thread, Port Thread: "How are you?"
-    activate Port Thread
-    Port Thread ->> Physical Port: dataflow
-    deactivate Port Thread
-    Note over Port Thread, Physical Port: "/x48/x6F/x77..."
-    Note over Lua Thread: sleep 1000ms
-    activate Port Thread
-    loop fill buffer with last pack
-        Physical Port ->> Port Thread: dataflow 1
-        Note over Port Thread, Physical Port: "/x00/x00/x00..."
-        Note over Port Thread: buffer = "/x00/x00/x00..."
-        Physical Port ->> Port Thread: dataflow 2
-        Note over Port Thread, Physical Port: "/x47/x72/x65..."
-        Note over Port Thread: buffer = "/x47/x72/x65..."
-    end
-    deactivate Port Thread
-    Port Thread ->> Lua Thread: read
-    Note over Lua Thread, Port Thread: rx = buffer
-    deactivate Lua Thread
-
-```
+|       APIS       |                               Status                                |                           
+|:----------------:|:-------------------------------------------------------------------:|
+|  datatable.list  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| datatable.write  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| datatable.clear  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| datatable.export | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
