@@ -2,7 +2,6 @@
 #define UNICOMM_QTUTILS_H
 
 #include <QMutexLocker>
-#include <QWaitCondition>
 
 class QUrl;
 
@@ -18,7 +17,7 @@ public:
 
     [[nodiscard]] qsizetype write(const QByteArray &data);
 
-    [[nodiscard]] QByteArray read(qsizetype length, int timeout = 0);
+    [[nodiscard]] QByteArray read(qsizetype length);
 
     [[nodiscard]] qsizetype used();
 
@@ -31,7 +30,6 @@ private:
     qsizetype m_writePos{};
     qsizetype m_used{};
     QMutex m_mutex{};
-    QWaitCondition m_condition{};
 };
 
 #endif //UNICOMM_QTUTILS_H

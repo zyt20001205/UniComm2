@@ -21,6 +21,8 @@ public:
 
     virtual void close() = 0;
 
+    virtual void clear() = 0;
+
     virtual bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
         return false;
     }
@@ -29,11 +31,11 @@ public:
         return false;
     }
 
-    virtual QByteArray read(int timeout, int length, const QString &rxFormat) {
+    virtual QByteArray read(int length, int timeout, const QString &rxFormat) {
         return {};
     }
 
-    virtual QByteArray read(int timeout, int length, const QString &peerIp, const QString &rxFormat) {
+    virtual QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) {
         return {};
     }
 

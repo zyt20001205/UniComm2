@@ -30,21 +30,21 @@ std::string LuaModbusAscii::readHoldingRegisters(const std::string &portName, co
     const int length = quantity * 4 + 11;
     QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &timeout, &length, &rxData] {
+    QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
         status = port->write(":" + txData.toHex().toUpper(), "ascii", "modbus lrc");
-        rxData = port->read(timeout, length, "ascii");
+        rxData = port->read(length, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
 
     if (rxData.at(0) != ':') {
         throw sol::error(portName + ": modbus ascii read holding registers comma missing");
     }
-    if (rxData.mid(1, 2).toUInt(nullptr,16) != slaveAddr) {
+    if (rxData.mid(1, 2).toUInt(nullptr, 16) != slaveAddr) {
         throw sol::error(portName + ": modbus ascii read holding registers slave address inconsistent");
     }
-    if (rxData.mid(3, 2).toUInt(nullptr,16) != funcCode) {
+    if (rxData.mid(3, 2).toUInt(nullptr, 16) != funcCode) {
         throw sol::error(portName + ": modbus ascii read holding registers function code inconsistent");
     }
-    if (rxData.mid(5, 2).toUInt(nullptr,16) != quantity * 2) {
+    if (rxData.mid(5, 2).toUInt(nullptr, 16) != quantity * 2) {
         throw sol::error(portName + ": modbus ascii read holding registers byte count inconsistent");
     }
     const QByteArray checksum = rxData.right(4);
@@ -76,7 +76,7 @@ void LuaModbusAscii::writeSingleRegister(const std::string &portName, const int 
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
         status = port->write(":" + txData.toHex().toUpper(), "ascii", "modbus lrc");
-        rxData = port->read(timeout, 8, "ascii");
+        rxData = port->read(8, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -84,13 +84,13 @@ void LuaModbusAscii::writeSingleRegister(const std::string &portName, const int 
     if (rxData.at(0) != ':') {
         throw sol::error(portName + ": modbus ascii write single register comma missing");
     }
-    if (rxData.mid(1, 2).toUInt(nullptr,16) != slaveAddr) {
+    if (rxData.mid(1, 2).toUInt(nullptr, 16) != slaveAddr) {
         throw sol::error(portName + ": modbus ascii write single register slave address inconsistent");
     }
-    if (rxData.mid(3, 2).toUInt(nullptr,16) != funcCode) {
+    if (rxData.mid(3, 2).toUInt(nullptr, 16) != funcCode) {
         throw sol::error(portName + ": modbus ascii write single register function code inconsistent");
     }
-    if (rxData.mid(5, 4).toUInt(nullptr,16) != regAddr) {
+    if (rxData.mid(5, 4).toUInt(nullptr, 16) != regAddr) {
         throw sol::error(portName + ": modbus ascii write single register register address inconsistent");
     }
     const QByteArray checksum = rxData.right(4);
@@ -126,7 +126,7 @@ void LuaModbusAscii::writeMultipleRegisters(const std::string &portName, const i
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
         status = port->write(":" + txData.toHex().toUpper(), "ascii", "modbus lrc");
-        rxData = port->read(timeout, 8, "ascii");
+        rxData = port->read(8, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -134,13 +134,13 @@ void LuaModbusAscii::writeMultipleRegisters(const std::string &portName, const i
     if (rxData.at(0) != ':') {
         throw sol::error(portName + ": modbus ascii write multiple registers comma missing");
     }
-    if (rxData.mid(1, 2).toUInt(nullptr,16) != slaveAddr) {
+    if (rxData.mid(1, 2).toUInt(nullptr, 16) != slaveAddr) {
         throw sol::error(portName + ": modbus ascii write multiple registers slave address inconsistent");
     }
-    if (rxData.mid(3, 2).toUInt(nullptr,16) != funcCode) {
+    if (rxData.mid(3, 2).toUInt(nullptr, 16) != funcCode) {
         throw sol::error(portName + ": modbus ascii write multiple registers function code inconsistent");
     }
-    if (rxData.mid(5, 4).toUInt(nullptr,16) != startAddr) {
+    if (rxData.mid(5, 4).toUInt(nullptr, 16) != startAddr) {
         throw sol::error(portName + ": modbus ascii write multiple registers register address inconsistent");
     }
     const QByteArray checksum = rxData.right(4);

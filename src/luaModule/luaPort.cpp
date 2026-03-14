@@ -77,7 +77,7 @@ void LuaPort::write(const std::string &portName, const std::string_view &data, c
     }
 }
 
-sol::object LuaPort::read(const sol::this_state ts, const std::string &portName, const int timeout, const int length, const std::string &peerIp) {
+sol::object LuaPort::read(const sol::this_state ts, const std::string &portName, const int length, const int timeout, const std::string &peerIp) {
     sol::state_view lua(ts);
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
@@ -85,14 +85,14 @@ sol::object LuaPort::read(const sol::this_state ts, const std::string &portName,
     QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     if (port->type() == TCPSERVER) {
-        QMetaObject::invokeMethod(port, [&port, &timeout, &length, &peerIp, &rxData] {
-            rxData = port->read(timeout, length, "", QString::fromStdString(peerIp));
+        QMetaObject::invokeMethod(port, [&port, &length, &timeout, &peerIp, &rxData] {
+            rxData = port->read(length, timeout, "", QString::fromStdString(peerIp));
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
     if (port->type() == VIDEOSTREAM) {
-        QMetaObject::invokeMethod(port, [&port, &timeout, &length, &rxData] {
-            rxData = port->read(timeout, length, "");
+        QMetaObject::invokeMethod(port, [&port, &length, &timeout, &rxData] {
+            rxData = port->read(length, timeout, "");
         }, Qt::BlockingQueuedConnection);
         if (rxData.contains('\x1E')) {
             sol::table table = lua.create_table();
@@ -106,7 +106,7 @@ sol::object LuaPort::read(const sol::this_state ts, const std::string &portName,
         }
     } else {
         QMetaObject::invokeMethod(port, [&port, &timeout, &length, &rxData] {
-            rxData = port->read(timeout, length, "");
+            rxData = port->read(length, timeout, "");
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }

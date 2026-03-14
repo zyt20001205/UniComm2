@@ -103,9 +103,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         m_luaPort->write(portName, data, peerIp.value_or(""));
     });
     port.set_function("read",
-                      [this](const sol::this_state ts, const std::string &portName, const sol::optional<int> timeout, const sol::optional<int> length,
+                      [this](const sol::this_state ts, const std::string &portName, const sol::optional<int> length, const sol::optional<int> timeout,
                              const sol::optional<std::string> &peerIp) {
-                          return m_luaPort->read(ts, portName, timeout.value_or(0), length.value_or(0), peerIp.value_or(""));
+                          return m_luaPort->read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
                       });
     m_lua["port"] = port;
     connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);

@@ -4,6 +4,7 @@
 #include <QJsonObject>
 
 #include "basePort.h"
+#include "utils/qtUtils.h"
 
 class QTcpSocket;
 
@@ -25,9 +26,11 @@ public:
 
     void close() override;
 
+    void clear() override;
+
     bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
-    QByteArray read(int timeout, int length, const QString &rxFormat) override;
+    QByteArray read(int length, int timeout, const QString &rxFormat) override;
 
 signals:
     void connected();
@@ -49,19 +52,16 @@ private:
 
     bool handleWrite(const QByteArray &f_txData);
 
-    QByteArray handleRead(int timeout, int length);
+    QByteArray handleRead(int length, int timeout);
 
     void handleLog(const QString &mode, const QByteArray &data);
 
     QTcpSocket *m_tcpClient{};
-    // port config
     QJsonObject m_portConfig{};
     QString m_tcpClientLocalHost{};
     int m_tcpClientLocalPort{};
-    //
-    bool m_syncMode = false;
-    qint64 m_bufferSize = 0;
-    QByteArray m_rxBuffer{};
+    RingBuffer m_buffer;
+
 };
 
 #endif //UNICOMM_TCPCLIENT_H

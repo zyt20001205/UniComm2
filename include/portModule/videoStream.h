@@ -29,9 +29,11 @@ public:
 
     void close() override;
 
+    void clear() override;
+
     std::unordered_map<std::string, std::string> info() override;
 
-    QByteArray read(int timeout, int length, const QString &rxFormat) override;
+    QByteArray read(int length, int timeout, const QString &rxFormat) override;
 
 private:
     QMediaCaptureSession *m_mediaCaptureSession{};

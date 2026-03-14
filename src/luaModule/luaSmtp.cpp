@@ -27,7 +27,8 @@ void LuaSmtp::ehlo(const std::string &portName) {
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -49,7 +50,8 @@ void LuaSmtp::authLogin(const std::string &portName, const std::string &username
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -64,7 +66,8 @@ void LuaSmtp::authLogin(const std::string &portName, const std::string &username
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -79,7 +82,8 @@ void LuaSmtp::authLogin(const std::string &portName, const std::string &username
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -102,7 +106,8 @@ void LuaSmtp::mail(const std::string &portName, const std::string &from, const s
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -117,7 +122,8 @@ void LuaSmtp::mail(const std::string &portName, const std::string &from, const s
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -132,7 +138,8 @@ void LuaSmtp::mail(const std::string &portName, const std::string &from, const s
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -187,7 +194,8 @@ void LuaSmtp::mail(const std::string &portName, const std::string &from, const s
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
         status = port->write(txData, "ascii", "crlf");
-        rxData = port->read(1000, 3, "ascii");
+        port->clear();
+        rxData = port->read(3, 1000, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");

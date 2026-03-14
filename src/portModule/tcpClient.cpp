@@ -10,7 +10,8 @@
 // TcpClient public
 TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_portConfig(portConfig) {
+      m_portConfig(portConfig),
+      m_buffer(1024) {
 }
 
 TcpClient::~TcpClient() {
@@ -101,6 +102,10 @@ void TcpClient::close() {
     emit refreshPort(m_portConfig["portName"].toString(), false);
 }
 
+void TcpClient::clear() {
+    m_buffer.clear();
+}
+
 bool TcpClient::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
     if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
@@ -116,23 +121,10 @@ bool TcpClient::write(const QByteArray &txData, const QString &txFormat, const Q
     return handleWrite(f_txData);
 }
 
-QByteArray TcpClient::read(const int timeout, const int length, const QString &rxFormat) {
+QByteArray TcpClient::read(const int length, const int timeout, const QString &rxFormat) {
     QScopedValueRollback configRollback(m_portConfig);
     if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
-    QByteArray rxData;
-    // async mode
-    if (timeout == 0) {
-        rxData = m_rxBuffer;
-        m_rxBuffer = {};
-    }
-    // sync mode
-    else {
-        m_syncMode = true;
-        m_bufferSize = 0;
-        rxData = handleRead(timeout, length);
-        m_syncMode = false;
-    }
-    return rxData;
+    return handleRead(length, timeout);
 }
 
 // TcpClient private
@@ -155,17 +147,9 @@ void TcpClient::handleDisconnected() {
 }
 
 void TcpClient::handleReadyRead() {
-    QByteArray rxData;
-    if (m_syncMode) {
-        const auto newBufferSize = m_tcpClient->bytesAvailable();
-        rxData = m_tcpClient->peek(newBufferSize);
-        handleLog("rx", rxData.mid(m_bufferSize));
-        m_bufferSize = newBufferSize;
-    } else {
-        rxData = m_tcpClient->readAll();
-        handleLog("rx", rxData);
-    }
-    m_rxBuffer = rxData;
+    const auto rxData = m_tcpClient->readAll();
+    m_buffer.write(rxData);
+    handleLog("rx", rxData);
 }
 
 void TcpClient::handleError() {
@@ -194,7 +178,7 @@ bool TcpClient::handleWrite(const QByteArray &f_txData) {
     return true;
 }
 
-QByteArray TcpClient::handleRead(const int timeout, const int length) {
+QByteArray TcpClient::handleRead(const int length, const int timeout) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
         emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");
@@ -203,17 +187,12 @@ QByteArray TcpClient::handleRead(const int timeout, const int length) {
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
         return {};
     }
-    QElapsedTimer timer;
-    timer.start();
-    while (timer.elapsed() <= timeout) {
-        if (m_tcpClient->bytesAvailable() >= length) {
-            QByteArray rxData = m_tcpClient->readAll();
-            return rxData;
-        }
+    const QDeadlineTimer deadline(timeout);
+    while (m_buffer.used() < length) {
+        if (deadline.hasExpired()) break;
         m_tcpClient->waitForReadyRead(10);
     }
-    emit appendLog(QString("%1 timeout").arg(m_portConfig["portName"].toString()), "error");
-    return {};
+    return m_buffer.read(length);
 }
 
 void TcpClient::handleLog(const QString &mode, const QByteArray &data) {

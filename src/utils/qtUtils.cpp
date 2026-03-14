@@ -1,12 +1,9 @@
 #include "utils/qtUtils.h"
 
-
 #include <QCoreApplication>
 #include <QCryptographicHash>
-#include <QDeadlineTimer>
 #include <QFile>
 #include <QTextDocument>
-#include <QThread>
 #include <QUrl>
 
 QByteArray fileHashCalc(const QString &fileInfo) {
@@ -49,25 +46,13 @@ qsizetype RingBuffer::write(const QByteArray &data) {
 
     m_writePos = (m_writePos + length) % m_capacity;
     m_used += length;
-    m_condition.wakeOne();
     return length;
 }
 
-QByteArray RingBuffer::read(qsizetype length, const int timeout) {
+QByteArray RingBuffer::read(qsizetype length) {
     QMutexLocker locker(&m_mutex);
-    if (length < 0) return {};
+    if (length < 0 || length > m_used) return {};
     if (length == 0) length = m_used;
-    else if (length > m_used) {
-        if (timeout == 0) return {};
-        const QDeadlineTimer deadline(timeout);
-        while (m_used < length) {
-            if (deadline.hasExpired()) return {};
-            locker.unlock();
-            QCoreApplication::processEvents();
-            QThread::msleep(1);
-            locker.relock();
-        }
-    }
     QByteArray data;
     data.reserve(length);
     const qsizetype firstChunk = qMin(length, m_capacity - m_readPos);

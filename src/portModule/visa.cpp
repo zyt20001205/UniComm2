@@ -9,7 +9,8 @@
 // Visa public
 Visa::Visa(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
-      m_portConfig(portConfig) {
+      m_portConfig(portConfig),
+      m_buffer(1024) {
 }
 
 Visa::~Visa() {
@@ -57,6 +58,9 @@ void Visa::close() {
     }
 }
 
+void Visa::clear() {
+}
+
 bool Visa::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
     QScopedValueRollback configRollback(m_portConfig);
     if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
@@ -72,23 +76,10 @@ bool Visa::write(const QByteArray &txData, const QString &txFormat, const QStrin
     return handleWrite(f_txData);
 }
 
-QByteArray Visa::read(const int timeout, const int length, const QString &rxFormat) {
+QByteArray Visa::read(const int length, const int timeout, const QString &rxFormat) {
     QScopedValueRollback configRollback(m_portConfig);
     if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
-    QByteArray rxData;
-    // async mode
-    if (timeout == 0) {
-        rxData = m_rxBuffer;
-        m_rxBuffer = {};
-    }
-    // sync mode
-    else {
-        m_syncMode = true;
-        m_bufferSize = 0;
-        rxData = handleRead(timeout, length);
-        m_syncMode = false;
-    }
-    return rxData;
+    return handleRead(length, timeout);
 }
 
 // Visa private
@@ -110,7 +101,7 @@ bool Visa::handleWrite(const QByteArray &f_txData) {
     return false;
 }
 
-QByteArray Visa::handleRead(const int timeout, const int length) {
+QByteArray Visa::handleRead(const int length, const int timeout) {
     // // check port status
     // if (m_Visa == nullptr || !m_Visa->isOpen()) {
     //     emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");

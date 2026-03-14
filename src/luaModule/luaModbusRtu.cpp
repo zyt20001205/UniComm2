@@ -30,9 +30,9 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
     const int length = quantity * 2 + 5;
     QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &timeout, &length, &rxData] {
+    QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
         status = port->write(txData.toHex().toUpper(), "hex", "modbus crc");
-        rxData = port->read(timeout, length, "hex");
+        rxData = port->read(length, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -75,7 +75,7 @@ void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int sl
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
         status = port->write(txData.toHex().toUpper(), "hex", "modbus crc");
-        rxData = port->read(timeout, 8, "hex");
+        rxData = port->read(8, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -122,7 +122,7 @@ void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
         status = port->write(txData.toHex().toUpper(), "hex", "modbus crc");
-        rxData = port->read(timeout, 8, "hex");
+        rxData = port->read(8, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");

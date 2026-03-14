@@ -101,11 +101,14 @@ void VideoStream::close() {
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
 }
 
+void VideoStream::clear() {
+}
+
 std::unordered_map<std::string, std::string> VideoStream::info() {
     return {};
 }
 
-QByteArray VideoStream::read(const int timeout, const int length, const QString &rxFormat) {
+QByteArray VideoStream::read(const int length, const int timeout, const QString &rxFormat) {
     bool status = false;
     if (m_screenCapture) status = m_screenCapture->isActive();
     else if (m_cameraCapture) status = m_cameraCapture->isActive();

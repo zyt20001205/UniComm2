@@ -2,9 +2,10 @@
 #define UNICOMM_VISA_H
 
 #include <QJsonObject>
-#include "visatype.h"
+#include <visatype.h>
 
 #include "basePort.h"
+#include "utils/qtUtils.h"
 
 class Visa final : public BasePort {
     Q_OBJECT
@@ -24,9 +25,11 @@ public:
 
     void close() override;
 
+    void clear() override;
+
     bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
-    QByteArray read(int timeout, int length, const QString &rxFormat) override;
+    QByteArray read(int length, int timeout, const QString &rxFormat) override;
 
 signals:
     void connected();
@@ -36,17 +39,13 @@ signals:
 private:
     bool handleWrite(const QByteArray &f_txData);
 
-    QByteArray handleRead(int timeout, int length);
+    QByteArray handleRead(int length, int timeout);
 
     void handleLog(const QString &mode, const QByteArray &data);
 
     ViSession m_visa{};
-    // port config
     QJsonObject m_portConfig{};
-    //
-    bool m_syncMode = false;
-    qint64 m_bufferSize = 0;
-    QByteArray m_rxBuffer{};
+    RingBuffer m_buffer;
 };
 
 #endif //UNICOMM_VISA_H
