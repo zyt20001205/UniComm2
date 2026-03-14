@@ -22,7 +22,7 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/zyt20001205/UniComm2?color=%2334D058&label=Version)](https://github.com/zyt20001205/UniComm2/releases)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Qt](https://img.shields.io/badge/Qt-6.9.1-green)]()
+[![Qt](https://img.shields.io/badge/Qt-6.10.1-green)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)]()
 
 </div>
