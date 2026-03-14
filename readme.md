@@ -127,52 +127,65 @@ gantt
 
 <table align = "center">
     <tr>
-        <th colspan="7">OSI Model</th>
+        <th colspan="4">OSI Model</th>
     </tr>
     <tr>
         <td>Application</td>
-        <td colspan="2"></td>
-        <td align = "center">Modbus</td>
-        <td align = "center">USB TMC</td>
-        <td align = "center" colspan="2">OCR</td>
+        <td></td>
+        <td align = "center">
+            <img src="https://img.shields.io/badge/Modbus-Supported-brightgreen" alt="Modbus Support">
+            <br><img src="https://img.shields.io/badge/SMTP-Supported-brightgreen" alt="SMTP Support">
+            <br><img src="https://img.shields.io/badge/USB_TMC-Supported-brightgreen" alt="USB TMC Support">
+        </td>
+        <td align = "center">
+            <img src="https://img.shields.io/badge/OCR-Supported-brightgreen" alt="OCR Support">
+        </td>
     </tr>
     <tr>
         <td>Presentation</td>
-        <td colspan="2"></td>
-        <td colspan="2"></td>
-        <td align = "center" colspan="2"><a href ="#video-stream">Video Stream</a></td>
+        <td align = "center">
+            <img src="https://img.shields.io/badge/SSL/TLS-Supported-brightgreen" alt="SSL/TLS Support">
+        </td>
+        <td></td>
+        <td align = "center">
+            <img src="https://img.shields.io/badge/Video_Stream-Supported-brightgreen" alt="Video Stream Support">
+        </td>
     </tr>
     <tr>
         <td>Session</td>
-        <td colspan="2"></td>
-        <td colspan="2"></td>
-        <td colspan="2"></td>
+        <td></td>
+        <td></td>
+        <td></td>
     </tr>
     <tr>
         <td>Transport</td>
-        <td align = "center"><a href ="#tcp">TCP</a></td>
-        <td align = "center"><a href ="#udp">UDP</a></td>
-        <td colspan="2"></td>
-        <td colspan="2"></td>
+        <td align = "center">
+            <img src="https://img.shields.io/badge/TCP-Supported-brightgreen" alt="TCP Support">
+            <br><img src="https://img.shields.io/badge/UDP-Supported-brightgreen" alt="UDP Support">
+        </td>
+        <td></td>
+        <td></td>
     </tr>
     <tr>
         <td>Network</td>
-        <td align = "center" colspan="2">IP</td>
-        <td colspan="2"></td>
-        <td colspan="2"></td>
+        <td align = "center">IP</td>
+        <td></td>
+        <td></td>
     </tr>
     <tr>
         <td>Data Link</td>
-        <td align = "center" colspan="2">Ethernet</td>
-        <td align = "center" colspan="2">Serial Framing</td>
-        <td colspan="2"></td>
+        <td align = "center">Ethernet</td>
+        <td align = "center">Serial Framing</td>
+        <td></td>
     </tr>
     <tr>
         <td>Physical</td>
-        <td align = "center" colspan="2">RJ45</td>
-        <td align = "center" colspan="2"><a href ="#serial-port">Serial Port</a></td>
-        <td align = "center">Screen</td>
-        <td align = "center">Camera</td>
+        <td align = "center">RJ45</td>
+        <td align = "center">
+            <img src="https://img.shields.io/badge/Serial_Port-Supported-brightgreen" alt="Serial Port Support">
+        </td>
+        <td align = "center">Screen
+            <br>Camera</td>
     </tr>
 </table>
 
