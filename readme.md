@@ -246,9 +246,9 @@ gantt
 
 ```mermaid
 flowchart LR
-    luaLanguageServer[LuaLanguageServer]
+    luaLanguageServer[Lua Language Server 3.16.4]
     scriptModule[Script Module]
-    subgraph qScintilla[QScintilla]
+    subgraph scintilla[Scintilla 5.5.9]
         direction LR
         scriptPage1[Script Page 1]
         scriptPage2[Script Page 2]
@@ -258,7 +258,7 @@ flowchart LR
     scriptModule e1@ -->|LSP Request| luaLanguageServer
     scriptModule <==>|LSP Notification| luaLanguageServer
     luaLanguageServer e2@ -->|LSP Response| scriptModule
-    scriptModule --- qScintilla
+    scriptModule --- scintilla
     e1@{animate: true}
     e2@{animate: true}
 ```
