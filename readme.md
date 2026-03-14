@@ -91,14 +91,15 @@ gantt
 
     section coding
         scintilla migration: done, 02-11, 30d
-        status bar: done, 3d
+        status bar: done, 03-13, 3d
         textDocument/rename: 03-31, 30d
         search bar: 03-31, 30d
         git integration: 04-30, 30d
 
     section infra
         ringbuffer class: active, 03-01, 15d
-        ringbuffer apis: 15d
+        ringbuffer apis: active, 03-16, 15d
+        ringbuffer ui: 03-26, 5d
 
     section customize
         setting window: 03-31, 30d
@@ -260,135 +261,45 @@ flowchart LR
 
 ## Supported LSP Specifications
 
-| LSP Specification                                                  | Type         | Status                                                              |
-|:-------------------------------------------------------------------|:-------------|:--------------------------------------------------------------------|
-| [textDocument/publishDiagnostics](#textdocumentpublishdiagnostics) | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/codeAction                                            | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/codeLens                                              | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| [textDocument/completion](#textdocumentcompletion)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/definition](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/documentHighlight](#textdocumentdocumentHighlight)   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/documentSymbol](#textdocumentdocumentsymbol)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/foldingRange](#textdocumentfoldingrange)             | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/formatting](#textdocumentformatting)                 | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/hover](#textdocumenthover)                           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/implementation](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/onTypeFormatting                                      | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/rangeFormatting                                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/references](#textdocumentgoto)                       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| textDocument/rename                                                | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| [textDocument/semanticTokens](#textdocumentsemantictokens)         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/signatureHelp](#textdocumentsignaturehelp)           | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [textDocument/typeDefinition](#textdocumentgoto)                   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-
-### textDocument/publishDiagnostics
-
-![publishDiagnostics](resources/assets/lsp/publishDiagnostics.gif)
-
-### textDocument/completion
-
-![completion](resources/assets/lsp/completion.gif)
-
-### textDocument/documentHighlight
-
-![documentHighlight](resources/assets/lsp/documentHighlight.png)
-
-### textDocument/documentSymbol
-
-![documentSymbol](resources/assets/lsp/documentSymbol.gif)
-
-### textDocument/foldingRange
-
-![foldingRange](resources/assets/lsp/foldingRange.gif)
-
-### textDocument/formatting
-
-Ctrl+Alt+L
-
-![formatting](resources/assets/lsp/formatting.gif)
-
-### textDocument/goto
-
-![goto](resources/assets/lsp/goto.png)
-
-### textDocument/hover
-
-![hover](resources/assets/lsp/hover.gif)
-
-### textDocument/semanticTokens
-
-![semanticTokens](resources/assets/lsp/semanticTokens.png)
-
-### textDocument/signatureHelp
-
-![signatureHelp](resources/assets/lsp/signatureHelp.gif)
+| LSP Specification               | Type         | Status                                                              |
+|:--------------------------------|:-------------|:--------------------------------------------------------------------|
+| textDocument/publishDiagnostics | Notification | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/codeAction         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/codeLens           | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| textDocument/completion         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/definition         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/documentHighlight  | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/documentSymbol     | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/foldingRange       | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/formatting         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/hover              | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/implementation     | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/onTypeFormatting   | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/rangeFormatting    | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/references         | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/rename             | Request      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| textDocument/semanticTokens     | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/signatureHelp      | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| textDocument/typeDefinition     | Request      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ## Debug Features
 
-| Feature                                           | Status                                                              |
-|:--------------------------------------------------|:--------------------------------------------------------------------|
-| [stop](#stop)                                     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [resume](#resume)                                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [pause](#pause)                                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step over](#step-over)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step into](#step-into)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [step out](#step-out)                             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| [run to cursor](#run-to-cursor)                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-|                                                   |                                                                     |
-| [breakpoint console](#breakpoint-console)         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [conditional breakpoint](#conditional-breakpoint) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [variable watch](#variable-operation)             | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [variable hot update](#variable-operation)        | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [callstack](#callstack)                           | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| [multithreading](#multithreading)                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-
-### stop
-
-![stop](resources/assets/debug/stop.gif)
-
-### resume
-
-![resume](resources/assets/debug/resume.gif)
-
-### pause
-
-![pause](resources/assets/debug/pause.gif)
-
-### step over
-
-![stepOver](resources/assets/debug/stepOver.gif)
-
-### step into
-
-![stepInto](resources/assets/debug/stepInto.gif)
-
-### step out
-
-![stepOut](resources/assets/debug/stepOut.gif)
-
-### run to cursor
-
-![runToCursor](resources/assets/debug/runToCursor.gif)
-
-### breakpoint console
-
-![breakpointConsole](resources/assets/debug/breakpointConsole.gif)
-
-### conditional breakpoint
-
-![conditionalBreakpoint](resources/assets/debug/conditionalBreakpoint.gif)
-
-### variable operation
-
-![variableOperation](resources/assets/debug/variableOperation.gif)
-
-### callstack
-
-![callstack](resources/assets/debug/callstack.gif)
-
-### multithreading
-
-![multithreading](resources/assets/debug/multithreading.gif)
+| Feature                | Status                                                              |
+|:-----------------------|:--------------------------------------------------------------------|
+| stop                   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| resume                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| pause                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| step over              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| step into              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| step out               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| run to cursor          | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|                        |                                                                     |
+| breakpoint console     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| conditional breakpoint | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| variable watch         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| variable hot update    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| callstack              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| multithreading         | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 # Data Process
 
