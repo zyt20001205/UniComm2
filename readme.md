@@ -76,6 +76,35 @@ flowchart RL
 
 ```
 
+```mermaid
+gantt
+    title Development Schedule 2026
+    dateFormat MM-DD
+    axisFormat %m-%d
+    tickInterval 1month
+
+    section version
+        v0.1.0: done, 02-10, 1d
+        v0.2.0-alpha1: active, 02-11, 48d
+        v0.2.0-alpha2: 03-31, 30d
+        v0.2.0-alpha3: 04-30, 30d
+
+    section coding
+        scintilla migration: done, 02-11, 30d
+        status bar: done, 3d
+        
+        search bar: 03-31, 30d
+        
+        git integration: 04-30, 30d
+
+    section infra
+        ringbuffer class: active, 03-01, 15d
+        ringbuffer apis: 15d
+
+    section customize
+        setting window: 03-31, 30d
+```
+
 # Port Module
 
 ## Architecture
