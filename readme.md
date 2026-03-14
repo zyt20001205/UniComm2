@@ -187,43 +187,43 @@ gantt
 
 ## Modbus APIS
 
-| Modbus Protocol                                  |                                  APIS                                  | RTU Mode                                                            | ASCII Mode                                                          |
-|:-------------------------------------------------|:----------------------------------------------------------------------:|:--------------------------------------------------------------------|:--------------------------------------------------------------------|
-| 01 (0x01) Read Coils                             |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 02 (0x02) Read Discrete Inputs                   |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 03 (0x03) Read Holding Registers                 |      modbusRtu.readHoldRegisters<br>modbusAscii.readHoldRegisters      | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| 04 (0x04) Read Input Registers                   |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 05 (0x05) Write Single Coil                      |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 06 (0x06) Write Single Register                  |    modbusRtu.writeSingleRegister<br>modbusAscii.writeSingleRegister    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| 08 (0x08) Diagnostics                            |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 11 (0x0B) Get Comm Event Counter                 |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 15 (0x0F) Write Multiple Coils                   |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 16 (0x10) Write Multiple Registers               | modbusRtu.writeMultipleRegisters<br>modbusAscii.writeMultipleRegisters | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| 17 (0x11) Report Server ID                       |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 22 (0x16) Mask Write Register                    |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 23 (0x17) Read/Write Multiple Registers          |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
-| 43 / 14 (0x2B / 0x0E) Read Device Identification |                                                                        | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                  APIS                                  | Modbus Protocol                                  | RTU Mode                                                            | ASCII Mode                                                          |
+|:----------------------------------------------------------------------:|:-------------------------------------------------|:--------------------------------------------------------------------|:--------------------------------------------------------------------|
+|                                                                        | 01 (0x01) Read Coils                             | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 02 (0x02) Read Discrete Inputs                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|      modbusRtu.readHoldRegisters<br>modbusAscii.readHoldRegisters      | 03 (0x03) Read Holding Registers                 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|                                                                        | 04 (0x04) Read Input Registers                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 05 (0x05) Write Single Coil                      | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|    modbusRtu.writeSingleRegister<br>modbusAscii.writeSingleRegister    | 06 (0x06) Write Single Register                  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|                                                                        | 08 (0x08) Diagnostics                            | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 11 (0x0B) Get Comm Event Counter                 | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 15 (0x0F) Write Multiple Coils                   | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+| modbusRtu.writeMultipleRegisters<br>modbusAscii.writeMultipleRegisters | 16 (0x10) Write Multiple Registers               | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|                                                                        | 17 (0x11) Report Server ID                       | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 22 (0x16) Mask Write Register                    | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 23 (0x17) Read/Write Multiple Registers          | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
+|                                                                        | 43 / 14 (0x2B / 0x0E) Read Device Identification | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              | ![WIP](https://img.shields.io/badge/Status-WIP-yellow)              |
 
 ## SMTP APIS
 
-|   RFC 4954    |      APIS      |                               Status                                |                           
-|:-------------:|:--------------:|:-------------------------------------------------------------------:|
-|  AUTH LOGIN   | smtp.authLogin | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-|  AUTH PLAIN   |                |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
-| AUTH CRAM-MD5 |                |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|      APIS      |   RFC 4954    |                               Status                                |                           
+|:--------------:|:-------------:|:-------------------------------------------------------------------:|
+| smtp.authLogin |  AUTH LOGIN   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|                |  AUTH PLAIN   |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|                | AUTH CRAM-MD5 |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
 
-|               RFC 5321                |   APIS    |                               Status                                |                           
-|:-------------------------------------:|:---------:|:-------------------------------------------------------------------:|
-| Extended HELLO (EHLO) or HELLO (HELO) | smtp.ehlo | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-|              MAIL (MAIL)              | smtp.mail | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-|           RECIPIENT (RCPT)            |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|              DATA (DATA)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|             RESET (RSET)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|             VERIFY (VRFY)             |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|             EXPAND (EXPN)             |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|              HELP (HELP)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|              NOOP (NOOP)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|              QUIT (QUIT)              |           |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|   APIS    |               RFC 5321                |                               Status                                |                           
+|:---------:|:-------------------------------------:|:-------------------------------------------------------------------:|
+| smtp.ehlo | Extended HELLO (EHLO) or HELLO (HELO) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| smtp.mail |              MAIL (MAIL)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+|           |           RECIPIENT (RCPT)            |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |              DATA (DATA)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |             RESET (RSET)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |             VERIFY (VRFY)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |             EXPAND (EXPN)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |              HELP (HELP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |              NOOP (NOOP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |              QUIT (QUIT)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 
 # Script Module
 
