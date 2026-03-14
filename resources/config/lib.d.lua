@@ -193,8 +193,8 @@ function port.write(name, data, peerIp) end
 
 --- Reads data from a port.
 --- @param name portName Target port name.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param length? integer Number of bytes to read.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
 ---
 --- * 0(default): The function returns immediately.
@@ -208,20 +208,20 @@ function port.write(name, data, peerIp) end
 ---
 --- port.read("COM3")
 ---
---- @usage — Read data from port COM3 under async mode.
+--- @usage — Read data from port COM3 under immediately.
 ---
 --- port.write("COM3", "0110 0000 000102 0000")
 ---
 --- sleep(50)
 ---
---- port.read("COM3", 0)
+--- port.read("COM3")
 ---
---- @usage — Read data from port COM3 index under sync mode.
+--- @usage — Read 8 bytes data from port COM3 within 100ms.
 ---
 --- port.write("COM3", "0110 0000 000102 0000")
 ---
---- port.read("COM3", 100)
-function port.read(name, timeout, length, peerIp) end
+--- port.read("COM3", 8, 100)
+function port.read(name, length, timeout, peerIp) end
 
 smtp = {}
 --- Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
