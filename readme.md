@@ -108,17 +108,17 @@ gantt
 
 ## Port Communication
 
-### [Base APIS](#base-apis)
+### [Base](#base-apis)
 
-### [Modbus APIS](#modbus-apis)
+### [Modbus](#modbus-apis)
 
-### [SMTP APIS](#smtp-apis)
+### [SMTP](#smtp-apis)
 
 ## Data Process
 
-### [Database APIS](#database-apis)
+### [Database](#database-apis)
 
-### [Datatable APIS](#datatable-apis)
+### [Datatable](#datatable-apis)
 
 # Port Module
 
