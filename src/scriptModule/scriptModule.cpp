@@ -846,6 +846,10 @@ void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
             {"eolMode", scriptPage->m_editorWidget->eolModeGet()}
         };
         emit focusScript(scriptPage->m_scriptUrl, session);
+    } else {
+        scriptPage->m_editorWidget->indicatorClear(INDICATOR_HIGHLIGHT);
+        scriptPage->m_editorWidget->indicatorClear(INDICATOR_READ);
+        scriptPage->m_editorWidget->indicatorClear(INDICATOR_WRITE);
     }
 }
 
