@@ -91,7 +91,8 @@ gantt
 
     section coding
         scintilla migration: done, 02-11, 30d
-        status bar: done, 03-13, 3d
+        status bar: done, 03-10, 3d
+        assembly view: active, 03-13, 19d
         textDocument/rename: 04-01, 30d
         search bar: 04-01, 30d
         git integration: 05-01, 31d
