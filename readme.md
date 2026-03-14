@@ -85,24 +85,24 @@ gantt
 
     section version
         v0.1.0: done, 02-10, 1d
-        v0.2.0-alpha1: active, 02-11, 48d
-        v0.2.0-alpha2: 03-31, 30d
-        v0.2.0-alpha3: 04-30, 30d
+        v0.2.0-alpha1: active, 02-11, 49d
+        v0.2.0-alpha2: 04-01, 30d
+        v0.2.0-alpha3: 05-01, 31d
 
     section coding
         scintilla migration: done, 02-11, 30d
         status bar: done, 03-13, 3d
-        textDocument/rename: 03-31, 30d
-        search bar: 03-31, 30d
-        git integration: 04-30, 30d
+        textDocument/rename: 04-01, 30d
+        search bar: 04-01, 30d
+        git integration: 05-01, 31d
 
     section infra
-        ringbuffer class: active, 03-01, 15d
-        ringbuffer apis: active, 03-16, 15d
-        ringbuffer ui: 03-26, 5d
+        ringbuffer class: active, 03-01, 16d
+        ringbuffer apis: active, 03-17, 15d
+        ringbuffer ui: 03-29, 3d
 
     section customize
-        setting window: 03-31, 30d
+        setting window: 04-01, 30d
 ```
 
 # APIS
