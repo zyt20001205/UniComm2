@@ -93,14 +93,15 @@ gantt
         scintilla migration: done, 02-11, 30d
         status bar: done, 03-10, 3d
         assembly view: active, 03-13, 19d
-        textDocument/rename: 04-01, 30d
         search bar: 04-01, 30d
+        textDocument/rename: 04-11, 20d
         git integration: 05-01, 31d
 
     section infra
         ringbuffer class: active, 03-01, 16d
         ringbuffer apis: active, 03-17, 15d
         ringbuffer ui: 03-29, 3d
+        undo stack: 04-01, 10d
 
     section customize
         setting window: 04-01, 30d
