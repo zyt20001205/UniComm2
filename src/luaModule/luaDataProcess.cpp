@@ -1,6 +1,8 @@
 #include "luaModule/luaDataProcess.h"
 
 #include "globals.h"
+#include "dataModule/databaseModule.h"
+#include "dataModule/datatableModule.h"
 #include "utils/luaUtils.h"
 
 LuaDataProcess::LuaDataProcess(QObject *parent)
@@ -9,7 +11,8 @@ LuaDataProcess::LuaDataProcess(QObject *parent)
 
 std::vector<std::string> LuaDataProcess::databaseList() {
     QSet<QString> databaseSet{};
-    emit listDatabase(databaseSet);
+    QMetaObject::invokeMethod(g_database, "databaseList", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(QSet<QString>, databaseSet));
     std::vector<std::string> databaseList{};
     for (const auto &key: databaseSet) {
         databaseList.push_back(key.toStdString());
@@ -18,8 +21,6 @@ std::vector<std::string> LuaDataProcess::databaseList() {
 }
 
 void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
-    const auto eventloop = std::make_unique<QEventLoop>();
-    const auto status = std::make_unique<bool>();
     QString valueStr{};
     switch (value.get_type()) {
         case sol::type::boolean: {
@@ -43,16 +44,20 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
         }
         break;
     }
-    emit writeDatabase(eventloop.get(), status.get(), QString::fromStdString(key), valueStr);
-    eventloop->exec();
-    if (!*status) {
+    bool status = false;
+    QMetaObject::invokeMethod(g_database, "databaseWrite", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(bool, status),
+                              Q_ARG(QString, QString::fromStdString(key)),
+                              Q_ARG(QString, valueStr));
+    if (!status) {
         throw sol::error("failed to write to database key: " + key);
     }
 }
 
 std::vector<std::string> LuaDataProcess::datatableList() {
     QSet<QString> datatableSet{};
-    emit listDatatable(datatableSet);
+    QMetaObject::invokeMethod(g_datatable, "datatableList", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(QSet<QString>, datatableSet));
     std::vector<std::string> datatableList{};
     for (const auto &key: datatableSet) {
         datatableList.push_back(key.toStdString());
@@ -61,8 +66,6 @@ std::vector<std::string> LuaDataProcess::datatableList() {
 }
 
 void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {
-    const auto eventloop = std::make_unique<QEventLoop>();
-    const auto status = std::make_unique<bool>();
     QString valueStr{};
     switch (value.get_type()) {
         case sol::type::boolean: {
@@ -86,13 +89,17 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
         }
         break;
     }
-    emit writeDatatable(eventloop.get(), status.get(), QString::fromStdString(key), valueStr);
-    eventloop->exec();
-    if (!*status) {
+    bool status = false;
+    QMetaObject::invokeMethod(g_datatable, "datatableWrite", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(bool, status),
+                              Q_ARG(QString, QString::fromStdString(key)),
+                              Q_ARG(QString, valueStr));
+    if (!status) {
         throw sol::error("failed to write to datatable key: " + key);
     }
 }
 
 void LuaDataProcess::datatableExport(const std::string &fileName) {
-    emit exportDatatable(QString::fromStdString(fileName));
+    QMetaObject::invokeMethod(g_datatable, "datatableExport", Qt::QueuedConnection,
+                              Q_ARG(QString, QString::fromStdString(fileName)));
 }

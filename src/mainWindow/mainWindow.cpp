@@ -301,9 +301,9 @@ void MainWindow::workspaceOpen() {
 
 void MainWindow::workspaceSave(const QUrl &configUrl) {
     m_scriptModule->scriptConfigSave();
-    m_breakpointModule->breakpointConfigSave();
-    m_databaseModule->databaseConfigSave();
-    m_datatableModule->datatableConfigSave();
+    BreakpointModule::breakpointConfigSave();
+    DatabaseModule::databaseConfigSave();
+    DatatableModule::datatableConfigSave();
     m_logModule->logConfigSave();
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
@@ -448,11 +448,6 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
-    connect(m_threadpoolModule, &ThreadpoolModule::listDatabase, m_databaseModule, &DatabaseModule::databaseList);
-    connect(m_threadpoolModule, &ThreadpoolModule::writeDatabase, m_databaseModule, &DatabaseModule::databaseWrite);
-    connect(m_threadpoolModule, &ThreadpoolModule::listDatatable, m_datatableModule, &DatatableModule::datatableList);
-    connect(m_threadpoolModule, &ThreadpoolModule::writeDatatable, m_datatableModule, &DatatableModule::datatableWrite);
-    connect(m_threadpoolModule, &ThreadpoolModule::exportDatatable, m_datatableModule, &DatatableModule::datatableExport);
     connect(m_threadpoolModule, &ThreadpoolModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_threadpoolModule, &ThreadpoolModule::listPort, m_portModule, &PortModule::portList);
 }

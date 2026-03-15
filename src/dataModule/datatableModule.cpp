@@ -50,10 +50,12 @@ void DatatableModule::datatableConfigSave() {
     g_workspaceConfig["datatableConfig"] = keyArray;
 }
 
-void DatatableModule::datatableList(QSet<QString> &datatableList) const {
+QSet<QString> DatatableModule::datatableList() const {
+    QSet<QString> keys{};
     for (const QString &datatableKey: m_datatableHash.keys()) {
-        datatableList.insert(datatableKey);
+        keys.insert(datatableKey);
     }
+    return keys;
 }
 
 void DatatableModule::datatableInsert(int index, const QString &key) {
@@ -144,15 +146,14 @@ void DatatableModule::datatableExport(const QString &fileName) {
     qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 
-void DatatableModule::datatableWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value) {
-    if (!m_datatableHash.contains(key)) return;
+bool DatatableModule::datatableWrite(const QString &key, const QString &value) {
+    if (!m_datatableHash.contains(key)) return false;
     const auto col = m_datatableHash[key];
     const auto row = m_datatableSession[key]["length"].toInt();
     auto *item = new QStandardItem(value); // NOLINT
     g_datatableStandardItemModel->setItem(row, col, item);
     m_datatableSession[key]["length"] = m_datatableSession[key]["length"].toInt() + 1;
-    *status = true;
-    eventloop->quit();
+    return true;
 }
 
 // private

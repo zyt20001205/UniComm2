@@ -20,7 +20,7 @@ public:
 
     static void datatableConfigSave() ;
 
-    void datatableList(QSet<QString> &datatableList) const;
+    Q_INVOKABLE [[nodiscard]] QSet<QString> datatableList() const;
 
     Q_INVOKABLE void datatableInsert(int index, const QString &key);
 
@@ -34,7 +34,7 @@ public:
 
     Q_INVOKABLE void datatableExport(const QString &fileName);
 
-    void datatableWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
+    Q_INVOKABLE [[nodiscard]] bool datatableWrite(const QString &key, const QString &value);
 
 signals:
     void appendLog(const QString &message, const QString &level);

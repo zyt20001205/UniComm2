@@ -18,9 +18,9 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void databaseConfigSave() const;
+    static void databaseConfigSave();
 
-    void databaseList(QSet<QString> &databaseList) const;
+    Q_INVOKABLE [[nodiscard]] QSet<QString> databaseList() const;
 
     Q_INVOKABLE void databaseInsert(int index, const QString &key);
 
@@ -32,7 +32,7 @@ public:
 
     Q_INVOKABLE static void databaseClear(int index);
 
-    void databaseWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
+    Q_INVOKABLE [[nodiscard]] bool databaseWrite(const QString &key, const QString &value);
 
 signals:
     void appendLog(const QString &message, const QString &level);

@@ -54,16 +54,6 @@ signals:
 
     void stopDebug(const QString &threadId);
 
-    void listDatabase(QSet<QString> &databaseSet);
-
-    void writeDatabase(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
-
-    void listDatatable(QSet<QString> &datatableSet);
-
-    void writeDatatable(QEventLoop *eventloop, bool *status, const QString &key, const QString &value);
-
-    void exportDatatable(const QString &fileName);
-
     void appendLog(const QString &message, const QString &level);
 
     void listPort(QSet<QString> &portSet);

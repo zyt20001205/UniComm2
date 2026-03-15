@@ -35,19 +35,21 @@ void DatabaseModule::propertySet(const QVariantMap &objects) {
     m_rootItem = m_databaseWidget->rootObject();
 }
 
-void DatabaseModule::databaseConfigSave() const {
-    QJsonArray keyArray{};
+void DatabaseModule::databaseConfigSave() {
+    QJsonArray keys{};
     for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {
         const QString key = g_databaseStandardItemModel->item(i, 0)->text();
-        keyArray.append(key);
+        keys.append(key);
     }
-    g_workspaceConfig["databaseConfig"] = keyArray;
+    g_workspaceConfig["databaseConfig"] = keys;
 }
 
-void DatabaseModule::databaseList(QSet<QString> &databaseList) const {
+QSet<QString> DatabaseModule::databaseList() const {
+    QSet<QString> keys{};
     for (const QString &databaseKey: m_databaseHash.keys()) {
-        databaseList.insert(databaseKey);
+        keys.insert(databaseKey);
     }
+    return keys;
 }
 
 void DatabaseModule::databaseInsert(int index, const QString &key) {
@@ -86,12 +88,11 @@ void DatabaseModule::databaseClear(const int index) {
     }
 }
 
-void DatabaseModule::databaseWrite(QEventLoop *eventloop, bool *status, const QString &key, const QString &value) {
-    if (!m_databaseHash.contains(key)) return;
+bool DatabaseModule::databaseWrite(const QString &key, const QString &value) {
+    if (!m_databaseHash.contains(key)) return false;
     const auto index = m_databaseHash[key];
     g_databaseStandardItemModel->item(index, 1)->setText(value);
-    *status = true;
-    eventloop->quit();
+    return true;
 }
 
 // private
