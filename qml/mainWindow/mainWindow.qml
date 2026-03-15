@@ -1915,56 +1915,62 @@ Item {
 
         contentItem: ColumnLayout {
 
-            TextArea {
-                id: scriptModuleDwellDiagnosticTextArea
-                background: null
-                readOnly: true
-                textFormat: TextEdit.RichText
-                verticalAlignment: TextEdit.AlignTop
-                wrapMode: Text.Wrap
+            ScrollView {
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
 
-                HoverHandler {
-                    id: diagnosticHoverHandler
-                    cursorShape: scriptModuleDwellDiagnosticTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
-                }
+                TextArea {
+                    id: scriptModuleDwellDiagnosticTextArea
+                    background: null
+                    readOnly: true
+                    textFormat: TextEdit.RichText
+                    verticalAlignment: TextEdit.AlignTop
+                    wrapMode: Text.Wrap
 
-                TapHandler {
-                    acceptedButtons: Qt.LeftButton
-                    onTapped: {
-                        if (scriptModuleDwellDiagnosticTextArea.hoveredLink) {
-                            scriptModuleDwellToolTip.dwellWidget.linkClick(scriptModuleDwellDiagnosticTextArea.hoveredLink)
+                    HoverHandler {
+                        id: diagnosticHoverHandler
+                        cursorShape: scriptModuleDwellDiagnosticTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: {
+                            if (scriptModuleDwellDiagnosticTextArea.hoveredLink) {
+                                scriptModuleDwellToolTip.dwellWidget.linkClick(scriptModuleDwellDiagnosticTextArea.hoveredLink)
+                            }
                         }
                     }
                 }
             }
 
-            TextArea {
-                id: scriptModuleDwellHoverTextArea
-                background: null
-                readOnly: true
-                textFormat: TextEdit.MarkdownText
-                verticalAlignment: TextEdit.AlignTop
-                wrapMode: Text.Wrap
+            ScrollView {
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
 
-                HoverHandler {
-                    id: dwellHoverHandler
-                    cursorShape: scriptModuleDwellHoverTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
-                }
+                TextArea {
+                    id: scriptModuleDwellHoverTextArea
+                    background: null
+                    readOnly: true
+                    textFormat: TextEdit.MarkdownText
+                    verticalAlignment: TextEdit.AlignTop
+                    wrapMode: Text.Wrap
 
-                ToolTip {
-                    visible: scriptModuleDwellHoverTextArea.hoveredLink
-                    text: "Click to open link"
-                    x: dwellHoverHandler.point.position.x + 10
-                    y: dwellHoverHandler.point.position.y + 10
-                }
+                    HoverHandler {
+                        id: dwellHoverHandler
+                        cursorShape: scriptModuleDwellHoverTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                    }
 
-                TapHandler {
-                    acceptedButtons: Qt.LeftButton
-                    onTapped: {
-                        if (scriptModuleDwellHoverTextArea.hoveredLink) {
-                            Qt.openUrlExternally(scriptModuleDwellHoverTextArea.hoveredLink)
+                    ToolTip {
+                        visible: scriptModuleDwellHoverTextArea.hoveredLink
+                        text: "Click to open link"
+                        x: dwellHoverHandler.point.position.x + 10
+                        y: dwellHoverHandler.point.position.y + 10
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: {
+                            if (scriptModuleDwellHoverTextArea.hoveredLink) {
+                                Qt.openUrlExternally(scriptModuleDwellHoverTextArea.hoveredLink)
+                            }
                         }
                     }
                 }
