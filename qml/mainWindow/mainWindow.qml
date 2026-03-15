@@ -1916,6 +1916,7 @@ Item {
         contentItem: ColumnLayout {
 
             ScrollView {
+                visible: scriptModuleDwellDiagnosticTextArea.length > 0
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
 
                 TextArea {
@@ -1943,6 +1944,7 @@ Item {
             }
 
             ScrollView {
+                visible: scriptModuleDwellHoverTextArea.length > 0
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
 
                 TextArea {
