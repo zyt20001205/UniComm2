@@ -1,5 +1,8 @@
 #include "luaModule/luaDataProcess.h"
 
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
+
 #include "globals.h"
 #include "dataModule/databaseModule.h"
 #include "dataModule/datatableModule.h"
@@ -10,9 +13,10 @@ LuaDataProcess::LuaDataProcess(QObject *parent)
 }
 
 std::vector<std::string> LuaDataProcess::databaseList() {
-    QSet<QString> databaseSet{};
-    QMetaObject::invokeMethod(g_database, "databaseList", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(QSet<QString>, databaseSet));
+    const auto future = QtConcurrent::run([] {
+        return g_database->databaseList();
+    });
+    auto databaseSet = future.result();
     std::vector<std::string> databaseList{};
     for (const auto &key: databaseSet) {
         databaseList.push_back(key.toStdString());
@@ -44,20 +48,20 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
         }
         break;
     }
-    bool status = false;
-    QMetaObject::invokeMethod(g_database, "databaseWrite", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(bool, status),
-                              Q_ARG(QString, QString::fromStdString(key)),
-                              Q_ARG(QString, valueStr));
+    const auto future = QtConcurrent::run([&key, &valueStr] {
+        return g_database->databaseWrite(QString::fromStdString(key), valueStr);
+    });
+    auto status = future.result();
     if (!status) {
         throw sol::error("failed to write to database key: " + key);
     }
 }
 
 std::vector<std::string> LuaDataProcess::datatableList() {
-    QSet<QString> datatableSet{};
-    QMetaObject::invokeMethod(g_datatable, "datatableList", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(QSet<QString>, datatableSet));
+    const auto future = QtConcurrent::run([] {
+        return g_datatable->datatableList();
+    });
+    auto datatableSet = future.result();
     std::vector<std::string> datatableList{};
     for (const auto &key: datatableSet) {
         datatableList.push_back(key.toStdString());
@@ -89,17 +93,18 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
         }
         break;
     }
-    bool status = false;
-    QMetaObject::invokeMethod(g_datatable, "datatableWrite", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(bool, status),
-                              Q_ARG(QString, QString::fromStdString(key)),
-                              Q_ARG(QString, valueStr));
+    const auto future = QtConcurrent::run([&key, &valueStr] {
+        return g_datatable->datatableWrite(QString::fromStdString(key), valueStr);
+    });
+    auto status = future.result();
     if (!status) {
         throw sol::error("failed to write to datatable key: " + key);
     }
 }
 
 void LuaDataProcess::datatableExport(const std::string &fileName) {
-    QMetaObject::invokeMethod(g_datatable, "datatableExport", Qt::QueuedConnection,
-                              Q_ARG(QString, QString::fromStdString(fileName)));
+    auto future = QtConcurrent::run([&fileName] {
+        return g_datatable->datatableExport(QString::fromStdString(fileName));
+    });
+    future.waitForFinished();
 }
