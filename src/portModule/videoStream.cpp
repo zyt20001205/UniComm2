@@ -94,6 +94,7 @@ void VideoStream::close() {
     // port close
     if (m_screenCapture) m_screenCapture->stop();
     else if (m_cameraCapture) m_cameraCapture->stop();
+    clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
     // logging

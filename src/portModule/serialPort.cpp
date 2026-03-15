@@ -99,6 +99,7 @@ void SerialPort::close() {
     // port close
     if (m_serialPort == nullptr) return;
     m_serialPort->close();
+    clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
     // logging

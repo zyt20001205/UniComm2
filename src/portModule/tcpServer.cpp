@@ -87,11 +87,12 @@ void TcpServer::close() {
         }
     }
     m_tcpServerPeerHash.clear();
+    clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog("tcp server closed", "info");
+    emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2").arg(timestamp, "tcp server closed");
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
 }
 
 void TcpServer::clear() {
