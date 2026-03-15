@@ -965,19 +965,19 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
             switch (keyEvent->key()) {
                 case Qt::Key_QuoteDbl:
                     symbolPair('"');
-                    return true;
+                    return false;
                 case Qt::Key_Apostrophe:
                     symbolPair('\'');
-                    return true;
+                    return false;
                 case Qt::Key_ParenLeft:
                     symbolPair('(');
-                    return true;
+                    return false;
                 case Qt::Key_BracketLeft:
                     symbolPair('[');
-                    return true;
+                    return false;
                 case Qt::Key_BraceLeft:
                     symbolPair('{');
-                    return true;
+                    return false;
                 default: return false;
             }
         }
@@ -1346,7 +1346,7 @@ void ScriptPage::commentToggle() {
 void ScriptPage::symbolPair(const QChar character) {
     auto selected = m_editorWidget->textGetSelected();
     if (selected.isEmpty()) {
-        selected = character + selected + m_pairHash[character];
+        selected = m_pairHash[character];
         m_editorWidget->textSetSelected(selected);
         const auto position = m_editorWidget->positionGet();
         m_editorWidget->positionSet(position - 1);
