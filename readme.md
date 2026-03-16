@@ -85,9 +85,11 @@ gantt
 
     section version
         v0.1.0: done, 02-10, 1d
+        v0.2.0(Infrastructure Build): active, 02-11, 140d
         v0.2.0-alpha1: active, 02-11, 49d
         v0.2.0-alpha2: 04-01, 30d
         v0.2.0-alpha3: 05-01, 31d
+        v0.3.0(Interface Optimization): 07-01, 31d
 
     section coding
         scintilla migration: done, 02-11, 30d
@@ -103,8 +105,10 @@ gantt
         ringbuffer ui: 03-29, 3d
         undo stack: 04-01, 10d
 
-    section customize
-        setting window: 04-01, 30d
+    section ui
+        customize settings: 07-01, 31d
+        dark theme: 07-01, 31d
+        i18n: 07-01, 31d
 ```
 
 # APIS
