@@ -85,7 +85,7 @@ gantt
 
     section version
         v0.1.0: done, 02-10, 1d
-        v0.2.0(Infrastructure Build): active, 02-11, 140d
+        v0.2.0(Infrastructure Construction): active, 02-11, 140d
         v0.2.0-alpha1: active, 02-11, 49d
         v0.2.0-alpha2: 04-01, 30d
         v0.2.0-alpha3: 05-01, 31d
