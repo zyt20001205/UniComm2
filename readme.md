@@ -104,6 +104,7 @@ gantt
         ringbuffer apis: active, 03-17, 15d
         ringbuffer ui: 03-29, 3d
         undo stack: 04-01, 10d
+        port session monitor: 05-01, 31d
 
     section ui
         customize settings: 07-01, 31d
