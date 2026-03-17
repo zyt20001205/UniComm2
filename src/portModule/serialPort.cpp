@@ -56,14 +56,20 @@ std::unordered_map<std::string, std::string> SerialPort::info() {
             break;
         default: stopBits = "?";
     }
+    // const std::string capacity =  QString::number(m_portConfig["capacity"].toInt()).toStdString();
+    const std::string capacity = QString::number(1024).toStdString();
+    const std::string used = QString::number(m_buffer.used()).toStdString();
 
-    std::unordered_map<std::string, std::string> infoHash{};
-    infoHash["status"] = status;
-    infoHash["portName"] = portName;
-    infoHash["baudRate"] = baudRate;
-    infoHash["dataBits"] = dataBits;
-    infoHash["parity"] = parity;
-    infoHash["stopBits"] = stopBits;
+    std::unordered_map<std::string, std::string> infoHash = {
+        {"status", status},
+        {"portName", portName},
+        {"baudRate", baudRate},
+        {"dataBits", dataBits},
+        {"parity", parity},
+        {"stopBits", stopBits},
+        {"capacity", capacity},
+        {"used", used},
+    };
     return infoHash;
 }
 
