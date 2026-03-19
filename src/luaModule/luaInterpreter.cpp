@@ -39,14 +39,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     package["path"] = newPath.toStdString();
     // LuaDataProcess lib
     auto database = m_lua.create_table();
-    database.set_function("list", [this] { return sol::as_table(m_luaDataProcess->databaseList()); });
-    database.set_function("write", [this](const std::string &key, const sol::object &value) { m_luaDataProcess->databaseWrite(key, value); });
+    database.set_function("list", [] { return sol::as_table(LuaDataProcess::databaseList()); });
+    database.set_function("write", [](const std::string &key, const sol::object &value) { LuaDataProcess::databaseWrite(key, value); });
     m_lua["database"] = database;
 
     auto datatable = m_lua.create_table();
-    datatable.set_function("list", [this] { return sol::as_table(m_luaDataProcess->datatableList()); });
-    datatable.set_function("write", [this](const std::string &key, const sol::object &value) { m_luaDataProcess->datatableWrite(key, value); });
-    datatable.set_function("export", [this](const sol::optional<std::string> &fileName) { m_luaDataProcess->datatableExport(fileName.value_or("")); });
+    datatable.set_function("list", [] { return sol::as_table(LuaDataProcess::datatableList()); });
+    datatable.set_function("write", [](const std::string &key, const sol::object &value) { LuaDataProcess::datatableWrite(key, value); });
+    datatable.set_function("export", [](const sol::optional<std::string> &fileName) { LuaDataProcess::datatableExport(fileName.value_or("")); });
     m_lua["datatable"] = datatable;
     // LuaIO lib
     auto io = m_lua.create_table();
@@ -94,6 +94,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     port.set_function("info", [this](const std::string &portName) { return sol::as_table(m_luaPort->info(portName)); });
     port.set_function("open", [this](const std::string &portName) { m_luaPort->open(portName); });
     port.set_function("close", [this](const std::string &portName) { m_luaPort->close(portName); });
+    port.set_function("clear", [this](const std::string &portName) { m_luaPort->clear(portName); });
     port.set_function("write", [this](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
         m_luaPort->write(portName, data, peerIp.value_or(""));
     });

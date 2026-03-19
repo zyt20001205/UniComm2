@@ -56,6 +56,16 @@ void LuaPort::close(const std::string &portName) {
     }, Qt::BlockingQueuedConnection);
 }
 
+void LuaPort::clear(const std::string &portName) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        throw sol::error(portName + " does not exist");
+    }
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    QMetaObject::invokeMethod(port, [&port] {
+        port->clear();
+    }, Qt::BlockingQueuedConnection);
+}
+
 void LuaPort::write(const std::string &portName, const std::string_view &data, const std::string &peerIp) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");

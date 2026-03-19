@@ -149,6 +149,15 @@ port = {}
 --- @return table
 function port.list() end
 
+--- Returns information about a port.
+--- @param name portName Target port name.
+--- @return table information
+---
+--- @usage — Print information about port COM3.
+---
+--- port.info("COM3")
+function port.info(name) end
+
 --- Opens a port connection for communication.
 --- @param name portName Target port name.
 --- @return nil
@@ -167,14 +176,14 @@ function port.open(name) end
 --- port.close("COM3")
 function port.close(name) end
 
---- Prints information about a port.
+--- Clears buffer of a port.
 --- @param name portName Target port name.
---- @return table information
+--- @return nil
 ---
---- @usage — Print information about port COM3.
+--- @usage — Clears buffer on port COM3.
 ---
---- port.info("COM3")
-function port.info(name) end
+--- port.clear("COM3")
+function port.clear(name) end
 
 --- Writes data to a port.
 --- @param name portName Target port name.

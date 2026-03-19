@@ -24,6 +24,8 @@ public:
 
     void close(const std::string &portName);
 
+    void clear(const std::string &portName);
+
     void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
 
     sol::object read(sol::this_state ts, const std::string &portName, int length, int timeout, const std::string &peerIp);
