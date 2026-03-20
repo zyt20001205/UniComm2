@@ -40,12 +40,12 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     package["path"] = newPath.toStdString();
     // LuaDataProcess lib
     auto database = m_lua.create_table();
-    database.set_function("list", [] { return sol::as_table(LuaDataProcess::databaseList()); });
+    database.set_function("list", [](const sol::this_state ts) { return LuaDataProcess::databaseList(ts); });
     database.set_function("write", [](const std::string &key, const sol::object &value) { LuaDataProcess::databaseWrite(key, value); });
     m_lua["database"] = database;
 
     auto datatable = m_lua.create_table();
-    datatable.set_function("list", [] { return sol::as_table(LuaDataProcess::datatableList()); });
+    datatable.set_function("list", [](const sol::this_state ts) { return LuaDataProcess::datatableList(ts); });
     datatable.set_function("write", [](const std::string &key, const sol::object &value) { LuaDataProcess::datatableWrite(key, value); });
     datatable.set_function("export", [](const sol::optional<std::string> &fileName) { LuaDataProcess::datatableExport(fileName.value_or("")); });
     m_lua["datatable"] = datatable;
@@ -91,7 +91,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     m_lua["modbusAscii"] = modbusAscii;
     // LuaPort lib
     auto port = m_lua.create_table();
-    port.set_function("list", [] { return sol::as_table(LuaPort::list()); });
+    port.set_function("list", [](const sol::this_state ts) { return LuaPort::list(ts); });
     port.set_function("info", [](const std::string &portName) { return sol::as_table(LuaPort::info(portName)); });
     port.set_function("open", [](const std::string &portName) { LuaPort::open(portName); });
     port.set_function("close", [](const std::string &portName) { LuaPort::close(portName); });

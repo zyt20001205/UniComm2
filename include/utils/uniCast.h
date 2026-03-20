@@ -17,8 +17,14 @@ template<>
 template<>
 [[nodiscard]] QVariantList uni_cast<sol::variadic_args, QVariantList>(const sol::variadic_args &s, int depth);
 
-// qt -> std
+template<typename S, typename D>
+[[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
+
+// qt -> sol
 template<>
-[[nodiscard]] std::vector<std::string> uni_cast<QSet<QString>, std::vector<std::string>>(const QSet<QString> &s, int depth);
+[[nodiscard]] sol::object uni_cast<QVariant, sol::object>(sol::this_state ts, const QVariant &s, int depth);
+
+template<>
+[[nodiscard]] sol::table uni_cast<QSet<QString>, sol::table>(sol::this_state ts, const QSet<QString> &s, int depth);
 
 #endif //UNICOMM_UNICAST_H

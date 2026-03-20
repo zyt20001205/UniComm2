@@ -4,10 +4,6 @@
 #include <QObject>
 #include <sol/object.hpp>
 
-namespace sol {
-    struct this_state;
-}
-
 class LuaPort final : public QObject {
     Q_OBJECT
 
@@ -16,7 +12,7 @@ public:
 
     ~LuaPort() override = default;
 
-    [[nodiscard]] static std::vector<std::string> list();
+    [[nodiscard]] static sol::table list(sol::this_state ts);
 
     [[nodiscard]] static std::unordered_map<std::string, std::string> info(const std::string &portName);
 

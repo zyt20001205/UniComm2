@@ -2,9 +2,7 @@
 #define UNICOMM_LUADATAPROCESS_H
 
 #include <QObject>
-#include "sol/object.hpp"
-
-class QEventLoop;
+#include <sol/object.hpp>
 
 class LuaDataProcess final : public QObject {
     Q_OBJECT
@@ -14,11 +12,11 @@ public:
 
     ~LuaDataProcess() override = default;
 
-    [[nodiscard]] static std::vector<std::string> databaseList();
+    [[nodiscard]] static sol::table databaseList(sol::this_state ts);
 
     static void databaseWrite(const std::string &key, const sol::object &value);
 
-    [[nodiscard]] static std::vector<std::string> datatableList();
+    [[nodiscard]] static sol::table datatableList(sol::this_state ts);
 
     static void datatableWrite(const std::string &key, const sol::object &value);
 

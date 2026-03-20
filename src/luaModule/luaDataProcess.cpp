@@ -1,5 +1,7 @@
 #include "luaModule/luaDataProcess.h"
 
+#include <sol/table_core.hpp>
+
 #include "globals.h"
 #include "dataModule/databaseModule.h"
 #include "dataModule/datatableModule.h"
@@ -9,12 +11,12 @@ LuaDataProcess::LuaDataProcess(QObject *parent)
     : QObject(parent) {
 }
 
-std::vector<std::string> LuaDataProcess::databaseList() {
+sol::table LuaDataProcess::databaseList(const sol::this_state ts) {
     QSet<QString> databaseSet{};
     QMetaObject::invokeMethod(g_database, [&databaseSet] {
         databaseSet = g_database->databaseList();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QSet<QString>, std::vector<std::string>>(databaseSet);
+    return uni_cast<QSet<QString>, sol::table>(ts, databaseSet);
 }
 
 void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
@@ -28,12 +30,12 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
     }
 }
 
-std::vector<std::string> LuaDataProcess::datatableList() {
+sol::table LuaDataProcess::datatableList(const sol::this_state ts) {
     QSet<QString> datatableSet{};
     QMetaObject::invokeMethod(g_datatable, [&datatableSet] {
         datatableSet = g_datatable->datatableList();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QSet<QString>, std::vector<std::string>>(datatableSet);
+    return uni_cast<QSet<QString>, sol::table>(ts, datatableSet);
 }
 
 void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {

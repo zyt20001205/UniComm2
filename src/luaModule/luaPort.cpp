@@ -1,6 +1,7 @@
 #include "luaModule/luaPort.h"
 
-#include <sol/sol.hpp>
+#include <sol/state_view.hpp>
+#include <sol/table_core.hpp>
 
 #include "globals.h"
 #include "portModule/basePort.h"
@@ -11,12 +12,12 @@ LuaPort::LuaPort(QObject *parent)
     : QObject(parent) {
 }
 
-std::vector<std::string> LuaPort::list() {
+sol::table LuaPort::list(const sol::this_state ts) {
     QSet<QString> portSet{};
     QMetaObject::invokeMethod(g_port, [&portSet] {
         portSet = g_port->portList();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QSet<QString>, std::vector<std::string>>(portSet);
+    return uni_cast<QSet<QString>, sol::table>(ts, portSet);
 }
 
 std::unordered_map<std::string, std::string> LuaPort::info(const std::string &portName) {
