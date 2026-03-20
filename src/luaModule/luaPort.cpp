@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "portModule/basePort.h"
 #include "portModule/portModule.h"
+#include "utils/uniCast.h"
 
 LuaPort::LuaPort(QObject *parent)
     : QObject(parent) {
@@ -15,11 +16,7 @@ std::vector<std::string> LuaPort::list() {
     QMetaObject::invokeMethod(g_port, [&portSet] {
         portSet = g_port->portList();
     }, Qt::BlockingQueuedConnection);
-    std::vector<std::string> portList{};
-    for (const auto &portName: portSet) {
-        portList.push_back(portName.toStdString());
-    }
-    return portList;
+    return uni_cast<QSet<QString>, std::vector<std::string>>(portSet);
 }
 
 std::unordered_map<std::string, std::string> LuaPort::info(const std::string &portName) {

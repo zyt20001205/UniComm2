@@ -4,6 +4,7 @@
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
 
+// sol -> qt
 template<>
 QString uni_cast<sol::object, QString>(const sol::object &s, const int depth) {
     switch (s.get_type()) {
@@ -110,6 +111,16 @@ QVariantList uni_cast<sol::variadic_args, QVariantList>(const sol::variadic_args
     for (const sol::object &arg: s) {
         QVariant parsed = uni_cast<sol::object, QVariant>(arg);
         d.append(parsed);
+    }
+    return d;
+}
+
+// qt -> std
+template<>
+std::vector<std::string> uni_cast<QSet<QString>, std::vector<std::string>>(const QSet<QString> &s, int depth) {
+    std::vector<std::string> d{};
+    for (const auto &value: s) {
+        d.push_back(value.toStdString());
     }
     return d;
 }
