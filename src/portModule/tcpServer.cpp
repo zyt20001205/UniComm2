@@ -8,7 +8,6 @@
 #include "globals.h"
 #include "utils/suffixUtils.h"
 
-
 // TODO: RingBuffer rewrite required!!
 // TcpServer public
 TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent)

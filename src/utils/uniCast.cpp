@@ -119,13 +119,12 @@ QVariantList uni_cast<sol::variadic_args, QVariantList>(const sol::variadic_args
 // qt -> sol
 template<>
 sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVariant &s, const int depth) {
-    const sol::state_view lua(ts);
+    sol::state_view lua(ts);
     constexpr int MAX_DEPTH = 100;
     if (depth > MAX_DEPTH) {
         throw sol::error("Maximum recursion depth exceeded");
     }
-    if (!s.isValid())
-        return sol::nil;
+    if (!s.isValid()) return sol::nil;
     switch (s.typeId())
     {
         case QMetaType::Bool:
@@ -138,6 +137,16 @@ sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVar
             return sol::make_object(lua, s.toLongLong());
         case QMetaType::Double:
             return sol::make_object(lua, s.toDouble());
+        case QMetaType::QVariantMap: {
+            const auto _s = s.toMap();
+            sol::table _d = lua.create_table();
+            for (auto it = _s.constBegin(); it != _s.constEnd(); ++it) {
+                const QString& key = it.key();
+                const QVariant& value = it.value();
+                _d[key.toStdString()] = uni_cast<QVariant, sol::object>(ts, value, depth + 1);
+            }
+            return sol::make_object(lua, _d);
+        }
         case QMetaType::QString:
             return sol::make_object(lua, s.toString().toStdString());
         default:
