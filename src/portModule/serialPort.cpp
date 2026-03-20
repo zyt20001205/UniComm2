@@ -12,7 +12,7 @@
 SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
-      m_buffer(portConfig["capacity"].toInt()) {
+      m_buffer(portConfig["bufferSize"].toInt()) {
 }
 
 SerialPort::~SerialPort() {
@@ -56,8 +56,8 @@ QVariantHash SerialPort::info() {
             break;
         default: stopBits = "?";
     }
-    const auto capacity =  QString::number(m_portConfig["capacity"].toInt());
-    const auto used = QString::number(m_buffer.used());
+    const auto bufferSize = QString::number(m_portConfig["bufferSize"].toInt());
+    const auto bufferUsed = QString::number(m_buffer.used());
 
     QVariantHash infoHash = {
         {"status", status},
@@ -66,8 +66,8 @@ QVariantHash SerialPort::info() {
         {"dataBits", dataBits},
         {"parity", parity},
         {"stopBits", stopBits},
-        {"capacity", capacity},
-        {"used", used}
+        {"bufferSize", bufferSize},
+        {"bufferUsed", bufferUsed}
     };
     return infoHash;
 }

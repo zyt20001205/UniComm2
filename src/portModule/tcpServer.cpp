@@ -30,19 +30,23 @@ QVariantHash TcpServer::info() {
     const QString status = m_tcpServer && m_tcpServer->isListening() ? "opened" : "closed";
     const auto localHost = m_portConfig["localHost"].toString();
     const auto localPort = QString::number(m_portConfig["localPort"].toInt());
-    // QVariantList peerList;
-    // for (const QTcpSocket *tcpServerPeer: m_peerHash) {
-    //     QMap<QString, QVariant> peerInfo;
-    //     peerInfo["peerAddress"] = tcpServerPeer->peerAddress().toString();
-    //     peerInfo["peerPort"] = tcpServerPeer->peerPort();
-    //     peerList.append(peerInfo);
-    // }
-
-    const QVariantHash infoHash = {
+    QVariantHash infoHash = {
         {"status", status},
         {"localHost", localHost},
         {"localPort", localPort}
     };
+    const int capacity = m_portConfig["bufferSize"].toInt();
+    int index = 1;
+    QVariantHash peerInfoHash{};
+    for (const auto &peerIp: m_peerHash.keys()) {
+        const auto *peer = m_peerHash.value(peerIp);
+        peerInfoHash["peerAddress"] = peer->peerAddress().toString();
+        peerInfoHash["peerPort"] = peer->peerPort();
+        auto *buffer = m_bufferHash.value(peerIp);
+        peerInfoHash["used"] = QString::number(buffer->used());
+        peerInfoHash["capacity"] = QString::number(capacity);
+        infoHash.insert("peer" + QString::number(index++), peerInfoHash);
+    }
     return infoHash;
 }
 
@@ -170,7 +174,7 @@ void TcpServer::handleServerError() {
 void TcpServer::handleConnected(QTcpSocket *tcpServerPeer) {
     const QString peerIp = tcpServerPeer->peerAddress().toString() + ":" + QString::number(tcpServerPeer->peerPort());
     m_peerHash.insert(peerIp, tcpServerPeer);
-    m_bufferHash.insert(peerIp, new RingBuffer(m_portConfig["capacity"].toInt()));
+    m_bufferHash.insert(peerIp, new RingBuffer(m_portConfig["bufferSize"].toInt()));
     emit appendLog(QString("%1 accepts connection from %2").arg(m_portConfig["portName"].toString(), peerIp), "info");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

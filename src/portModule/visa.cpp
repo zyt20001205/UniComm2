@@ -10,7 +10,7 @@
 Visa::Visa(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
-      m_buffer(portConfig["capacity"].toInt()) {
+      m_buffer(portConfig["bufferSize"].toInt()) {
 }
 
 Visa::~Visa() {
