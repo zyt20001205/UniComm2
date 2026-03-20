@@ -63,18 +63,14 @@ private:
 
     [[nodiscard]] bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
-    [[nodiscard]] QByteArray handleRead(int length, int timeout, QTcpSocket *tcpServerPeer);
+    [[nodiscard]] QByteArray handleRead(int length, int timeout, const QString &peerIp);
 
     void handleLog(const QString &mode, const QByteArray &data, const QTcpSocket *tcpServerPeer);
 
     QTcpServer *m_tcpServer{};
     QJsonObject m_portConfig{};
-    QHash<QString, QTcpSocket *> m_tcpServerPeerHash{};
-    QHash<QString, RingBuffer *> m_tcpServerBufferHash{};
-    //
-    bool m_syncMode = false;
-    qint64 m_bufferSize = 0;
-    QByteArray m_rxBuffer;
+    QHash<QString, QTcpSocket *> m_peerHash{};
+    QHash<QString, RingBuffer *> m_bufferHash{};
 };
 
 #endif //UNICOMM_TCPSERVER_H
