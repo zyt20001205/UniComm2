@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QThread>
 
-// BasePort public
+// public
 BasePort::BasePort(QObject *parent)
     : QObject(parent),
       m_thread(new QThread()) {

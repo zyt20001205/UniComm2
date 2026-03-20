@@ -149,6 +149,18 @@ sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVar
         }
         case QMetaType::QString:
             return sol::make_object(lua, s.toString().toStdString());
+        case QMetaType::QVariantHash: {
+            const auto _s = s.toHash();
+            sol::table _d = lua.create_table();
+            for (auto it = _s.constBegin(); it != _s.constEnd(); ++it) {
+                const QString& key = it.key();
+                const QVariant& value = it.value();
+                _d[key.toStdString()] = uni_cast<QVariant, sol::object>(ts, value, depth + 1);
+            }
+            return sol::make_object(lua, _d);
+        }
+        case QMetaType::Float:
+            return sol::make_object(lua, s.toFloat());
         default:
             return sol::nil;
     }

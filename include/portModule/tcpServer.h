@@ -16,25 +16,25 @@ public:
 
     ~TcpServer() override;
 
-    int type() override;
+    [[nodiscard]] int type() override;
 
-    QJsonObject config() override;
+    [[nodiscard]] QJsonObject config() override;
 
-    bool open() override;
+    [[nodiscard]] bool open() override;
 
     void close() override;
 
     void clear() override;
 
-    std::unordered_map<std::string, std::string> info() override;
+    [[nodiscard]] QVariantHash info() override;
 
-    bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
+    [[nodiscard]] bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) override;
 
-    bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) override;
+    [[nodiscard]] bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) override;
 
-    QByteArray read(int length, int timeout, const QString &rxFormat) override;
+    [[nodiscard]] QByteArray read(int length, int timeout, const QString &rxFormat) override;
 
-    QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) override;
+    [[nodiscard]] QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) override;
 
 signals:
     void newConnection();
@@ -60,9 +60,9 @@ private:
 
     void handleError(QTcpSocket *tcpServerPeer);
 
-    bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
+    [[nodiscard]] bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
-    QByteArray handleRead(int length, int timeout, QTcpSocket *tcpServerPeer);
+    [[nodiscard]] QByteArray handleRead(int length, int timeout, QTcpSocket *tcpServerPeer);
 
     void handleLog(const QString &mode, const QByteArray &data, const QTcpSocket *tcpServerPeer);
 

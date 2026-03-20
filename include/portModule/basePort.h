@@ -11,31 +11,31 @@ public:
 
     ~BasePort() override;
 
-    virtual int type() = 0;
+    [[nodiscard]] virtual int type() = 0;
 
-    virtual QJsonObject config() = 0;
+    [[nodiscard]] virtual QJsonObject config() = 0;
 
-    virtual std::unordered_map<std::string, std::string> info() = 0;
+    [[nodiscard]] virtual QVariantHash info() = 0;
 
-    virtual bool open() = 0;
+    [[nodiscard]] virtual bool open() = 0;
 
     virtual void close() = 0;
 
     virtual void clear() = 0;
 
-    virtual bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+    [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
         return false;
     }
 
-    virtual bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) {
+    [[nodiscard]] virtual bool write(const QByteArray &txData, const QString &peerIp, const QString &txFormat, const QString &txSuffix) {
         return false;
     }
 
-    virtual QByteArray read(int length, int timeout, const QString &rxFormat) {
+    [[nodiscard]] virtual QByteArray read(int length, int timeout, const QString &rxFormat) {
         return {};
     }
 
-    virtual QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) {
+    [[nodiscard]] virtual QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) {
         return {};
     }
 

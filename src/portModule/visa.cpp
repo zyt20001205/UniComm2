@@ -25,7 +25,7 @@ QJsonObject Visa::config() {
     return m_portConfig;
 }
 
-std::unordered_map<std::string, std::string> Visa::info() {
+QVariantHash Visa::info() {
     return {};
 }
 

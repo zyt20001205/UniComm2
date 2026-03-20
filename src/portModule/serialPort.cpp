@@ -27,12 +27,12 @@ QJsonObject SerialPort::config() {
     return m_portConfig;
 }
 
-std::unordered_map<std::string, std::string> SerialPort::info() {
-    const std::string status = m_serialPort && m_serialPort->isOpen() ? "opened" : "closed";
-    const std::string portName = m_portConfig["portName"].toString().toStdString();
-    const std::string baudRate = QString::number(m_portConfig["baudRate"].toInt()).toStdString();
-    const std::string dataBits = QString::number(m_portConfig["dataBits"].toInt()).toStdString();
-    std::string parity;
+QVariantHash SerialPort::info() {
+    const QString status = m_serialPort && m_serialPort->isOpen() ? "opened" : "closed";
+    const auto portName = m_portConfig["portName"].toString();
+    const auto baudRate = QString::number(m_portConfig["baudRate"].toInt());
+    const auto dataBits = QString::number(m_portConfig["dataBits"].toInt());
+    QString parity{};
     switch (m_portConfig["parity"].toInt()) {
         case 0: parity = "no";
             break;
@@ -46,7 +46,7 @@ std::unordered_map<std::string, std::string> SerialPort::info() {
             break;
         default: parity = "?";
     }
-    std::string stopBits;
+    QString stopBits{};
     switch (m_portConfig["stopBits"].toInt()) {
         case 1: stopBits = "1";
             break;
@@ -56,11 +56,11 @@ std::unordered_map<std::string, std::string> SerialPort::info() {
             break;
         default: stopBits = "?";
     }
-    // const std::string capacity =  QString::number(m_portConfig["capacity"].toInt()).toStdString();
-    const std::string capacity = QString::number(1024).toStdString();
-    const std::string used = QString::number(m_buffer.used()).toStdString();
+    // const std::string capacity =  QString::number(m_portConfig["capacity"].toInt());
+    const auto capacity = QString::number(1024);
+    const auto used = QString::number(m_buffer.used());
 
-    std::unordered_map<std::string, std::string> infoHash = {
+    QVariantHash infoHash = {
         {"status", status},
         {"portName", portName},
         {"baudRate", baudRate},

@@ -14,7 +14,7 @@ public:
 
     [[nodiscard]] static sol::table list(sol::this_state ts);
 
-    [[nodiscard]] static std::unordered_map<std::string, std::string> info(const std::string &portName);
+    [[nodiscard]] static sol::object info(sol::this_state ts, const std::string &portName);
 
     static void open(const std::string &portName);
 

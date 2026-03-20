@@ -105,7 +105,7 @@ void VideoStream::close() {
 void VideoStream::clear() {
 }
 
-std::unordered_map<std::string, std::string> VideoStream::info() {
+QVariantHash VideoStream::info() {
     return {};
 }
 

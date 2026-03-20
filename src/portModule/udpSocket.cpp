@@ -26,19 +26,20 @@ QJsonObject UdpSocket::config() {
     return m_portConfig;
 }
 
-std::unordered_map<std::string, std::string> UdpSocket::info() {
-    const std::string status = m_udpSocket && m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
-    const std::string localHost = m_portConfig["localHost"].toString().toStdString();
-    const std::string localPort = QString::number(m_portConfig["localPort"].toInt()).toStdString();
-    const std::string remoteHost = m_portConfig["remoteHost"].toString().toStdString();
-    const std::string remotePort = QString::number(m_portConfig["remotePort"].toInt()).toStdString();
+QVariantHash UdpSocket::info() {
+    const QString status = m_udpSocket && m_udpSocket->state() == QAbstractSocket::ConnectedState ? "connected" : "disconnected";
+    const auto localHost = m_portConfig["localHost"].toString();
+    const auto localPort = QString::number(m_portConfig["localPort"].toInt());
+    const auto remoteHost = m_portConfig["remoteHost"].toString();
+    const auto remotePort = QString::number(m_portConfig["remotePort"].toInt());
 
-    std::unordered_map<std::string, std::string> infoHash{};
-    infoHash["status"] = status;
-    infoHash["localHost"] = localHost;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteHost"] = remoteHost;
-    infoHash["remotePort"] = remotePort;
+    const QVariantHash infoHash = {
+        {"status", status},
+        {"localHost", localHost},
+        {"localPort", localPort},
+        {"remoteHost", remoteHost},
+        {"remotePort", remotePort}
+    };
     return infoHash;
 }
 

@@ -27,10 +27,10 @@ QJsonObject TcpServer::config() {
     return m_portConfig;
 }
 
-std::unordered_map<std::string, std::string> TcpServer::info() {
-    const std::string status = m_tcpServer && m_tcpServer->isListening() ? "opened" : "closed";
-    const std::string localHost = m_portConfig["localHost"].toString().toStdString();
-    const std::string localPort = QString::number(m_portConfig["localPort"].toInt()).toStdString();
+QVariantHash TcpServer::info() {
+    const QString status = m_tcpServer && m_tcpServer->isListening() ? "opened" : "closed";
+    const auto localHost = m_portConfig["localHost"].toString();
+    const auto localPort = QString::number(m_portConfig["localPort"].toInt());
     // QVariantList peerList;
     // for (const QTcpSocket *tcpServerPeer: m_tcpServerPeerHash) {
     //     QMap<QString, QVariant> peerInfo;
@@ -39,11 +39,11 @@ std::unordered_map<std::string, std::string> TcpServer::info() {
     //     peerList.append(peerInfo);
     // }
 
-    std::unordered_map<std::string, std::string> infoHash{};
-    infoHash["status"] = status;
-    infoHash["localHost"] = localHost;
-    infoHash["localPort"] = localPort;
-    // infoMap["peerList"] = peerList;
+    const QVariantHash infoHash = {
+        {"status", status},
+        {"localHost", localHost},
+        {"localPort", localPort}
+    };
     return infoHash;
 }
 

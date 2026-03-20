@@ -26,8 +26,8 @@ QJsonObject TcpClient::config() {
     return m_portConfig;
 }
 
-std::unordered_map<std::string, std::string> TcpClient::info() {
-    std::string status;
+QVariantHash TcpClient::info() {
+    QString status{};
     if (m_tcpClient == nullptr) {
         status = "unconnected";
     } else {
@@ -47,17 +47,18 @@ std::unordered_map<std::string, std::string> TcpClient::info() {
             default: status = "unknown";
         }
     }
-    const std::string localHost = m_tcpClientLocalHost.toStdString();
-    const std::string localPort = QString::number(m_tcpClientLocalPort).toStdString();
-    const std::string remoteHost = m_portConfig["remoteHost"].toString().toStdString();
-    const std::string remotePort = QString::number(m_portConfig["remotePort"].toInt()).toStdString();
+    const auto localHost = m_tcpClientLocalHost;
+    const auto localPort = QString::number(m_tcpClientLocalPort);
+    const auto remoteHost = m_portConfig["remoteHost"].toString();
+    const auto remotePort = QString::number(m_portConfig["remotePort"].toInt());
 
-    std::unordered_map<std::string, std::string> infoHash{};
-    infoHash["status"] = status;
-    infoHash["localHost"] = localHost;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteHost"] = remoteHost;
-    infoHash["remotePort"] = remotePort;
+    const QVariantHash infoHash = {
+        {"status", status},
+        {"localHost", localHost},
+        {"localPort", localPort},
+        {"remoteHost", remoteHost},
+        {"remotePort", remotePort}
+    };
     return infoHash;
 }
 

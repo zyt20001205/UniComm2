@@ -20,16 +20,16 @@ sol::table LuaPort::list(const sol::this_state ts) {
     return uni_cast<QSet<QString>, sol::table>(ts, portSet);
 }
 
-std::unordered_map<std::string, std::string> LuaPort::info(const std::string &portName) {
+sol::object LuaPort::info(const sol::this_state ts, const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
-    std::unordered_map<std::string, std::string> portInfo{};
+    QVariantHash infoHash{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QMetaObject::invokeMethod(port, [&port, &portInfo] {
-        portInfo = port->info();
+    QMetaObject::invokeMethod(port, [&port, &infoHash] {
+        infoHash = port->info();
     }, Qt::BlockingQueuedConnection);
-    return portInfo;
+    return uni_cast<QVariant, sol::object>(ts, infoHash);
 }
 
 void LuaPort::open(const std::string &portName) {

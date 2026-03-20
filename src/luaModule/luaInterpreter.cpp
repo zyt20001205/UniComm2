@@ -92,7 +92,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaPort lib
     auto port = m_lua.create_table();
     port.set_function("list", [](const sol::this_state ts) { return LuaPort::list(ts); });
-    port.set_function("info", [](const std::string &portName) { return sol::as_table(LuaPort::info(portName)); });
+    port.set_function("info", [](const sol::this_state ts, const std::string &portName) { return LuaPort::info(ts, portName); });
     port.set_function("open", [](const std::string &portName) { LuaPort::open(portName); });
     port.set_function("close", [](const std::string &portName) { LuaPort::close(portName); });
     port.set_function("clear", [](const std::string &portName) { LuaPort::clear(portName); });

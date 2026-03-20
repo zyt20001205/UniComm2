@@ -26,8 +26,8 @@ QJsonObject SslClient::config() {
     return m_portConfig;
 }
 
-std::unordered_map<std::string, std::string> SslClient::info() {
-    std::string status;
+QVariantHash SslClient::info() {
+    QString status{};
     if (m_sslClient == nullptr) {
         status = "unconnected";
     } else {
@@ -47,17 +47,18 @@ std::unordered_map<std::string, std::string> SslClient::info() {
             default: status = "unknown";
         }
     }
-    const std::string localHost = m_sslClientLocalHost.toStdString();
-    const std::string localPort = QString::number(m_sslClientLocalPort).toStdString();
-    const std::string remoteHost = m_portConfig["remoteHost"].toString().toStdString();
-    const std::string remotePort = QString::number(m_portConfig["remotePort"].toInt()).toStdString();
+    const auto localHost = m_sslClientLocalHost;
+    const auto localPort = QString::number(m_sslClientLocalPort);
+    const auto remoteHost = m_portConfig["remoteHost"].toString();
+    const auto remotePort = QString::number(m_portConfig["remotePort"].toInt());
 
-    std::unordered_map<std::string, std::string> infoHash{};
-    infoHash["status"] = status;
-    infoHash["localHost"] = localHost;
-    infoHash["localPort"] = localPort;
-    infoHash["remoteHost"] = remoteHost;
-    infoHash["remotePort"] = remotePort;
+    const QVariantHash infoHash = {
+        {"status", status},
+        {"localHost", localHost},
+        {"localPort", localPort},
+        {"remoteHost", remoteHost},
+        {"remotePort", remotePort}
+    };
     return infoHash;
 }
 

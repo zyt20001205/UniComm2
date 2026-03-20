@@ -21,19 +21,19 @@ public:
 
     ~VideoStream() override;
 
-    int type() override;
+    [[nodiscard]] int type() override;
 
-    QJsonObject config() override;
+    [[nodiscard]] QJsonObject config() override;
 
-    bool open() override;
+    [[nodiscard]] bool open() override;
 
     void close() override;
 
     void clear() override;
 
-    std::unordered_map<std::string, std::string> info() override;
+    [[nodiscard]] QVariantHash info() override;
 
-    QByteArray read(int length, int timeout, const QString &rxFormat) override;
+    [[nodiscard]] QByteArray read(int length, int timeout, const QString &rxFormat) override;
 
 private:
     QMediaCaptureSession *m_mediaCaptureSession{};
