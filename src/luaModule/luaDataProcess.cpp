@@ -23,29 +23,7 @@ std::vector<std::string> LuaDataProcess::databaseList() {
 }
 
 void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
-    QString valueStr{};
-    switch (value.get_type()) {
-        case sol::type::boolean: {
-            valueStr = value.as<bool>() ? "true" : "false";
-        }
-        break;
-        case sol::type::number: {
-            if (value.is<int>()) {
-                valueStr = QString::number(value.as<int>());
-            } else {
-                valueStr = QString::number(value.as<double>());
-            }
-        }
-        break;
-        case sol::type::string: {
-            valueStr = QString::fromStdString(value.as<std::string>());
-        }
-        break;
-        default: {
-            valueStr = "nil";
-        }
-        break;
-    }
+    const QString valueStr = SObject2QString(value);
 
     bool status = false;
     QMetaObject::invokeMethod(g_database, [&status, &key, &valueStr] {
@@ -71,29 +49,7 @@ std::vector<std::string> LuaDataProcess::datatableList() {
 }
 
 void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {
-    QString valueStr{};
-    switch (value.get_type()) {
-        case sol::type::boolean: {
-            valueStr = value.as<bool>() ? "true" : "false";
-        }
-        break;
-        case sol::type::number: {
-            if (value.is<int>()) {
-                valueStr = QString::number(value.as<int>());
-            } else {
-                valueStr = QString::number(value.as<double>());
-            }
-        }
-        break;
-        case sol::type::string: {
-            valueStr = QString::fromStdString(value.as<std::string>());
-        }
-        break;
-        default: {
-            valueStr = "nil";
-        }
-        break;
-    }
+    const QString valueStr = SObject2QString(value);
 
     bool status = false;
     QMetaObject::invokeMethod(g_datatable, [&status, &key, &valueStr] {

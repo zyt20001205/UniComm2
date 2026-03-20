@@ -9,7 +9,7 @@
 
 #include "globals.h"
 
-QVariant lua2qvar(sol::object object, int depth) {
+QVariant SObject2QVariant(sol::object object, int depth) {
     constexpr int MAX_DEPTH = 100;
     if (depth > MAX_DEPTH) {
         throw sol::error("Maximum recursion depth exceeded");
@@ -18,6 +18,18 @@ QVariant lua2qvar(sol::object object, int depth) {
     switch (object.get_type()) {
         case sol::type::nil: {
             parsed = "nil";
+        }
+        break;
+        case sol::type::boolean: {
+            parsed = object.as<bool>();
+        }
+        break;
+        case sol::type::number: {
+            if (object.is<int>()) {
+                parsed = object.as<int>();
+            } else {
+                parsed = object.as<double>();
+            }
         }
         break;
         case sol::type::string: {
@@ -46,21 +58,6 @@ QVariant lua2qvar(sol::object object, int depth) {
             parsed = string;
         }
         break;
-        case sol::type::number: {
-            if (object.is<int>()) {
-                parsed = object.as<int>();
-            } else if (object.is<double>()) {
-                parsed = object.as<double>();
-            } else {
-                qDebug() << "Unsupported Number Type";
-                parsed = "?";
-            }
-        }
-        break;
-        case sol::type::boolean: {
-            parsed = object.as<bool>();
-        }
-        break;
         case sol::type::table: {
             const auto table = object.as<sol::table>();
             QVariantMap map;
@@ -75,13 +72,13 @@ QVariant lua2qvar(sol::object object, int depth) {
                 } else {
                     continue;
                 }
-                map[key_str] = lua2qvar(value, depth + 1);
+                map[key_str] = SObject2QVariant(value, depth + 1);
             }
             parsed = QVariant::fromValue(map);
         }
         break;
         case sol::type::userdata: {
-            auto mapPtr = object.as<sol::userdata>().as<QVariantMap*>();
+            auto mapPtr = object.as<sol::userdata>().as<QVariantMap *>();
             parsed = QVariant::fromValue(*mapPtr);
         }
         break;
@@ -94,16 +91,16 @@ QVariant lua2qvar(sol::object object, int depth) {
     return parsed;
 }
 
-QVariantList lua2qvarlist(sol::variadic_args args) {
+QVariantList SVariadicArgs2QVariantList(sol::variadic_args args) {
     QVariantList parsedList{};
     for (const sol::object arg: args) {
-        QVariant parsed = lua2qvar(arg);
+        QVariant parsed = SObject2QVariant(arg);
         parsedList.append(parsed);
     }
     return parsedList;
 }
 
-QString lua2qstring(sol::object object) {
+QString SObject2QString(sol::object object) {
     switch (object.get_type()) {
         case sol::type::nil:
             return {"nil"};
@@ -158,43 +155,3 @@ void lua_pushvariant(lua_State *L, const QString &variant, const QString &type) 
         lua_pushstring(L, variant.toUtf8().constData());
     }
 }
-
-// void lua_pushqvariant(lua_State *L, const QVariant &value) {
-//     switch (value.typeId()) {
-//         case QMetaType::Bool: {
-//             lua_pushboolean(L, value.toBool());
-//             break;
-//         }
-//         case QMetaType::Int: {
-//             lua_pushinteger(L, value.toInt());
-//             break;
-//         }
-//         case QMetaType::QString: {
-//             lua_pushstring(L, value.toString().toUtf8().constData());
-//             break;
-//         }
-//         case QMetaType::QVariantList: {
-//             const QVariantList list = value.toList();
-//             lua_createtable(L, static_cast<int>(list.size()), 0);
-//             for (int i = 0; i < list.size(); ++i) {
-//                 lua_pushqvariant(L, list[i]);
-//                 lua_rawseti(L, -2, i + 1);
-//             }
-//             break;
-//         }
-//         case QMetaType::QVariantMap: {
-//             const QVariantMap map = value.toMap();
-//             lua_createtable(L, 0, static_cast<int>(map.size()));
-//             for (auto it = map.constBegin(); it != map.constEnd(); ++it) {
-//                 lua_pushstring(L, it.key().toUtf8().constData());
-//                 lua_pushqvariant(L, it.value());
-//                 lua_settable(L, -3);
-//             }
-//             break;
-//         }
-//         default: {
-//             lua_pushnil(L);
-//             break;
-//         }
-//     }
-// }

@@ -259,7 +259,7 @@ void LuaInterpreter::watchSet(lua_State *L, lua_Debug *ar) {
             if (result.valid()) {
                 sol::object obj = result;
                 type = lua_typename(L, static_cast<int>(obj.get_type()));
-                val = lua2qstring(obj);
+                val = SObject2QString(obj);
             }
             g_watchStandardItemModel->item(it.value(), 1)->setText(val);
             g_watchStandardItemModel->item(it.value(), 1)->setData(type, Qt::WhatsThisRole);

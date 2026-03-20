@@ -37,7 +37,7 @@ void LuaIO::log(const sol::variadic_args &args) {
         }
     };
 
-    QVariantList parsedList = lua2qvarlist(args);
+    QVariantList parsedList = SVariadicArgs2QVariantList(args);
     for (const auto &parsed: parsedList) {
         logging(parsed);
     }
