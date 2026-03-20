@@ -111,6 +111,7 @@ private:
     QObject *m_txFormatComboBox{};
     QObject *m_txSuffixComboBox{};
     QObject *m_rxFormatComboBox{};
+    QObject *m_bufferSizeSpinBox{};
     // image
     QVideoSink *m_videoSink{};
     QObject *m_previewImage{};

@@ -11,7 +11,7 @@
 SslClient::SslClient(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
-      m_buffer(1024) {
+      m_buffer(portConfig["capacity"].toInt()) {
 }
 
 SslClient::~SslClient() {
@@ -51,13 +51,17 @@ QVariantHash SslClient::info() {
     const auto localPort = QString::number(m_sslClientLocalPort);
     const auto remoteHost = m_portConfig["remoteHost"].toString();
     const auto remotePort = QString::number(m_portConfig["remotePort"].toInt());
+    const auto capacity = QString::number(m_portConfig["capacity"].toInt());
+    const auto used = QString::number(m_buffer.used());
 
     const QVariantHash infoHash = {
         {"status", status},
         {"localHost", localHost},
         {"localPort", localPort},
         {"remoteHost", remoteHost},
-        {"remotePort", remotePort}
+        {"remotePort", remotePort},
+        {"capacity", capacity},
+        {"used", used}
     };
     return infoHash;
 }

@@ -683,6 +683,21 @@ Item {
                         valueRole: "value"
                         Layout.fillWidth: true
                     }
+
+                    Label {
+                        text: qsTr("Buffer Size")
+                        font.pointSize: 12
+                        Layout.fillWidth: true
+                    }
+
+                    SpinBox {
+                        id: bufferSizeSpinBox
+                        font.pointSize: 12
+                        editable: true
+                        from: 1
+                        to: 1048576 // 1MB
+                        Layout.fillWidth: true
+                    }
                 }
 
                 // image
@@ -1835,6 +1850,7 @@ Item {
             "txFormatComboBox": txFormatComboBox,
             "txSuffixComboBox": txSuffixComboBox,
             "rxFormatComboBox": rxFormatComboBox,
+            "bufferSizeSpinBox": bufferSizeSpinBox,
             // image
             "videoSink": videoOutput.videoSink,
             "previewImage": previewImage,

@@ -5,6 +5,7 @@
 
 #include "basePort.h"
 
+class RingBuffer;
 class QTcpServer;
 class QTcpSocket;
 
@@ -69,6 +70,7 @@ private:
     QTcpServer *m_tcpServer{};
     QJsonObject m_portConfig{};
     QHash<QString, QTcpSocket *> m_tcpServerPeerHash{};
+    QHash<QString, RingBuffer *> m_tcpServerBufferHash{};
     //
     bool m_syncMode = false;
     qint64 m_bufferSize = 0;

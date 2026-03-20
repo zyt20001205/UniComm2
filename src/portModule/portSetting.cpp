@@ -94,6 +94,7 @@ void PortSetting::propertyGet(const QVariantMap &objects) {
     m_txFormatComboBox = qvariant_cast<QObject *>(objects["txFormatComboBox"]);
     m_txSuffixComboBox = qvariant_cast<QObject *>(objects["txSuffixComboBox"]);
     m_rxFormatComboBox = qvariant_cast<QObject *>(objects["rxFormatComboBox"]);
+    m_bufferSizeSpinBox = qvariant_cast<QObject *>(objects["bufferSizeSpinBox"]);
     // image
     m_videoSink = objects["videoSink"].value<QVideoSink *>();
     m_mediaCaptureSession->setVideoSink(m_videoSink);
@@ -154,6 +155,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_txFormatComboBox->setProperty("currentValue", "hex");
         m_txSuffixComboBox->setProperty("currentValue", "null");
         m_rxFormatComboBox->setProperty("currentValue", "hex");
+        m_bufferSizeSpinBox->setProperty("value", 1024);
     } else {
         m_swipeView->setProperty("currentIndex", 1);
         m_oldPortName = portConfig["portName"].toString();
@@ -169,6 +171,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case VISA: {
@@ -176,6 +179,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case TCPCLIENT: {
@@ -185,6 +189,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case SSLCLIENT: {
@@ -194,6 +199,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case TCPSERVER: {
@@ -203,6 +209,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case UDPSOCKET: {
@@ -214,6 +221,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
                 m_rxFormatComboBox->setProperty("currentValue", portConfig["rxFormat"].toString());
+                m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
             case VIDEOSTREAM: {
@@ -241,7 +249,8 @@ void PortSetting::portSettingExport() {
                 {"stopBits", m_serialPortStopBitsComboBox->property("currentValue").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
         break;
@@ -251,7 +260,8 @@ void PortSetting::portSettingExport() {
                 {"portName", m_visaNameComboBox->property("currentValue").toString()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
         break;
@@ -263,7 +273,8 @@ void PortSetting::portSettingExport() {
                 {"remotePort", m_tcpClientRemotePortSpinBox->property("value").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
         break;
@@ -275,7 +286,8 @@ void PortSetting::portSettingExport() {
                 {"remotePort", m_sslClientRemotePortSpinBox->property("value").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
         break;
@@ -287,7 +299,8 @@ void PortSetting::portSettingExport() {
                 {"localPort", m_tcpServerLocalPortSpinBox->property("value").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
         break;
@@ -301,7 +314,8 @@ void PortSetting::portSettingExport() {
                 {"remotePort", m_udpSocketRemotePortSpinBox->property("value").toInt()},
                 {"txFormat", m_txFormatComboBox->property("currentValue").toString()},
                 {"txSuffix", m_txSuffixComboBox->property("currentValue").toString()},
-                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()}
+                {"rxFormat", m_rxFormatComboBox->property("currentValue").toString()},
+                {"bufferSize", m_bufferSizeSpinBox->property("value").toInt()}
             };
         }
         break;
@@ -593,7 +607,7 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
     } else if (roi.size() == 8) {
         // src poly
         QPolygon src({
-        QPoint(roi[0].toInt(), roi[1].toInt()),
+            QPoint(roi[0].toInt(), roi[1].toInt()),
             QPoint(roi[2].toInt(), roi[3].toInt()),
             QPoint(roi[4].toInt(), roi[5].toInt()),
             QPoint(roi[6].toInt(), roi[7].toInt())
