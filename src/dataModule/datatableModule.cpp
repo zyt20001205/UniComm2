@@ -52,7 +52,7 @@ void DatatableModule::datatableConfigSave() {
 
 QSet<QString> DatatableModule::datatableList() const {
     QSet<QString> keys{};
-    for (const QString &datatableKey: m_datatableHash.keys()) {
+    for (const auto &datatableKey: m_datatableHash.keys()) {
         keys.insert(datatableKey);
     }
     return keys;

@@ -67,7 +67,7 @@ void PortModule::portConfigSave() {
 
 QSet<QString> PortModule::portList() const {
     QSet<QString> keys{};
-    for (const QString &portName: m_portHash.keys()) {
+    for (const auto &portName: m_portHash.keys()) {
         keys.insert(portName);
     }
     return keys;

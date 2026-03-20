@@ -46,7 +46,7 @@ void DatabaseModule::databaseConfigSave() {
 
 QSet<QString> DatabaseModule::databaseList() const {
     QSet<QString> keys{};
-    for (const QString &databaseKey: m_databaseHash.keys()) {
+    for (const auto &databaseKey: m_databaseHash.keys()) {
         keys.insert(databaseKey);
     }
     return keys;
