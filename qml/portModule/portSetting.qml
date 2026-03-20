@@ -213,6 +213,7 @@ Item {
 
                         ComboBox {
                             id: serialPortNameComboBox
+                            font.pointSize: 12
                             model: serialPortStandardItemModel
                             textRole: "display"
                             valueRole: "whatsThis"
@@ -242,6 +243,7 @@ Item {
 
                         ComboBox {
                             id: serialPortDataBitsComboBox
+                            font.pointSize: 12
                             model: ListModel {
                                 ListElement {
                                     text: "5"; value: 5
@@ -258,7 +260,6 @@ Item {
                             }
                             textRole: "text"
                             valueRole: "value"
-                            font.pointSize: 12
                             Layout.fillWidth: true
                         }
 
@@ -270,6 +271,7 @@ Item {
 
                         ComboBox {
                             id: serialPortParityComboBox
+                            font.pointSize: 12
                             model: ListModel {
                                 ListElement {
                                     text: qsTr("No"); value: 0
@@ -289,7 +291,6 @@ Item {
                             }
                             textRole: "text"
                             valueRole: "value"
-                            font.pointSize: 12
                             Layout.fillWidth: true
                         }
 
@@ -301,6 +302,7 @@ Item {
 
                         ComboBox {
                             id: serialPortStopBitsComboBox
+                            font.pointSize: 12
                             model: ListModel {
                                 ListElement {
                                     text: "1"; value: 1
@@ -314,7 +316,6 @@ Item {
                             }
                             textRole: "text"
                             valueRole: "value"
-                            font.pointSize: 12
                             Layout.fillWidth: true
                         }
                     }
@@ -332,6 +333,7 @@ Item {
 
                         ComboBox {
                             id: visaNameComboBox
+                            font.pointSize: 12
                             model: visaStandardItemModel
                             textRole: "display"
                             valueRole: "whatsThis"
@@ -352,6 +354,7 @@ Item {
 
                         TextField {
                             id: tcpClientNameTextField
+                            font.pointSize: 12
                             placeholderText: qsTr("Tcp Client")
                             Layout.fillWidth: true
                         }
@@ -397,6 +400,7 @@ Item {
 
                         TextField {
                             id: sslClientNameTextField
+                            font.pointSize: 12
                             placeholderText: qsTr("Ssl Client")
                             Layout.fillWidth: true
                         }
@@ -442,6 +446,7 @@ Item {
 
                         TextField {
                             id: tcpServerNameTextField
+                            font.pointSize: 12
                             placeholderText: qsTr("Tcp Server")
                             Layout.fillWidth: true
                         }
@@ -454,6 +459,7 @@ Item {
 
                         ComboBox {
                             id: tcpServerLocalHostComboBox
+                            font.pointSize: 12
                             model: localHostStandardItemModel
                             textRole: "display"
                             valueRole: "whatsThis"
@@ -489,6 +495,7 @@ Item {
 
                         TextField {
                             id: udpSocketNameTextField
+                            font.pointSize: 12
                             placeholderText: qsTr("Udp Socket")
                             Layout.fillWidth: true
                         }
@@ -501,6 +508,7 @@ Item {
 
                         ComboBox {
                             id: udpSocketLocalHostComboBox
+                            font.pointSize: 12
                             model: localHostStandardItemModel
                             textRole: "display"
                             valueRole: "whatsThis"
@@ -563,6 +571,7 @@ Item {
 
                         ComboBox {
                             id: videoStreamNameComboBox
+                            font.pointSize: 12
                             model: videoStreamStandardItemModel
                             textRole: "display"
                             valueRole: "whatsThis"
