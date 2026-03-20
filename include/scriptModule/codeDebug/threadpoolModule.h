@@ -56,8 +56,6 @@ signals:
 
     void appendLog(const QString &message, const QString &level);
 
-    void listPort(QSet<QString> &portSet);
-
 private:
     void threadAppend(int mode, const QString &name, const QString &threadId);
 

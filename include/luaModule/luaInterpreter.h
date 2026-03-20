@@ -46,8 +46,6 @@ signals:
 
     void newMessageDialog(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 
-    void listPort(QSet<QString> &portSet);
-
     void startThread(const QString &scriptPath, int mode, QString &threadId);
 
     void stopThread(const QString &threadId);

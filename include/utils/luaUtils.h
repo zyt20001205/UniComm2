@@ -9,11 +9,11 @@ namespace sol {
     struct variadic_args;
 }
 
+QString SObject2QString(sol::object object);
+
 QVariant SObject2QVariant(sol::object object, int depth = 0);
 
 QVariantList SVariadicArgs2QVariantList(sol::variadic_args args);
-
-QString SObject2QString(sol::object object);
 
 QString lua2filepath(const std::string &luaPath);
 

@@ -61,60 +61,59 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // LuaModbus lib
     auto modbusRtu = m_lua.create_table();
     modbusRtu.set_function("readHoldingRegisters",
-                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                               return m_luaModbusRtu->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                           [](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
+                               return LuaModbusRtu::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
                            });
     modbusRtu.set_function("writeSingleRegister",
-                           [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
-                               m_luaModbusRtu->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                           [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                               LuaModbusRtu::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
                            });
     modbusRtu.set_function("writeMultipleRegisters",
-                           [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
-                               m_luaModbusRtu->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                           [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                               LuaModbusRtu::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                            });
     m_lua["modbusRtu"] = modbusRtu;
 
     sol::table modbusAscii = m_lua.create_table();
     modbusAscii.set_function("readHoldingRegisters",
-                             [this](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                                 return m_luaModbusAscii->readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                             [](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
+                                 return LuaModbusAscii::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
                              });
     modbusAscii.set_function("writeSingleRegister",
-                             [this](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
-                                 m_luaModbusAscii->writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                             [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                                 LuaModbusAscii::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
                              });
     modbusAscii.set_function("writeMultipleRegisters",
-                             [this](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
-                                 m_luaModbusAscii->writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                             [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                                 LuaModbusAscii::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                              });
     m_lua["modbusAscii"] = modbusAscii;
     // LuaPort lib
     auto port = m_lua.create_table();
-    port.set_function("list", [this] { return sol::as_table(m_luaPort->list()); });
-    port.set_function("info", [this](const std::string &portName) { return sol::as_table(m_luaPort->info(portName)); });
-    port.set_function("open", [this](const std::string &portName) { m_luaPort->open(portName); });
-    port.set_function("close", [this](const std::string &portName) { m_luaPort->close(portName); });
-    port.set_function("clear", [this](const std::string &portName) { m_luaPort->clear(portName); });
-    port.set_function("write", [this](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
-        m_luaPort->write(portName, data, peerIp.value_or(""));
+    port.set_function("list", [] { return sol::as_table(LuaPort::list()); });
+    port.set_function("info", [](const std::string &portName) { return sol::as_table(LuaPort::info(portName)); });
+    port.set_function("open", [](const std::string &portName) { LuaPort::open(portName); });
+    port.set_function("close", [](const std::string &portName) { LuaPort::close(portName); });
+    port.set_function("clear", [](const std::string &portName) { LuaPort::clear(portName); });
+    port.set_function("write", [](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
+        LuaPort::write(portName, data, peerIp.value_or(""));
     });
     port.set_function("read",
-                      [this](const sol::this_state ts, const std::string &portName, const sol::optional<int> length, const sol::optional<int> timeout,
+                      [](const sol::this_state ts, const std::string &portName, const sol::optional<int> length, const sol::optional<int> timeout,
                              const sol::optional<std::string> &peerIp) {
-                          return m_luaPort->read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
+                          return LuaPort::read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
                       });
     m_lua["port"] = port;
-    connect(m_luaPort, &LuaPort::listPort, this, &LuaInterpreter::listPort);
     // LuaSmtp lib
     auto smtp = m_lua.create_table();
-    smtp.set_function("ehlo", [this](const std::string &portName) { m_luaSmtp->ehlo(portName); });
-    smtp.set_function("authLogin", [this](const std::string &portName, const std::string &username, const std::string &password) {
-        m_luaSmtp->authLogin(portName, username, password);
+    smtp.set_function("ehlo", [](const std::string &portName) { LuaSmtp::ehlo(portName); });
+    smtp.set_function("authLogin", [](const std::string &portName, const std::string &username, const std::string &password) {
+        LuaSmtp::authLogin(portName, username, password);
     });
     smtp.set_function("mail",
-                      [this](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
+                      [](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
                              const sol::optional<std::string> &attachment) {
-                          m_luaSmtp->mail(portName, from, to, subject, body, attachment.value_or(""));
+                          LuaSmtp::mail(portName, from, to, subject, body, attachment.value_or(""));
                       });
     m_lua["smtp"] = smtp;
     // LuaString lib

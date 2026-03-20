@@ -26,7 +26,7 @@ public:
 
     void portConfigSave();
 
-    void portList(QSet<QString> &portSet) const;
+    [[nodiscard]] QSet<QString> portList() const;
 
     Q_INVOKABLE void portSetting(int index = -1) const;
 

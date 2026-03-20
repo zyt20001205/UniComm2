@@ -11,11 +11,11 @@ public:
 
     ~LuaSmtp() override = default;
 
-    void ehlo(const std::string &portName);
+    static void ehlo(const std::string &portName);
 
-    void authLogin(const std::string &portName, const std::string &username, const std::string &password);
+    static void authLogin(const std::string &portName, const std::string &username, const std::string &password);
 
-    void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment);
+    static void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment);
 };
 
 #endif //UNICOMM_LUASMTP_H

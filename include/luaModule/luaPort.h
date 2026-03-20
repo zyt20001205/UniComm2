@@ -16,22 +16,19 @@ public:
 
     ~LuaPort() override = default;
 
-    std::vector<std::string> list();
+    [[nodiscard]] static std::vector<std::string> list();
 
-    std::unordered_map<std::string, std::string> info(const std::string &portName);
+    [[nodiscard]] static std::unordered_map<std::string, std::string> info(const std::string &portName);
 
-    void open(const std::string &portName);
+    static void open(const std::string &portName);
 
-    void close(const std::string &portName);
+    static void close(const std::string &portName);
 
-    void clear(const std::string &portName);
+    static void clear(const std::string &portName);
 
-    void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
+    static void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
 
-    sol::object read(sol::this_state ts, const std::string &portName, int length, int timeout, const std::string &peerIp);
-
-signals:
-    void listPort(QSet<QString> &portSet);
+    [[nodiscard]] static sol::object read(sol::this_state ts, const std::string &portName, int length, int timeout, const std::string &peerIp);
 };
 
 #endif //UNICOMM_LUAPORT_H

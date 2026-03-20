@@ -9,6 +9,35 @@
 
 #include "globals.h"
 
+QString SObject2QString(sol::object object) {
+    switch (object.get_type()) {
+        case sol::type::nil:
+            return {"nil"};
+        case sol::type::boolean:
+            return object.as<bool>() ? "true" : "false";
+        case sol::type::lightuserdata:
+            return {"lightuserdata"};
+        case sol::type::number:
+            if (object.is<int>()) {
+                return QString::number(object.as<int>());
+            } else {
+                return QString::number(object.as<double>());
+            }
+        case sol::type::string:
+            return QString::fromStdString(object.as<std::string>());
+        case sol::type::table:
+            return {"{...}"};
+        case sol::type::function:
+            return {"function"};
+        case sol::type::userdata:
+            return {"userdata"};
+        case sol::type::thread:
+            return {"thread"};
+        default:
+            return {"?"};
+    }
+}
+
 QVariant SObject2QVariant(sol::object object, int depth) {
     constexpr int MAX_DEPTH = 100;
     if (depth > MAX_DEPTH) {
@@ -98,35 +127,6 @@ QVariantList SVariadicArgs2QVariantList(sol::variadic_args args) {
         parsedList.append(parsed);
     }
     return parsedList;
-}
-
-QString SObject2QString(sol::object object) {
-    switch (object.get_type()) {
-        case sol::type::nil:
-            return {"nil"};
-        case sol::type::boolean:
-            return object.as<bool>() ? "true" : "false";
-        case sol::type::lightuserdata:
-            return {"lightuserdata"};
-        case sol::type::number:
-            if (object.is<int>()) {
-                return QString::number(object.as<int>());
-            } else {
-                return QString::number(object.as<double>());
-            }
-        case sol::type::string:
-            return QString::fromStdString(object.as<std::string>());
-        case sol::type::table:
-            return {"{...}"};
-        case sol::type::function:
-            return {"function"};
-        case sol::type::userdata:
-            return {"userdata"};
-        case sol::type::thread:
-            return {"thread"};
-        default:
-            return {"?"};
-    }
 }
 
 QString lua2filepath(const std::string &luaPath) {

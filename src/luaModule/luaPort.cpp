@@ -12,7 +12,9 @@ LuaPort::LuaPort(QObject *parent)
 
 std::vector<std::string> LuaPort::list() {
     QSet<QString> portSet{};
-    emit listPort(portSet);
+    QMetaObject::invokeMethod(g_port, [&portSet] {
+        portSet = g_port->portList();
+    }, Qt::BlockingQueuedConnection);
     std::vector<std::string> portList{};
     for (const auto &portName: portSet) {
         portList.push_back(portName.toStdString());
