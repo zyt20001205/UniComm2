@@ -7,7 +7,7 @@
 #include <sol/object.hpp>
 #include <sol/variadic_args.hpp>
 
-#include "utils/luaUtils.h"
+#include "utils/uniCast.h"
 
 LuaIO::LuaIO(QObject *parent)
     : QObject(parent) {
@@ -37,7 +37,7 @@ void LuaIO::log(const sol::variadic_args &args) {
         }
     };
 
-    QVariantList parsedList = SVariadicArgs2QVariantList(args);
+    const auto parsedList = uni_cast<sol::variadic_args, QVariantList>(args);
     for (const auto &parsed: parsedList) {
         logging(parsed);
     }

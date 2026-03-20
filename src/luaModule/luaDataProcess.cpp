@@ -3,7 +3,7 @@
 #include "globals.h"
 #include "dataModule/databaseModule.h"
 #include "dataModule/datatableModule.h"
-#include "utils/luaUtils.h"
+#include "utils/uniCast.h"
 
 LuaDataProcess::LuaDataProcess(QObject *parent)
     : QObject(parent) {
@@ -23,7 +23,7 @@ std::vector<std::string> LuaDataProcess::databaseList() {
 }
 
 void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
-    const QString valueStr = SObject2QString(value);
+    const QString valueStr = uni_cast<sol::object, QString>(value);
 
     bool status = false;
     QMetaObject::invokeMethod(g_database, [&status, &key, &valueStr] {
@@ -49,7 +49,7 @@ std::vector<std::string> LuaDataProcess::datatableList() {
 }
 
 void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {
-    const QString valueStr = SObject2QString(value);
+    const QString valueStr = uni_cast<sol::object, QString>(value);
 
     bool status = false;
     QMetaObject::invokeMethod(g_datatable, [&status, &key, &valueStr] {

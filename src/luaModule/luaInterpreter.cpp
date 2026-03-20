@@ -16,6 +16,7 @@
 #include "luaModule/luaThread.h"
 #include "scriptModule/scriptModule.h"
 #include "utils/luaUtils.h"
+#include "utils/uniCast.h"
 
 // LuaInterpreter public
 LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
@@ -258,7 +259,7 @@ void LuaInterpreter::watchSet(lua_State *L, lua_Debug *ar) {
             if (result.valid()) {
                 sol::object obj = result;
                 type = lua_typename(L, static_cast<int>(obj.get_type()));
-                val = SObject2QString(obj);
+                val = uni_cast<sol::object, QString>(obj);
             }
             g_watchStandardItemModel->item(it.value(), 1)->setText(val);
             g_watchStandardItemModel->item(it.value(), 1)->setData(type, Qt::WhatsThisRole);

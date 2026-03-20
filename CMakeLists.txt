@@ -92,6 +92,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/utils/luaUtils.h
         include/utils/qtUtils.h
         include/utils/suffixUtils.h
+        include/utils/uniCast.h
         src/configManager.cpp
         src/crashHandler.cpp
         src/dataModule/databaseModule.cpp
@@ -152,6 +153,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/utils/luaUtils.cpp
         src/utils/qtUtils.cpp
         src/utils/suffixUtils.cpp
+        src/utils/uniCast.cpp
 )
 
 qt_add_resources(UniComm "qml_resources"
