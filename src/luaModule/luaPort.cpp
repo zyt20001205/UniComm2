@@ -17,7 +17,7 @@ sol::table LuaPort::list(const sol::this_state ts) {
     QMetaObject::invokeMethod(g_port, [&portSet] {
         portSet = g_port->portList();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QSet<QString>, sol::table>(ts, portSet);
+    return uni_cast<sol::table>(ts, portSet);
 }
 
 sol::object LuaPort::info(const sol::this_state ts, const std::string &portName) {
@@ -29,7 +29,7 @@ sol::object LuaPort::info(const sol::this_state ts, const std::string &portName)
     QMetaObject::invokeMethod(port, [&port, &infoHash] {
         infoHash = port->info();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QVariant, sol::object>(ts, infoHash);
+    return uni_cast<sol::object>(ts, infoHash);
 }
 
 void LuaPort::open(const std::string &portName) {

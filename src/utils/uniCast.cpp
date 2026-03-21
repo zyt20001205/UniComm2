@@ -7,7 +7,7 @@
 
 // sol -> qt
 template<>
-QString uni_cast<sol::object, QString>(const sol::object &s, const int depth) {
+QString uni_cast<QString, sol::object>(const sol::object &s, const int depth) {
     switch (s.get_type()) {
         case sol::type::nil:
             return "nil";
@@ -36,7 +36,7 @@ QString uni_cast<sol::object, QString>(const sol::object &s, const int depth) {
 }
 
 template<>
-QVariant uni_cast<sol::object, QVariant>(const sol::object &s, const int depth) {
+QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) {
     constexpr int MAX_DEPTH = 100;
     if (depth > MAX_DEPTH) {
         throw sol::error("Maximum recursion depth exceeded");
@@ -91,7 +91,7 @@ QVariant uni_cast<sol::object, QVariant>(const sol::object &s, const int depth) 
                 } else {
                     continue;
                 }
-                map[key_str] = uni_cast<sol::object, QVariant>(value, depth + 1);
+                map[key_str] = uni_cast<QVariant>(value, depth + 1);
             }
             return QVariant::fromValue(map);
         }
@@ -107,18 +107,17 @@ QVariant uni_cast<sol::object, QVariant>(const sol::object &s, const int depth) 
 }
 
 template<>
-QVariantList uni_cast<sol::variadic_args, QVariantList>(const sol::variadic_args &s, const int depth) {
+QVariantList uni_cast<QVariantList, sol::variadic_args>(const sol::variadic_args &s, const int depth) {
     QVariantList d{};
     for (const sol::object &arg: s) {
-        QVariant parsed = uni_cast<sol::object, QVariant>(arg);
-        d.append(parsed);
+        d.append(uni_cast<QVariant>(arg));
     }
     return d;
 }
 
 // qt -> sol
 template<>
-sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVariant &s, const int depth) {
+sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVariant &s, const int depth) {
     sol::state_view lua(ts);
     constexpr int MAX_DEPTH = 100;
     if (depth > MAX_DEPTH) {
@@ -143,7 +142,7 @@ sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVar
             for (auto it = _s.constBegin(); it != _s.constEnd(); ++it) {
                 const QString& key = it.key();
                 const QVariant& value = it.value();
-                _d[key.toStdString()] = uni_cast<QVariant, sol::object>(ts, value, depth + 1);
+                _d[key.toStdString()] = uni_cast<sol::object>(ts, value, depth + 1);
             }
             return sol::make_object(lua, _d);
         }
@@ -155,7 +154,7 @@ sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVar
             for (auto it = _s.constBegin(); it != _s.constEnd(); ++it) {
                 const QString& key = it.key();
                 const QVariant& value = it.value();
-                _d[key.toStdString()] = uni_cast<QVariant, sol::object>(ts, value, depth + 1);
+                _d[key.toStdString()] = uni_cast<sol::object>(ts, value, depth + 1);
             }
             return sol::make_object(lua, _d);
         }
@@ -175,7 +174,17 @@ sol::object uni_cast<QVariant, sol::object>(const sol::this_state ts, const QVar
 }
 
 template<>
-sol::table uni_cast<QSet<QString>, sol::table>(const sol::this_state ts, const QSet<QString> &s, int depth) {
+ sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const QVariantHash &s, const int depth) {
+    return uni_cast<sol::object, QVariant>(ts, QVariant::fromValue(s), depth);
+}
+
+template<>
+sol::object uni_cast<sol::object, QVariantMap>(const sol::this_state ts, const QVariantMap &s, const int depth) {
+    return uni_cast<sol::object, QVariant>(ts, QVariant::fromValue(s), depth);
+}
+
+template<>
+sol::table uni_cast<sol::table, QSet<QString>>(const sol::this_state ts, const QSet<QString> &s, int depth) {
     sol::state_view lua(ts);
     int index = 1;
     sol::table d = lua.create_table();

@@ -37,8 +37,7 @@ void LuaIO::log(const sol::variadic_args &args) {
         }
     };
 
-    const auto parsedList = uni_cast<sol::variadic_args, QVariantList>(args);
-    for (const auto &parsed: parsedList) {
+    for (const auto &parsed: uni_cast<QVariantList>(args)) {
         logging(parsed);
     }
 }

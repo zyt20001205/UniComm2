@@ -16,12 +16,12 @@ sol::table LuaDataProcess::databaseList(const sol::this_state ts) {
     QMetaObject::invokeMethod(g_database, [&databaseSet] {
         databaseSet = g_database->databaseList();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QSet<QString>, sol::table>(ts, databaseSet);
+    return uni_cast<sol::table>(ts, databaseSet);
 }
 
 void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
     bool status = false;
-    const QString valueStr = uni_cast<sol::object, QString>(value);
+    const QString valueStr = uni_cast<QString>(value);
     QMetaObject::invokeMethod(g_database, [&status, &key, &valueStr] {
         status = g_database->databaseWrite(QString::fromStdString(key), valueStr);
     }, Qt::BlockingQueuedConnection);
@@ -35,12 +35,12 @@ sol::table LuaDataProcess::datatableList(const sol::this_state ts) {
     QMetaObject::invokeMethod(g_datatable, [&datatableSet] {
         datatableSet = g_datatable->datatableList();
     }, Qt::BlockingQueuedConnection);
-    return uni_cast<QSet<QString>, sol::table>(ts, datatableSet);
+    return uni_cast<sol::table>(ts, datatableSet);
 }
 
 void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {
     bool status = false;
-    const QString valueStr = uni_cast<sol::object, QString>(value);
+    const QString valueStr = uni_cast<QString>(value);
     QMetaObject::invokeMethod(g_datatable, [&status, &key, &valueStr] {
         status = g_datatable->datatableWrite(QString::fromStdString(key), valueStr);
     }, Qt::BlockingQueuedConnection);
