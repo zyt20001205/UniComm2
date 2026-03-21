@@ -135,11 +135,11 @@ bool TcpServer::write(const QByteArray &txData, const QString &peerIp, const QSt
     return handleWrite(f_txData, peerIp);
 }
 
-// TODO: read the first peer?
 QByteArray TcpServer::read(const int length, const int timeout, const QString &rxFormat) {
     QScopedValueRollback configRollback(m_portConfig);
     if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
-    return handleRead(length, timeout, "");
+    if (m_peerHash.isEmpty()) return {};
+    return handleRead(length, timeout, m_peerHash.keys().first());
 }
 
 QByteArray TcpServer::read(const int length, const int timeout, const QString &peerIp, const QString &rxFormat) {
