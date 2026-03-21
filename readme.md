@@ -100,9 +100,8 @@ gantt
         git integration: 05-01, 31d
 
     section infra
-        ringbuffer class: active, 03-01, 16d
-        ringbuffer apis: active, 03-17, 15d
-        ringbuffer ui: 03-29, 3d
+        ringbuffer class: done, 03-01, 16d
+        ringbuffer apis: done, 03-17, 15d
         undo stack: 04-01, 10d
         port session monitor: 05-01, 31d
 
