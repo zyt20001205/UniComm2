@@ -109,6 +109,34 @@ QVariantHash VideoStream::info() {
     return {};
 }
 
+// TODO: register commands to video stream
+bool VideoStream::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
+    bool status = false;
+    if (m_screenCapture) status = m_screenCapture->isActive();
+    else if (m_cameraCapture) status = m_cameraCapture->isActive();
+    // check port status
+    if (!status) {
+        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        return {};
+    }
+    const auto rawFrame = m_videoSink->videoFrame();
+    const auto rawImage = rawFrame.toImage();
+    if (rawImage.isNull()) return {};
+
+    const auto command = QString::fromUtf8(txData);
+    if (command == "raw") {
+        const QString fileName = g_workspaceUrl.toLocalFile() + "/raw.png";
+        return rawImage.save(fileName);
+    }
+    if (command == "processed") {
+        return {};
+    }
+    return {};
+}
+
 QByteArray VideoStream::read(const int length, const int timeout, const QString &rxFormat) {
     bool status = false;
     if (m_screenCapture) status = m_screenCapture->isActive();
@@ -135,7 +163,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
         } else if (roi.size() == 8) {
             // src poly
             QPolygon src({
-            QPoint(roi[0].toInt(), roi[1].toInt()),
+                QPoint(roi[0].toInt(), roi[1].toInt()),
                 QPoint(roi[2].toInt(), roi[3].toInt()),
                 QPoint(roi[4].toInt(), roi[5].toInt()),
                 QPoint(roi[6].toInt(), roi[7].toInt())
