@@ -153,11 +153,6 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
     const auto rawImage = rawFrame.toImage();
     if (rawImage.isNull()) return {};
 
-    // TODO: head detector
-    const auto temp = QPixmap::fromImage(rawImage);
-    headDetect(temp);
-    return{};
-
     QStringList resultList{};
     for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
         QPixmap cropped{};

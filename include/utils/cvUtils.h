@@ -17,6 +17,4 @@ cv::Mat scale(const cv::Mat &input, float ratio, int interpolation);
 
 cv::Mat threshold(const cv::Mat &input, int thresh, int mode);
 
-int headDetect(const QPixmap &pixmap, double confidence = 0.5);
-
 #endif //UNICOMM_CVUTILS_H

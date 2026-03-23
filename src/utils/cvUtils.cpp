@@ -2,16 +2,15 @@
 
 #include <QJsonArray>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/objdetect.hpp>
 
 #include "globals.h"
 
 QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline) {
     QImage image = pixmap.toImage();
     cv::Mat frame(image.height(), image.width(),
-                         image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-                         image.bits(),
-                         image.bytesPerLine());
+                  image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                  image.bits(),
+                  image.bytesPerLine());
     for (const auto &value: pipeline) {
         const auto &session = value.toObject();
         const int type = session["type"].toInt();
@@ -103,34 +102,4 @@ cv::Mat threshold(const cv::Mat &input, const int thresh, const int mode) {
     }
 
     return output;
-}
-
-int headDetect(const QPixmap &pixmap, double confidence) {
-    QImage image = pixmap.toImage();
-    const cv::Mat frame(image.height(), image.width(),
-                         image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
-                         image.bits(),
-                         image.bytesPerLine());
-    cv::Mat gray{};
-    cv::cvtColor(frame, gray, cv::COLOR_RGB2GRAY);
-    static cv::HOGDescriptor hog{};
-    static bool hogInitialized = false;
-    if (!hogInitialized) {
-        hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());
-        hogInitialized = true;
-        qDebug() << "HOG detector initialized";
-    }
-    std::vector<cv::Rect> found{};
-    std::vector<double> weights{};
-    hog.detectMultiScale(gray, found, weights, 0,
-                            cv::Size(8, 8), cv::Size(32, 32),
-                            1.05, 2.0, false);
-    int count = 0;
-    for (size_t i = 0; i < found.size(); ++i) {
-        if (weights.empty() || weights[i] >= confidence) {
-            count++;
-        }
-    }
-    qDebug() << "Total detected:" << count << "people";
-    return count;
 }
