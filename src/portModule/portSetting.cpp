@@ -632,5 +632,5 @@ void ImageProvider::preview(const QVideoSink *videoSink, const QJsonArray &roi, 
         painter.drawImage(0, 0, image);
         cropped = QPixmap::fromImage(result);
     }
-    m_preview = processPipeline(cropped, pipeline);
+    m_preview = pipelineProcess(cropped, pipeline);
 }

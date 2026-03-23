@@ -421,11 +421,13 @@ target_link_libraries(UniComm PRIVATE
         ${LEPTONICA_LIB}
         ${LUA_LIB}
         ${NUSPELL_LIB}
-        ${OPENCV_LIB}
         ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
         #???
         ${VISA_LIB}
+        -Wl,--start-group
+        ${OPENCV_LIB}
+        -Wl,--end-group
 )
 
 target_compile_definitions(UniComm PRIVATE

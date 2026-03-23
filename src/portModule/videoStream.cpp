@@ -153,6 +153,11 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
     const auto rawImage = rawFrame.toImage();
     if (rawImage.isNull()) return {};
 
+    // TODO: head detector
+    const auto temp = QPixmap::fromImage(rawImage);
+    headDetect(temp);
+    return{};
+
     QStringList resultList{};
     for (const QJsonValue &value: m_portConfig["roi"].toArray()) {
         QPixmap cropped{};
@@ -188,7 +193,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
             painter.drawImage(0, 0, rawImage);
             cropped = QPixmap::fromImage(result);
         }
-        const QPixmap processed = processPipeline(cropped, m_portConfig["pipeline"].toArray());
+        const QPixmap processed = pipelineProcess(cropped, m_portConfig["pipeline"].toArray());
 
         // for testing
         // QMetaObject::invokeMethod(g_mainWindow, [processed] {

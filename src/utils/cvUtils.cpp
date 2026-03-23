@@ -2,12 +2,13 @@
 
 #include <QJsonArray>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/objdetect.hpp>
 
 #include "globals.h"
 
-QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline) {
+QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline) {
     QImage image = pixmap.toImage();
-    cv::Mat intermediate(image.height(), image.width(),
+    cv::Mat frame(image.height(), image.width(),
                          image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
                          image.bits(),
                          image.bytesPerLine());
@@ -66,20 +67,20 @@ QPixmap processPipeline(const QPixmap &pixmap, const QJsonArray &pipeline) {
                     default: break;;
                 }
                 const double interpolation = session["interpolation"].toInt();
-                intermediate = scale(intermediate, f_ratio, interpolation);
+                frame = scale(frame, f_ratio, interpolation);
             }
             break;
             case THRESHOLD: {
                 const int thresh = session["thresh"].toInt();
                 const int mode = session["mode"].toInt();
-                intermediate = threshold(intermediate, thresh, mode);
+                frame = threshold(frame, thresh, mode);
             }
             break;
             default: break;
         }
     }
-    const QImage::Format format = intermediate.channels() == 1 ? QImage::Format_Grayscale8 : image.format();
-    const QImage processedImage(intermediate.data, intermediate.cols, intermediate.rows, intermediate.step, format);
+    const QImage::Format format = frame.channels() == 1 ? QImage::Format_Grayscale8 : image.format();
+    const QImage processedImage(frame.data, frame.cols, frame.rows, frame.step, format);
     return QPixmap::fromImage(processedImage.copy());
 }
 
@@ -102,4 +103,34 @@ cv::Mat threshold(const cv::Mat &input, const int thresh, const int mode) {
     }
 
     return output;
+}
+
+int headDetect(const QPixmap &pixmap, double confidence) {
+    QImage image = pixmap.toImage();
+    const cv::Mat frame(image.height(), image.width(),
+                         image.format() == QImage::Format_RGB32 ? CV_8UC4 : CV_8UC3,
+                         image.bits(),
+                         image.bytesPerLine());
+    cv::Mat gray{};
+    cv::cvtColor(frame, gray, cv::COLOR_RGB2GRAY);
+    static cv::HOGDescriptor hog{};
+    static bool hogInitialized = false;
+    if (!hogInitialized) {
+        hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());
+        hogInitialized = true;
+        qDebug() << "HOG detector initialized";
+    }
+    std::vector<cv::Rect> found{};
+    std::vector<double> weights{};
+    hog.detectMultiScale(gray, found, weights, 0,
+                            cv::Size(8, 8), cv::Size(32, 32),
+                            1.05, 2.0, false);
+    int count = 0;
+    for (size_t i = 0; i < found.size(); ++i) {
+        if (weights.empty() || weights[i] >= confidence) {
+            count++;
+        }
+    }
+    qDebug() << "Total detected:" << count << "people";
+    return count;
 }
