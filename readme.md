@@ -96,7 +96,8 @@ gantt
         status bar: done, 03-10, 3d
         assembly view: active, 03-13, 19d
         search bar: 04-01, 30d
-        textDocument/rename: 04-11, 20d
+        signatureHelp(overload): 04-01, 30d
+        rename: 04-11, 20d
         git integration: 05-01, 31d
 
     section infra
