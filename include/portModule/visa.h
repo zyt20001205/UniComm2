@@ -5,7 +5,7 @@
 #include <visatype.h>
 
 #include "basePort.h"
-#include "utils/qtUtils.h"
+#include "utils/ringBuffer.h"
 
 class Visa final : public BasePort {
     Q_OBJECT

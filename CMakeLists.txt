@@ -91,6 +91,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/utils/cvUtils.h
         include/utils/luaUtils.h
         include/utils/qtUtils.h
+        include/utils/ringBuffer.h
         include/utils/suffixUtils.h
         include/utils/uniCast.h
         src/configManager.cpp
@@ -152,6 +153,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/utils/cvUtils.cpp
         src/utils/luaUtils.cpp
         src/utils/qtUtils.cpp
+        src/utils/ringBuffer.cpp
         src/utils/suffixUtils.cpp
         src/utils/uniCast.cpp
 )
