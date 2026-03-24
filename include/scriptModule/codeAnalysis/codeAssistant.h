@@ -38,7 +38,7 @@ public:
 
     void positionShow(const QVariantMap &positionSession) const;
 
-    void signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const;
+    void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const;
 
 signals:
     void addChar(const QUrl &scriptUrl, QChar character);

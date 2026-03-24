@@ -5,6 +5,8 @@
 #include <QKeyEvent>
 #include <QLabel>
 
+#include "utils/cmarkUtils.h"
+
 // SignatureWidget public
 SignatureWidget::SignatureWidget(QWidget *parent)
     : QObject(parent) {
@@ -28,29 +30,40 @@ bool SignatureWidget::isVisible() const {
     return m_tooltip->property("visible").toBool();
 }
 
-void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const {
-    QString helpText;
-    int index = 0;
-    const int activeParameter = signature["activeParameter"].toInt();
-    const QString label = signature["label"].toString();
-    const QJsonArray parameters = signature["parameters"].toArray();
-    if (parameters.isEmpty()) return;
-    for (const QJsonValue &value: parameters) {
-        const QJsonObject parameter = value.toObject();
-        const QJsonArray range = parameter["label"].toArray();
-        const int startIndex = range[0].toInt();
-        const int endIndex = range[1].toInt();
-        QString param = label.mid(startIndex, endIndex - startIndex);
-        if (index == activeParameter) {
-            param = QString("<span style='color: orange; font-weight: 600;'>%1</span>").arg(param);
+void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const {
+    QString helpText{};
+    bool reposition = false;
+    for (const auto &value: signatures) {
+        const auto signature = value.toObject();
+        helpText += "(";
+        int index = 0;
+        const int activeParameter = signature["activeParameter"].toInt();
+        if (activeParameter == 0) reposition = true;
+        const QString label = signature["label"].toString();
+        const QJsonArray parameters = signature["parameters"].toArray();
+        if (parameters.isEmpty()) {
+            helpText += ")<br>";
+            continue;
         }
-        helpText += param;
-        helpText += ", ";
-        index++;
+        for (const QJsonValue &_value: parameters) {
+            const QJsonObject parameter = _value.toObject();
+            const QJsonArray range = parameter["label"].toArray();
+            const int startIndex = range[0].toInt();
+            const int endIndex = range[1].toInt();
+            QString param = label.mid(startIndex, endIndex - startIndex);
+            if (index == activeParameter) {
+                param = QString("<span style='color: orange; font-weight: 600;'>%1</span>").arg(md2html(param));
+            }
+            helpText += param;
+            helpText += ", ";
+            index++;
+        }
+        helpText.chop(2);
+        helpText += ")<br>";
     }
-    helpText.chop(2);
+    helpText.chop(4);
     m_label->setProperty("text", helpText);
-    if (activeParameter == 0) {
+    if (reposition) {
         const auto position = signatureSession["position"].toPoint();
         m_tooltip->setProperty("position", position);
     }

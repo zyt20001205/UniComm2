@@ -239,8 +239,7 @@ void LuaLanguageServer::jsonParser() {
                 if (!json["result"].isObject()) return; // null result
                 const QJsonObject result = json["result"].toObject();
                 const QJsonArray signatures = result["signatures"].toArray();
-                const QJsonObject signature = signatures[0].toObject();
-                emit responseSignatureHelp(scriptUrl, signature);
+                emit responseSignatureHelp(scriptUrl, signatures);
             } else if (method == "textDocument/typeDefinition") {
                 // typeDefinition request
                 if (!json["result"].isArray()) return; // null result

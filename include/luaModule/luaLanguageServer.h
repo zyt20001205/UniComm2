@@ -56,7 +56,7 @@ signals:
 
     void responseSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);
 
-    void responseSignatureHelp(const QUrl &scriptUrl, const QJsonObject &signature);
+    void responseSignatureHelp(const QUrl &scriptUrl, const QJsonArray &signature);
 
     void responseTypeDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
 

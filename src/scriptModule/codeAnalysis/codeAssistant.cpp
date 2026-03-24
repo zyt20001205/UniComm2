@@ -94,8 +94,8 @@ void CodeAssistant::positionShow(const QVariantMap &positionSession) const {
     m_positionWidget->positionShow(positionSession);
 }
 
-void CodeAssistant::signatureShow(const QVariantHash &signatureSession, const QJsonObject &signature) const {
-    m_signatureWidget->signatureShow(signatureSession, signature);
+void CodeAssistant::signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const {
+    m_signatureWidget->signatureShow(signatureSession, signatures);
 }
 
 // CodeAssistant protected

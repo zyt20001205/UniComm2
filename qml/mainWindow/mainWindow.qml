@@ -2269,7 +2269,7 @@ Item {
     ToolTip {
         id: scriptModuleSignatureToolTip
         parent: Overlay.overlay
-        x: position.x; y: position.y - implicitHeight
+        x: position.x - 6; y: position.y - implicitHeight
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 

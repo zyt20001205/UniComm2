@@ -128,7 +128,7 @@ public:
 
     void signatureHelpRequest(const QUrl &scriptUrl, int line, int character);
 
-    void signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const;
+    void signatureHelpResponse(const QUrl &scriptUrl, const QJsonArray &signatures) const;
 
     Q_INVOKABLE void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
 

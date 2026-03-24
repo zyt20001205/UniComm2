@@ -775,13 +775,13 @@ void ScriptModule::signatureHelpRequest(const QUrl &scriptUrl, int line, int cha
     emit requestJson("textDocument/signatureHelp", signatureHelpParams);
 }
 
-void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObject &signature) const {
+void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonArray &signatures) const {
     const auto *scriptPage = m_scriptPageHash[scriptUrl];
     const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
     const auto wordIndex = scintilla->wordIndexGet();
     const auto startLine = wordIndex["startLine"];
     const auto startCharacter = wordIndex["startCharacter"];
-    const auto point = scintilla->pointGet(startLine, startCharacter);
+    const auto point = scintilla->pointGet(startLine, startCharacter - 1);
     const auto x = point["x"];
     const auto y = point["y"];
     const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
@@ -790,7 +790,7 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonObjec
         {"scriptUrl", scriptUrl},
         {"position", position}
     };
-    m_codeAssistant->signatureShow(signatureSession, signature);
+    m_codeAssistant->signatureShow(signatureSession, signatures);
 }
 
 void ScriptModule::typeDefinitionRequest(const QUrl &scriptUrl, const int line, const int character) {
