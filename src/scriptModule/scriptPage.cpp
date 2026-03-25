@@ -673,7 +673,7 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
 
 void ScriptPage::documentSymbolResponse(const QJsonArray &result) {
     // TODO: symbol bar
-    qDebug() << result;
+    // qDebug() << result;
 }
 
 void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
