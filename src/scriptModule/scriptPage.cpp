@@ -672,6 +672,7 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
 }
 
 void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
+    qDebug() << result;
     QHash<int, int> deltaDepthHash{};
     for (const auto &value: result) {
         const QJsonObject valueObject = value.toObject();
