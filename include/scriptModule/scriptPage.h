@@ -38,6 +38,8 @@ public:
 
     void documentHighlightResponse(const QJsonArray &result) const;
 
+    void documentSymbolResponse(const QJsonArray &result);
+
     void foldingRangeResponse(const QJsonArray &result) const;
 
     void formattingResponse(const QString &newText) const;

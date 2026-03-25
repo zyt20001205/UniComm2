@@ -94,9 +94,10 @@ gantt
     section coding
         scintilla migration: done, 02-11, 30d
         status bar: done, 03-10, 3d
-        assembly view: active, 03-13, 19d
+        assembly view: done, 03-13, 19d
         search bar: 04-01, 30d
         signatureHelp(overload): done, 04-01, 30d
+        documentSymbol bar: active, 04-01, 30d
         rename: 04-11, 20d
         git integration: 05-01, 31d
 

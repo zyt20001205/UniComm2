@@ -90,6 +90,8 @@ public:
 
     void documentSymbolRequest(const QUrl &scriptUrl);
 
+    void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
+
     void documentHighlightRequest(const QUrl &scriptUrl, int line, int character);
 
     void documentHighlightResponse(const QUrl &scriptUrl, const QJsonArray &result);

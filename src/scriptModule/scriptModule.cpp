@@ -494,7 +494,9 @@ void ScriptModule::documentSymbolRequest(const QUrl &scriptUrl) {
     emit requestJson("textDocument/documentSymbol", documentSymbolParams);
 }
 
-// documentSymbolResponse is sent to structure module
+void ScriptModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
+    m_scriptPageHash[scriptUrl]->documentSymbolResponse(result);
+}
 
 void ScriptModule::documentHighlightRequest(const QUrl &scriptUrl, const int line, const int character) {
     // document highlight request to lua language server

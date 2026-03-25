@@ -671,6 +671,11 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
     }
 }
 
+void ScriptPage::documentSymbolResponse(const QJsonArray &result) {
+    // TODO: symbol bar
+    qDebug() << result;
+}
+
 void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
     QHash<int, int> deltaDepthHash{};
     for (const auto &value: result) {
