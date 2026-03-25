@@ -672,14 +672,13 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
 }
 
 void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
-    qDebug() << result;
     QHash<int, int> deltaDepthHash{};
     for (const auto &value: result) {
         const QJsonObject valueObject = value.toObject();
         const int startLine = valueObject["startLine"].toInt();
         const int endLine = valueObject["endLine"].toInt();
         deltaDepthHash.insert(startLine + 1, deltaDepthHash.value(startLine + 1, 0) + 1);
-        deltaDepthHash.insert(endLine + 2, deltaDepthHash.value(endLine + 2, 0) - 1);
+        deltaDepthHash.insert(endLine + 1, deltaDepthHash.value(endLine + 1, 0) - 1);
     }
     int depth = 0;
     for (int line = 0; line < m_editorWidget->lineCountGet(); line++) {
