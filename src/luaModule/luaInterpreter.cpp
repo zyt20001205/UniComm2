@@ -160,8 +160,8 @@ void LuaInterpreter::start(const QString &script) {
         lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     }
     // frontend
-    emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
-    emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
+    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
 
     const QString filePath = "@" + m_luaSession["scriptUrl"].toUrl().toLocalFile();
     const sol::protected_function_result result = m_lua.safe_script(
@@ -174,8 +174,8 @@ void LuaInterpreter::start(const QString &script) {
         emit appendLog(QString::fromStdString(err.what()), "error");
     }
     // frontend
-    emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
-    emit removeMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
+    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
 }
@@ -287,7 +287,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     sol::state_view lua(L);
     QVariantMap &session = *lua["session"].get<QVariantMap *>();
     auto *This = qvariant_cast<LuaInterpreter *>(session["this"]);
-    emit This->removeMarker(session["currentUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit This->deleteMarker(session["currentUrl"].toUrl(), MARKER_DEBUG, -1);
     if (ar->event == LUA_HOOKCALL) {
         session["currentDepth"] = session["currentDepth"].toInt() + 1;
     } else if (ar->event == LUA_HOOKRET) {
@@ -365,7 +365,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             emit This->openScript(currentUrl);
             if (currentUrl != session["currentUrl"].toUrl()) session["currentUrl"] = currentUrl;
             // line handle
-            emit This->insertMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
+            emit This->addMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
             // call stack handle
             stackSet(L, ar);
             // watch handle

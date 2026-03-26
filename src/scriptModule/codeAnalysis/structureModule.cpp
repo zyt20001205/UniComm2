@@ -53,8 +53,8 @@ void StructureModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &ses
     }
 }
 
-void StructureModule::markerInsert(const int row) {
-    emit insertMarker(m_currentScriptUrl, MARKER_HINT, row, 1000);
+void StructureModule::markerAdd(const int row) {
+    emit addMarker(m_currentScriptUrl, MARKER_HINT, row, 1000);
 }
 
 // StructureModule protected

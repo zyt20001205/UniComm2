@@ -1,6 +1,7 @@
 #include "scriptModule/codeAnalysis/symbolWidget.h"
 
 #include <QJsonArray>
+#include <QQmlContext>
 #include <QQuickItem>
 
 #include "globals.h"
@@ -8,6 +9,10 @@
 // public
 SymbolWidget::SymbolWidget(QWidget *parent)
     : QQuickWidget(parent) {
+}
+
+void SymbolWidget::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("symbolWidget", this);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/scriptModule/codeAnalysis/symbolWidget.qml"));
     m_rootItem = rootObject();
@@ -16,6 +21,19 @@ SymbolWidget::SymbolWidget(QWidget *parent)
 void SymbolWidget::symbolLoad(const QJsonArray &result, const int line, const int character) const {
     const auto symbolList = symbolParse(result, line, character);
     QMetaObject::invokeMethod(m_rootItem, "symbolLoad", Q_ARG(QVariant, QVariant::fromValue(symbolList)));
+}
+
+void SymbolWidget::indicatorFill(const QVariantHash &position) {
+    emit setIndex(
+        position["startLine"].toInt(),
+        position["startCharacter"].toInt());
+    emit fillIndicator(
+        INDICATOR_SELECTION,
+        position["startLine"].toInt(),
+        position["startCharacter"].toInt(),
+        position["endLine"].toInt(),
+        position["endCharacter"].toInt(),
+        1000);
 }
 
 QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line, const int character) {
@@ -31,12 +49,18 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
         if (line < start["line"].toInt() || line > end["line"].toInt()) continue;
         if (line == start["line"].toInt() && character < start["character"].toInt()) continue;
         if (line == end["line"].toInt() && character > end["character"].toInt()) continue;
+        const QVariantHash position = {
+            {"startLine", start["line"].toInt()},
+            {"startCharacter", start["character"].toInt()},
+            {"endLine", end["line"].toInt()},
+            {"endCharacter", end["character"].toInt()}
+        };
         QUrl source{};
         switch (kind) {
             case SYMBOL_KIND_PACKAGE: {
                 source = "qrc:/icon/symbolPackage.svg";
             }
-                break;
+            break;
             case SYMBOL_KIND_FUNCTION: {
                 source = "qrc:/icon/symbolMethod.svg";
             }
@@ -44,7 +68,7 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
             case SYMBOL_KIND_VARIABLE: {
                 source = "qrc:/icon/symbolVariable.svg";
             }
-                break;
+            break;
             case SYMBOL_KIND_CONSTANT: {
                 source = "qrc:/icon/symbolConstant.svg";
             }
@@ -76,6 +100,7 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
             break;
         }
         symbolList.append(QVariantHash{
+            {"position", position},
             {"text", name},
             {"source", source}
         });

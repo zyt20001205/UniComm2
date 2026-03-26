@@ -541,6 +541,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // layout->addWidget(m_searchWidget);
     layout->addWidget(codingwidget);
     layout->addWidget(m_symbolWidget);
+    connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget,&ScintillaWidget::indexSet);
+    connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget,&ScintillaWidget::indicatorFill);
+
     QTimer::singleShot(0, this, [this] {
         // state
         permissionLoad();
@@ -549,6 +552,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // lsp
         didOpenNotification();
         contentChange();
+        // widget
+        m_symbolWidget->propertySet(QVariantMap{});
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

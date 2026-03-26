@@ -24,10 +24,10 @@ public:
 
     void scriptFocus(const QUrl &scriptUrl, const QVariantHash &session);
 
-    Q_INVOKABLE void markerInsert(int row);
+    Q_INVOKABLE void markerAdd(int row);
 
 signals:
-    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

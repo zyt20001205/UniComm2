@@ -435,7 +435,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
-    connect(m_structureModule, &StructureModule::insertMarker, m_scriptModule, &ScriptModule::markerAdd);
+    connect(m_structureModule, &StructureModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
 
     connect(m_systemModule, &SystemModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_systemModule, &SystemModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
@@ -444,8 +444,8 @@ void MainWindow::moduleInit() {
     connect(m_threadpoolModule, &ThreadpoolModule::trackQuit, this, &MainWindow::quitTrack);
     connect(m_threadpoolModule, &ThreadpoolModule::refreshThread, m_statusModule, &StatusModule::threadRefresh);
     connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_threadpoolModule, &ThreadpoolModule::insertMarker, m_scriptModule, &ScriptModule::markerAdd);
-    connect(m_threadpoolModule, &ThreadpoolModule::removeMarker, m_scriptModule, &ScriptModule::markerDelete);
+    connect(m_threadpoolModule, &ThreadpoolModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
+    connect(m_threadpoolModule, &ThreadpoolModule::deleteMarker, m_scriptModule, &ScriptModule::markerDelete);
     connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);

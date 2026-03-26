@@ -158,11 +158,11 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    onTapped: tableView.markerInsert(textCell.row)
+                    onTapped: tableView.markerAdd(textCell.row)
                 }
             }
 
-            function markerInsert(row) {
+            function markerAdd(row) {
                 const index = model.index(row, 0);
                 debugModule.markerAdd(model.data(index, Qt.WhatsThisRole))
             }

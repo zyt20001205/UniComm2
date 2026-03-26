@@ -30,6 +30,7 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     property string text
                     property string source
+                    property var position
 
                     Image {
                         source: "qrc:/icon/arrowCollapse.svg"
@@ -47,7 +48,7 @@ Item {
                         text: breadcrumbItem.text
                         Layout.preferredWidth: breadcrumbButtonTextMetrics.width + 28; Layout.preferredHeight: 20
 
-                        // onClicked:
+                        onClicked: symbolWidget.indicatorFill(breadcrumbItem.position)
 
                         TextMetrics {
                             id: breadcrumbButtonTextMetrics
@@ -69,7 +70,8 @@ Item {
         for (const symbol of symbolList) {
             const item = breadcrumbComponent.createObject(symbolBreadcrumb, {
                 "text": symbol.text,
-                "source": symbol.source
+                "source": symbol.source,
+                "position": symbol.position
             });
         }
     }

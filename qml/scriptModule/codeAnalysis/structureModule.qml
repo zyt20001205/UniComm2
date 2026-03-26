@@ -91,7 +91,7 @@ Item {
 
                 onTapped: {
                     treeView.selectedRow = row
-                    structureModule.markerInsert(treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole))
+                    structureModule.markerAdd(treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole))
                     if (isTreeNode && hasChildren) {
                         treeView.toggleExpanded(row)
                     }

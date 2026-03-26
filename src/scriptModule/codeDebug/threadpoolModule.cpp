@@ -81,8 +81,8 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     }
     auto *interpreter = new LuaInterpreter(luaSession); // NOLINT
     connect(interpreter, &LuaInterpreter::openScript, this, &ThreadpoolModule::openScript);
-    connect(interpreter, &LuaInterpreter::insertMarker, this, &ThreadpoolModule::insertMarker);
-    connect(interpreter, &LuaInterpreter::removeMarker, this, &ThreadpoolModule::removeMarker);
+    connect(interpreter, &LuaInterpreter::addMarker, this, &ThreadpoolModule::addMarker);
+    connect(interpreter, &LuaInterpreter::deleteMarker, this, &ThreadpoolModule::deleteMarker);
     connect(interpreter, &LuaInterpreter::insertCallStack, this, &ThreadpoolModule::insertCallStack);
     connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);

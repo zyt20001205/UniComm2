@@ -36,9 +36,9 @@ public:
 signals:
     void openScript(const QUrl &scriptUrl);
 
-    void insertMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
 
-    void removeMarker(const QUrl &scriptUrl, int type, int line);
+    void deleteMarker(const QUrl &scriptUrl, int type, int line);
 
     void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 
