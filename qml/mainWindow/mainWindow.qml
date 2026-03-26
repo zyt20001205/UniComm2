@@ -157,14 +157,11 @@ Item {
 
     ToolTip {
         id: mainWindowTooltip
-        // onOpened: {
-        //     mainWindow.overlayPenetrate(true)
-        //     mainWindow.overlayShow()
-        // }
-        // onClosed: {
-        //     mainWindow.overlayPenetrate(false)
-        //     mainWindow.overlayHide()
-        // }
+        parent: Overlay.overlay
+        x: position.x + 10; y: position.y + 10
+        closePolicy: Popup.NoAutoClose
+        visible: text
+        property point position
     }
 
     // luals

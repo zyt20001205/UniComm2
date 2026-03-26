@@ -553,8 +553,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // lsp
         didOpenNotification();
         contentChange();
-        // widget
-        m_symbolWidget->propertySet(QVariantMap{});
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

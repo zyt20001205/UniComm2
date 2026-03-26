@@ -9,6 +9,7 @@
 // public
 SymbolWidget::SymbolWidget(QWidget *parent)
     : QQuickWidget(parent) {
+    propertySet(QVariantMap{});
 }
 
 void SymbolWidget::propertySet(const QVariantMap &objects) {

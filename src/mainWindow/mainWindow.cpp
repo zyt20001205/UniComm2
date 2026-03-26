@@ -565,6 +565,7 @@ void MainWindow::layoutInit() {
 
 void MainWindow::overlayInit() {
     m_overlay = new QQuickWidget(this);
+    // m_overlay->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_overlay->setClearColor(Qt::transparent);
     m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
@@ -579,6 +580,7 @@ void MainWindow::overlayInit() {
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
     m_overlay->resize(size());
     m_overlay->show();
+    // m_overlay->showMaximized();
 }
 
 void MainWindow::mainConfigSave() {
