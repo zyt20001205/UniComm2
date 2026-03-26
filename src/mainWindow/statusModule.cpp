@@ -7,7 +7,7 @@
 
 #include "globals.h"
 
-// StatusModule public
+// public
 StatusModule::StatusModule(QWidget *parent)
     : QQuickWidget(parent) {
 }

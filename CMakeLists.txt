@@ -79,6 +79,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeAnalysis/positionWidget.h
         include/scriptModule/codeAnalysis/signatureWidget.h
         include/scriptModule/codeAnalysis/structureModule.h
+        include/scriptModule/codeAnalysis/symbolBar.h
         include/scriptModule/codeDebug/breakpointModule.h
         include/scriptModule/codeDebug/debugModule.h
         include/scriptModule/codeDebug/threadpoolModule.h
@@ -141,6 +142,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeAnalysis/positionWidget.cpp
         src/scriptModule/codeAnalysis/signatureWidget.cpp
         src/scriptModule/codeAnalysis/structureModule.cpp
+        src/scriptModule/codeAnalysis/symbolBar.cpp
         src/scriptModule/codeDebug/breakpointModule.cpp
         src/scriptModule/codeDebug/debugModule.cpp
         src/scriptModule/codeDebug/threadpoolModule.cpp
@@ -175,6 +177,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/scriptModule/welcomePage.qml"
         "qml/scriptModule/codeAnalysis/diagnosticsModule.qml"
         "qml/scriptModule/codeAnalysis/structureModule.qml"
+        "qml/scriptModule/codeAnalysis/symbolBar.qml"
         "qml/scriptModule/codeDebug/breakpointModule.qml"
         "qml/scriptModule/codeDebug/debugModule.qml"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"

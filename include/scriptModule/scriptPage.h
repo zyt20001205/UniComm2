@@ -195,7 +195,6 @@ private:
 
     QFileSystemWatcher *m_fileWatcher{};
     SearchWidget *m_searchWidget{};
-    bool m_readonly = false;
 
     QJsonArray m_scriptDiagnostic{};
     QVariantList m_scriptTypo{};
