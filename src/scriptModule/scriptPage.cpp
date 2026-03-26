@@ -991,7 +991,7 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
 }
 
 // private: slot
-void ScriptPage::marginClick(const Scintilla::Position position, const int mouseButton, Scintilla::KeyMod modifiers, const int margin) {
+void ScriptPage::marginClick(const Scintilla::Position position, const int mouseButton, const Scintilla::KeyMod modifiers, const int margin) {
     const int line = m_editorWidget->lineGet(position);
     if (margin == 1) {
         if (mouseButton == Qt::LeftButton) {
