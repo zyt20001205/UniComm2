@@ -89,7 +89,9 @@ gantt
         v0.2.0-alpha1: active, 02-11, 49d
         v0.2.0-alpha2: 04-01, 30d
         v0.2.0-alpha3: 05-01, 31d
-        v0.3.0(Interface Optimization): 07-01, 31d
+        v0.3.0(Interface Optimization): 07-01, 62d
+        v0.3.0-alpha1: 07-01, 31d
+        v0.3.0-alpha2: 08-01, 31d
 
     section coding
         scintilla migration: done, 02-11, 30d
@@ -106,11 +108,12 @@ gantt
         ringbuffer apis: done, 03-17, 15d
         undo stack: 04-01, 10d
         port session monitor: 05-01, 31d
+        fullscreen overlay: 07-01, 31d
 
     section ui
-        customize settings: 07-01, 31d
-        dark theme: 07-01, 31d
-        i18n: 07-01, 31d
+        customize settings: 08-01, 31d
+        dark theme: 08-01, 31d
+        i18n: 08-01, 31d
 ```
 
 # APIS
