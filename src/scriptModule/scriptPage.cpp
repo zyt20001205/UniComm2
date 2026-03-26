@@ -11,9 +11,9 @@
 #include <QTemporaryFile>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <kddockwidgets/core/DockWidget.h>
 
 #include "globals.h"
+#include "scriptModule/codeAnalysis/symbolWidget.h"
 #include "scriptModule/codeEditor/scintillaWidget.h"
 #include "scriptModule/codeEditor/searchWidget.h"
 #include "utils/cmarkUtils.h"
@@ -23,10 +23,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
       m_scriptUrl(scriptUrl),
       m_editorWidget(new ScintillaWidget(this)),
-      m_assemblyWidget(new ScintillaWidget(this)),
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
       m_dwellTimer(new QTimer(this)),
+      m_symbolWidget(new SymbolWidget(this)),
+      m_assemblyWidget(new ScintillaWidget(this)),
       m_fileWatcher(new QFileSystemWatcher()),
       m_searchWidget(new SearchWidget()),
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
@@ -62,12 +63,16 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
-    auto *layout = new QHBoxLayout(widget); // NOLINT
+    auto *layout = new QVBoxLayout(widget); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    // layout->addWidget(m_searchWidget);
-    layout->addWidget(m_editorWidget);
-    layout->addWidget(m_assemblyWidget);
+
+    auto *codingwidget = new QWidget(this); // NOLINT
+    auto *codingLayout = new QHBoxLayout(codingwidget); // NOLINT
+    codingLayout->setContentsMargins(0, 0, 0, 0);
+    codingLayout->setSpacing(0);
+    codingLayout->addWidget(m_editorWidget);
+    codingLayout->addWidget(m_assemblyWidget);
     // editor init
     {
         // misc
@@ -532,6 +537,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 });
         }
     }
+
+    // layout->addWidget(m_searchWidget);
+    layout->addWidget(codingwidget);
+    layout->addWidget(m_symbolWidget);
     QTimer::singleShot(0, this, [this] {
         // state
         permissionLoad();
@@ -628,7 +637,7 @@ void ScriptPage::scriptClose() {
 // public: lsp
 void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
-    m_scriptDiagnostic = diagnostics;
+    m_diagnostic = diagnostics;
     // clear
     m_editorWidget->indicatorClear(INDICATOR_ERROR);
     m_editorWidget->indicatorClear(INDICATOR_WARNING);
@@ -672,8 +681,8 @@ void ScriptPage::documentHighlightResponse(const QJsonArray &result) const {
 }
 
 void ScriptPage::documentSymbolResponse(const QJsonArray &result) {
-    // TODO: symbol bar
-    // qDebug() << result;
+    if (!m_scriptUrl.toString().endsWith(".lua")) return;
+    m_symbol = result;
 }
 
 void ScriptPage::foldingRangeResponse(const QJsonArray &result) const {
@@ -787,7 +796,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
 
 // public: typo
 void ScriptPage::spellCheckResponse(const QVariantList &typos) {
-    m_scriptTypo = typos;
+    m_typo = typos;
     // clear
     m_editorWidget->indicatorClear(INDICATOR_TYPO);
     // publish
@@ -1033,6 +1042,7 @@ void ScriptPage::selectionChange() {
     emit changeSelection(m_selection);
     if (m_selection["lines"] == 0 && m_selection["characters"] == 0) {
         documentHighlightRequest();
+        m_symbolWidget->symbolLoad(m_symbol, m_selection["line"], m_selection["character"]);
     }
 }
 
@@ -1218,7 +1228,7 @@ void ScriptPage::hoverRequest() {
     if (line == 0 && character == 0) return;
     // show diagnostic if exists
     QString diagnosticText = "<table width='100%'>";
-    for (const auto &value: m_scriptDiagnostic) {
+    for (const auto &value: m_diagnostic) {
         const QJsonObject diagnostic = value.toObject();
         const QJsonObject range = diagnostic["range"].toObject();
         const QJsonObject start = range["start"].toObject();
@@ -1257,7 +1267,7 @@ void ScriptPage::hoverRequest() {
         }
     }
     // show typo if exists
-    for (const auto &value: m_scriptTypo) {
+    for (const auto &value: m_typo) {
         auto typo = value.toMap();
         const int startLine = typo["line"].toInt();
         const int endLine = typo["line"].toInt();

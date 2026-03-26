@@ -79,55 +79,55 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         const auto start = range["start"].toObject();
         const int line = start["line"].toInt();
         switch (kind) {
-            case SYMBOLKIND_PACKAGE: {
+            case SYMBOL_KIND_PACKAGE: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolPackage.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
                 break;
-            case SYMBOLKIND_FUNCTION: {
+            case SYMBOL_KIND_FUNCTION: {
                 item->setData(name + detail.mid(9), Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_VARIABLE: {
+            case SYMBOL_KIND_VARIABLE: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolVariable.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
                 break;
-            case SYMBOLKIND_CONSTANT: {
+            case SYMBOL_KIND_CONSTANT: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolConstant.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_STRING: {
+            case SYMBOL_KIND_STRING: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolString.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_NUMBER: {
+            case SYMBOL_KIND_NUMBER: {
                 item->setData(name + " = " + detail, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_BOOLEAN: {
+            case SYMBOL_KIND_BOOLEAN: {
                 item->setData(name + " = " + detail, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolBoolean.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_ARRAY: {
+            case SYMBOL_KIND_ARRAY: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolArray.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);
             }
             break;
-            case SYMBOLKIND_OBJECT: {
+            case SYMBOL_KIND_OBJECT: {
                 item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
                 item->setData(line, Qt::WhatsThisRole);

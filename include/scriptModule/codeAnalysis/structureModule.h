@@ -40,35 +40,6 @@ private:
     QObject *m_structureTreeView{};
     QStandardItemModel *m_structureStandardItemModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
-
-    enum {
-        SYMBOLKIND_FILE = 1,
-        SYMBOLKIND_MODULE,
-        SYMBOLKIND_NAMESPACE,
-        SYMBOLKIND_PACKAGE,
-        SYMBOLKIND_CLASS,
-        SYMBOLKIND_METHOD,
-        SYMBOLKIND_PROPERTY,
-        SYMBOLKIND_FIELD,
-        SYMBOLKIND_CONSTRUCTOR,
-        SYMBOLKIND_ENUM,
-        SYMBOLKIND_INTERFACE,
-        SYMBOLKIND_FUNCTION,
-        SYMBOLKIND_VARIABLE,
-        SYMBOLKIND_CONSTANT,
-        SYMBOLKIND_STRING,
-        SYMBOLKIND_NUMBER,
-        SYMBOLKIND_BOOLEAN,
-        SYMBOLKIND_ARRAY,
-        SYMBOLKIND_OBJECT,
-        SYMBOLKIND_KEY,
-        SYMBOLKIND_NULL,
-        SYMBOLKIND_ENUMMEMBER,
-        SYMBOLKIND_STRUCT,
-        SYMBOLKIND_EVENT,
-        SYMBOLKIND_OPERATOR,
-        SYMBOLKIND_TYPEPARAMETER
-    };
 };
 
 #endif //UNICOMM_STRUCTUREMODULE_H

@@ -12,6 +12,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 
+class SymbolWidget;
 class ScintillaWidget;
 class SearchWidget;
 class EditorWidget;
@@ -59,7 +60,6 @@ public:
 
     QUrl m_scriptUrl{};
     ScintillaWidget *m_editorWidget{};
-    ScintillaWidget *m_assemblyWidget{};
 
 signals:
     void appendLog(const QString &message, const QString &level);
@@ -193,11 +193,15 @@ private:
     QTimer *m_contentTimer{};
     QTimer *m_dwellTimer{};
 
+    SymbolWidget * m_symbolWidget{};
+    ScintillaWidget *m_assemblyWidget{};
+
     QFileSystemWatcher *m_fileWatcher{};
     SearchWidget *m_searchWidget{};
 
-    QJsonArray m_scriptDiagnostic{};
-    QVariantList m_scriptTypo{};
+    QJsonArray m_diagnostic{};
+    QJsonArray m_symbol{};
+    QVariantList m_typo{};
     int m_version = 1;
     QSet<QChar> m_completionSet{};
     QSet<QChar> m_signatureHelpSet{};
