@@ -24,6 +24,7 @@ void SymbolWidget::symbolLoad(const QJsonArray &result, const int line, const in
 }
 
 void SymbolWidget::indicatorFill(const QVariantHash &position) {
+    emit setFocus(true);
     emit setIndex(
         position["startLine"].toInt(),
         position["startCharacter"].toInt());

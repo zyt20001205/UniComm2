@@ -16,6 +16,8 @@ public:
     Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 
 signals:
+    void setFocus(bool status);
+
     void setIndex(int startLine, int startCharacter);
 
     void fillIndicator(int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
