@@ -180,8 +180,6 @@ private:
 
     void menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const;
 
-    void tooltipSet(const QPoint &position, const QString &text) const;
-
     QJsonObject m_scriptConfig{};
     QObject *m_breakpointEditDialog{};
     QObject *m_permissionDialog{};

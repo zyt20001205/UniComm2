@@ -9,10 +9,11 @@
 // public
 SymbolWidget::SymbolWidget(QWidget *parent)
     : QQuickWidget(parent) {
-    propertySet(QVariantMap{});
 }
 
 void SymbolWidget::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
+
     rootContext()->setContextProperty("symbolWidget", this);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/scriptModule/codeAnalysis/symbolWidget.qml"));
@@ -102,9 +103,10 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
             break;
         }
         symbolList.append(QVariantHash{
-            {"position", position},
             {"text", name},
-            {"source", source}
+            {"source", source},
+            {"detail", detail},
+            {"position", position}
         });
         if (symbol.contains("children")) {
             const auto children = symbol["children"].toArray();

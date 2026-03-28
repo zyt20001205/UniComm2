@@ -15,8 +15,6 @@ Item {
             icon.source: "qrc:/icon/document.svg"
             icon.width: 16; icon.height: 16
             Layout.preferredWidth: 20; Layout.preferredHeight: 20
-
-            // onClicked:
         }
 
         RowLayout {
@@ -30,6 +28,7 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     property string text
                     property string source
+                    property string detail
                     property var position
 
                     Image {
@@ -49,6 +48,18 @@ Item {
                         Layout.preferredWidth: breadcrumbButtonTextMetrics.width + 28; Layout.preferredHeight: 20
 
                         onClicked: symbolWidget.indicatorFill(breadcrumbItem.position)
+
+                        HoverHandler {
+                            onHoveredChanged: {
+                                if (!hovered) {
+                                    mainTooltip.text = ""
+                                }
+                            }
+                            onPointChanged: {
+                                mainTooltip.position = parent.mapToGlobal(point.position)
+                                mainTooltip.text = breadcrumbItem.detail
+                            }
+                        }
 
                         TextMetrics {
                             id: breadcrumbButtonTextMetrics
@@ -71,6 +82,7 @@ Item {
             const item = breadcrumbComponent.createObject(symbolBreadcrumb, {
                 "text": symbol.text,
                 "source": symbol.source,
+                "detail": symbol.detail,
                 "position": symbol.position
             });
         }

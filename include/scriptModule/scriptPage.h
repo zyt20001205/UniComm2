@@ -59,6 +59,7 @@ public:
     void assemblyToggle(bool status);
 
     QUrl m_scriptUrl{};
+    QObject *m_toolTip{};
     ScintillaWidget *m_editorWidget{};
 
 signals:
@@ -75,8 +76,6 @@ signals:
     void editBreakpoint(const QUrl &scriptUrl, int line);
 
     void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
-
-    void setTooltip(const QPoint &position, const QString &text);
 
     void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
 

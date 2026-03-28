@@ -36,6 +36,11 @@ ScriptModule::~ScriptModule() {
 }
 
 void ScriptModule::propertySet(const QVariantMap &objects) {
+    m_permissionDialog = qvariant_cast<QObject *>(objects["systemModulePermissionDialog"]);
+    m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
+    m_toolTip = qvariant_cast<QObject *>(objects["mainWindowTooltip"]);
+    m_menu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
+
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
         scriptOpen(QUrl(value.toString()));
     }
@@ -49,10 +54,6 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     m_welcomePage->propertySet(QVariantMap());
     m_codeAssistant->propertySet(objects);
     m_codeAssistant->fontSet(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt());
-    m_permissionDialog = qvariant_cast<QObject *>(objects["systemModulePermissionDialog"]);
-    m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
-    m_toolTip = qvariant_cast<QObject *>(objects["mainWindowTooltip"]);
-    m_menu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
 void ScriptModule::scriptConfigSave() {
@@ -180,6 +181,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) {
         // create script page
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
+        scriptPage->m_toolTip = m_toolTip;
         scriptPage->setObjectName(scriptUrl.toString());
         // check same file name
         bool conflict = false;
@@ -203,7 +205,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::setPermission, this, &ScriptModule::permissionSet);
         connect(scriptPage, &ScriptPage::editBreakpoint, this, &ScriptModule::breakpointEdit);
         connect(scriptPage, &ScriptPage::showMenu, this, &ScriptModule::menuShow);
-        connect(scriptPage, &ScriptPage::setTooltip, this, &ScriptModule::tooltipSet);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestCompletion, this, &ScriptModule::completionRequest);
@@ -886,9 +887,4 @@ void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSessi
     m_menu->setProperty("scriptUrl", scriptUrl.toString());
     m_menu->setProperty("menuSession", menuSession);
     QMetaObject::invokeMethod(m_menu, "popup");
-}
-
-void ScriptModule::tooltipSet(const QPoint &position, const QString &text) const {
-    m_toolTip->setProperty("position", position);
-    m_toolTip->setProperty("text", text);
 }

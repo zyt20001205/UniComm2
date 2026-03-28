@@ -541,9 +541,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     // layout->addWidget(m_searchWidget);
     layout->addWidget(codingwidget);
     layout->addWidget(m_symbolWidget);
-    connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget,&ScintillaWidget::focusSet);
-    connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget,&ScintillaWidget::indexSet);
-    connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget,&ScintillaWidget::indicatorFill);
+    connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
+    connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
+    connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget, &ScintillaWidget::indicatorFill);
 
     QTimer::singleShot(0, this, [this] {
         // state
@@ -553,6 +553,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // lsp
         didOpenNotification();
         contentChange();
+        // widgets
+        m_symbolWidget->propertySet(QVariantMap{
+            {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+        });
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -1379,16 +1383,17 @@ void ScriptPage::symbolPair(const QChar character) {
 void ScriptPage::navigationToggle(const Scintilla::Position position) {
     if (position == -1) {
         m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
-        emit setTooltip(QPoint(0, 0), "");
+        m_toolTip->setProperty("text", "");
     } else {
         const int type = m_editorWidget->styleGet(position);
         if (type > 0 && type < LUA_TOKEN_MACRO) {
             const auto wordIndex = m_editorWidget->wordIndexGet(position);
             m_editorWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
-            emit setTooltip(QCursor::pos(), tr("Click to navigate"));
+            m_toolTip->setProperty("position", QCursor::pos());
+            m_toolTip->setProperty("text", tr("Click to navigate"));
         } else {
             m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
-            emit setTooltip(QPoint(0, 0), "");
+            m_toolTip->setProperty("text", "");
         }
     }
 }
