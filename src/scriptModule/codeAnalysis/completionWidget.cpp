@@ -169,18 +169,6 @@ void CompletionWidget::textReplace() {
     } else if (kind == COMPLETION_KIND_FIELD) {
         insertText += ".";
     } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
-        if (insertText == "\"Add New Port\"") {
-            emit insertPort();
-            return;
-        }
-        if (insertText == "\"Add New Database Key\"") {
-            emit insertDatabase();
-            return;
-        }
-        if (insertText == "\"Add New Datatable Key\"") {
-            emit insertDatatable();
-            return;
-        }
         if (insertText == "\"Position Hint\"") {
             const QVariantMap gotoSession = {
                 {"scriptUrl", m_completionSession["scriptUrl"].toUrl()},

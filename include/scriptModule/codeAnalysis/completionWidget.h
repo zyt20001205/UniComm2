@@ -41,12 +41,6 @@ signals:
 
     void addChar(const QUrl &scriptUrl, QChar character);
 
-    void insertPort();
-
-    void insertDatabase();
-
-    void insertDatatable();
-
     void showPosition(const QVariantMap &positionSession);
 
 private:

@@ -28,9 +28,6 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::setText, this, &ScriptModule::textSet);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorFill);
     connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &ScriptModule::codeActionRequest);
-    connect(m_codeAssistant, &CodeAssistant::insertPort, this, &ScriptModule::insertPort);
-    connect(m_codeAssistant, &CodeAssistant::insertDatabase, this, &ScriptModule::insertDatabase);
-    connect(m_codeAssistant, &CodeAssistant::insertDatatable, this, &ScriptModule::insertDatatable);
 }
 
 ScriptModule::~ScriptModule() {

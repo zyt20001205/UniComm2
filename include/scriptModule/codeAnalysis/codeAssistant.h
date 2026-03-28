@@ -53,12 +53,6 @@ signals:
 
     void requestCodeAction(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void insertPort();
-
-    void insertDatabase();
-
-    void insertDatatable();
-
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 

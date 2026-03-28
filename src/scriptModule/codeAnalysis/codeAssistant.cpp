@@ -20,9 +20,6 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_completionWidget, &CompletionWidget::setIndex, this, &CodeAssistant::setIndex);
     connect(m_completionWidget, &CompletionWidget::setText, this, &CodeAssistant::setText);
     connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
-    connect(m_completionWidget, &CompletionWidget::insertPort, this, &CodeAssistant::insertPort);
-    connect(m_completionWidget, &CompletionWidget::insertDatabase, this, &CodeAssistant::insertDatabase);
-    connect(m_completionWidget, &CompletionWidget::insertDatatable, this, &CodeAssistant::insertDatatable);
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
     connect(m_dwellWidget, &DwellWidget::textSet, this, &CodeAssistant::setText);
     connect(m_dwellWidget, &DwellWidget::requestCodeAction, this, &CodeAssistant::requestCodeAction);
