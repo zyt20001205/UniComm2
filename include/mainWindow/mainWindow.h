@@ -5,7 +5,6 @@
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
 class QQuickView;
-class QComboBox;
 class QShortcut;
 
 class ConfigManager;
