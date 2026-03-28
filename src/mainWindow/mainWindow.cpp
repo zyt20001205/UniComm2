@@ -162,9 +162,10 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_explorerModule->propertySet(explorerObjects);
 
     const QVariantMap logObjects = {
-        {"logModuleEmptyDialog", objects["logModuleEmptyDialog"]},
+        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
-        {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
+        {"logModuleLinkMenu", objects["logModuleLinkMenu"]},
+        {"mainWindowTooltip", objects["mainWindowTooltip"]}
     };
     m_logModule->propertySet(logObjects);
 
@@ -197,7 +198,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"scriptModuleNavigationDetailLabel", objects["scriptModuleNavigationDetailLabel"]},
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
         {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]},
-        {"scriptModuleToolTip", objects["scriptModuleToolTip"]}
+        {"mainWindowTooltip", objects["mainWindowTooltip"]}
     };
     m_scriptModule->propertySet(scriptObjects);
 
@@ -218,7 +219,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap systemObjects = {
         {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
-        {"systemModuleErrorDialog", objects["systemModuleErrorDialog"]}
+        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]}
     };
     m_systemModule->propertySet(systemObjects);
 
@@ -237,8 +238,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_watchModule->propertySet(watchObjects);
 }
 
-void MainWindow::overlayFocus(const bool status) const {
+void MainWindow::overlayFocus(const bool status) {
     QTimer::singleShot(0, [this, status] {
+        if (!status && !isActiveWindow()) activateWindow();
         if (m_overlay->flags().testFlag(Qt::WindowDoesNotAcceptFocus) == !status) return;
         m_overlay->setFlag(Qt::WindowDoesNotAcceptFocus, !status);
         m_overlay->hide();

@@ -14,6 +14,7 @@ Item {
     RowLayout {
         id: debugConsole
         anchors.left: parent.left; anchors.top: parent.top;
+        // visible: true
         visible: false
 
         Label {
@@ -24,6 +25,7 @@ Item {
     onWidgetCountChanged: {
         if (widgetCount === 0) {
             mainWindow.overlayTransparent(true)
+            mainWindow.overlayFocus(false)
         } else {
             mainWindow.overlayTransparent(false)
         }
@@ -43,7 +45,7 @@ Item {
         standardButtons: Dialog.Abort
         topPadding: 30; bottomPadding: 20
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -65,7 +67,7 @@ Item {
         title: qsTr("Save and Exit?")
         standardButtons: Dialog.Yes | Dialog.No
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -73,6 +75,27 @@ Item {
         onAccepted: {
             mainWindowCloseDialog.close()
             mainWindow.quit()
+        }
+    }
+
+    Dialog {
+        id: mainWindowMessageDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        standardButtons: Dialog.Ok
+        property string text
+        topPadding: 30; bottomPadding: 20
+
+        onOpened: {
+            mainWindow.overlayFocus(true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        Label {
+            text: mainWindowMessageDialog.text
         }
     }
 
@@ -90,7 +113,7 @@ Item {
         property real secondaryProgress
         property string secondaryLog
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -141,7 +164,7 @@ Item {
             property string text
             topPadding: 30; bottomPadding: 20
 
-            onAboutToShow: {
+            onOpened: {
                 mainWindow.overlayFocus(true)
                 widgetCount += 1
             }
@@ -174,6 +197,21 @@ Item {
         closePolicy: Popup.NoAutoClose
         visible: text
         property point position
+
+        Behavior on x {
+            enabled: mainWindowTooltip.visible
+            NumberAnimation {
+                duration: 50
+                easing.type: Easing.Linear
+            }
+        }
+        Behavior on y {
+            enabled: mainWindowTooltip.visible
+            NumberAnimation {
+                duration: 50
+                easing.type: Easing.Linear
+            }
+        }
     }
 
     // luals
@@ -190,7 +228,7 @@ Item {
         property real token2
         property real token3
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -227,15 +265,17 @@ Item {
         property url scriptUrl
         property int line
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             breakpointModuleEnabledCheckBox.checkState = breakpointModule.enabledGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line) ? Qt.Checked : Qt.Unchecked
             breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
             breakpointModuleConditionTextField.selectAll()
         }
-        onClosed: widgetCount -= 1
         onAccepted: {
             breakpointModule.enabledSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleEnabledCheckBox.checked)
             breakpointModule.conditionSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
@@ -273,7 +313,7 @@ Item {
         property int line
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -338,7 +378,7 @@ Item {
         property url scriptUrl
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -391,7 +431,7 @@ Item {
         id: breakpointModuleRootMenu
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -452,14 +492,16 @@ Item {
         property int databaseIndex
         property string databaseKey
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             databaseModuleNameTextField.text = databaseModuleEditDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
             databaseModuleNameTextField.selectAll()
         }
-        onClosed: widgetCount -= 1
         onAccepted: {
             if (databaseModuleEditDialog.databaseIndex === -1 || !databaseModuleEditDialog.databaseKey) {
                 databaseModule.databaseInsert(databaseModuleEditDialog.databaseIndex, databaseModuleNameTextField.text)
@@ -483,7 +525,7 @@ Item {
         property int databaseIndex
         property string databaseKey
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -533,7 +575,7 @@ Item {
     Menu {
         id: databaseModuleRootMenu
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -581,14 +623,17 @@ Item {
         property int datatableIndex
         property string datatableKey
 
-        onAboutToShow: {
+
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             datatableModuleNameTextField.text = datatableModuleEditDialog.datatableKey
             datatableModuleNameTextField.forceActiveFocus()
             datatableModuleNameTextField.selectAll()
         }
-        onClosed: widgetCount -= 1
         onAccepted: {
             if (datatableModuleEditDialog.datatableIndex === -1 || !datatableModuleEditDialog.datatableKey) {
                 datatableModule.datatableInsert(datatableModuleEditDialog.datatableIndex, datatableModuleNameTextField.text)
@@ -612,7 +657,7 @@ Item {
         property int datatableIndex
         property string datatableKey
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -654,7 +699,7 @@ Item {
     Menu {
         id: datatableModuleRootMenu
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -704,7 +749,7 @@ Item {
         property var drawer
         property var rootItem
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -767,7 +812,7 @@ Item {
         title: qsTr("Select a Thread First")
         standardButtons: Dialog.Ok
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -780,7 +825,7 @@ Item {
         property string diagnostic
         property var position
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -814,13 +859,16 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string filePath
 
-        onAboutToShow: {
+
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             explorerModuleScriptNameTextField.clear()
             explorerModuleScriptNameTextField.forceActiveFocus()
         }
-        onClosed: widgetCount -= 1
         onAccepted: systemModule.fileNew("file:///" + explorerModuleScriptNewDialog.filePath + "/" + explorerModuleScriptNameTextField.text + ".lua")
 
         TextField {
@@ -843,13 +891,15 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string filePath
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
         }
-        onClosed: widgetCount -= 1
         onAccepted: systemModule.fileNew("file:///" + explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
 
         TextField {
@@ -868,7 +918,7 @@ Item {
         property string fileName
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -983,7 +1033,7 @@ Item {
         property string fileName
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1092,7 +1142,7 @@ Item {
         property string rootPath
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1170,22 +1220,6 @@ Item {
 
     // log module
     Dialog {
-        id: logModuleEmptyDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 600
-        modal: true
-        title: qsTr("Log Is Empty")
-        standardButtons: Dialog.Ok
-
-        onAboutToShow: {
-            mainWindow.overlayFocus(true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-    }
-
-    Dialog {
         id: logModuleHeightDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -1194,13 +1228,15 @@ Item {
         title: qsTr("Set Max Line Count")
         standardButtons: Dialog.Ok | Dialog.Cancel
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             logModuleHeightSpinBox.value = logModule.heightGet()
             logModuleHeightSpinBox.forceActiveFocus()
         }
-        onClosed: widgetCount -= 1
         onAccepted: logModule.heightSet(logModuleHeightSpinBox.value)
 
         SpinBox {
@@ -1220,7 +1256,7 @@ Item {
         id: logModuleLinkMenu
         property url url
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1261,7 +1297,7 @@ Item {
     Menu {
         id: menuModuleFileMenu
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1307,7 +1343,7 @@ Item {
     Menu {
         id: menuModuleViewMenu
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1432,7 +1468,7 @@ Item {
         id: portModuleTableMenu
         property int portIndex
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1475,7 +1511,7 @@ Item {
     Menu {
         id: portModuleRootMenu
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -1497,12 +1533,12 @@ Item {
         property url scriptUrl
         property var menuSession
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
-            scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
         }
         onClosed: widgetCount -= 1
+        onAboutToShow: scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
 
         MenuItem {
             text: qsTr("Run")
@@ -1684,15 +1720,6 @@ Item {
     }
 
     ToolTip {
-        id: scriptModuleToolTip
-        parent: Overlay.overlay
-        x: position.x + 10; y: position.y + 10
-        closePolicy: Popup.NoAutoClose
-        visible: text
-        property point position
-    }
-
-    ToolTip {
         id: scriptModuleCompletionToolTip
         parent: Overlay.overlay
         x: position.x - 30; y: position.y
@@ -1700,15 +1727,17 @@ Item {
         property point position
         property var completionWidget
 
-        onAboutToShow: {
-            mainWindow.overlayFocus(false)
+        onOpened: {
+            mainWindow.overlayFocus(true)
             widgetCount += 1
-            scriptModuleCompletionDetailToolTip.open()
-            scriptModuleCompletionDetailTimer.restart()
         }
         onClosed: {
             widgetCount -= 1
             scriptModuleCompletionDetailToolTip.close()
+        }
+        onAboutToShow: {
+            scriptModuleCompletionDetailToolTip.open()
+            scriptModuleCompletionDetailTimer.restart()
         }
 
         contentItem: TableView {
@@ -1924,7 +1953,7 @@ Item {
         property var codeActions
         property var suggestions
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(false)
             widgetCount += 1
         }
@@ -2109,15 +2138,17 @@ Item {
         property point position
         property var navigationWidget
 
-        onAboutToShow: {
-            mainWindow.overlayFocus(false)
+        onOpened: {
+            mainWindow.overlayFocus(true)
             widgetCount += 1
-            scriptModuleNavigationDetailToolTip.open()
-            scriptModuleNavigationDetailTimer.restart()
         }
         onClosed: {
             widgetCount -= 1
             scriptModuleNavigationDetailToolTip.close()
+        }
+        onAboutToShow: {
+            scriptModuleNavigationDetailToolTip.open()
+            scriptModuleNavigationDetailTimer.restart()
         }
 
         contentItem: TableView {
@@ -2291,7 +2322,7 @@ Item {
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(false)
             widgetCount += 1
         }
@@ -2310,13 +2341,15 @@ Item {
         property url scriptUrl
         property int eolMode
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             statusModuleEolModeMenu.eolMode = scriptModule.eolModeGet(scriptUrl)
             statusModuleEolModeViewItem.checked = scriptModule.eolViewGet(scriptUrl)
         }
-        onClosed: widgetCount -= 1
 
         MenuItem {
             text: "CRLF"
@@ -2362,7 +2395,7 @@ Item {
         id: structureModuleRootMenu
         property var treeView
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -2393,21 +2426,6 @@ Item {
 
     // system module
     Dialog {
-        id: systemModuleErrorDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 600
-        modal: true
-        standardButtons: Dialog.Ok
-
-        onAboutToShow: {
-            mainWindow.overlayFocus(true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-    }
-
-    Dialog {
         id: systemModuleRenameDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -2417,14 +2435,16 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string fileUrl
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             systemModuleRenameTextField.clear()
             systemModuleRenameTextField.forceActiveFocus()
             systemModuleRenameTextField.selectAll()
         }
-        onClosed: widgetCount -= 1
         onAccepted: systemModule.fileRename(systemModuleRenameDialog.fileUrl, systemModuleRenameTextField.text)
 
         TextField {
@@ -2448,12 +2468,12 @@ Item {
         property string fileUrl
         property bool readonly
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
-            systemModulePermissionLabel.text = readonly ? qsTr("This file is writable. Would you like to make it read-only?") : qsTr("This file is read-only. Would you like to make it writable?")
         }
         onClosed: widgetCount -= 1
+        onAboutToShow: systemModulePermissionLabel.text = readonly ? qsTr("This file is writable. Would you like to make it read-only?") : qsTr("This file is read-only. Would you like to make it writable?")
         onAccepted: systemModule.filePermission(systemModulePermissionDialog.fileUrl, systemModulePermissionDialog.readonly)
 
         Label {
@@ -2473,7 +2493,7 @@ Item {
         title: qsTr("Terminate Request Has Been Sent")
         standardButtons: Dialog.Ok
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -2484,7 +2504,7 @@ Item {
         id: threadpoolModuleThreadMenu
         property string threadId
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -2512,15 +2532,17 @@ Item {
         property url watchUrl
         property string watchExpression
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             watchModuleUrlTextField.text = watchModuleExpressionDialog.watchUrl
             watchModuleExpressionTextField.text = watchModuleExpressionDialog.watchExpression
             watchModuleExpressionTextField.forceActiveFocus()
             watchModuleExpressionTextField.selectAll()
         }
-        onClosed: widgetCount -= 1
         onAccepted: {
             if (watchModuleExpressionDialog.watchIndex === -1 || !watchModuleExpressionDialog.watchExpression) {
                 watchModule.watchInsert(watchModuleExpressionDialog.watchIndex, watchModuleUrlTextField.text, watchModuleExpressionTextField.text)
@@ -2580,15 +2602,17 @@ Item {
         property string currentValue
         property string currentType
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
             watchModuleValueTextField.text = watchModuleValueDialog.currentValue
             watchModuleValueTextField.forceActiveFocus()
             watchModuleValueTextField.selectAll()
             watchModuleValueComboBox.currentValue = watchModuleValueDialog.currentType
         }
-        onClosed: widgetCount -= 1
         onAccepted: {
             threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text, watchModuleValueComboBox.currentValue)
         }
@@ -2651,7 +2675,7 @@ Item {
         property url watchUrl
         property string watchExpression
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -2694,7 +2718,7 @@ Item {
         property string currentValue
         property string currentType
 
-        onAboutToShow: {
+        onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
@@ -2739,7 +2763,7 @@ Item {
     Menu {
         id: watchModuleRootMenu
 
-        onAboutToShow: {
+        onOpened: {
             widgetCount += 1
             mainWindow.overlayFocus(true)
         }
@@ -2768,6 +2792,7 @@ Item {
             "mainItem": mainItem,
             "mainWindowBusyDialog": mainWindowBusyDialog,
             "mainWindowCloseDialog": mainWindowCloseDialog,
+            "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
             "mainWindowTooltip": mainWindowTooltip,
 
@@ -2796,7 +2821,6 @@ Item {
             "explorerModuleFolderMenu": explorerModuleFolderMenu,
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
-            "logModuleEmptyDialog": logModuleEmptyDialog,
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
 
@@ -2820,13 +2844,11 @@ Item {
             "scriptModuleNavigationDetailLabel": scriptModuleNavigationDetailLabel,
             "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
             "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
-            "scriptModuleToolTip": scriptModuleToolTip,
 
             "statusModuleEolModeMenu": statusModuleEolModeMenu,
 
             "structureModuleRootMenu": structureModuleRootMenu,
 
-            "systemModuleErrorDialog": systemModuleErrorDialog,
             "systemModulePermissionDialog": systemModulePermissionDialog,
 
             "threadpoolModuleErrorDialog": threadpoolModuleErrorDialog,

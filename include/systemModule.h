@@ -42,7 +42,7 @@ private:
     void didDeleteFilesNotification(const QUrl &fileUrl);
 
     QObject* m_busyDialog{};
-    QObject* m_errorDialog{};
+    QObject* m_messageDialog{};
     QProcess* m_process{};
 };
 

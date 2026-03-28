@@ -21,10 +21,20 @@ RowLayout {
             checkable: true
             icon.source: "qrc:/icon/clock.svg"
             icon.width: 16; icon.height: 16
-            ToolTip.text: checked ? qsTr("Hide Timestamp") : qsTr("Show Timestamp")
-            ToolTip.visible: hovered
 
             onClicked: logModule.timestampToggle(checked)
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainTooltip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainTooltip.position = parent.mapToGlobal(point.position)
+                    mainTooltip.text = parent.checked ? qsTr("Hide Timestamp") : qsTr("Show Timestamp")
+                }
+            }
         }
 
         Button {
@@ -34,10 +44,20 @@ RowLayout {
             checkable: true
             icon.source: "qrc:/icon/wrap.svg"
             icon.width: 16; icon.height: 16
-            ToolTip.text: checked ? qsTr("Disable Wrap") : qsTr("Enable Wrap")
-            ToolTip.visible: hovered
 
             onClicked: logModule.wrapToggle(checked)
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainTooltip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainTooltip.position = parent.mapToGlobal(point.position)
+                    mainTooltip.text = parent.checked ? qsTr("Disable Wrap") : qsTr("Enable Wrap")
+                }
+            }
         }
 
         Button {
@@ -45,10 +65,20 @@ RowLayout {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/autoFitHeight.svg"
             icon.width: 16; icon.height: 16
-            ToolTip.text: qsTr("Maximum Line Count")
-            ToolTip.visible: hovered
 
             onClicked: heightDialog.open()
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainTooltip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainTooltip.position = parent.mapToGlobal(point.position)
+                    mainTooltip.text = qsTr("Maximum Line Count")
+                }
+            }
         }
 
         Button {
@@ -56,8 +86,6 @@ RowLayout {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             icon.source: "qrc:/icon/save.svg"
             icon.width: 16; icon.height: 16
-            ToolTip.text: qsTr("Save")
-            ToolTip.visible: hovered
 
             onClicked: {
                 if (logModule.logSaveCheck()) {
@@ -73,6 +101,18 @@ RowLayout {
                 currentFile: currentFolder + "/log_" + Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
                 onAccepted: logModule.logSave(selectedFile)
             }
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainTooltip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainTooltip.position = parent.mapToGlobal(point.position)
+                    mainTooltip.text = qsTr("Save")
+                }
+            }
         }
 
         DelayButton {
@@ -83,12 +123,22 @@ RowLayout {
                 width: 16; height: 16
             }
             delay: 1000
-            ToolTip.text: qsTr("Clear")
-            ToolTip.visible: hovered
 
             onActivated: {
                 progress = 0
                 textArea.clear()
+            }
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainTooltip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainTooltip.position = parent.mapToGlobal(point.position)
+                    mainTooltip.text = qsTr("Clear")
+                }
             }
         }
     }
@@ -111,7 +161,7 @@ RowLayout {
             ToolTip {
                 id: tooltip
                 visible: textArea.hoveredLink
-                text: qsTr("Ctrl+Left Click to open link")
+                text: qsTr("Ctrl + Click")
                 x: hoverHandler.point.position.x + 10
                 y: hoverHandler.point.position.y + 10
             }

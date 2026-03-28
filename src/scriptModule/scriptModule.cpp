@@ -51,7 +51,7 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     m_codeAssistant->fontSet(m_scriptConfig["fontFamily"].toString(), m_scriptConfig["fontSize"].toInt());
     m_permissionDialog = qvariant_cast<QObject *>(objects["systemModulePermissionDialog"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
-    m_toolTip = qvariant_cast<QObject *>(objects["scriptModuleToolTip"]);
+    m_toolTip = qvariant_cast<QObject *>(objects["mainWindowTooltip"]);
     m_menu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 

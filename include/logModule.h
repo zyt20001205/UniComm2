@@ -43,7 +43,7 @@ public:
 private:
     QJsonObject m_logConfig{};
     QQuickWidget *m_logWidget{};
-    QObject *m_emptyDialog{};
+    QObject *m_messageDialog{};
     QObject *m_logTextArea{};
     QTextDocument *m_logTextDocument{};
 };

@@ -24,9 +24,10 @@ LogModule::~LogModule() {
 }
 
 void LogModule::propertySet(const QVariantMap &objects) {
-    m_emptyDialog = qvariant_cast<QObject *>(objects["logModuleEmptyDialog"]);
+    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_logWidget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
     m_logWidget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
+    m_logWidget->rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
 
     m_logWidget->rootContext()->setContextProperty("logModule", this);
     m_logWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -110,7 +111,9 @@ bool LogModule::logSaveCheck() const {
     QTextDocument document;
     document.setHtml(m_logTextArea->property("text").toString());
     if (document.toPlainText().isEmpty()) {
-        QMetaObject::invokeMethod(m_emptyDialog, "open");
+        m_messageDialog->setProperty("title", tr("Error"));
+        m_messageDialog->setProperty("text", tr("Log is empty."));
+        QMetaObject::invokeMethod(m_messageDialog, "open");
         return false;
     }
     return true;

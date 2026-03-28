@@ -17,7 +17,7 @@ SystemModule::SystemModule(QObject *parent)
 
 void SystemModule::propertySet(const QVariantMap &objects) {
     m_busyDialog = qvariant_cast<QObject *>(objects["mainWindowBusyDialog"]);
-    m_errorDialog = qvariant_cast<QObject *>(objects["systemModuleErrorDialog"]);
+    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
 }
 
 void SystemModule::processTerminate() const {
@@ -72,8 +72,9 @@ void SystemModule::fileNew(const QUrl &fileUrl) {
     const QFileInfo fileInfo(filePath);
     if (!fileInfo.suffix().isEmpty()) {
         if (fileInfo.exists()) {
-            m_errorDialog->setProperty("title", tr("File already exists"));
-            QMetaObject::invokeMethod(m_errorDialog, "open");
+            m_messageDialog->setProperty("title", tr("Error"));
+            m_messageDialog->setProperty("text", tr("File already exists."));
+            QMetaObject::invokeMethod(m_messageDialog, "open");
         } else {
             QFile file(filePath);
             if (file.open(QIODevice::WriteOnly)) {
@@ -87,8 +88,9 @@ void SystemModule::fileNew(const QUrl &fileUrl) {
         }
     } else {
         if (fileInfo.exists()) {
-            m_errorDialog->setProperty("title", tr("Dir already exists"));
-            QMetaObject::invokeMethod(m_errorDialog, "open");
+            m_messageDialog->setProperty("title", tr("Error"));
+            m_messageDialog->setProperty("text", tr("Dir already exists."));
+            QMetaObject::invokeMethod(m_messageDialog, "open");
         } else {
             const QDir dir;
             if (dir.mkpath(filePath)) {

@@ -1379,17 +1379,16 @@ void ScriptPage::symbolPair(const QChar character) {
 void ScriptPage::navigationToggle(const Scintilla::Position position) {
     if (position == -1) {
         m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
-        emit setTooltip(QPoint(0, 0), tr(""));
+        emit setTooltip(QPoint(0, 0), "");
     } else {
         const int type = m_editorWidget->styleGet(position);
         if (type > 0 && type < LUA_TOKEN_MACRO) {
             const auto wordIndex = m_editorWidget->wordIndexGet(position);
             m_editorWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
-            const QPoint pos = m_editorWidget->window()->mapFromGlobal(QCursor::pos());
-            emit setTooltip(pos, tr("Click to navigate"));
+            emit setTooltip(QCursor::pos(), tr("Click to navigate"));
         } else {
             m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
-            emit setTooltip(QPoint(0, 0), tr(""));
+            emit setTooltip(QPoint(0, 0), "");
         }
     }
 }
