@@ -264,11 +264,11 @@ void MainWindow::quit() {
     // quit modules
     current++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for threadpool module..."));
-    m_quitDialog->setProperty("primaryProgress", current / total);
+    m_quitDialog->setProperty("primaryProgress", static_cast<float>(current) / total);
     m_threadpoolModule->quit();
     current++;
     m_quitDialog->setProperty("primaryLog", tr("Waiting for lua language server module..."));
-    m_quitDialog->setProperty("primaryProgress", current / total);
+    m_quitDialog->setProperty("primaryProgress", static_cast<float>(current) / total);
     m_luals->quit();
 
     m_askForSaving = false;
