@@ -44,8 +44,8 @@ Item {
         topPadding: 30; bottomPadding: 20
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onRejected: systemModule.processTerminate()
@@ -66,8 +66,8 @@ Item {
         standardButtons: Dialog.Yes | Dialog.No
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onAccepted: {
@@ -91,8 +91,8 @@ Item {
         property string secondaryLog
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
         onRejected: mainWindow.terminate()
@@ -142,8 +142,8 @@ Item {
             topPadding: 30; bottomPadding: 20
 
             onAboutToShow: {
-                widgetCount += 1
                 mainWindow.overlayFocus(true)
+                widgetCount += 1
             }
             onClosed: {
                 widgetCount -= 1
@@ -191,8 +191,8 @@ Item {
         property real token3
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -228,8 +228,8 @@ Item {
         property int line
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             breakpointModuleEnabledCheckBox.checkState = breakpointModule.enabledGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line) ? Qt.Checked : Qt.Unchecked
             breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
@@ -274,8 +274,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -339,8 +339,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -392,8 +392,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -453,8 +453,8 @@ Item {
         property string databaseKey
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             databaseModuleNameTextField.text = databaseModuleEditDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
             databaseModuleNameTextField.selectAll()
@@ -484,8 +484,8 @@ Item {
         property string databaseKey
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -534,8 +534,8 @@ Item {
         id: databaseModuleRootMenu
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -582,8 +582,8 @@ Item {
         property string datatableKey
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             datatableModuleNameTextField.text = datatableModuleEditDialog.datatableKey
             datatableModuleNameTextField.forceActiveFocus()
             datatableModuleNameTextField.selectAll()
@@ -613,8 +613,8 @@ Item {
         property string datatableKey
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -655,8 +655,8 @@ Item {
         id: datatableModuleRootMenu
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -705,8 +705,8 @@ Item {
         property var rootItem
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -768,8 +768,8 @@ Item {
         standardButtons: Dialog.Ok
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
     }
@@ -781,8 +781,8 @@ Item {
         property var position
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -815,8 +815,8 @@ Item {
         property string filePath
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             explorerModuleScriptNameTextField.clear()
             explorerModuleScriptNameTextField.forceActiveFocus()
         }
@@ -844,8 +844,8 @@ Item {
         property string filePath
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
         }
@@ -869,8 +869,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -984,8 +984,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1093,8 +1093,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1179,8 +1179,8 @@ Item {
         standardButtons: Dialog.Ok
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
     }
@@ -1195,8 +1195,8 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             logModuleHeightSpinBox.value = logModule.heightGet()
             logModuleHeightSpinBox.forceActiveFocus()
         }
@@ -1221,8 +1221,8 @@ Item {
         property url url
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1262,8 +1262,8 @@ Item {
         id: menuModuleFileMenu
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1305,8 +1305,8 @@ Item {
         id: menuModuleViewMenu
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1430,8 +1430,8 @@ Item {
         property int portIndex
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1473,8 +1473,8 @@ Item {
         id: portModuleRootMenu
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -1495,8 +1495,8 @@ Item {
         property var menuSession
 
         onAboutToShow: {
+            mainWindow.overlayFocus(true)
             widgetCount += 1
-            mainWindow.overlayFocus(false)
             scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
         }
         onClosed: widgetCount -= 1
@@ -1698,8 +1698,8 @@ Item {
         property var completionWidget
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(false)
+            widgetCount += 1
             scriptModuleCompletionDetailToolTip.open()
             scriptModuleCompletionDetailTimer.restart()
         }
@@ -1922,8 +1922,8 @@ Item {
         property var suggestions
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(false)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -2107,8 +2107,8 @@ Item {
         property var navigationWidget
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(false)
+            widgetCount += 1
             scriptModuleNavigationDetailToolTip.open()
             scriptModuleNavigationDetailTimer.restart()
         }
@@ -2289,8 +2289,8 @@ Item {
         property point position
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(false)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -2308,8 +2308,8 @@ Item {
         property int eolMode
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             statusModuleEolModeMenu.eolMode = scriptModule.eolModeGet(scriptUrl)
             statusModuleEolModeViewItem.checked = scriptModule.eolViewGet(scriptUrl)
         }
@@ -2360,8 +2360,8 @@ Item {
         property var treeView
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -2398,8 +2398,8 @@ Item {
         standardButtons: Dialog.Ok
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
     }
@@ -2415,8 +2415,8 @@ Item {
         property string fileUrl
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             systemModuleRenameTextField.clear()
             systemModuleRenameTextField.forceActiveFocus()
             systemModuleRenameTextField.selectAll()
@@ -2446,8 +2446,8 @@ Item {
         property bool readonly
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             systemModulePermissionLabel.text = readonly ? qsTr("This file is writable. Would you like to make it read-only?") : qsTr("This file is read-only. Would you like to make it writable?")
         }
         onClosed: widgetCount -= 1
@@ -2471,8 +2471,8 @@ Item {
         standardButtons: Dialog.Ok
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
     }
@@ -2482,8 +2482,8 @@ Item {
         property string threadId
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -2510,8 +2510,8 @@ Item {
         property string watchExpression
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             watchModuleUrlTextField.text = watchModuleExpressionDialog.watchUrl
             watchModuleExpressionTextField.text = watchModuleExpressionDialog.watchExpression
             watchModuleExpressionTextField.forceActiveFocus()
@@ -2578,8 +2578,8 @@ Item {
         property string currentType
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
             watchModuleValueTextField.text = watchModuleValueDialog.currentValue
             watchModuleValueTextField.forceActiveFocus()
             watchModuleValueTextField.selectAll()
@@ -2649,8 +2649,8 @@ Item {
         property string watchExpression
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 
@@ -2692,8 +2692,8 @@ Item {
         property string currentType
 
         onAboutToShow: {
-            widgetCount += 1
             mainWindow.overlayFocus(true)
+            widgetCount += 1
         }
         onClosed: widgetCount -= 1
 

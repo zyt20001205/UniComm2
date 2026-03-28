@@ -43,7 +43,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void overlayFocus(bool status);
+    Q_INVOKABLE void overlayFocus(bool status) const;
 
     Q_INVOKABLE void overlayTransparent(bool status) const;
 

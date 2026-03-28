@@ -237,17 +237,16 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_watchModule->propertySet(watchObjects);
 }
 
-void MainWindow::overlayFocus(const bool status) {
-    if (status) m_overlay->requestActivate();
-    else activateWindow();
+void MainWindow::overlayFocus(const bool status) const {
+    m_overlay->setFlag(Qt::WindowDoesNotAcceptFocus, !status);
+    m_overlay->hide();
+    m_overlay->showMaximized();
 }
 
 void MainWindow::overlayTransparent(const bool status) const {
-    QTimer::singleShot(0, m_overlay, [this, status]() {
-        m_overlay->setFlag(Qt::WindowTransparentForInput, status);
-        m_overlay->hide();
-        m_overlay->showMaximized();
-    });
+    m_overlay->setFlag(Qt::WindowTransparentForInput, status);
+    m_overlay->hide();
+    m_overlay->showMaximized();
 }
 
 void MainWindow::quit() {
