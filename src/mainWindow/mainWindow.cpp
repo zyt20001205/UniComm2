@@ -238,12 +238,14 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 }
 
 void MainWindow::overlayFocus(const bool status) const {
+    if (m_overlay->flags().testFlag(Qt::WindowDoesNotAcceptFocus) == !status) return;
     m_overlay->setFlag(Qt::WindowDoesNotAcceptFocus, !status);
     m_overlay->hide();
     m_overlay->showMaximized();
 }
 
 void MainWindow::overlayTransparent(const bool status) const {
+    if (m_overlay->flags().testFlag(Qt::WindowTransparentForInput) == status) return;
     m_overlay->setFlag(Qt::WindowTransparentForInput, status);
     m_overlay->hide();
     m_overlay->showMaximized();
