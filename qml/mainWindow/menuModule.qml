@@ -17,8 +17,9 @@ Item {
             text: "File"
 
             onClicked: {
-                const pos = fileMenuButton.mapToItem(fileMenu.parent, 0, fileMenuButton.height);
-                fileMenu.popup(pos.x, pos.y)
+                const globalPos = fileMenuButton.mapToGlobal(0, fileMenuButton.height);
+                const localPos = fileMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                fileMenu.popup(localPos.x, localPos.y)
             }
         }
 
@@ -30,8 +31,9 @@ Item {
             text: "View"
 
             onClicked: {
-                const pos = viewMenuButton.mapToItem(viewMenu.parent, 0, viewMenuButton.height);
-                viewMenu.popup(pos.x, pos.y)
+                const globalPos = viewMenuButton.mapToGlobal(0, viewMenuButton.height);
+                const localPos = viewMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                viewMenu.popup(localPos.x, localPos.y)
             }
         }
 

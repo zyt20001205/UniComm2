@@ -85,8 +85,9 @@ Item {
             onClicked: {
                 eolModeMenu.eolModeButton = eolModeButton
                 eolModeMenu.scriptUrl = scriptUrl
-                const pos = eolModeButton.mapToItem(eolModeMenu.parent, 0, -eolModeMenu.height);
-                eolModeMenu.popup(pos.x, pos.y)
+                const globalPos = eolModeButton.mapToGlobal(0, -eolModeMenu.height);
+                const localPos = eolModeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                eolModeMenu.popup(localPos.x, localPos.y)
             }
 
             TextMetrics {

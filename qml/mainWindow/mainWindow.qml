@@ -1272,7 +1272,10 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: mainWindow.workspaceOpen()
+            onTriggered: {
+                menuModuleFileMenu.close()
+                mainWindow.workspaceOpen()
+            }
         }
 
         MenuItem {
