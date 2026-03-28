@@ -7,7 +7,6 @@
 #include <QMediaDevices>
 #include <QQmlContext>
 #include <QQuickItem>
-#include <QQuickWidget>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QStatusBar>
@@ -40,6 +39,8 @@
 #include "scriptModule/codeAnalysis/diagnosticsModule.h"
 #include "scriptModule/codeAnalysis/structureModule.h"
 #include "scriptModule/codeDebug/watchModule.h"
+
+#include <QQuickView>
 
 // public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -236,12 +237,15 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_watchModule->propertySet(watchObjects);
 }
 
-void MainWindow::overlayFocus() const {
-    m_overlay->setFocus();
+void MainWindow::overlayFocus(const bool status) {
+    if (status) m_overlay->requestActivate();
+    else activateWindow();
 }
 
 void MainWindow::overlayTransparent(const bool status) const {
-    m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents, status);
+    m_overlay->setFlag(Qt::WindowTransparentForInput, status);
+    m_overlay->hide();
+    m_overlay->showMaximized();
 }
 
 void MainWindow::quit() {
@@ -324,13 +328,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         QMetaObject::invokeMethod(m_closeDialog, "open");
     } else {
         event->accept();
-    }
-}
-
-void MainWindow::resizeEvent(QResizeEvent *event) {
-    KDDockWidgets::QtWidgets::MainWindow::resizeEvent(event);
-    if (m_overlay) {
-        m_overlay->resize(size());
     }
 }
 
@@ -564,35 +561,12 @@ void MainWindow::layoutInit() {
 }
 
 void MainWindow::overlayInit() {
-    m_overlay = new QQuickWidget(this);
-    m_overlay->setAttribute(Qt::WA_AlwaysStackOnTop);
-    m_overlay->setAttribute(Qt::WA_TranslucentBackground);
-    m_overlay->setAttribute(Qt::WA_TransparentForMouseEvents);
-    m_overlay->setClearColor(Qt::transparent);
-    m_overlay->setFocusPolicy(Qt::NoFocus);
-    m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    QSurfaceFormat format{};
-    format.setAlphaBufferSize(8);
-    m_overlay->setFormat(format);
+    m_overlay = new QQuickView();
+    m_overlay->setColor(Qt::transparent);
+    m_overlay->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput);
     propertySet();
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
-    m_overlay->resize(size());
-    m_overlay->show();
-
-    // TODO: fullscreen overlay
-    // m_overlay = new QQuickWidget(this);
-    // m_overlay->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput);
-    // m_overlay->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    // m_overlay->setClearColor(Qt::transparent);
-    // m_overlay->setAttribute(Qt::WA_TranslucentBackground);
-    // m_overlay->setAttribute(Qt::WA_NoSystemBackground);
-    // m_overlay->setFocusPolicy(Qt::NoFocus);
-    // QSurfaceFormat format{};
-    // format.setAlphaBufferSize(8);
-    // m_overlay->setFormat(format);
-    // propertySet();
-    // m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
-    // m_overlay->showMaximized();
+    m_overlay->showMaximized();
 }
 
 void MainWindow::mainConfigSave() {

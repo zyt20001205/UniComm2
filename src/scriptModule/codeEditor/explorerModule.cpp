@@ -2,6 +2,7 @@
 
 #include <QFileSystemModel>
 #include <QQmlContext>
+#include <QQuickWidget>
 
 #include "globals.h"
 

@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickWidget>
 #include <QScreenCapture>
 #include <QSerialPortInfo>
 #include <QStandardItemModel>

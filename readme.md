@@ -97,22 +97,22 @@ gantt
         scintilla migration: done, 02-11, 30d
         status bar: done, 03-10, 3d
         assembly view: done, 03-13, 19d
+        signatureHelp(overload): done, 03-24, 1d
+        documentSymbol bar: done, 03-25, 2d
         search bar: 04-01, 30d
-        signatureHelp(overload): done, 04-01, 30d
-        documentSymbol bar: active, 04-01, 30d
         rename: 04-11, 20d
         git integration: 05-01, 31d
 
     section infra
         ringbuffer class: done, 03-01, 16d
         ringbuffer apis: done, 03-17, 15d
+        fullscreen overlay: done, 03-26, 3d
         undo stack: 04-01, 10d
         port session monitor: 05-01, 31d
-        fullscreen overlay: 07-01, 31d
 
     section ui
-        customize settings: 08-01, 31d
-        dark theme: 08-01, 31d
+        customize settings: 07-01, 31d
+        dark theme: 07-01, 31d
         i18n: 08-01, 31d
 ```
 

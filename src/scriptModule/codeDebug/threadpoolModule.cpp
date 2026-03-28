@@ -5,6 +5,7 @@
 #include <QHeaderView>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QThread>
 #include <QTimer>

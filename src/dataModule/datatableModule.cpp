@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QStringListModel>
 #include <QVariantList>

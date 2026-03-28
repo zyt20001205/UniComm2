@@ -4,6 +4,7 @@
 #include <QPrinter>
 #include <QQmlContext>
 #include <QQuickTextDocument>
+#include <QQuickWidget>
 #include <QStandardPaths>
 
 #include "globals.h"

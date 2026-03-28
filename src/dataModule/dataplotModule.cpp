@@ -1,6 +1,7 @@
 #include "dataModule/dataplotModule.h"
 
 #include <QQmlContext>
+#include <QQuickWidget>
 #include <QStandardItemModel>
 
 #include "globals.h"

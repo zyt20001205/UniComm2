@@ -2,10 +2,9 @@
 #define UNICOMM_MAINWINDOW_H
 
 #include <QJsonObject>
-#include <QQuickWidget>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
-class QQuickWidget;
+class QQuickView;
 class QComboBox;
 class QShortcut;
 
@@ -45,7 +44,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void overlayFocus() const;
+    Q_INVOKABLE void overlayFocus(bool status);
 
     Q_INVOKABLE void overlayTransparent(bool status) const;
 
@@ -67,8 +66,6 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-    void resizeEvent(QResizeEvent *event) override;
-
 private:
     void moduleInit();
 
@@ -83,7 +80,7 @@ private:
     void maximizeToggle();
 
     QJsonObject m_mainConfig{};
-    QQuickWidget *m_overlay{};
+    QQuickView *m_overlay{};
     QObject *m_closeDialog{};
     QObject *m_quitDialog{};
     bool m_askForSaving = true;

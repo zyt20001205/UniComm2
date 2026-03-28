@@ -11,13 +11,25 @@ Item {
     // overlay control
     property int widgetCount: 0
 
-    onWidgetCountChanged: {
-        // console.log("current count:", widgetCount);
+    RowLayout {
+        id: debugConsole
+        anchors.left: parent.left; anchors.top: parent.top;
+        visible: false
 
+        Label {
+            id: debugWidgetCount
+        }
+    }
+
+    onWidgetCountChanged: {
         if (widgetCount === 0) {
             mainWindow.overlayTransparent(true)
         } else {
             mainWindow.overlayTransparent(false)
+        }
+
+        if (debugConsole.visible) {
+            debugWidgetCount.text = "widget count: " + widgetCount
         }
     }
 
@@ -33,7 +45,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
         onRejected: systemModule.processTerminate()
@@ -55,7 +67,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
         onAccepted: {
@@ -80,7 +92,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
         onRejected: mainWindow.terminate()
@@ -131,7 +143,7 @@ Item {
 
             onAboutToShow: {
                 widgetCount += 1
-                mainWindow.overlayFocus()
+                mainWindow.overlayFocus(true)
             }
             onClosed: {
                 widgetCount -= 1
@@ -180,7 +192,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -217,7 +229,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             breakpointModuleEnabledCheckBox.checkState = breakpointModule.enabledGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line) ? Qt.Checked : Qt.Unchecked
             breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
@@ -263,7 +275,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -328,7 +340,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -381,7 +393,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -442,7 +454,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             databaseModuleNameTextField.text = databaseModuleEditDialog.databaseKey
             databaseModuleNameTextField.forceActiveFocus()
             databaseModuleNameTextField.selectAll()
@@ -473,7 +485,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -523,7 +535,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -571,7 +583,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             datatableModuleNameTextField.text = datatableModuleEditDialog.datatableKey
             datatableModuleNameTextField.forceActiveFocus()
             datatableModuleNameTextField.selectAll()
@@ -602,7 +614,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -644,7 +656,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -694,7 +706,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -757,7 +769,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
     }
@@ -770,7 +782,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -804,7 +816,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             explorerModuleScriptNameTextField.clear()
             explorerModuleScriptNameTextField.forceActiveFocus()
         }
@@ -833,7 +845,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
         }
@@ -858,7 +870,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -973,7 +985,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1082,7 +1094,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1168,7 +1180,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
     }
@@ -1184,7 +1196,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             logModuleHeightSpinBox.value = logModule.heightGet()
             logModuleHeightSpinBox.forceActiveFocus()
         }
@@ -1210,7 +1222,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1251,7 +1263,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1294,7 +1306,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1419,7 +1431,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1462,7 +1474,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -1483,8 +1495,9 @@ Item {
         property var menuSession
 
         onAboutToShow: {
-            scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
             widgetCount += 1
+            mainWindow.overlayFocus(false)
+            scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
         }
         onClosed: widgetCount -= 1
 
@@ -1686,6 +1699,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
+            mainWindow.overlayFocus(false)
             scriptModuleCompletionDetailToolTip.open()
             scriptModuleCompletionDetailTimer.restart()
         }
@@ -1907,7 +1921,10 @@ Item {
         property var codeActions
         property var suggestions
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus(false)
+        }
         onClosed: widgetCount -= 1
 
         contentItem: ColumnLayout {
@@ -2091,6 +2108,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
+            mainWindow.overlayFocus(false)
             scriptModuleNavigationDetailToolTip.open()
             scriptModuleNavigationDetailTimer.restart()
         }
@@ -2270,7 +2288,10 @@ Item {
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
 
-        onAboutToShow: widgetCount += 1
+        onAboutToShow: {
+            widgetCount += 1
+            mainWindow.overlayFocus(false)
+        }
         onClosed: widgetCount -= 1
 
         contentItem: Label {
@@ -2288,7 +2309,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             statusModuleEolModeMenu.eolMode = scriptModule.eolModeGet(scriptUrl)
             statusModuleEolModeViewItem.checked = scriptModule.eolViewGet(scriptUrl)
         }
@@ -2340,7 +2361,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -2378,7 +2399,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
     }
@@ -2395,7 +2416,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             systemModuleRenameTextField.clear()
             systemModuleRenameTextField.forceActiveFocus()
             systemModuleRenameTextField.selectAll()
@@ -2426,7 +2447,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             systemModulePermissionLabel.text = readonly ? qsTr("This file is writable. Would you like to make it read-only?") : qsTr("This file is read-only. Would you like to make it writable?")
         }
         onClosed: widgetCount -= 1
@@ -2451,7 +2472,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
     }
@@ -2462,7 +2483,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -2490,7 +2511,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             watchModuleUrlTextField.text = watchModuleExpressionDialog.watchUrl
             watchModuleExpressionTextField.text = watchModuleExpressionDialog.watchExpression
             watchModuleExpressionTextField.forceActiveFocus()
@@ -2558,7 +2579,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
             watchModuleValueTextField.text = watchModuleValueDialog.currentValue
             watchModuleValueTextField.forceActiveFocus()
             watchModuleValueTextField.selectAll()
@@ -2629,7 +2650,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -2672,7 +2693,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 
@@ -2717,7 +2738,7 @@ Item {
 
         onAboutToShow: {
             widgetCount += 1
-            mainWindow.overlayFocus()
+            mainWindow.overlayFocus(true)
         }
         onClosed: widgetCount -= 1
 

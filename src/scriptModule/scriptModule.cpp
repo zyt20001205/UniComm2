@@ -431,7 +431,7 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const auto point = scintilla->pointGet(startLine, startCharacter);
     const auto x = point["x"];
     const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
     // call completion show
     const QVariantHash completionSession = {
         {"scriptUrl", scriptUrl},
@@ -472,7 +472,7 @@ void ScriptModule::definitionResponse(const QUrl &scriptUrl, const QJsonArray &d
     const auto point = scintilla->pointGet(startLine, startCharacter);
     const auto x = point["x"];
     const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "definition"},
@@ -579,9 +579,7 @@ void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) 
 }
 
 void ScriptModule::hoverResponse(const QUrl &scriptUrl, const QString &message) const {
-    const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(scriptPage->m_editorWidget);
-    const QPoint position = scintilla->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
+    const QPoint position = QCursor::pos() + QPoint(10, 10);
     // call hover show
     const QVariantHash hoverSession = {
         {"position", position}
@@ -617,7 +615,7 @@ void ScriptModule::implementationResponse(const QUrl &scriptUrl, const QJsonArra
     const auto point = scintilla->pointGet(startLine, startCharacter);
     const auto x = point["x"];
     const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "implementation"},
@@ -733,7 +731,7 @@ void ScriptModule::referencesResponse(const QUrl &scriptUrl, const QJsonArray &r
     const auto point = scintilla->pointGet(startLine, startCharacter);
     const auto x = point["x"];
     const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "reference"},
@@ -786,7 +784,7 @@ void ScriptModule::signatureHelpResponse(const QUrl &scriptUrl, const QJsonArray
     const auto point = scintilla->pointGet(startLine, startCharacter - 1);
     const auto x = point["x"];
     const auto y = point["y"];
-    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
     // call signature show
     const QVariantHash signatureSession = {
         {"scriptUrl", scriptUrl},
@@ -823,7 +821,7 @@ void ScriptModule::typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArra
     const auto point = scintilla->pointGet(startLine, startCharacter);
     const auto x = point["x"];
     const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapTo(scintilla->window(), QPoint(x, y));
+    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
     // call navigation show
     const QVariantHash navigationSession = {
         {"type", "typeDefinition"},

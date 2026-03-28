@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QTimer>
 #include <QVBoxLayout>
