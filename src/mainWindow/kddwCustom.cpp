@@ -7,8 +7,8 @@ MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidge
 }
 
 void MySeparator::paintEvent(QPaintEvent *event) {
-    // QPainter p(this);
-    // p.fillRect(QWidget::rect(), "#cccccc");
+    QPainter p(this);
+    p.fillRect(QWidget::rect(), "#ebebeb");
 }
 
 KDDockWidgets::Core::View *CustomWidgetFactory::createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent) const {
