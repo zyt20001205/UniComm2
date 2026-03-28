@@ -7,6 +7,7 @@
 #include <QMediaDevices>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickView>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QStatusBar>
@@ -40,7 +41,7 @@
 #include "scriptModule/codeAnalysis/structureModule.h"
 #include "scriptModule/codeDebug/watchModule.h"
 
-#include <QQuickView>
+#include <QTimer>
 
 // public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -243,9 +244,11 @@ void MainWindow::overlayFocus(const bool status) {
 }
 
 void MainWindow::overlayTransparent(const bool status) const {
-    m_overlay->setFlag(Qt::WindowTransparentForInput, status);
-    m_overlay->hide();
-    m_overlay->showMaximized();
+    QTimer::singleShot(0, m_overlay, [this, status]() {
+        m_overlay->setFlag(Qt::WindowTransparentForInput, status);
+        m_overlay->hide();
+        m_overlay->showMaximized();
+    });
 }
 
 void MainWindow::quit() {
