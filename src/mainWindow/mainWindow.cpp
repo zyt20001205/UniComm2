@@ -12,6 +12,7 @@
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QThread>
+#include <QTimer>
 #include <QToolBar>
 #include <kddockwidgets/LayoutSaver.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
@@ -40,8 +41,6 @@
 #include "scriptModule/codeAnalysis/diagnosticsModule.h"
 #include "scriptModule/codeAnalysis/structureModule.h"
 #include "scriptModule/codeDebug/watchModule.h"
-
-#include <QTimer>
 
 // public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
