@@ -83,6 +83,15 @@ Item {
 
             HoverHandler {
                 id: hoverHandler
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainTooltip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainTooltip.position = parent.mapToGlobal(point.position)
+                    mainTooltip.text = treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole).detail
+                }
             }
 
             TapHandler {
@@ -91,7 +100,7 @@ Item {
 
                 onTapped: {
                     treeView.selectedRow = row
-                    structureModule.markerAdd(treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole))
+                    structureModule.markerAdd(treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole).position)
                     if (isTreeNode && hasChildren) {
                         treeView.toggleExpanded(row)
                     }

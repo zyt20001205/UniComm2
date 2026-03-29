@@ -64,6 +64,7 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
                 source = "qrc:/icon/symbolPackage.svg";
             }
             break;
+            case SYMBOL_KIND_METHOD:
             case SYMBOL_KIND_FUNCTION: {
                 source = "qrc:/icon/symbolMethod.svg";
             }

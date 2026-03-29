@@ -25,6 +25,7 @@ StructureModule::~StructureModule() {
 
 void StructureModule::propertySet(const QVariantMap &objects) {
     m_structureWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
+    m_structureWidget->rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
 
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);
@@ -53,8 +54,16 @@ void StructureModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &ses
     }
 }
 
-void StructureModule::markerAdd(const int row) {
-    emit addMarker(m_currentScriptUrl, MARKER_HINT, row, 1000);
+void StructureModule::markerAdd(const QVariantHash &position) {
+    emit setFocus(m_currentScriptUrl,
+                  true);
+    emit setIndex(m_currentScriptUrl,
+                  position["startLine"].toInt(),
+                  position["startCharacter"].toInt());
+    emit addMarker(m_currentScriptUrl,
+                   MARKER_HINT,
+                   position["startLine"].toInt(),
+                   1000);
 }
 
 // StructureModule protected
@@ -77,66 +86,59 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         const auto name = symbol["name"].toString();
         const auto range = symbol["range"].toObject();
         const auto start = range["start"].toObject();
-        const int line = start["line"].toInt();
+        const auto end = range["end"].toObject();
+        item->setData(name, Qt::DisplayRole);
+        item->setData(QVariantHash{
+                          {"detail", detail},
+                          {
+                              "position", QVariantHash{
+                                  {"startLine", start["line"].toInt()},
+                                  {"startCharacter", start["character"].toInt()},
+                                  {"endLine", end["line"].toInt()},
+                                  {"endCharacter", end["character"].toInt()}
+                              }
+                          },
+                      }, Qt::WhatsThisRole);
         switch (kind) {
             case SYMBOL_KIND_PACKAGE: {
-                item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolPackage.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
-                break;
+            break;
+            case SYMBOL_KIND_METHOD:
             case SYMBOL_KIND_FUNCTION: {
-                item->setData(name + detail.mid(9), Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOL_KIND_VARIABLE: {
-                item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolVariable.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
-                break;
+            break;
             case SYMBOL_KIND_CONSTANT: {
-                item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolConstant.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOL_KIND_STRING: {
-                item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolString.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOL_KIND_NUMBER: {
-                item->setData(name + " = " + detail, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOL_KIND_BOOLEAN: {
-                item->setData(name + " = " + detail, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolBoolean.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOL_KIND_ARRAY: {
-                item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolArray.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             case SYMBOL_KIND_OBJECT: {
-                item->setData(name, Qt::DisplayRole);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
             }
             break;
             default: {
-                item->setText(name);
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                item->setData(line, Qt::WhatsThisRole);
                 qDebug() << "WIP structure kind:" << kind << name << detail;
             }
             break;

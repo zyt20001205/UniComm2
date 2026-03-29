@@ -274,6 +274,11 @@ void ScriptModule::assemblyToggle(const QUrl &scriptUrl, const bool status) {
     m_scriptPageHash[scriptUrl]->assemblyToggle(status);
 }
 
+void ScriptModule::focusSet(const QUrl &scriptUrl, const bool status) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->focusSet(status);
+}
+
 void ScriptModule::indexSet(const QUrl &scriptUrl, const int line, const int character) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     m_scriptPageHash[scriptUrl]->m_editorWidget->indexSet(line, character);

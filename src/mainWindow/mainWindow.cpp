@@ -213,7 +213,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_statusModule->propertySet(statusObjects);
 
     const QVariantMap structureObjects = {
-        {"structureModuleRootMenu", objects["structureModuleRootMenu"]}
+        {"structureModuleRootMenu", objects["structureModuleRootMenu"]},
+        {"mainWindowTooltip", objects["mainWindowTooltip"]}
     };
     m_structureModule->propertySet(structureObjects);
 
@@ -437,6 +438,8 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
+    connect(m_structureModule, &StructureModule::setFocus, m_scriptModule, &ScriptModule::focusSet);
+    connect(m_structureModule, &StructureModule::setIndex, m_scriptModule, &ScriptModule::indexSet);
     connect(m_structureModule, &StructureModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
 
     connect(m_systemModule, &SystemModule::appendLog, m_logModule, &LogModule::logAppend);
