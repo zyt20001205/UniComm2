@@ -1728,7 +1728,7 @@ Item {
         property var completionWidget
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFocus(false)
             widgetCount += 1
         }
         onClosed: {
