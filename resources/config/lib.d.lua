@@ -253,7 +253,7 @@ function smtp.authLogin(name, username, password) end
 --- @param body string
 --- @param attachment? string Path to the attachment.
 ---
-function smtp.mail(name, from, to,  subject, body, attachment) end
+function smtp.mail(name, from, to, subject, body, attachment) end
 
 thread = {}
 --- Spawns a thread using the given file path.
