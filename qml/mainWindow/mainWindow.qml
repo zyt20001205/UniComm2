@@ -2139,7 +2139,7 @@ Item {
         property var navigationWidget
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFocus(false)
             widgetCount += 1
         }
         onClosed: {
