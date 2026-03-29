@@ -93,9 +93,15 @@ gantt
         v0.3.0-alpha1: 07-01, 31d
         v0.3.0-alpha2: 08-01, 31d
 
-    section coding
+    section infra
         scintilla migration: done, 02-11, 30d
-        status bar: done, 03-10, 3d
+        ringbuffer class: done, 03-01, 16d
+        ringbuffer apis: done, 03-17, 15d
+        fullscreen overlay: done, 03-26, 3d
+        undo stack: 04-01, 10d
+        port session monitor: 05-01, 31d
+
+    section coding
         assembly view: done, 03-13, 19d
         signatureHelp(overload): done, 03-24, 1d
         documentSymbol bar: done, 03-25, 2d
@@ -103,14 +109,8 @@ gantt
         rename: 04-11, 20d
         git integration: 05-01, 31d
 
-    section infra
-        ringbuffer class: done, 03-01, 16d
-        ringbuffer apis: done, 03-17, 15d
-        fullscreen overlay: done, 03-26, 3d
-        undo stack: 04-01, 10d
-        port session monitor: 05-01, 31d
-
     section ui
+        status bar: done, 03-10, 3d
         customize settings: 07-01, 31d
         dark theme: 07-01, 31d
         i18n: 08-01, 31d
