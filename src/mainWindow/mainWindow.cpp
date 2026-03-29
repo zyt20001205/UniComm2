@@ -273,14 +273,11 @@ void MainWindow::quit() {
     m_quitDialog->setProperty("primaryProgress", static_cast<float>(current) / total);
     m_luals->quit();
 
-    m_askForSaving = false;
-    m_overlay->close();
-    close();
+    terminate();
 }
 
 void MainWindow::terminate() {
     m_askForSaving = false;
-    m_overlay->close();
     close();
 }
 
@@ -572,6 +569,7 @@ void MainWindow::overlayInit() {
     m_overlay = new QQuickView();
     m_overlay->setColor(Qt::transparent);
     m_overlay->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput);
+    m_overlay->setTransientParent(windowHandle());
     propertySet();
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
     m_overlay->showMaximized();
