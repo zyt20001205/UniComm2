@@ -132,6 +132,20 @@ gantt
 
 ### [Datatable](#datatable-apis)
 
+## Input Simulation
+
+### [Mouse](#mouse-apis)
+
+### [Key](#key-apis)
+
+## Miscellaneous
+
+### [IO](#io-apis)
+
+### [String](#string-apis)
+
+### [Thread](#thread-apis)
+
 # Port Module
 
 ## Support Port Types
@@ -347,3 +361,50 @@ flowchart LR
 | datatable.write  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | datatable.clear  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 | datatable.export | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+# Input Simulation
+
+## Mouse APIS
+
+|       APIS        |                               Status                                |                           
+|:-----------------:|:-------------------------------------------------------------------:|
+|    mouse.click    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| mouse.doubleClick | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| mouse.rightClick  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|    mouse.down     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|     mouse.up      |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|    mouse.drag     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|   mouse.scroll    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+
+## Key APIS
+
+|   APIS   |                               Status                                |                           
+|:--------:|:-------------------------------------------------------------------:|
+| key.tap  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| key.type | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| key.down |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|  key.up  |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+
+# Miscellaneous
+
+## IO APIS
+
+|    APIS    |                               Status                                |                           
+|:----------:|:-------------------------------------------------------------------:|
+|   io.log   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| io.message | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|  io.speak  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+## String APIS
+|      APIS      |                               Status                                |                           
+|:--------------:|:-------------------------------------------------------------------:|
+|  string.toHex  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| string.fromHex | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+## Thread APIS
+
+|     APIS     |                               Status                                |                           
+|:------------:|:-------------------------------------------------------------------:|
+| thread.start | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| thread.stop  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| thread.sleep | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
