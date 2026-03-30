@@ -61,6 +61,8 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QString source = diagnostic["source"].toString();
         const QString code = diagnostic["code"].toString();
         const QString data = diagnostic["data"].toString();
+        // placeholder operation
+        if (diagnostic["message"].toString().contains("__PLACEHOLDER__")) continue;
         const QString message = md2plain(diagnostic["message"].toString());
         auto *severityItem = new QStandardItem(); // NOLINT
         switch (severity) {

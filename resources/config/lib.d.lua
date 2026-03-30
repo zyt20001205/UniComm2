@@ -2,15 +2,15 @@
 
 --- @alias portName
 --- | string
---- | '"_PORT_PLACEHOLDER_"'
+--- | '"__PLACEHOLDER__PORTNAME__"'
 
 --- @alias databaseKey
 --- | string
---- | '"_DATABASE_PLACEHOLDER_"'
+--- | '"__PLACEHOLDER__DATABASEKEY__"'
 
 --- @alias datatableKey
 --- | string
---- | '"_DATATABLE_PLACEHOLDER_"'
+--- | '"__PLACEHOLDER__DATATABLEKEY__"'
 
 --- @alias key
 --- | '"0"'
@@ -303,7 +303,7 @@ function smtp.ehlo(name) end
 --- Send AUTH LOGIN command to authenticate with SMTP server.
 --- @param name portName Target port name.
 --- @param username string SMTP username/email address.
---- @param password string SMTP password.
+--- @param password "__PLACEHOLDER__PASSWORD__" SMTP password.
 ---
 function smtp.authLogin(name, username, password) end
 

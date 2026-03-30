@@ -137,35 +137,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // indicator
         {
             m_editorWidget->indicatorDefine(
-                INDICATOR_ERROR,
+                INDICATOR_TYPO,
                 QJsonObject{
-                    {"style", 8},
-                    {"fore", 0xe6e6ff},
-                    {"alpha", 255},
-                    {"outlineAlpha", 255},
-                    {"setUnder", true}
-                });
-            // QJsonObject{
-            //             {"style", 1},
-            //             {"fore", 0x1f0fc5},
-            //             {"alpha", 255},
-            //             {"outlineAlpha", 255},
-            //             {"setUnder", true}
-            // });
-            m_editorWidget->indicatorDefine(
-                INDICATOR_WARNING,
-                QJsonObject{
-                    {"style", 8},
-                    {"fore", 0xe6f5ff},
-                    {"alpha", 255},
-                    {"outlineAlpha", 255},
-                    {"setUnder", true}
-                });
-            m_editorWidget->indicatorDefine(
-                INDICATOR_INFO,
-                QJsonObject{
-                    {"style", 8},
-                    {"fore", 0xfaf0e6},
+                    {"style", 14},
+                    {"fore", 0xabd180},
                     {"alpha", 255},
                     {"outlineAlpha", 255},
                     {"setUnder", true}
@@ -180,14 +155,48 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_TYPO,
+                INDICATOR_INFO,
                 QJsonObject{
-                    {"style", 14},
-                    {"fore", 0xabd180},
+                    {"style", 8},
+                    {"fore", 0xfaf0e6},
                     {"alpha", 255},
                     {"outlineAlpha", 255},
                     {"setUnder", true}
                 });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_WARNING,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xe6f5ff},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_ERROR,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0xe6e6ff},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", true}
+                });
+            m_editorWidget->indicatorDefine(
+                INDICATOR_PASSWORD,
+                QJsonObject{
+                    {"style", 8},
+                    {"fore", 0x000000},
+                    {"alpha", 255},
+                    {"outlineAlpha", 255},
+                    {"setUnder", false}
+                });
+            // QJsonObject{
+            //             {"style", 1},
+            //             {"fore", 0x1f0fc5},
+            //             {"alpha", 255},
+            //             {"outlineAlpha", 255},
+            //             {"setUnder", true}
+            // });
             m_editorWidget->indicatorDefine(
                 INDICATOR_HIGHLIGHT,
                 QJsonObject{
@@ -647,6 +656,7 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_diagnostic = diagnostics;
     // clear
+    m_editorWidget->indicatorClear(INDICATOR_PASSWORD);
     m_editorWidget->indicatorClear(INDICATOR_ERROR);
     m_editorWidget->indicatorClear(INDICATOR_WARNING);
     m_editorWidget->indicatorClear(INDICATOR_INFO);
@@ -654,7 +664,13 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
     // publish
     for (const auto &value: diagnostics) {
         const QJsonObject diagnostic = value.toObject();
-        const int severity = diagnostic["severity"].toInt();
+        // placeholder operation
+        int severity{};
+        if (diagnostic["message"].toString().contains("__PLACEHOLDER__PASSWORD__")) {
+            severity = 0;
+        } else {
+            severity = diagnostic["severity"].toInt();
+        }
         const QJsonObject range = diagnostic["range"].toObject();
         const QJsonObject start = range["start"].toObject();
         const QJsonObject end = range["end"].toObject();
@@ -662,7 +678,31 @@ void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
         const int startCharacter = start["character"].toInt();
         const int endLine = end["line"].toInt();
         const int endCharacter = end["character"].toInt();
-        m_editorWidget->indicatorFill(severity, startLine, startCharacter, endLine, endCharacter);
+        int type{};
+        switch (severity) {
+            case 0: {
+                type = INDICATOR_PASSWORD;
+            }
+            break;
+            case 1: {
+                type = INDICATOR_ERROR;
+            }
+            break;
+            case 2: {
+                type = INDICATOR_WARNING;
+            }
+            break;
+            case 3: {
+                type = INDICATOR_INFO;
+            }
+            break;
+            case 4: {
+                type = INDICATOR_HINT;
+            }
+            break;
+            default: break;
+        }
+        m_editorWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -1245,34 +1285,35 @@ void ScriptPage::hoverRequest() {
         const int startCharacter = start["character"].toInt();
         const int endLine = end["line"].toInt();
         const int endCharacter = end["character"].toInt();
-        if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
-            const int severity = diagnostic["severity"].toInt();
-            QString severityString{};
-            switch (severity) {
-                case 1: {
-                    severityString = "Error";
-                }
-                break;
-                case 2: {
-                    severityString = "Warning";
-                }
-                break;
-                case 3: {
-                    severityString = "Info";
-                }
-                break;
-                case 4: {
-                    severityString = "Hint";
-                }
-                break;
-                default: break;
+        if (line < startLine || line > endLine) continue;
+        if (line == startLine && character < startCharacter) continue;
+        if (line == endLine && character > endCharacter) continue;
+        const int severity = diagnostic["severity"].toInt();
+        QString severityString{};
+        switch (severity) {
+            case 1: {
+                severityString = "Error";
             }
-            const QString message = diagnostic["message"].toString();
-            // qDebug() << message << parsed;
-            const QString commandLine = QString("requestcodeaction://codeAction/%2/%3/%4/%5").arg(
-                QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-            diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, md2html(message), commandLine);
+            break;
+            case 2: {
+                severityString = "Warning";
+            }
+            break;
+            case 3: {
+                severityString = "Info";
+            }
+            break;
+            case 4: {
+                severityString = "Hint";
+            }
+            break;
+            default: break;
         }
+        const QString message = diagnostic["message"].toString();
+        // qDebug() << message << parsed;
+        const QString commandLine = QString("requestcodeaction://codeAction/%2/%3/%4/%5").arg(
+            QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+        diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, md2html(message), commandLine);
     }
     // show typo if exists
     for (const auto &value: m_typo) {
@@ -1281,12 +1322,13 @@ void ScriptPage::hoverRequest() {
         const int endLine = typo["line"].toInt();
         const int startCharacter = typo["startCharacter"].toInt();
         const int endCharacter = typo["endCharacter"].toInt();
-        if (line >= startLine && line <= endLine && character >= startCharacter && character <= endCharacter) {
-            const QString word = m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
-            const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
-                word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-            diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
-        }
+        if (line < startLine || line > endLine) continue;
+        if (line == startLine && character < startCharacter) continue;
+        if (line == endLine && character > endCharacter) continue;
+        const QString word = m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+        const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
+            word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+        diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
     }
     // call diagnostic show
     const QPoint position = m_editorWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));

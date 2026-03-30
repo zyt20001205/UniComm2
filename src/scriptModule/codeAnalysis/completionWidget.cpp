@@ -7,14 +7,18 @@
 #include <QPushButton>
 #include <QStandardItemModel>
 #include <QTimer>
-#include <QVBoxLayout>
 
 #include "globals.h"
 
 // public
 CompletionWidget::CompletionWidget(QWidget *parent)
     : QObject(parent),
-      m_placeholderSet({"\"_PORT_PLACEHOLDER_\"", "\"_DATABASE_PLACEHOLDER_\"", "\"_DATATABLE_PLACEHOLDER_\""}),
+      m_placeholderSet({
+          "\"__PLACEHOLDER__PORTNAME__\"",
+          "\"__PLACEHOLDER__DATABASEKEY__\"",
+          "\"__PLACEHOLDER__DATATABLEKEY__\"",
+          "\"__PLACEHOLDER__PASSWORD__\""
+      }),
       m_completionModel(new QStandardItemModel(this)),
       m_detailModel(new QStandardItemModel(this)) {
 }
@@ -100,7 +104,7 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
                 case COMPLETION_KIND_SNIPPET: {
                     iconSource = "qrc:/icon/symbolSnippet.svg";
                 }
-                    break;
+                break;
                 case COMPLETION_KIND_FILE: {
                     iconSource = "qrc:/icon/symbolFile.svg";
                 }
@@ -112,7 +116,7 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
                 case COMPLETION_KIND_EVENT: {
                     iconSource = "qrc:/icon/symbolEvent.svg";
                 }
-                    break;
+                break;
                 default: {
                     iconSource = "qrc:/icon/symbolMisc.svg";
                     qDebug() << "WIP completion kind:" << kind << insertText;
@@ -206,7 +210,7 @@ void CompletionWidget::textReplace() {
 }
 
 void CompletionWidget::placeholderExpand(const QString &placeholder) const {
-    if (placeholder == "\"_PORT_PLACEHOLDER_\"") {
+    if (placeholder == "\"__PLACEHOLDER__PORTNAME__\"") {
         for (int i = 0; i < g_portStandardItemModel->rowCount(); ++i) {
             const QString insertText = "\"" + g_portStandardItemModel->item(i, 0)->text() + "\"";
             auto *standardItem = new QStandardItem(insertText); // NOLINT
@@ -215,7 +219,7 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
             standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         }
-    } else if (placeholder == "\"_DATABASE_PLACEHOLDER_\"") {
+    } else if (placeholder == "\"__PLACEHOLDER__DATABASEKEY__\"") {
         for (int i = 0; i < g_databaseStandardItemModel->rowCount(); ++i) {
             const QString insertText = "\"" + g_databaseStandardItemModel->item(i, 0)->text() + "\"";
             auto *standardItem = new QStandardItem(insertText); // NOLINT
@@ -224,7 +228,7 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
             standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         }
-    } else if (placeholder == "\"_DATATABLE_PLACEHOLDER_\"") {
+    } else if (placeholder == "\"__PLACEHOLDER__DATATABLEKEY__\"") {
         for (int i = 0; i < g_datatableHeaderItemModel->rowCount(); ++i) {
             const QString insertText = "\"" + g_datatableHeaderItemModel->item(i, 0)->text() + "\"";
             auto *standardItem = new QStandardItem(insertText); // NOLINT
@@ -233,5 +237,6 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
             standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         }
+    } else if (placeholder == "\"__PLACEHOLDER__PASSWORD__\"") {
     }
 }
