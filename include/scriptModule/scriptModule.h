@@ -140,8 +140,6 @@ public:
 
     void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
 
-    ScriptPage *m_focusedPage{};
-    QHash<QUrl, ScriptPage *> m_scriptPageHash{};
 signals:
     void appendLog(const QString &message, const QString &level);
 
@@ -168,13 +166,15 @@ signals:
     void requestSpellSuggest(const QUrl &scriptUrl, const QString &word);
 
 private:
-    void scriptFocus(ScriptPage *scriptPage, bool status);
+    void scriptFocus(const ScriptPage *scriptPage, bool status);
 
     void scriptClose(const QUrl &scriptUrl);
 
     void charAdd(const QUrl &scriptUrl, QChar character) const;
 
     void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
+
+    void textSetSelected(const QUrl &scriptUrl, const QString &text);
 
     void permissionSet(const QUrl &scriptUrl, bool readonly) const;
 
@@ -188,6 +188,8 @@ private:
     QObject *m_toolTip{};
     QObject *m_menu{};
     WelcomePage *m_welcomePage{};
+    QUrl m_focusedPage{};
+    QHash<QUrl, ScriptPage *> m_scriptPageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};
 };

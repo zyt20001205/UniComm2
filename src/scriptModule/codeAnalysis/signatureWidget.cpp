@@ -30,7 +30,8 @@ bool SignatureWidget::isVisible() const {
     return m_tooltip->property("visible").toBool();
 }
 
-void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const {
+void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) {
+    m_signatureSession = signatureSession;
     QString helpText{};
     bool reposition = false;
     for (const auto &value: signatures) {
@@ -72,4 +73,13 @@ void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const 
 
 void SignatureWidget::signatureHide() const {
     QMetaObject::invokeMethod(m_tooltip, "close");
+}
+
+void SignatureWidget::signatureNext() {
+    emit setTextSelected(
+        m_signatureSession["scriptUrl"].toUrl(),
+        ", ");
+    emit addChar(
+        m_signatureSession["scriptUrl"].toUrl(),
+        ',');
 }

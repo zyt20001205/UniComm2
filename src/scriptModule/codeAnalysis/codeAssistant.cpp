@@ -16,9 +16,9 @@ CodeAssistant::CodeAssistant(QWidget *parent)
       m_navigationWidget(new NavigationWidget(parent)),
       m_positionWidget(new PositionWidget(parent)),
       m_signatureWidget(new SignatureWidget(parent)) {
+    connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
     connect(m_completionWidget, &CompletionWidget::setIndex, this, &CodeAssistant::setIndex);
     connect(m_completionWidget, &CompletionWidget::setText, this, &CodeAssistant::setText);
-    connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
     connect(m_dwellWidget, &DwellWidget::textSet, this, &CodeAssistant::setText);
     connect(m_dwellWidget, &DwellWidget::requestCodeAction, this, &CodeAssistant::requestCodeAction);
@@ -26,6 +26,8 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
     connect(m_positionWidget, &PositionWidget::setText, this, &CodeAssistant::setText);
+    connect(m_signatureWidget, &SignatureWidget::addChar, this, &CodeAssistant::addChar);
+    connect(m_signatureWidget, &SignatureWidget::setTextSelected, this, &CodeAssistant::setTextSelected);
 }
 
 void CodeAssistant::propertySet(const QVariantMap &objects) const {
@@ -140,6 +142,10 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             case Qt::Key_Tab: {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->textReplace();
+                    return true;
+                }
+                if (m_signatureWidget->isVisible()) {
+                    m_signatureWidget->signatureNext();
                     return true;
                 }
                 return false;

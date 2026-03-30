@@ -17,13 +17,21 @@ public:
 
     [[nodiscard]] bool isVisible() const;
 
-    void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const;
+    void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures);
 
     void signatureHide() const;
+
+    void signatureNext();
+
+signals:
+    void setTextSelected(const QUrl &scriptUrl, const QString &text);
+
+    void addChar(const QUrl &scriptUrl, QChar character);
 
 private:
     QObject *m_tooltip{};
     QObject *m_label{};
+    QVariantHash m_signatureSession{};
 };
 
 #endif //UNICOMM_SIGNATUREWIDGET_H

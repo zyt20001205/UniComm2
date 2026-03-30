@@ -25,6 +25,7 @@ ScriptModule::ScriptModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::setIndex, this, &ScriptModule::indexSet);
     connect(m_codeAssistant, &CodeAssistant::getText, this, &ScriptModule::textGet);
     connect(m_codeAssistant, &CodeAssistant::setText, this, &ScriptModule::textSet);
+    connect(m_codeAssistant, &CodeAssistant::setTextSelected, this, &ScriptModule::textSetSelected);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &ScriptModule::indicatorFill);
     connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &ScriptModule::codeActionRequest);
 }
@@ -64,10 +65,10 @@ void ScriptModule::scriptConfigSave() {
         scriptList.append(url.toString());
     }
     m_scriptConfig["scriptList"] = scriptList;
-    if (m_focusedPage == nullptr) {
+    if (m_focusedPage.isEmpty()) {
         m_scriptConfig["scriptFocused"] = "";
     } else {
-        m_scriptConfig["scriptFocused"] = m_focusedPage->m_scriptUrl.toString();
+        m_scriptConfig["scriptFocused"] = m_focusedPage.toString();
     }
     g_workspaceConfig["scriptConfig"] = m_scriptConfig;
 }
@@ -224,12 +225,12 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
         connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
         qApp->installEventFilter(m_codeAssistant);
-        if (m_focusedPage == nullptr) {
+        if (m_focusedPage.isEmpty()) {
             m_welcomePage->open();
             m_welcomePage->addDockWidgetAsTab(scriptPage);
             m_welcomePage->close();
         } else {
-            m_focusedPage->addDockWidgetAsTab(scriptPage);
+            m_scriptPageHash[m_focusedPage]->addDockWidgetAsTab(scriptPage);
         }
         scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
     }
@@ -284,8 +285,8 @@ void ScriptModule::indexSet(const QUrl &scriptUrl, const int line, const int cha
 }
 
 void ScriptModule::indexGet() const {
-    const auto scriptUrl = m_focusedPage->m_scriptUrl;
-    const auto index = m_focusedPage->m_editorWidget->indexGet();
+    const auto scriptUrl = m_focusedPage;
+    const auto index = m_scriptPageHash[scriptUrl]->m_editorWidget->indexGet();
     g_cursorPosition = {
         {"url", scriptUrl},
         {"line", index["line"]},
@@ -840,9 +841,9 @@ void ScriptModule::spellCheckResponse(const QUrl &scriptUrl, const QVariantList 
 }
 
 // private
-void ScriptModule::scriptFocus(ScriptPage *scriptPage, const bool status) {
+void ScriptModule::scriptFocus(const ScriptPage *scriptPage, const bool status) {
     if (status) {
-        m_focusedPage = scriptPage;
+        m_focusedPage = scriptPage->m_scriptUrl;
         const QVariantHash session = {
             {"codePage", scriptPage->m_editorWidget->codePageGet()},
             {"eolMode", scriptPage->m_editorWidget->eolModeGet()}
@@ -862,7 +863,7 @@ void ScriptModule::scriptClose(const QUrl &scriptUrl) {
         m_focusedPage = nullptr;
     } else {
         const auto begin = m_scriptPageHash.begin();
-        m_focusedPage = begin.value();
+        m_focusedPage = begin.key();
     }
 }
 
@@ -873,6 +874,11 @@ void ScriptModule::charAdd(const QUrl &scriptUrl, const QChar character) const {
 void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     m_scriptPageHash[scriptUrl]->m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
+}
+
+void ScriptModule::textSetSelected(const QUrl &scriptUrl, const QString &text) {
+    if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
+    m_scriptPageHash[scriptUrl]->m_editorWidget->textSetSelected(text);
 }
 
 void ScriptModule::permissionSet(const QUrl &scriptUrl, const bool readonly) const {

@@ -46,6 +46,8 @@ signals:
 
     void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
+    void setTextSelected(const QUrl &scriptUrl, const QString &text);
+
     void getText(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
