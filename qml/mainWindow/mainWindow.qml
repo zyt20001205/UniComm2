@@ -14,8 +14,8 @@ Item {
     Item {
         id: debugConsole
         anchors.fill: parent
-        // visible: true
-        visible: false
+        visible: true
+        // visible: false
 
         Rectangle {
             anchors.fill: parent

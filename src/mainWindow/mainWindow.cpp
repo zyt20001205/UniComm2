@@ -246,7 +246,7 @@ void MainWindow::overlayFocus(const bool status) {
         if (m_overlay->flags().testFlag(Qt::WindowDoesNotAcceptFocus) == !status) return;
         m_overlay->setFlag(Qt::WindowDoesNotAcceptFocus, !status);
         m_overlay->hide();
-        m_overlay->showMaximized();
+        m_overlay->show();
     });
 }
 
@@ -255,7 +255,7 @@ void MainWindow::overlayTransparent(const bool status) const {
         if (m_overlay->flags().testFlag(Qt::WindowTransparentForInput) == status) return;
         m_overlay->setFlag(Qt::WindowTransparentForInput, status);
         m_overlay->hide();
-        m_overlay->showMaximized();
+        m_overlay->show();
     });
 }
 
@@ -576,7 +576,13 @@ void MainWindow::overlayInit() {
     m_overlay->setTransientParent(windowHandle());
     propertySet();
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
-    m_overlay->showMaximized();
+    m_overlay->setScreen(windowHandle()->screen());
+    m_overlay->setGeometry(windowHandle()->screen()->geometry());
+    m_overlay->show();
+    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this](QScreen *screen) {
+        m_overlay->setScreen(screen);
+        m_overlay->setGeometry(screen->geometry());
+    });
 }
 
 void MainWindow::mainConfigSave() {
