@@ -40,13 +40,14 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/globals.h
         include/systemModule.h
         include/logModule.h
-        include/luaModule/luaControl.h
         include/luaModule/luaDataProcess.h
         include/luaModule/luaInterpreter.h
         include/luaModule/luaIO.h
+        include/luaModule/luaKey.h
         include/luaModule/luaLanguageServer.h
         include/luaModule/luaModbusAscii.h
         include/luaModule/luaModbusRtu.h
+        include/luaModule/luaMouse.h
         include/luaModule/luaPort.h
         include/luaModule/luaSmtp.h
         include/luaModule/luaString.h
@@ -103,13 +104,14 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/globals.cpp
         src/systemModule.cpp
         src/logModule.cpp
-        src/luaModule/luaControl.cpp
         src/luaModule/luaDataProcess.cpp
         src/luaModule/luaInterpreter.cpp
         src/luaModule/luaIO.cpp
+        src/luaModule/luaKey.cpp
         src/luaModule/luaLanguageServer.cpp
         src/luaModule/luaModbusAscii.cpp
         src/luaModule/luaModbusRtu.cpp
+        src/luaModule/luaMouse.cpp
         src/luaModule/luaPort.cpp
         src/luaModule/luaSmtp.cpp
         src/luaModule/luaString.cpp

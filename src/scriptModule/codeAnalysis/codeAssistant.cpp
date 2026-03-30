@@ -1,6 +1,5 @@
 #include "scriptModule/codeAnalysis/codeAssistant.h"
 
-#include <QJsonObject>
 #include <QKeyEvent>
 
 #include "scriptModule/codeAnalysis/completionWidget.h"
@@ -26,7 +25,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setIndex);
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
-    // connect(m_positionWidget, &PositionWidget::insertText, this, &CodeAssistant::insertText);
+    connect(m_positionWidget, &PositionWidget::setText, this, &CodeAssistant::setText);
 }
 
 void CodeAssistant::propertySet(const QVariantMap &objects) const {
@@ -98,7 +97,7 @@ void CodeAssistant::signatureShow(const QVariantHash &signatureSession, const QJ
     m_signatureWidget->signatureShow(signatureSession, signatures);
 }
 
-// CodeAssistant protected
+// protected
 bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::KeyPress) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
@@ -117,34 +116,33 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->completionPrev();
                     return true;
-                } else if (m_navigationWidget->isVisible()) {
+                }
+                if (m_navigationWidget->isVisible()) {
                     m_navigationWidget->navigationPrev();
                     return true;
-                } else {
-                    m_signatureWidget->signatureHide();
-                    return false;
                 }
+                m_signatureWidget->signatureHide();
+                return false;
             }
             case Qt::Key_Down: {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->completionNext();
                     return true;
-                } else if (m_navigationWidget->isVisible()) {
+                }
+                if (m_navigationWidget->isVisible()) {
                     m_navigationWidget->navigationNext();
                     return true;
-                } else {
-                    m_signatureWidget->signatureHide();
-                    return false;
                 }
+                m_signatureWidget->signatureHide();
+                return false;
             }
             // completion keys
             case Qt::Key_Tab: {
                 if (m_completionWidget->isVisible()) {
                     m_completionWidget->textReplace();
                     return true;
-                } else {
-                    return false;
                 }
+                return false;
             }
             // navigation keys
             case Qt::Key_Return:
@@ -152,9 +150,8 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
                 if (m_navigationWidget->isVisible()) {
                     m_navigationWidget->indicatorInsert();
                     return true;
-                } else {
-                    return false;
                 }
+                return false;
             }
             default:
                 return false;
@@ -165,7 +162,8 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             const QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
             if (mouseEvent->button() == Qt::LeftButton) {
                 m_positionWidget->textReplace();
-                m_positionWidget->positionHide();
+                m_completionWidget->completionHide();
+                m_signatureWidget->signatureHide();
                 return true;
             }
         }

@@ -6,7 +6,6 @@
 #include <QTimer>
 
 #include "globals.h"
-#include "luaModule/luaControl.h"
 #include "portModule/portModule.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/welcomePage.h"

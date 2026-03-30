@@ -5,7 +5,6 @@
 #include <QThread>
 #include <QVariant>
 #include <sol/object.hpp>
-#include <sol/variadic_args.hpp>
 
 #include "utils/uniCast.h"
 

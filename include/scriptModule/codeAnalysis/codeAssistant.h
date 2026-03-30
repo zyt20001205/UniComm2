@@ -1,8 +1,7 @@
 #ifndef UNICOMM_CODEASSISTANT_H
 #define UNICOMM_CODEASSISTANT_H
-#include <QObject>
 
-#include "ScintillaTypes.h"
+#include <QObject>
 
 class CompletionWidget;
 class DwellWidget;

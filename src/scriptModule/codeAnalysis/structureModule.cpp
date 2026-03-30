@@ -66,7 +66,7 @@ void StructureModule::markerAdd(const QVariantHash &position) {
                    1000);
 }
 
-// StructureModule protected
+// protected
 bool StructureModule::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_structureWidget) {
         if (event->type() == QEvent::FocusOut) {

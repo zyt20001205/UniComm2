@@ -1,9 +1,7 @@
 #ifndef UNICOMM_SIGNATUREWIDGET_H
 #define UNICOMM_SIGNATUREWIDGET_H
 
-#include <QObject>
-
-class QLabel;
+#include <QWidget>
 
 class SignatureWidget final : public QObject {
     Q_OBJECT

@@ -2315,12 +2315,27 @@ Item {
         }
     }
 
-    Tooltip {
+    ToolTip {
         id: scriptModulePositionTooltip
         parent: Overlay.overlay
         x: position.x + 10; y: position.y + 10
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
+
+        Behavior on x {
+            enabled: scriptModulePositionTooltip.visible
+            NumberAnimation {
+                duration: 50
+                easing.type: Easing.Linear
+            }
+        }
+        Behavior on y {
+            enabled: scriptModulePositionTooltip.visible
+            NumberAnimation {
+                duration: 50
+                easing.type: Easing.Linear
+            }
+        }
     }
 
     ToolTip {

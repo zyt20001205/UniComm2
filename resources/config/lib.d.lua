@@ -13,6 +13,16 @@
 --- | '"_DATATABLE_PLACEHOLDER_"'
 
 --- @alias key
+--- | '"0"'
+--- | '"1"'
+--- | '"2"'
+--- | '"3"'
+--- | '"4"'
+--- | '"5"'
+--- | '"6"'
+--- | '"7"'
+--- | '"8"'
+--- | '"9"'
 --- | '"A"'
 --- | '"B"'
 --- | '"C"'
@@ -39,6 +49,27 @@
 --- | '"X"'
 --- | '"Y"'
 --- | '"Z"'
+--- | '"BACKSPACE"'
+--- | '"TAB"'
+--- | '"ENTER"'
+--- | '"SHIFT"'
+--- | '"CTRL"'
+--- | '"ALT"'
+--- | '"PAUSE"'
+--- | '"CAPSLOCK"'
+--- | '"ESC"'
+--- | '"SPACE"'
+--- | '"PAGEUP"'
+--- | '"PAGEDOWN"'
+--- | '"END"'
+--- | '"HOME"'
+--- | '"LEFT"'
+--- | '"UP"'
+--- | '"RIGHT"'
+--- | '"DOWN"'
+--- | '"PRINTSCREEN"'
+--- | '"INSERT"'
+--- | '"DELETE"'
 
 database = {}
 --- Retrieves a list of all available database keys.
@@ -87,6 +118,17 @@ function io.message(text) end
 --- Converts text to speech and outputs it through the audio system.
 --- @param text string The text content to be spoken.
 function io.speak(text) end
+
+key = {}
+--- Simulates tapping a keyboard key.
+--- @param key key Key name.
+--- @return nil
+function key.tap(key) end
+
+--- Types a unicode string.
+--- @param text string string
+--- @return nil
+function key.type(text) end
 
 modbusAscii = {}
 --- Reads data from multiple holding registers of a Modbus ASCII device.
@@ -143,6 +185,26 @@ function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) 
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
+
+mouse = {}
+
+--- Simulates a left mouse button click at specified coordinates.
+--- @param x integer | "Get Position" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function mouse.click(x, y) end
+
+--- Simulates a left mouse button double click at specified coordinates.
+--- @param x integer | "Get Position" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function mouse.doubleClick(x, y) end
+
+--- Simulates a right mouse button click at specified coordinates.
+--- @param x integer | "Get Position" The horizontal screen position.
+--- @param y integer The vertical screen position.
+--- @return nil
+function mouse.rightClick(x, y) end
 
 port = {}
 --- Retrieves a list of all available communication ports.
@@ -284,33 +346,3 @@ function thread.sleep(ms) end
 ---
 --- local command = input()
 function input() end
-
-control = {}
---- Simulates a left mouse button click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.leftClick(x, y) end
-
---- Simulates a left mouse button double click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.leftDoubleClick(x, y) end
-
---- Simulates a right mouse button click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.rightClick(x, y) end
-
---- Simulates a right mouse button double click at specified coordinates.
---- @param x integer | "Position Hint" The horizontal screen position.
---- @param y integer The vertical screen position.
---- @return nil
-function control.rightDoubleClick(x, y) end
-
---- Simulates pressing a keyboard key.
---- @param key key Key name.
---- @return nil
-function control.keyPress(key) end

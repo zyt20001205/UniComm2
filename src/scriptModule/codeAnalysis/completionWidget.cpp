@@ -169,11 +169,11 @@ void CompletionWidget::textReplace() {
     } else if (kind == COMPLETION_KIND_FIELD) {
         insertText += ".";
     } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
-        if (insertText == "\"Position Hint\"") {
+        if (insertText == "\"Get Position\"") {
             const QVariantMap gotoSession = {
                 {"scriptUrl", m_completionSession["scriptUrl"].toUrl()},
                 {"line", m_completionSession["startLine"].toInt()},
-                {"index", m_completionSession["startCharacter"].toInt()}
+                {"character", m_completionSession["startCharacter"].toInt()}
             };
             emit showPosition(gotoSession);
             return;

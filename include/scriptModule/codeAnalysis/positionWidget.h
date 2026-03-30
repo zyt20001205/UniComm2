@@ -1,11 +1,12 @@
 #ifndef UNICOMM_POSITIONWIDGET_H
 #define UNICOMM_POSITIONWIDGET_H
 
-#include <QWidget>
+#include <QMap>
+#include <QObject>
 
-class QLabel;
+class QTimer;
 
-class PositionWidget final : public QWidget {
+class PositionWidget final : public QObject {
     Q_OBJECT
 
 public:
@@ -13,22 +14,23 @@ public:
 
     ~PositionWidget() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
+    [[nodiscard]] bool isVisible() const;
+
     void positionShow(const QVariantMap &positionSession);
 
-    void positionHide();
+    void positionHide() const;
 
-    void textReplace();
+    Q_INVOKABLE void textReplace();
 
 signals:
-    void insertText(const QUrl &scriptUrl, const QString &text, int line, int index);
-
-protected:
-    void hideEvent(QHideEvent *event) override;
+    void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
+    QObject *m_tooltip{};
     QVariantMap m_positionSession{};
     QTimer *m_timer{};
-    QLabel *m_label{};
 };
 
 #endif //UNICOMM_POSITIONWIDGET_H
