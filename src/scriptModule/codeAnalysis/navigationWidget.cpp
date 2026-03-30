@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "scriptModule/scriptModule.h"
 
-// NavigationWidget public
+// public
 NavigationWidget::NavigationWidget(QWidget *parent)
     : QObject(parent),
       m_navigationModel(new QStandardItemModel(this)){

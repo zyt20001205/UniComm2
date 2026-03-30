@@ -9,7 +9,7 @@
 #include "globals.h"
 #include "utils/qtUtils.h"
 
-// ConfigManager public
+// public
 ConfigManager::ConfigManager(QWidget *parent)
     : QObject(parent) {
     workspaceInit();
@@ -197,7 +197,7 @@ void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
     }
 }
 
-// ConfigManager private
+// private
 void ConfigManager::mainConfigGenerate() {
     if (QFile mainConfig(QDir::current().filePath("config.json")); mainConfig.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{

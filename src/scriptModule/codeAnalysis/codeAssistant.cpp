@@ -9,7 +9,7 @@
 #include "scriptModule/codeAnalysis/positionWidget.h"
 #include "scriptModule/codeAnalysis/signatureWidget.h"
 
-// CodeAssistant public
+// public
 CodeAssistant::CodeAssistant(QWidget *parent)
     : QObject(parent),
       m_completionWidget(new CompletionWidget(parent)),
@@ -46,6 +46,9 @@ void CodeAssistant::propertySet(const QVariantMap &objects) const {
         {"scriptModuleNavigationToolTip", objects["scriptModuleNavigationToolTip"]},
         {"scriptModuleNavigationTableView", objects["scriptModuleNavigationTableView"]},
         {"scriptModuleNavigationDetailLabel", objects["scriptModuleNavigationDetailLabel"]}
+    });
+    m_positionWidget->propertySet(QVariantMap{
+        {"scriptModulePositionTooltip", objects["scriptModulePositionTooltip"]}
     });
     m_signatureWidget->propertySet(QVariantMap{
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},

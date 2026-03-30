@@ -6,7 +6,7 @@
 #include "portModule/visa.h"
 #include "utils/suffixUtils.h"
 
-// Visa public
+// public
 Visa::Visa(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
@@ -82,7 +82,7 @@ QByteArray Visa::read(const int length, const int timeout, const QString &rxForm
     return handleRead(length, timeout);
 }
 
-// Visa private
+// private
 bool Visa::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_visa == VI_NULL) {

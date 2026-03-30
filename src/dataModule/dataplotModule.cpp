@@ -6,7 +6,7 @@
 
 #include "globals.h"
 
-// DataplotModule public
+// public
 DataplotModule::DataplotModule()
     : DockWidget("Dataplot"),
       m_dataplotWidget(new QQuickWidget()) {
@@ -29,4 +29,4 @@ void DataplotModule::propertySet(const QVariantMap &objects) {
     m_dataplotWidget->setSource(QUrl("qrc:/qml/dataModule/dataplotModule.qml"));
 }
 
-// DataplotModule private
+// private

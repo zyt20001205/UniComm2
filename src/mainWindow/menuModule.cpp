@@ -2,7 +2,7 @@
 
 #include <QQmlContext>
 
-// MenuModule public
+// public
 MenuModule::MenuModule(QWidget *parent)
     : QQuickWidget(parent) {
     setFixedHeight(24);

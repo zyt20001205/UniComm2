@@ -14,7 +14,7 @@
 #include "globals.h"
 #include "utils/cvUtils.h"
 
-// VideoStream public
+// public
 VideoStream::VideoStream(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig) {

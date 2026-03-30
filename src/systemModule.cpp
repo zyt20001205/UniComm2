@@ -9,7 +9,7 @@
 #include <QProcess>
 #include <QUrl>
 
-// SystemModule public
+// public
 SystemModule::SystemModule(QObject *parent)
     : QObject(parent),
       m_process(new QProcess(this)) {

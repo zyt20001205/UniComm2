@@ -4,7 +4,7 @@
 
 #include "globals.h"
 
-// LuaLanguageServer public
+// public
 LuaLanguageServer::LuaLanguageServer(QWidget *parent)
     : QWidget(parent),
       m_process(new QProcess(this)) {
@@ -68,7 +68,7 @@ void LuaLanguageServer::jsonNotification(const QString &method, const QJsonObjec
     // qDebug() << msg;
 }
 
-// LuaLanguageServer private
+// private
 void LuaLanguageServer::initializeNotification() {
     const QString rootUriStr = g_workspaceUrl.toString();
     const QJsonObject initializeParams{

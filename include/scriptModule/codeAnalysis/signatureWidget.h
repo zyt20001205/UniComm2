@@ -17,7 +17,7 @@ public:
 
     void fontSet(const QString &family, int pointSize) const;
 
-    bool isVisible() const;
+    [[nodiscard]] bool isVisible() const;
 
     void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const;
 

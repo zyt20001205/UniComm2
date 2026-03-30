@@ -9,7 +9,7 @@
 
 #include "globals.h"
 
-// LogModule public
+// public
 LogModule::LogModule()
     : DockWidget("Log"),
       m_logConfig(g_workspaceConfig["logConfig"].toObject()),

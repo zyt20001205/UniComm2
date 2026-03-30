@@ -7,7 +7,7 @@
 
 #include "utils/cmarkUtils.h"
 
-// SignatureWidget public
+// public
 SignatureWidget::SignatureWidget(QWidget *parent)
     : QObject(parent) {
 }

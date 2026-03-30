@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "utils/suffixUtils.h"
 
-// SerialPort public
+// public
 SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
@@ -137,7 +137,7 @@ QByteArray SerialPort::read(const int length, const int timeout, const QString &
     return handleRead(length, timeout);
 }
 
-// SerialPort private
+// private
 void SerialPort::handleReadyRead() {
     const auto rxData = m_serialPort->readAll();
     m_buffer.write(rxData);

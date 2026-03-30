@@ -7,7 +7,7 @@
 #include "globals.h"
 #include "utils/suffixUtils.h"
 
-// TcpClient public
+// public
 TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
@@ -137,7 +137,7 @@ QByteArray TcpClient::read(const int length, const int timeout, const QString &r
     return handleRead(length, timeout);
 }
 
-// TcpClient private
+// private
 void TcpClient::handleConnected() {
     m_tcpClientLocalHost = m_tcpClient->localAddress().toString();
     m_tcpClientLocalPort = m_tcpClient->localPort();

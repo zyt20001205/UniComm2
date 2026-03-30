@@ -5,7 +5,7 @@
 #include "globals.h"
 #include "scriptModule/nuspellModule.h"
 
-// DwellWidget public
+// public
 DwellWidget::DwellWidget(QWidget *parent)
     : QObject(parent) {
 }

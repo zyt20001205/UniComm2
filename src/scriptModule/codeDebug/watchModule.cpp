@@ -8,7 +8,7 @@
 
 #include "globals.h"
 
-// WatchModule public
+// public
 WatchModule::WatchModule()
     : DockWidget("Watch"),
       m_watchWidget(new QQuickWidget()) {

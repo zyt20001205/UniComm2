@@ -3,7 +3,7 @@
 #include <exchndl.h>
 #include <QDir>
 
-// CrashHandler public
+// public
 void CrashHandler::init() {
     // SEH
     ExcHndlInit();

@@ -5,7 +5,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-// SearchWidget public
+// public
 SearchWidget::SearchWidget(QWidget *parent)
     : QWidget(parent),
       m_searchLineEdit(new QLineEdit()),

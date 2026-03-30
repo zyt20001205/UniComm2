@@ -18,7 +18,7 @@
 #include "utils/luaUtils.h"
 #include "utils/uniCast.h"
 
-// LuaInterpreter public
+// public
 LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
@@ -271,7 +271,7 @@ void LuaInterpreter::valueSet(const QString &scriptUrl, const QString &expressio
     emit setValue(scriptUrl, expression, value, type);
 }
 
-// LuaInterpreter private
+// private
 void LuaInterpreter::luaRunHook(lua_State *L, lua_Debug *ar) {
     // check if thread interruption is requested
     if (QThread::currentThread()->isInterruptionRequested()) {

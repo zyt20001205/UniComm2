@@ -3,7 +3,7 @@
 #include <QQmlContext>
 #include <QQuickWidget>
 
-// WelcomePage public
+// public
 WelcomePage::WelcomePage()
     : DockWidget("welcome") ,
     m_welcomeWidget(new QQuickWidget()){

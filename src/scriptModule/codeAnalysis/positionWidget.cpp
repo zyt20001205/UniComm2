@@ -9,7 +9,7 @@
 
 #include "globals.h"
 
-// PositionWidget public
+// public
 PositionWidget::PositionWidget(QWidget *parent)
     : QWidget(parent, Qt::ToolTip),
       m_timer(new QTimer(this)),

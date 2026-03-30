@@ -22,7 +22,7 @@
 #include "portModule/videoStream.h"
 #include "portModule/visa.h"
 
-// PortModule public
+// public
 PortModule::PortModule()
     : DockWidget("Port"),
       m_portWidget(new QQuickWidget()),

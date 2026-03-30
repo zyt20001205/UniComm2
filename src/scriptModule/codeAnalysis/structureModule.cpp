@@ -9,7 +9,7 @@
 
 #include "globals.h"
 
-// StructureModule public
+// public
 StructureModule::StructureModule()
     : DockWidget("Structure"),
       m_structureWidget(new QQuickWidget()),
@@ -76,7 +76,7 @@ bool StructureModule::eventFilter(QObject *watched, QEvent *event) {
     return DockWidget::eventFilter(watched, event);
 }
 
-// StructureModule private
+// private
 void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const {
     for (const auto &value: result) {
         const auto symbol = value.toObject();

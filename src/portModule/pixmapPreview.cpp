@@ -3,7 +3,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-// PixmapPreview public
+// public
 PixmapPreview::PixmapPreview(QWidget *parent)
     : QDialog(parent),
       m_layout(new QVBoxLayout(this)) {
@@ -18,7 +18,7 @@ void PixmapPreview::previewShow(const QList<QPixmap> &pixmapList) const {
     }
 }
 
-// PixmapPreview private
+// private
 void PixmapPreview::previewClear() const {
     QLayoutItem *item;
     while ((item = m_layout->takeAt(0)) != nullptr) {

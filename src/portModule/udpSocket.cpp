@@ -7,7 +7,7 @@
 #include "globals.h"
 #include "utils/suffixUtils.h"
 
-// UdpSocket public
+// public
 UdpSocket::UdpSocket(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
@@ -113,7 +113,7 @@ QByteArray UdpSocket::read(const int length, const int timeout, const QString &r
     return handleRead(length, timeout);
 }
 
-// UdpSocket private
+// private
 void UdpSocket::handleReadyRead() {
     const auto rxData = m_udpSocket->readAll();
     m_buffer.write(rxData);

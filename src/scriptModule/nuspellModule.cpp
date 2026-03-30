@@ -5,7 +5,7 @@
 #include <QUrl>
 #include <nuspell/finder.hxx>
 
-// NuspellModule public
+// public
 NuspellModule::NuspellModule(QObject *parent)
     : QObject(parent) {
     const QDir rootDir(QCoreApplication::applicationDirPath());

@@ -20,7 +20,7 @@ public:
 
     void fontSet(const QString &family, int pointSize) const;
 
-    bool isVisible() const;
+    [[nodiscard]] bool isVisible() const;
 
     void completionShow(const QVariantHash &completionSession, const QJsonArray &items);
 

@@ -7,7 +7,7 @@
 #include "globals.h"
 #include "utils/suffixUtils.h"
 
-// SslClient public
+// public
 SslClient::SslClient(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
       m_portConfig(portConfig),
@@ -139,7 +139,7 @@ QByteArray SslClient::read(const int length, const int timeout, const QString &r
     return handleRead(length, timeout);
 }
 
-// SslClient private
+// private
 void SslClient::handleConnected() {
     m_sslClientLocalHost = m_sslClient->localAddress().toString();
     m_sslClientLocalPort = m_sslClient->localPort();

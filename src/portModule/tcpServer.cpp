@@ -148,7 +148,7 @@ QByteArray TcpServer::read(const int length, const int timeout, const QString &p
     return handleRead(length, timeout, peerIp);
 }
 
-// TcpServer private
+// private
 void TcpServer::handleNewConnection() {
     while (m_tcpServer->hasPendingConnections()) {
         QTcpSocket *tcpServerPeer = m_tcpServer->nextPendingConnection();

@@ -22,7 +22,7 @@
 #include "globals.h"
 #include "utils/cvUtils.h"
 
-// PortSetting public
+// public
 PortSetting::PortSetting(QWidget *parent)
     : QWidget(parent),
       m_portSettingDialog(new QDialog(this)),
@@ -475,7 +475,7 @@ void PortSetting::pipelineSwap(const int src, const int dst) const {
     QMetaObject::invokeMethod(m_rootItem, "pipelineReload");
 }
 
-// PortSetting private
+// private
 void PortSetting::serialPortRefresh() const {
     m_serialPortStandardItemModel->clear();
     for (QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts(); const QSerialPortInfo &port: ports) {
@@ -583,7 +583,7 @@ void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     }
 }
 
-// ImageProvider public
+// public
 ImageProvider::ImageProvider()
     : QQuickImageProvider(Pixmap) {
     m_null.load(":/icon/null.svg");

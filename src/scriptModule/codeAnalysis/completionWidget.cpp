@@ -11,7 +11,7 @@
 
 #include "globals.h"
 
-// CompletionWidget public
+// public
 CompletionWidget::CompletionWidget(QWidget *parent)
     : QObject(parent),
       m_placeholderSet({"\"_PORT_PLACEHOLDER_\"", "\"_DATABASE_PLACEHOLDER_\"", "\"_DATATABLE_PLACEHOLDER_\""}),
