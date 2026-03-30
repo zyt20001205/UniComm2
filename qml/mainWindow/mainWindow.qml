@@ -6,23 +6,40 @@ import QtQuick.Layouts
 
 Item {
     id: mainItem
-    anchors.centerIn: parent
+    anchors.fill: parent
 
     // overlay control
     property int widgetCount: 0
 
-    RowLayout {
+    Item {
         id: debugConsole
-        anchors.left: parent.left; anchors.top: parent.top;
+        anchors.fill: parent
         // visible: true
         visible: false
 
-        Label {
-            id: debugWidgetCount
+        Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+            border.color: "#c50f1f"
+            border.width: 3
+        }
+
+        RowLayout {
+            anchors.centerIn: parent
+
+            Label {
+                id: debugWidgetCount
+                color: "#c50f1f"
+                font.pointSize: 16
+            }
         }
     }
 
     onWidgetCountChanged: {
+        if (widgetCount < 0) {
+            console.log("severe error occured!!! widget count: " + widgetCount)
+            widgetCount = 0
+        }
         if (widgetCount === 0) {
             mainWindow.overlayTransparent(true)
             mainWindow.overlayFocus(false)
@@ -1308,10 +1325,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                menuModuleFileMenu.close()
-                mainWindow.workspaceOpen()
-            }
+            onTriggered: Qt.callLater(() => mainWindow.workspaceOpen())
         }
 
         MenuItem {
