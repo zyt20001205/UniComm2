@@ -12,6 +12,8 @@
 --- | string
 --- | '"__PLACEHOLDER__DATATABLEKEY__"'
 
+--- @alias password "__PLACEHOLDER__PASSWORD__"
+
 --- @alias key
 --- | '"0"'
 --- | '"1"'
@@ -303,7 +305,7 @@ function smtp.ehlo(name) end
 --- Send AUTH LOGIN command to authenticate with SMTP server.
 --- @param name portName Target port name.
 --- @param username string SMTP username/email address.
---- @param password "__PLACEHOLDER__PASSWORD__" SMTP password.
+--- @param password password SMTP password.
 ---
 function smtp.authLogin(name, username, password) end
 
