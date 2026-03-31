@@ -16,11 +16,11 @@ ScintillaWidget::ScintillaWidget(QWidget *parent)
 
 // public: file
 int ScintillaWidget::codePageGet() const {
-    return send(SCI_GETCODEPAGE);
+    return static_cast<int>(send(SCI_GETCODEPAGE));
 }
 
 int ScintillaWidget::eolModeGet() const {
-    return send(SCI_GETEOLMODE);
+    return static_cast<int>(send(SCI_GETEOLMODE));
 }
 
 void ScintillaWidget::eolModeSet(const int eolMode) const {
@@ -99,7 +99,7 @@ void ScintillaWidget::fontSet(const QFont &font) {
 
 // public: height
 int ScintillaWidget::heightGet() const {
-    return send(SCI_TEXTHEIGHT, 0);
+    return static_cast<int>(send(SCI_TEXTHEIGHT, 0));
 }
 
 // public: index
