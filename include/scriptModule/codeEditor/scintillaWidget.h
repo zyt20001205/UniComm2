@@ -101,6 +101,8 @@ public:
 
     void positionSet(Scintilla::Position position) const;
 
+    void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp) const;
+
     [[nodiscard]] QHash<QString, int> selectionGet() const;
 
     void selectionSet(int startLine, int startCharacter, int endLine, int endCharacter) const;

@@ -24,6 +24,8 @@ Item {
             icon.source: "qrc:/icon/matchCase.svg"
             icon.width: 16; icon.height: 16
 
+            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
@@ -44,6 +46,8 @@ Item {
             checkable: true
             icon.source: "qrc:/icon/wholeWord.svg"
             icon.width: 16; icon.height: 16
+
+            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
 
             HoverHandler {
                 onHoveredChanged: {
@@ -66,6 +70,8 @@ Item {
             icon.source: "qrc:/icon/wordStart.svg"
             icon.width: 16; icon.height: 16
 
+            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
@@ -86,6 +92,8 @@ Item {
             checkable: true
             icon.source: "qrc:/icon/regExp.svg"
             icon.width: 16; icon.height: 16
+
+            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
 
             HoverHandler {
                 onHoveredChanged: {

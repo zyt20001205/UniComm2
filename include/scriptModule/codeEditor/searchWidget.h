@@ -15,6 +15,11 @@ public:
 
     Q_INVOKABLE void textSearch(const QString &text);
 
+    Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
+
+signals:
+    void setSearchFlags(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
+
 protected:
     void showEvent(QShowEvent *event) override;
 

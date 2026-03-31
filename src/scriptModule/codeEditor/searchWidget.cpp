@@ -25,6 +25,10 @@ void SearchWidget::textSearch(const QString &text) {
     qDebug() << "search" << text;
 }
 
+void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) {
+    emit setSearchFlags(matchCase, wholeWord, wordStart, regExp);
+}
+
 // protected
 void SearchWidget::showEvent(QShowEvent *event) {
     QQuickWidget::showEvent(event);

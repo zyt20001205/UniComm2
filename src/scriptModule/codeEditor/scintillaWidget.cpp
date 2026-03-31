@@ -221,7 +221,7 @@ int ScintillaWidget::marginWidthGet(const int col) const {
         }
         return width;
     }
-    return send(SCI_GETMARGINWIDTHN, col);
+    return static_cast<int>(send(SCI_GETMARGINWIDTHN, col));
 }
 
 // public: marker
@@ -258,8 +258,8 @@ int ScintillaWidget::markerGet(const int line) const {
 // public: point
 QHash<QString, int> ScintillaWidget::pointGet(const int line, const int character) const {
     const auto position = positionGet(line, character);
-    const int x = send(SCI_POINTXFROMPOSITION, 0, position);
-    const int y = send(SCI_POINTYFROMPOSITION, 0, position);
+    const int x = static_cast<int>(send(SCI_POINTXFROMPOSITION, 0, position));
+    const int y = static_cast<int>(send(SCI_POINTYFROMPOSITION, 0, position));
     return QHash<QString, int>{
         {"x", x},
         {"y", y}
@@ -287,6 +287,16 @@ Position ScintillaWidget::closePositionGet(const QPoint &point) const {
 
 void ScintillaWidget::positionSet(const Position position) const {
     send(SCI_GOTOPOS, position); // NOLINT
+}
+
+// public: search
+void ScintillaWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) const {
+    auto flag = SCFIND_NONE;
+    if (matchCase) flag|= SCFIND_MATCHCASE;
+    if (wholeWord) flag|= SCFIND_WHOLEWORD;
+    if (wordStart) flag|= SCFIND_WORDSTART;
+    if (regExp) flag|= SCFIND_REGEXP;
+    send(SCI_SETSEARCHFLAGS, flag); // NOLINT
 }
 
 // public: selection
