@@ -103,6 +103,18 @@ public:
 
     void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp) const;
 
+    [[nodiscard]] Scintilla::Position targetGetStart() const;
+
+    void targetSetStart(Scintilla::Position position) const;
+
+    [[nodiscard]] Scintilla::Position targetGetEnd() const;
+
+    void targetSetEnd(Scintilla::Position position) const;
+
+    void targetSetWhole() const;
+
+    [[nodiscard]] Scintilla::Position targetSearch(const QString &text) const;
+
     [[nodiscard]] QHash<QString, int> selectionGet() const;
 
     void selectionSet(int startLine, int startCharacter, int endLine, int endCharacter) const;

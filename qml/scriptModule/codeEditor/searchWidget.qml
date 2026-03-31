@@ -24,7 +24,10 @@ Item {
             icon.source: "qrc:/icon/matchCase.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+            onClicked: {
+                searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                searchWidget.textSearch(searchTextField.text)
+            }
 
             HoverHandler {
                 onHoveredChanged: {
@@ -47,7 +50,10 @@ Item {
             icon.source: "qrc:/icon/wholeWord.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+            onClicked: {
+                searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                searchWidget.textSearch(searchTextField.text)
+            }
 
             HoverHandler {
                 onHoveredChanged: {
@@ -70,7 +76,10 @@ Item {
             icon.source: "qrc:/icon/wordStart.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+            onClicked: {
+                searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                searchWidget.textSearch(searchTextField.text)
+            }
 
             HoverHandler {
                 onHoveredChanged: {
@@ -93,7 +102,10 @@ Item {
             icon.source: "qrc:/icon/regExp.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+            onClicked: {
+                searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                searchWidget.textSearch(searchTextField.text)
+            }
 
             HoverHandler {
                 onHoveredChanged: {

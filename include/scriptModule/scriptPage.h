@@ -179,33 +179,37 @@ private:
     // private: typo
     void spellCheckRequest();
 
-    // private:
+    // private: misc
     void commentToggle();
-
-    void symbolPair(QChar character);
 
     void navigationToggle(Scintilla::Position position = -1) const;
 
-    QTimer *m_selectionTimer{};
-    QHash<QString, int> m_selection{};
-    QTimer *m_contentTimer{};
-    QTimer *m_dwellTimer{};
+    void symbolPair(QChar character);
+
+    void textSearch(const QString &text);
 
     SearchWidget *m_searchWidget{};
     ReplaceWidget *m_replaceWidget{};
     SymbolWidget * m_symbolWidget{};
     ScintillaWidget *m_assemblyWidget{};
 
-    QFileSystemWatcher *m_fileWatcher{};
+    QTimer *m_selectionTimer{};
+    QTimer *m_contentTimer{};
+    QTimer *m_dwellTimer{};
 
-    QJsonArray m_diagnostic{};
-    QJsonArray m_symbol{};
-    QVariantList m_typo{};
-    int m_version = 1;
     QSet<QChar> m_completionSet{};
     QSet<QChar> m_signatureHelpSet{};
     QSet<QChar> m_onTypeFormattingSet{};
     QHash<QChar, QChar> m_pairHash{};
+
+    QFileSystemWatcher *m_fileWatcher{};
+
+    int m_version = 1;
+    QJsonArray m_diagnostic{};
+    QJsonArray m_symbol{};
+    QVariantList m_typo{};
+    QHash<QString, int> m_selection{};
+    QVariantHash m_search{};
     QHash<int, int> m_l2aHash{};
 
     // semantic enum

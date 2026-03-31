@@ -24,18 +24,18 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     : DockWidget(scriptUrl.toString()),
       m_scriptUrl(scriptUrl),
       m_editorWidget(new ScintillaWidget(this)),
-      m_selectionTimer(new QTimer(this)),
-      m_contentTimer(new QTimer(this)),
-      m_dwellTimer(new QTimer(this)),
       m_searchWidget(new SearchWidget(this)),
       m_replaceWidget(new ReplaceWidget(this)),
       m_symbolWidget(new SymbolWidget(this)),
       m_assemblyWidget(new ScintillaWidget(this)),
-      m_fileWatcher(new QFileSystemWatcher()),
+      m_selectionTimer(new QTimer(this)),
+      m_contentTimer(new QTimer(this)),
+      m_dwellTimer(new QTimer(this)),
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'},
-      m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}} {
+      m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}},
+      m_fileWatcher(new QFileSystemWatcher()) {
     setTitle(scriptUrl.fileName());
     auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
     connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
@@ -563,6 +563,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->addWidget(codingwidget);
     layout->addWidget(m_symbolWidget);
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_editorWidget, &ScintillaWidget::searchFlagsSet);
+    connect(m_searchWidget, &SearchWidget::searchText, this, &ScriptPage::textSearch);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget, &ScintillaWidget::indicatorFill);
@@ -580,7 +581,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
         });
         m_searchWidget->propertySet(QVariantMap{
-                {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+            {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
         });
         m_replaceWidget->propertySet(QVariantMap{
         });
@@ -1401,7 +1402,7 @@ void ScriptPage::spellCheckRequest() {
     emit requestSpellCheck(m_scriptUrl, m_editorWidget->textGet());
 }
 
-// private:
+// private: misc
 void ScriptPage::commentToggle() {
     if (m_editorWidget->textGetSelected().isEmpty()) {
         const auto position = m_editorWidget->positionGet();
@@ -1426,20 +1427,6 @@ void ScriptPage::commentToggle() {
     contentChange();
 }
 
-void ScriptPage::symbolPair(const QChar character) {
-    auto selected = m_editorWidget->textGetSelected();
-    if (selected.isEmpty()) {
-        selected = m_pairHash[character];
-        m_editorWidget->textSetSelected(selected);
-        const auto position = m_editorWidget->positionGet();
-        m_editorWidget->positionSet(position - 1);
-    } else {
-        selected = character + selected + m_pairHash[character];
-        m_editorWidget->textSetSelected(selected);
-    }
-    contentChange();
-}
-
 void ScriptPage::navigationToggle(const Scintilla::Position position) const {
     if (position == -1) {
         m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
@@ -1454,6 +1441,47 @@ void ScriptPage::navigationToggle(const Scintilla::Position position) const {
         } else {
             m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
             m_toolTip->setProperty("text", "");
+        }
+    }
+}
+
+void ScriptPage::symbolPair(const QChar character) {
+    auto selected = m_editorWidget->textGetSelected();
+    if (selected.isEmpty()) {
+        selected = m_pairHash[character];
+        m_editorWidget->textSetSelected(selected);
+        const auto position = m_editorWidget->positionGet();
+        m_editorWidget->positionSet(position - 1);
+    } else {
+        selected = character + selected + m_pairHash[character];
+        m_editorWidget->textSetSelected(selected);
+    }
+    contentChange();
+}
+
+void ScriptPage::textSearch(const QString &text) {
+    // qDebug() << m_editorWidget->send(SCI_GETSEARCHFLAGS);
+
+    m_search.clear();
+    m_search["current"] = 0;
+    m_search["range"] = QVariantList{};
+    m_editorWidget->indicatorClear(INDICATOR_SEARCH);
+    if (text.isEmpty()) {
+    } else {
+        m_editorWidget->targetSetWhole();
+        while (true) {
+            if (m_editorWidget->targetSearch(text) == -1) break;
+            const auto start = m_editorWidget->targetGetStart();
+            const auto end = m_editorWidget->targetGetEnd();
+            m_editorWidget->indicatorFill(
+                INDICATOR_SEARCH,
+                m_editorWidget->indexGet(start)["line"],
+                m_editorWidget->indexGet(start)["character"],
+                m_editorWidget->indexGet(end)["line"],
+                m_editorWidget->indexGet(end)["character"]
+            );
+            m_editorWidget->targetSetStart(end);
+            m_editorWidget->targetSetEnd(m_editorWidget->send(SCI_GETLENGTH));
         }
     }
 }

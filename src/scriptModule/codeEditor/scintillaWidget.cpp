@@ -291,12 +291,36 @@ void ScintillaWidget::positionSet(const Position position) const {
 
 // public: search
 void ScintillaWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) const {
-    auto flag = SCFIND_NONE;
-    if (matchCase) flag|= SCFIND_MATCHCASE;
-    if (wholeWord) flag|= SCFIND_WHOLEWORD;
-    if (wordStart) flag|= SCFIND_WORDSTART;
-    if (regExp) flag|= SCFIND_REGEXP;
-    send(SCI_SETSEARCHFLAGS, flag); // NOLINT
+    auto flags = SCFIND_NONE;
+    if (matchCase) flags |= SCFIND_MATCHCASE;
+    if (wholeWord) flags |= SCFIND_WHOLEWORD;
+    if (wordStart) flags |= SCFIND_WORDSTART;
+    if (regExp) flags |= SCFIND_REGEXP;
+    send(SCI_SETSEARCHFLAGS, flags); // NOLINT
+}
+
+Position ScintillaWidget::targetGetStart() const {
+    return send(SCI_GETTARGETSTART);
+}
+
+void ScintillaWidget::targetSetStart(const Position position) const {
+    send(SCI_SETTARGETSTART, position); // NOLINT
+}
+
+Position ScintillaWidget::targetGetEnd() const {
+    return send(SCI_GETTARGETEND);
+}
+
+void ScintillaWidget::targetSetEnd(const Position position) const {
+    send(SCI_SETTARGETEND, position); // NOLINT
+}
+
+void ScintillaWidget::targetSetWhole() const {
+    send(SCI_TARGETWHOLEDOCUMENT); // NOLINT
+}
+
+Position ScintillaWidget::targetSearch(const QString &text) const {
+    return send(SCI_SEARCHINTARGET, text.length(), reinterpret_cast<uptr_t>(text.toUtf8().constData())); // NOLINT
 }
 
 // public: selection

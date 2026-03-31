@@ -22,7 +22,7 @@ void SearchWidget::propertyGet(const QVariantMap &objects) {
 }
 
 void SearchWidget::textSearch(const QString &text) {
-    qDebug() << "search" << text;
+    emit searchText(text);
 }
 
 void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) {
