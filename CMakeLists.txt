@@ -87,6 +87,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeDebug/watchModule.h
         include/scriptModule/codeEditor/explorerModule.h
         include/scriptModule/codeEditor/scintillaWidget.h
+        include/scriptModule/codeEditor/replaceWidget.h
         include/scriptModule/codeEditor/searchWidget.h
         include/undoModule.h
         include/utils/cmarkUtils.h
@@ -151,6 +152,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeDebug/watchModule.cpp
         src/scriptModule/codeEditor/explorerModule.cpp
         src/scriptModule/codeEditor/scintillaWidget.cpp
+        src/scriptModule/codeEditor/replaceWidget.cpp
         src/scriptModule/codeEditor/searchWidget.cpp
         src/undoModule.cpp
         src/utils/cmarkUtils.cpp
@@ -185,6 +187,8 @@ qt_add_resources(UniComm "qml_resources"
         "qml/scriptModule/codeDebug/threadpoolModule.qml"
         "qml/scriptModule/codeDebug/watchModule.qml"
         "qml/scriptModule/codeEditor/explorerModule.qml"
+        "qml/scriptModule/codeEditor/replaceWidget.qml"
+        "qml/scriptModule/codeEditor/searchWidget.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"

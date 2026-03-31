@@ -7,15 +7,16 @@
 
 #include "ScintillaTypes.h"
 
+
 class QFileSystemWatcher;
 class QLabel;
 class QLineEdit;
 class QPushButton;
 
-class SymbolWidget;
-class ScintillaWidget;
 class SearchWidget;
-class EditorWidget;
+class ReplaceWidget;
+class ScintillaWidget;
+class SymbolWidget;
 
 class ScriptPage final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -57,6 +58,8 @@ public:
     void charAdd(int ch);
 
     void assemblyToggle(bool status);
+
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
     QUrl m_scriptUrl{};
     QObject *m_toolTip{};
@@ -120,8 +123,6 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-    bool eventFilter(QObject *watched, QEvent *event) override;
-
 private:
     void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
 
@@ -183,20 +184,19 @@ private:
 
     void symbolPair(QChar character);
 
-    void navigationToggle(Scintilla::Position position = -1);
-
-    void positionFill(int x, int y) const;
+    void navigationToggle(Scintilla::Position position = -1) const;
 
     QTimer *m_selectionTimer{};
     QHash<QString, int> m_selection{};
     QTimer *m_contentTimer{};
     QTimer *m_dwellTimer{};
 
+    SearchWidget *m_searchWidget{};
+    ReplaceWidget *m_replaceWidget{};
     SymbolWidget * m_symbolWidget{};
     ScintillaWidget *m_assemblyWidget{};
 
     QFileSystemWatcher *m_fileWatcher{};
-    SearchWidget *m_searchWidget{};
 
     QJsonArray m_diagnostic{};
     QJsonArray m_symbol{};

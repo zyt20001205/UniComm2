@@ -4,7 +4,6 @@ import QtQuick.Layouts
 
 Item {
     id: rootItem
-    height: 24
 
     RowLayout {
         anchors.fill: parent

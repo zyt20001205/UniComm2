@@ -55,7 +55,6 @@ void ExplorerModule::scriptOpen(const QString &scriptPath) {
     emit openScript(scriptUrl);
 }
 
-// protected
 bool ExplorerModule::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_explorerWidget) {
         if (event->type() == QEvent::FocusOut) {

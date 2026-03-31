@@ -39,6 +39,8 @@ public:
 
     void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const;
 
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 signals:
     void addChar(const QUrl &scriptUrl, QChar character);
 
@@ -53,9 +55,6 @@ signals:
     void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
     void requestCodeAction(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     CompletionWidget *m_completionWidget{};

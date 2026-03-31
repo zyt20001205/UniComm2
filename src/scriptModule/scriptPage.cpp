@@ -14,6 +14,7 @@
 
 #include "globals.h"
 #include "scriptModule/codeAnalysis/symbolWidget.h"
+#include "scriptModule/codeEditor/replaceWidget.h"
 #include "scriptModule/codeEditor/scintillaWidget.h"
 #include "scriptModule/codeEditor/searchWidget.h"
 #include "utils/cmarkUtils.h"
@@ -26,10 +27,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
       m_dwellTimer(new QTimer(this)),
+      m_searchWidget(new SearchWidget(this)),
+      m_replaceWidget(new ReplaceWidget(this)),
       m_symbolWidget(new SymbolWidget(this)),
       m_assemblyWidget(new ScintillaWidget(this)),
       m_fileWatcher(new QFileSystemWatcher()),
-      m_searchWidget(new SearchWidget()),
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'},
@@ -39,8 +41,17 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
     shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
-    connect(shortcutSearch, &QShortcut::activated, m_searchWidget, &SearchWidget::toggle);
+    connect(shortcutSearch, &QShortcut::activated, m_searchWidget, [this] {
+        m_searchWidget->setVisible(!m_searchWidget->isVisible());
+        m_replaceWidget->hide();
+    });
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
+    auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
+    connect(shortcutReplace, &QShortcut::activated, m_searchWidget, [this] {
+        m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
+        m_searchWidget->setVisible(m_replaceWidget->isVisible());
+    });
+    shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
     connect(shortcutComment, &QShortcut::activated, this, &ScriptPage::commentToggle);
     shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
@@ -547,7 +558,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         }
     }
 
-    // layout->addWidget(m_searchWidget);
+    layout->addWidget(m_searchWidget);
+    layout->addWidget(m_replaceWidget);
     layout->addWidget(codingwidget);
     layout->addWidget(m_symbolWidget);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
@@ -565,6 +577,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         // widgets
         m_symbolWidget->propertySet(QVariantMap{
             {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+        });
+        m_searchWidget->propertySet(QVariantMap{
+                {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+        });
+        m_replaceWidget->propertySet(QVariantMap{
         });
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
@@ -950,12 +967,6 @@ void ScriptPage::assemblyToggle(const bool status) {
     }
 }
 
-// protected
-void ScriptPage::closeEvent(QCloseEvent *event) {
-    scriptClose();
-    event->accept();
-}
-
 bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_editorWidget->viewport()) {
         const QPoint globalPos = QCursor::pos();
@@ -1045,6 +1056,12 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     return DockWidget::eventFilter(watched, event);
+}
+
+// protected
+void ScriptPage::closeEvent(QCloseEvent *event) {
+    scriptClose();
+    event->accept();
 }
 
 // private: slot
@@ -1422,7 +1439,7 @@ void ScriptPage::symbolPair(const QChar character) {
     contentChange();
 }
 
-void ScriptPage::navigationToggle(const Scintilla::Position position) {
+void ScriptPage::navigationToggle(const Scintilla::Position position) const {
     if (position == -1) {
         m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
         m_toolTip->setProperty("text", "");
@@ -1438,14 +1455,4 @@ void ScriptPage::navigationToggle(const Scintilla::Position position) {
             m_toolTip->setProperty("text", "");
         }
     }
-}
-
-void ScriptPage::positionFill(const int x, const int y) const {
-    // const QString text = QString("%1, %2").arg(QString::number(x), QString::number(y));
-    // m_editorWidget->insert(text);
-    // const long currentPos = m_editorWidget->SendScintilla(SCI_GETCURRENTPOS);
-    // const long cursorPos = currentPos + text.length();
-    // m_editorWidget->SendScintilla(SCI_SETCURRENTPOS, cursorPos); // NOLINT
-    // m_editorWidget->SendScintilla(SCI_SETSELECTIONSTART, cursorPos); // NOLINT
-    // m_editorWidget->SendScintilla(SCI_SETSELECTIONEND, cursorPos); // NOLINT
 }

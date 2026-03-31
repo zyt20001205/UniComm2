@@ -24,7 +24,6 @@ public:
 
     Q_INVOKABLE void scriptOpen(const QString &scriptPath);
 
-protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:

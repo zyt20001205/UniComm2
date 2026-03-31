@@ -9,6 +9,7 @@
 // public
 SymbolWidget::SymbolWidget(QWidget *parent)
     : QQuickWidget(parent) {
+    setFixedHeight(24);
 }
 
 void SymbolWidget::propertySet(const QVariantMap &objects) {
