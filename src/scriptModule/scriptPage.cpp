@@ -1590,7 +1590,7 @@ void ScriptPage::textReplace(const QString &text) {
 
 void ScriptPage::allReplace(const QString &text) {
     m_editorWidget->undoBegin();
-    for (int index = 0; index < m_search["total"].toInt(); ++index) {
+    for (int index = m_search["total"].toInt() - 1; index >= 0; --index) {
         const auto startList = m_search["start"].toList();
         const auto endList = m_search["end"].toList();
         const auto startIndex = m_editorWidget->indexGet(startList[index].toInt());
