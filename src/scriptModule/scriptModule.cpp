@@ -223,7 +223,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::requestTypeDefinition, this, &ScriptModule::typeDefinitionRequest);
         connect(scriptPage, &ScriptPage::notificationJson, this, &ScriptModule::notificationJson);
         connect(scriptPage, &ScriptPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
-        connect(scriptPage, &ScriptPage::hideDwell, m_codeAssistant, &CodeAssistant::dwellHide);
         qApp->installEventFilter(m_codeAssistant);
         if (m_focusedPage.isEmpty()) {
             m_welcomePage->open();

@@ -69,6 +69,8 @@ public:
 
     [[nodiscard]] int indicatorGet(Scintilla::Position position) const;
 
+    [[nodiscard]] Scintilla::Position lengthGet() const;
+
     [[nodiscard]] int lineCountGet() const;
 
     void lineDuplicate() const;

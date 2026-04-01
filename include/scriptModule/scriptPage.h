@@ -116,9 +116,7 @@ signals:
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
-    void hideDwell();
-
-    void showPositionWidget();
+    void responseSearch(const QString &result);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -186,7 +184,7 @@ private:
 
     void symbolPair(QChar character);
 
-    void textSearch(const QString &text);
+    void searchRequest(const QString &text);
 
     SearchWidget *m_searchWidget{};
     ReplaceWidget *m_replaceWidget{};

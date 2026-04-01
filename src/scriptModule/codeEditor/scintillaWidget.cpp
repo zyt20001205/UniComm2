@@ -176,6 +176,11 @@ int ScintillaWidget::indicatorGet(const Position position) const {
     return send(SCI_INDICATORALLONFOR, position);
 }
 
+// public: length
+Position ScintillaWidget::lengthGet() const {
+    return send(SCI_GETLENGTH);
+}
+
 // public: line
 int ScintillaWidget::lineCountGet() const {
     return static_cast<int>(send(SCI_GETLINECOUNT));
@@ -378,7 +383,7 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
     if (startLine != -1) {
         start = positionGet(startLine, startCharacter);
     } else {
-        length = static_cast<int>(send(SCI_GETLENGTH));
+        length = static_cast<int>(lengthGet());
     }
     // TODO: safety check
     // if (startPos < 0 || endPos > m_editorWidget->length() || length <= 0) {
@@ -404,8 +409,8 @@ QString ScintillaWidget::textGet(const int startLine, const int startCharacter, 
     Position endPosition{};
     Position length{};
     if (startLine == -1) {
-        endPosition = send(SCI_GETLENGTH);
-        length = send(SCI_GETLENGTH);
+        endPosition = lengthGet();
+        length = lengthGet();
     } else {
         startPosition = positionGet(startLine, startCharacter);
         endPosition = positionGet(endLine, endCharacter);
