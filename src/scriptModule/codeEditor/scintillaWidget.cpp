@@ -444,3 +444,13 @@ void ScintillaWidget::textSet(const QString &text, const int startLine, const in
 void ScintillaWidget::textSetSelected(const QString &text) const {
     send(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData()));
 }
+
+// public: undo
+void ScintillaWidget::undoBegin() const {
+    send(SCI_BEGINUNDOACTION); // NOLINT
+}
+
+void ScintillaWidget::undoEnd() const {
+    send(SCI_ENDUNDOACTION); // NOLINT
+}
+

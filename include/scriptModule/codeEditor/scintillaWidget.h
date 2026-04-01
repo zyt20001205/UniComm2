@@ -139,6 +139,10 @@ public:
 
     void textSetSelected(const QString &text) const;
 
+    void undoBegin() const;
+
+    void undoEnd() const;
+
 private:
 };
 
