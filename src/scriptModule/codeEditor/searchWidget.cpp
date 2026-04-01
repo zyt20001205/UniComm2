@@ -26,6 +26,10 @@ void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, co
     emit setSearchFlags(matchCase, wholeWord, wordStart, regExp);
 }
 
+void SearchWidget::searchTextSet(const QString &text) const {
+    m_textField->setProperty("text", text);
+}
+
 void SearchWidget::searchRequest(const QString &text) {
     emit requestSearch(text);
 }

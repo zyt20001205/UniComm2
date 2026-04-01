@@ -16,7 +16,7 @@ Item {
                 id: searchTextField
                 anchors.fill: parent
 
-                onTextEdited: searchWidget.searchRequest(searchTextField.text)
+                onTextChanged: searchWidget.searchRequest(searchTextField.text)
             }
 
             RowLayout {

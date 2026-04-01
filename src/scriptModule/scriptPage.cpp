@@ -42,14 +42,26 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, m_searchWidget, [this] {
-        m_searchWidget->setVisible(!m_searchWidget->isVisible());
-        m_replaceWidget->hide();
+        if (m_selection["characters"] != 0) {
+            m_searchWidget->show();
+            m_replaceWidget->hide();
+            m_searchWidget->searchTextSet(m_editorWidget->textGetSelected());
+        } else {
+            m_searchWidget->setVisible(!m_searchWidget->isVisible());
+            m_replaceWidget->hide();
+        }
     });
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
     connect(shortcutReplace, &QShortcut::activated, m_searchWidget, [this] {
-        m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
-        m_searchWidget->setVisible(m_replaceWidget->isVisible());
+        if (m_selection["characters"] != 0) {
+            m_searchWidget->show();
+            m_replaceWidget->show();
+            m_searchWidget->searchTextSet(m_editorWidget->textGetSelected());
+        } else {
+            m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
+            m_searchWidget->setVisible(m_replaceWidget->isVisible());
+        }
     });
     shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
@@ -564,7 +576,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->addWidget(m_symbolWidget);
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_editorWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &ScriptPage::searchRequest);
-    connect(this, &ScriptPage::responseSearch, m_searchWidget, &SearchWidget::searchResponse);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget, &ScintillaWidget::indicatorFill);
@@ -1465,8 +1476,9 @@ void ScriptPage::searchRequest(const QString &text) {
     QVariantList startList{};
     QVariantList endList{};
     m_editorWidget->indicatorClear(INDICATOR_SEARCH);
+    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
     if (text.isEmpty()) {
-        emit responseSearch("0/0");
+        m_searchWidget->searchResponse("0/0");
     } else {
         int current = 1;
         m_editorWidget->targetSetWhole();
@@ -1476,17 +1488,28 @@ void ScriptPage::searchRequest(const QString &text) {
             const auto end = m_editorWidget->targetGetEnd();
             startList.append(start);
             endList.append(end);
+            const auto startIndex = m_editorWidget->indexGet(start);
+            const auto endIndex = m_editorWidget->indexGet(end);
             m_editorWidget->indicatorFill(
                 INDICATOR_SEARCH,
-                m_editorWidget->indexGet(start)["line"],
-                m_editorWidget->indexGet(start)["character"],
-                m_editorWidget->indexGet(end)["line"],
-                m_editorWidget->indexGet(end)["character"]
+                startIndex["line"],
+                startIndex["character"],
+                endIndex["line"],
+                endIndex["character"]
             );
+            if (startList.length() == current) {
+                m_editorWidget->indicatorFill(
+                    INDICATOR_SELECTION,
+                    startIndex["line"],
+                    startIndex["character"],
+                    endIndex["line"],
+                    endIndex["character"]
+                );
+            }
             m_editorWidget->targetSetStart(end);
             m_editorWidget->targetSetEnd(m_editorWidget->lengthGet());
         }
-        emit responseSearch(QString("%1/%2").arg(QString::number(current), QString::number(startList.length())));
+        m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current), QString::number(startList.length())));
         m_search["current"] = current;
         m_search["start"] = startList;
         m_search["end"] = endList;

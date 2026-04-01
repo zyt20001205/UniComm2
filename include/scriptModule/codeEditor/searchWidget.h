@@ -15,6 +15,8 @@ public:
 
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
+    void searchTextSet(const QString &text) const;
+
     Q_INVOKABLE void searchRequest(const QString &text);
 
     void searchResponse(const QString &text) const;

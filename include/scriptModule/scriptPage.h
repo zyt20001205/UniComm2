@@ -116,8 +116,6 @@ signals:
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
-    void responseSearch(const QString &result);
-
 protected:
     void closeEvent(QCloseEvent *event) override;
 
