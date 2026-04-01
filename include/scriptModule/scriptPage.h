@@ -193,6 +193,8 @@ private:
 
     void textReplace(const QString &text);
 
+    void allReplace(const QString &text);
+
     SearchWidget *m_searchWidget{};
     ReplaceWidget *m_replaceWidget{};
     SymbolWidget * m_symbolWidget{};

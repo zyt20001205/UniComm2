@@ -35,7 +35,7 @@ Item {
         }
 
         Button {
-            id: replaceButton
+            id: replaceTextButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             enabled: false
@@ -67,7 +67,7 @@ Item {
             icon.source: "qrc:/icon/replaceAll.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: replaceWidget.textReplaceAll()
+            onClicked: replaceWidget.allReplace()
 
             HoverHandler {
                 onHoveredChanged: {
@@ -90,7 +90,7 @@ Item {
     Component.onCompleted: {
         const objects = {
             "replaceTextField": replaceTextField,
-            "replaceButton": replaceButton,
+            "replaceTextButton": replaceTextButton,
             "replaceAllButton": replaceAllButton
         };
         replaceWidget.propertyGet(objects)

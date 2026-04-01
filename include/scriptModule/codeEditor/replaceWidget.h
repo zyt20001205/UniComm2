@@ -15,16 +15,18 @@ public:
 
     Q_INVOKABLE void textReplace();
 
-    Q_INVOKABLE void textReplaceAll();
+    Q_INVOKABLE void allReplace();
 
     void replaceEnable(bool status) const;
 
 signals:
     void replaceText(const QString &text);
 
+    void replaceAll(const QString &text);
+
 private:
     QObject *m_textField{};
-    QObject *m_replaceButton{};
+    QObject *m_replaceTextButton{};
     QObject *m_replaceAllButton{};
 };
 
