@@ -144,13 +144,6 @@ Item {
             }
         }
 
-        Label {
-            id: searchLabel
-            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            text: "0/0"
-            Layout.preferredWidth: 80; Layout.preferredHeight: 24
-        }
-
         Button {
             id: searchPrevButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
@@ -197,6 +190,13 @@ Item {
                     mainTooltip.text = qsTr("Search Next")
                 }
             }
+        }
+
+        Label {
+            id: searchLabel
+            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            text: "0/0"
+            Layout.preferredWidth: 80; Layout.preferredHeight: 24
         }
 
         Item {

@@ -598,6 +598,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
         });
         m_replaceWidget->propertySet(QVariantMap{
+            {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
         });
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");

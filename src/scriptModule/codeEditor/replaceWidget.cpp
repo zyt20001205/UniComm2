@@ -9,6 +9,8 @@ ReplaceWidget::ReplaceWidget(QWidget *parent)
 }
 
 void ReplaceWidget::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
+
     rootContext()->setContextProperty("replaceWidget", this);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/scriptModule/codeEditor/replaceWidget.qml"));
