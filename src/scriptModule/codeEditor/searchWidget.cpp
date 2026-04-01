@@ -38,6 +38,14 @@ void SearchWidget::searchResponse(const QString &text) const {
     m_label->setProperty("text", text);
 }
 
+void SearchWidget::searchPrev() {
+    emit prevSearch();
+}
+
+void SearchWidget::searchNext() {
+    emit nextSearch();
+}
+
 // protected
 void SearchWidget::showEvent(QShowEvent *event) {
     QQuickWidget::showEvent(event);

@@ -144,9 +144,12 @@ Item {
             id: searchPrevButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            enabled: searchLabel.text !== "0/0"
             flat: true
             icon.source: "qrc:/icon/arrowUp.svg"
             icon.width: 16; icon.height: 16
+
+            onClicked: searchWidget.searchPrev()
 
             HoverHandler {
                 onHoveredChanged: {
@@ -165,9 +168,12 @@ Item {
             id: searchNextButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            enabled: searchLabel.text !== "0/0"
             flat: true
             icon.source: "qrc:/icon/arrowDown.svg"
             icon.width: 16; icon.height: 16
+
+            onClicked: searchWidget.searchNext()
 
             HoverHandler {
                 onHoveredChanged: {

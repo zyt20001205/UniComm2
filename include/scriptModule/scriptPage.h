@@ -182,7 +182,14 @@ private:
 
     void symbolPair(QChar character);
 
+    // private: search
     void searchRequest(const QString &text);
+
+    void searchResponse();
+
+    void searchPrev();
+
+    void searchNext();
 
     SearchWidget *m_searchWidget{};
     ReplaceWidget *m_replaceWidget{};

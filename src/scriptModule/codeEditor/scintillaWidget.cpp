@@ -341,6 +341,7 @@ QHash<QString, int> ScintillaWidget::selectionGet() const {
         {"character", index["character"]},
         {"startLine", startIndex["line"]},
         {"startCharacter", startIndex["character"]},
+        {"startPosition", startPosition},
         {"endLine", endIndex["line"]},
         {"endCharacter", endIndex["character"]},
         {"lines", endIndex["line"] - startIndex["line"]},

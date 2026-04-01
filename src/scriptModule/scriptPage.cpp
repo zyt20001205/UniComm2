@@ -576,6 +576,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     layout->addWidget(m_symbolWidget);
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_editorWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &ScriptPage::searchRequest);
+    connect(m_searchWidget, &SearchWidget::prevSearch, this, &ScriptPage::searchPrev);
+    connect(m_searchWidget, &SearchWidget::nextSearch, this, &ScriptPage::searchNext);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget, &ScintillaWidget::indicatorFill);
@@ -1471,16 +1473,16 @@ void ScriptPage::symbolPair(const QChar character) {
     contentChange();
 }
 
+
+// private: search
 void ScriptPage::searchRequest(const QString &text) {
     m_search.clear();
+    int current = 0;
+    int total = 0;
     QVariantList startList{};
     QVariantList endList{};
     m_editorWidget->indicatorClear(INDICATOR_SEARCH);
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
-    if (text.isEmpty()) {
-        m_searchWidget->searchResponse("0/0");
-    } else {
-        int current = 1;
+    if (!text.isEmpty()) {
         m_editorWidget->targetSetWhole();
         while (true) {
             if (m_editorWidget->targetSearch(text) == -1) break;
@@ -1497,21 +1499,64 @@ void ScriptPage::searchRequest(const QString &text) {
                 endIndex["line"],
                 endIndex["character"]
             );
-            if (startList.length() == current) {
-                m_editorWidget->indicatorFill(
-                    INDICATOR_SELECTION,
-                    startIndex["line"],
-                    startIndex["character"],
-                    endIndex["line"],
-                    endIndex["character"]
-                );
-            }
+            if (m_selection["startPosition"] > start) current++;
             m_editorWidget->targetSetStart(end);
             m_editorWidget->targetSetEnd(m_editorWidget->lengthGet());
         }
-        m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current), QString::number(startList.length())));
-        m_search["current"] = current;
-        m_search["start"] = startList;
-        m_search["end"] = endList;
+        total = startList.length();
+        if (current == total) current--;
     }
+    m_search["current"] = current;
+    m_search["total"] = total;
+    m_search["start"] = startList;
+    m_search["end"] = endList;
+    searchResponse();
+}
+
+void ScriptPage::searchResponse() {
+    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    const auto total = m_search["total"].toInt();
+    const auto current = m_search["current"].toInt();
+    if (total == 0) {
+        m_searchWidget->searchResponse("0/0");
+        return;
+    }
+    m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current + 1), QString::number(total)));
+    const auto startList = m_search["start"].toList();
+    const auto endList = m_search["end"].toList();
+    const auto startIndex = m_editorWidget->indexGet(startList[current].toInt());
+    const auto endIndex = m_editorWidget->indexGet(endList[current].toInt());
+    m_editorWidget->indexSet(
+        startIndex["line"],
+        startIndex["character"]
+    );
+    m_editorWidget->indicatorFill(
+        INDICATOR_SELECTION,
+        startIndex["line"],
+        startIndex["character"],
+        endIndex["line"],
+        endIndex["character"]
+    );
+}
+
+void ScriptPage::searchPrev() {
+    const auto current = m_search["current"].toInt();
+    const auto total = m_search["total"].toInt();
+    if (current != 0) {
+        m_search["current"] = current - 1;
+    } else {
+        m_search["current"] = total - 1;
+    }
+    searchResponse();
+}
+
+void ScriptPage::searchNext() {
+    const auto current = m_search["current"].toInt();
+    const auto total = m_search["total"].toInt();
+    if (current != total - 1) {
+        m_search["current"] = current + 1;
+    } else {
+        m_search["current"] = 0;
+    }
+    searchResponse();
 }

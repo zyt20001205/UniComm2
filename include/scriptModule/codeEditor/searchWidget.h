@@ -21,10 +21,18 @@ public:
 
     void searchResponse(const QString &text) const;
 
+    Q_INVOKABLE void searchPrev();
+
+    Q_INVOKABLE void searchNext();
+
 signals:
     void setSearchFlags(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
     void requestSearch(const QString &text);
+
+    void prevSearch();
+
+    void nextSearch();
 
 protected:
     void showEvent(QShowEvent *event) override;
