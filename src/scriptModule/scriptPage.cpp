@@ -1506,7 +1506,7 @@ void ScriptPage::searchRequest(const QString &text) {
             m_editorWidget->targetSetStart(end);
             m_editorWidget->targetSetEnd(m_editorWidget->lengthGet());
         }
-        total = startList.length();
+        total = static_cast<int>(startList.length());
         if (current == total) current--;
     }
     m_search["current"] = current;
