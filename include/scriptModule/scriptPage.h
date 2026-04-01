@@ -191,6 +191,8 @@ private:
 
     void searchNext();
 
+    void textReplace(const QString &text);
+
     SearchWidget *m_searchWidget{};
     ReplaceWidget *m_replaceWidget{};
     SymbolWidget * m_symbolWidget{};

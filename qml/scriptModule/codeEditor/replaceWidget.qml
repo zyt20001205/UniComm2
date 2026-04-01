@@ -16,8 +16,6 @@ Item {
                 id: replaceTextField
                 anchors.fill: parent
                 rightPadding: 24
-
-                onTextChanged: searchWidget.searchRequest(searchTextField.text)
             }
 
             RowLayout {
@@ -40,11 +38,12 @@ Item {
             id: replaceButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            enabled: false
             flat: true
             icon.source: "qrc:/icon/replace.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: replaceWidget.replace()
+            onClicked: replaceWidget.textReplace()
 
             HoverHandler {
                 onHoveredChanged: {
@@ -63,11 +62,12 @@ Item {
             id: replaceAllButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            enabled: false
             flat: true
             icon.source: "qrc:/icon/replaceAll.svg"
             icon.width: 16; icon.height: 16
 
-            onClicked: replaceWidget.replaceAll()
+            onClicked: replaceWidget.textReplaceAll()
 
             HoverHandler {
                 onHoveredChanged: {
@@ -85,5 +85,14 @@ Item {
         Item {
             Layout.fillWidth: true
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "replaceTextField": replaceTextField,
+            "replaceButton": replaceButton,
+            "replaceAllButton": replaceAllButton
+        };
+        replaceWidget.propertyGet(objects)
     }
 }

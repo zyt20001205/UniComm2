@@ -45,7 +45,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         if (m_selection["characters"] != 0) {
             m_searchWidget->show();
             m_replaceWidget->hide();
-            m_searchWidget->searchTextSet(m_editorWidget->textGetSelected());
+            m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
         } else {
             m_searchWidget->setVisible(!m_searchWidget->isVisible());
             m_replaceWidget->hide();
@@ -57,7 +57,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         if (m_selection["characters"] != 0) {
             m_searchWidget->show();
             m_replaceWidget->show();
-            m_searchWidget->searchTextSet(m_editorWidget->textGetSelected());
+            m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
         } else {
             m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
             m_searchWidget->setVisible(m_replaceWidget->isVisible());
@@ -137,7 +137,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
             m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-            m_editorWidget->send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
             m_editorWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             // for debug
@@ -512,7 +511,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
             m_assemblyWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-            m_assemblyWidget->send(SCI_SETCARETLINEVISIBLE, true); // NOLINT
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
             m_assemblyWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
         }
@@ -578,6 +576,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &ScriptPage::searchRequest);
     connect(m_searchWidget, &SearchWidget::prevSearch, this, &ScriptPage::searchPrev);
     connect(m_searchWidget, &SearchWidget::nextSearch, this, &ScriptPage::searchNext);
+    connect(m_replaceWidget, &ReplaceWidget::replaceText, this, &ScriptPage::textReplace);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget, &ScintillaWidget::indicatorFill);
@@ -926,6 +925,7 @@ void ScriptPage::assemblyToggle(const bool status) {
             m_assemblyWidget->textSet(error);
         } else {
             m_editorWidget->annotationClear();
+            m_editorWidget->markerDelete(MARKER_NAVIGATION);
             m_l2aHash.clear();
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
@@ -978,6 +978,7 @@ void ScriptPage::assemblyToggle(const bool status) {
         m_assemblyWidget->show();
     } else {
         m_editorWidget->annotationClear();
+        m_editorWidget->markerDelete(MARKER_NAVIGATION);
         m_l2aHash.clear();
         m_assemblyWidget->textClear();
         m_assemblyWidget->hide();
@@ -1519,9 +1520,13 @@ void ScriptPage::searchResponse() {
     const auto total = m_search["total"].toInt();
     const auto current = m_search["current"].toInt();
     if (total == 0) {
+        m_searchWidget->searchEnable(false);
+        m_replaceWidget->replaceEnable(false);
         m_searchWidget->searchResponse("0/0");
         return;
     }
+    m_searchWidget->searchEnable(true);
+    m_replaceWidget->replaceEnable(true);
     m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current + 1), QString::number(total)));
     const auto startList = m_search["start"].toList();
     const auto endList = m_search["end"].toList();
@@ -1560,4 +1565,24 @@ void ScriptPage::searchNext() {
         m_search["current"] = 0;
     }
     searchResponse();
+}
+
+void ScriptPage::textReplace(const QString &text) {
+    const auto current = m_search["current"].toInt();
+    const auto startList = m_search["start"].toList();
+    const auto endList = m_search["end"].toList();
+    const auto startIndex = m_editorWidget->indexGet(startList[current].toInt());
+    const auto endIndex = m_editorWidget->indexGet(endList[current].toInt());
+    m_editorWidget->indexSet(
+        startIndex["line"],
+        startIndex["character"]
+    );
+    m_editorWidget->textSet(
+        text,
+        startIndex["line"],
+        startIndex["character"],
+        endIndex["line"],
+        endIndex["character"]
+    );
+    m_searchWidget->searchRequest();
 }

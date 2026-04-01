@@ -15,15 +15,17 @@ public:
 
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
-    void searchTextSet(const QString &text) const;
+    Q_INVOKABLE void searchRequest();
 
-    Q_INVOKABLE void searchRequest(const QString &text);
+    void searchRequest(const QString &text);
 
     void searchResponse(const QString &text) const;
 
     Q_INVOKABLE void searchPrev();
 
     Q_INVOKABLE void searchNext();
+
+    void searchEnable(bool status) const;
 
 signals:
     void setSearchFlags(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
@@ -39,6 +41,8 @@ protected:
 
 private:
     QObject *m_textField{};
+    QObject *m_prevButton{};
+    QObject *m_nextButton{};
     QObject *m_label{};
 };
 

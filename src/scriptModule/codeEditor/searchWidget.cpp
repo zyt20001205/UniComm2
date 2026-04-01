@@ -19,6 +19,8 @@ void SearchWidget::propertySet(const QVariantMap &objects) {
 
 void SearchWidget::propertyGet(const QVariantMap &objects) {
     m_textField = qvariant_cast<QObject *>(objects["searchTextField"]);
+    m_prevButton = qvariant_cast<QObject *>(objects["prevButton"]);
+    m_nextButton = qvariant_cast<QObject *>(objects["nextButton"]);
     m_label = qvariant_cast<QObject *>(objects["searchLabel"]);
 }
 
@@ -26,12 +28,14 @@ void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, co
     emit setSearchFlags(matchCase, wholeWord, wordStart, regExp);
 }
 
-void SearchWidget::searchTextSet(const QString &text) const {
-    m_textField->setProperty("text", text);
+void SearchWidget::searchRequest() {
+    const auto text = m_textField->property("text").toString();
+    emit requestSearch(text);
 }
 
 void SearchWidget::searchRequest(const QString &text) {
-    emit requestSearch(text);
+    m_textField->setProperty("text", text);
+    searchRequest();
 }
 
 void SearchWidget::searchResponse(const QString &text) const {
@@ -44,6 +48,11 @@ void SearchWidget::searchPrev() {
 
 void SearchWidget::searchNext() {
     emit nextSearch();
+}
+
+void SearchWidget::searchEnable(const bool status) const {
+    m_prevButton->setProperty("enabled", status);
+    m_nextButton->setProperty("enabled", status);
 }
 
 // protected

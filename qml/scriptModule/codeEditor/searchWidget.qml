@@ -17,7 +17,7 @@ Item {
                 anchors.fill: parent
                 rightPadding: 120
 
-                onTextChanged: searchWidget.searchRequest(searchTextField.text)
+                onTextChanged: searchWidget.searchRequest()
             }
 
             RowLayout {
@@ -145,10 +145,10 @@ Item {
         }
 
         Button {
-            id: searchPrevButton
+            id: prevButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-            enabled: searchLabel.text !== "0/0"
+            enabled: false
             flat: true
             icon.source: "qrc:/icon/arrowUp.svg"
             icon.width: 16; icon.height: 16
@@ -169,10 +169,10 @@ Item {
         }
 
         Button {
-            id: searchNextButton
+            id: nextButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-            enabled: searchLabel.text !== "0/0"
+            enabled: false
             flat: true
             icon.source: "qrc:/icon/arrowDown.svg"
             icon.width: 16; icon.height: 16
@@ -207,6 +207,8 @@ Item {
     Component.onCompleted: {
         const objects = {
             "searchTextField": searchTextField,
+            "prevButton": prevButton,
+            "nextButton": nextButton,
             "searchLabel": searchLabel
         };
         searchWidget.propertyGet(objects)

@@ -18,12 +18,22 @@ void ReplaceWidget::propertySet(const QVariantMap &objects) {
 }
 
 void ReplaceWidget::propertyGet(const QVariantMap &objects) {
+    m_textField = qvariant_cast<QObject *>(objects["replaceTextField"]);
+    m_replaceButton = qvariant_cast<QObject *>(objects["replaceButton"]);
+    m_replaceAllButton = qvariant_cast<QObject *>(objects["replaceAllButton"]);
 }
 
-void ReplaceWidget::textReplace(const QString &text) {
-    qDebug() << "replace" << text;
+void ReplaceWidget::textReplace() {
+    const auto text = m_textField->property("text").toString();
+    emit replaceText(text);
 }
 
-void ReplaceWidget::textReplaceAll(const QString &text) {
+void ReplaceWidget::textReplaceAll() {
+    const auto text = m_textField->property("text").toString();
     qDebug() << "replace all" << text;
+}
+
+void ReplaceWidget::replaceEnable(const bool status) const {
+    m_replaceButton->setProperty("enabled", status);
+    m_replaceAllButton->setProperty("enabled", status);
 }
