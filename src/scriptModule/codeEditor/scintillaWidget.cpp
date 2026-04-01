@@ -453,4 +453,3 @@ void ScintillaWidget::undoBegin() const {
 void ScintillaWidget::undoEnd() const {
     send(SCI_ENDUNDOACTION); // NOLINT
 }
-

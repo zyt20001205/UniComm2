@@ -1476,7 +1476,6 @@ void ScriptPage::symbolPair(const QChar character) {
     contentChange();
 }
 
-
 // private: search
 void ScriptPage::searchRequest(const QString &text) {
     m_search.clear();
