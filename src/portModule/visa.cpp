@@ -1,6 +1,5 @@
 #include "visa.h"
 
-#include <QScopedValueRollback>
 
 #include "globals.h"
 #include "portModule/visa.h"
@@ -62,23 +61,20 @@ void Visa::clear() {
 }
 
 bool Visa::write(const QByteArray &txData, const QString &txFormat, const QString &txSuffix) {
-    QScopedValueRollback configRollback(m_portConfig);
-    if (!txFormat.isEmpty()) m_portConfig["txFormat"] = txFormat;
-    if (!txSuffix.isEmpty()) m_portConfig["txSuffix"] = txSuffix;
+    const QString format = txFormat.isEmpty() ? m_portConfig["txFormat"].toString() : txFormat;
+    const QString suffix = txSuffix.isEmpty() ? m_portConfig["txSuffix"].toString() : txSuffix;
     // 1: remove space if tx format is hex
     QByteArray f_txData = txData;
-    if (m_portConfig["txFormat"].toString() == "hex") f_txData = QByteArray::fromHex(txData);
+    if (format == "hex") f_txData = QByteArray::fromHex(txData);
     // 2: append suffix according to tx suffix
-    if (m_portConfig["txSuffix"].toString() == "crlf") f_txData += "\r\n";
-    else if (m_portConfig["txSuffix"].toString() == "modbus crc") f_txData += modbusCRC(f_txData);
-    else if (m_portConfig["txSuffix"].toString() == "modbus lrc") f_txData += modbusLRC(f_txData);
+    if (suffix == "crlf") f_txData += "\r\n";
+    else if (suffix == "modbus crc") f_txData += modbusCRC(f_txData);
+    else if (suffix == "modbus lrc") f_txData += modbusLRC(f_txData);
     // call handle write
     return handleWrite(f_txData);
 }
 
 QByteArray Visa::read(const int length, const int timeout, const QString &rxFormat) {
-    QScopedValueRollback configRollback(m_portConfig);
-    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
     return handleRead(length, timeout);
 }
 
