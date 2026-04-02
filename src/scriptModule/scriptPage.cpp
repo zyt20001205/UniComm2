@@ -578,6 +578,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(m_searchWidget, &SearchWidget::nextSearch, this, &ScriptPage::searchNext);
     connect(m_replaceWidget, &ReplaceWidget::replaceText, this, &ScriptPage::textReplace);
     connect(m_replaceWidget, &ReplaceWidget::replaceAll, this, &ScriptPage::allReplace);
+    connect(m_symbolWidget, &SymbolWidget::appendLog, this, &ScriptPage::appendLog);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, m_editorWidget, &ScintillaWidget::indicatorFill);

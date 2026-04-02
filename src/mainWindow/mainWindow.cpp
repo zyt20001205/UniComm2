@@ -439,6 +439,7 @@ void MainWindow::moduleInit() {
     connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
+    connect(m_structureModule, &StructureModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_structureModule, &StructureModule::setFocus, m_scriptModule, &ScriptModule::focusSet);
     connect(m_structureModule, &StructureModule::setIndex, m_scriptModule, &ScriptModule::indexSet);
     connect(m_structureModule, &StructureModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);

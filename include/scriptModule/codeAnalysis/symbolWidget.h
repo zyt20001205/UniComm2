@@ -16,6 +16,8 @@ public:
     Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 
 signals:
+    void appendLog(const QString &text, int type);
+
     void setFocus(bool status);
 
     void setIndex(int startLine, int startCharacter);

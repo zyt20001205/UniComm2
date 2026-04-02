@@ -66,7 +66,6 @@ void StructureModule::markerAdd(const QVariantHash &position) {
                    1000);
 }
 
-// protected
 bool StructureModule::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_structureWidget) {
         if (event->type() == QEvent::FocusOut) {
@@ -77,7 +76,7 @@ bool StructureModule::eventFilter(QObject *watched, QEvent *event) {
 }
 
 // private
-void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const {
+void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) {
     for (const auto &value: result) {
         const auto symbol = value.toObject();
         auto *item = new QStandardItem(); // NOLINT
@@ -139,7 +138,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
             break;
             default: {
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                qDebug() << "WIP structure kind:" << kind << name << detail;
+                emit appendLog(QString("contact author: unsupported symbol(kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail), LOG_WARNING);
             }
             break;
         }

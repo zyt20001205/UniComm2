@@ -26,18 +26,19 @@ public:
 
     Q_INVOKABLE void markerAdd(const QVariantHash &position);
 
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 signals:
+    void appendLog(const QString &text, int type);
+
     void setFocus(const QUrl &scriptUrl, bool status);
 
     void setIndex(const QUrl &scriptUrl, int startLine, int startCharacter);
 
     void addMarker(const QUrl &scriptUrl, int type, int line, int time);
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
-
 private:
-    void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem) const;
+    void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem);
 
     QUrl m_currentScriptUrl{};
     QQuickWidget *m_structureWidget{};
