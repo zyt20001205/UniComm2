@@ -39,6 +39,8 @@ signals:
 protected:
     void showEvent(QShowEvent *event) override;
 
+    void hideEvent(QHideEvent *event) override;
+
 private:
     QObject *m_textField{};
     QObject *m_prevButton{};

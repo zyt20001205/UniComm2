@@ -191,6 +191,8 @@ private:
 
     void searchNext();
 
+    void searchClear();
+
     void textReplace(const QString &text);
 
     void allReplace(const QString &text);

@@ -6,6 +6,7 @@
 SearchWidget::SearchWidget(QWidget *parent)
     : QQuickWidget(parent) {
     setFixedHeight(30);
+    hide();
 }
 
 void SearchWidget::propertySet(const QVariantMap &objects) {
@@ -14,7 +15,6 @@ void SearchWidget::propertySet(const QVariantMap &objects) {
     rootContext()->setContextProperty("searchWidget", this);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/scriptModule/codeEditor/searchWidget.qml"));
-    hide();
 }
 
 void SearchWidget::propertyGet(const QVariantMap &objects) {
@@ -60,4 +60,9 @@ void SearchWidget::showEvent(QShowEvent *event) {
     QQuickWidget::showEvent(event);
     setFocus();
     QMetaObject::invokeMethod(m_textField, "forceActiveFocus");
+}
+
+void SearchWidget::hideEvent(QHideEvent *event) {
+    if (m_textField) searchRequest(QString());
+    QQuickWidget::hideEvent(event);
 }

@@ -72,7 +72,7 @@ Item {
 
                     onClicked: {
                         searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest(searchTextField.text)
+                        searchWidget.searchRequest()
                     }
 
                     HoverHandler {
@@ -99,7 +99,7 @@ Item {
 
                     onClicked: {
                         searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest(searchTextField.text)
+                        searchWidget.searchRequest()
                     }
 
                     HoverHandler {
@@ -126,7 +126,7 @@ Item {
 
                     onClicked: {
                         searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest(searchTextField.text)
+                        searchWidget.searchRequest()
                     }
 
                     HoverHandler {

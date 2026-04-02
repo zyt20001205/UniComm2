@@ -1479,13 +1479,14 @@ void ScriptPage::symbolPair(const QChar character) {
 
 // private: search
 void ScriptPage::searchRequest(const QString &text) {
-    m_search.clear();
-    int current = 0;
-    int total = 0;
-    QVariantList startList{};
-    QVariantList endList{};
-    m_editorWidget->indicatorClear(INDICATOR_SEARCH);
+    searchClear();
+    m_search["text"] = text;
     if (!text.isEmpty()) {
+        int current = 0;
+        int total = 0;
+        QVariantList startList{};
+        QVariantList endList{};
+
         m_editorWidget->targetSetWhole();
         while (true) {
             if (m_editorWidget->targetSearch(text) == -1) break;
@@ -1508,19 +1509,17 @@ void ScriptPage::searchRequest(const QString &text) {
         }
         total = static_cast<int>(startList.length());
         if (current == total) current--;
+
+        m_search["current"] = current;
+        m_search["total"] = total;
+        m_search["start"] = startList;
+        m_search["end"] = endList;
     }
-    m_search["current"] = current;
-    m_search["total"] = total;
-    m_search["start"] = startList;
-    m_search["end"] = endList;
     searchResponse();
 }
 
 void ScriptPage::searchResponse() {
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
-    const auto total = m_search["total"].toInt();
-    const auto current = m_search["current"].toInt();
-    if (total == 0) {
+    if (m_search["total"].toInt() == 0) {
         m_searchWidget->searchEnable(false);
         m_replaceWidget->replaceEnable(false);
         m_searchWidget->searchResponse("0/0");
@@ -1528,6 +1527,8 @@ void ScriptPage::searchResponse() {
     }
     m_searchWidget->searchEnable(true);
     m_replaceWidget->replaceEnable(true);
+    const auto total = m_search["total"].toInt();
+    const auto current = m_search["current"].toInt();
     m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current + 1), QString::number(total)));
     const auto startList = m_search["start"].toList();
     const auto endList = m_search["end"].toList();
@@ -1547,6 +1548,7 @@ void ScriptPage::searchResponse() {
 }
 
 void ScriptPage::searchPrev() {
+    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
     const auto current = m_search["current"].toInt();
     const auto total = m_search["total"].toInt();
     if (current != 0) {
@@ -1558,6 +1560,7 @@ void ScriptPage::searchPrev() {
 }
 
 void ScriptPage::searchNext() {
+    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
     const auto current = m_search["current"].toInt();
     const auto total = m_search["total"].toInt();
     if (current != total - 1) {
@@ -1566,6 +1569,12 @@ void ScriptPage::searchNext() {
         m_search["current"] = 0;
     }
     searchResponse();
+}
+
+void ScriptPage::searchClear() {
+    m_search.clear();
+    m_editorWidget->indicatorClear(INDICATOR_SEARCH);
+    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
 }
 
 void ScriptPage::textReplace(const QString &text) {
