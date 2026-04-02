@@ -21,7 +21,7 @@ void SymbolWidget::propertySet(const QVariantMap &objects) {
     m_rootItem = rootObject();
 }
 
-void SymbolWidget::symbolLoad(const QJsonArray &result, const int line, const int character) const {
+void SymbolWidget::symbolLoad(const QJsonArray &result, const int line, const int character) {
     const auto symbolList = symbolParse(result, line, character);
     QMetaObject::invokeMethod(m_rootItem, "symbolLoad", Q_ARG(QVariant, QVariant::fromValue(symbolList)));
 }

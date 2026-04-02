@@ -11,7 +11,7 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void symbolLoad(const QJsonArray &result, int line, int character) const;
+    void symbolLoad(const QJsonArray &result, int line, int character);
 
     Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 
@@ -25,7 +25,7 @@ signals:
     void fillIndicator(int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
-    static QVariantList symbolParse(const QJsonArray &result, int line, int character);
+    QVariantList symbolParse(const QJsonArray &result, int line, int character);
 
     QQuickItem *m_rootItem{};
 };
