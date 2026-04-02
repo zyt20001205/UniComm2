@@ -93,10 +93,17 @@ gantt
         v0.3.0-alpha1: 07-01, 31d
         v0.3.0-alpha2: 08-01, 31d
 
+    section apis
+        port(ringbuffer refractor): done, 03-17, 15d
+        string(raw<->hex): done, 03-17, 15d
+        modbusRtu(hex string refractor): active, 04-01, 7d
+        string(raw<->ascii): 04-08, 8d
+        modbusAscii(ascii string refractor): 04-08, 8d
+        mqtt: 04-16, 15d
+        
     section infra
         scintilla migration: done, 02-11, 30d
         ringbuffer class: done, 03-01, 16d
-        ringbuffer apis: done, 03-17, 15d
         fullscreen overlay: done, 03-26, 3d
         undo stack: 04-01, 10d
         port session monitor: 05-01, 31d
@@ -105,7 +112,7 @@ gantt
         assembly view: done, 03-13, 19d
         signatureHelp(overload): done, 03-24, 1d
         documentSymbol bar: done, 03-25, 2d
-        search bar: 04-01, 30d
+        search & replace: done, 03-30, 4d
         rename: 04-11, 20d
         git integration: 05-01, 31d
 

@@ -192,7 +192,7 @@ void LuaInterpreter::start(const QString &script) {
     );
     if (!result.valid()) {
         const sol::error err = result;
-        emit appendLog(QString::fromStdString(err.what()), "error");
+        emit appendLog(QString::fromStdString(err.what()), LOG_ERROR);
     }
     // frontend
     emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
@@ -369,7 +369,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                             if (result.as<bool>()) session["state"] = DEBUG_PAUSE;
                         } else {
                             const sol::error err = condition_result;
-                            emit This->appendLog(QString::fromStdString(err.what()), "error");
+                            emit This->appendLog(QString::fromStdString(err.what()), LOG_ERROR);
                         }
                         lua_settop(L, base);
                     }
@@ -398,7 +398,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     [This, L, ar, currentUrl](const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
                         disconnect(This, &LuaInterpreter::setValue, This, nullptr);
                         if (currentUrl != scriptUrl) {
-                            emit This->appendLog(QString("Hot update failed: Not in the current file scope"), "error");
+                            emit This->appendLog(QString("Hot update failed: Not in the current file scope"), LOG_ERROR);
                             return;
                         }
                         bool updated = false;
@@ -411,7 +411,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                                 lua_setlocal(L, ar, local_i);
                                 lua_pop(L, 1);
                                 updated = true;
-                                emit This->appendLog(QString("Hot update executed: local %1 = %2").arg(expression, value), "info");
+                                emit This->appendLog(QString("Hot update executed: local %1 = %2").arg(expression, value), LOG_INFO);
                                 break;
                             }
                             lua_pop(L, 1);
@@ -428,7 +428,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                                         lua_setupvalue(L, -3, upvalue_i);
                                         lua_pop(L, 1);
                                         updated = true;
-                                        emit This->appendLog(QString("Hot update executed: upvalue %1 = %2").arg(expression, value), "info");
+                                        emit This->appendLog(QString("Hot update executed: upvalue %1 = %2").arg(expression, value), LOG_INFO);
                                         break;
                                     }
                                     lua_pop(L, 1);
@@ -439,7 +439,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         }
                         // value not found
                         if (!updated) {
-                            emit This->appendLog(QString("Hot update failed: variable '%1' not found").arg(expression), "error");
+                            emit This->appendLog(QString("Hot update failed: variable '%1' not found").arg(expression), LOG_ERROR);
                         } else {
                             // watch handle
                             watchSet(L, ar);

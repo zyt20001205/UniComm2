@@ -65,7 +65,7 @@ void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
     m_logConfig["fontSize"] = fontConfigLog["fontSize"].toInt();
 }
 
-void LogModule::logAppend(const QString &message, const QString &level) {
+void LogModule::logAppend(const QString &message, const int type) {
     // check timestamp
     QString timestamp = "";
     if (m_logConfig["timestamp"].toBool()) {
@@ -74,18 +74,29 @@ void LogModule::logAppend(const QString &message, const QString &level) {
     // logging
     QString f_message = QString("%1%2").arg(timestamp, message);
     // check level
-    if (level == "info")
-        f_message = QString("<span style='color:black'>%1</span>").arg(f_message);
-    else if (level == "warning")
-        f_message = QString("<span style='color:orange'>%1</span>").arg(f_message);
-    else if (level == "error")
-        f_message = QString("<span style='color:red'>%1</span>").arg(f_message);
-    else if (level == "tx")
-        // f_message = QString("<span style='background-color:cyan;'>%1</span>").arg(f_message);
-        f_message = QString("%1").arg(f_message);
-    else //(level == "rx")
-        // f_message = QString("<span style='background-color:lightgreen;'>%1</span>").arg(f_message);
-        f_message = QString("%1").arg(f_message);
+    switch (type) {
+        case LOG_ERROR: {
+            f_message = QString("<span style='color:red'>%1</span>").arg(f_message);
+        }
+        break;
+        case LOG_WARNING: {
+            f_message = QString("<span style='color:orange'>%1</span>").arg(f_message);
+        }
+        break;
+        case LOG_INFO: {
+            f_message = QString("<span style='color:black'>%1</span>").arg(f_message);
+        }
+        break;
+        case LOG_TX: {
+            f_message = QString("%1").arg(f_message);
+        }
+        break;
+        case LOG_RX: {
+            f_message = QString("%1").arg(f_message);
+        }
+        break;
+        default: break;
+    }
     // append log
     QMetaObject::invokeMethod(m_logTextArea, "append", Q_ARG(QString, f_message));
 }
@@ -129,44 +140,12 @@ void LogModule::logSave(const QUrl &fileUrl) {
             QTextStream stream(&file);
             stream << document.toPlainText();
             file.close();
-            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), LOG_INFO);
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
         } else {
-            logAppend("log save failed", "info");
-            // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log save failed").arg(timestamp);
-        }
-    } else if (filePath.endsWith(".pdf", Qt::CaseInsensitive)) {
-        QPrinter printer(QPrinter::HighResolution);
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(filePath);
-        document.print(&printer);
-        if (QFile::exists(filePath)) {
-            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
-        } else {
-            logAppend("log save failed", "info");
-            // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log save failed").arg(timestamp);
-        }
-    } else if (filePath.endsWith(".html", Qt::CaseInsensitive)) {
-        QFile file(filePath);
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream stream(&file);
-            stream << document.toHtml();
-            file.close();
-            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
-        } else {
-            logAppend("log save failed", "info");
+            logAppend("log save failed", LOG_ERROR);
             // logging
             const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log save failed").arg(timestamp);

@@ -24,7 +24,7 @@ public:
     static void speak(const std::string &text);
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void newMessageDialog(const QEventLoop *eventloop, const QString &text) const;
 };

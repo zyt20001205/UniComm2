@@ -16,6 +16,7 @@ CodeAssistant::CodeAssistant(QWidget *parent)
       m_navigationWidget(new NavigationWidget(parent)),
       m_positionWidget(new PositionWidget(parent)),
       m_signatureWidget(new SignatureWidget(parent)) {
+    connect(m_completionWidget, &CompletionWidget::appendLog, this, &CodeAssistant::appendLog);
     connect(m_completionWidget, &CompletionWidget::addChar, this, &CodeAssistant::addChar);
     connect(m_completionWidget, &CompletionWidget::setIndex, this, &CodeAssistant::setIndex);
     connect(m_completionWidget, &CompletionWidget::setText, this, &CodeAssistant::setText);

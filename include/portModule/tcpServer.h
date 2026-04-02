@@ -65,7 +65,7 @@ private:
 
     [[nodiscard]] QByteArray handleRead(int length, int timeout, const QString &peerIp);
 
-    void handleLog(const QString &mode, const QByteArray &data, const QTcpSocket *tcpServerPeer);
+    void handleLog(int type, const QByteArray &data, const QTcpSocket *tcpServerPeer);
 
     QTcpServer *m_tcpServer{};
     QJsonObject m_portConfig{};

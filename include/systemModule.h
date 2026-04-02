@@ -30,7 +30,7 @@ public:
     Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void openScript(const QUrl &scriptUrl);
 

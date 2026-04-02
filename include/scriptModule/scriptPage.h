@@ -66,7 +66,7 @@ public:
     ScintillaWidget *m_editorWidget{};
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void closeScript(const QUrl &scriptUrl);
 

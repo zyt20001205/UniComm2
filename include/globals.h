@@ -25,7 +25,6 @@ extern DataplotModule *g_dataplot;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;
 extern ScriptModule *g_script;
-extern StructureModule *g_structure;
 extern UndoModule *g_undo;
 
 extern QUrl g_workspaceUrl;
@@ -41,6 +40,14 @@ extern QStandardItemModel* g_databaseStandardItemModel;
 extern QStandardItemModel* g_datatableHeaderItemModel;
 extern QStandardItemModel* g_datatableStandardItemModel;
 extern QStandardItemModel* g_watchStandardItemModel;
+
+enum {
+    LOG_ERROR,
+    LOG_WARNING,
+    LOG_INFO,
+    LOG_TX,
+    LOG_RX
+};
 
 enum {
     SERIALPORT,

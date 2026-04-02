@@ -40,7 +40,7 @@ public:
     }
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void refreshPort(const QString &portName, bool status);
 

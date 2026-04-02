@@ -27,7 +27,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void openScript(const QUrl &scriptUrl);
 

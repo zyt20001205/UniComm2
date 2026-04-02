@@ -50,7 +50,7 @@ private:
 
     [[nodiscard]] QByteArray handleRead(int length, int timeout);
 
-    void handleLog(const QString &mode, const QByteArray &data);
+    void handleLog(int type, const QByteArray &data);
 
     QSerialPort *m_serialPort{};
     QJsonObject m_portConfig{};

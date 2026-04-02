@@ -141,7 +141,7 @@ public:
     void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void openWorkspace();
 

@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <sol/object.hpp>
 
+#include "globals.h"
 #include "utils/uniCast.h"
 
 LuaIO::LuaIO(QObject *parent)
@@ -17,22 +18,22 @@ void LuaIO::log(const sol::variadic_args &args) {
         if (var.typeId() == QMetaType::QVariantMap) {
             QVariantMap map = var.toMap();
             if (map.isEmpty()) {
-                emit appendLog("{}", "info");
+                emit appendLog("{}", LOG_INFO);
                 return;
             }
             for (auto it = map.begin(); it != map.end(); ++it) {
                 const QString &key = it.key();
                 const QVariant &value = it.value();
                 if (value.typeId() == QMetaType::QVariantMap) {
-                    emit appendLog(QString("%1: {").arg(key), "info");
+                    emit appendLog(QString("%1: {").arg(key), LOG_INFO);
                     logging(value);
-                    emit appendLog("}", "info");
+                    emit appendLog("}", LOG_INFO);
                 } else {
-                    emit appendLog(QString("%1: %2").arg(key, value.toString()), "info");
+                    emit appendLog(QString("%1: %2").arg(key, value.toString()), LOG_INFO);
                 }
             }
         } else {
-            emit appendLog(var.toString(), "info");
+            emit appendLog(var.toString(), LOG_INFO);
         }
     };
 

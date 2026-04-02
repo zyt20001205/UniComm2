@@ -148,7 +148,7 @@ void ConfigManager::workspaceInit() {
         // check if lib dir exists
         const QString libDirPath = QDir(workspacePath).filePath("lib");
         if (QDir().mkdir(libDirPath)) {
-            emit appendLog("lib dir created", "info");
+            emit appendLog("lib dir created", LOG_INFO);
             // logging
             const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] lib dir created").arg(timestamp);
@@ -185,12 +185,12 @@ void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
         const QJsonDocument doc(g_workspaceConfig);
         workspaceConfig.write(doc.toJson(QJsonDocument::Indented));
         workspaceConfig.close();
-        emit appendLog(QString("workspace saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "info");
+        emit appendLog(QString("workspace saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), LOG_INFO);
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] workspace saved to %2").arg(timestamp, fileUrl.toString());
     } else {
-        emit appendLog("workspace save failed", "info");
+        emit appendLog("workspace save failed", LOG_INFO);
         // logging
         const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] workspace save failed").arg(timestamp);

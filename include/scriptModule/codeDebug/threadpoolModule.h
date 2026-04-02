@@ -54,7 +54,7 @@ signals:
 
     void stopDebug(const QString &threadId);
 
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
 private:
     void threadAppend(int mode, const QString &name, const QString &threadId);

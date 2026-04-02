@@ -54,7 +54,7 @@ private:
 
     [[nodiscard]] QByteArray handleRead(int length, int timeout);
 
-    void handleLog(const QString &mode, const QByteArray &data);
+    void handleLog(int type, const QByteArray &data);
 
     QSslSocket *m_sslClient{};
     QJsonObject m_portConfig{};

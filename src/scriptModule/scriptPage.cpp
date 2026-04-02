@@ -601,7 +601,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
         });
         // logging
-        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
+        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 opened").arg(timestamp, m_scriptUrl.toString());
     });
@@ -656,7 +656,7 @@ void ScriptPage::scriptSave() {
     out << m_editorWidget->textGet();
     file.close();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
+    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 saved").arg(timestamp, m_scriptUrl.toString());
     // restore file watcher signals 1 sec later
@@ -680,7 +680,7 @@ void ScriptPage::scriptClose() {
     emit closeScript(m_scriptUrl);
     deleteLater();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), "info");
+    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
 }

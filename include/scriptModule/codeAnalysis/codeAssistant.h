@@ -42,6 +42,8 @@ public:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 signals:
+    void appendLog(const QString &message, int type);
+
     void addChar(const QUrl &scriptUrl, QChar character);
 
     void setIndex(const QUrl &scriptUrl, int line, int character);

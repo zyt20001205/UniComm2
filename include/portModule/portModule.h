@@ -44,7 +44,7 @@ public:
 
     QHash<QString, BasePort *> m_portHash{};
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
 private:
     QQuickWidget *m_portWidget{};

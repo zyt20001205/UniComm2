@@ -37,7 +37,7 @@ public:
     [[nodiscard]] bool datatableWrite(const QString &key, const QString &value);
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
     void addGraphDataPlot(const QString &key, const QList<double> &x, const QList<double> &y, int position);
 

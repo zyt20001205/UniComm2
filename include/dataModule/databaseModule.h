@@ -35,7 +35,7 @@ public:
     [[nodiscard]] bool databaseWrite(const QString &key, const QString &value);
 
 signals:
-    void appendLog(const QString &message, const QString &level);
+    void appendLog(const QString &message, int type);
 
 private:
     void databaseIndex();
