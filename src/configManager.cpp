@@ -150,7 +150,7 @@ void ConfigManager::workspaceInit() {
         if (QDir().mkdir(libDirPath)) {
             emit appendLog("lib dir created", LOG_INFO);
             // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] lib dir created").arg(timestamp);
         }
 
@@ -192,7 +192,7 @@ void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
     } else {
         emit appendLog("workspace save failed", LOG_INFO);
         // logging
-        const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] workspace save failed").arg(timestamp);
     }
 }

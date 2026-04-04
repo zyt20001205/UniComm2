@@ -25,7 +25,7 @@ DatatableModule::DatatableModule()
 }
 
 DatatableModule::~DatatableModule() {
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] datatable module destructed").arg(timestamp);
 }
 
@@ -143,7 +143,7 @@ void DatatableModule::datatableExport(const QString &fileName) {
     // logging
     const QUrl fileUrl = QUrl::fromLocalFile(filePath);
     emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), LOG_INFO);
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] data exported").arg(timestamp);
 }
 

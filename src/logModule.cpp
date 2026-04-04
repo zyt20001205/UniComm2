@@ -19,7 +19,7 @@ LogModule::LogModule()
 }
 
 LogModule::~LogModule() {
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] log module destructed").arg(timestamp);
 }
 
@@ -147,7 +147,7 @@ void LogModule::logSave(const QUrl &fileUrl) {
         } else {
             logAppend("log save failed", LOG_ERROR);
             // logging
-            const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+            const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log save failed").arg(timestamp);
         }
     }

@@ -20,7 +20,7 @@ DiagnosticsModule::DiagnosticsModule()
 }
 
 DiagnosticsModule::~DiagnosticsModule() {
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] diagnostics module destructed").arg(timestamp);
 }
 

@@ -19,7 +19,7 @@ StructureModule::StructureModule()
 }
 
 StructureModule::~StructureModule() {
-    const QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] structure module destructed").arg(timestamp);
 }
 
