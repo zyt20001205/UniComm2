@@ -174,7 +174,7 @@ function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, ti
 --- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param regAddr integer The address of the register to write to.
---- @param data string **Binary string** containing the raw data to be written.
+--- @param data string **Hex string** containing the data to be written.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
@@ -183,7 +183,7 @@ function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) 
 --- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
---- @param data string **Binary string** containing the raw data to be written.
+--- @param data string **Hex string** containing the data to be written.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
@@ -320,7 +320,6 @@ function smtp.authLogin(name, username, password) end
 function smtp.mail(name, from, to, subject, body, attachment) end
 
 string = {}
-
 --- Convert a binary string to its hexadecimal representation.
 --- @param string string The binary string to convert.
 --- @param separator? string Optional separator between hex bytes.
