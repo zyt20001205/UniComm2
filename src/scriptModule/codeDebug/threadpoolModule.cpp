@@ -74,7 +74,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     luaSession.insert("workspaceUrl", g_workspaceUrl);
     luaSession.insert("scriptUrl", scriptUrl);
     luaSession.insert("threadId", threadId);
-    if (mode == LUATHREAD_DEBUG) {
+    if (mode == THREAD_DEBUG) {
         luaSession.insert("currentUrl", scriptUrl);
         luaSession.insert("state", DEBUG_RESUME);
         luaSession.insert("baseDepth", 0);
@@ -105,7 +105,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(worker, &QThread::finished, this, [this, threadId] { m_threadHash.remove(threadId); });
     connect(worker, &QThread::finished, this, [this, threadId] { m_interpreterHash.remove(threadId); });
     threadAppend(mode, scriptUrl.fileName(), threadId);
-    if (mode == LUATHREAD_DEBUG) {
+    if (mode == THREAD_DEBUG) {
         emit startDebug(threadId);
         connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
     }
@@ -129,7 +129,7 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
         }
         for (int row = 0; row < m_threadpoolStandardItemModel->rowCount(); ++row) {
             if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->text() == threadId) {
-                if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt() == LUATHREAD_DEBUG) {
+                if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt() == THREAD_DEBUG) {
                     stateSet(threadId, DEBUG_TERMINATE);
                 }
                 break;
@@ -175,7 +175,7 @@ void ThreadpoolModule::valueSet(const QString &threadId, const QString &scriptUr
 void ThreadpoolModule::threadAppend(const int mode, const QString &name, const QString &threadId) {
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
-    const QString text = mode == LUATHREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
+    const QString text = mode == THREAD_RUN ? tr(" (Run)") : tr(" (Debug)");
     auto *nameItem = new QStandardItem(name + text); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
     spawnItem->setData(QVariant::fromValue(currentTime), Qt::UserRole + 1);
@@ -183,7 +183,7 @@ void ThreadpoolModule::threadAppend(const int mode, const QString &name, const Q
     threadIdItem->setData(mode, Qt::UserRole + 1);
     m_threadpoolStandardItemModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
     // refresh status bar
-    if (mode == LUATHREAD_RUN) m_run++;
+    if (mode == THREAD_RUN) m_run++;
     else m_debug++;
     emit refreshThread(m_run, m_debug);
 
@@ -194,7 +194,7 @@ void ThreadpoolModule::threadAppend(const int mode, const QString &name, const Q
                 const int mode = m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt();
                 m_threadpoolStandardItemModel->removeRow(row);
                 // refresh status bar
-                if (mode == LUATHREAD_RUN) m_run--;
+                if (mode == THREAD_RUN) m_run--;
                 else m_debug--;
                 emit refreshThread(m_run, m_debug);
                 break;

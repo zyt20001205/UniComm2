@@ -1,16 +1,16 @@
-#ifndef UNICOMM_LUAKEY_H
-#define UNICOMM_LUAKEY_H
+#ifndef UNICOMM_KEY_H
+#define UNICOMM_KEY_H
 
 #include <QHash>
 #include <QObject>
 
-class LuaKey final : public QObject {
+class Key final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaKey(QObject *parent = nullptr);
+    explicit Key(QObject *parent = nullptr);
 
-    ~LuaKey() override = default;
+    ~Key() override = default;
 
     void tap(const std::string &key);
 
@@ -20,4 +20,4 @@ private:
     QHash<QString, int> m_vkHash{};
 };
 
-#endif //UNICOMM_LUAKEY_H
+#endif //UNICOMM_KEY_H

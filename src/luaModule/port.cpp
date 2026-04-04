@@ -1,4 +1,4 @@
-#include "luaModule/luaPort.h"
+#include "luaModule/port.h"
 
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
@@ -8,11 +8,11 @@
 #include "portModule/portModule.h"
 #include "utils/uniCast.h"
 
-LuaPort::LuaPort(QObject *parent)
+Port::Port(QObject *parent)
     : QObject(parent) {
 }
 
-sol::table LuaPort::list(const sol::this_state ts) {
+sol::table Port::list(const sol::this_state ts) {
     QSet<QString> portSet{};
     QMetaObject::invokeMethod(g_port, [&portSet] {
         portSet = g_port->portList();
@@ -20,7 +20,7 @@ sol::table LuaPort::list(const sol::this_state ts) {
     return uni_cast<sol::table>(ts, portSet);
 }
 
-sol::object LuaPort::info(const sol::this_state ts, const std::string &portName) {
+sol::object Port::info(const sol::this_state ts, const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -32,7 +32,7 @@ sol::object LuaPort::info(const sol::this_state ts, const std::string &portName)
     return uni_cast<sol::object>(ts, infoHash);
 }
 
-void LuaPort::open(const std::string &portName) {
+void Port::open(const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -46,7 +46,7 @@ void LuaPort::open(const std::string &portName) {
     }
 }
 
-void LuaPort::close(const std::string &portName) {
+void Port::close(const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -56,7 +56,7 @@ void LuaPort::close(const std::string &portName) {
     }, Qt::BlockingQueuedConnection);
 }
 
-void LuaPort::clear(const std::string &portName) {
+void Port::clear(const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -66,7 +66,7 @@ void LuaPort::clear(const std::string &portName) {
     }, Qt::BlockingQueuedConnection);
 }
 
-void LuaPort::write(const std::string &portName, const std::string_view &data, const std::string &peerIp) {
+void Port::write(const std::string &portName, const std::string_view &data, const std::string &peerIp) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -87,7 +87,7 @@ void LuaPort::write(const std::string &portName, const std::string_view &data, c
     }
 }
 
-sol::object LuaPort::read(const sol::this_state ts, const std::string &portName, const int length, const int timeout, const std::string &peerIp) {
+sol::object Port::read(const sol::this_state ts, const std::string &portName, const int length, const int timeout, const std::string &peerIp) {
     sol::state_view lua(ts);
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");

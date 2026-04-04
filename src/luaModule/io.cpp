@@ -1,4 +1,4 @@
-#include "luaModule/luaIO.h"
+#include "luaModule/io.h"
 
 #include <QEventLoop>
 #include <QTextToSpeech>
@@ -9,11 +9,11 @@
 #include "globals.h"
 #include "utils/uniCast.h"
 
-LuaIO::LuaIO(QObject *parent)
+IO::IO(QObject *parent)
     : QObject(parent) {
 }
 
-void LuaIO::log(const sol::variadic_args &args) {
+void IO::log(const sol::variadic_args &args) {
     std::function<void(const QVariant &)> logging = [&](const QVariant &var) {
         if (var.typeId() == QMetaType::QVariantMap) {
             QVariantMap map = var.toMap();
@@ -42,13 +42,13 @@ void LuaIO::log(const sol::variadic_args &args) {
     }
 }
 
-void LuaIO::message(const std::string &text) const {
+void IO::message(const std::string &text) const {
     const auto eventloop = std::make_unique<QEventLoop>();
     emit newMessageDialog(eventloop.get(), QString::fromStdString(text));
     eventloop->exec();
 }
 
-void LuaIO::speak(const std::string &text) {
+void IO::speak(const std::string &text) {
     QTextToSpeech tts;
     if (tts.engine().isEmpty()) {
         throw sol::error(tr("No TTS engine found").toStdString());

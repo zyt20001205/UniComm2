@@ -1,4 +1,4 @@
-#include "luaModule/luaThread.h"
+#include "luaModule/thread.h"
 
 #include <QThread>
 #include <sol/sol.hpp>
@@ -6,11 +6,11 @@
 #include "globals.h"
 #include "utils/luaUtils.h"
 
-LuaThread::LuaThread(QObject *parent)
+Thread::Thread(QObject *parent)
     : QObject(parent) {
 }
 
-std::string LuaThread::start(const sol::this_state ts, const std::string &scriptPath) {
+std::string Thread::start(const sol::this_state ts, const std::string &scriptPath) {
     sol::state_view lua(ts);
     const auto session = lua["session"].get<QVariantMap *>();
     const int mode = (*session)["mode"].toInt();
@@ -19,10 +19,10 @@ std::string LuaThread::start(const sol::this_state ts, const std::string &script
     return threadId.toStdString();
 }
 
-void LuaThread::stop(const std::string &threadId) {
+void Thread::stop(const std::string &threadId) {
     emit stopThread(QString::fromStdString(threadId));
 }
 
-void LuaThread::sleep(const int ms) {
+void Thread::sleep(const int ms) {
     QThread::msleep(ms);
 }

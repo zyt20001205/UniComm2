@@ -8,16 +8,16 @@
 
 class QEventLoop;
 class QStandardItemModel;
-class LuaDataProcess;
-class LuaIO;
-class LuaKey;
-class LuaModbusAscii;
-class LuaModbusRtu;
-class LuaMouse;
-class LuaPort;
-class LuaSmtp;
-class LuaString;
-class LuaThread;
+class DataProcess;
+class IO;
+class Key;
+class ModbusAscii;
+class ModbusRtu;
+class Mouse;
+class Port;
+class Smtp;
+class String;
+class Thread;
 
 class LuaInterpreter final : public QObject {
     Q_OBJECT
@@ -63,16 +63,16 @@ private:
 
     sol::state m_lua{};
     QVariantMap m_luaSession{};
-    LuaDataProcess *m_luaDataProcess{};
-    LuaIO *m_luaIO{};
-    LuaKey *m_luaKey{};
-    LuaModbusAscii *m_luaModbusAscii{};
-    LuaModbusRtu *m_luaModbusRtu{};
-    LuaMouse *m_luaMouse{};
-    LuaPort *m_luaPort{};
-    LuaSmtp *m_luaSmtp{};
-    LuaString *m_luaString{};
-    LuaThread *m_luaThread{};
+    DataProcess *m_dataProcess{};
+    IO *m_io{};
+    Key *m_key{};
+    ModbusAscii *m_modbusAscii{};
+    ModbusRtu *m_modbusRtu{};
+    Mouse *m_mouse{};
+    Port *m_port{};
+    Smtp *m_smtp{};
+    String *m_string{};
+    Thread *m_thread{};
 };
 
 #endif //UNICOMM_LUAINTERPRETER_H

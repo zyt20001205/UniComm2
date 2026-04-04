@@ -1,4 +1,4 @@
-#include "luaModule/luaDataProcess.h"
+#include "luaModule/dataProcess.h"
 
 #include <sol/table_core.hpp>
 
@@ -7,11 +7,11 @@
 #include "dataModule/datatableModule.h"
 #include "utils/uniCast.h"
 
-LuaDataProcess::LuaDataProcess(QObject *parent)
+DataProcess::DataProcess(QObject *parent)
     : QObject(parent) {
 }
 
-sol::table LuaDataProcess::databaseList(const sol::this_state ts) {
+sol::table DataProcess::databaseList(const sol::this_state ts) {
     QSet<QString> databaseSet{};
     QMetaObject::invokeMethod(g_database, [&databaseSet] {
         databaseSet = g_database->databaseList();
@@ -19,7 +19,7 @@ sol::table LuaDataProcess::databaseList(const sol::this_state ts) {
     return uni_cast<sol::table>(ts, databaseSet);
 }
 
-void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &value) {
+void DataProcess::databaseWrite(const std::string &key, const sol::object &value) {
     bool status = false;
     const QString valueStr = uni_cast<QString>(value);
     QMetaObject::invokeMethod(g_database, [&status, &key, &valueStr] {
@@ -30,7 +30,7 @@ void LuaDataProcess::databaseWrite(const std::string &key, const sol::object &va
     }
 }
 
-sol::table LuaDataProcess::datatableList(const sol::this_state ts) {
+sol::table DataProcess::datatableList(const sol::this_state ts) {
     QSet<QString> datatableSet{};
     QMetaObject::invokeMethod(g_datatable, [&datatableSet] {
         datatableSet = g_datatable->datatableList();
@@ -38,7 +38,7 @@ sol::table LuaDataProcess::datatableList(const sol::this_state ts) {
     return uni_cast<sol::table>(ts, datatableSet);
 }
 
-void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &value) {
+void DataProcess::datatableWrite(const std::string &key, const sol::object &value) {
     bool status = false;
     const QString valueStr = uni_cast<QString>(value);
     QMetaObject::invokeMethod(g_datatable, [&status, &key, &valueStr] {
@@ -49,7 +49,7 @@ void LuaDataProcess::datatableWrite(const std::string &key, const sol::object &v
     }
 }
 
-void LuaDataProcess::datatableExport(const std::string &fileName) {
+void DataProcess::datatableExport(const std::string &fileName) {
     QMetaObject::invokeMethod(g_datatable, [&fileName] {
         g_datatable->datatableExport(QString::fromStdString(fileName));
     }, Qt::BlockingQueuedConnection);

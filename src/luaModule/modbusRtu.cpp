@@ -1,4 +1,4 @@
-#include "luaModule/luaModbusRtu.h"
+#include "luaModule/modbusRtu.h"
 
 #include <sol/error.hpp>
 
@@ -7,11 +7,11 @@
 #include "portModule/portModule.h"
 #include "utils/suffixUtils.h"
 
-LuaModbusRtu::LuaModbusRtu(QObject *parent)
+ModbusRtu::ModbusRtu(QObject *parent)
     : QObject(parent) {
 }
 
-std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const int timeout) {
+std::string ModbusRtu::readHoldingRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -55,7 +55,7 @@ std::string LuaModbusRtu::readHoldingRegisters(const std::string &portName, cons
     return {regData.constData(), static_cast<std::string::size_type>(regData.size())};
 }
 
-void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const int timeout) {
+void ModbusRtu::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -96,7 +96,7 @@ void LuaModbusRtu::writeSingleRegister(const std::string &portName, const int sl
     }
 }
 
-void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const int timeout) {
+void ModbusRtu::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }

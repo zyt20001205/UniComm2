@@ -1,5 +1,5 @@
-#ifndef UNICOMM_LUAIO_H
-#define UNICOMM_LUAIO_H
+#ifndef UNICOMM_IO_H
+#define UNICOMM_IO_H
 
 #include <QObject>
 
@@ -9,13 +9,13 @@ namespace sol {
     struct variadic_args;
 }
 
-class LuaIO final : public QObject {
+class IO final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaIO(QObject *parent = nullptr);
+    explicit IO(QObject *parent = nullptr);
 
-    ~LuaIO() override = default;
+    ~IO() override = default;
 
     void log(const sol::variadic_args &args);
 
@@ -29,4 +29,4 @@ signals:
     void newMessageDialog(const QEventLoop *eventloop, const QString &text) const;
 };
 
-#endif //UNICOMM_LUAIO_H
+#endif //UNICOMM_IO_H

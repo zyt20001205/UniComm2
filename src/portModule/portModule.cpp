@@ -1,7 +1,7 @@
 #include "portModule/portModule.h"
 
 #include <QDir>
-#include <QFile>
+#include <QJsonArray>
 #include <QLabel>
 #include <QMenu>
 #include <QQmlContext>
@@ -9,7 +9,6 @@
 #include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QTimer>
-#include <QVBoxLayout>
 
 #include "globals.h"
 #include "portModule/basePort.h"

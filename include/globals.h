@@ -60,8 +60,8 @@ enum {
 };
 
 enum {
-    LUATHREAD_RUN,
-    LUATHREAD_DEBUG
+    THREAD_RUN,
+    THREAD_DEBUG
 };
 
 enum {

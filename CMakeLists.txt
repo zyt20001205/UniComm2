@@ -40,18 +40,18 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/globals.h
         include/systemModule.h
         include/logModule.h
-        include/luaModule/luaDataProcess.h
+        include/luaModule/dataProcess.h
         include/luaModule/luaInterpreter.h
-        include/luaModule/luaIO.h
-        include/luaModule/luaKey.h
+        include/luaModule/io.h
+        include/luaModule/key.h
         include/luaModule/luaLanguageServer.h
-        include/luaModule/luaModbusAscii.h
-        include/luaModule/luaModbusRtu.h
-        include/luaModule/luaMouse.h
-        include/luaModule/luaPort.h
-        include/luaModule/luaSmtp.h
-        include/luaModule/luaString.h
-        include/luaModule/luaThread.h
+        include/luaModule/modbusAscii.h
+        include/luaModule/modbusRtu.h
+        include/luaModule/mouse.h
+        include/luaModule/port.h
+        include/luaModule/smtp.h
+        include/luaModule/string.h
+        include/luaModule/thread.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
@@ -105,18 +105,18 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/globals.cpp
         src/systemModule.cpp
         src/logModule.cpp
-        src/luaModule/luaDataProcess.cpp
+        src/luaModule/dataProcess.cpp
         src/luaModule/luaInterpreter.cpp
-        src/luaModule/luaIO.cpp
-        src/luaModule/luaKey.cpp
+        src/luaModule/io.cpp
+        src/luaModule/key.cpp
         src/luaModule/luaLanguageServer.cpp
-        src/luaModule/luaModbusAscii.cpp
-        src/luaModule/luaModbusRtu.cpp
-        src/luaModule/luaMouse.cpp
-        src/luaModule/luaPort.cpp
-        src/luaModule/luaSmtp.cpp
-        src/luaModule/luaString.cpp
-        src/luaModule/luaThread.cpp
+        src/luaModule/modbusAscii.cpp
+        src/luaModule/modbusRtu.cpp
+        src/luaModule/mouse.cpp
+        src/luaModule/port.cpp
+        src/luaModule/smtp.cpp
+        src/luaModule/string.cpp
+        src/luaModule/thread.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp

@@ -1093,7 +1093,7 @@ void ScriptPage::marginClick(const Scintilla::Position position, const int mouse
                 for (int current = line; current < m_editorWidget->lineCountGet(); ++current) {
                     const QString text = m_editorWidget->textGet(current, 0, current, -1);
                     if (text.contains("--#endregion")) {
-                        emit startThread(m_scriptUrl, LUATHREAD_RUN, line + 1, 0, current - 1, -1);
+                        emit startThread(m_scriptUrl, THREAD_RUN, line + 1, 0, current - 1, -1);
                         return;
                     }
                 }

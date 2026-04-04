@@ -1,4 +1,4 @@
-#include "luaModule/luaSmtp.h"
+#include "luaModule/smtp.h"
 
 #include <QFileInfo>
 #include <QMimeDatabase>
@@ -10,11 +10,11 @@
 #include "portModule/portModule.h"
 #include "utils/luaUtils.h"
 
-LuaSmtp::LuaSmtp(QObject *parent)
+Smtp::Smtp(QObject *parent)
     : QObject(parent) {
 }
 
-void LuaSmtp::ehlo(const std::string &portName) {
+void Smtp::ehlo(const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -38,7 +38,7 @@ void LuaSmtp::ehlo(const std::string &portName) {
     }
 }
 
-void LuaSmtp::authLogin(const std::string &portName, const std::string &username, const std::string &password) {
+void Smtp::authLogin(const std::string &portName, const std::string &username, const std::string &password) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -93,7 +93,7 @@ void LuaSmtp::authLogin(const std::string &portName, const std::string &username
     }
 }
 
-void LuaSmtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
+void Smtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
                    const std::string &attachment) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");

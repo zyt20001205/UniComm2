@@ -6,16 +6,16 @@
 #include <sol/sol.hpp>
 
 #include "globals.h"
-#include "luaModule/luaDataProcess.h"
-#include "luaModule/luaIO.h"
-#include "luaModule/LuaKey.h"
-#include "luaModule/luaPort.h"
-#include "luaModule/luaModbusAscii.h"
-#include "luaModule/luaModbusRtu.h"
-#include "luaModule/luaMouse.h"
-#include "luaModule/luaSmtp.h"
-#include "luaModule/luaString.h"
-#include "luaModule/luaThread.h"
+#include "luaModule/dataProcess.h"
+#include "luaModule/io.h"
+#include "luaModule/key.h"
+#include "luaModule/port.h"
+#include "luaModule/modbusAscii.h"
+#include "luaModule/modbusRtu.h"
+#include "luaModule/mouse.h"
+#include "luaModule/smtp.h"
+#include "luaModule/string.h"
+#include "luaModule/thread.h"
 #include "scriptModule/scriptModule.h"
 #include "utils/luaUtils.h"
 #include "utils/uniCast.h"
@@ -24,16 +24,16 @@
 LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
-      m_luaDataProcess(new LuaDataProcess(this)),
-      m_luaIO(new LuaIO(this)),
-      m_luaKey(new LuaKey(this)),
-      m_luaModbusAscii(new LuaModbusAscii(this)),
-      m_luaModbusRtu(new LuaModbusRtu(this)),
-      m_luaMouse(new LuaMouse(this)),
-      m_luaPort(new LuaPort(this)),
-      m_luaSmtp(new LuaSmtp(this)),
-      m_luaString(new LuaString(this)),
-      m_luaThread(new LuaThread(this)) {
+      m_dataProcess(new DataProcess(this)),
+      m_io(new IO(this)),
+      m_key(new Key(this)),
+      m_modbusAscii(new ModbusAscii(this)),
+      m_modbusRtu(new ModbusRtu(this)),
+      m_mouse(new Mouse(this)),
+      m_port(new Port(this)),
+      m_smtp(new Smtp(this)),
+      m_string(new String(this)),
+      m_thread(new Thread(this)) {
     // LuaStandard lib
     {
         m_lua.open_libraries();
@@ -44,36 +44,36 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         const QString newPath = QString("%1;%2").arg(QString::fromStdString(currentPath), workspacePath);
         package["path"] = newPath.toStdString();
     }
-    // LuaDataProcess lib
+    // DataProcess lib
     {
         auto database = m_lua.create_table();
-        database.set_function("list", [](const sol::this_state ts) { return LuaDataProcess::databaseList(ts); });
-        database.set_function("write", [](const std::string &key, const sol::object &value) { LuaDataProcess::databaseWrite(key, value); });
+        database.set_function("list", [](const sol::this_state ts) { return DataProcess::databaseList(ts); });
+        database.set_function("write", [](const std::string &key, const sol::object &value) { DataProcess::databaseWrite(key, value); });
         m_lua["database"] = database;
 
         auto datatable = m_lua.create_table();
-        datatable.set_function("list", [](const sol::this_state ts) { return LuaDataProcess::datatableList(ts); });
-        datatable.set_function("write", [](const std::string &key, const sol::object &value) { LuaDataProcess::datatableWrite(key, value); });
-        datatable.set_function("export", [](const sol::optional<std::string> &fileName) { LuaDataProcess::datatableExport(fileName.value_or("")); });
+        datatable.set_function("list", [](const sol::this_state ts) { return DataProcess::datatableList(ts); });
+        datatable.set_function("write", [](const std::string &key, const sol::object &value) { DataProcess::datatableWrite(key, value); });
+        datatable.set_function("export", [](const sol::optional<std::string> &fileName) { DataProcess::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;
     }
-    // LuaIO lib
+    // IO lib
     {
         auto io = m_lua.create_table();
-        io.set_function("log", [this](const sol::variadic_args &args) { m_luaIO->log(args); });
-        io.set_function("message", [this](const std::string &text) { m_luaIO->message(text); });
-        io.set_function("speak", [](const std::string &text) { LuaIO::speak(text); });
+        io.set_function("log", [this](const sol::variadic_args &args) { m_io->log(args); });
+        io.set_function("message", [this](const std::string &text) { m_io->message(text); });
+        io.set_function("speak", [](const std::string &text) { IO::speak(text); });
         m_lua["io"] = io;
-        connect(m_luaIO, &LuaIO::appendLog, this, &LuaInterpreter::appendLog);
-        connect(m_luaIO, &LuaIO::newMessageDialog, this, [this](const QEventLoop *eventloop, const QString &text) {
+        connect(m_io, &IO::appendLog, this, &LuaInterpreter::appendLog);
+        connect(m_io, &IO::newMessageDialog, this, [this](const QEventLoop *eventloop, const QString &text) {
             emit newMessageDialog(eventloop, m_luaSession["threadId"].toString(), text);
         });
     }
-    // LuaKey lib
+    // Key lib
     {
         auto key = m_lua.create_table();
-        key.set_function("tap", [this](const std::string &key) { m_luaKey->tap(key); });
-        key.set_function("type", [](const std::string &text) { LuaKey::type(text); });
+        key.set_function("tap", [this](const std::string &key) { m_key->tap(key); });
+        key.set_function("type", [](const std::string &text) { Key::type(text); });
         m_lua["key"] = key;
     }
     // LuaModbus lib
@@ -81,89 +81,89 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         auto modbusRtu = m_lua.create_table();
         modbusRtu.set_function("readHoldingRegisters",
                                [](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                                   return LuaModbusRtu::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                                   return ModbusRtu::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
                                });
         modbusRtu.set_function("writeSingleRegister",
                                [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const sol::optional<int> timeout) {
-                                   LuaModbusRtu::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                                   ModbusRtu::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
                                });
         modbusRtu.set_function("writeMultipleRegisters",
                                [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const sol::optional<int> timeout) {
-                                   LuaModbusRtu::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                                   ModbusRtu::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                                });
         m_lua["modbusRtu"] = modbusRtu;
 
         sol::table modbusAscii = m_lua.create_table();
         modbusAscii.set_function("readHoldingRegisters",
                                  [](const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                                     return LuaModbusAscii::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
+                                     return ModbusAscii::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
                                  });
         modbusAscii.set_function("writeSingleRegister",
                                  [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const sol::optional<int> timeout) {
-                                     LuaModbusAscii::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
+                                     ModbusAscii::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
                                  });
         modbusAscii.set_function("writeMultipleRegisters",
                                  [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const sol::optional<int> timeout) {
-                                     LuaModbusAscii::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
+                                     ModbusAscii::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                                  });
         m_lua["modbusAscii"] = modbusAscii;
     }
-    // LuaMouse lib
+    // Mouse lib
     {
         auto mouse = m_lua.create_table();
-        mouse.set_function("click", [](const int x, const int y) { LuaMouse::click(x, y); });
-        mouse.set_function("doubleClick", [](const int x, const int y) { LuaMouse::doubleClick(x, y); });
-        mouse.set_function("rightClick", [](const int x, const int y) { LuaMouse::rightClick(x, y); });
+        mouse.set_function("click", [](const int x, const int y) { Mouse::click(x, y); });
+        mouse.set_function("doubleClick", [](const int x, const int y) { Mouse::doubleClick(x, y); });
+        mouse.set_function("rightClick", [](const int x, const int y) { Mouse::rightClick(x, y); });
         m_lua["mouse"] = mouse;
     }
-    // LuaPort lib
+    // Port lib
     {
         auto port = m_lua.create_table();
-        port.set_function("list", [](const sol::this_state ts) { return LuaPort::list(ts); });
-        port.set_function("info", [](const sol::this_state ts, const std::string &portName) { return LuaPort::info(ts, portName); });
-        port.set_function("open", [](const std::string &portName) { LuaPort::open(portName); });
-        port.set_function("close", [](const std::string &portName) { LuaPort::close(portName); });
-        port.set_function("clear", [](const std::string &portName) { LuaPort::clear(portName); });
+        port.set_function("list", [](const sol::this_state ts) { return Port::list(ts); });
+        port.set_function("info", [](const sol::this_state ts, const std::string &portName) { return Port::info(ts, portName); });
+        port.set_function("open", [](const std::string &portName) { Port::open(portName); });
+        port.set_function("close", [](const std::string &portName) { Port::close(portName); });
+        port.set_function("clear", [](const std::string &portName) { Port::clear(portName); });
         port.set_function("write", [](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
-            LuaPort::write(portName, data, peerIp.value_or(""));
+            Port::write(portName, data, peerIp.value_or(""));
         });
         port.set_function("read",
                           [](const sol::this_state ts, const std::string &portName, const sol::optional<int> length, const sol::optional<int> timeout,
                              const sol::optional<std::string> &peerIp) {
-                              return LuaPort::read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
+                              return Port::read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
                           });
         m_lua["port"] = port;
     }
-    // LuaSmtp lib
+    // Smtp lib
     {
         auto smtp = m_lua.create_table();
-        smtp.set_function("ehlo", [](const std::string &portName) { LuaSmtp::ehlo(portName); });
+        smtp.set_function("ehlo", [](const std::string &portName) { Smtp::ehlo(portName); });
         smtp.set_function("authLogin", [](const std::string &portName, const std::string &username, const std::string &password) {
-            LuaSmtp::authLogin(portName, username, password);
+            Smtp::authLogin(portName, username, password);
         });
         smtp.set_function("mail",
                           [](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
                              const sol::optional<std::string> &attachment) {
-                              LuaSmtp::mail(portName, from, to, subject, body, attachment.value_or(""));
+                              Smtp::mail(portName, from, to, subject, body, attachment.value_or(""));
                           });
         m_lua["smtp"] = smtp;
     }
-    // LuaString lib
+    // String lib
     {
         auto string = m_lua["string"].get_or_create<sol::table>();
-        string.set_function("toHex", [](const std::string_view &ba, const sol::optional<char> separator) { return LuaString::toHex(ba, separator.value_or('\0')); });
-        string.set_function("fromHex", [](const std::string &str) { return LuaString::fromHex(str); });
+        string.set_function("toHex", [](const std::string_view &ba, const sol::optional<char> separator) { return String::toHex(ba, separator.value_or('\0')); });
+        string.set_function("fromHex", [](const std::string &str) { return String::fromHex(str); });
         m_lua["string"] = string;
     }
-    // LuaThread lib
+    // Thread lib
     {
         sol::table thread = m_lua.create_table();
-        thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_luaThread->start(ts, scriptPath); });
-        thread.set_function("stop", [this](const std::string &threadId) { m_luaThread->stop(threadId); });
-        thread.set_function("sleep", [this](const int ms) { m_luaThread->sleep(ms); });
+        thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_thread->start(ts, scriptPath); });
+        thread.set_function("stop", [this](const std::string &threadId) { m_thread->stop(threadId); });
+        thread.set_function("sleep", [this](const int ms) { m_thread->sleep(ms); });
         m_lua["thread"] = thread;
-        connect(m_luaThread, &LuaThread::startThread, this, &LuaInterpreter::startThread);
-        connect(m_luaThread, &LuaThread::stopThread, this, &LuaInterpreter::stopThread);
+        connect(m_thread, &Thread::startThread, this, &LuaInterpreter::startThread);
+        connect(m_thread, &Thread::stopThread, this, &LuaInterpreter::stopThread);
     }
 }
 
@@ -172,7 +172,7 @@ void LuaInterpreter::start(const QString &script) {
     // load session
     m_lua["session"] = &m_luaSession;
     // set hook
-    if (m_luaSession["mode"] == LUATHREAD_RUN) {
+    if (m_luaSession["mode"] == THREAD_RUN) {
         // set run hook
         lua_sethook(L, &luaRunHook, LUA_MASKCOUNT, 100);
     } else {

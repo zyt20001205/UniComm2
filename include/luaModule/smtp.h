@@ -1,15 +1,15 @@
-#ifndef UNICOMM_LUASMTP_H
-#define UNICOMM_LUASMTP_H
+#ifndef UNICOMM_SMTP_H
+#define UNICOMM_SMTP_H
 
 #include <QObject>
 
-class LuaSmtp final : public QObject {
+class Smtp final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaSmtp(QObject *parent = nullptr);
+    explicit Smtp(QObject *parent = nullptr);
 
-    ~LuaSmtp() override = default;
+    ~Smtp() override = default;
 
     static void ehlo(const std::string &portName);
 
@@ -18,4 +18,4 @@ public:
     static void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment);
 };
 
-#endif //UNICOMM_LUASMTP_H
+#endif //UNICOMM_SMTP_H

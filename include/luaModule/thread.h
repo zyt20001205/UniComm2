@@ -1,5 +1,5 @@
-#ifndef UNICOMM_LUATHREAD_H
-#define UNICOMM_LUATHREAD_H
+#ifndef UNICOMM_THREAD_H
+#define UNICOMM_THREAD_H
 
 #include <QObject>
 
@@ -7,13 +7,13 @@ namespace sol {
     struct this_state;
 }
 
-class LuaThread final : public QObject {
+class Thread final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaThread(QObject *parent = nullptr);
+    explicit Thread(QObject *parent = nullptr);
 
-    ~LuaThread() override = default;
+    ~Thread() override = default;
 
     std::string start(sol::this_state ts, const std::string &scriptPath);
 
@@ -27,4 +27,4 @@ signals:
     void stopThread(const QString &threadId);
 };
 
-#endif //UNICOMM_LUATHREAD_H
+#endif //UNICOMM_THREAD_H

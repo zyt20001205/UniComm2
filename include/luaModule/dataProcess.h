@@ -1,16 +1,16 @@
-#ifndef UNICOMM_LUADATAPROCESS_H
-#define UNICOMM_LUADATAPROCESS_H
+#ifndef UNICOMM_DATAPROCESS_H
+#define UNICOMM_DATAPROCESS_H
 
 #include <QObject>
 #include <sol/object.hpp>
 
-class LuaDataProcess final : public QObject {
+class DataProcess final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LuaDataProcess(QObject *parent = nullptr);
+    explicit DataProcess(QObject *parent = nullptr);
 
-    ~LuaDataProcess() override = default;
+    ~DataProcess() override = default;
 
     [[nodiscard]] static sol::table databaseList(sol::this_state ts);
 
@@ -23,4 +23,4 @@ public:
     static void datatableExport(const std::string &fileName);
 };
 
-#endif //UNICOMM_LUADATAPROCESS_H
+#endif //UNICOMM_DATAPROCESS_H

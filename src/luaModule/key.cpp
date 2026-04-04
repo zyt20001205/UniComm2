@@ -1,8 +1,8 @@
-#include "luaModule/luaKey.h"
+#include "luaModule/key.h"
 
 #include <windows.h>
 
-LuaKey::LuaKey(QObject *parent)
+Key::Key(QObject *parent)
     : QObject(parent),
       m_vkHash{
           {"BACKSPACE", VK_BACK},
@@ -65,7 +65,7 @@ LuaKey::LuaKey(QObject *parent)
       } {
 }
 
-void LuaKey::tap(const std::string &key) {
+void Key::tap(const std::string &key) {
     INPUT inputs[2] = {};
     inputs[0].type = INPUT_KEYBOARD;
     inputs[0].ki.wVk = m_vkHash[QString::fromStdString(key)];
@@ -74,7 +74,7 @@ void LuaKey::tap(const std::string &key) {
     SendInput(2, inputs, sizeof(INPUT));
 }
 
-void LuaKey::type(const std::string &text) {
+void Key::type(const std::string &text) {
     for (const wchar_t ch : QString::fromStdString(text).toStdWString()) {
         INPUT inputs[2] = {};
         inputs[0].type = INPUT_KEYBOARD;

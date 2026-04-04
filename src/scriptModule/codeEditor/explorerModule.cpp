@@ -42,12 +42,12 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 
 void ExplorerModule::scriptRun(const QString &scriptPath) {
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
-    emit startThread(scriptUrl, LUATHREAD_RUN, -1, -1, -1, -1);
+    emit startThread(scriptUrl, THREAD_RUN, -1, -1, -1, -1);
 }
 
 void ExplorerModule::scriptDebug(const QString &scriptPath) {
     const QUrl scriptUrl = QUrl::fromLocalFile(scriptPath);
-    emit startThread(scriptUrl, LUATHREAD_DEBUG, -1, -1, -1, -1);
+    emit startThread(scriptUrl, THREAD_DEBUG, -1, -1, -1, -1);
 }
 
 void ExplorerModule::scriptOpen(const QString &scriptPath) {

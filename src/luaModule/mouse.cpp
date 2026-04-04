@@ -1,13 +1,13 @@
-#include "luaModule/luaMouse.h"
+#include "luaModule/mouse.h"
 
 #include <QThread>
 #include <windows.h>
 
-LuaMouse::LuaMouse(QObject *parent)
+Mouse::Mouse(QObject *parent)
     : QObject(parent) {
 }
 
-void LuaMouse::click(const int x, const int y) {
+void Mouse::click(const int x, const int y) {
     SetCursorPos(x, y);
     INPUT inputs[2] = {};
     inputs[0].type = INPUT_MOUSE;
@@ -17,7 +17,7 @@ void LuaMouse::click(const int x, const int y) {
     SendInput(2, inputs, sizeof(INPUT));
 }
 
-void LuaMouse::doubleClick(const int x, const int y) {
+void Mouse::doubleClick(const int x, const int y) {
     SetCursorPos(x, y);
     INPUT inputs[2] = {};
     inputs[0].type = INPUT_MOUSE;
@@ -29,7 +29,7 @@ void LuaMouse::doubleClick(const int x, const int y) {
     SendInput(2, inputs, sizeof(INPUT));
 }
 
-void LuaMouse::rightClick(const int x, const int y) {
+void Mouse::rightClick(const int x, const int y) {
     SetCursorPos(x, y);
     INPUT inputs[2] = {};
     inputs[0].type = INPUT_MOUSE;

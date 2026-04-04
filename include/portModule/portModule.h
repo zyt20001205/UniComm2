@@ -1,7 +1,6 @@
-#ifndef UNICOMM_PORT_H
-#define UNICOMM_PORT_H
+#ifndef UNICOMM_PORTMODULE_H
+#define UNICOMM_PORTMODULE_H
 
-#include <QJsonArray>
 #include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 
@@ -52,4 +51,4 @@ private:
     PortSetting *m_portSetting{};
 };
 
-#endif //UNICOMM_PORT_H
+#endif //UNICOMM_PORTMODULE_H
