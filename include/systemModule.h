@@ -29,6 +29,10 @@ public:
 
     Q_INVOKABLE static void copyToClipboard(const QUrl &fileUrl);
 
+    static QString textGet(const QUrl &scriptUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+
+    // void textSet();
+
 signals:
     void appendLog(const QString &message, int type);
 
@@ -41,9 +45,9 @@ private:
 
     void didDeleteFilesNotification(const QUrl &fileUrl);
 
-    QObject* m_busyDialog{};
-    QObject* m_messageDialog{};
-    QProcess* m_process{};
+    QObject *m_busyDialog{};
+    QObject *m_messageDialog{};
+    QProcess *m_process{};
 };
 
 #endif //UNICOMM_SYSTEMMODULE_H

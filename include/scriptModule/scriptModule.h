@@ -68,7 +68,7 @@ public:
 
     void indexGet() const;
 
-    QString textGet(const QUrl &scriptUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    [[nodiscard]] QString textGet(const QUrl &scriptUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
     void indicatorFill(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1);
 

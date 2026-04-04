@@ -6,6 +6,7 @@
 #include <QTimer>
 
 #include "globals.h"
+#include "systemModule.h"
 #include "portModule/portModule.h"
 #include "scriptModule/scriptPage.h"
 #include "scriptModule/welcomePage.h"
@@ -197,7 +198,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         }
         // insert url to hash
         m_scriptPageHash[scriptUrl] = scriptPage;
-        connect(scriptPage, &ScriptPage::isFocusedChanged, this, [this, scriptPage](const bool status) {scriptFocus(scriptPage, status);});
+        connect(scriptPage, &ScriptPage::isFocusedChanged, this, [this, scriptPage](const bool status) { scriptFocus(scriptPage, status); });
         connect(scriptPage, &ScriptPage::appendLog, this, &ScriptModule::appendLog);
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::startThread, this, &ScriptModule::startThread);
@@ -297,37 +298,7 @@ QString ScriptModule::textGet(const QUrl &scriptUrl, const int startLine, const 
     if (m_scriptPageHash.contains(scriptUrl)) {
         return m_scriptPageHash[scriptUrl]->m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
     }
-    // TODO: rewrite text get from file later
-    return {};
-    // QString script{};
-    // // get text from editor
-    // if (m_scriptPageHash.contains(scriptUrl)) {
-    //     const auto *scriptPage = m_scriptPageHash[scriptUrl];
-    //     script = scriptPage->m_editorWidget->text();
-    //     script.replace("\r\n", "\n");
-    // }
-    // // get text from file
-    // else {
-    //     QFile file(scriptUrl.toLocalFile());
-    //     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    //         QTextStream in(&file);
-    //         script = in.readAll();
-    //         file.close();
-    //     }
-    // }
-    // // get full script if start line is -1
-    // if (startLine == -1) {
-    //     return script;
-    // }
-    // // split script into lines
-    // const QStringList lines = script.split("\n");
-    // // get full line if start character is -1
-    // if (startCharacter == -1) {
-    //     const QString &line = lines[startLine];
-    //     m_codeAssistant->navigationResponse(line);
-    //     return line;
-    // }
-    // return {};
+    return SystemModule::textGet(scriptUrl, startLine, startCharacter, endLine, endCharacter);
 }
 
 void ScriptModule::indicatorFill(const QUrl &scriptUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {

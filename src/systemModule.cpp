@@ -161,6 +161,26 @@ void SystemModule::copyToClipboard(const QUrl &fileUrl) {
     clipboard->setText(fileUrl.toString());
 }
 
+QString SystemModule::textGet(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    // TODO: character not implemented
+    QFile file(scriptUrl.toLocalFile());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {};
+    QTextStream in(&file);
+    if (startLine == -1) return in.readAll();
+    QStringList lines{};
+    while (!in.atEnd()) {
+        const auto line = in.readLine();
+        lines.append(line);
+    }
+    QString text{};
+    QTextStream out(&text);
+    for (int i = startLine; i <= endLine; ++i) {
+        out << lines.at(i);
+        if (i < endLine) out << Qt::endl;
+    }
+    return text;
+}
+
 void SystemModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &newUrl) {
     // did rename files notification to lua language server
     const QJsonObject didRenameFilesParams{
@@ -179,13 +199,13 @@ void SystemModule::didRenameFilesNotification(const QUrl &oldUrl, const QUrl &ne
 void SystemModule::didDeleteFilesNotification(const QUrl &fileUrl) {
     // did delete files notification to lua language server
     const QJsonObject didDeleteFilesParams{
-            {
-                "files", QJsonArray{
-                    QJsonObject{
-                        {"uri", fileUrl.toString()}
-                    }
+        {
+            "files", QJsonArray{
+                QJsonObject{
+                    {"uri", fileUrl.toString()}
                 }
             }
+        }
     };
     emit notificationJson("workspace/didDeleteFiles", didDeleteFilesParams);
 }
