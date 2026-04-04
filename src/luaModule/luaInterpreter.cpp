@@ -12,6 +12,7 @@
 #include "luaModule/port.h"
 #include "luaModule/modbusAscii.h"
 #include "luaModule/modbusRtu.h"
+#include "luaModule/modbusTcp.h"
 #include "luaModule/mouse.h"
 #include "luaModule/smtp.h"
 #include "luaModule/string.h"
@@ -29,6 +30,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_key(new Key(this)),
       m_modbusAscii(new ModbusAscii(this)),
       m_modbusRtu(new ModbusRtu(this)),
+      m_modbusTcp(new ModbusTcp(this)),
       m_mouse(new Mouse(this)),
       m_port(new Port(this)),
       m_smtp(new Smtp(this)),
@@ -107,6 +109,21 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                                      ModbusAscii::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                                  });
         m_lua["modbusAscii"] = modbusAscii;
+
+        sol::table modbusTcp = m_lua.create_table();
+        modbusTcp.set_function("readHoldingRegisters",
+                                 [](const std::string &portName, const int transactionId, const int unitId, const int startAddr, const int quantity, const sol::optional<int> timeout) {
+                                     return ModbusTcp::readHoldingRegisters(portName, transactionId, unitId, startAddr, quantity, timeout.value_or(1000));
+                                 });
+        modbusTcp.set_function("writeSingleRegister",
+                                 [](const std::string &portName, const int transactionId, const int unitId, const int regAddr, const std::string &data, const sol::optional<int> timeout) {
+                                     ModbusTcp::writeSingleRegister(portName, transactionId, unitId, regAddr, data, timeout.value_or(1000));
+                                 });
+        modbusTcp.set_function("writeMultipleRegisters",
+                                 [](const std::string &portName, const int transactionId, const int unitId, const int startAddr, const std::string &data, const sol::optional<int> timeout) {
+                                     ModbusTcp::writeMultipleRegisters(portName, transactionId, unitId, startAddr, data, timeout.value_or(1000));
+                                 });
+        m_lua["modbusTcp"] = modbusTcp;
     }
     // Mouse lib
     {

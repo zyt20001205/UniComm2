@@ -1,3 +1,11 @@
+# v0.2.0-alpha2
+
+## APIS
+
+- ModbusAscii rewrite.
+- ModbusRtu rewrite.
+- ModbusTcp supported.
+
 # v0.2.0-alpha1
 
 ## Infrastructure

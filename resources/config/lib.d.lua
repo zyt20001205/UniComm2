@@ -146,7 +146,7 @@ function modbusAscii.readHoldingRegisters(name, slaveAddr, startAddr, quantity, 
 --- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param regAddr integer The address of the register to write to.
---- @param data string **Binary string** containing the raw data to be written.
+--- @param data string **Hex string** containing the raw data to be written.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusAscii.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
@@ -155,7 +155,7 @@ function modbusAscii.writeSingleRegister(name, slaveAddr, regAddr, data, timeout
 --- @param name portName Target port name.
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
---- @param data string **Binary string** containing the raw data to be written.
+--- @param data string **Hex string** string** containing the raw data to be written.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusAscii.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
@@ -187,6 +187,37 @@ function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) 
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
+
+modbusTcp = {}
+--- Reads data from multiple holding registers of a Modbus TCP device.
+--- @param name portName Target port name.
+--- @param transactionId integer The transaction id used for pairing.
+--- @param unitId integer The unit id (1-247) of the target device on the network.
+--- @param startAddr integer The starting address of the first register to write to.
+--- @param quantity integer Number of registers to read.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @return string
+function modbusTcp.readHoldingRegisters(name, transactionId, unitId, startAddr, quantity, timeout) end
+
+--- Writes data to write single register to a Modbus TCP device.
+--- @param name portName Target port name.
+--- @param transactionId integer The transaction id used for pairing.
+--- @param unitId integer The unit id (1-247) of the target device on the network.
+--- @param regAddr integer The address of the register to write to.
+--- @param data string **Hex string** containing the data to be written.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
+function modbusTcp.writeSingleRegister(name, transactionId, unitId, regAddr, data, timeout) end
+
+--- Writes data to multiple holding registers to a Modbus TCP device.
+--- @param name portName Target port name.
+--- @param transactionId integer The transaction id used for pairing.
+--- @param unitId integer The unit id (1-247) of the target device on the network.
+--- @param startAddr integer The starting address of the first register to write to.
+--- @param data string **Hex string** containing the data to be written.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
+function modbusTcp.writeMultipleRegisters(name, transactionId, unitId, startAddr, data, timeout) end
 
 mouse = {}
 

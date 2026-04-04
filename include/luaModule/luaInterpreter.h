@@ -13,6 +13,7 @@ class IO;
 class Key;
 class ModbusAscii;
 class ModbusRtu;
+class ModbusTcp;
 class Mouse;
 class Port;
 class Smtp;
@@ -68,6 +69,7 @@ private:
     Key *m_key{};
     ModbusAscii *m_modbusAscii{};
     ModbusRtu *m_modbusRtu{};
+    ModbusTcp *m_modbusTcp{};
     Mouse *m_mouse{};
     Port *m_port{};
     Smtp *m_smtp{};
