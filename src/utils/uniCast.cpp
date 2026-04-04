@@ -1,9 +1,23 @@
 #include "utils/uniCast.h"
 
+#include <QUrl>
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
+
+// luals -> qt
+template<>
+QUrl uni_cast<QUrl, QString>(const QString &s, const int depth) {
+    auto uri = QUrl::fromPercentEncoding(s.toUtf8());
+    if (uri.length() > 8) {
+        const QChar drive = uri[8];
+        if (drive.isLetter() && drive.isLower()) {
+            uri[8] = drive.toUpper();
+        }
+    }
+    return {uri};
+}
 
 // sol -> qt
 template<>
@@ -124,8 +138,7 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
         throw sol::error("Maximum recursion depth exceeded");
     }
     if (!s.isValid()) return sol::nil;
-    switch (s.typeId())
-    {
+    switch (s.typeId()) {
         case QMetaType::Bool:
             return sol::make_object(lua, s.toBool());
         case QMetaType::Int:
@@ -140,8 +153,8 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
             const auto _s = s.toMap();
             sol::table _d = lua.create_table();
             for (auto it = _s.constBegin(); it != _s.constEnd(); ++it) {
-                const QString& key = it.key();
-                const QVariant& value = it.value();
+                const QString &key = it.key();
+                const QVariant &value = it.value();
                 _d[key.toStdString()] = uni_cast<sol::object>(ts, value, depth + 1);
             }
             return sol::make_object(lua, _d);
@@ -152,8 +165,8 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
             const auto _s = s.toHash();
             sol::table _d = lua.create_table();
             for (auto it = _s.constBegin(); it != _s.constEnd(); ++it) {
-                const QString& key = it.key();
-                const QVariant& value = it.value();
+                const QString &key = it.key();
+                const QVariant &value = it.value();
                 _d[key.toStdString()] = uni_cast<sol::object>(ts, value, depth + 1);
             }
             return sol::make_object(lua, _d);
@@ -174,7 +187,7 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
 }
 
 template<>
- sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const QVariantHash &s, const int depth) {
+sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const QVariantHash &s, const int depth) {
     return uni_cast<sol::object, QVariant>(ts, QVariant::fromValue(s), depth);
 }
 
@@ -184,7 +197,7 @@ sol::object uni_cast<sol::object, QVariantMap>(const sol::this_state ts, const Q
 }
 
 template<>
-sol::table uni_cast<sol::table, QSet<QString>>(const sol::this_state ts, const QSet<QString> &s, int depth) {
+sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const QSet<QString> &s, int depth) {
     sol::state_view lua(ts);
     int index = 1;
     sol::table d = lua.create_table();

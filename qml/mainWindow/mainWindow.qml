@@ -241,9 +241,11 @@ Item {
         modal: true
         title: qsTr("Lua language server initializing...")
         topPadding: 30; bottomPadding: 20
-        visible: !(token2 === 1.0 && token3 === 1.0)
-        property real token2
-        property real token3
+        visible: !(done2 && done3)
+        property real create2
+        property real create3
+        property bool done2: false
+        property bool done3: false
 
         onOpened: {
             mainWindow.overlayFocus(true)
@@ -255,7 +257,7 @@ Item {
             width: parent.width
 
             ProgressBar {
-                value: lualsProgressDialog.token2
+                value: lualsProgressDialog.create2
                 Layout.fillWidth: true
             }
 
@@ -264,7 +266,7 @@ Item {
             }
 
             ProgressBar {
-                value: lualsProgressDialog.token3
+                value: lualsProgressDialog.create3
                 Layout.fillWidth: true
             }
         }

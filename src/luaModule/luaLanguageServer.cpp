@@ -3,6 +3,7 @@
 #include <QJsonArray>
 
 #include "globals.h"
+#include "utils/uniCast.h"
 
 // public
 LuaLanguageServer::LuaLanguageServer(QWidget *parent)
@@ -104,51 +105,67 @@ void LuaLanguageServer::jsonParser() {
         const long long headerStartIndex = m_buffer.indexOf("Content-Length: ") + 16;
         const long long headerEndIndex = m_buffer.indexOf("\r\n\r\n");
         if (headerEndIndex == -1) break;
-        const QByteArray lengthBytes = m_buffer.mid(headerStartIndex, headerEndIndex - headerStartIndex);
-        const int length = lengthBytes.toInt();
+        const auto lengthBytes = m_buffer.mid(headerStartIndex, headerEndIndex - headerStartIndex);
+        const auto length = lengthBytes.toInt();
         if (m_buffer.size() < headerEndIndex + 4 + length) break;
-        const QByteArray dataBytes = m_buffer.mid(headerEndIndex + 4, lengthBytes.toInt());
-        const QJsonObject json = QJsonDocument::fromJson(dataBytes).object();
+        const auto dataBytes = m_buffer.mid(headerEndIndex + 4, lengthBytes.toInt());
+        const auto json = QJsonDocument::fromJson(dataBytes).object();
         // qDebug() << json;
         m_buffer.remove(0, headerEndIndex + 4 + length);
         if (json.contains("method")) {
             // lsp notification
-            const QString method = json["method"].toString();
+            const auto method = json["method"].toString();
             if (method == "textDocument/publishDiagnostics") {
                 // publish diagnostics notification
-                const QJsonObject params = json["params"].toObject();
-                const QJsonArray diagnostics = params["diagnostics"].toArray();
-                QString uri = params["uri"].toString();
-                uri = QUrl::fromPercentEncoding(uri.toUtf8());
-                if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
-                    drive = drive.toUpper();
-                }
-                const QUrl scriptUrl(uri);
+                const auto params = json["params"].toObject();
+                const auto diagnostics = params["diagnostics"].toArray();
+                const auto uri = params["uri"].toString();
+                const auto scriptUrl = uni_cast<QUrl>(uri);
                 emit notificationPublishDiagnostics(scriptUrl, diagnostics);
-            }
-            else if (method == "$/progress") {
+            } else if (method == "$/hello") {
+                // hello notification
+                // qDebug() << json;
+            } else if (method == "$/progress") {
                 // progress notification
                 // qDebug() << json;
-                const QJsonObject params = json["params"].toObject();
-                const int token = params["token"].toInt();
-                const QJsonObject value = params["value"].toObject();
+                const auto params = json["params"].toObject();
+                const auto token = params["token"].toInt();
+                const auto value = params["value"].toObject();
                 if (token == 2) {
                     const int percentage = value["percentage"].toInt(100);
-                    m_progressDialog->setProperty("token2", percentage / 100.0);
+                    m_progressDialog->setProperty("create2", percentage / 100.0);
                 } else if (token == 3) {
                     const int percentage = value["percentage"].toInt(100);
-                    m_progressDialog->setProperty("token3", percentage / 100.0);
+                    m_progressDialog->setProperty("create3", percentage / 100.0);
                 }
-            }
-            else {
+            } else if (method == "window/logMessage") {
+                // log message notification
+                // qDebug() << json;
+                const auto params = json["params"].toObject();
+                const auto message = params["message"].toString().remove("Log path: ");
+                const auto url = uni_cast<QUrl>(message);
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] Log path: %2").arg(timestamp, url.toString());
+            } else if (method == "window/workDoneProgress/create") {
+                // work done progress notification
+                // qDebug() << json;
+                const auto params = json["params"].toObject();
+                const auto token = params["token"].toInt();
+                if (token == 2) {
+                    m_progressDialog->setProperty("done2", true);
+                } else if (token == 3) {
+                    m_progressDialog->setProperty("done3", true);
+                }
+            } else {
                 qDebug() << "unknown lsp pack";
                 qDebug() << json;
             }
         } else if (json.contains("id")) {
             // lsp response
-            const int id = json["id"].toInt();
-            const QString method = m_methods[id];
-            const QUrl scriptUrl = m_urls[id];
+            const auto id = json["id"].toInt();
+            const auto method = m_methods[id];
+            const auto scriptUrl = m_urls[id];
             m_methods.remove(id);
             m_urls.remove(id);
             if (method == "initialize") {
@@ -162,39 +179,39 @@ void LuaLanguageServer::jsonParser() {
             } else if (method == "textDocument/codeAction") {
                 // code action response
                 // if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseCodeAction(scriptUrl, result);
             } else if (method == "textDocument/completion") {
                 // completion response
                 if (!json["result"].isObject()) return; // null result
-                const QJsonObject result = json["result"].toObject();
-                const QJsonArray items = result["items"].toArray();
+                const auto result = json["result"].toObject();
+                const auto items = result["items"].toArray();
                 emit responseCompletion(scriptUrl, items);
             } else if (method == "textDocument/definition") {
                 // definition response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseDefinition(scriptUrl, result);
             } else if (method == "textDocument/documentHighlight") {
                 // document highlight response
                 // if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseDocumentHighlight(scriptUrl, result);
             } else if (method == "textDocument/documentSymbol") {
                 // document symbol response
                 // if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseDocumentSymbol(scriptUrl, result);
             } else if (method == "textDocument/foldingRange") {
                 // folding range response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseFoldingRange(scriptUrl, result);
             } else if (method == "textDocument/formatting") {
                 // formatting response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
-                const QString newText = result[0]["newText"].toString();
+                const auto result = json["result"].toArray();
+                const auto newText = result[0]["newText"].toString();
                 emit responseFormatting(scriptUrl, newText);
             } else if (method == "textDocument/hover") {
                 // hover response
@@ -202,49 +219,49 @@ void LuaLanguageServer::jsonParser() {
                     // null result
                     emit responseHover(scriptUrl, "");
                 } else {
-                    const QJsonObject result = json["result"].toObject();
-                    const QJsonObject contents = result["contents"].toObject();
-                    const QString value = contents["value"].toString();
+                    const auto result = json["result"].toObject();
+                    const auto contents = result["contents"].toObject();
+                    const auto value = contents["value"].toString();
                     emit responseHover(scriptUrl, value);
                 }
             } else if (method == "textDocument/implementation") {
                 // implementation response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseImplementation(scriptUrl, result);
             } else if (method == "textDocument/onTypeFormatting") {
                 // on type formatting response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
-                const QJsonObject newText = result[0].toObject();
+                const auto result = json["result"].toArray();
+                const auto newText = result[0].toObject();
                 emit responseOnTypeFormatting(scriptUrl, newText);
             } else if (method == "textDocument/rangeFormatting") {
                 // range formatting response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
-                const QString newText = result[0]["newText"].toString();
+                const auto result = json["result"].toArray();
+                const auto newText = result[0]["newText"].toString();
                 emit responseRangeFormatting(scriptUrl, newText);
             } else if (method == "textDocument/references") {
                 // references response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseReferences(scriptUrl, result);
             } else if (method == "textDocument/semanticTokens/full") {
                 // semanticTokens response
                 if (!json["result"].isObject()) return; // null result
-                const QJsonObject result = json["result"].toObject();
-                const QJsonArray data = result["data"].toArray();
+                const auto result = json["result"].toObject();
+                const auto data = result["data"].toArray();
                 emit responseSemanticTokens(scriptUrl, data);
             } else if (method == "textDocument/signatureHelp") {
                 // signatureHelp response
                 if (!json["result"].isObject()) return; // null result
-                const QJsonObject result = json["result"].toObject();
-                const QJsonArray signatures = result["signatures"].toArray();
+                const auto result = json["result"].toObject();
+                const auto signatures = result["signatures"].toArray();
                 emit responseSignatureHelp(scriptUrl, signatures);
             } else if (method == "textDocument/typeDefinition") {
                 // typeDefinition response
                 if (!json["result"].isArray()) return; // null result
-                const QJsonArray result = json["result"].toArray();
+                const auto result = json["result"].toArray();
                 emit responseTypeDefinition(scriptUrl, result);
             } else {
                 qDebug() << "unknown lsp pack";

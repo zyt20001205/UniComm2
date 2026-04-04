@@ -4,6 +4,7 @@
 
 #include "globals.h"
 #include "scriptModule/nuspellModule.h"
+#include "utils/uniCast.h"
 
 // public
 DwellWidget::DwellWidget(QWidget *parent)
@@ -94,11 +95,7 @@ void DwellWidget::codeActionAccept(const QJsonObject &codeAction) {
     const auto changes = codeAction["changes"].toObject();
     for (auto it = changes.begin(); it != changes.end(); ++it) {
         QString uri = it.key();
-        uri = QUrl::fromPercentEncoding(uri.toUtf8());
-        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) {
-            drive = drive.toUpper();
-        }
-        const QUrl scriptUrl(uri);
+        const auto scriptUrl = uni_cast<QUrl>(uri);
         const QJsonArray changeArray = it.value().toArray();
         for (const auto &value: changeArray) {
             const auto change = value.toObject();

@@ -5,6 +5,7 @@
 
 #include "globals.h"
 #include "scriptModule/scriptModule.h"
+#include "utils/uniCast.h"
 
 // public
 NavigationWidget::NavigationWidget(QWidget *parent)
@@ -39,9 +40,7 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
     for (const auto &value: navigations) {
         const QJsonObject navigation = value.toObject();
         QString uri = navigation["uri"].toString();
-        uri = QUrl::fromPercentEncoding(uri.toUtf8());
-        if (QChar &drive = uri[8]; drive.isLetter() && drive.isLower()) { drive = drive.toUpper(); }
-        const QUrl scriptUrl(uri);
+        const auto scriptUrl = uni_cast<QUrl>(uri);
         const QJsonObject range = navigation["range"].toObject();
         const QJsonObject start = range["start"].toObject();
         const QJsonObject end = range["end"].toObject();

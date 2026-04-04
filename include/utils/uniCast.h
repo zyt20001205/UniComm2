@@ -4,10 +4,17 @@
 #include <QVariant>
 #include <sol/object.hpp>
 
-// sol -> qt
 template<typename D, typename S>
 [[nodiscard]] D uni_cast(const S& s, int depth = 0);
 
+template<typename D, typename S>
+[[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
+
+// luals -> qt
+template<>
+[[nodiscard]] QUrl uni_cast<QUrl, QString>(const QString &s, int depth);
+
+// sol -> qt
 template<>
 [[nodiscard]] QString uni_cast<QString, sol::object>(const sol::object &s, int depth);
 
@@ -18,9 +25,6 @@ template<>
 [[nodiscard]] QVariantList uni_cast<QVariantList, sol::variadic_args>(const sol::variadic_args &s, int depth);
 
 // qt -> sol
-template<typename D, typename S>
-[[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
-
 template<>
 [[nodiscard]] sol::object uni_cast<sol::object, QVariant>(sol::this_state ts, const QVariant &s, int depth);
 
