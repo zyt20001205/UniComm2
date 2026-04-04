@@ -103,7 +103,7 @@ void LuaModbusRtu::writeMultipleRegisters(const std::string &portName, const int
 
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x10;
-    const auto size = static_cast<qsizetype>(data.size());
+    const auto size = static_cast<qsizetype>(data.size() / 2);
     const int regCount = static_cast<int>(size) / 2;
     const int byteCount = static_cast<int>(size);
     const QByteArray regData = QByteArray::fromHex(QByteArray::fromStdString(data));

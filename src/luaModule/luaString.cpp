@@ -5,7 +5,7 @@ LuaString::LuaString(QObject *parent)
 }
 
 std::string LuaString::toHex(const std::string_view &ba, const char separator) {
-    const auto qba = QByteArray(ba.data(), ba.size()).toHex(separator);
+    const auto qba = QByteArray(ba.data(), ba.size()).toHex(separator).toUpper();
     return std::string(qba.constData(), qba.size());
 }
 

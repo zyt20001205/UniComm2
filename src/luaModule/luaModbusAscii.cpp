@@ -19,20 +19,18 @@ std::string LuaModbusAscii::readHoldingRegisters(const std::string &portName, co
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x03;
     QByteArray txData{};
-    txData.append(static_cast<qint8>(slaveAddr));
-    txData.append(funcCode);
-    txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(startAddr & 0xFF));
-    txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(quantity & 0xFF));
+    txData.append(QByteArray::number(slaveAddr, 16).rightJustified(2, '0').toUpper());
+    txData.append(QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper());
+    txData.append(QByteArray::number(startAddr, 16).rightJustified(4, '0').toUpper());
+    txData.append(QByteArray::number(quantity, 16).rightJustified(4, '0').toUpper());
     bool status = false;
 
     const int length = quantity * 4 + 11;
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
-        status = port->write(":" + txData.toHex().toUpper(), "ascii", "modbus lrc");
-        rxData = port->read(length, timeout, "ascii");
+        status = port->write(":" + txData, "raw", "modbus lrc");
+        rxData = port->read(length, timeout, "raw");
     }, Qt::BlockingQueuedConnection);
 
     if (rxData.at(0) != ':') {
@@ -56,27 +54,26 @@ std::string LuaModbusAscii::readHoldingRegisters(const std::string &portName, co
     return {regData.constData(), static_cast<std::string::size_type>(regData.size())};
 }
 
-void LuaModbusAscii::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const int timeout) {
+void LuaModbusAscii::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
 
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x06;
-    const QByteArray regData(data.data(), static_cast<qsizetype>(data.size()));
+    const QByteArray regData = QByteArray::fromStdString(data);
     QByteArray txData{};
-    txData.append(static_cast<qint8>(slaveAddr));
-    txData.append(funcCode);
-    txData.append(static_cast<qint8>(regAddr >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(regAddr & 0xFF));
+    txData.append(QByteArray::number(slaveAddr, 16).rightJustified(2, '0').toUpper());
+    txData.append(QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper());
+    txData.append(QByteArray::number(regAddr, 16).rightJustified(4, '0').toUpper());
     txData += regData;
     bool status = false;
 
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(":" + txData.toHex().toUpper(), "ascii", "modbus lrc");
-        rxData = port->read(8, timeout, "ascii");
+        status = port->write(":" + txData, "raw", "modbus lrc");
+        rxData = port->read(17, timeout, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -100,33 +97,31 @@ void LuaModbusAscii::writeSingleRegister(const std::string &portName, const int 
     }
 }
 
-void LuaModbusAscii::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const int timeout) {
+void LuaModbusAscii::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
 
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x10;
-    const auto size = static_cast<qsizetype>(data.size());
+    const auto size = static_cast<qsizetype>(data.size() / 2);
     const int regCount = static_cast<int>(size) / 2;
     const int byteCount = static_cast<int>(size);
-    const QByteArray regData(data.data(), static_cast<qsizetype>(data.size()));
+    const QByteArray regData = QByteArray::fromStdString(data);
     QByteArray txData{};
-    txData.append(static_cast<qint8>(slaveAddr));
-    txData.append(funcCode);
-    txData.append(static_cast<qint8>(startAddr >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(startAddr & 0xFF));
-    txData.append(static_cast<qint8>(regCount >> 8 & 0xFF));
-    txData.append(static_cast<qint8>(regCount & 0xFF));
-    txData.append(static_cast<qint8>(byteCount));
+    txData.append(QByteArray::number(slaveAddr, 16).rightJustified(2, '0').toUpper());
+    txData.append(QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper());
+    txData.append(QByteArray::number(startAddr, 16).rightJustified(4, '0').toUpper());
+    txData.append(QByteArray::number(regCount, 16).rightJustified(4, '0').toUpper());
+    txData.append(QByteArray::number(byteCount, 16).rightJustified(2, '0').toUpper());
     txData += regData;
     bool status = false;
 
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(":" + txData.toHex().toUpper(), "ascii", "modbus lrc");
-        rxData = port->read(8, timeout, "ascii");
+        status = port->write(":" + txData, "raw", "modbus lrc");
+        rxData = port->read(17, timeout, "raw");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");

@@ -99,11 +99,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                                      return LuaModbusAscii::readHoldingRegisters(portName, slaveAddr, startAddr, quantity, timeout.value_or(1000));
                                  });
         modbusAscii.set_function("writeSingleRegister",
-                                 [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                                 [](const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const sol::optional<int> timeout) {
                                      LuaModbusAscii::writeSingleRegister(portName, slaveAddr, regAddr, data, timeout.value_or(1000));
                                  });
         modbusAscii.set_function("writeMultipleRegisters",
-                                 [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string_view &data, const sol::optional<int> timeout) {
+                                 [](const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const sol::optional<int> timeout) {
                                      LuaModbusAscii::writeMultipleRegisters(portName, slaveAddr, startAddr, data, timeout.value_or(1000));
                                  });
         m_lua["modbusAscii"] = modbusAscii;
