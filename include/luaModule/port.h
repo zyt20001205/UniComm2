@@ -22,7 +22,7 @@ public:
 
     static void clear(const std::string &portName);
 
-    static void write(const std::string &portName, const std::string_view &data, const std::string &peerIp);
+    static void write(const std::string &portName, const std::string &data, const std::string &peerIp);
 
     [[nodiscard]] static sol::object read(sol::this_state ts, const std::string &portName, int length, int timeout, const std::string &peerIp);
 };

@@ -29,8 +29,8 @@ std::string ModbusAscii::readHoldingRegisters(const std::string &portName, const
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
-        status = port->write(":" + txData, "raw", "modbus lrc");
-        rxData = port->read(length, timeout, "raw");
+        status = port->write(":" + txData, "ascii", "modbus lrc");
+        rxData = port->read(length, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
 
     if (rxData.at(0) != ':') {
@@ -72,8 +72,8 @@ void ModbusAscii::writeSingleRegister(const std::string &portName, const int sla
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(":" + txData, "raw", "modbus lrc");
-        rxData = port->read(17, timeout, "raw");
+        status = port->write(":" + txData, "ascii", "modbus lrc");
+        rxData = port->read(17, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -120,8 +120,8 @@ void ModbusAscii::writeMultipleRegisters(const std::string &portName, const int 
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(":" + txData, "raw", "modbus lrc");
-        rxData = port->read(17, timeout, "raw");
+        status = port->write(":" + txData, "ascii", "modbus lrc");
+        rxData = port->read(17, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");

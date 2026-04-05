@@ -141,7 +141,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         port.set_function("open", [](const std::string &portName) { Port::open(portName); });
         port.set_function("close", [](const std::string &portName) { Port::close(portName); });
         port.set_function("clear", [](const std::string &portName) { Port::clear(portName); });
-        port.set_function("write", [](const std::string &portName, const std::string_view &data, const sol::optional<std::string> &peerIp) {
+        port.set_function("write", [](const std::string &portName, const std::string &data, const sol::optional<std::string> &peerIp) {
             Port::write(portName, data, peerIp.value_or(""));
         });
         port.set_function("read",
@@ -168,7 +168,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // String lib
     {
         auto string = m_lua["string"].get_or_create<sol::table>();
-        string.set_function("toHex", [](const std::string_view &ba, const sol::optional<char> separator) { return String::toHex(ba, separator.value_or('\0')); });
+        string.set_function("toBase64", [](const std::string &str) { return String::toBase64(str); });
+        string.set_function("fromBase64", [](const std::string &str) { return String::fromBase64(str); });
+        string.set_function("toHex", [](const std::string &ba, const sol::optional<char> separator) { return String::toHex(ba, separator.value_or('\0')); });
         string.set_function("fromHex", [](const std::string &str) { return String::fromHex(str); });
         m_lua["string"] = string;
     }

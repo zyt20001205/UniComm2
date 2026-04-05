@@ -351,6 +351,16 @@ function smtp.authLogin(name, username, password) end
 function smtp.mail(name, from, to, subject, body, attachment) end
 
 string = {}
+--- Convert a binary string to its base64 representation.
+--- @param string string The binary string to convert.
+--- @return string
+function string.toBase64(string) end
+
+--- Convert a base64 string to its binary representation.
+--- @param string string The base64 string to convert.
+--- @return string
+function string.fromBase64(string) end
+
 --- Convert a binary string to its hexadecimal representation.
 --- @param string string The binary string to convert.
 --- @param separator? string Optional separator between hex bytes.

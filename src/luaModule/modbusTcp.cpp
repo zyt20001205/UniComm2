@@ -38,8 +38,8 @@ std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const i
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxLength, &timeout, &rxData] {
-        status = port->write(txData, "raw", "");
-        rxData = port->read(rxLength, timeout, "raw");
+        status = port->write(txData, "hex", "");
+        rxData = port->read(rxLength, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -93,8 +93,8 @@ void ModbusTcp::writeSingleRegister(const std::string &portName, const int trans
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "null");
-        rxData = port->read(12, timeout, "raw");
+        status = port->write(txData, "hex", "null");
+        rxData = port->read(12, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -153,8 +153,8 @@ void ModbusTcp::writeMultipleRegisters(const std::string &portName, const int tr
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "null");
-        rxData = port->read(12, timeout, "raw");
+        status = port->write(txData, "hex", "null");
+        rxData = port->read(12, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");

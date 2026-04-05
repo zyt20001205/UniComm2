@@ -31,8 +31,8 @@ std::string ModbusRtu::readHoldingRegisters(const std::string &portName, const i
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
-        status = port->write(txData, "raw", "modbus crc");
-        rxData = port->read(length, timeout, "raw");
+        status = port->write(txData, "hex", "modbus crc");
+        rxData = port->read(length, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -74,8 +74,8 @@ void ModbusRtu::writeSingleRegister(const std::string &portName, const int slave
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "modbus crc");
-        rxData = port->read(8, timeout, "raw");
+        status = port->write(txData, "hex", "modbus crc");
+        rxData = port->read(8, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -121,8 +121,8 @@ void ModbusRtu::writeMultipleRegisters(const std::string &portName, const int sl
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
-        status = port->write(txData, "raw", "modbus crc");
-        rxData = port->read(8, timeout, "raw");
+        status = port->write(txData, "hex", "modbus crc");
+        rxData = port->read(8, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");

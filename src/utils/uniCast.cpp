@@ -72,6 +72,9 @@ QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) 
             const std::string str = s.as<std::string>();
             bool raw = false;
             for (const char ch: str) {
+                if (ch == '\r' || ch == '\n' || ch == '\t' || ch == ' ') {
+                    continue;
+                }
                 if ((ch >= 0x00 && ch <= 0x1F) || ch == 0x7F) {
                     raw = true;
                     break;

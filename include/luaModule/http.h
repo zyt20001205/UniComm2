@@ -1,0 +1,4 @@
+#ifndef UNICOMM_HTTP_H
+#define UNICOMM_HTTP_H
+
+#endif //UNICOMM_HTTP_H

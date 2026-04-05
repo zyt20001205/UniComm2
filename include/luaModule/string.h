@@ -11,7 +11,11 @@ public:
 
     ~String() override = default;
 
-    static std::string toHex(const std::string_view &ba, char separator);
+    static std::string toBase64(const std::string &str);
+
+    static std::string fromBase64(const std::string &str);
+
+    static std::string toHex(const std::string &str, char separator);
 
     static std::string fromHex(const std::string &str);
 };

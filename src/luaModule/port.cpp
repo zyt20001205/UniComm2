@@ -66,7 +66,7 @@ void Port::clear(const std::string &portName) {
     }, Qt::BlockingQueuedConnection);
 }
 
-void Port::write(const std::string &portName, const std::string_view &data, const std::string &peerIp) {
+void Port::write(const std::string &portName, const std::string &data, const std::string &peerIp) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
