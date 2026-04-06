@@ -16,6 +16,9 @@ public:
     static void authLogin(const std::string &portName, const std::string &username, const std::string &password);
 
     static void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment);
+
+private:
+    static void parse(const QByteArray &status);
 };
 
 #endif //UNICOMM_SMTP_H

@@ -9,6 +9,7 @@
 class QEventLoop;
 class QStandardItemModel;
 class DataProcess;
+class Http;
 class IO;
 class Key;
 class ModbusAscii;
@@ -65,6 +66,7 @@ private:
     sol::state m_lua{};
     QVariantMap m_luaSession{};
     DataProcess *m_dataProcess{};
+    Http *m_http{};
     IO *m_io{};
     Key *m_key{};
     ModbusAscii *m_modbusAscii{};

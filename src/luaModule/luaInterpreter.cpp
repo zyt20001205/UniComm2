@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "luaModule/dataProcess.h"
+#include "luaModule/http.h"
 #include "luaModule/io.h"
 #include "luaModule/key.h"
 #include "luaModule/port.h"
@@ -58,6 +59,12 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         datatable.set_function("write", [](const std::string &key, const sol::object &value) { DataProcess::datatableWrite(key, value); });
         datatable.set_function("export", [](const sol::optional<std::string> &fileName) { DataProcess::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;
+    }
+    // Http lib
+    {
+        auto http = m_lua.create_table();
+        http.set_function("get", [](const std::string &portName) { Http::get(portName); });
+        m_lua["http"] = http;
     }
     // IO lib
     {

@@ -22,7 +22,6 @@ void Smtp::ehlo(const std::string &portName) {
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     QByteArray txData = "EHLO localhost";
     bool status = false;
-
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
@@ -33,9 +32,7 @@ void Smtp::ehlo(const std::string &portName) {
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("250")) {
-        throw sol::error(portName + ": SMTP EHLO failed");
-    }
+    parse(rxData);
 }
 
 void Smtp::authLogin(const std::string &portName, const std::string &username, const std::string &password) {
@@ -56,9 +53,7 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("334")) {
-        throw sol::error(portName + ": SMTP AUTH LOGIN failed");
-    }
+    parse(rxData);
 
     txData = QByteArray::fromStdString(username).toBase64();
     status = false;
@@ -72,9 +67,7 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("334")) {
-        throw sol::error(portName + ": SMTP invalid username");
-    }
+    parse(rxData);
 
     txData = QByteArray::fromStdString(password).toBase64();
     status = false;
@@ -88,13 +81,10 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("235")) {
-        throw sol::error(portName + ": SMTP invalid password");
-    }
+    parse(rxData);
 }
 
-void Smtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
-                   const std::string &attachment) {
+void Smtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
         throw sol::error(portName + " does not exist");
     }
@@ -112,9 +102,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("250")) {
-        throw sol::error(portName + ": SMTP MAIL FROM failed");
-    }
+    parse(rxData);
 
     txData = "RCPT TO: <" + QByteArray::fromStdString(to) + ">";
     status = false;
@@ -128,9 +116,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("250")) {
-        throw sol::error(portName + ": SMTP RCPT failed");
-    }
+    parse(rxData);
 
     txData = "DATA";
     status = false;
@@ -144,9 +130,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("354")) {
-        throw sol::error(portName + ": SMTP DATA failed");
-    }
+    parse(rxData);
 
     QString boundary = QString::number(QDateTime::currentMSecsSinceEpoch());
 
@@ -157,12 +141,10 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     txData += "MIME-Version: 1.0\r\n";
     txData += "Content-Type: multipart/mixed; boundary=\"" + boundary.toUtf8() + "\"\r\n";
     txData += "\r\n";
-
     txData += "--" + boundary.toUtf8() + "\r\n";
     txData += "Content-Type: text/plain; charset=utf-8\r\n";
     txData += "Content-Transfer-Encoding: 8bit\r\n";
     txData += "\r\n";
-
     txData += QByteArray::fromStdString(body) + "\r\n";
 
     if (!attachment.empty()) {
@@ -200,9 +182,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    if (!QString::fromLatin1(rxData).startsWith("250")) {
-        throw sol::error(portName + ": SMTP MAIL failed");
-    }
+    parse(rxData);
 
     txData = "QUIT";
     status = false;
@@ -212,5 +192,17 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
+    }
+}
+
+void Smtp::parse(const QByteArray &status) {
+    const int code = status.toInt();
+    switch (code) {
+        case 235:
+        case 250:
+        case 334:
+        case 354:
+            break;
+        default: throw sol::error("contact author: unsupported status code(" + std::to_string(code) + ")");
     }
 }
