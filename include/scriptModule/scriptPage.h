@@ -50,7 +50,7 @@ public:
 
     void rangeFormattingResponse(const QString &newText) const;
 
-    void semanticTokensResponse(const QJsonArray &data) const;
+    void semanticTokensResponse(const QJsonArray &data);
 
     // public: typo
     void spellCheckResponse(const QVariantList &typos);

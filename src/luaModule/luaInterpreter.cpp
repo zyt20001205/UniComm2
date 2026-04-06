@@ -63,7 +63,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Http lib
     {
         auto http = m_lua.create_table();
-        http.set_function("get", [](const std::string &portName) { Http::get(portName); });
+        http.set_function("get", [this](const std::string &portName, const sol::optional<sol::table> &headers, const sol::optional<int> timeout) {
+            Http::get(portName, headers.value_or(m_lua.create_table()), timeout.value_or(30000));
+        });
         m_lua["http"] = http;
     }
     // IO lib
@@ -119,17 +121,20 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
 
         sol::table modbusTcp = m_lua.create_table();
         modbusTcp.set_function("readHoldingRegisters",
-                                 [](const std::string &portName, const int transactionId, const int unitId, const int startAddr, const int quantity, const sol::optional<int> timeout) {
-                                     return ModbusTcp::readHoldingRegisters(portName, transactionId, unitId, startAddr, quantity, timeout.value_or(1000));
-                                 });
+                               [](const std::string &portName, const int transactionId, const int unitId, const int startAddr, const int quantity,
+                                  const sol::optional<int> timeout) {
+                                   return ModbusTcp::readHoldingRegisters(portName, transactionId, unitId, startAddr, quantity, timeout.value_or(1000));
+                               });
         modbusTcp.set_function("writeSingleRegister",
-                                 [](const std::string &portName, const int transactionId, const int unitId, const int regAddr, const std::string &data, const sol::optional<int> timeout) {
-                                     ModbusTcp::writeSingleRegister(portName, transactionId, unitId, regAddr, data, timeout.value_or(1000));
-                                 });
+                               [](const std::string &portName, const int transactionId, const int unitId, const int regAddr, const std::string &data,
+                                  const sol::optional<int> timeout) {
+                                   ModbusTcp::writeSingleRegister(portName, transactionId, unitId, regAddr, data, timeout.value_or(1000));
+                               });
         modbusTcp.set_function("writeMultipleRegisters",
-                                 [](const std::string &portName, const int transactionId, const int unitId, const int startAddr, const std::string &data, const sol::optional<int> timeout) {
-                                     ModbusTcp::writeMultipleRegisters(portName, transactionId, unitId, startAddr, data, timeout.value_or(1000));
-                                 });
+                               [](const std::string &portName, const int transactionId, const int unitId, const int startAddr, const std::string &data,
+                                  const sol::optional<int> timeout) {
+                                   ModbusTcp::writeMultipleRegisters(portName, transactionId, unitId, startAddr, data, timeout.value_or(1000));
+                               });
         m_lua["modbusTcp"] = modbusTcp;
     }
     // Mouse lib

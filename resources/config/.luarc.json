@@ -5,7 +5,7 @@
   },
   "runtime": {
     "special" : {
-      "SMTP.mail": "require",
+      "smtp.mail": "require",
       "thread.start": "require"
     },
     "version" : "Lua 5.4"

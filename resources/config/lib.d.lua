@@ -108,6 +108,13 @@ function datatable.clear(key) end
 --- @return nil
 function datatable.export(fileName) end
 
+http = {}
+--- Performs an HTTP GET request to retrieve data from the specified URL.
+--- @param name portName Target port name.
+--- @param headers? table HTTP headers to include in the request.
+--- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+function http.get(name, headers, timeout) end
+
 io = {}
 --- Logging.
 ---@param ... any

@@ -67,6 +67,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
     connect(shortcutComment, &QShortcut::activated, this, &ScriptPage::commentToggle);
     shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
+
+    auto shortcutCompletion = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Space), this); // NOLINT
+    connect(shortcutCompletion, &QShortcut::activated, this, &ScriptPage::completionRequest);
+    shortcutCompletion->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
     connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
     shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
@@ -807,7 +811,7 @@ void ScriptPage::rangeFormattingResponse(const QString &newText) const {
     m_editorWidget->textSetSelected(newText);
 }
 
-void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
+void ScriptPage::semanticTokensResponse(const QJsonArray &data) {
     // clear
     m_editorWidget->styleSet(LUA_TOKEN_UNUSED);
     // publish
@@ -870,7 +874,7 @@ void ScriptPage::semanticTokensResponse(const QJsonArray &data) const {
                 type = LUA_TOKEN_OPERATOR;
                 break;
             default:
-                qDebug() << "skip token" << line << character << length << tokenType;
+                emit appendLog(QString("contact author: unsupported semantic(token type:%1)").arg(QString::number(tokenType)), LOG_WARNING);
                 break;
         }
         m_editorWidget->styleSet(type, line, character, length);
