@@ -11,7 +11,11 @@ public:
 
     [[nodiscard]] QByteArray read(qsizetype length);
 
+    [[nodiscard]] QByteArray readUntil(const QByteArray &data);
+
     [[nodiscard]] qsizetype used();
+
+    [[nodiscard]] bool contains(const QByteArray &data) const;
 
     void clear();
 

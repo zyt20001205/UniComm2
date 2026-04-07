@@ -17,6 +17,7 @@ MenuModule::~MenuModule() {
 void MenuModule::propertySet(const QVariantMap &objects) {
     rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["menuModuleFileMenu"]));
     rootContext()->setContextProperty("viewMenu", qvariant_cast<QObject *>(objects["menuModuleViewMenu"]));
+    rootContext()->setContextProperty("codeMenu", qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]));
 
     rootContext()->setContextProperty("menuModule", this);
     setSource(QUrl("qrc:/qml/mainWindow/menuModule.qml"));

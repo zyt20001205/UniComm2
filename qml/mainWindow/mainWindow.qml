@@ -1479,6 +1479,59 @@ Item {
         }
     }
 
+    Menu {
+        id: menuModuleCodeMenu
+        implicitWidth: 300
+
+        onOpened: {
+            mainWindow.overlayFocus(true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Label {
+
+                    text: qsTr("Completion")
+                }
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+Space"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("completion")
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Label {
+
+                    text: qsTr("Formatting")
+                }
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+Alt+L"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("formatting")
+        }
+    }
+
     // port module
     Menu {
         id: portModuleTableMenu
@@ -2865,6 +2918,7 @@ Item {
 
             "menuModuleFileMenu": menuModuleFileMenu,
             "menuModuleViewMenu": menuModuleViewMenu,
+            "menuModuleCodeMenu": menuModuleCodeMenu,
 
             "portModuleTableMenu": portModuleTableMenu,
             "portModuleRootMenu": portModuleRootMenu,

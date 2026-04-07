@@ -124,13 +124,47 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
                 table[i + 1] = std::string(parts[i].constData(), parts[i].size());
             }
             return table;
-        } else {
-            return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
         }
-    } else {
-        QMetaObject::invokeMethod(port, [&port, &timeout, &length, &rxData] {
-            rxData = port->read(length, timeout, "");
+        return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
+    }
+    QMetaObject::invokeMethod(port, [&port, &timeout, &length, &rxData] {
+        rxData = port->read(length, timeout, "");
+    }, Qt::BlockingQueuedConnection);
+    return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
+}
+
+sol::object Port::readUntil(const sol::this_state ts, const std::string &portName, const std::string &text, const int timeout, const std::string &peerIp) {
+    sol::state_view lua(ts);
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
+        throw sol::error(portName + " does not exist");
+    }
+
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    const QByteArray textData(text.data(), static_cast<qsizetype>(text.size()));
+    QByteArray rxData{};
+
+    if (port->type() == TCPSERVER) {
+        QMetaObject::invokeMethod(port, [&port, &textData, &timeout, &peerIp, &rxData] {
+            rxData = port->readUntil(textData, timeout, "", QString::fromStdString(peerIp));
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
+    if (port->type() == VIDEOSTREAM) {
+        QMetaObject::invokeMethod(port, [&port, &textData, &timeout, &rxData] {
+            rxData = port->readUntil(textData, timeout, "");
+        }, Qt::BlockingQueuedConnection);
+        if (rxData.contains('\x1E')) {
+            sol::table table = lua.create_table();
+            QList<QByteArray> parts = rxData.split('\x1E');
+            for (int i = 0; i < parts.size(); ++i) {
+                table[i + 1] = std::string(parts[i].constData(), parts[i].size());
+            }
+            return table;
+        }
+        return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
+    }
+    QMetaObject::invokeMethod(port, [&port, &textData, &timeout, &rxData] {
+        rxData = port->readUntil(textData, timeout, "");
+    }, Qt::BlockingQueuedConnection);
+    return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
 }

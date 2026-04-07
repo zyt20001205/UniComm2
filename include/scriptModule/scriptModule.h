@@ -46,9 +46,11 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
+    Q_INVOKABLE void menuRequest(const QString &request);
+
     Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &scriptUrl) const;
 
-    Q_INVOKABLE void eolModeSet(const QUrl &scriptUrl, const int eolMode) const;
+    Q_INVOKABLE void eolModeSet(const QUrl &scriptUrl, int eolMode) const;
 
     Q_INVOKABLE [[nodiscard]] bool eolViewGet(const QUrl &scriptUrl);
 

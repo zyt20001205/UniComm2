@@ -171,7 +171,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap menuObjects = {
         {"menuModuleFileMenu", objects["menuModuleFileMenu"]},
-        {"menuModuleViewMenu", objects["menuModuleViewMenu"]}
+        {"menuModuleViewMenu", objects["menuModuleViewMenu"]},
+        {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]}
     };
     m_menuModule->propertySet(menuObjects);
 

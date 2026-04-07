@@ -25,6 +25,8 @@ public:
     static void write(const std::string &portName, const std::string &data, const std::string &peerIp);
 
     [[nodiscard]] static sol::object read(sol::this_state ts, const std::string &portName, int length, int timeout, const std::string &peerIp);
+
+    [[nodiscard]] static sol::object readUntil(sol::this_state ts, const std::string &portName, const std::string &text, int timeout, const std::string &peerIp);
 };
 
 #endif //UNICOMM_PORT_H

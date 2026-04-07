@@ -136,6 +136,12 @@ QByteArray SslClient::read(const int length, const int timeout, const QString &r
     return handleRead(length, timeout);
 }
 
+QByteArray SslClient::readUntil(const QByteArray &text, const int timeout, const QString &rxFormat) {
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    return handleReadUntil(text, timeout);
+}
+
 // private
 void SslClient::handleConnected() {
     m_sslClientLocalHost = m_sslClient->localAddress().toString();
@@ -202,6 +208,23 @@ QByteArray SslClient::handleRead(const int length, const int timeout) {
         m_sslClient->waitForReadyRead(10);
     }
     return m_buffer.read(length);
+}
+
+QByteArray SslClient::handleReadUntil(const QByteArray &text, const int timeout) {
+    // check port status
+    if (m_sslClient == nullptr || !m_sslClient->isOpen()) {
+        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), LOG_ERROR);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        return {};
+    }
+    const QDeadlineTimer deadline(timeout);
+    while (!m_buffer.contains(text)) {
+        if (deadline.hasExpired()) break;
+        m_sslClient->waitForReadyRead(10);
+    }
+    return m_buffer.readUntil(text);
 }
 
 void SslClient::handleLog(const int type, const QByteArray &data) {

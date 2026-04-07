@@ -232,10 +232,14 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         } else {
             m_scriptPageHash[m_focusedPage]->addDockWidgetAsTab(scriptPage);
         }
-        scriptPage->diagnosticsResponse(m_diagnosticsHash[scriptUrl]);
+        scriptPage->diagnosticsNotification(m_diagnosticsHash[scriptUrl]);
     }
     m_scriptPageHash[scriptUrl]->raise();
     m_scriptPageHash[scriptUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+}
+
+void ScriptModule::menuRequest(const QString &request) {
+    m_scriptPageHash[m_focusedPage]->menuRequest(request);
 }
 
 int ScriptModule::eolModeGet(const QUrl &scriptUrl) const {
@@ -325,7 +329,7 @@ void ScriptModule::markerDelete(const QUrl &scriptUrl, const int type, const int
 void ScriptModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(scriptUrl, diagnostics);
     if (m_scriptPageHash.contains(scriptUrl)) {
-        m_scriptPageHash[scriptUrl]->diagnosticsResponse(diagnostics);
+        m_scriptPageHash[scriptUrl]->diagnosticsNotification(diagnostics);
     }
 }
 

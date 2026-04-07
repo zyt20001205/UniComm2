@@ -36,9 +36,21 @@ QByteArray RingBuffer::read(qsizetype length) {
     return data;
 }
 
+QByteArray RingBuffer::readUntil(const QByteArray &data) {
+    QMutexLocker locker(&m_mutex);
+    if (m_buffer.contains(data)) {
+        return {"YES"};
+    }
+    return {"NO"};
+}
+
 qsizetype RingBuffer::used() {
     QMutexLocker locker(&m_mutex);
     return m_used;
+}
+
+bool RingBuffer::contains(const QByteArray &data) const {
+    return m_buffer.contains(data);
 }
 
 void RingBuffer::clear() {

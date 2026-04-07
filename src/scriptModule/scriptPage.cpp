@@ -612,6 +612,15 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
 }
 
+void ScriptPage::menuRequest(const QString &request) {
+    m_editorWidget->focusSet(true);
+    if (request == "completion") {
+        completionRequest();
+    } else if (request == "formatting") {
+        formattingRequest();
+    }
+}
+
 // public: file
 void ScriptPage::pathDisambiguation() {
     const QString scriptPath = m_scriptUrl.toLocalFile();
@@ -691,7 +700,7 @@ void ScriptPage::scriptClose() {
 }
 
 // public: lsp
-void ScriptPage::diagnosticsResponse(const QJsonArray &diagnostics) {
+void ScriptPage::diagnosticsNotification(const QJsonArray &diagnostics) {
     if (!m_scriptUrl.toString().endsWith(".lua")) return;
     m_diagnostic = diagnostics;
     // clear

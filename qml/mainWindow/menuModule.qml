@@ -37,6 +37,20 @@ Item {
             }
         }
 
+        Button {
+            id: codeMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            text: "Code"
+
+            onClicked: {
+                const globalPos = codeMenuButton.mapToGlobal(0, codeMenuButton.height);
+                const localPos = codeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                codeMenu.popup(localPos.x, localPos.y)
+            }
+        }
+
         Item {
             Layout.fillWidth: true; Layout.preferredHeight: 24
         }

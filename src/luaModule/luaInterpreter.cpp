@@ -161,6 +161,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                              const sol::optional<std::string> &peerIp) {
                               return Port::read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
                           });
+        port.set_function("readUntil",
+                          [](const sol::this_state ts, const std::string &portName, const sol::optional<std::string>& text, const sol::optional<int> timeout,
+                             const sol::optional<std::string> &peerIp) {
+                              return Port::readUntil(ts, portName, text.value_or("\r\n"), timeout.value_or(0), peerIp.value_or(""));
+                          });
         m_lua["port"] = port;
     }
     // Smtp lib

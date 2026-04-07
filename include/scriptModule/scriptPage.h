@@ -26,6 +26,8 @@ public:
 
     ~ScriptPage() override = default;
 
+    void menuRequest(const QString &request);
+
     // public: file
     void pathDisambiguation();
 
@@ -36,7 +38,7 @@ public:
     void scriptClose();
 
     // public: lsp
-    void diagnosticsResponse(const QJsonArray &diagnostics);
+    void diagnosticsNotification(const QJsonArray &diagnostics);
 
     void documentHighlightResponse(const QJsonArray &result) const;
 

@@ -39,6 +39,14 @@ public:
         return {};
     }
 
+    [[nodiscard]] virtual QByteArray readUntil(const QByteArray &text, int timeout, const QString &rxFormat) {
+        return {};
+    }
+
+    [[nodiscard]] virtual QByteArray readUntil(const QByteArray &text, int timeout, const QString &peerIp, const QString &rxFormat) {
+        return {};
+    }
+
 signals:
     void appendLog(const QString &message, int type);
 
