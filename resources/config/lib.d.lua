@@ -138,7 +138,7 @@ function imap.select(name, mailbox, timeout) end
 --- Send IDLE command to the server when the client is ready to accept unsolicited mailbox update messages.
 --- @param name portName Target port name.
 --- @param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for data to arrive.
---- @return bool mailArrived
+--- @return bool arrived
 function imap.idle(name, timeout) end
 
 io = {}
