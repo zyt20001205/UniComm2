@@ -13,8 +13,12 @@ public:
 
     void login(const std::string &portName, const std::string &username, const std::string &password, int timeout);
 
+    void select(const std::string &portName, const std::string &mailbox, int timeout);
+
+    bool idle(const std::string &portName, int timeout);
+
 private:
-    [[nodiscard]] std::string parse(const QByteArray &command, const QByteArray &rxData) const;
+    [[nodiscard]] std::string parse(const QByteArray &command, const QByteArray &rxData);
 
     int m_count{};
 };

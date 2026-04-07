@@ -14,6 +14,10 @@
 
 --- @alias password "__PLACEHOLDER__PASSWORD__"
 
+--- @alias mailbox
+--- | string
+--- | '"INBOX"'
+
 --- @alias key
 --- | '"0"'
 --- | '"1"'
@@ -112,6 +116,7 @@ http = {}
 --- @param name portName Target port name.
 --- @param headers? table HTTP headers to include in the request.
 --- @param timeout? integer (default: 30000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
 function http.get(name, headers, timeout) end
 
 imap = {}
@@ -120,19 +125,36 @@ imap = {}
 --- @param username string IMAP username/email address.
 --- @param password password IMAP password.
 --- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
 function imap.login(name, username, password, timeout) end
+
+--- Send SELECT command to select a mailbox so that messages in the mailbox can be accessed.
+--- @param name portName Target port name.
+--- @param mailbox mailbox IMAP mailbox.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
+function imap.select(name, mailbox, timeout) end
+
+--- Send IDLE command to the server when the client is ready to accept unsolicited mailbox update messages.
+--- @param name portName Target port name.
+--- @param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return bool mailArrived
+function imap.idle(name, timeout) end
 
 io = {}
 --- Logging.
----@param ... any
+--- @param ... any
+--- @return nil
 function io.log(...) end
 
 --- Displays a message box with the specified text.
 --- @param text string The message text to display in the message box.
+--- @return nil
 function io.message(text) end
 
 --- Converts text to speech and outputs it through the audio system.
 --- @param text string The text content to be spoken.
+--- @return nil
 function io.speak(text) end
 
 key = {}
@@ -336,6 +358,7 @@ smtp = {}
 --- Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
 --- @param name portName Target port name.
 --- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
 function smtp.ehlo(name, timeout) end
 
 --- Send AUTH LOGIN command to authenticate with SMTP server.
@@ -343,6 +366,7 @@ function smtp.ehlo(name, timeout) end
 --- @param username string SMTP username/email address.
 --- @param password password SMTP password.
 --- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
 function smtp.authLogin(name, username, password, timeout) end
 
 --- Send a simple email.
@@ -353,6 +377,7 @@ function smtp.authLogin(name, username, password, timeout) end
 --- @param body string
 --- @param attachment? string (default: "") Path to the attachment; when omitted, no attachment is sent.
 --- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+--- @return nil
 function smtp.mail(name, from, to, subject, body, attachment, timeout) end
 
 string = {}

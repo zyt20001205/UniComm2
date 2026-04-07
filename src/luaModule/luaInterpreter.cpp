@@ -73,8 +73,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Imap lib
     {
         auto imap = m_lua.create_table();
-        imap.set_function("login", [this](const std::string &portName, const std::string &username, const std::string &password, int timeout) {
-            m_imap->login(portName, username, password, timeout);
+        imap.set_function("login", [this](const std::string &portName, const std::string &username, const std::string &password, const sol::optional<int> timeout) {
+            m_imap->login(portName, username, password, timeout.value_or(1000));
+        });
+        imap.set_function("select", [this](const std::string &portName, const std::string &mailbox, const sol::optional<int> timeout) {
+            m_imap->select(portName, mailbox, timeout.value_or(1000));
+        });
+        imap.set_function("idle", [this](const std::string &portName, const sol::optional<int> timeout) {
+            return m_imap->idle(portName, timeout.value_or(600000));
         });
         m_lua["imap"] = imap;
     }
