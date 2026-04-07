@@ -1803,6 +1803,7 @@ Item {
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var completionWidget
+        property int typed
 
         onOpened: {
             mainWindow.overlayFocus(false)
@@ -1879,7 +1880,8 @@ Item {
                     Label {
                         font: scriptModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display
+                        text: "<span style='color: #115ea3;'>" + model.display.substring(0, scriptModuleCompletionToolTip.typed) + "</span>" + model.display.substring(scriptModuleCompletionToolTip.typed)
+                        textFormat: Text.RichText
                         elide: Text.ElideRight
                         Layout.fillWidth: true; Layout.preferredHeight: 24
                     }

@@ -404,6 +404,7 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
     const auto startCharacter = wordIndex["startCharacter"];
     const auto endLine = wordIndex["endLine"];
     const auto endCharacter = wordIndex["endCharacter"];
+    const auto typed = scintilla->indexGet()["character"] - startCharacter;
     const auto height = scintilla->heightGet();
     const auto point = scintilla->pointGet(startLine, startCharacter);
     const auto x = point["x"];
@@ -416,7 +417,8 @@ void ScriptModule::completionResponse(const QUrl &scriptUrl, const QJsonArray &i
         {"startLine", startLine},
         {"startCharacter", startCharacter},
         {"endLine", endLine},
-        {"endCharacter", endCharacter}
+        {"endCharacter", endCharacter},
+        {"typed", typed}
     };
     m_codeAssistant->completionShow(completionSession, items);
 }

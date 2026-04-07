@@ -2,7 +2,6 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QKeyEvent>
 #include <QLabel>
 
 #include "utils/cmarkUtils.h"
@@ -53,7 +52,7 @@ void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const 
             const int endIndex = range[1].toInt();
             QString param = label.mid(startIndex, endIndex - startIndex);
             if (index == activeParameter) {
-                param = QString("<span style='color: orange; font-weight: 600;'>%1</span>").arg(md2html(param));
+                param = QString("<span style='color: #115ea3; font-weight: 600;'>%1</span>").arg(md2html(param));
             }
             helpText += param;
             helpText += ", ";

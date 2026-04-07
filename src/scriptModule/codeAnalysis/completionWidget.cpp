@@ -46,6 +46,7 @@ bool CompletionWidget::isVisible() const {
 }
 
 void CompletionWidget::completionShow(const QVariantHash &completionSession, const QJsonArray &items) {
+    m_tooltip->setProperty("typed", QVariant::fromValue(completionSession["typed"]));
     m_completionSession = completionSession;
     m_completionModel->clear();
     int completionMode = COMPLETION_MODE_FULL;

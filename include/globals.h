@@ -30,6 +30,8 @@ extern UndoModule *g_undo;
 extern QUrl g_workspaceUrl;
 extern QJsonObject g_workspaceConfig;
 
+extern QHash<QString, QString> g_color;
+
 extern ViSession g_rm;
 
 extern QVariantMap g_cursorPosition;

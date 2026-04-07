@@ -173,7 +173,7 @@ void ScintillaWidget::indicatorClear(const int type, const int startLine, const 
 }
 
 int ScintillaWidget::indicatorGet(const Position position) const {
-    return send(SCI_INDICATORALLONFOR, position);
+    return static_cast<int>(send(SCI_INDICATORALLONFOR, position));
 }
 
 // public: length

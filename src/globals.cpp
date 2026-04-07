@@ -12,6 +12,13 @@ UndoModule *g_undo = nullptr;
 QUrl g_workspaceUrl = {};
 QJsonObject g_workspaceConfig = {};
 
+QHash<QString, QString> g_color = {
+    {"brandFore", "#115ea3"},
+    {"successBack", "#107c10"},
+    {"warningBack", "#c50f1f"},
+    {"dangerBack", "#f7630c"},
+};
+
 ViSession g_rm = VI_NULL;
 
 QVariantMap g_cursorPosition = {
@@ -21,8 +28,8 @@ QVariantMap g_cursorPosition = {
 };
 
 QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints = {};
-QStandardItemModel* g_portStandardItemModel = {};
-QStandardItemModel* g_databaseStandardItemModel = {};
-QStandardItemModel* g_datatableHeaderItemModel = {};
-QStandardItemModel* g_datatableStandardItemModel = {};
-QStandardItemModel* g_watchStandardItemModel = {};
+QStandardItemModel *g_portStandardItemModel = {};
+QStandardItemModel *g_databaseStandardItemModel = {};
+QStandardItemModel *g_datatableHeaderItemModel = {};
+QStandardItemModel *g_datatableStandardItemModel = {};
+QStandardItemModel *g_watchStandardItemModel = {};
