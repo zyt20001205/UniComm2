@@ -98,13 +98,12 @@ function datatable.list() end
 --- @return nil
 function datatable.write(key, value) end
 
---- Clears a column of datatable using a key identifier.
---- @param key? datatableKey The target column key identifier; when omitted or set to "all" clears all columns.
+--- Clears all data in datatable.
 --- @return nil
-function datatable.clear(key) end
+function datatable.clear() end
 
 --- Exports the datatable to a CSV file.
---- @param fileName? string The name of csv file; when omitted uses timestamp as file name.
+--- @param fileName? string (default: "") The name of csv file; when omitted uses timestamp as file name.
 --- @return nil
 function datatable.export(fileName) end
 
@@ -112,7 +111,7 @@ http = {}
 --- Performs an HTTP GET request to retrieve data from the specified URL.
 --- @param name portName Target port name.
 --- @param headers? table HTTP headers to include in the request.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 30000) Maximum time in **milliseconds** to wait for data to arrive.
 function http.get(name, headers, timeout) end
 
 imap = {}
@@ -120,7 +119,8 @@ imap = {}
 --- @param name portName Target port name.
 --- @param username string IMAP username/email address.
 --- @param password password IMAP password.
-function imap.login(name, username, password) end
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+function imap.login(name, username, password, timeout) end
 
 io = {}
 --- Logging.
@@ -152,7 +152,7 @@ modbusAscii = {}
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return string
 function modbusAscii.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
@@ -161,7 +161,7 @@ function modbusAscii.readHoldingRegisters(name, slaveAddr, startAddr, quantity, 
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param regAddr integer The address of the register to write to.
 --- @param data string **Hex string** containing the raw data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusAscii.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
 
@@ -170,7 +170,7 @@ function modbusAscii.writeSingleRegister(name, slaveAddr, regAddr, data, timeout
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param data string **Hex string** string** containing the raw data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusAscii.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
 
@@ -180,7 +180,7 @@ modbusRtu = {}
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return string
 function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
@@ -189,7 +189,7 @@ function modbusRtu.readHoldingRegisters(name, slaveAddr, startAddr, quantity, ti
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param regAddr integer The address of the register to write to.
 --- @param data string **Hex string** containing the data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
 
@@ -198,7 +198,7 @@ function modbusRtu.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) 
 --- @param slaveAddr integer The slave address (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param data string **Hex string** containing the data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusRtu.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end
 
@@ -209,7 +209,7 @@ modbusTcp = {}
 --- @param unitId integer The unit id (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param quantity integer Number of registers to read.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return string
 function modbusTcp.readHoldingRegisters(name, transactionId, unitId, startAddr, quantity, timeout) end
 
@@ -219,7 +219,7 @@ function modbusTcp.readHoldingRegisters(name, transactionId, unitId, startAddr, 
 --- @param unitId integer The unit id (1-247) of the target device on the network.
 --- @param regAddr integer The address of the register to write to.
 --- @param data string **Hex string** containing the data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusTcp.writeSingleRegister(name, transactionId, unitId, regAddr, data, timeout) end
 
@@ -229,7 +229,7 @@ function modbusTcp.writeSingleRegister(name, transactionId, unitId, regAddr, dat
 --- @param unitId integer The unit id (1-247) of the target device on the network.
 --- @param startAddr integer The starting address of the first register to write to.
 --- @param data string **Hex string** containing the data to be written.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function modbusTcp.writeMultipleRegisters(name, transactionId, unitId, startAddr, data, timeout) end
 
@@ -299,12 +299,12 @@ function port.write(name, data, peerIp) end
 
 --- Reads data from a port.
 --- @param name portName Target port name.
---- @param length? integer Number of bytes to read.
---- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
---- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
---- * 0(default): The function returns immediately.
+--- @param length? integer (default: 0) Number of bytes to read; when omitted, read all from buffer.
+--- @param timeout? integer (default: 0) Maximum time in **milliseconds** to wait for data to arrive.
+--- * 0: The function returns immediately.
 --- * &gt;0: The function will block for up to the specified time, waiting for data.
 --- * -1: The function will block indefinitely until data arrives.
+--- @param peerIp? string (TCP Server only) Specifies the target client for the command; when omitted, read from any available client.
 --- @return string data
 --- @usage — Read data from port COM3.
 --- port.read("COM3")
@@ -319,7 +319,7 @@ function port.read(name, length, timeout, peerIp) end
 
 --- Reads data from a port until the specified string is found.
 --- @param name portName Target port name.
---- @param text? string String pattern to search for; when omitted, reads until newline ("\r\n").
+--- @param text? string (default: "\r\n") String pattern to search for; when omitted, reads until newline.
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 --- * 0(default): The function returns immediately.
 --- * &gt;0: The function will block for up to the specified time, waiting for data.
@@ -335,13 +335,15 @@ function port.readUntil(name, text, timeout, peerIp) end
 smtp = {}
 --- Send EHLO (Extended Hello) command to SMTP server to initiate session and discover server capabilities.
 --- @param name portName Target port name.
-function smtp.ehlo(name) end
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+function smtp.ehlo(name, timeout) end
 
 --- Send AUTH LOGIN command to authenticate with SMTP server.
 --- @param name portName Target port name.
 --- @param username string SMTP username/email address.
 --- @param password password SMTP password.
-function smtp.authLogin(name, username, password) end
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+function smtp.authLogin(name, username, password, timeout) end
 
 --- Send a simple email.
 --- @param name portName Target port name.
@@ -349,9 +351,9 @@ function smtp.authLogin(name, username, password) end
 --- @param to string
 --- @param subject string
 --- @param body string
---- @param attachment? string Path to the attachment.
----
-function smtp.mail(name, from, to, subject, body, attachment) end
+--- @param attachment? string (default: "") Path to the attachment; when omitted, no attachment is sent.
+--- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+function smtp.mail(name, from, to, subject, body, attachment, timeout) end
 
 string = {}
 --- Convert a binary string to its base64 representation.

@@ -13,6 +13,8 @@ ModbusTcp::ModbusTcp(QObject *parent)
 std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const int transactionId, const int unitId, const int startAddr, const int quantity, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
@@ -30,11 +32,9 @@ std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const i
     txData.append(static_cast<qint8>(startAddr & 0xFF));
     txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
     txData.append(static_cast<qint8>(quantity & 0xFF));
-    bool status = false;
     const int rxLength = quantity * 2 + 9;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxLength, &timeout, &rxData] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &rxLength, &timeout] {
         status = port->write(txData, "hex", "");
         rxData = port->read(rxLength, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
@@ -52,6 +52,8 @@ std::string ModbusTcp::readHoldingRegisters(const std::string &portName, const i
 void ModbusTcp::writeSingleRegister(const std::string &portName, const int transactionId, const int unitId, const int regAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int protocolId = 0x00;
     constexpr int txLength = 6;
@@ -69,10 +71,8 @@ void ModbusTcp::writeSingleRegister(const std::string &portName, const int trans
     txData.append(static_cast<qint8>(regAddr >> 8 & 0xFF));
     txData.append(static_cast<qint8>(regAddr & 0xFF));
     txData += regData;
-    bool status = false;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &timeout] {
         status = port->write(txData, "hex", "null");
         rxData = port->read(12, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
@@ -88,6 +88,8 @@ void ModbusTcp::writeSingleRegister(const std::string &portName, const int trans
 void ModbusTcp::writeMultipleRegisters(const std::string &portName, const int transactionId, const int unitId, const int startAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int protocolId = 0x00;
     const auto size = static_cast<qsizetype>(data.size() / 2);
@@ -111,12 +113,9 @@ void ModbusTcp::writeMultipleRegisters(const std::string &portName, const int tr
     txData.append(static_cast<qint8>(regCount & 0xFF));
     txData.append(static_cast<qint8>(byteCount));
     txData += regData;
-    bool status = false;
-
     constexpr int rxLength = 6;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &timeout] {
         status = port->write(txData, "hex", "null");
         rxData = port->read(12, timeout, "hex");
     }, Qt::BlockingQueuedConnection);

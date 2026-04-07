@@ -14,6 +14,8 @@ ModbusAscii::ModbusAscii(QObject *parent)
 std::string ModbusAscii::readHoldingRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x03;
     QByteArray txData{};
@@ -21,11 +23,9 @@ std::string ModbusAscii::readHoldingRegisters(const std::string &portName, const
     txData.append(QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper());
     txData.append(QByteArray::number(startAddr, 16).rightJustified(4, '0').toUpper());
     txData.append(QByteArray::number(quantity, 16).rightJustified(4, '0').toUpper());
-    bool status = false;
     const int length = quantity * 4 + 11;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &length, &timeout] {
         status = port->write(":" + txData, "ascii", "modbus lrc");
         rxData = port->read(length, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
@@ -43,6 +43,8 @@ std::string ModbusAscii::readHoldingRegisters(const std::string &portName, const
 void ModbusAscii::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x06;
     const QByteArray regData = QByteArray::fromStdString(data);
@@ -51,10 +53,8 @@ void ModbusAscii::writeSingleRegister(const std::string &portName, const int sla
     txData.append(QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper());
     txData.append(QByteArray::number(regAddr, 16).rightJustified(4, '0').toUpper());
     txData += regData;
-    bool status = false;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &timeout] {
         status = port->write(":" + txData, "ascii", "modbus lrc");
         rxData = port->read(17, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);
@@ -71,6 +71,8 @@ void ModbusAscii::writeSingleRegister(const std::string &portName, const int sla
 void ModbusAscii::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x10;
     const auto size = static_cast<qsizetype>(data.size() / 2);
@@ -84,10 +86,8 @@ void ModbusAscii::writeMultipleRegisters(const std::string &portName, const int 
     txData.append(QByteArray::number(regCount, 16).rightJustified(4, '0').toUpper());
     txData.append(QByteArray::number(byteCount, 16).rightJustified(2, '0').toUpper());
     txData += regData;
-    bool status = false;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &timeout] {
         status = port->write(":" + txData, "ascii", "modbus lrc");
         rxData = port->read(17, timeout, "ascii");
     }, Qt::BlockingQueuedConnection);

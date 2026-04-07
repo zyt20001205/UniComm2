@@ -24,10 +24,10 @@ sol::table Port::list(const sol::this_state ts) {
 sol::object Port::info(const sol::this_state ts, const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     QVariantHash infoHash{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
 
-    QMetaObject::invokeMethod(port, [&port, &infoHash] {
+    QMetaObject::invokeMethod(port, [&infoHash, &port] {
         infoHash = port->info();
     }, Qt::BlockingQueuedConnection);
     return uni_cast<sol::object>(ts, infoHash);
@@ -36,10 +36,10 @@ sol::object Port::info(const sol::this_state ts, const std::string &portName) {
 void Port::open(const std::string &portName) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     bool status = false;
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
 
-    QMetaObject::invokeMethod(port, [&port, &status] {
+    QMetaObject::invokeMethod(port, [&status, &port] {
         status = port->open();
     }, Qt::BlockingQueuedConnection);
     if (!status) throw sol::error("failed to open port: " + portName);
@@ -68,16 +68,16 @@ void Port::clear(const std::string &portName) {
 void Port::write(const std::string &portName, const std::string &data, const std::string &peerIp) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const QByteArray txData(data.data(), static_cast<qsizetype>(data.size()));
-    bool status = false;
 
     if (port->type() == TCPSERVER) {
-        QMetaObject::invokeMethod(port, [&port, &txData, &peerIp, &status] {
+        QMetaObject::invokeMethod(port, [&status, &port, &txData, &peerIp] {
             status = port->write(txData, QString::fromStdString(peerIp), "", "");
         }, Qt::BlockingQueuedConnection);
     } else {
-        QMetaObject::invokeMethod(port, [&port, &txData, &status] {
+        QMetaObject::invokeMethod(port, [&status, &port, &txData] {
             status = port->write(txData, "", "");
         }, Qt::BlockingQueuedConnection);
     }
@@ -88,17 +88,17 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
     sol::state_view lua(ts);
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     QByteArray rxData{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
 
     if (port->type() == TCPSERVER) {
-        QMetaObject::invokeMethod(port, [&port, &length, &timeout, &peerIp, &rxData] {
+        QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout, &peerIp] {
             rxData = port->read(length, timeout, "", QString::fromStdString(peerIp));
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
     if (port->type() == VIDEOSTREAM) {
-        QMetaObject::invokeMethod(port, [&port, &length, &timeout, &rxData] {
+        QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout] {
             rxData = port->read(length, timeout, "");
         }, Qt::BlockingQueuedConnection);
         if (rxData.contains('\x1E')) {
@@ -111,7 +111,7 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
         }
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
-    QMetaObject::invokeMethod(port, [&port, &timeout, &length, &rxData] {
+    QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout] {
         rxData = port->read(length, timeout, "");
     }, Qt::BlockingQueuedConnection);
     return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
@@ -121,18 +121,18 @@ sol::object Port::readUntil(const sol::this_state ts, const std::string &portNam
     sol::state_view lua(ts);
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const QByteArray textData(text.data(), static_cast<qsizetype>(text.size()));
-    QByteArray rxData{};
 
     if (port->type() == TCPSERVER) {
-        QMetaObject::invokeMethod(port, [&port, &textData, &timeout, &peerIp, &rxData] {
+        QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout, &peerIp] {
             rxData = port->readUntil(textData, timeout, "", QString::fromStdString(peerIp));
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
     if (port->type() == VIDEOSTREAM) {
-        QMetaObject::invokeMethod(port, [&port, &textData, &timeout, &rxData] {
+        QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout] {
             rxData = port->readUntil(textData, timeout, "");
         }, Qt::BlockingQueuedConnection);
         if (rxData.contains('\x1E')) {
@@ -145,7 +145,7 @@ sol::object Port::readUntil(const sol::this_state ts, const std::string &portNam
         }
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
-    QMetaObject::invokeMethod(port, [&port, &textData, &timeout, &rxData] {
+    QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout] {
         rxData = port->readUntil(textData, timeout, "");
     }, Qt::BlockingQueuedConnection);
     return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));

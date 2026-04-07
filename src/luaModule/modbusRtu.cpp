@@ -14,6 +14,8 @@ ModbusRtu::ModbusRtu(QObject *parent)
 std::string ModbusRtu::readHoldingRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const int quantity, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x03;
     QByteArray txData{};
@@ -23,11 +25,9 @@ std::string ModbusRtu::readHoldingRegisters(const std::string &portName, const i
     txData.append(static_cast<qint8>(startAddr & 0xFF));
     txData.append(static_cast<qint8>(quantity >> 8 & 0xFF));
     txData.append(static_cast<qint8>(quantity & 0xFF));
-    bool status = false;
     const int length = quantity * 2 + 5;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &length, &timeout, &rxData] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &length, &timeout] {
         status = port->write(txData, "hex", "modbus crc");
         rxData = port->read(length, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
@@ -45,6 +45,8 @@ std::string ModbusRtu::readHoldingRegisters(const std::string &portName, const i
 void ModbusRtu::writeSingleRegister(const std::string &portName, const int slaveAddr, const int regAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x06;
     const QByteArray regData = QByteArray::fromHex(QByteArray::fromStdString(data));
@@ -54,10 +56,8 @@ void ModbusRtu::writeSingleRegister(const std::string &portName, const int slave
     txData.append(static_cast<qint8>(regAddr >> 8 & 0xFF));
     txData.append(static_cast<qint8>(regAddr & 0xFF));
     txData += regData;
-    bool status = false;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &timeout] {
         status = port->write(txData, "hex", "modbus crc");
         rxData = port->read(8, timeout, "hex");
     }, Qt::BlockingQueuedConnection);
@@ -73,6 +73,8 @@ void ModbusRtu::writeSingleRegister(const std::string &portName, const int slave
 void ModbusRtu::writeMultipleRegisters(const std::string &portName, const int slaveAddr, const int startAddr, const std::string &data, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x10;
     const auto size = static_cast<qsizetype>(data.size() / 2);
@@ -88,10 +90,8 @@ void ModbusRtu::writeMultipleRegisters(const std::string &portName, const int sl
     txData.append(static_cast<qint8>(regCount & 0xFF));
     txData.append(static_cast<qint8>(byteCount));
     txData += regData;
-    bool status = false;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData, &timeout] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData, &timeout] {
         status = port->write(txData, "hex", "modbus crc");
         rxData = port->read(8, timeout, "hex");
     }, Qt::BlockingQueuedConnection);

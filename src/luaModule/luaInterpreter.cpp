@@ -28,6 +28,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
       m_dataProcess(new DataProcess(this)),
+      m_imap(new Imap(this)),
       m_io(new IO(this)),
       m_key(new Key(this)),
       m_modbusAscii(new ModbusAscii(this)),
@@ -72,8 +73,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Imap lib
     {
         auto imap = m_lua.create_table();
-        imap.set_function("login", [this](const std::string &portName, const std::string &username, const std::string &password) {
-            m_imap->login(portName, username, password);
+        imap.set_function("login", [this](const std::string &portName, const std::string &username, const std::string &password, int timeout) {
+            m_imap->login(portName, username, password, timeout);
         });
         m_lua["imap"] = imap;
     }
@@ -171,7 +172,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                               return Port::read(ts, portName, length.value_or(0), timeout.value_or(0), peerIp.value_or(""));
                           });
         port.set_function("readUntil",
-                          [](const sol::this_state ts, const std::string &portName, const sol::optional<std::string>& text, const sol::optional<int> timeout,
+                          [](const sol::this_state ts, const std::string &portName, const sol::optional<std::string> &text, const sol::optional<int> timeout,
                              const sol::optional<std::string> &peerIp) {
                               return Port::readUntil(ts, portName, text.value_or("\r\n"), timeout.value_or(0), peerIp.value_or(""));
                           });
@@ -180,14 +181,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Smtp lib
     {
         auto smtp = m_lua.create_table();
-        smtp.set_function("ehlo", [](const std::string &portName) { Smtp::ehlo(portName); });
-        smtp.set_function("authLogin", [](const std::string &portName, const std::string &username, const std::string &password) {
-            Smtp::authLogin(portName, username, password);
+        smtp.set_function("ehlo", [](const std::string &portName, const sol::optional<int> timeout) { Smtp::ehlo(portName, timeout.value_or(1000)); });
+        smtp.set_function("authLogin", [](const std::string &portName, const std::string &username, const std::string &password, const sol::optional<int> timeout) {
+            Smtp::authLogin(portName, username, password, timeout.value_or(1000));
         });
         smtp.set_function("mail",
                           [](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
-                             const sol::optional<std::string> &attachment) {
-                              Smtp::mail(portName, from, to, subject, body, attachment.value_or(""));
+                             const sol::optional<std::string> &attachment, const sol::optional<int> timeout) {
+                              Smtp::mail(portName, from, to, subject, body, attachment.value_or(""), timeout.value_or(1000));
                           });
         m_lua["smtp"] = smtp;
     }

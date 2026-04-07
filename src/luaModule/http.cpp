@@ -14,6 +14,8 @@ Http::Http(QObject *parent)
 void Http::get(const std::string &portName, const sol::table &headers, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
+    bool status = false;
+    QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     QByteArray txData = "GET /get HTTP/1.1\r\n";
     const auto host = port->info().value("remoteHost", "").toByteArray();
@@ -29,10 +31,8 @@ void Http::get(const std::string &portName, const sol::table &headers, const int
             txData += key + ": " + value + "\r\n";
         }
     }
-    bool status = false;
-    QByteArray rxData{};
 
-    QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
+    QMetaObject::invokeMethod(port, [&status, &rxData, &port, &txData] {
         status = port->write(txData, "ascii", "crlf");
         // port->clear();
         // rxData = port->read(3, 1000, "ascii");
