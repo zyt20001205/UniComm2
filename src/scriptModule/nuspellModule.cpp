@@ -24,7 +24,7 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
     for (const QString &line: lines) {
         // 2: separate words to check spelling
         int currentIndex = 0;
-        while (currentIndex < line.length()) {
+        while (currentIndex < line.size()) {
             QChar ch = line[currentIndex];
             if (!ch.isLetter()) {
                 ++currentIndex;
@@ -33,7 +33,7 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
             int startCharacter = currentIndex;
             ++currentIndex;
             int endCharacter = startCharacter;
-            while (currentIndex < line.length() && line[currentIndex].isLower()) {
+            while (currentIndex < line.size() && line[currentIndex].isLower()) {
                 endCharacter = currentIndex;
                 ++currentIndex;
             }

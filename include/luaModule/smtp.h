@@ -18,7 +18,7 @@ public:
     static void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment);
 
 private:
-    static void parse(const QByteArray &status);
+    static bool parse(const QByteArray &status);
 };
 
 #endif //UNICOMM_SMTP_H

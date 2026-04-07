@@ -193,9 +193,9 @@ void CompletionWidget::textReplace() {
         m_completionSession["endCharacter"].toInt());
     int cursorPosition = 0;
     if (kind == COMPLETION_KIND_FUNCTION) {
-        cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.length() - 1;
+        cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size() - 1;
     } else {
-        cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.length();
+        cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size();
     }
     emit setIndex(
         m_completionSession["scriptUrl"].toUrl(),

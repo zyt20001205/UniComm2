@@ -325,7 +325,7 @@ void ScintillaWidget::targetSetWhole() const {
 }
 
 Position ScintillaWidget::targetSearch(const QString &text) const {
-    return send(SCI_SEARCHINTARGET, text.length(), reinterpret_cast<uptr_t>(text.toUtf8().constData())); // NOLINT
+    return send(SCI_SEARCHINTARGET, text.size(), reinterpret_cast<uptr_t>(text.toUtf8().constData())); // NOLINT
 }
 
 // public: selection
@@ -398,7 +398,7 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
 // public: text
 void ScintillaWidget::textAppend(const QString &text) const {
     const auto ba = text.toUtf8();
-    send(SCI_APPENDTEXT, ba.length(), reinterpret_cast<sptr_t>(ba.constData()));
+    send(SCI_APPENDTEXT, ba.size(), reinterpret_cast<sptr_t>(ba.constData()));
 }
 
 void ScintillaWidget::textClear() const {

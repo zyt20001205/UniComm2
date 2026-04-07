@@ -24,21 +24,23 @@ void Smtp::ehlo(const std::string &portName) {
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &rxData] {
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
     }
-    parse(rxData);
 
     QByteArray txData = "EHLO localhost";
     bool status = false;
     rxData = {};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -57,9 +59,10 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -71,9 +74,10 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     rxData = {};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -85,9 +89,10 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     rxData = {};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -106,9 +111,10 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     QByteArray rxData{};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -120,9 +126,10 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     rxData = {};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -134,9 +141,10 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     rxData = {};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -186,9 +194,10 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
     rxData = {};
 
     QMetaObject::invokeMethod(port, [&port, &txData, &status, &rxData] {
-        port->clear();
         status = port->write(txData, "utf-8", "crlf");
-        rxData = port->read(3, 1000, "utf-8");
+        do {
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
+        } while (parse(rxData));
     }, Qt::BlockingQueuedConnection);
     if (!status || rxData.isEmpty()) {
         throw sol::error(portName + ": communication failed");
@@ -207,8 +216,9 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
 }
 
 // private
-void Smtp::parse(const QByteArray &status) {
-    const int code = status.toInt();
+bool Smtp::parse(const QByteArray &status) {
+    if (status.size() <4) throw sol::error("invalid smtp response");
+    const auto code = status.left(3).toInt();
     switch (code) {
         case 220:
         case 235:
@@ -218,4 +228,6 @@ void Smtp::parse(const QByteArray &status) {
             break;
         default: throw sol::error("contact author: unsupported status code(" + std::to_string(code) + ")");
     }
+    const auto more = status.at(3) == '-';
+    return more;
 }

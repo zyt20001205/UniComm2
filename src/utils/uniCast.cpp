@@ -10,7 +10,7 @@
 template<>
 QUrl uni_cast<QUrl, QString>(const QString &s, const int depth) {
     auto uri = QUrl::fromPercentEncoding(s.toUtf8());
-    if (uri.length() > 8) {
+    if (uri.size() > 8) {
         const QChar drive = uri[8];
         if (drive.isLetter() && drive.isLower()) {
             uri[8] = drive.toUpper();

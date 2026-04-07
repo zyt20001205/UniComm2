@@ -1618,6 +1618,14 @@ Item {
         }
 
         MenuItem {
+            text: qsTr("Run Selected")
+            icon.source: "qrc:/icon/play.svg"
+            icon.width: 16; icon.height: 16
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["text"] : false
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.scriptUrl, 0, scriptModuleEditorMenu.menuSession["startLine"], scriptModuleEditorMenu.menuSession["startCharacter"], scriptModuleEditorMenu.menuSession["endLine"], scriptModuleEditorMenu.menuSession["endCharacter"])
+        }
+
+        MenuItem {
             text: qsTr("Debug")
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16

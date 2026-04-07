@@ -982,7 +982,7 @@ void ScriptPage::assemblyToggle(const bool status) {
                     m_editorWidget->annotationSet(startLine, text);
                 } else {
                     const auto detail = text.split('\t');
-                    if (detail.length() == 6) m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + '\t' + detail.at(5) + "\r\n");
+                    if (detail.size() == 6) m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + '\t' + detail.at(5) + "\r\n");
                     else m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
                     m_assemblyWidget->marginTextSet(m_assemblyWidget->lineCountGet() - 2, detail.at(1));
                     m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 2, SC_FOLDLEVELBASE + 1);
@@ -1520,7 +1520,7 @@ void ScriptPage::searchRequest(const QString &text) {
             m_editorWidget->targetSetStart(end);
             m_editorWidget->targetSetEnd(m_editorWidget->lengthGet());
         }
-        total = static_cast<int>(startList.length());
+        total = static_cast<int>(startList.size());
         if (current == total) current--;
 
         m_search["current"] = current;
