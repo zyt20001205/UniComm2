@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "luaModule/dataProcess.h"
 #include "luaModule/http.h"
+#include "luaModule/imap.h"
 #include "luaModule/io.h"
 #include "luaModule/key.h"
 #include "luaModule/port.h"
@@ -67,6 +68,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             Http::get(portName, headers.value_or(m_lua.create_table()), timeout.value_or(30000));
         });
         m_lua["http"] = http;
+    }
+    // Imap lib
+    {
+        auto imap = m_lua.create_table();
+        imap.set_function("login", [this](const std::string &portName, const std::string &username, const std::string &password) {
+            m_imap->login(portName, username, password);
+        });
+        m_lua["imap"] = imap;
     }
     // IO lib
     {

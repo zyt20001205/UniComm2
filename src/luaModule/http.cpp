@@ -12,9 +12,7 @@ Http::Http(QObject *parent)
 }
 
 void Http::get(const std::string &portName, const sol::table &headers, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) {
-        throw sol::error(portName + " does not exist");
-    }
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     QByteArray txData = "GET /get HTTP/1.1\r\n";

@@ -10,6 +10,7 @@ class QEventLoop;
 class QStandardItemModel;
 class DataProcess;
 class Http;
+class Imap;
 class IO;
 class Key;
 class ModbusAscii;
@@ -67,6 +68,7 @@ private:
     QVariantMap m_luaSession{};
     DataProcess *m_dataProcess{};
     Http *m_http{};
+    Imap *m_imap{};
     IO *m_io{};
     Key *m_key{};
     ModbusAscii *m_modbusAscii{};

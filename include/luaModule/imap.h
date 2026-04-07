@@ -11,10 +11,12 @@ public:
 
     ~Imap() override = default;
 
-    static void login(const std::string &portName, const std::string &username, const std::string &password);
+    void login(const std::string &portName, const std::string &username, const std::string &password);
 
 private:
-    static void parse(const QByteArray &status);
+    static std::string parse(const QByteArray &command, const QByteArray &rxData);
+
+    int m_count = 1;
 };
 
 #endif //UNICOMM_IMAP_H

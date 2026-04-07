@@ -115,6 +115,13 @@ http = {}
 --- @param timeout? integer Maximum time in **milliseconds** to wait for data to arrive.
 function http.get(name, headers, timeout) end
 
+imap = {}
+--- Send LOGIN command to authenticate with IMAP server.
+--- @param name portName Target port name.
+--- @param username string IMAP username/email address.
+--- @param password password IMAP password.
+function imap.login(name, username, password) end
+
 io = {}
 --- Logging.
 ---@param ... any
