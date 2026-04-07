@@ -170,7 +170,7 @@ gantt
             <img src="https://img.shields.io/badge/Modbus_Ascii-Supported-brightgreen" alt="Modbus Ascii Support">
             <br><img src="https://img.shields.io/badge/Modbus_Rtu-Supported-brightgreen" alt="Modbus Rtu Support">
             <br><img src="https://img.shields.io/badge/SMTP-Supported-brightgreen" alt="SMTP Support">
-            <br><img src="https://img.shields.io/badge/USB_TMC-Supported-brightgreen" alt="USB TMC Support">
+            <br><img src="https://img.shields.io/badge/USB_TMC-WIP-yellow" alt="USB TMC Support">
         </td>
         <td align = "center">
             <img src="https://img.shields.io/badge/OCR-Supported-brightgreen" alt="OCR Support">

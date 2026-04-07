@@ -1,5 +1,7 @@
 #include "utils/ringBuffer.h"
 
+#include <QDebug>
+
 // public
 RingBuffer::RingBuffer(const qsizetype capacity)
     : m_capacity(capacity),
@@ -36,21 +38,26 @@ QByteArray RingBuffer::read(qsizetype length) {
     return data;
 }
 
-QByteArray RingBuffer::readUntil(const QByteArray &data) {
-    QMutexLocker locker(&m_mutex);
-    if (m_buffer.contains(data)) {
-        return {"YES"};
-    }
-    return {"NO"};
-}
-
 qsizetype RingBuffer::used() {
     QMutexLocker locker(&m_mutex);
     return m_used;
 }
 
-bool RingBuffer::contains(const QByteArray &data) const {
-    return m_buffer.contains(data);
+qsizetype RingBuffer::distance(const QByteArray &text) {
+    QMutexLocker locker(&m_mutex);
+    const auto size = text.size();
+    if (m_used == 0 || text.isEmpty() || m_used < size) return -1;
+    qsizetype index = 0;
+    index = m_buffer.indexOf(text, m_readPos);
+    if (index == -1) index = m_buffer.indexOf(text);
+    qsizetype length = 0;
+    if (index >= m_readPos) {
+        length = index + size - m_readPos;
+    } else {
+        length = m_capacity - m_readPos + index + size;
+    }
+    if (length > m_used) return -1;
+    return length;
 }
 
 void RingBuffer::clear() {

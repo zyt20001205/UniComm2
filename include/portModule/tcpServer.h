@@ -37,6 +37,10 @@ public:
 
     [[nodiscard]] QByteArray read(int length, int timeout, const QString &peerIp, const QString &rxFormat) override;
 
+    [[nodiscard]] QByteArray readUntil(const QByteArray &text, int timeout, const QString &rxFormat) override;
+
+    [[nodiscard]] QByteArray readUntil(const QByteArray &text, int timeout, const QString &peerIp, const QString &rxFormat) override;
+
 signals:
     void newConnection();
 
@@ -64,6 +68,8 @@ private:
     [[nodiscard]] bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
     [[nodiscard]] QByteArray handleRead(int length, int timeout, const QString &peerIp);
+
+    [[nodiscard]] QByteArray handleReadUntil(const QByteArray &text, int timeout, const QString &peerIp);
 
     void handleLog(int type, const QByteArray &data, const QTcpSocket *tcpServerPeer);
 

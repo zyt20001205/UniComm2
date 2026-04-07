@@ -31,6 +31,8 @@ public:
 
     [[nodiscard]] QByteArray read(int length, int timeout, const QString &rxFormat) override;
 
+    [[nodiscard]] QByteArray readUntil(const QByteArray &text, int timeout, const QString &rxFormat) override;
+
 signals:
     void connected();
 
@@ -40,6 +42,8 @@ private:
     [[nodiscard]] bool handleWrite(const QByteArray &f_txData);
 
     [[nodiscard]] QByteArray handleRead(int length, int timeout);
+
+    [[nodiscard]] QByteArray handleReadUntil(const QByteArray &text, int timeout);
 
     void handleLog(int type, const QByteArray &data);
 

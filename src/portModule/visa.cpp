@@ -79,6 +79,12 @@ QByteArray Visa::read(const int length, const int timeout, const QString &rxForm
     return handleRead(length, timeout);
 }
 
+QByteArray Visa::readUntil(const QByteArray &text, const int timeout, const QString &rxFormat) {
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    return handleReadUntil(text, timeout);
+}
+
 // private
 bool Visa::handleWrite(const QByteArray &f_txData) {
     // check port status
@@ -117,6 +123,10 @@ QByteArray Visa::handleRead(const int length, const int timeout) {
     //     m_Visa->waitForReadyRead(10);
     // }
     // emit appendLog(QString("%1 timeout").arg(m_portConfig["portName"].toString()), "error");
+    return {};
+}
+
+QByteArray Visa::handleReadUntil(const QByteArray &text, const int timeout) {
     return {};
 }
 

@@ -220,11 +220,11 @@ QByteArray SslClient::handleReadUntil(const QByteArray &text, const int timeout)
         return {};
     }
     const QDeadlineTimer deadline(timeout);
-    while (!m_buffer.contains(text)) {
+    while (m_buffer.distance(text) == -1) {
         if (deadline.hasExpired()) break;
         m_sslClient->waitForReadyRead(10);
     }
-    return m_buffer.readUntil(text);
+    return m_buffer.read(m_buffer.distance(text));
 }
 
 void SslClient::handleLog(const int type, const QByteArray &data) {

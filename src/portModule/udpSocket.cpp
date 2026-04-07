@@ -110,6 +110,12 @@ QByteArray UdpSocket::read(const int length, const int timeout, const QString &r
     return handleRead(length, timeout);
 }
 
+QByteArray UdpSocket::readUntil(const QByteArray &text, const int timeout, const QString &rxFormat) {
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    return handleReadUntil(text, timeout);
+}
+
 // private
 void UdpSocket::handleReadyRead() {
     const auto rxData = m_udpSocket->readAll();
@@ -158,6 +164,23 @@ QByteArray UdpSocket::handleRead(const int length, const int timeout) {
         m_udpSocket->waitForReadyRead(10);
     }
     return m_buffer.read(length);
+}
+
+QByteArray UdpSocket::handleReadUntil(const QByteArray &text, const int timeout) {
+    // check port status
+    if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
+        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), LOG_ERROR);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        return {};
+    }
+    const QDeadlineTimer deadline(timeout);
+    while (m_buffer.distance(text) == -1) {
+        if (deadline.hasExpired()) break;
+        m_udpSocket->waitForReadyRead(10);
+    }
+    return m_buffer.read(m_buffer.distance(text));
 }
 
 void UdpSocket::handleLog(const int type, const QByteArray &data) {

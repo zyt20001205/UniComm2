@@ -11,11 +11,9 @@ public:
 
     [[nodiscard]] QByteArray read(qsizetype length);
 
-    [[nodiscard]] QByteArray readUntil(const QByteArray &data);
-
     [[nodiscard]] qsizetype used();
 
-    [[nodiscard]] bool contains(const QByteArray &data) const;
+    [[nodiscard]] qsizetype distance(const QByteArray &text);
 
     void clear();
 

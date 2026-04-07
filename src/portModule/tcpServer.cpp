@@ -142,6 +142,19 @@ QByteArray TcpServer::read(const int length, const int timeout, const QString &p
     return handleRead(length, timeout, peerIp);
 }
 
+QByteArray TcpServer::readUntil(const QByteArray &text, const int timeout, const QString &rxFormat) {
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    if (m_peerHash.isEmpty()) return {};
+    return handleReadUntil(text, timeout, m_peerHash.keys().first());
+}
+
+QByteArray TcpServer::readUntil(const QByteArray &text, const int timeout, const QString &peerIp, const QString &rxFormat) {
+    QScopedValueRollback configRollback(m_portConfig);
+    if (!rxFormat.isEmpty()) m_portConfig["rxFormat"] = rxFormat;
+    return handleReadUntil(text, timeout, peerIp);
+}
+
 // private
 void TcpServer::handleNewConnection() {
     while (m_tcpServer->hasPendingConnections()) {
@@ -251,6 +264,24 @@ QByteArray TcpServer::handleRead(const int length, const int timeout, const QStr
         m_peerHash[peerIp]->waitForReadyRead(10);
     }
     return m_bufferHash[peerIp]->read(length);
+}
+
+QByteArray TcpServer::handleReadUntil(const QByteArray &text, const int timeout, const QString &peerIp) {
+    // check port status
+    if (m_tcpServer == nullptr || !m_tcpServer->isListening()) {
+        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), LOG_ERROR);
+        // logging
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        return {};
+    }
+    const QDeadlineTimer deadline(timeout);
+    const auto buffer = m_bufferHash[peerIp];
+    while (buffer->distance(text) == -1) {
+        if (deadline.hasExpired()) break;
+        m_peerHash[peerIp]->waitForReadyRead(10);
+    }
+    return buffer->read(buffer->distance(text));
 }
 
 void TcpServer::handleLog(const int type, const QByteArray &data, const QTcpSocket *tcpServerPeer) {
