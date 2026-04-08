@@ -209,7 +209,7 @@ void Smtp::quit(const std::string &portName) {
 
 // private
 QString Smtp::parse(const QByteArray &rxData) {
-    if (rxData.isEmpty()) return "timeout";
+    if (rxData.isEmpty()) return "read timeout";
     if (rxData.size() < 4) return "invalid smtp response";
     const auto code = rxData.left(3).toInt();
     switch (code) {

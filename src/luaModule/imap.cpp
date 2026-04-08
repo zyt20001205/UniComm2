@@ -102,8 +102,8 @@ sol::table Imap::fetch(const std::string &portName, const int timeout) {
 int Imap::idle(const std::string &portName, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    int sequenceNumber{};
     QString exception{};
+    int sequenceNumber{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     QByteArray txData =
             'A'
@@ -111,7 +111,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
             + ' '
             + "IDLE";
 
-    QMetaObject::invokeMethod(port, [&sequenceNumber, &exception, this, &port, &txData, &timeout] {
+    QMetaObject::invokeMethod(port, [&exception, &sequenceNumber, this, &port, &txData, &timeout] {
         QByteArray rxData{};
         QVariantHash session{};
 
@@ -159,7 +159,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
 QVariantHash Imap::parse(const QByteArray &command, const QByteArray &rxData) {
     QVariantHash session{};
     if (rxData.isEmpty()) {
-        session["exception"] = "timeout";
+        session["exception"] = "read timeout";
         return session;
     }
     const auto dataList = rxData.split(' ');
