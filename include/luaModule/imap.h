@@ -15,10 +15,10 @@ public:
 
     void select(const std::string &portName, const std::string &mailbox, int timeout);
 
-    [[nodiscard]] bool idle(const std::string &portName, int timeout);
+    [[nodiscard]] int idle(const std::string &portName, int timeout);
 
 private:
-    [[nodiscard]] std::string parse(const QByteArray &command, const QByteArray &rxData);
+    [[nodiscard]] QVariantHash parse(const QByteArray &command, const QByteArray &rxData);
 
     int m_count{};
 };

@@ -241,6 +241,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
 
 // private
 std::string Smtp::parse(const QByteArray &rxData) {
+    if (rxData.isEmpty()) return "timeout";
     if (rxData.size() < 4) return "invalid smtp response";
     const auto code = rxData.left(3).toInt();
     switch (code) {
