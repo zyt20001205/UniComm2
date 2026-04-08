@@ -2,6 +2,7 @@
 #define UNICOMM_IMAP_H
 
 #include <QObject>
+#include <sol/table.hpp>
 
 class Imap final : public QObject {
     Q_OBJECT
@@ -15,7 +16,9 @@ public:
 
     void select(const std::string &portName, const std::string &mailbox, int timeout);
 
-    [[nodiscard]] int idle(const std::string &portName, int timeout);
+    sol::table fetch(const std::string &portName, int timeout);
+
+    int idle(const std::string &portName, int timeout);
 
 private:
     [[nodiscard]] QVariantHash parse(const QByteArray &command, const QByteArray &rxData);
