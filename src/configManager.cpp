@@ -61,24 +61,25 @@ int ConfigManager::mainConfigLoad() {
 }
 
 void ConfigManager::workspaceInit() {
-    const QString workspacePath = g_workspaceUrl.toLocalFile();
+    const auto workspacePath = g_workspaceUrl.toLocalFile();
     // 1: config.json
     {
-        const QString configPath = QDir(workspacePath).filePath("config.json");
-        // check if config.json exists
-        if (!QFile::exists(configPath)) {
-            QFile::copy(":/config/config.json", configPath);
-            QFile::setPermissions(configPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+        const auto srcConfigPath = ":/config/config.json";
+        const auto dstConfigPath = QDir(workspacePath).filePath("config.json");
+        // copy if not found
+        if (!QFile::exists(dstConfigPath)) {
+            QFile::copy(srcConfigPath, dstConfigPath);
+            QFile::setPermissions(dstConfigPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
                                               | QFileDevice::ReadUser | QFileDevice::WriteUser
                                               | QFileDevice::ReadGroup | QFileDevice::ReadOther);
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".config.json generated");
+            qDebug() << QString("[%1] .config.json copied").arg(timestamp);
         }
-        // validate config.json
-        {
-            QFile config(configPath);
-            config.open(QIODevice::ReadOnly | QIODevice::Text);
+        // validate
+        else {
+            QFile config(dstConfigPath);
+            if (!config.open(QIODevice::ReadOnly | QIODevice::Text)) return;
             const QByteArray jsonData = config.readAll();
             config.close();
             const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
@@ -111,63 +112,72 @@ void ConfigManager::workspaceInit() {
                 // write valid script config back
                 jsonObject["scriptConfig"] = scriptConfig;
             }
-            // write back
             g_workspaceConfig = jsonObject;
             const QJsonDocument doc(jsonObject);
-            config.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+            if (!config.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
             config.write(doc.toJson(QJsonDocument::Indented));
             config.close();
         }
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2").arg(timestamp, "config loaded");
+        qDebug() << QString("[%1] config loaded").arg(timestamp);
     }
     // 2: .luarc.json
     {
-        // check if .luarc.json exists
-        if (const QString luarcPath = QDir(workspacePath).filePath(".luarc.json"); !QFile::exists(luarcPath)) {
-            QFile::copy(":/config/.luarc.json", luarcPath);
+        const auto srcLuarcPath = ":/config/.luarc.json";
+        const auto dstLuarcPath = QDir(workspacePath).filePath(".luarc.json");
+        // copy if not found
+        if (!QFile::exists(dstLuarcPath)) {
+            QFile::copy(srcLuarcPath, dstLuarcPath);
+            QFile::setPermissions(dstLuarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                              | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                              | QFileDevice::ReadGroup | QFileDevice::ReadOther);
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json generated");
+            qDebug() << QString("[%1] .luarc.json copied").arg(timestamp);
         }
-        // validate .luarc.json
-        else if (fileHashCalc(":/config/.luarc.json") != fileHashCalc(luarcPath)) {
-            QFile::setPermissions(luarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+        // validate
+        else if (fileHashCalc(srcLuarcPath) != fileHashCalc(dstLuarcPath)) {
+            QFile::setPermissions(dstLuarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
                                              | QFileDevice::ReadUser | QFileDevice::WriteUser
                                              | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            QFile::remove(luarcPath);
-            QFile::copy(":/config/.luarc.json", luarcPath);
+            QFile::remove(dstLuarcPath);
+            QFile::copy(srcLuarcPath, dstLuarcPath);
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, ".luarc.json updated");
+            qDebug() << QString("[%1] .luarc.json updated").arg(timestamp);
         }
     }
     // 3: lib dir
     {
-        // check if lib dir exists
-        const QString libDirPath = QDir(workspacePath).filePath("lib");
-        if (QDir().mkdir(libDirPath)) {
+        const auto srcLibDirPath = ":/lib";
+        const auto dstLibDirPath = QDir(workspacePath).filePath("lib");
+        // mkdir if not found
+        if (QDir().mkdir(dstLibDirPath)) {
             emit appendLog("lib dir created", LOG_INFO);
             // logging
             const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] lib dir created").arg(timestamp);
         }
 
-        if (const QString libdPath = QDir(libDirPath).filePath("lib.d.lua"); !QFile::exists(libdPath)) {
-            QFile::copy(":/config/lib.d.lua", libdPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua generated");
-        } else if (fileHashCalc(":/config/lib.d.lua") != fileHashCalc(libdPath)) {
-            QFile::setPermissions(libdPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                            | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                            | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-            QFile::remove(libdPath);
-            QFile::copy(":/config/lib.d.lua", libdPath);
-            // logging
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-            qDebug() << QString("[%1] %2").arg(timestamp, "lib.d.lua updated");
+        for (const auto &fileName: QDir(srcLibDirPath).entryList(QDir::Files | QDir::NoDotAndDotDot)) {
+            const auto srcLibFilePath = QDir(srcLibDirPath).filePath(fileName);
+            const auto dstLibFilePath = QDir(dstLibDirPath).filePath(fileName);
+            if (!QFile::exists(dstLibFilePath)) {
+                QFile::copy(srcLibFilePath, dstLibFilePath);
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] %2 copied").arg(timestamp, fileName);
+            } else if (fileHashCalc(srcLibFilePath) != fileHashCalc(dstLibFilePath)) {
+                QFile::setPermissions(dstLibFilePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
+                                                | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                                | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+                QFile::remove(dstLibFilePath);
+                QFile::copy(srcLibFilePath, dstLibFilePath);
+                // logging
+                QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+                qDebug() << QString("[%1] %2 updated").arg(timestamp, fileName);
+            }
         }
     }
 }

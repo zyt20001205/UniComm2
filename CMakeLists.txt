@@ -312,7 +312,27 @@ qt_add_resources(UniComm "config_resources"
         FILES
         "resources/config/.luarc.json"
         "resources/config/config.json"
-        "resources/config/lib.d.lua"
+)
+
+qt_add_resources(UniComm "lib_resources"
+        PREFIX "/lib"
+        BASE "resources/lib"
+        FILES
+        "resources/lib/alias.d.lua"
+        "resources/lib/database.d.lua"
+        "resources/lib/datatable.d.lua"
+        "resources/lib/http.d.lua"
+        "resources/lib/imap.d.lua"
+        "resources/lib/io.d.lua"
+        "resources/lib/key.d.lua"
+        "resources/lib/modbusAscii.d.lua"
+        "resources/lib/modbusRtu.d.lua"
+        "resources/lib/modbusTcp.d.lua"
+        "resources/lib/mouse.d.lua"
+        "resources/lib/port.d.lua"
+        "resources/lib/smtp.d.lua"
+        "resources/lib/string.d.lua"
+        "resources/lib/thread.d.lua"
 )
 
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
