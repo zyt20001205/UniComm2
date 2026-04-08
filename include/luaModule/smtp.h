@@ -18,8 +18,10 @@ public:
     static void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
                      const std::string &attachment, int timeout);
 
+    static void quit(const std::string &portName);
+
 private:
-    static std::string parse(const QByteArray &rxData);
+    static QString parse(const QByteArray &rxData);
 };
 
 #endif //UNICOMM_SMTP_H

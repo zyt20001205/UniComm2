@@ -16,7 +16,7 @@ function smtp.ehlo(name, timeout) end
 --- @return nil
 function smtp.authLogin(name, username, password, timeout) end
 
---- Send a simple email.
+--- Send a email with MAIL, RCPT and DATA commands.
 --- @param name portName Target port name.
 --- @param from string
 --- @param to string
@@ -26,3 +26,8 @@ function smtp.authLogin(name, username, password, timeout) end
 --- @param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 --- @return nil
 function smtp.mail(name, from, to, subject, body, attachment, timeout) end
+
+--- Send QUIT command to SMTP server to end communication.
+--- @param name portName Target port name.
+--- @return nil
+function smtp.quit(name, timeout) end

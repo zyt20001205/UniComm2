@@ -196,6 +196,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                              const sol::optional<std::string> &attachment, const sol::optional<int> timeout) {
                               Smtp::mail(portName, from, to, subject, body, attachment.value_or(""), timeout.value_or(1000));
                           });
+        smtp.set_function("quit", [](const std::string &portName) { Smtp::quit(portName); });
         m_lua["smtp"] = smtp;
     }
     // String lib

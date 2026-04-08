@@ -265,14 +265,14 @@ gantt
 |:---------:|:-------------------------------------:|:-------------------------------------------------------------------:|
 | smtp.ehlo | Extended HELLO (EHLO) or HELLO (HELO) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 | smtp.mail |              MAIL (MAIL)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-|           |           RECIPIENT (RCPT)            |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|           |              DATA (DATA)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+| smtp.mail |           RECIPIENT (RCPT)            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| smtp.mail |              DATA (DATA)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 |           |             RESET (RSET)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             VERIFY (VRFY)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             EXPAND (EXPN)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              HELP (HELP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              NOOP (NOOP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|           |              QUIT (QUIT)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+| smtp.quit |              QUIT (QUIT)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 # Script Module
 

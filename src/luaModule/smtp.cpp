@@ -18,229 +18,197 @@ Smtp::Smtp(QObject *parent)
 void Smtp::ehlo(const std::string &portName, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    QByteArray rxData{};
-    std::string exception{};
+    QString exception{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
 
-    QMetaObject::invokeMethod(port, [&rxData, &exception, &port, &timeout] {
-        while (true) {
+    QMetaObject::invokeMethod(port, [&exception, &port, &timeout] {
+        QByteArray rxData{};
+
+        while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
             exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
         }
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
+        if (exception == "end") exception = "";
+        else return;
 
-    bool status = false;
-    rxData = {};
-    exception = {};
-    QByteArray txData = "EHLO localhost";
+        if (!port->write("EHLO localhost", "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
 
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
+        while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
             exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
         }
+        if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
 void Smtp::authLogin(const std::string &portName, const std::string &username, const std::string &password, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    bool status = false;
-    QByteArray rxData{};
-    std::string exception{};
+    QString exception{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QByteArray txData = "AUTH LOGIN";
+    const auto txData1 = QByteArray::fromStdString(username).toBase64();
+    const auto txData2 = QByteArray::fromStdString(password).toBase64();
 
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
+    QMetaObject::invokeMethod(port, [&exception, &port, &txData1, &txData2, &timeout] {
+        QByteArray rxData{};
+
+        if (!port->write("AUTH LOGIN", "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
             exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
         }
-    }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
+        if (exception == "end") exception = "";
+        else return;
 
-    status = false;
-    rxData = {};
-    exception = {};
-    txData = QByteArray::fromStdString(username).toBase64();
+        if (!port->write(txData1, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
 
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
+        while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
             exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
         }
-    }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
+        if (exception == "end") exception = "";
+        else return;
 
-    status = false;
-    rxData = {};
-    exception = {};
-    txData = QByteArray::fromStdString(password).toBase64();
+        if (!port->write(txData2, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
 
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
+        while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
             exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
         }
+        if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
-void Smtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment, const int timeout) {
+void Smtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment,
+                const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
-    bool status = false;
-    QByteArray rxData{};
-    std::string exception{};
+    QString exception{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QByteArray txData = "MAIL FROM: <" + QByteArray::fromStdString(from) + ">";
-
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
-        }
-    }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
-
-    status = false;
-    rxData = {};
-    exception = {};
-    txData = "RCPT TO: <" + QByteArray::fromStdString(to) + ">";
-
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
-        }
-    }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
-
-    status = false;
-    rxData = {};
-    exception = {};
-    txData = "DATA";
-
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
-        }
-    }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
-
-    status = false;
-    rxData = {};
-    exception = {};
-    QString boundary = QString::number(QDateTime::currentMSecsSinceEpoch());
-    txData = "From: " + QByteArray::fromStdString(from) + "\r\n";
-    txData += "To: " + QByteArray::fromStdString(to) + "\r\n";
-    txData += "Subject: " + QByteArray::fromStdString(subject) + "\r\n";
-    txData += "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n";
-    txData += "MIME-Version: 1.0\r\n";
-    txData += "Content-Type: multipart/mixed; boundary=\"" + boundary.toUtf8() + "\"\r\n";
-    txData += "\r\n";
-    txData += "--" + boundary.toUtf8() + "\r\n";
-    txData += "Content-Type: text/plain; charset=utf-8\r\n";
-    txData += "Content-Transfer-Encoding: 8bit\r\n";
-    txData += "\r\n";
-    txData += QByteArray::fromStdString(body) + "\r\n";
+    const auto txData1 = "MAIL FROM: <" + QByteArray::fromStdString(from) + ">";
+    const auto txData2 = "RCPT TO: <" + QByteArray::fromStdString(to) + ">";
+    const auto boundary = QString::number(QDateTime::currentMSecsSinceEpoch());
+    QByteArray txData3 =
+            "From: " + QByteArray::fromStdString(from) + "\r\n"
+            + "To: " + QByteArray::fromStdString(to) + "\r\n"
+            + "Subject: " + QByteArray::fromStdString(subject) + "\r\n"
+            + "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n"
+            + "MIME-Version: 1.0\r\n"
+            + "Content-Type: multipart/mixed; boundary=\"" + boundary.toUtf8() + "\"\r\n"
+            + "\r\n"
+            + "--" + boundary.toUtf8() + "\r\n"
+            + "Content-Type: text/plain; charset=utf-8\r\n"
+            + "Content-Transfer-Encoding: 8bit\r\n"
+            + "\r\n"
+            + QByteArray::fromStdString(body) + "\r\n";
     if (!attachment.empty()) {
         const auto &filePath = lua2filepath(attachment);
-        QMimeDatabase mimeDb;
+        const QMimeDatabase mimeDb{};
         const auto &mimeType = mimeDb.mimeTypeForFile(filePath).name();
         const auto &fileName = QFileInfo(filePath).fileName();
 
-        txData += "--" + boundary.toUtf8() + "\r\n";
-        txData += "Content-Type: " + mimeType.toUtf8() + "\r\n";
-        txData += "Content-Transfer-Encoding: base64\r\n";
-        txData += "Content-Disposition: attachment; filename=\"" + fileName.toUtf8() + "\"\r\n";
-        txData += "\r\n";
+        txData3 +=
+                "--" + boundary.toUtf8() + "\r\n"
+                + "Content-Type: " + mimeType.toUtf8() + "\r\n"
+                + "Content-Transfer-Encoding: base64\r\n"
+                + "Content-Disposition: attachment; filename=\"" + fileName.toUtf8() + "\"\r\n"
+                + "\r\n";
 
-        QFile imageFile(filePath);
-        if (imageFile.open(QIODevice::ReadOnly)) {
-            QByteArray imageData = imageFile.readAll();
-            QByteArray base64Data = imageData.toBase64();
-            txData += base64Data + "\r\n";
+        QFile attachmentFile(filePath);
+        if (attachmentFile.open(QIODevice::ReadOnly)) {
+            const auto base64Data = attachmentFile.readAll().toBase64();
+            txData3 += base64Data + "\r\n";
         } else {
             throw sol::error(portName + ": attachment invalid");
         }
     }
-    txData += "--" + boundary.toUtf8() + "--\r\n.";
+    txData3 += "--" + boundary.toUtf8() + "--\r\n.";
 
-    QMetaObject::invokeMethod(port, [&status, &rxData, &exception, &port, &txData, &timeout] {
-        status = port->write(txData, "utf-8", "crlf");
-        while (true) {
+
+    QMetaObject::invokeMethod(port, [&exception, &port, &txData1, &txData2, &txData3, &timeout] {
+        QByteArray rxData{};
+
+        if (!port->write(txData1, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
             exception = parse(rxData);
-            if (!exception.empty()) {
-                if (exception == "end") exception = "";
-                break;
-            }
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        if (!port->write(txData2, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            exception = parse(rxData);
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        if (!port->write("DATA", "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            exception = parse(rxData);
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        if (!port->write(txData3, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            exception = parse(rxData);
+        }
+        if (exception == "end") exception = "";
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+}
+
+void Smtp::quit(const std::string &portName) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+
+    QString exception{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+
+    QMetaObject::invokeMethod(port, [&exception, &port] {
+        if (!port->write("QUIT", "utf-8", "crlf")) {
+            exception = "write failed";
         }
     }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
-    if (!exception.empty()) throw sol::error(portName + ": " + exception);
-
-    status = false;
-    txData = "QUIT";
-
-    QMetaObject::invokeMethod(port, [&status, &port, &txData] {
-        status = port->write(txData, "utf-8", "crlf");
-    }, Qt::BlockingQueuedConnection);
-    if (!status) throw sol::error(portName + ": communication failed");
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
 // private
-std::string Smtp::parse(const QByteArray &rxData) {
+QString Smtp::parse(const QByteArray &rxData) {
     if (rxData.isEmpty()) return "timeout";
     if (rxData.size() < 4) return "invalid smtp response";
     const auto code = rxData.left(3).toInt();
@@ -253,7 +221,7 @@ std::string Smtp::parse(const QByteArray &rxData) {
             break;
         case 535:
             return "authentication credentials invalid";
-        default: return "contact author: unsupported status code(" + std::to_string(code) + ")";
+        default: return "contact author: unsupported status code(" + QString::number(code) + ")";
     }
     if (rxData.at(3) != '-') {
         return "end";
