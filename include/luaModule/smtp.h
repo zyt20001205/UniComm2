@@ -15,7 +15,7 @@ public:
 
     static void authLogin(const std::string &portName, const std::string &username, const std::string &password, int timeout);
 
-    static void mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
+    static void send(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
                      const std::string &attachment, int timeout);
 
     static void quit(const std::string &portName);

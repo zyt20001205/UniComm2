@@ -264,9 +264,9 @@ gantt
 |   APIS    |               RFC 5321                |                               Status                                |                           
 |:---------:|:-------------------------------------:|:-------------------------------------------------------------------:|
 | smtp.ehlo | Extended HELLO (EHLO) or HELLO (HELO) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| smtp.mail |              MAIL (MAIL)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| smtp.mail |           RECIPIENT (RCPT)            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| smtp.mail |              DATA (DATA)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| smtp.send |              MAIL (MAIL)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| smtp.send |           RECIPIENT (RCPT)            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| smtp.send |              DATA (DATA)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 |           |             RESET (RSET)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             VERIFY (VRFY)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             EXPAND (EXPN)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |

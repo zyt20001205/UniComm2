@@ -94,7 +94,7 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
-void Smtp::mail(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment,
+void Smtp::send(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment,
                 const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
