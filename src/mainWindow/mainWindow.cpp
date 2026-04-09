@@ -244,23 +244,22 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_watchModule->propertySet(watchObjects);
 }
 
-void MainWindow::overlayFocus(const bool status) {
-    QTimer::singleShot(0, [this, status] {
-        if (!status && !isActiveWindow()) activateWindow();
-        if (m_overlay->flags().testFlag(Qt::WindowDoesNotAcceptFocus) == !status) return;
-        m_overlay->setFlag(Qt::WindowDoesNotAcceptFocus, !status);
-        m_overlay->hide();
-        m_overlay->show();
-    });
-}
-
-void MainWindow::overlayTransparent(const bool status) const {
-    QTimer::singleShot(0, [this, status] {
-        if (m_overlay->flags().testFlag(Qt::WindowTransparentForInput) == status) return;
-        m_overlay->setFlag(Qt::WindowTransparentForInput, status);
-        m_overlay->hide();
-        m_overlay->show();
-    });
+void MainWindow::overlayFlagSet(const QVariant &transparent, const QVariant &focus) {
+    if (transparent.isValid()) {
+        const auto _transparent = transparent.toBool();
+        if (m_overlay->flags().testFlag(Qt::WindowTransparentForInput) != _transparent) {
+            m_overlay->setFlag(Qt::WindowTransparentForInput, _transparent);
+        }
+    }
+    if (focus.isValid()) {
+        const auto _focus = focus.toBool();
+        if (!_focus && !isActiveWindow()) activateWindow();
+        if (m_overlay->flags().testFlag(Qt::WindowDoesNotAcceptFocus) == _focus) {
+            m_overlay->setFlag(Qt::WindowDoesNotAcceptFocus, !_focus);
+        }
+    }
+    m_overlay->hide();
+    m_overlay->show();
 }
 
 void MainWindow::quit() {

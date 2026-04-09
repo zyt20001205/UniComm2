@@ -43,9 +43,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void overlayFocus(bool status);
-
-    Q_INVOKABLE void overlayTransparent(bool status) const;
+    Q_INVOKABLE void overlayFlagSet(const QVariant &transparent, const QVariant &focus);
 
     Q_INVOKABLE void quit();
 

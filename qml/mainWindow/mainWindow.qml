@@ -14,8 +14,8 @@ Item {
     Item {
         id: debugConsole
         anchors.fill: parent
-        // visible: true
-        visible: false
+        visible: true
+        // visible: false
 
         Rectangle {
             anchors.fill: parent
@@ -41,10 +41,9 @@ Item {
             widgetCount = 0
         }
         if (widgetCount === 0) {
-            mainWindow.overlayTransparent(true)
-            mainWindow.overlayFocus(false)
+            mainWindow.overlayFlagSet(true, false)
         } else {
-            mainWindow.overlayTransparent(false)
+            mainWindow.overlayFlagSet(false, undefined)
         }
 
         if (debugConsole.visible) {
@@ -63,7 +62,7 @@ Item {
         topPadding: 30; bottomPadding: 20
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -85,7 +84,7 @@ Item {
         standardButtons: Dialog.Yes | Dialog.No
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -106,7 +105,7 @@ Item {
         topPadding: 30; bottomPadding: 20
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -131,7 +130,7 @@ Item {
         property string secondaryLog
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -182,7 +181,7 @@ Item {
             topPadding: 30; bottomPadding: 20
 
             onOpened: {
-                mainWindow.overlayFocus(true)
+                mainWindow.overlayFlagSet(undefined, true)
                 widgetCount += 1
             }
             onClosed: {
@@ -248,7 +247,7 @@ Item {
         property bool done3: false
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -285,7 +284,7 @@ Item {
         property int line
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -333,7 +332,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -398,7 +397,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -451,7 +450,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -512,7 +511,7 @@ Item {
         property string databaseKey
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -545,7 +544,7 @@ Item {
         property string databaseKey
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -595,7 +594,7 @@ Item {
         id: databaseModuleRootMenu
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -644,7 +643,7 @@ Item {
 
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -677,7 +676,7 @@ Item {
         property string datatableKey
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -719,7 +718,7 @@ Item {
         id: datatableModuleRootMenu
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -769,7 +768,7 @@ Item {
         property var rootItem
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -832,7 +831,7 @@ Item {
         standardButtons: Dialog.Ok
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -845,7 +844,7 @@ Item {
         property var position
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -880,7 +879,7 @@ Item {
 
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -911,7 +910,7 @@ Item {
         property string filePath
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -938,7 +937,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1053,7 +1052,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1162,7 +1161,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1248,7 +1247,7 @@ Item {
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1276,7 +1275,7 @@ Item {
         property url url
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1317,7 +1316,7 @@ Item {
         id: menuModuleFileMenu
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1362,7 +1361,7 @@ Item {
         property var menuSession
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1575,7 +1574,7 @@ Item {
         id: menuModuleViewMenu
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1700,7 +1699,7 @@ Item {
         property var menuSession
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1773,7 +1772,7 @@ Item {
         property int portIndex
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1816,7 +1815,7 @@ Item {
         id: portModuleRootMenu
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -1837,7 +1836,7 @@ Item {
         property var menuSession
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2036,7 +2035,7 @@ Item {
         property int typed
 
         onOpened: {
-            mainWindow.overlayFocus(false)
+            mainWindow.overlayFlagSet(undefined, false)
             widgetCount += 1
         }
         onClosed: {
@@ -2263,7 +2262,7 @@ Item {
         property var suggestions
 
         onOpened: {
-            mainWindow.overlayFocus(false)
+            mainWindow.overlayFlagSet(undefined, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2448,7 +2447,7 @@ Item {
         property var navigationWidget
 
         onOpened: {
-            mainWindow.overlayFocus(false)
+            mainWindow.overlayFlagSet(undefined, false)
             widgetCount += 1
         }
         onClosed: {
@@ -2655,7 +2654,7 @@ Item {
         property point position
 
         onOpened: {
-            mainWindow.overlayFocus(false)
+            mainWindow.overlayFlagSet(undefined, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2674,7 +2673,7 @@ Item {
         property int eolMode
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2728,7 +2727,7 @@ Item {
         property var treeView
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2768,7 +2767,7 @@ Item {
         property string fileUrl
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2801,7 +2800,7 @@ Item {
         property bool readonly
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2826,7 +2825,7 @@ Item {
         standardButtons: Dialog.Ok
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2837,7 +2836,7 @@ Item {
         property string threadId
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2865,7 +2864,7 @@ Item {
         property string watchExpression
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2935,7 +2934,7 @@ Item {
         property string currentType
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -3008,7 +3007,7 @@ Item {
         property string watchExpression
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -3051,7 +3050,7 @@ Item {
         property string currentType
 
         onOpened: {
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -3097,7 +3096,7 @@ Item {
 
         onOpened: {
             widgetCount += 1
-            mainWindow.overlayFocus(true)
+            mainWindow.overlayFlagSet(undefined, true)
         }
         onClosed: widgetCount -= 1
 
