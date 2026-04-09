@@ -196,7 +196,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                     {"fore", 0x000000},
                     {"alpha", 255},
                     {"outlineAlpha", 255},
-                    {"setUnder", false}
+                    {"setUnder", false},
+                    {"hoverStyle", 5}
                 });
             // QJsonObject{
             //             {"style", 1},
@@ -1537,7 +1538,8 @@ void ScriptPage::replaceToggle() {
     } else {
         m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
         m_searchWidget->setVisible(m_replaceWidget->isVisible());
-    }}
+    }
+}
 
 void ScriptPage::searchRequest(const QString &text) {
     searchClear();
