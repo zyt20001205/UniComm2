@@ -1374,7 +1374,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession?.undoable
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.undoable : false
 
                 Image {
                     source: "qrc:/icon/undo.svg"
@@ -1402,7 +1402,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession?.redoable
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.redoable : false
 
                 Image {
                     source: "qrc:/icon/redo.svg"
@@ -1433,7 +1433,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession?.copiable
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
 
                 Image {
                     source: "qrc:/icon/cut.svg"
@@ -1461,7 +1461,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession?.copiable
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
 
                 Image {
                     source: "qrc:/icon/copy.svg"
@@ -1489,7 +1489,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession?.pastable
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.pastable : false
 
                 Image {
                     source: "qrc:/icon/paste.svg"
@@ -1745,7 +1745,7 @@ Item {
                 }
 
                 Label {
-                    text: menuModuleCodeMenu.menuSession?.text ? qsTr("Range Formatting") : qsTr("Document Formatting")
+                    text: menuModuleCodeMenu.menuSession ? menuModuleCodeMenu.menuSession.text ? qsTr("Range Formatting") : qsTr("Document Formatting") : false
                 }
 
                 Item {
@@ -1858,7 +1858,7 @@ Item {
             text: qsTr("Run Selected")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession?.text
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text : false
             onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
         }
 
@@ -1904,7 +1904,7 @@ Item {
         }
 
         MenuItem {
-            text: scriptModuleEditorMenu.menuSession?.text ? qsTr("Range Formatting") : qsTr("Document Formatting")
+            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Range Formatting") : qsTr("Document Formatting") : false
             icon.source: "qrc:/icon/brush.svg"
             icon.width: 16; icon.height: 16
 
@@ -1921,7 +1921,7 @@ Item {
             title: qsTr("Navigation")
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession?.navigation
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.navigation : false
 
             MenuItem {
                 text: qsTr("Definition(s)")
@@ -1963,7 +1963,7 @@ Item {
             text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession?.text
+            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text : false
             ToolTip.visible: hovered && !enabled
             ToolTip.text: qsTr("Nothing selected")
 
