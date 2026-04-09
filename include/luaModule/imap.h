@@ -21,7 +21,13 @@ public:
     int idle(const std::string &portName, int timeout);
 
 private:
-    [[nodiscard]] QVariantHash parse(const QByteArray &command, const QByteArray &rxData);
+    [[nodiscard]] QVariantHash parser(const QByteArray &command, const QByteArray &rxData);
+
+    static QString continuationParser(const QByteArray &command, const QByteArray &rxData);
+
+    [[nodiscard]] QString taggedParser(const QByteArray &command, const QByteArray &rxData);
+
+    static QVariantHash untaggedParser(const QByteArray &command, const QByteArray &rxData);
 
     int m_count{};
 };

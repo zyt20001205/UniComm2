@@ -26,7 +26,7 @@ void Smtp::ehlo(const std::string &portName, const int timeout) {
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
         else return;
@@ -38,7 +38,7 @@ void Smtp::ehlo(const std::string &portName, const int timeout) {
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
@@ -63,7 +63,7 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
         else return;
@@ -75,7 +75,7 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
         else return;
@@ -87,7 +87,7 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
@@ -150,7 +150,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
         else return;
@@ -162,7 +162,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
         else return;
@@ -174,7 +174,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
         else return;
@@ -186,7 +186,7 @@ void Smtp::mail(const std::string &portName, const std::string &from, const std:
 
         while (exception.isEmpty()) {
             rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parse(rxData);
+            exception = parser(rxData);
         }
         if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
@@ -208,7 +208,7 @@ void Smtp::quit(const std::string &portName) {
 }
 
 // private
-QString Smtp::parse(const QByteArray &rxData) {
+QString Smtp::parser(const QByteArray &rxData) {
     if (rxData.isEmpty()) return "read timeout";
     if (rxData.size() < 4) return "invalid smtp response";
     const auto code = rxData.left(3).toInt();

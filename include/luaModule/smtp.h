@@ -21,7 +21,7 @@ public:
     static void quit(const std::string &portName);
 
 private:
-    static QString parse(const QByteArray &rxData);
+    static QString parser(const QByteArray &rxData);
 };
 
 #endif //UNICOMM_SMTP_H
