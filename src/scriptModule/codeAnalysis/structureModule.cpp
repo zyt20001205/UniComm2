@@ -25,7 +25,7 @@ StructureModule::~StructureModule() {
 
 void StructureModule::propertySet(const QVariantMap &objects) {
     m_structureWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
-    m_structureWidget->rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
+    m_structureWidget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     m_structureWidget->rootContext()->setContextProperty("structureModule", this);
     m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);

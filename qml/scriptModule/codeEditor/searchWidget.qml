@@ -51,12 +51,12 @@ Item {
                     HoverHandler {
                         onHoveredChanged: {
                             if (!hovered) {
-                                mainTooltip.text = ""
+                                mainToolTip.text = ""
                             }
                         }
                         onPointChanged: {
-                            mainTooltip.position = parent.mapToGlobal(point.position)
-                            mainTooltip.text = parent.checked ? qsTr("Disable Match Case") : qsTr("Enable Match Case")
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = parent.checked ? qsTr("Disable Match Case") : qsTr("Enable Match Case")
                         }
                     }
                 }
@@ -78,12 +78,12 @@ Item {
                     HoverHandler {
                         onHoveredChanged: {
                             if (!hovered) {
-                                mainTooltip.text = ""
+                                mainToolTip.text = ""
                             }
                         }
                         onPointChanged: {
-                            mainTooltip.position = parent.mapToGlobal(point.position)
-                            mainTooltip.text = parent.checked ? qsTr("Disable Whole Word") : qsTr("Enable Whole Word")
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = parent.checked ? qsTr("Disable Whole Word") : qsTr("Enable Whole Word")
                         }
                     }
                 }
@@ -105,12 +105,12 @@ Item {
                     HoverHandler {
                         onHoveredChanged: {
                             if (!hovered) {
-                                mainTooltip.text = ""
+                                mainToolTip.text = ""
                             }
                         }
                         onPointChanged: {
-                            mainTooltip.position = parent.mapToGlobal(point.position)
-                            mainTooltip.text = parent.checked ? qsTr("Disable Word Start") : qsTr("Enable Word Start")
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = parent.checked ? qsTr("Disable Word Start") : qsTr("Enable Word Start")
                         }
                     }
                 }
@@ -132,12 +132,12 @@ Item {
                     HoverHandler {
                         onHoveredChanged: {
                             if (!hovered) {
-                                mainTooltip.text = ""
+                                mainToolTip.text = ""
                             }
                         }
                         onPointChanged: {
-                            mainTooltip.position = parent.mapToGlobal(point.position)
-                            mainTooltip.text = parent.checked ? qsTr("Disable Regular Expression") : qsTr("Enable Regular Expression")
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = parent.checked ? qsTr("Disable Regular Expression") : qsTr("Enable Regular Expression")
                         }
                     }
                 }
@@ -158,12 +158,12 @@ Item {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Search Previous")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Search Previous")
                 }
             }
         }
@@ -182,12 +182,12 @@ Item {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Search Next")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Search Next")
                 }
             }
         }

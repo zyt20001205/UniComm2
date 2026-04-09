@@ -41,28 +41,10 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
     shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
-    connect(shortcutSearch, &QShortcut::activated, m_searchWidget, [this] {
-        if (m_selection["characters"] != 0) {
-            m_searchWidget->show();
-            m_replaceWidget->hide();
-            m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
-        } else {
-            m_searchWidget->setVisible(!m_searchWidget->isVisible());
-            m_replaceWidget->hide();
-        }
-    });
+    connect(shortcutSearch, &QShortcut::activated, this, &ScriptPage::searchToggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
-    connect(shortcutReplace, &QShortcut::activated, m_searchWidget, [this] {
-        if (m_selection["characters"] != 0) {
-            m_searchWidget->show();
-            m_replaceWidget->show();
-            m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
-        } else {
-            m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
-            m_searchWidget->setVisible(m_replaceWidget->isVisible());
-        }
-    });
+    connect(shortcutReplace, &QShortcut::activated, this, &ScriptPage::replaceToggle);
     shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
     connect(shortcutComment, &QShortcut::activated, this, &ScriptPage::commentToggle);
@@ -597,13 +579,13 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
         contentChange();
         // widgets
         m_symbolWidget->propertySet(QVariantMap{
-            {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
         });
         m_searchWidget->propertySet(QVariantMap{
-            {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
         });
         m_replaceWidget->propertySet(QVariantMap{
-            {"mainWindowTooltip", QVariant::fromValue(m_toolTip)}
+            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
         });
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
@@ -612,9 +594,52 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     });
 }
 
+void ScriptPage::propertySet(const QVariantMap &objects) {
+    m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
+    m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
+    m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
+}
+
+void ScriptPage::menuSet(const QString &name) const {
+    const auto menuSession = menuGet();
+    if (name == "edit") {
+        const QVariantHash editMenuSession = {
+            {"undoable", menuSession["undoable"]},
+            {"redoable", menuSession["redoable"]},
+            {"copiable", menuSession["copiable"]},
+            {"pastable", menuSession["pastable"]},
+        };
+        m_editMenu->setProperty("menuSession", editMenuSession);
+    }
+}
+
+QVariantHash ScriptPage::menuGet() const {
+    const QVariantHash menuSession = {
+        {"undoable", m_editorWidget->undoable()},
+        {"redoable", m_editorWidget->redoable()},
+        {"copiable", m_editorWidget->copiable()},
+        {"pastable", m_editorWidget->pastable()},
+    };
+    return menuSession;
+}
+
 void ScriptPage::menuRequest(const QString &request) {
     m_editorWidget->focusSet(true);
-    if (request == "completion") {
+    if (request == "undo") {
+        m_editorWidget->undo();
+    } else if (request == "redo") {
+        m_editorWidget->redo();
+    } else if (request == "cut") {
+        m_editorWidget->cut();
+    } else if (request == "copy") {
+        m_editorWidget->copy();
+    } else if (request == "paste") {
+        m_editorWidget->paste();
+    } else if (request == "search") {
+        searchToggle();
+    } else if (request == "replace") {
+        replaceToggle();
+    } else if (request == "completion") {
         completionRequest();
     } else if (request == "formatting") {
         formattingRequest();
@@ -1047,7 +1072,9 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                     {"endCharacter", m_selection["endCharacter"]},
                     {"text", text}
                 };
-                emit showMenu(m_scriptUrl, menuSession);
+                m_editorMenu->setProperty("scriptUrl", m_scriptUrl);
+                m_editorMenu->setProperty("menuSession", menuSession);
+                QMetaObject::invokeMethod(m_editorMenu, "popup");
                 return true;
             }
         } else if (event->type() == QEvent::MouseMove) {
@@ -1491,6 +1518,27 @@ void ScriptPage::symbolPair(const QChar character) {
 }
 
 // private: search
+void ScriptPage::searchToggle() {
+    if (m_selection["characters"] != 0) {
+        m_searchWidget->show();
+        m_replaceWidget->hide();
+        m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
+    } else {
+        m_searchWidget->setVisible(!m_searchWidget->isVisible());
+        m_replaceWidget->hide();
+    }
+}
+
+void ScriptPage::replaceToggle() {
+    if (m_selection["characters"] != 0) {
+        m_searchWidget->show();
+        m_replaceWidget->show();
+        m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
+    } else {
+        m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
+        m_searchWidget->setVisible(m_replaceWidget->isVisible());
+    }}
+
 void ScriptPage::searchRequest(const QString &text) {
     searchClear();
     m_search["text"] = text;

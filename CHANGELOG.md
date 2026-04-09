@@ -6,6 +6,10 @@
 - ModbusRtu rewrite.
 - ModbusTcp supported.
 
+## UI
+
+- Expanded menu bar features to perform edit, code actions.
+
 # v0.2.0-alpha1
 
 ## Infrastructure

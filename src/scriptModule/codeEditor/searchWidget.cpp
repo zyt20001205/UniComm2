@@ -10,7 +10,7 @@ SearchWidget::SearchWidget(QWidget *parent)
 }
 
 void SearchWidget::propertySet(const QVariantMap &objects) {
-    rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
+    rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     rootContext()->setContextProperty("searchWidget", this);
     setResizeMode(SizeRootObjectToView);

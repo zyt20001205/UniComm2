@@ -445,7 +445,23 @@ void ScintillaWidget::textSetSelected(const QString &text) const {
     send(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(text.toUtf8().constData()));
 }
 
-// public: undo
+// public: edit
+bool ScintillaWidget::copiable() const {
+    return !send(SCI_GETSELECTIONEMPTY);
+}
+
+bool ScintillaWidget::pastable() const {
+    return send(SCI_CANPASTE);
+}
+
+bool ScintillaWidget::undoable() const {
+    return send(SCI_CANUNDO);
+}
+
+bool ScintillaWidget::redoable() const {
+    return send(SCI_CANREDO);
+}
+
 void ScintillaWidget::undoBegin() const {
     send(SCI_BEGINUNDOACTION); // NOLINT
 }

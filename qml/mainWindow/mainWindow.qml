@@ -208,7 +208,7 @@ Item {
     }
 
     ToolTip {
-        id: mainWindowTooltip
+        id: mainWindowToolTip
         parent: Overlay.overlay
         x: position.x + 10; y: position.y + 10
         closePolicy: Popup.NoAutoClose
@@ -216,14 +216,14 @@ Item {
         property point position
 
         Behavior on x {
-            enabled: mainWindowTooltip.visible
+            enabled: mainWindowToolTip.visible
             NumberAnimation {
                 duration: 50
                 easing.type: Easing.Linear
             }
         }
         Behavior on y {
-            enabled: mainWindowTooltip.visible
+            enabled: mainWindowToolTip.visible
             NumberAnimation {
                 duration: 50
                 easing.type: Easing.Linear
@@ -1357,6 +1357,221 @@ Item {
     }
 
     Menu {
+        id: menuModuleEditMenu
+        implicitWidth: 300
+        property var menuSession
+
+        onOpened: {
+            mainWindow.overlayFocus(true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            scriptModule.menuSet("edit")
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["undoable"] : false
+
+                Image {
+                    source: "qrc:/icon/undo.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Undo")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+Z"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("undo")
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["redoable"] : false
+
+                Image {
+                    source: "qrc:/icon/redo.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Redo")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+Y"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("redo")
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["copiable"] : false
+
+                Image {
+                    source: "qrc:/icon/cut.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Cut")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+X"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("cut")
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["copiable"] : false
+
+                Image {
+                    source: "qrc:/icon/copy.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Copy")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+C"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("copy")
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["pastable"] : false
+
+                Image {
+                    source: "qrc:/icon/paste.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Paste")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+V"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("paste")
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/search.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Search")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+F"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("search")
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/replace.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Replace")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+R"
+                }
+            }
+
+            onTriggered: scriptModule.menuRequest("replace")
+        }
+    }
+
+    Menu {
         id: menuModuleViewMenu
 
         onOpened: {
@@ -1495,9 +1710,9 @@ Item {
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
                 Label {
-
                     text: qsTr("Completion")
                 }
+
                 Item {
                     Layout.fillWidth: true
                 }
@@ -1516,9 +1731,9 @@ Item {
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
                 Label {
-
                     text: qsTr("Formatting")
                 }
+
                 Item {
                     Layout.fillWidth: true
                 }
@@ -2896,7 +3111,7 @@ Item {
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
-            "mainWindowTooltip": mainWindowTooltip,
+            "mainWindowToolTip": mainWindowToolTip,
 
             "lualsProgressDialog": lualsProgressDialog,
 
@@ -2927,6 +3142,7 @@ Item {
             "logModuleLinkMenu": logModuleLinkMenu,
 
             "menuModuleFileMenu": menuModuleFileMenu,
+            "menuModuleEditMenu": menuModuleEditMenu,
             "menuModuleViewMenu": menuModuleViewMenu,
             "menuModuleCodeMenu": menuModuleCodeMenu,
 

@@ -27,12 +27,12 @@ RowLayout {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = parent.checked ? qsTr("Hide Timestamp") : qsTr("Show Timestamp")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = parent.checked ? qsTr("Hide Timestamp") : qsTr("Show Timestamp")
                 }
             }
         }
@@ -50,12 +50,12 @@ RowLayout {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = parent.checked ? qsTr("Disable Wrap") : qsTr("Enable Wrap")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = parent.checked ? qsTr("Disable Wrap") : qsTr("Enable Wrap")
                 }
             }
         }
@@ -71,12 +71,12 @@ RowLayout {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Maximum Line Count")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Maximum Line Count")
                 }
             }
         }
@@ -105,12 +105,12 @@ RowLayout {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Save")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Save")
                 }
             }
         }
@@ -132,12 +132,12 @@ RowLayout {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Clear")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Clear")
                 }
             }
         }

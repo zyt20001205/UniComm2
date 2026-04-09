@@ -24,6 +24,20 @@ Item {
         }
 
         Button {
+            id: editMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            text: "Edit"
+
+            onClicked: {
+                const globalPos = editMenuButton.mapToGlobal(0, editMenuButton.height);
+                const localPos = editMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                editMenu.popup(localPos.x, localPos.y)
+            }
+        }
+        
+        Button {
             id: viewMenuButton
             Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true

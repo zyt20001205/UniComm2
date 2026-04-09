@@ -13,7 +13,7 @@ SymbolWidget::SymbolWidget(QWidget *parent)
 }
 
 void SymbolWidget::propertySet(const QVariantMap &objects) {
-    rootContext()->setContextProperty("mainTooltip", qvariant_cast<QObject *>(objects["mainWindowTooltip"]));
+    rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     rootContext()->setContextProperty("symbolWidget", this);
     setResizeMode(SizeRootObjectToView);

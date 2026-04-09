@@ -39,8 +39,9 @@ ScriptModule::~ScriptModule() {
 void ScriptModule::propertySet(const QVariantMap &objects) {
     m_permissionDialog = qvariant_cast<QObject *>(objects["systemModulePermissionDialog"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
-    m_toolTip = qvariant_cast<QObject *>(objects["mainWindowTooltip"]);
-    m_menu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
+    m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
+    m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
+    m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
         scriptOpen(QUrl(value.toString()));
@@ -182,7 +183,11 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     if (!m_scriptPageHash.contains(scriptUrl)) {
         // create script page
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
-        scriptPage->m_toolTip = m_toolTip;
+        scriptPage->propertySet(QVariantMap{
+            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+            {"menuModuleEditMenu", QVariant::fromValue(m_editMenu)},
+            {"scriptModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
+        });
         scriptPage->setObjectName(scriptUrl.toString());
         // check same file name
         bool conflict = false;
@@ -205,7 +210,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::changeSelection, this, &ScriptModule::changeSelection);
         connect(scriptPage, &ScriptPage::setPermission, this, &ScriptModule::permissionSet);
         connect(scriptPage, &ScriptPage::editBreakpoint, this, &ScriptModule::breakpointEdit);
-        connect(scriptPage, &ScriptPage::showMenu, this, &ScriptModule::menuShow);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestCompletion, this, &ScriptModule::completionRequest);
@@ -236,6 +240,10 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     }
     m_scriptPageHash[scriptUrl]->raise();
     m_scriptPageHash[scriptUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+}
+
+void ScriptModule::menuSet(const QString &name) {
+    m_scriptPageHash[m_focusedPage]->menuSet(name);
 }
 
 void ScriptModule::menuRequest(const QString &request) {
@@ -867,10 +875,4 @@ void ScriptModule::breakpointEdit(const QUrl &scriptUrl, const int line) const {
     m_breakpointEditDialog->setProperty("scriptUrl", scriptUrl.toString());
     m_breakpointEditDialog->setProperty("line", line);
     QMetaObject::invokeMethod(m_breakpointEditDialog, "open");
-}
-
-void ScriptModule::menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const {
-    m_menu->setProperty("scriptUrl", scriptUrl.toString());
-    m_menu->setProperty("menuSession", menuSession);
-    QMetaObject::invokeMethod(m_menu, "popup");
 }

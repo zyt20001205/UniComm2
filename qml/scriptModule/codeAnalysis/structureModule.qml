@@ -85,12 +85,12 @@ Item {
                 id: hoverHandler
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole).detail
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole).detail
                 }
             }
 

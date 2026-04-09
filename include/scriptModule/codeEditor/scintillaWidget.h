@@ -139,6 +139,14 @@ public:
 
     void textSetSelected(const QString &text) const;
 
+    [[nodiscard]] bool copiable() const;
+
+    [[nodiscard]] bool pastable() const;
+
+    [[nodiscard]] bool undoable() const;
+
+    [[nodiscard]] bool redoable() const;
+
     void undoBegin() const;
 
     void undoEnd() const;

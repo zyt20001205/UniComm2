@@ -46,6 +46,8 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
+    Q_INVOKABLE void menuSet(const QString &name);
+
     Q_INVOKABLE void menuRequest(const QString &request);
 
     Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &scriptUrl) const;
@@ -182,13 +184,12 @@ private:
 
     void breakpointEdit(const QUrl &scriptUrl, int line) const;
 
-    void menuShow(const QUrl &scriptUrl, const QVariantHash &menuSession) const;
-
     QJsonObject m_scriptConfig{};
     QObject *m_breakpointEditDialog{};
     QObject *m_permissionDialog{};
     QObject *m_toolTip{};
-    QObject *m_menu{};
+    QObject *m_editMenu{};
+    QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QUrl m_focusedPage{};
     QHash<QUrl, ScriptPage *> m_scriptPageHash{};

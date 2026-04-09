@@ -51,12 +51,12 @@ Item {
                         HoverHandler {
                             onHoveredChanged: {
                                 if (!hovered) {
-                                    mainTooltip.text = ""
+                                    mainToolTip.text = ""
                                 }
                             }
                             onPointChanged: {
-                                mainTooltip.position = parent.mapToGlobal(point.position)
-                                mainTooltip.text = breadcrumbItem.detail
+                                mainToolTip.position = parent.mapToGlobal(point.position)
+                                mainToolTip.text = breadcrumbItem.detail
                             }
                         }
 

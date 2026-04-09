@@ -26,6 +26,12 @@ public:
 
     ~ScriptPage() override = default;
 
+    void propertySet(const QVariantMap &objects);
+
+    void menuSet(const QString &name) const;
+
+    [[nodiscard]] QVariantHash menuGet() const;
+
     void menuRequest(const QString &request);
 
     // public: file
@@ -64,7 +70,6 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
     QUrl m_scriptUrl{};
-    QObject *m_toolTip{};
     ScintillaWidget *m_editorWidget{};
 
 signals:
@@ -79,8 +84,6 @@ signals:
     void setPermission(const QUrl &scriptUrl, bool readonly);
 
     void editBreakpoint(const QUrl &scriptUrl, int line);
-
-    void showMenu(const QUrl &scriptUrl, const QVariantHash &menuSession);
 
     void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
 
@@ -185,6 +188,10 @@ private:
     void symbolPair(QChar character);
 
     // private: search
+    void searchToggle();
+
+    void replaceToggle();
+
     void searchRequest(const QString &text);
 
     void searchResponse();
@@ -207,6 +214,10 @@ private:
     QTimer *m_selectionTimer{};
     QTimer *m_contentTimer{};
     QTimer *m_dwellTimer{};
+
+    QObject *m_toolTip{};
+    QObject *m_editMenu{};
+    QObject *m_editorMenu{};
 
     QSet<QChar> m_completionSet{};
     QSet<QChar> m_signatureHelpSet{};

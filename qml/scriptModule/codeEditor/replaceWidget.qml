@@ -48,12 +48,12 @@ Item {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Replace")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Replace")
                 }
             }
         }
@@ -72,12 +72,12 @@ Item {
             HoverHandler {
                 onHoveredChanged: {
                     if (!hovered) {
-                        mainTooltip.text = ""
+                        mainToolTip.text = ""
                     }
                 }
                 onPointChanged: {
-                    mainTooltip.position = parent.mapToGlobal(point.position)
-                    mainTooltip.text = qsTr("Replace All")
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    mainToolTip.text = qsTr("Replace All")
                 }
             }
         }

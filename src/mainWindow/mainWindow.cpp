@@ -165,12 +165,13 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]},
-        {"mainWindowTooltip", objects["mainWindowTooltip"]}
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     };
     m_logModule->propertySet(logObjects);
 
     const QVariantMap menuObjects = {
         {"menuModuleFileMenu", objects["menuModuleFileMenu"]},
+        {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
         {"menuModuleViewMenu", objects["menuModuleViewMenu"]},
         {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]}
     };
@@ -184,6 +185,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap scriptObjects = {
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
+        {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
+        {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]},
         {"systemModulePermissionDialog", objects["systemModulePermissionDialog"]},
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
@@ -200,7 +203,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"scriptModulePositionTooltip", objects["scriptModulePositionTooltip"]},
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
         {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]},
-        {"mainWindowTooltip", objects["mainWindowTooltip"]}
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     };
     m_scriptModule->propertySet(scriptObjects);
 
@@ -216,7 +219,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap structureObjects = {
         {"structureModuleRootMenu", objects["structureModuleRootMenu"]},
-        {"mainWindowTooltip", objects["mainWindowTooltip"]}
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     };
     m_structureModule->propertySet(structureObjects);
 
