@@ -598,6 +598,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 void ScriptPage::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
+    m_codeMenu = qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
@@ -608,18 +609,69 @@ void ScriptPage::menuSet(const QString &name) const {
             {"undoable", menuSession["undoable"]},
             {"redoable", menuSession["redoable"]},
             {"copiable", menuSession["copiable"]},
-            {"pastable", menuSession["pastable"]},
+            {"pastable", menuSession["pastable"]}
         };
         m_editMenu->setProperty("menuSession", editMenuSession);
+    } else if (name == "code") {
+        const QVariantHash codeMenuSession = {
+            {"scriptUrl", menuSession["scriptUrl"]},
+            {"line", menuSession["line"]},
+            {"character", menuSession["character"]},
+            {"startLine", menuSession["startLine"]},
+            {"startCharacter", menuSession["startCharacter"]},
+            {"endLine", menuSession["endLine"]},
+            {"endCharacter", menuSession["endCharacter"]},
+            {"text", menuSession["text"]},
+            {"navigation", menuSession["navigation"]},
+            {"assembly", menuSession["assembly"]}
+        };
+        m_codeMenu->setProperty("menuSession", codeMenuSession);
+    } else if (name == "editor") {
+        const QVariantHash editorMenuSession = {
+            {"scriptUrl", menuSession["scriptUrl"]},
+            {"line", menuSession["line"]},
+            {"character", menuSession["character"]},
+            {"startLine", menuSession["startLine"]},
+            {"startCharacter", menuSession["startCharacter"]},
+            {"endLine", menuSession["endLine"]},
+            {"endCharacter", menuSession["endCharacter"]},
+            {"text", menuSession["text"]},
+            {"navigation", menuSession["navigation"]},
+            {"assembly", menuSession["assembly"]}
+        };
+        m_editorMenu->setProperty("menuSession", editorMenuSession);
     }
 }
 
 QVariantHash ScriptPage::menuGet() const {
+    const QPoint globalPos = QCursor::pos();
+    const QPoint localPos = m_editorWidget->viewport()->mapFromGlobal(globalPos);
+    const auto position = m_editorWidget->positionGet(localPos);
+    const auto index = m_editorWidget->indexGet(position);
+    bool navigation = false;
+    QString text{};
+    text = m_editorWidget->textGetSelected();
+    if (text.isEmpty()) m_editorWidget->positionSet(position);
+    const int type = m_editorWidget->styleGet(position);
+    if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
+
     const QVariantHash menuSession = {
+        // edit
         {"undoable", m_editorWidget->undoable()},
         {"redoable", m_editorWidget->redoable()},
         {"copiable", m_editorWidget->copiable()},
         {"pastable", m_editorWidget->pastable()},
+        // code
+        {"scriptUrl", m_scriptUrl},
+        {"line", index["line"]},
+        {"character", index["character"]},
+        {"startLine", m_selection["startLine"]},
+        {"startCharacter", m_selection["startCharacter"]},
+        {"endLine", m_selection["endLine"]},
+        {"endCharacter", m_selection["endCharacter"]},
+        {"text", text},
+        {"navigation", navigation},
+        {"assembly", m_assemblyWidget->isVisible()}
     };
     return menuSession;
 }
@@ -640,10 +692,6 @@ void ScriptPage::menuRequest(const QString &request) {
         searchToggle();
     } else if (request == "replace") {
         replaceToggle();
-    } else if (request == "completion") {
-        completionRequest();
-    } else if (request == "formatting") {
-        formattingRequest();
     }
 }
 
@@ -1050,31 +1098,6 @@ bool ScriptPage::eventFilter(QObject *watched, QEvent *event) {
                 }
             }
             if (mouseEvent->button() == Qt::RightButton) {
-                bool navigation = false;
-                bool rangeFormatting = false;
-                QString text{};
-                text = m_editorWidget->textGetSelected();
-                if (text.isEmpty()) {
-                    m_editorWidget->positionSet(position);
-                } else {
-                    rangeFormatting = true;
-                }
-                const int type = m_editorWidget->styleGet(position);
-                if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
-                const QVariantHash menuSession = {
-                    {"navigation", navigation},
-                    {"rangeFormatting", rangeFormatting},
-                    {"assembly", m_assemblyWidget->isVisible()},
-                    {"line", index["line"]},
-                    {"character", index["character"]},
-                    {"startLine", m_selection["startLine"]},
-                    {"startCharacter", m_selection["startCharacter"]},
-                    {"endLine", m_selection["endLine"]},
-                    {"endCharacter", m_selection["endCharacter"]},
-                    {"text", text}
-                };
-                m_editorMenu->setProperty("scriptUrl", m_scriptUrl);
-                m_editorMenu->setProperty("menuSession", menuSession);
                 QMetaObject::invokeMethod(m_editorMenu, "popup");
                 return true;
             }

@@ -189,6 +189,7 @@ private:
     QObject *m_permissionDialog{};
     QObject *m_toolTip{};
     QObject *m_editMenu{};
+    QObject *m_codeMenu{};
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QUrl m_focusedPage{};

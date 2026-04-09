@@ -8,6 +8,7 @@
 
 ## UI
 
+- Password is now shown when hovered.
 - Expanded menu bar features to perform edit, code actions.
 
 # v0.2.0-alpha1

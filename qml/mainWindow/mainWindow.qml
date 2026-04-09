@@ -1374,7 +1374,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["undoable"] : false
+                enabled: menuModuleEditMenu.menuSession?.undoable
 
                 Image {
                     source: "qrc:/icon/undo.svg"
@@ -1402,7 +1402,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["redoable"] : false
+                enabled: menuModuleEditMenu.menuSession?.redoable
 
                 Image {
                     source: "qrc:/icon/redo.svg"
@@ -1433,7 +1433,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["copiable"] : false
+                enabled: menuModuleEditMenu.menuSession?.copiable
 
                 Image {
                     source: "qrc:/icon/cut.svg"
@@ -1461,7 +1461,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["copiable"] : false
+                enabled: menuModuleEditMenu.menuSession?.copiable
 
                 Image {
                     source: "qrc:/icon/copy.svg"
@@ -1489,7 +1489,7 @@ Item {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession["pastable"] : false
+                enabled: menuModuleEditMenu.menuSession?.pastable
 
                 Image {
                     source: "qrc:/icon/paste.svg"
@@ -1697,17 +1697,25 @@ Item {
     Menu {
         id: menuModuleCodeMenu
         implicitWidth: 300
+        property var menuSession
 
         onOpened: {
             mainWindow.overlayFocus(true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
+        onAboutToShow: {
+            scriptModule.menuSet("code")
+        }
 
         MenuItem {
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Item {
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                }
 
                 Label {
                     text: qsTr("Completion")
@@ -1722,7 +1730,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("completion")
+            onTriggered: scriptModule.completionRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.line, menuModuleCodeMenu.menuSession.character)
         }
 
         MenuItem {
@@ -1730,8 +1738,14 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
+                Image {
+                    source: "qrc:/icon/brush.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
                 Label {
-                    text: qsTr("Formatting")
+                    text: menuModuleCodeMenu.menuSession?.text ? qsTr("Range Formatting") : qsTr("Document Formatting")
                 }
 
                 Item {
@@ -1743,7 +1757,13 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("formatting")
+            onTriggered: {
+                if (menuModuleCodeMenu.menuSession.text) {
+                    scriptModule.rangeFormattingRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.startLine, menuModuleCodeMenu.menuSession.startCharacter, menuModuleCodeMenu.menuSession.endLine, menuModuleCodeMenu.menuSession.endCharacter)
+                } else {
+                    scriptModule.formattingRequest(menuModuleCodeMenu.menuSession.scriptUrl)
+                }
+            }
         }
     }
 
@@ -1814,7 +1834,6 @@ Item {
     Menu {
         id: scriptModuleEditorMenu
         focus: false
-        property url scriptUrl
         property var menuSession
 
         onOpened: {
@@ -1822,22 +1841,25 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
+        onAboutToShow: {
+            scriptModule.menuSet("editor")
+            scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
+        }
 
         MenuItem {
             text: qsTr("Run")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.scriptUrl, 0)
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0)
         }
 
         MenuItem {
             text: qsTr("Run Selected")
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["text"] : false
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.scriptUrl, 0, scriptModuleEditorMenu.menuSession["startLine"], scriptModuleEditorMenu.menuSession["startCharacter"], scriptModuleEditorMenu.menuSession["endLine"], scriptModuleEditorMenu.menuSession["endCharacter"])
+            enabled: scriptModuleEditorMenu.menuSession?.text
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
         }
 
         MenuItem {
@@ -1845,7 +1867,7 @@ Item {
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.scriptUrl, 1)
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1)
         }
 
         MenuSeparator {
@@ -1861,7 +1883,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.foldContractTop(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.foldContractTop(scriptModuleEditorMenu.menuSession.scriptUrl)
             }
 
             MenuItem {
@@ -1869,7 +1891,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.foldContractRecursively(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.foldContractRecursively(scriptModuleEditorMenu.menuSession.scriptUrl)
             }
 
             MenuItem {
@@ -1877,32 +1899,21 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.foldExpandRecursively(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: scriptModule.foldExpandRecursively(scriptModuleEditorMenu.menuSession.scriptUrl)
             }
         }
 
-        Menu {
-            title: qsTr("Formatting")
+        MenuItem {
+            text: scriptModuleEditorMenu.menuSession?.text ? qsTr("Range Formatting") : qsTr("Document Formatting")
             icon.source: "qrc:/icon/brush.svg"
             icon.width: 16; icon.height: 16
 
-            MenuItem {
-                text: qsTr("Document")
-                icon.source: "qrc:/icon/document.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.formattingRequest(scriptModuleEditorMenu.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Range")
-                icon.source: "qrc:/icon/documentRange.svg"
-                icon.width: 16; icon.height: 16
-                enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["rangeFormatting"] : false
-                ToolTip.visible: hovered && !enabled
-                ToolTip.text: qsTr("Nothing selected")
-
-                onTriggered: scriptModule.rangeFormattingRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["startLine"], scriptModuleEditorMenu.menuSession["startCharacter"], scriptModuleEditorMenu.menuSession["endLine"], scriptModuleEditorMenu.menuSession["endCharacter"])
+            onTriggered: {
+                if (scriptModuleEditorMenu.menuSession.text) {
+                    scriptModule.rangeFormattingRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
+                } else {
+                    scriptModule.formattingRequest(scriptModuleEditorMenu.menuSession.scriptUrl)
+                }
             }
         }
 
@@ -1910,14 +1921,14 @@ Item {
             title: qsTr("Navigation")
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["navigation"] : false
+            enabled: scriptModuleEditorMenu.menuSession?.navigation
 
             MenuItem {
                 text: qsTr("Definition(s)")
                 icon.source: "qrc:/icon/definition.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.definitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
+                onTriggered: scriptModule.definitionRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
@@ -1925,7 +1936,7 @@ Item {
                 icon.source: "qrc:/icon/reference.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.referencesRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
+                onTriggered: scriptModule.referencesRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
@@ -1933,7 +1944,7 @@ Item {
                 icon.source: "qrc:/icon/implementation.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.implementationRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
+                onTriggered: scriptModule.implementationRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
@@ -1941,7 +1952,7 @@ Item {
                 icon.source: "qrc:/icon/typeDefinition.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.scriptUrl, scriptModuleEditorMenu.menuSession["line"], scriptModuleEditorMenu.menuSession["character"])
+                onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
             }
         }
 
@@ -1952,14 +1963,14 @@ Item {
             text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession["text"] : false
+            enabled: scriptModuleEditorMenu.menuSession?.text
             ToolTip.visible: hovered && !enabled
             ToolTip.text: qsTr("Nothing selected")
 
             onTriggered: {
                 watchModuleExpressionDialog.watchIndex = -1
-                watchModuleExpressionDialog.watchUrl = scriptModuleEditorMenu.scriptUrl
-                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession["text"]
+                watchModuleExpressionDialog.watchUrl = scriptModuleEditorMenu.menuSession.scriptUrl
+                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession.text
                 watchModuleExpressionDialog.open()
             }
         }
@@ -1982,7 +1993,7 @@ Item {
             icon.source: "qrc:/icon/assembly.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: scriptModule.assemblyToggle(scriptModuleEditorMenu.scriptUrl, !scriptModuleEditorMenu.menuSession["assembly"])
+            onTriggered: scriptModule.assemblyToggle(scriptModuleEditorMenu.menuSession.scriptUrl, !scriptModuleEditorMenu.menuSession.assembly)
         }
 
         MenuSeparator {
@@ -1998,7 +2009,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInExplorer(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.fileOpenInExplorer(scriptModuleEditorMenu.menuSession.scriptUrl)
             }
 
             MenuItem {
@@ -2006,7 +2017,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInApplication(scriptModuleEditorMenu.scriptUrl)
+                onTriggered: systemModule.fileOpenInApplication(scriptModuleEditorMenu.menuSession.scriptUrl)
             }
         }
     }

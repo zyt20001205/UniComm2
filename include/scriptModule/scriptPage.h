@@ -217,6 +217,7 @@ private:
 
     QObject *m_toolTip{};
     QObject *m_editMenu{};
+    QObject *m_codeMenu{};
     QObject *m_editorMenu{};
 
     QSet<QChar> m_completionSet{};
