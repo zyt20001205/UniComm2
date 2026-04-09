@@ -228,10 +228,9 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
         const auto name = QString::fromUtf8(rxData.mid(space2 + 1));
         const auto number = head.toInt();
         session[name] = number;
-        return session;
     }
     // status
-    if (head == "OK" || head == "NO") {
+    else if (head == "OK" || head == "NO") {
         const auto& status = head;
         // TODO: split resp
         // const auto text = rxData.mid(space2 + 1);
