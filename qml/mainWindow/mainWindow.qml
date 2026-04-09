@@ -1745,7 +1745,7 @@ Item {
                 }
 
                 Label {
-                    text: menuModuleCodeMenu.menuSession ? menuModuleCodeMenu.menuSession.text ? qsTr("Range Formatting") : qsTr("Document Formatting") : false
+                    text: menuModuleCodeMenu.menuSession ? menuModuleCodeMenu.menuSession.text ? qsTr("Reformat Selected") : qsTr("Reformat") : false
                 }
 
                 Item {
@@ -1847,27 +1847,31 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Run")
+            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Run Selected") : qsTr("Run") : false
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0)
+            onTriggered: {
+                if (scriptModuleEditorMenu.menuSession.text) {
+                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
+                } else {
+                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0)
+                }
+            }
         }
 
         MenuItem {
-            text: qsTr("Run Selected")
-            icon.source: "qrc:/icon/play.svg"
-            icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text : false
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
-        }
-
-        MenuItem {
-            text: qsTr("Debug")
+            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Debug Selected") : qsTr("Debug") : false
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1)
+            onTriggered: {
+                if (scriptModuleEditorMenu.menuSession.text) {
+                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
+                } else {
+                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1)
+                }
+            }
         }
 
         MenuSeparator {
@@ -1904,7 +1908,7 @@ Item {
         }
 
         MenuItem {
-            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Range Formatting") : qsTr("Document Formatting") : false
+            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Reformat Selected") : qsTr("Reformat") : false
             icon.source: "qrc:/icon/brush.svg"
             icon.width: 16; icon.height: 16
 
