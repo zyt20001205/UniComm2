@@ -181,6 +181,7 @@ private:
     void textSetSelected(const QUrl &scriptUrl, const QString &text);
 
     QJsonObject m_scriptConfig{};
+    QObject *m_messageDialog{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};

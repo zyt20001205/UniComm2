@@ -81,7 +81,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         const auto symbol = value.toObject();
         auto *item = new QStandardItem(); // NOLINT
         const auto kind = symbol["kind"].toInt();
-        const auto detail = symbol["detail"].toString();
+        const auto detail = symbol["detail"].toString().trimmed();
         const auto name = symbol["name"].toString();
         const auto range = symbol["range"].toObject();
         const auto start = range["start"].toObject();

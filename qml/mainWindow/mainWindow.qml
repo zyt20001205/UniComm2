@@ -1728,7 +1728,7 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Space"
                 onActivated: {
-                    scriptModule.menuSession = scriptModule.menuGet("code")
+                    menuModuleCodeMenu.menuSession = scriptModule.menuGet("code")
                     menuModuleCodeCompletionItem.triggered()
                 }
             }
@@ -1765,7 +1765,7 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Alt+L"
                 onActivated: {
-                    scriptModule.menuSession = scriptModule.menuGet("code")
+                    menuModuleCodeMenu.menuSession = scriptModule.menuGet("code")
                     menuModuleCodeReformatItem.triggered()
                 }
             }
@@ -1776,6 +1776,36 @@ Item {
                 } else {
                     scriptModule.formattingRequest(menuModuleCodeMenu.menuSession.scriptUrl)
                 }
+            }
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Contract Top")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.foldContractTop(menuModuleCodeMenu.menuSession.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Contract Recursively")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.foldContractRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Expand Recursively")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: scriptModule.foldExpandRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
             }
         }
     }
@@ -1864,7 +1894,7 @@ Item {
             Shortcut {
                 sequence: "Shift+F9"
                 onActivated: {
-                    scriptModule.menuSession = scriptModule.menuGet("exec")
+                    menuModuleExecMenu.menuSession = scriptModule.menuGet("exec")
                     menuModuleExecDebugItem.triggered()
                 }
             }
@@ -2023,7 +2053,7 @@ Item {
 
         Menu {
             title: qsTr("Navigation")
-            icon.source: "qrc:/icon/arrowRight.svg"
+            icon.source: "qrc:/icon/location.svg"
             icon.width: 16; icon.height: 16
             enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.navigation : false
 

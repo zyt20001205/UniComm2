@@ -37,6 +37,7 @@ ScriptModule::~ScriptModule() {
 }
 
 void ScriptModule::propertySet(const QVariantMap &objects) {
+    m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["systemModulePropertyDialog"]);
@@ -542,7 +543,13 @@ void ScriptModule::formattingRequest(const QUrl &scriptUrl) {
 }
 
 void ScriptModule::formattingResponse(const QUrl &scriptUrl, const QString &newText) const {
-    m_scriptPageHash[scriptUrl]->formattingResponse(newText);
+    if (newText.isEmpty()) {
+        m_messageDialog->setProperty("title", tr("Information"));
+        m_messageDialog->setProperty("text", tr("File already reformatted."));
+        QMetaObject::invokeMethod(m_messageDialog, "open");
+    } else {
+        m_scriptPageHash[scriptUrl]->formattingResponse(newText);
+    }
 }
 
 void ScriptModule::hoverRequest(const QUrl &scriptUrl, int line, int character) {

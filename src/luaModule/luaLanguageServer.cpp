@@ -209,15 +209,18 @@ void LuaLanguageServer::jsonParser() {
                 emit responseFoldingRange(scriptUrl, result);
             } else if (method == "textDocument/formatting") {
                 // formatting response
-                if (!json["result"].isArray()) return; // null result
-                const auto result = json["result"].toArray();
-                const auto newText = result[0]["newText"].toString();
-                emit responseFormatting(scriptUrl, newText);
+                if (!json["result"].isArray()) {
+                    emit responseFormatting(scriptUrl, QString());
+                } else {
+                    const auto result = json["result"].toArray();
+                    const auto newText = result[0]["newText"].toString();
+                    emit responseFormatting(scriptUrl, newText);
+                }
             } else if (method == "textDocument/hover") {
                 // hover response
                 if (!json["result"].isObject()) {
                     // null result
-                    emit responseHover(scriptUrl, "");
+                    emit responseHover(scriptUrl, QString());
                 } else {
                     const auto result = json["result"].toObject();
                     const auto contents = result["contents"].toObject();

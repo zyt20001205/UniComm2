@@ -45,7 +45,7 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
     for (const auto &value: result) {
         const auto symbol = value.toObject();
         const auto kind = symbol["kind"].toInt();
-        const auto detail = symbol["detail"].toString();
+        const auto detail = symbol["detail"].toString().trimmed();
         const auto name = symbol["name"].toString();
         const auto range = symbol["range"].toObject();
         const auto start = range["start"].toObject();
