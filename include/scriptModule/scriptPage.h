@@ -28,9 +28,9 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void menuSet(const QString &name) const;
+    [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
-    [[nodiscard]] QVariantHash menuGet() const;
+    [[nodiscard]] QVariantHash menuGetAll() const;
 
     void menuRequest(const QString &request);
 
@@ -216,9 +216,6 @@ private:
     QTimer *m_dwellTimer{};
 
     QObject *m_toolTip{};
-    QObject *m_editMenu{};
-    QObject *m_codeMenu{};
-    QObject *m_execMenu{};
     QObject *m_editorMenu{};
 
     QSet<QChar> m_completionSet{};

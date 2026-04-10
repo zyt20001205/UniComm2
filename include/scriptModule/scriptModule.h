@@ -46,7 +46,7 @@ public:
 
     void scriptOpen(const QUrl &scriptUrl);
 
-    Q_INVOKABLE void menuSet(const QString &name);
+    Q_INVOKABLE [[nodiscard]] QVariantHash menuGet(const QString &name);
 
     Q_INVOKABLE void menuRequest(const QString &request);
 
@@ -188,9 +188,6 @@ private:
     QObject *m_breakpointEditDialog{};
     QObject *m_permissionDialog{};
     QObject *m_toolTip{};
-    QObject *m_editMenu{};
-    QObject *m_codeMenu{};
-    QObject *m_execMenu{};
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QUrl m_focusedPage{};

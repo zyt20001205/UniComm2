@@ -590,14 +590,11 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
 void ScriptPage::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
-    m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
-    m_codeMenu = qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]);
-    m_execMenu = qvariant_cast<QObject *>(objects["menuModuleExecMenu"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
-void ScriptPage::menuSet(const QString &name) const {
-    const auto menuSession = menuGet();
+QVariantHash ScriptPage::menuGet(const QString &name) const {
+    const auto menuSession = menuGetAll();
     if (name == "edit") {
         const QVariantHash editMenuSession = {
             {"undoable", menuSession["undoable"]},
@@ -605,8 +602,9 @@ void ScriptPage::menuSet(const QString &name) const {
             {"copiable", menuSession["copiable"]},
             {"pastable", menuSession["pastable"]}
         };
-        m_editMenu->setProperty("menuSession", editMenuSession);
-    } else if (name == "code") {
+        return editMenuSession;
+    }
+    if (name == "code") {
         const QVariantHash codeMenuSession = {
             {"scriptUrl", menuSession["scriptUrl"]},
             {"line", menuSession["line"]},
@@ -619,8 +617,9 @@ void ScriptPage::menuSet(const QString &name) const {
             {"navigation", menuSession["navigation"]},
             {"assembly", menuSession["assembly"]}
         };
-        m_codeMenu->setProperty("menuSession", codeMenuSession);
-    } else if (name == "exec") {
+        return codeMenuSession;
+    }
+    if (name == "exec") {
         const QVariantHash execMenuSession = {
             {"scriptUrl", menuSession["scriptUrl"]},
             {"scriptName", menuSession["scriptName"]},
@@ -630,8 +629,9 @@ void ScriptPage::menuSet(const QString &name) const {
             {"endCharacter", menuSession["endCharacter"]},
             {"text", menuSession["text"]}
         };
-        m_execMenu->setProperty("menuSession", execMenuSession);
-    } else if (name == "editor") {
+        return execMenuSession;
+    }
+    if (name == "editor") {
         const QVariantHash editorMenuSession = {
             {"scriptUrl", menuSession["scriptUrl"]},
             {"line", menuSession["line"]},
@@ -644,11 +644,12 @@ void ScriptPage::menuSet(const QString &name) const {
             {"navigation", menuSession["navigation"]},
             {"assembly", menuSession["assembly"]}
         };
-        m_editorMenu->setProperty("menuSession", editorMenuSession);
+        return editorMenuSession;
     }
+    return {};
 }
 
-QVariantHash ScriptPage::menuGet() const {
+QVariantHash ScriptPage::menuGetAll() const {
     const QPoint globalPos = QCursor::pos();
     const QPoint localPos = m_editorWidget->viewport()->mapFromGlobal(globalPos);
     const auto position = m_editorWidget->positionGet(localPos);

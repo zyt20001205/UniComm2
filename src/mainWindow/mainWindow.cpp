@@ -186,9 +186,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap scriptObjects = {
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
-        {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
-        {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]},
-        {"menuModuleExecMenu", objects["menuModuleExecMenu"]},
         {"systemModulePermissionDialog", objects["systemModulePermissionDialog"]},
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},

@@ -40,9 +40,6 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     m_permissionDialog = qvariant_cast<QObject *>(objects["systemModulePermissionDialog"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
-    m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
-    m_codeMenu = qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]);
-    m_execMenu = qvariant_cast<QObject *>(objects["menuModuleExecMenu"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -187,9 +184,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         scriptPage->propertySet(QVariantMap{
             {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-            {"menuModuleEditMenu", QVariant::fromValue(m_editMenu)},
-            {"menuModuleCodeMenu", QVariant::fromValue(m_codeMenu)},
-            {"menuModuleExecMenu", QVariant::fromValue(m_execMenu)},
             {"scriptModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
         });
         scriptPage->setObjectName(scriptUrl.toString());
@@ -246,8 +240,8 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
     m_scriptPageHash[scriptUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
-void ScriptModule::menuSet(const QString &name) {
-    m_scriptPageHash[m_focusedPage]->menuSet(name);
+QVariantHash ScriptModule::menuGet(const QString &name) {
+    return m_scriptPageHash[m_focusedPage]->menuGet(name);
 }
 
 void ScriptModule::menuRequest(const QString &request) {

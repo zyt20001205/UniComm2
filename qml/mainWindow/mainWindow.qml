@@ -1363,9 +1363,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: {
-            scriptModule.menuSet("edit")
-        }
+        onAboutToShow: menuModuleEditMenu.menuSession = scriptModule.menuGet("edit")
 
         MenuItem {
             contentItem: RowLayout {
@@ -1701,12 +1699,10 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: {
-            scriptModule.menuSet("code")
-        }
+        onAboutToShow: menuModuleCodeMenu.menuSession = scriptModule.menuGet("code")
 
         MenuItem {
-            id: menuModuleCodeMenuCompletionItem
+            id: menuModuleCodeCompletionItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -1732,8 +1728,8 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Space"
                 onActivated: {
-                    scriptModule.menuSet("code")
-                    menuModuleCodeMenuCompletionItem.triggered()
+                    scriptModule.menuSession = scriptModule.menuGet("code")
+                    menuModuleCodeCompletionItem.triggered()
                 }
             }
 
@@ -1741,7 +1737,7 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleCodeMenuReformatItem
+            id: menuModuleCodeReformatItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -1769,8 +1765,8 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Alt+L"
                 onActivated: {
-                    scriptModule.menuSet("code")
-                    menuModuleCodeMenuReformatItem.triggered()
+                    scriptModule.menuSession = scriptModule.menuGet("code")
+                    menuModuleCodeReformatItem.triggered()
                 }
             }
 
@@ -1794,12 +1790,10 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: {
-            scriptModule.menuSet("exec")
-        }
+        onAboutToShow: menuModuleExecMenu.menuSession = scriptModule.menuGet("exec")
 
         MenuItem {
-            id: menuModuleExecMenuRunItem
+            id: menuModuleExecRunItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -1827,8 +1821,8 @@ Item {
             Shortcut {
                 sequence: "Shift+F10"
                 onActivated: {
-                    scriptModule.menuSet("exec")
-                    menuModuleExecMenuRunItem.triggered()
+                    menuModuleExecMenu.menuSession = scriptModule.menuGet("exec")
+                    menuModuleExecRunItem.triggered()
                 }
             }
 
@@ -1842,7 +1836,7 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleExecMenuDebugItem
+            id: menuModuleExecDebugItem
 
             contentItem: RowLayout {
                 anchors.fill: parent
@@ -1870,8 +1864,8 @@ Item {
             Shortcut {
                 sequence: "Shift+F9"
                 onActivated: {
-                    scriptModule.menuSet("exec")
-                    menuModuleExecMenuDebugItem.triggered()
+                    scriptModule.menuSession = scriptModule.menuGet("exec")
+                    menuModuleExecDebugItem.triggered()
                 }
             }
 
@@ -1954,7 +1948,7 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            scriptModule.menuSet("editor")
+            scriptModuleEditorMenu.menuSession = scriptModule.menuGet("editor")
             scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
         }
 
@@ -2863,6 +2857,45 @@ Item {
     }
 
     // system module
+    Dialog {
+        id: systemModuleEditDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Edit")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string fileUrl
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+
+        }
+        // onAccepted: systemModule.fileEdit(systemModuleEditDialog.fileUrl, systemModuleEditTextField.text)
+
+        ColumnLayout {
+            width: parent.width
+
+            TextField {
+                id: systemModuleEditRenameTextField
+                width: parent.width
+                placeholderText: qsTr("Enter new name:")
+
+                onAccepted: systemModuleEditDialog.accept()
+                Keys.onEscapePressed: systemModuleEditDialog.reject()
+            }
+
+            CheckBox {
+                id: systemModuleEditReadonlyCheckBox
+                text: qsTr("Read-Only")
+            }
+        }   
+    }
+    
     Dialog {
         id: systemModuleRenameDialog
         parent: Overlay.overlay
