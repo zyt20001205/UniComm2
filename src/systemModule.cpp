@@ -67,6 +67,10 @@ void SystemModule::fileOpenInApplication(const QUrl &fileUrl) {
     m_process->start(command, args);
 }
 
+QVariantHash SystemModule::fileInfo(const QUrl &fileUrl) {
+    // QVariantHash session =code
+}
+
 void SystemModule::fileNew(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);

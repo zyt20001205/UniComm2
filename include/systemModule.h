@@ -21,6 +21,8 @@ public:
 
     Q_INVOKABLE void fileOpenInApplication(const QUrl &fileUrl);
 
+    Q_INVOKABLE [[nodiscard]] QVariantHash fileInfo(const QUrl &fileUrl);
+
     Q_INVOKABLE void fileNew(const QUrl &fileUrl);
 
     Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name);

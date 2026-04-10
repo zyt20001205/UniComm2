@@ -594,59 +594,53 @@ void ScriptPage::propertySet(const QVariantMap &objects) {
 }
 
 QVariantHash ScriptPage::menuGet(const QString &name) const {
-    const auto menuSession = menuGetAll();
+    const auto session = menuGetAll();
+    QVariantHash menuSession{};
     if (name == "edit") {
-        const QVariantHash editMenuSession = {
-            {"undoable", menuSession["undoable"]},
-            {"redoable", menuSession["redoable"]},
-            {"copiable", menuSession["copiable"]},
-            {"pastable", menuSession["pastable"]}
+        menuSession = {
+            {"undoable", session["undoable"]},
+            {"redoable", session["redoable"]},
+            {"copiable", session["copiable"]},
+            {"pastable", session["pastable"]}
         };
-        return editMenuSession;
-    }
-    if (name == "code") {
-        const QVariantHash codeMenuSession = {
-            {"scriptUrl", menuSession["scriptUrl"]},
-            {"line", menuSession["line"]},
-            {"character", menuSession["character"]},
-            {"startLine", menuSession["startLine"]},
-            {"startCharacter", menuSession["startCharacter"]},
-            {"endLine", menuSession["endLine"]},
-            {"endCharacter", menuSession["endCharacter"]},
-            {"text", menuSession["text"]},
-            {"navigation", menuSession["navigation"]},
-            {"assembly", menuSession["assembly"]}
+    } else if (name == "code") {
+        menuSession = {
+            {"scriptUrl", session["scriptUrl"]},
+            {"line", session["line"]},
+            {"character", session["character"]},
+            {"startLine", session["startLine"]},
+            {"startCharacter", session["startCharacter"]},
+            {"endLine", session["endLine"]},
+            {"endCharacter", session["endCharacter"]},
+            {"text", session["text"]},
+            {"navigation", session["navigation"]},
+            {"assembly", session["assembly"]}
         };
-        return codeMenuSession;
-    }
-    if (name == "exec") {
-        const QVariantHash execMenuSession = {
-            {"scriptUrl", menuSession["scriptUrl"]},
-            {"scriptName", menuSession["scriptName"]},
-            {"startLine", menuSession["startLine"]},
-            {"startCharacter", menuSession["startCharacter"]},
-            {"endLine", menuSession["endLine"]},
-            {"endCharacter", menuSession["endCharacter"]},
-            {"text", menuSession["text"]}
+    } else if (name == "exec") {
+        menuSession = {
+            {"scriptUrl", session["scriptUrl"]},
+            {"scriptName", session["scriptName"]},
+            {"startLine", session["startLine"]},
+            {"startCharacter", session["startCharacter"]},
+            {"endLine", session["endLine"]},
+            {"endCharacter", session["endCharacter"]},
+            {"text", session["text"]}
         };
-        return execMenuSession;
-    }
-    if (name == "editor") {
-        const QVariantHash editorMenuSession = {
-            {"scriptUrl", menuSession["scriptUrl"]},
-            {"line", menuSession["line"]},
-            {"character", menuSession["character"]},
-            {"startLine", menuSession["startLine"]},
-            {"startCharacter", menuSession["startCharacter"]},
-            {"endLine", menuSession["endLine"]},
-            {"endCharacter", menuSession["endCharacter"]},
-            {"text", menuSession["text"]},
-            {"navigation", menuSession["navigation"]},
-            {"assembly", menuSession["assembly"]}
+    } else if (name == "editor") {
+        menuSession = {
+            {"scriptUrl", session["scriptUrl"]},
+            {"line", session["line"]},
+            {"character", session["character"]},
+            {"startLine", session["startLine"]},
+            {"startCharacter", session["startCharacter"]},
+            {"endLine", session["endLine"]},
+            {"endCharacter", session["endCharacter"]},
+            {"text", session["text"]},
+            {"navigation", session["navigation"]},
+            {"assembly", session["assembly"]}
         };
-        return editorMenuSession;
     }
-    return {};
+    return menuSession;
 }
 
 QVariantHash ScriptPage::menuGetAll() const {
@@ -661,7 +655,7 @@ QVariantHash ScriptPage::menuGetAll() const {
     const int type = m_editorWidget->styleGet(position);
     if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
 
-    const QVariantHash menuSession = {
+    const QVariantHash session = {
         // edit
         {"undoable", m_editorWidget->undoable()},
         {"redoable", m_editorWidget->redoable()},
@@ -680,7 +674,7 @@ QVariantHash ScriptPage::menuGetAll() const {
         {"navigation", navigation},
         {"assembly", m_assemblyWidget->isVisible()}
     };
-    return menuSession;
+    return session;
 }
 
 void ScriptPage::menuRequest(const QString &request) {
