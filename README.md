@@ -99,6 +99,7 @@ gantt
         modbusAscii(ascii string refractor): done, 04-01, 7d
         modbusRtu(hex string refractor): done, 04-01, 7d
         modbusTcp: done, 04-01, 7d
+        imap: active, 04-08, 8d
         mqtt: 04-16, 15d
 
     section infra
@@ -106,7 +107,6 @@ gantt
         ringbuffer class: done, 03-01, 16d
         fullscreen overlay: done, 03-26, 3d
         undo stack: 04-01, 10d
-        port session monitor: 05-01, 31d
 
     section coding
         assembly view: done, 03-13, 19d
@@ -114,10 +114,12 @@ gantt
         documentSymbol bar: done, 03-25, 2d
         search & replace: done, 03-30, 4d
         rename: 04-11, 20d
-        git integration: 05-01, 31d
 
     section ui
         status bar: done, 03-10, 3d
+        port session monitor: 05-01, 7d
+        git integration: 05-08, 12d
+        cli integration: 05-20, 12d
         customize settings: 07-01, 31d
         dark theme: 07-01, 31d
         i18n: 08-01, 31d

@@ -13,6 +13,10 @@ QUrl g_workspaceUrl = {};
 QJsonObject g_workspaceConfig = {};
 
 QHash<QString, QString> g_color = {
+    {"back", "#ffffff"},
+    {"hoverBack", "#f5f5f5"},
+    {"pressedBack", "#e0e0e0"},
+    {"selectedBack", "#ebebeb"},
     {"brandFore", "#115ea3"},
     {"successBack", "#107c10"},
     {"warningBack", "#c50f1f"},
