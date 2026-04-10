@@ -86,7 +86,7 @@ public:
 
     void codeActionRequest(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void completionRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void completionRequest(const QUrl &scriptUrl, int line, int character);
 
     void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;
 
@@ -190,6 +190,7 @@ private:
     QObject *m_toolTip{};
     QObject *m_editMenu{};
     QObject *m_codeMenu{};
+    QObject *m_execMenu{};
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QUrl m_focusedPage{};

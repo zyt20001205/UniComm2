@@ -65,6 +65,20 @@ Item {
             }
         }
 
+        Button {
+            id: execMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            text: "Exec"
+
+            onClicked: {
+                const globalPos = execMenuButton.mapToGlobal(0, execMenuButton.height);
+                const localPos = execMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                execMenu.popup(localPos.x, localPos.y)
+            }
+        }
+
         Item {
             Layout.fillWidth: true; Layout.preferredHeight: 24
         }

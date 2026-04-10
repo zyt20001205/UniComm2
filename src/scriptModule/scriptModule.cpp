@@ -42,6 +42,7 @@ void ScriptModule::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
     m_codeMenu = qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]);
+    m_execMenu = qvariant_cast<QObject *>(objects["menuModuleExecMenu"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -188,6 +189,7 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
             {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
             {"menuModuleEditMenu", QVariant::fromValue(m_editMenu)},
             {"menuModuleCodeMenu", QVariant::fromValue(m_codeMenu)},
+            {"menuModuleExecMenu", QVariant::fromValue(m_execMenu)},
             {"scriptModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
         });
         scriptPage->setObjectName(scriptUrl.toString());

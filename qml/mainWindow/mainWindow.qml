@@ -1708,6 +1708,8 @@ Item {
         }
 
         MenuItem {
+            id: menuModuleCodeMenuCompletionItem
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
@@ -1729,10 +1731,20 @@ Item {
                 }
             }
 
+            Shortcut {
+                sequence: "Ctrl+Space"
+                onActivated: {
+                    scriptModule.menuSet("code")
+                    menuModuleCodeMenuCompletionItem.triggered()
+                }
+            }
+
             onTriggered: scriptModule.completionRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.line, menuModuleCodeMenu.menuSession.character)
         }
 
         MenuItem {
+            id: menuModuleCodeMenuReformatItem
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
@@ -1756,6 +1768,14 @@ Item {
                 }
             }
 
+            Shortcut {
+                sequence: "Ctrl+Alt+L"
+                onActivated: {
+                    scriptModule.menuSet("code")
+                    menuModuleCodeMenuReformatItem.triggered()
+                }
+            }
+
             onTriggered: {
                 if (menuModuleCodeMenu.menuSession.text) {
                     scriptModule.rangeFormattingRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.startLine, menuModuleCodeMenu.menuSession.startCharacter, menuModuleCodeMenu.menuSession.endLine, menuModuleCodeMenu.menuSession.endCharacter)
@@ -1763,6 +1783,101 @@ Item {
                     scriptModule.formattingRequest(menuModuleCodeMenu.menuSession.scriptUrl)
                 }
             }
+        }
+    }
+
+    Menu {
+        id: menuModuleExecMenu
+        implicitWidth: 300
+        property var menuSession
+
+        onOpened: {
+            mainWindow.overlayFlagSet(undefined, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            scriptModule.menuSet("exec")
+        }
+
+        MenuItem {
+            id: menuModuleExecMenuRunItem
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/play.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Run ") + (menuModuleExecMenu.menuSession.text ? "Selected" : menuModuleExecMenu.menuSession.scriptName)
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Shift+F10"
+                }
+            }
+
+            Shortcut {
+                sequence: "Shift+F10"
+                onActivated: {
+                    scriptModule.menuSet("exec")
+                    menuModuleExecMenuRunItem.triggered()
+                }
+            }
+
+            onTriggered: {
+                if (menuModuleExecMenu.menuSession.text) {
+                    threadpoolModule.threadStart(menuModuleExecMenu.menuSession.scriptUrl, 0, menuModuleExecMenu.menuSession.startLine, menuModuleExecMenu.menuSession.startCharacter, menuModuleExecMenu.menuSession.endLine, menuModuleExecMenu.menuSession.endCharacter)
+                } else {
+                    threadpoolModule.threadStart(menuModuleExecMenu.menuSession.scriptUrl, 0)
+                }
+            }
+        }
+
+        MenuItem {
+            id: menuModuleExecMenuDebugItem
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/bug.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Debug ") + menuModuleExecMenu.menuSession.scriptName
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Shift+F9"
+                }
+            }
+
+            Shortcut {
+                sequence: "Shift+F9"
+                onActivated: {
+                    scriptModule.menuSet("exec")
+                    menuModuleExecMenuDebugItem.triggered()
+                }
+            }
+
+            onTriggered: threadpoolModule.threadStart(menuModuleExecMenu.menuSession.scriptUrl, 1)
         }
     }
 
@@ -1860,17 +1975,11 @@ Item {
         }
 
         MenuItem {
-            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Debug Selected") : qsTr("Debug") : false
+            text: qsTr("Debug")
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                if (scriptModuleEditorMenu.menuSession.text) {
-                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
-                } else {
-                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1)
-                }
-            }
+            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1)
         }
 
         MenuSeparator {
@@ -3159,6 +3268,7 @@ Item {
             "menuModuleEditMenu": menuModuleEditMenu,
             "menuModuleViewMenu": menuModuleViewMenu,
             "menuModuleCodeMenu": menuModuleCodeMenu,
+            "menuModuleExecMenu": menuModuleExecMenu,
 
             "portModuleTableMenu": portModuleTableMenu,
             "portModuleRootMenu": portModuleRootMenu,

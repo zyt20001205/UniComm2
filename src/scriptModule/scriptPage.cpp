@@ -50,13 +50,6 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
     connect(shortcutComment, &QShortcut::activated, this, &ScriptPage::commentToggle);
     shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
 
-    auto shortcutCompletion = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Space), this); // NOLINT
-    connect(shortcutCompletion, &QShortcut::activated, this, &ScriptPage::completionRequest);
-    shortcutCompletion->setContext(Qt::WidgetWithChildrenShortcut);
-    auto shortcutFormatting = new QShortcut(QKeySequence(scriptConfig["formatting"].toString()), this); // NOLINT
-    connect(shortcutFormatting, &QShortcut::activated, this, &ScriptPage::formattingRequest);
-    shortcutFormatting->setContext(Qt::WidgetWithChildrenShortcut);
-
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
     m_selectionTimer->setInterval(100);
@@ -599,6 +592,7 @@ void ScriptPage::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_editMenu = qvariant_cast<QObject *>(objects["menuModuleEditMenu"]);
     m_codeMenu = qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]);
+    m_execMenu = qvariant_cast<QObject *>(objects["menuModuleExecMenu"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
@@ -626,6 +620,17 @@ void ScriptPage::menuSet(const QString &name) const {
             {"assembly", menuSession["assembly"]}
         };
         m_codeMenu->setProperty("menuSession", codeMenuSession);
+    } else if (name == "exec") {
+        const QVariantHash execMenuSession = {
+            {"scriptUrl", menuSession["scriptUrl"]},
+            {"scriptName", menuSession["scriptName"]},
+            {"startLine", menuSession["startLine"]},
+            {"startCharacter", menuSession["startCharacter"]},
+            {"endLine", menuSession["endLine"]},
+            {"endCharacter", menuSession["endCharacter"]},
+            {"text", menuSession["text"]}
+        };
+        m_execMenu->setProperty("menuSession", execMenuSession);
     } else if (name == "editor") {
         const QVariantHash editorMenuSession = {
             {"scriptUrl", menuSession["scriptUrl"]},
@@ -663,6 +668,7 @@ QVariantHash ScriptPage::menuGet() const {
         {"pastable", m_editorWidget->pastable()},
         // code
         {"scriptUrl", m_scriptUrl},
+        {"scriptName", m_scriptUrl.fileName()},
         {"line", index["line"]},
         {"character", index["character"]},
         {"startLine", m_selection["startLine"]},

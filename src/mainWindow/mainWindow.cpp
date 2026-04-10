@@ -173,7 +173,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"menuModuleFileMenu", objects["menuModuleFileMenu"]},
         {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
         {"menuModuleViewMenu", objects["menuModuleViewMenu"]},
-        {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]}
+        {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]},
+        {"menuModuleExecMenu", objects["menuModuleExecMenu"]}
     };
     m_menuModule->propertySet(menuObjects);
 
@@ -187,6 +188,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
         {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]},
+        {"menuModuleExecMenu", objects["menuModuleExecMenu"]},
         {"systemModulePermissionDialog", objects["systemModulePermissionDialog"]},
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
