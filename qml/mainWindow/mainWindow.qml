@@ -987,8 +987,8 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
-                systemModuleRenameDialog.open()
+                systemModulePropertyDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
+                systemModulePropertyDialog.open()
             }
         }
 
@@ -1097,8 +1097,8 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                systemModuleRenameDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
-                systemModuleRenameDialog.open()
+                systemModulePropertyDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
+                systemModulePropertyDialog.open()
             }
         }
 
@@ -2092,7 +2092,6 @@ Item {
         }
 
         MenuItem {
-            id: scriptModuleEditorMenuAssemblyItem
             text: qsTr("Assembly")
             icon.source: "qrc:/icon/assembly.svg"
             icon.width: 16; icon.height: 16
@@ -2122,6 +2121,17 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: systemModule.fileOpenInApplication(scriptModuleEditorMenu.menuSession.scriptUrl)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Property")
+            icon.source: "qrc:/icon/property.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                systemModulePropertyDialog.fileUrl = scriptModuleEditorMenu.menuSession.scriptUrl
+                systemModulePropertyDialog.open()
             }
         }
     }
@@ -2858,14 +2868,15 @@ Item {
 
     // system module
     Dialog {
-        id: systemModuleEditDialog
+        id: systemModulePropertyDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 600
         modal: true
-        title: qsTr("Edit")
+        title: qsTr("File Property")
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string fileUrl
+        property var infoSession
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2873,84 +2884,153 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-
+            systemModulePropertyDialog.infoSession = systemModule.fileInfo(systemModulePropertyDialog.fileUrl)
+            systemModulePropertyImage.source = systemModulePropertyDialog.infoSession.source
+            systemModulePropertyNameTextField.text = systemModulePropertyDialog.infoSession.baseName
+            systemModulePropertySizeLabel.text = systemModulePropertyDialog.infoSession.size
+            systemModulePropertyAbsolutePathLabel.text = systemModulePropertyDialog.infoSession.absolutePath
+            systemModulePropertyBirthTimeLabel.text = systemModulePropertyDialog.infoSession.birthTime
+            systemModulePropertyLastModifiedLabel.text = systemModulePropertyDialog.infoSession.lastModified
+            systemModulePropertyLastReadLabel.text = systemModulePropertyDialog.infoSession.lastRead
+            systemModulePropertyReadableCheckBox.checked = systemModulePropertyDialog.infoSession.readable
+            systemModulePropertyWritableCheckBox.checked = systemModulePropertyDialog.infoSession.writable
+            systemModulePropertyHiddenCheckBox.checked = systemModulePropertyDialog.infoSession.hidden
         }
-        // onAccepted: systemModule.fileEdit(systemModuleEditDialog.fileUrl, systemModuleEditTextField.text)
+
+        onAccepted: {
+            if (systemModulePropertyNameTextField.text !== systemModulePropertyDialog.infoSession.baseName) {
+                systemModule.fileRename(systemModulePropertyDialog.fileUrl, systemModulePropertyNameTextField.text)
+            }
+        }
 
         ColumnLayout {
             width: parent.width
 
-            TextField {
-                id: systemModuleEditRenameTextField
-                width: parent.width
-                placeholderText: qsTr("Enter new name:")
+            RowLayout {
+                Layout.preferredHeight: 64
 
-                onAccepted: systemModuleEditDialog.accept()
-                Keys.onEscapePressed: systemModuleEditDialog.reject()
+                Image {
+                    id: systemModulePropertyImage
+                    sourceSize.width: 48
+                    sourceSize.height: 48
+                    horizontalAlignment: Image.AlignLeft
+                    fillMode: Image.PreserveAspectFit
+                    Layout.preferredWidth: 150
+                }
+
+                TextField {
+                    id: systemModulePropertyNameTextField
+                    placeholderText: qsTr("Enter new name:")
+                    Layout.fillWidth: true
+
+                    onAccepted: systemModulePropertyDialog.accept()
+                    Keys.onEscapePressed: systemModulePropertyDialog.reject()
+                }
             }
 
-            CheckBox {
-                id: systemModuleEditReadonlyCheckBox
-                text: qsTr("Read-Only")
+            Rectangle {
+                color: "#333333"
+                Layout.fillWidth: true; Layout.preferredHeight: 1
             }
-        }   
-    }
-    
-    Dialog {
-        id: systemModuleRenameDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 600
-        modal: true
-        title: qsTr("Rename")
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        property string fileUrl
 
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            systemModuleRenameTextField.clear()
-            systemModuleRenameTextField.forceActiveFocus()
-            systemModuleRenameTextField.selectAll()
-        }
-        onAccepted: systemModule.fileRename(systemModuleRenameDialog.fileUrl, systemModuleRenameTextField.text)
+            RowLayout {
+                Layout.preferredHeight: 32
 
-        TextField {
-            id: systemModuleRenameTextField
-            width: parent.width
-            placeholderText: qsTr("Enter new name:")
+                Label {
+                    text: qsTr("Absolute Path:")
+                    Layout.preferredWidth: 150
+                }
 
-            onAccepted: systemModuleRenameDialog.accept()
-            Keys.onEscapePressed: systemModuleRenameDialog.reject()
-        }
-    }
+                Label {
+                    id: systemModulePropertyAbsolutePathLabel
+                }
+            }
 
-    Dialog {
-        id: systemModulePermissionDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 600
-        modal: true
-        title: qsTr("Permission Management")
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        property string fileUrl
-        property bool readonly
+            RowLayout {
+                Layout.preferredHeight: 32
 
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: systemModulePermissionLabel.text = readonly ? qsTr("This file is writable. Would you like to make it read-only?") : qsTr("This file is read-only. Would you like to make it writable?")
-        onAccepted: systemModule.filePermission(systemModulePermissionDialog.fileUrl, systemModulePermissionDialog.readonly)
+                Label {
+                    text: qsTr("Size:")
+                    Layout.preferredWidth: 150
+                }
 
-        Label {
-            id: systemModulePermissionLabel
-            width: parent.width
-            horizontalAlignment: Text.AlignLeft
+                Label {
+                    id: systemModulePropertySizeLabel
+                }
+            }
+
+            Rectangle {
+                color: "#333333"
+                Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Birth Time:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: systemModulePropertyBirthTimeLabel
+                }
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Last Modified:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: systemModulePropertyLastModifiedLabel
+                }
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Last Read:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: systemModulePropertyLastReadLabel
+                }
+            }
+
+            Rectangle {
+                color: "#333333"
+                Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Attributes:")
+                    Layout.preferredWidth: 150
+                }
+
+                CheckBox {
+                    id: systemModulePropertyReadableCheckBox
+                    text: qsTr("Readable")
+                }
+
+                CheckBox {
+                    id: systemModulePropertyWritableCheckBox
+                    text: qsTr("Writable")
+                }
+
+                CheckBox {
+                    id: systemModulePropertyHiddenCheckBox
+                    text: qsTr("Hidden")
+                }
+            }
         }
     }
 
@@ -3324,7 +3404,7 @@ Item {
 
             "structureModuleRootMenu": structureModuleRootMenu,
 
-            "systemModulePermissionDialog": systemModulePermissionDialog,
+            "systemModulePropertyDialog": systemModulePropertyDialog,
 
             "threadpoolModuleErrorDialog": threadpoolModuleErrorDialog,
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,

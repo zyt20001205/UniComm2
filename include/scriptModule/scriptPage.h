@@ -81,10 +81,6 @@ signals:
 
     void changeSelection(const QHash<QString, int> &selection);
 
-    void setPermission(const QUrl &scriptUrl, bool readonly);
-
-    void editBreakpoint(const QUrl &scriptUrl, int line);
-
     void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
 
     void removeBreakpoint(const QUrl &scriptUrl, int line);
@@ -136,11 +132,15 @@ private:
     void savepointChange(bool status);
 
     // private: file
-    void permissionLoad();
+    void permissionGet();
 
-    void breakpointLoad() const;
+    void permissionSet() const;
 
-    void regionLoad() const;
+    void breakpointGet() const;
+
+    void breakpointSet(int line) const;
+
+    void regionGet() const;
 
     // private: lsp
     void didOpenNotification();
@@ -216,6 +216,8 @@ private:
     QTimer *m_dwellTimer{};
 
     QObject *m_toolTip{};
+    QObject *m_breakpointEditDialog{};
+    QObject *m_systemPropertyDialog{};
     QObject *m_editorMenu{};
 
     QSet<QChar> m_completionSet{};

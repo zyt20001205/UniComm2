@@ -427,7 +427,7 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
                 });
         }
         // signals
-        connect(m_editorWidget, &ScintillaEdit::modifyAttemptReadOnly, this, [this] { emit setPermission(m_scriptUrl, !m_editorWidget->readonlyGet()); });
+        connect(m_editorWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &ScriptPage::permissionSet);
         connect(m_editorWidget, &ScintillaEdit::notify, this, [this](const Scintilla::NotificationData *pscn) {
             switch (pscn->nmhdr.code) {
                 case Scintilla::Notification::MarginClick: {
@@ -565,9 +565,9 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
     QTimer::singleShot(0, this, [this] {
         // state
-        permissionLoad();
-        breakpointLoad();
-        regionLoad();
+        permissionGet();
+        breakpointGet();
+        regionGet();
         // lsp
         didOpenNotification();
         contentChange();
@@ -590,6 +590,8 @@ ScriptPage::ScriptPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
 
 void ScriptPage::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
+    m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
+    m_systemPropertyDialog = qvariant_cast<QObject *>(objects["systemModulePropertyDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 }
 
@@ -1177,11 +1179,11 @@ void ScriptPage::marginClick(const Scintilla::Position position, const int mouse
                                           {"enabled", true}
                                       }));
                 m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line);
-                if (modifiers == Scintilla::KeyMod::Ctrl) emit editBreakpoint(m_scriptUrl, line + 1);
+                if (modifiers == Scintilla::KeyMod::Ctrl) breakpointSet(line + 1);
             }
         } else if (mouseButton == Qt::RightButton) {
             if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED || m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
-                emit editBreakpoint(m_scriptUrl, line + 1);
+                breakpointSet(line + 1);
             }
         }
     }
@@ -1199,8 +1201,8 @@ void ScriptPage::selectionChange() {
 void ScriptPage::contentChange() {
     m_selection = m_editorWidget->selectionGet();
     // status refresh
-    breakpointLoad();
-    regionLoad();
+    breakpointGet();
+    regionGet();
     // lsp request
     didChangeNotification();
     documentHighlightRequest();
@@ -1227,7 +1229,7 @@ void ScriptPage::savepointChange(const bool status) {
 }
 
 // private: file
-void ScriptPage::permissionLoad() {
+void ScriptPage::permissionGet() {
     const QString scriptPath = m_scriptUrl.toLocalFile();
     const QFileInfo fileInfo(scriptPath);
     if (fileInfo.isWritable()) {
@@ -1239,22 +1241,12 @@ void ScriptPage::permissionLoad() {
     }
 }
 
-// void ScriptPage::permissionRequest() {
-//     // block file watcher signals
-//     m_fileWatcher->blockSignals(true);
-//     const QString scriptPath = m_scriptUrl.toLocalFile();
-//     QFile::setPermissions(
-//         scriptPath,
-//         QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-//     // logging
-//     emit appendLog(QString("<a href='%1'>%2</a> permitted").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
-//     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-//     qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
-//     // restore file watcher signals 1 sec later
-//     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
-// }
+void ScriptPage::permissionSet() const {
+    m_systemPropertyDialog->setProperty("fileUrl", m_scriptUrl);
+    QMetaObject::invokeMethod(m_systemPropertyDialog, "open");
+}
 
-void ScriptPage::breakpointLoad() const {
+void ScriptPage::breakpointGet() const {
     m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED);
     m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED);
     if (g_breakpoints.contains(m_scriptUrl)) {
@@ -1265,7 +1257,13 @@ void ScriptPage::breakpointLoad() const {
     }
 }
 
-void ScriptPage::regionLoad() const {
+void ScriptPage::breakpointSet(const int line) const {
+    m_breakpointEditDialog->setProperty("scriptUrl", m_scriptUrl);
+    m_breakpointEditDialog->setProperty("line", line);
+    QMetaObject::invokeMethod(m_breakpointEditDialog, "open");
+}
+
+void ScriptPage::regionGet() const {
     m_editorWidget->markerDelete(MARKER_REGION);
     for (int line = 0; line < m_editorWidget->lineCountGet(); ++line) {
         const QString text = m_editorWidget->textGet(line, 0, line, -1);

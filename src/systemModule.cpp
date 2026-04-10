@@ -68,8 +68,50 @@ void SystemModule::fileOpenInApplication(const QUrl &fileUrl) {
 }
 
 QVariantHash SystemModule::fileInfo(const QUrl &fileUrl) {
-    // QVariantHash session =code
+    const auto filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    auto source = QUrl("qrc:/icon/document.svg");
+    const auto suffix = fileInfo.suffix();
+    const QStringList typeImage = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
+    if (typeImage.contains(suffix)) {
+        source = "qrc:/icon/fileTypeImage.svg";
+    } else if (suffix == "csv") {
+        source = "qrc:/icon/fileTypeCsv.svg";
+    } else if (suffix == "json") {
+        source = "qrc:/icon/fileTypeJson.svg";
+    } else if (suffix == "lua") {
+        source = "qrc:/icon/fileTypeLua.svg";
+    }
+    const QLocale locale{QLocale::C};
+    QVariantHash infoSession = {
+        {"source", source},
+        {"baseName", fileInfo.baseName()},
+        {"absolutePath", fileInfo.absoluteFilePath()},
+        {"size", locale.formattedDataSize(fileInfo.size())},
+        {"birthTime", fileInfo.birthTime().toString("yyyy-MM-dd HH:mm:ss")},
+        {"lastModified", fileInfo.lastModified().toString("yyyy-MM-dd HH:mm:ss")},
+        {"lastRead", fileInfo.lastRead().toString("yyyy-MM-dd HH:mm:ss")},
+        {"readable", fileInfo.isReadable()},
+        {"writable", fileInfo.isWritable()},
+        {"hidden", fileInfo.isHidden()},
+    };
+    return infoSession;
 }
+
+// void ScriptPage::permissionRequest() {
+//     // block file watcher signals
+//     m_fileWatcher->blockSignals(true);
+//     const QString scriptPath = m_scriptUrl.toLocalFile();
+//     QFile::setPermissions(
+//         scriptPath,
+//         QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+//     // logging
+//     emit appendLog(QString("<a href='%1'>%2</a> permitted").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+//     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+//     qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
+//     // restore file watcher signals 1 sec later
+//     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
+// }
 
 void SystemModule::fileNew(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();

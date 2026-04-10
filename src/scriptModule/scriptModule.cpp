@@ -37,9 +37,9 @@ ScriptModule::~ScriptModule() {
 }
 
 void ScriptModule::propertySet(const QVariantMap &objects) {
-    m_permissionDialog = qvariant_cast<QObject *>(objects["systemModulePermissionDialog"]);
-    m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
+    m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
+    m_systemPropertyDialog = qvariant_cast<QObject *>(objects["systemModulePropertyDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["scriptModuleEditorMenu"]);
 
     for (const auto &value: m_scriptConfig["scriptList"].toArray()) {
@@ -184,6 +184,8 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         auto *scriptPage = new ScriptPage(m_scriptConfig, scriptUrl);
         scriptPage->propertySet(QVariantMap{
             {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+            {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
+            {"systemModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
             {"scriptModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
         });
         scriptPage->setObjectName(scriptUrl.toString());
@@ -206,8 +208,6 @@ void ScriptModule::scriptOpen(const QUrl &scriptUrl) {
         connect(scriptPage, &ScriptPage::closeScript, this, &ScriptModule::scriptClose);
         connect(scriptPage, &ScriptPage::startThread, this, &ScriptModule::startThread);
         connect(scriptPage, &ScriptPage::changeSelection, this, &ScriptModule::changeSelection);
-        connect(scriptPage, &ScriptPage::setPermission, this, &ScriptModule::permissionSet);
-        connect(scriptPage, &ScriptPage::editBreakpoint, this, &ScriptModule::breakpointEdit);
         connect(scriptPage, &ScriptPage::insertBreakpoint, this, &ScriptModule::insertBreakpoint);
         connect(scriptPage, &ScriptPage::removeBreakpoint, this, &ScriptModule::removeBreakpoint);
         connect(scriptPage, &ScriptPage::requestCompletion, this, &ScriptModule::completionRequest);
@@ -861,16 +861,4 @@ void ScriptModule::textSet(const QUrl &scriptUrl, const QString &text, const int
 void ScriptModule::textSetSelected(const QUrl &scriptUrl, const QString &text) {
     if (!m_scriptPageHash.contains(scriptUrl)) scriptOpen(scriptUrl);
     m_scriptPageHash[scriptUrl]->m_editorWidget->textSetSelected(text);
-}
-
-void ScriptModule::permissionSet(const QUrl &scriptUrl, const bool readonly) const {
-    m_permissionDialog->setProperty("fileUrl", scriptUrl.toString());
-    m_permissionDialog->setProperty("readonly", readonly);
-    QMetaObject::invokeMethod(m_permissionDialog, "open");
-}
-
-void ScriptModule::breakpointEdit(const QUrl &scriptUrl, const int line) const {
-    m_breakpointEditDialog->setProperty("scriptUrl", scriptUrl.toString());
-    m_breakpointEditDialog->setProperty("line", line);
-    QMetaObject::invokeMethod(m_breakpointEditDialog, "open");
 }

@@ -180,14 +180,10 @@ private:
 
     void textSetSelected(const QUrl &scriptUrl, const QString &text);
 
-    void permissionSet(const QUrl &scriptUrl, bool readonly) const;
-
-    void breakpointEdit(const QUrl &scriptUrl, int line) const;
-
     QJsonObject m_scriptConfig{};
-    QObject *m_breakpointEditDialog{};
-    QObject *m_permissionDialog{};
     QObject *m_toolTip{};
+    QObject *m_breakpointEditDialog{};
+    QObject *m_systemPropertyDialog{};
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QUrl m_focusedPage{};

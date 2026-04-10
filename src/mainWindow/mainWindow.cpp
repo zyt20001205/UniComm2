@@ -163,9 +163,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap logObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
-        {"logModuleLinkMenu", objects["logModuleLinkMenu"]},
-        {"mainWindowToolTip", objects["mainWindowToolTip"]}
+        {"logModuleLinkMenu", objects["logModuleLinkMenu"]}
     };
     m_logModule->propertySet(logObjects);
 
@@ -185,8 +185,9 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_portModule->propertySet(portObjects);
 
     const QVariantMap scriptObjects = {
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
-        {"systemModulePermissionDialog", objects["systemModulePermissionDialog"]},
+        {"systemModulePropertyDialog", objects["systemModulePropertyDialog"]},
         {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
         {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
         {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]},
@@ -201,8 +202,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"scriptModuleNavigationDetailLabel", objects["scriptModuleNavigationDetailLabel"]},
         {"scriptModulePositionTooltip", objects["scriptModulePositionTooltip"]},
         {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
-        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]},
-        {"mainWindowToolTip", objects["mainWindowToolTip"]}
+        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
     };
     m_scriptModule->propertySet(scriptObjects);
 
@@ -217,8 +217,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_statusModule->propertySet(statusObjects);
 
     const QVariantMap structureObjects = {
-        {"structureModuleRootMenu", objects["structureModuleRootMenu"]},
-        {"mainWindowToolTip", objects["mainWindowToolTip"]}
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
+        {"structureModuleRootMenu", objects["structureModuleRootMenu"]}
     };
     m_structureModule->propertySet(structureObjects);
 

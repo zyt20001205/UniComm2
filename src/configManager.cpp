@@ -129,9 +129,6 @@ void ConfigManager::workspaceInit() {
         // copy if not found
         if (!QFile::exists(dstLuarcPath)) {
             QFile::copy(srcLuarcPath, dstLuarcPath);
-            QFile::setPermissions(dstLuarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                              | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                              | QFileDevice::ReadGroup | QFileDevice::ReadOther);
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] .luarc.json copied").arg(timestamp);
