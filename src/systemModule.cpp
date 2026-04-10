@@ -98,20 +98,15 @@ QVariantHash SystemModule::fileInfo(const QUrl &fileUrl) {
     return infoSession;
 }
 
-// void ScriptPage::permissionRequest() {
-//     // block file watcher signals
-//     m_fileWatcher->blockSignals(true);
-//     const QString scriptPath = m_scriptUrl.toLocalFile();
-//     QFile::setPermissions(
-//         scriptPath,
-//         QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-//     // logging
-//     emit appendLog(QString("<a href='%1'>%2</a> permitted").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
-//     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-//     qDebug() << QString("[%1] %2 permitted").arg(timestamp, m_scriptUrl.fileName());
-//     // restore file watcher signals 1 sec later
-//     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
-// }
+void SystemModule::fileWritable(const QUrl &fileUrl, const bool status) {
+    const auto filePath = fileUrl.toLocalFile();
+    const QFileInfo fileInfo(filePath);
+    auto permissions = fileInfo.permissions();
+    if (status) permissions|= QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther;
+    else permissions &= ~(QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther);
+    const auto file(filePath);
+    QFile::setPermissions(filePath, permissions);
+}
 
 void SystemModule::fileNew(const QUrl &fileUrl) {
     const QString filePath = fileUrl.toLocalFile();

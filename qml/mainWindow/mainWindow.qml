@@ -2901,6 +2901,9 @@ Item {
             if (systemModulePropertyNameTextField.text !== systemModulePropertyDialog.infoSession.baseName) {
                 systemModule.fileRename(systemModulePropertyDialog.fileUrl, systemModulePropertyNameTextField.text)
             }
+            if (systemModulePropertyWritableCheckBox.checked !== systemModulePropertyDialog.infoSession.writable) {
+                systemModule.fileWritable(systemModulePropertyDialog.fileUrl, systemModulePropertyWritableCheckBox.checked)
+            }
         }
 
         ColumnLayout {

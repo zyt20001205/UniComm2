@@ -23,6 +23,8 @@ public:
 
     Q_INVOKABLE static QVariantHash fileInfo(const QUrl &fileUrl);
 
+    Q_INVOKABLE static void fileWritable(const QUrl &fileUrl, bool status);
+
     Q_INVOKABLE void fileNew(const QUrl &fileUrl);
 
     Q_INVOKABLE void fileRename(const QUrl &fileUrl, const QString &name);
