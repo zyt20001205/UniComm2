@@ -36,7 +36,7 @@ public:
     // public: file
     void pathDisambiguation();
 
-    void scriptReload();
+    void documentReload();
 
     void documentSave();
 

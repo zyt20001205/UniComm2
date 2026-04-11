@@ -37,15 +37,16 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
       m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}},
       m_fileWatcher(new QFileSystemWatcher()) {
     setTitle(documentUrl.fileName());
-    auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
-    connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
-    shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, this, &LuaPage::searchToggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
     connect(shortcutReplace, &QShortcut::activated, this, &LuaPage::replaceToggle);
     shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
+
+    auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
+    connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
+    shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
     connect(shortcutComment, &QShortcut::activated, this, &LuaPage::commentToggle);
     shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
@@ -706,7 +707,8 @@ void LuaPage::pathDisambiguation() {
     setTitle(relatedPath);
 }
 
-void LuaPage::scriptReload() {
+void LuaPage::documentReload() {
+    // TODO: waiting for frontend & filewatcher
     // const QMessageBox::StandardButton reply = QMessageBox::question(
     //     nullptr,
     //     tr("Reload"),
@@ -1148,7 +1150,7 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
 // protected
 void LuaPage::closeEvent(QCloseEvent *event) {
     documentClose();
-    event->accept();
+    DockWidget::closeEvent(event);
 }
 
 // private: slot

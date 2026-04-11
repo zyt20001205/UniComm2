@@ -10,6 +10,7 @@
 #include "core/fileModule.h"
 #include "document/module/scintillaWidget.h"
 #include "document/page/luaPage.h"
+#include "document/page/textPage.h"
 #include "document/page/welcomePage.h"
 
 // public
@@ -18,6 +19,7 @@ DocumentModule::DocumentModule(QWidget *parent)
       m_documentConfig(g_workspaceConfig["documentConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
+    qApp->installEventFilter(m_codeAssistant);
     m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
@@ -180,61 +182,70 @@ void DocumentModule::scriptMarkerSave(const QJsonObject &markerConfigScript) {
 void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
-        // create script page
-        auto *luaPage = new LuaPage(m_documentConfig, documentUrl);
-        luaPage->propertySet(QVariantMap{
-            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-            {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
-            {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-            {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
-        });
-        luaPage->setObjectName(documentUrl.toString());
-        // check same file name
-        bool conflict = false;
-        for (const auto &url: m_pageHash.keys()) {
-            if (url.fileName() == documentUrl.fileName()) {
-                conflict = true;
-                LuaPage *conflictPage = m_pageHash[url];
-                conflictPage->pathDisambiguation();
+        const auto documentPath = documentUrl.toLocalFile();
+        const QFileInfo documentInfo(documentPath);
+        const auto suffix = documentInfo.suffix();
+        // TODO: add base page later
+        // if (suffix == "lua") {
+        if (true) {
+            auto *luaPage = new LuaPage(m_documentConfig, documentUrl);
+            luaPage->propertySet(QVariantMap{
+                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
+            });
+            connect(luaPage, &LuaPage::isFocusedChanged, this, [this, luaPage](const bool status) { documentFocus(luaPage, status); });
+            connect(luaPage, &LuaPage::appendLog, this, &DocumentModule::appendLog);
+            connect(luaPage, &LuaPage::closeDocument, this, &DocumentModule::documentClose);
+            connect(luaPage, &LuaPage::startThread, this, &DocumentModule::startThread);
+            connect(luaPage, &LuaPage::changeSelection, this, &DocumentModule::changeSelection);
+            connect(luaPage, &LuaPage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
+            connect(luaPage, &LuaPage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
+            connect(luaPage, &LuaPage::requestCompletion, this, &DocumentModule::completionRequest);
+            connect(luaPage, &LuaPage::requestDefinition, this, &DocumentModule::definitionRequest);
+            connect(luaPage, &LuaPage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
+            connect(luaPage, &LuaPage::requestDocumentSymbol, this, &DocumentModule::documentSymbolRequest);
+            connect(luaPage, &LuaPage::requestFoldingRange, this, &DocumentModule::foldingRangeRequest);
+            connect(luaPage, &LuaPage::requestFormatting, this, &DocumentModule::formattingRequest);
+            connect(luaPage, &LuaPage::requestHover, this, &DocumentModule::hoverRequest);
+            connect(luaPage, &LuaPage::requestImplementation, this, &DocumentModule::implementationRequest);
+            connect(luaPage, &LuaPage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
+            connect(luaPage, &LuaPage::requestReferences, this, &DocumentModule::referencesRequest);
+            connect(luaPage, &LuaPage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
+            connect(luaPage, &LuaPage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
+            connect(luaPage, &LuaPage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
+            connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
+            connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
+            connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
+            // path disambiguation
+            bool conflict = false;
+            for (const auto &url: m_pageHash.keys()) {
+                if (url.fileName() == documentUrl.fileName()) {
+                    conflict = true;
+                    LuaPage *conflictPage = m_pageHash[url];
+                    conflictPage->pathDisambiguation();
+                }
             }
-        }
-        if (conflict) {
-            luaPage->pathDisambiguation();
-        }
-        // insert url to hash
-        m_pageHash[documentUrl] = luaPage;
-        connect(luaPage, &LuaPage::isFocusedChanged, this, [this, luaPage](const bool status) { documentFocus(luaPage, status); });
-        connect(luaPage, &LuaPage::appendLog, this, &DocumentModule::appendLog);
-        connect(luaPage, &LuaPage::closeDocument, this, &DocumentModule::documentClose);
-        connect(luaPage, &LuaPage::startThread, this, &DocumentModule::startThread);
-        connect(luaPage, &LuaPage::changeSelection, this, &DocumentModule::changeSelection);
-        connect(luaPage, &LuaPage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
-        connect(luaPage, &LuaPage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
-        connect(luaPage, &LuaPage::requestCompletion, this, &DocumentModule::completionRequest);
-        connect(luaPage, &LuaPage::requestDefinition, this, &DocumentModule::definitionRequest);
-        connect(luaPage, &LuaPage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
-        connect(luaPage, &LuaPage::requestDocumentSymbol, this, &DocumentModule::documentSymbolRequest);
-        connect(luaPage, &LuaPage::requestFoldingRange, this, &DocumentModule::foldingRangeRequest);
-        connect(luaPage, &LuaPage::requestFormatting, this, &DocumentModule::formattingRequest);
-        connect(luaPage, &LuaPage::requestHover, this, &DocumentModule::hoverRequest);
-        connect(luaPage, &LuaPage::requestImplementation, this, &DocumentModule::implementationRequest);
-        connect(luaPage, &LuaPage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
-        connect(luaPage, &LuaPage::requestReferences, this, &DocumentModule::referencesRequest);
-        connect(luaPage, &LuaPage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
-        connect(luaPage, &LuaPage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
-        connect(luaPage, &LuaPage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
-        connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
-        connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
-        connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
-        qApp->installEventFilter(m_codeAssistant);
-        if (m_focusedPage.isEmpty()) {
-            m_welcomePage->open();
-            m_welcomePage->addDockWidgetAsTab(luaPage);
-            m_welcomePage->close();
+            if (conflict) {
+                luaPage->pathDisambiguation();
+            }
+            m_pageHash[documentUrl] = luaPage;
+            if (m_focusedPage.isEmpty()) {
+                m_welcomePage->open();
+                m_welcomePage->addDockWidgetAsTab(luaPage);
+                m_welcomePage->close();
+            } else {
+                m_pageHash[m_focusedPage]->addDockWidgetAsTab(luaPage);
+            }
+            luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
         } else {
-            m_pageHash[m_focusedPage]->addDockWidgetAsTab(luaPage);
+            auto *textPage = new TextPage(m_documentConfig, documentUrl);
+            textPage->propertySet(QVariantMap{
+                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)}
+            });
         }
-        luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
@@ -311,7 +322,8 @@ QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, co
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
 }
 
-void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) {
+void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
+                                   const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     m_pageHash[documentUrl]->m_editorWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
 }

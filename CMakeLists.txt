@@ -73,6 +73,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/module/scintillaWidget.h
         include/document/module/searchWidget.h
         include/document/page/luaPage.h
+        include/document/page/textPage.h
         include/document/page/welcomePage.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
@@ -142,6 +143,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/module/scintillaWidget.cpp
         src/document/module/searchWidget.cpp
         src/document/page/luaPage.cpp
+        src/document/page/textPage.cpp
         src/document/page/welcomePage.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
