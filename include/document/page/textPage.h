@@ -1,14 +1,15 @@
 #ifndef UNICOMM_TEXTPAGE_H
 #define UNICOMM_TEXTPAGE_H
 
-#include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+
+#include "basePage.h"
 
 class SearchWidget;
 class ReplaceWidget;
 class ScintillaWidget;
 
-class TextPage final : public KDDockWidgets::QtWidgets::DockWidget {
+class TextPage : public BasePage {
     Q_OBJECT
 
 public:
@@ -19,22 +20,11 @@ public:
     void propertySet(const QVariantMap &objects);
 
     // public: file
-    void pathDisambiguation();
-
-    void documentReload();
-
     void documentSave();
 
-    void documentClose();
-
-    QUrl m_documentUrl{};
     ScintillaWidget *m_editorWidget{};
 
 signals:
-    void appendLog(const QString &message, int type);
-
-    void closeDocument(const QUrl &documentUrl);
-
     void changeSelection(const QHash<QString, int> &selection);
 
 protected:
@@ -46,8 +36,6 @@ private:
     void savepointChange(bool status);
 
     // private: file
-    void permissionGet();
-
     void permissionSet() const;
 
     // private: search

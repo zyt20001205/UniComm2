@@ -70,7 +70,7 @@ void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
 QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
     const auto filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
-    auto source = QUrl("qrc:/icon/document.svg");
+    QUrl source{};
     const auto suffix = fileInfo.suffix();
     const QStringList typeImage = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
     if (typeImage.contains(suffix)) {
@@ -81,6 +81,10 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
         source = "qrc:/icon/fileTypeJson.svg";
     } else if (suffix == "lua") {
         source = "qrc:/icon/fileTypeLua.svg";
+    } else if (fileInfo.isFile()) {
+        source = "qrc:/icon/document.svg";
+    } else if (fileInfo.isDir()) {
+        source = "qrc:/icon/folder.svg";
     }
     const QLocale locale{QLocale::C};
     QVariantHash infoSession = {

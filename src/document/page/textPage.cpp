@@ -13,13 +13,11 @@
 
 // public
 TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : DockWidget(documentUrl.toString()),
-      m_documentUrl(documentUrl),
+    : BasePage(documentUrl),
       m_editorWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
       m_replaceWidget(new ReplaceWidget(this)),
       m_selectionTimer(new QTimer(this)) {
-    setTitle(documentUrl.fileName());
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, this, &TextPage::searchToggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
@@ -101,12 +99,6 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     layout->addWidget(m_editorWidget);
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_replaceWidget);
-
-    permissionGet();
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 opened").arg(timestamp, m_documentUrl.toString());
 }
 
 void TextPage::propertySet(const QVariantMap &objects) {
@@ -120,29 +112,8 @@ void TextPage::propertySet(const QVariantMap &objects) {
     });
 }
 
-void TextPage::pathDisambiguation() {
-    const QString documentPath = m_documentUrl.toLocalFile();
-    const QString workspacePath = g_workspaceUrl.toLocalFile();
-    const QString relatedPath = QDir(workspacePath).relativeFilePath(documentPath);
-    setTitle(relatedPath);
-}
-
-void TextPage::documentReload() {
-    // TODO: waiting for frontend & filewatcher
-}
-
 void TextPage::documentSave() {
     // TODO: waiting for filewatcher
-}
-
-void TextPage::documentClose() {
-    // ask for saving
-    // TODO: waiting for frontend
-    emit closeDocument(m_documentUrl);
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_documentUrl.toString());
 }
 
 // protected
@@ -163,18 +134,6 @@ void TextPage::savepointChange(const bool status) {
         setTitle(pageName + "*");
     } else {
         setTitle(pageName.chopped(1));
-    }
-}
-
-void TextPage::permissionGet() {
-    const QString documentPath = m_documentUrl.toLocalFile();
-    const QFileInfo fileInfo(documentPath);
-    if (fileInfo.isWritable()) {
-        setIcon(QIcon());
-        m_editorWidget->readonlySet(false);
-    } else {
-        setIcon(QIcon(":/icon/lockClosed.svg"));
-        m_editorWidget->readonlySet(true);
     }
 }
 

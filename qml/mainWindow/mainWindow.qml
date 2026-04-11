@@ -1829,6 +1829,8 @@ Item {
             onTriggered: {
                 fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleFileMenu.filePath
                 fileModulePropertyDialog.open()
+                fileModulePropertyNameTextField.forceActiveFocus()
+                fileModulePropertyNameTextField.selectAll()
             }
         }
 
@@ -1939,6 +1941,8 @@ Item {
             onTriggered: {
                 fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
                 fileModulePropertyDialog.open()
+                fileModulePropertyNameTextField.forceActiveFocus()
+                fileModulePropertyNameTextField.selectAll()
             }
         }
 
