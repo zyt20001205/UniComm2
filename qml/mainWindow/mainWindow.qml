@@ -64,7 +64,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onRejected: systemModule.processTerminate()
+        onRejected: fileModule.processTerminate()
 
         ProgressBar {
             width: parent.width
@@ -864,6 +864,846 @@ Item {
         }
     }
 
+    // document module
+    Menu {
+        id: documentModuleEditorMenu
+        focus: false
+        property var menuSession
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            documentModuleEditorMenu.menuSession = documentModule.menuGet("editor")
+            documentModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
+        }
+
+        MenuItem {
+            text: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text ? qsTr("Run Selected") : qsTr("Run") : false
+            icon.source: "qrc:/icon/play.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                if (documentModuleEditorMenu.menuSession.text) {
+                    threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.scriptUrl, 0, documentModuleEditorMenu.menuSession.startLine, documentModuleEditorMenu.menuSession.startCharacter, documentModuleEditorMenu.menuSession.endLine, documentModuleEditorMenu.menuSession.endCharacter)
+                } else {
+                    threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.scriptUrl, 0)
+                }
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Debug")
+            icon.source: "qrc:/icon/bug.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.scriptUrl, 1)
+        }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Folding")
+            icon.source: "qrc:/icon/fold.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Contract Top")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: documentModule.foldContractTop(documentModuleEditorMenu.menuSession.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Contract Recursively")
+                icon.source: "qrc:/icon/collapse.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: documentModule.foldContractRecursively(documentModuleEditorMenu.menuSession.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Expand Recursively")
+                icon.source: "qrc:/icon/expand.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: documentModule.foldExpandRecursively(documentModuleEditorMenu.menuSession.scriptUrl)
+            }
+        }
+
+        MenuItem {
+            text: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text ? qsTr("Reformat Selected") : qsTr("Reformat") : false
+            icon.source: "qrc:/icon/brush.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                if (documentModuleEditorMenu.menuSession.text) {
+                    documentModule.rangeFormattingRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.startLine, documentModuleEditorMenu.menuSession.startCharacter, documentModuleEditorMenu.menuSession.endLine, documentModuleEditorMenu.menuSession.endCharacter)
+                } else {
+                    documentModule.formattingRequest(documentModuleEditorMenu.menuSession.scriptUrl)
+                }
+            }
+        }
+
+        Menu {
+            title: qsTr("Navigation")
+            icon.source: "qrc:/icon/location.svg"
+            icon.width: 16; icon.height: 16
+            enabled: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.navigation : false
+
+            MenuItem {
+                text: qsTr("Definition(s)")
+                icon.source: "qrc:/icon/definition.svg"
+                icon.width: 8; icon.height: 8
+
+                onTriggered: documentModule.definitionRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+            }
+
+            MenuItem {
+                text: qsTr("References(s)")
+                icon.source: "qrc:/icon/reference.svg"
+                icon.width: 8; icon.height: 8
+
+                onTriggered: documentModule.referencesRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+            }
+
+            MenuItem {
+                text: qsTr("Implementation(s)")
+                icon.source: "qrc:/icon/implementation.svg"
+                icon.width: 8; icon.height: 8
+
+                onTriggered: documentModule.implementationRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+            }
+
+            MenuItem {
+                text: qsTr("Type Definition(s)")
+                icon.source: "qrc:/icon/typeDefinition.svg"
+                icon.width: 8; icon.height: 8
+
+                onTriggered: documentModule.typeDefinitionRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+            }
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Add Watch")
+            icon.source: "qrc:/icon/eye.svg"
+            icon.width: 16; icon.height: 16
+            enabled: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text : false
+            ToolTip.visible: hovered && !enabled
+            ToolTip.text: qsTr("Nothing selected")
+
+            onTriggered: {
+                watchModuleExpressionDialog.watchIndex = -1
+                watchModuleExpressionDialog.watchUrl = documentModuleEditorMenu.menuSession.scriptUrl
+                watchModuleExpressionDialog.watchExpression = documentModuleEditorMenu.menuSession.text
+                watchModuleExpressionDialog.open()
+            }
+        }
+
+        MenuItem {
+            id: documentModuleEditorMenuRunHereItem
+            text: qsTr("Run Here")
+            icon.source: "qrc:/icon/debugContinue.svg"
+            icon.width: 16; icon.height: 16
+            enabled: false
+            ToolTip.visible: hovered && !enabled
+            ToolTip.text: qsTr("No debug sessions")
+
+            onTriggered: debugModule.stateSet("", 6)
+        }
+
+        MenuItem {
+            text: qsTr("Assembly")
+            icon.source: "qrc:/icon/assembly.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: documentModule.assemblyToggle(documentModuleEditorMenu.menuSession.scriptUrl, !documentModuleEditorMenu.menuSession.assembly)
+        }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Open In")
+            icon.source: "qrc:/icon/open.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Explorer")
+                icon.source: "qrc:/icon/folder.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: fileModule.fileOpenInExplorer(documentModuleEditorMenu.menuSession.scriptUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Application")
+                icon.source: "qrc:/icon/apps.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: fileModule.fileOpenInApplication(documentModuleEditorMenu.menuSession.scriptUrl)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Property")
+            icon.source: "qrc:/icon/property.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                fileModulePropertyDialog.fileUrl = documentModuleEditorMenu.menuSession.scriptUrl
+                fileModulePropertyDialog.open()
+            }
+        }
+    }
+
+    ToolTip {
+        id: documentModuleCompletionToolTip
+        parent: Overlay.overlay
+        x: position.x - 30; y: position.y
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+        property var completionWidget
+        property int typed
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, false)
+            widgetCount += 1
+        }
+        onClosed: {
+            widgetCount -= 1
+            documentModuleCompletionDetailToolTip.close()
+        }
+        onAboutToShow: {
+            documentModuleCompletionDetailToolTip.open()
+            documentModuleCompletionDetailTimer.restart()
+        }
+
+        contentItem: TableView {
+            id: documentModuleCompletionTableView
+            anchors.fill: parent
+            anchors.margins: 6
+            implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            flickableDirection: Flickable.VerticalFlick
+            property int idealWidth; property int idealHeight
+            property int hoveredRow: -1
+            property int selectedRow: -1
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
+
+            delegate: Item {
+                implicitWidth: documentModuleCompletionTableView.width; implicitHeight: textMetrics.height + 4
+                required property int row
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: "#ebebeb"
+                    opacity: hoverHandler.hovered ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: documentModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                }
+
+                TextMetrics {
+                    id: textMetrics
+                    font: documentModuleCompletionToolTip.font
+                    text: model.display
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 0
+
+                    Item {
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                        Image {
+                            anchors.centerIn: parent
+                            width: 16; height: 16
+                            source: model.decoration
+                        }
+                    }
+
+                    Label {
+                        font: documentModuleCompletionToolTip.font
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: "<span style='color: #115ea3;'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed)
+                        textFormat: Text.RichText
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true; Layout.preferredHeight: 24
+                    }
+                }
+
+                HoverHandler {
+                    id: hoverHandler
+
+                    onPointChanged: documentModuleCompletionTableView.hoveredRow = row
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            documentModuleCompletionTableView.hoveredRow = -1
+                            documentModuleCompletionDetailTimer.restart()
+                        }
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+
+                    onTapped: documentModuleCompletionTableView.selectedRow = row
+                    onDoubleTapped: documentModuleCompletionToolTip.completionWidget.textReplace()
+                }
+
+                Component.onCompleted: {
+                    documentModuleCompletionTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, documentModuleCompletionTableView.idealWidth)
+                    documentModuleCompletionTableView.idealHeight = textMetrics.height + 4 + documentModuleCompletionTableView.idealHeight
+                }
+            }
+
+            onHoveredRowChanged: documentModuleCompletionDetailTimer.restart()
+
+            onSelectedRowChanged: {
+                positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+                documentModuleCompletionDetailTimer.restart()
+            }
+
+            Timer {
+                id: documentModuleCompletionDetailTimer
+                interval: 150
+
+                onTriggered: {
+                    var interestRow
+                    if (documentModuleCompletionTableView.hoveredRow !== -1) {
+                        interestRow = documentModuleCompletionTableView.hoveredRow
+                    } else {
+                        interestRow = documentModuleCompletionTableView.selectedRow
+                    }
+                    documentModuleCompletionToolTip.completionWidget.detailReload(interestRow)
+                    const index = documentModuleCompletionTableView.index(interestRow, 0);
+                    const item = documentModuleCompletionTableView.itemAtIndex(index);
+                    if (item) {
+                        let idealY = item.mapToItem(documentModuleCompletionTableView, 0, 0).y
+                        idealY = Math.max(0, idealY)
+                        idealY = Math.min(documentModuleCompletionTableView.height - item.height, idealY)
+                        documentModuleCompletionDetailToolTip.y = idealY - 6
+                    }
+                }
+            }
+
+            function completionPrev() {
+                if (selectedRow > 0) {
+                    selectedRow = selectedRow - 1
+                }
+                // else {
+                //     selectedRow = model.rowCount() - 1
+                // }
+            }
+
+            function completionNext() {
+                if (selectedRow < model.rowCount() - 1) {
+                    selectedRow = selectedRow + 1
+                }
+                // else {
+                //     selectedRow = 0
+                // }
+            }
+
+            Connections {
+                target: documentModuleCompletionTableView.model
+
+                function onModelReset() {
+                    documentModuleCompletionTableView.idealWidth = 0
+                    documentModuleCompletionTableView.idealHeight = 0
+                    documentModuleCompletionDetailTimer.restart()
+                }
+            }
+        }
+
+        ToolTip {
+            id: documentModuleCompletionDetailToolTip
+            x: documentModuleCompletionToolTip.width - 5
+
+            contentItem: TableView {
+                id: documentModuleCompletionDetailTableView
+                anchors.fill: parent
+                anchors.margins: 6
+                implicitWidth: idealWidth; implicitHeight: idealHeight
+                alternatingRows: false
+                clip: true
+                editTriggers: TableView.NoEditTriggers
+                flickableDirection: Flickable.VerticalFlick
+                property int idealWidth; property int idealHeight
+
+                delegate: Item {
+                    implicitWidth: documentModuleCompletionDetailTableView.width; implicitHeight: textMetrics.height + 4
+
+                    TextMetrics {
+                        id: textMetrics
+                        font: documentModuleCompletionToolTip.font
+                        text: model.display
+                    }
+
+                    Label {
+                        id: documentModuleCompletionDetailLabel
+                        anchors.fill: parent
+                        font: documentModuleCompletionToolTip.font
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+                    }
+
+                    Component.onCompleted: {
+                        documentModuleCompletionDetailTableView.idealWidth = Math.max(textMetrics.width + 4, documentModuleCompletionDetailTableView.idealWidth)
+                        documentModuleCompletionDetailTableView.idealHeight = textMetrics.height + 4 + documentModuleCompletionDetailTableView.idealHeight
+                    }
+                }
+
+                Connections {
+                    target: documentModuleCompletionDetailTableView.model
+
+                    function onModelReset() {
+                        documentModuleCompletionDetailTableView.idealWidth = 0
+                        documentModuleCompletionDetailTableView.idealHeight = 0
+                    }
+                }
+            }
+        }
+    }
+
+    ToolTip {
+        id: documentModuleDwellToolTip
+        parent: Overlay.overlay
+        x: position.x; y: position.y
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+        property var dwellWidget
+        property var codeActions
+        property var suggestions
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, false)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        contentItem: ColumnLayout {
+
+            ScrollView {
+                visible: documentModuleDwellDiagnosticTextArea.length > 0
+                Layout.minimumWidth: 400; Layout.maximumWidth: 800
+
+                TextArea {
+                    id: documentModuleDwellDiagnosticTextArea
+                    background: null
+                    readOnly: true
+                    textFormat: TextEdit.RichText
+                    verticalAlignment: TextEdit.AlignTop
+                    wrapMode: Text.Wrap
+
+                    HoverHandler {
+                        id: diagnosticHoverHandler
+                        cursorShape: documentModuleDwellDiagnosticTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: {
+                            if (documentModuleDwellDiagnosticTextArea.hoveredLink) {
+                                documentModuleDwellToolTip.dwellWidget.linkClick(documentModuleDwellDiagnosticTextArea.hoveredLink)
+                            }
+                        }
+                    }
+                }
+            }
+
+            ScrollView {
+                visible: documentModuleDwellHoverTextArea.length > 0
+                Layout.minimumWidth: 400; Layout.maximumWidth: 800
+
+                TextArea {
+                    id: documentModuleDwellHoverTextArea
+                    background: null
+                    readOnly: true
+                    textFormat: TextEdit.MarkdownText
+                    verticalAlignment: TextEdit.AlignTop
+                    wrapMode: Text.Wrap
+
+                    HoverHandler {
+                        id: dwellHoverHandler
+                        cursorShape: documentModuleDwellHoverTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
+                    }
+
+                    ToolTip {
+                        visible: documentModuleDwellHoverTextArea.hoveredLink
+                        text: "Click to open link"
+                        x: dwellHoverHandler.point.position.x + 10
+                        y: dwellHoverHandler.point.position.y + 10
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onTapped: {
+                            if (documentModuleDwellHoverTextArea.hoveredLink) {
+                                Qt.openUrlExternally(documentModuleDwellHoverTextArea.hoveredLink)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Menu {
+            id: documentModuleDwellCodeActionMenu
+            x: documentModuleDwellToolTip.width - 5; y: -8
+
+            onAboutToShow: {
+                for (var i = documentModuleDwellCodeActionMenu.count - 1; i >= 0; --i) {
+                    var item = documentModuleDwellCodeActionMenu.itemAt(i)
+                    documentModuleDwellCodeActionMenu.removeItem(item)
+                    item.destroy()
+                }
+                if (documentModuleDwellToolTip.codeActions.length) {
+                    for (let i = 0; i < documentModuleDwellToolTip.codeActions.length; ++i) {
+                        const menuItem = documentModuleDwellCodeActionMenuComponent.createObject(
+                            null,
+                            {
+                                text: documentModuleDwellToolTip.codeActions[i]["title"],
+                                codeAction: documentModuleDwellToolTip.codeActions[i]["edit"]
+                            }
+                        )
+                        documentModuleDwellCodeActionMenu.addItem(menuItem)
+                    }
+                } else {
+                    const menuItem = documentModuleDwellCodeActionMenuComponent.createObject(
+                        null,
+                        {
+                            text: qsTr("No fixes available")
+                        }
+                    )
+                    documentModuleDwellCodeActionMenu.addItem(menuItem)
+                }
+            }
+
+            Component {
+                id: documentModuleDwellCodeActionMenuComponent
+
+                MenuItem {
+                    property var codeAction
+
+                    onTriggered: {
+                        documentModuleDwellToolTip.dwellWidget.codeActionAccept(codeAction)
+                        documentModuleDwellToolTip.close()
+                    }
+
+                    ToolTip.visible: hovered
+                    ToolTip.text: text
+                }
+            }
+        }
+
+        Menu {
+            id: documentModuleDwellSuggestionMenu
+            x: documentModuleDwellToolTip.width - 5; y: -8
+
+            MenuItem {
+                text: documentModuleDwellToolTip.suggestions ? documentModuleDwellToolTip.suggestions[0] : ""
+                visible: text
+
+                onTriggered: {
+                    documentModuleDwellToolTip.dwellWidget.suggestionAccept(text)
+                    documentModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: documentModuleDwellToolTip.suggestions ? documentModuleDwellToolTip.suggestions[1] : ""
+                visible: text
+
+                onTriggered: {
+                    documentModuleDwellToolTip.dwellWidget.suggestionAccept(text)
+                    documentModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: documentModuleDwellToolTip.suggestions ? documentModuleDwellToolTip.suggestions[2] : ""
+                visible: text
+
+                onTriggered: {
+                    documentModuleDwellToolTip.dwellWidget.suggestionAccept(text)
+                    documentModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: documentModuleDwellToolTip.suggestions ? documentModuleDwellToolTip.suggestions[3] : ""
+                visible: text
+
+                onTriggered: {
+                    documentModuleDwellToolTip.dwellWidget.suggestionAccept(text)
+                    documentModuleDwellToolTip.close()
+                }
+            }
+
+            MenuItem {
+                text: documentModuleDwellToolTip.suggestions ? documentModuleDwellToolTip.suggestions[4] : ""
+                visible: text
+
+                onTriggered: {
+                    documentModuleDwellToolTip.dwellWidget.suggestionAccept(text)
+                    documentModuleDwellToolTip.close()
+                }
+            }
+        }
+    }
+
+    ToolTip {
+        id: documentModuleNavigationToolTip
+        parent: Overlay.overlay
+        x: position.x - 30; y: position.y
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+        property var navigationWidget
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, false)
+            widgetCount += 1
+        }
+        onClosed: {
+            widgetCount -= 1
+            documentModuleNavigationDetailToolTip.close()
+        }
+        onAboutToShow: {
+            documentModuleNavigationDetailToolTip.open()
+            documentModuleNavigationDetailTimer.restart()
+        }
+
+        contentItem: TableView {
+            id: documentModuleNavigationTableView
+            anchors.fill: parent
+            anchors.margins: 6
+            implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            flickableDirection: Flickable.VerticalFlick
+            property int idealWidth; property int idealHeight
+            property int hoveredRow: -1
+            property int selectedRow: -1
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
+
+            delegate: Item {
+                implicitWidth: documentModuleNavigationTableView.width; implicitHeight: textMetrics.height + 4
+                required property int row
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: "#ebebeb"
+                    opacity: hoverHandler.hovered ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: documentModuleNavigationTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                }
+
+                TextMetrics {
+                    id: textMetrics
+                    font: documentModuleNavigationToolTip.font
+                    text: model.display
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 0
+
+                    Item {
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                        Image {
+                            anchors.centerIn: parent
+                            width: 8; height: 8
+                            source: model.decoration
+                        }
+                    }
+
+                    Label {
+                        font: documentModuleNavigationToolTip.font
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true; Layout.preferredHeight: 24
+                    }
+                }
+
+                HoverHandler {
+                    id: hoverHandler
+
+                    onPointChanged: documentModuleNavigationTableView.hoveredRow = row
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            documentModuleNavigationTableView.hoveredRow = -1
+                            documentModuleNavigationDetailTimer.restart()
+                        }
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+
+                    onTapped: documentModuleNavigationTableView.selectedRow = row
+                    onDoubleTapped: documentModuleNavigationToolTip.navigationWidget.indicatorInsert()
+                }
+
+                Component.onCompleted: {
+                    documentModuleNavigationTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, documentModuleNavigationTableView.idealWidth)
+                    documentModuleNavigationTableView.idealHeight = textMetrics.height + 4 + documentModuleNavigationTableView.idealHeight
+                }
+            }
+
+            onHoveredRowChanged: documentModuleNavigationDetailTimer.restart()
+
+            onSelectedRowChanged: {
+                positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
+                documentModuleNavigationDetailTimer.restart()
+            }
+
+            Timer {
+                id: documentModuleNavigationDetailTimer
+                interval: 150
+
+                onTriggered: {
+                    var interestRow
+                    if (documentModuleNavigationTableView.hoveredRow !== -1) {
+                        interestRow = documentModuleNavigationTableView.hoveredRow
+                    } else {
+                        interestRow = documentModuleNavigationTableView.selectedRow
+                    }
+                    documentModuleNavigationToolTip.navigationWidget.detailReload(interestRow)
+                    const index = documentModuleNavigationTableView.index(interestRow, 0);
+                    const item = documentModuleNavigationTableView.itemAtIndex(index);
+                    if (item) {
+                        let idealY = item.mapToItem(documentModuleNavigationTableView, 0, 0).y
+                        idealY = Math.max(0, idealY)
+                        idealY = Math.min(documentModuleNavigationTableView.height - item.height, idealY)
+                        documentModuleNavigationDetailToolTip.y = idealY - 6
+                    }
+                }
+            }
+
+            function navigationPrev() {
+                if (selectedRow > 0) {
+                    selectedRow = selectedRow - 1
+                }
+                // else {
+                //     selectedRow = model.rowCount() - 1
+                // }
+            }
+
+            function navigationNext() {
+                if (selectedRow < model.rowCount() - 1) {
+                    selectedRow = selectedRow + 1
+                }
+                // else {
+                //     selectedRow = 0
+                // }
+            }
+
+            Connections {
+                target: documentModuleNavigationTableView.model
+
+                function onModelReset() {
+                    documentModuleNavigationTableView.idealWidth = 0
+                    documentModuleNavigationTableView.idealHeight = 0
+                    documentModuleNavigationDetailTimer.restart()
+                }
+            }
+        }
+
+        ToolTip {
+            id: documentModuleNavigationDetailToolTip
+            x: documentModuleNavigationToolTip.width - 5
+
+            contentItem: Label {
+                id: documentModuleNavigationDetailLabel
+                font: documentModuleNavigationToolTip.font
+                textFormat: Text.RichText
+            }
+        }
+    }
+
+    ToolTip {
+        id: documentModulePositionTooltip
+        parent: Overlay.overlay
+        x: position.x + 10; y: position.y + 10
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+
+        Behavior on x {
+            enabled: documentModulePositionTooltip.visible
+            NumberAnimation {
+                duration: 50
+                easing.type: Easing.Linear
+            }
+        }
+        Behavior on y {
+            enabled: documentModulePositionTooltip.visible
+            NumberAnimation {
+                duration: 50
+                easing.type: Easing.Linear
+            }
+        }
+    }
+
+    ToolTip {
+        id: documentModuleSignatureToolTip
+        parent: Overlay.overlay
+        x: position.x - 6; y: position.y - implicitHeight
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, false)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        contentItem: Label {
+            id: documentModuleSignatureLabel
+            textFormat: Text.RichText
+        }
+    }
+    
     // explorer module
     Dialog {
         id: explorerModuleScriptNewDialog
@@ -885,7 +1725,7 @@ Item {
             explorerModuleScriptNameTextField.clear()
             explorerModuleScriptNameTextField.forceActiveFocus()
         }
-        onAccepted: systemModule.fileNew("file:///" + explorerModuleScriptNewDialog.filePath + "/" + explorerModuleScriptNameTextField.text + ".lua")
+        onAccepted: fileModule.fileNew("file:///" + explorerModuleScriptNewDialog.filePath + "/" + explorerModuleScriptNameTextField.text + ".lua")
 
         TextField {
             id: explorerModuleScriptNameTextField
@@ -916,7 +1756,7 @@ Item {
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
         }
-        onAccepted: systemModule.fileNew("file:///" + explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
+        onAccepted: fileModule.fileNew("file:///" + explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
 
         TextField {
             id: explorerModuleFolderNameTextField
@@ -969,7 +1809,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleScriptMenu.filePath)
             }
 
             MenuItem {
@@ -977,7 +1817,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInApplication("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: fileModule.fileOpenInApplication("file:///" + explorerModuleScriptMenu.filePath)
             }
         }
 
@@ -987,8 +1827,8 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                systemModulePropertyDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
-                systemModulePropertyDialog.open()
+                fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
+                fileModulePropertyDialog.open()
             }
         }
 
@@ -1002,7 +1842,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    systemModule.fileDelete("file:///" + explorerModuleScriptMenu.filePath)
+                    fileModule.fileDelete("file:///" + explorerModuleScriptMenu.filePath)
                     progress = 0
                     explorerModuleScriptMenu.close()
                 }
@@ -1060,7 +1900,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+            onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
         }
 
         Menu {
@@ -1097,8 +1937,8 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                systemModulePropertyDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
-                systemModulePropertyDialog.open()
+                fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
+                fileModulePropertyDialog.open()
             }
         }
 
@@ -1112,7 +1952,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    systemModule.fileDelete("file:///" + explorerModuleFolderMenu.filePath)
+                    fileModule.fileDelete("file:///" + explorerModuleFolderMenu.filePath)
                     progress = 0
                     explorerModuleFolderMenu.close()
                 }
@@ -1169,7 +2009,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.fileOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
+            onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
         }
 
         Menu {
@@ -1234,6 +2074,177 @@ Item {
         }
     }
 
+    // file module
+    Dialog {
+        id: fileModulePropertyDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("File Property")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string fileUrl
+        property var infoSession
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            fileModulePropertyDialog.infoSession = fileModule.fileInfo(fileModulePropertyDialog.fileUrl)
+            fileModulePropertyImage.source = fileModulePropertyDialog.infoSession.source
+            fileModulePropertyNameTextField.text = fileModulePropertyDialog.infoSession.baseName
+            fileModulePropertySizeLabel.text = fileModulePropertyDialog.infoSession.size
+            fileModulePropertyAbsolutePathLabel.text = fileModulePropertyDialog.infoSession.absolutePath
+            fileModulePropertyBirthTimeLabel.text = fileModulePropertyDialog.infoSession.birthTime
+            fileModulePropertyLastModifiedLabel.text = fileModulePropertyDialog.infoSession.lastModified
+            fileModulePropertyLastReadLabel.text = fileModulePropertyDialog.infoSession.lastRead
+            fileModulePropertyReadableCheckBox.checked = fileModulePropertyDialog.infoSession.readable
+            fileModulePropertyWritableCheckBox.checked = fileModulePropertyDialog.infoSession.writable
+            fileModulePropertyHiddenCheckBox.checked = fileModulePropertyDialog.infoSession.hidden
+        }
+
+        onAccepted: {
+            if (fileModulePropertyNameTextField.text !== fileModulePropertyDialog.infoSession.baseName) {
+                fileModule.fileRename(fileModulePropertyDialog.fileUrl, fileModulePropertyNameTextField.text)
+            }
+            if (fileModulePropertyWritableCheckBox.checked !== fileModulePropertyDialog.infoSession.writable) {
+                fileModule.fileWritable(fileModulePropertyDialog.fileUrl, fileModulePropertyWritableCheckBox.checked)
+            }
+        }
+
+        ColumnLayout {
+            width: parent.width
+
+            RowLayout {
+                Layout.preferredHeight: 64
+
+                Image {
+                    id: fileModulePropertyImage
+                    sourceSize.width: 48
+                    sourceSize.height: 48
+                    horizontalAlignment: Image.AlignLeft
+                    fillMode: Image.PreserveAspectFit
+                    Layout.preferredWidth: 150
+                }
+
+                TextField {
+                    id: fileModulePropertyNameTextField
+                    placeholderText: qsTr("Enter new name:")
+                    Layout.fillWidth: true
+
+                    onAccepted: fileModulePropertyDialog.accept()
+                    Keys.onEscapePressed: fileModulePropertyDialog.reject()
+                }
+            }
+
+            Rectangle {
+                color: "#333333"
+                Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Absolute Path:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: fileModulePropertyAbsolutePathLabel
+                }
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Size:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: fileModulePropertySizeLabel
+                }
+            }
+
+            Rectangle {
+                color: "#333333"
+                Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Birth Time:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: fileModulePropertyBirthTimeLabel
+                }
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Last Modified:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: fileModulePropertyLastModifiedLabel
+                }
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Last Read:")
+                    Layout.preferredWidth: 150
+                }
+
+                Label {
+                    id: fileModulePropertyLastReadLabel
+                }
+            }
+
+            Rectangle {
+                color: "#333333"
+                Layout.fillWidth: true; Layout.preferredHeight: 1
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                Label {
+                    text: qsTr("Attributes:")
+                    Layout.preferredWidth: 150
+                }
+
+                CheckBox {
+                    id: fileModulePropertyReadableCheckBox
+                    text: qsTr("Readable")
+                }
+
+                CheckBox {
+                    id: fileModulePropertyWritableCheckBox
+                    text: qsTr("Writable")
+                }
+
+                CheckBox {
+                    id: fileModulePropertyHiddenCheckBox
+                    text: qsTr("Hidden")
+                }
+            }
+        }
+    }
+    
     // log module
     Dialog {
         id: logModuleHeightDialog
@@ -1283,7 +2294,7 @@ Item {
             icon.source: "qrc:/icon/copy.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: systemModule.copyToClipboard(logModuleLinkMenu.url)
+            onTriggered: fileModule.copyToClipboard(logModuleLinkMenu.url)
         }
 
         Menu {
@@ -1296,7 +2307,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInExplorer(logModuleLinkMenu.url)
+                onTriggered: fileModule.fileOpenInExplorer(logModuleLinkMenu.url)
             }
 
             MenuItem {
@@ -1304,7 +2315,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: systemModule.fileOpenInApplication(logModuleLinkMenu.url)
+                onTriggered: fileModule.fileOpenInApplication(logModuleLinkMenu.url)
             }
         }
     }
@@ -1312,33 +2323,113 @@ Item {
     // menu module
     Menu {
         id: menuModuleFileMenu
+        implicitWidth: 300
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-
+        
+        
         MenuItem {
-            text: qsTr("Open Workspace")
-            icon.source: "qrc:/icon/open.svg"
-            icon.width: 16; icon.height: 16
+            id: menuModuleFileMenuOpenWorkspaceItem
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/open.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Open Workspace")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+O"
+                }
+            }
+
+            Shortcut {
+                sequence: "Ctrl+O"
+                onActivated: menuModuleFileMenuOpenWorkspaceItem.triggered()
+            }
 
             onTriggered: Qt.callLater(() => mainWindow.workspaceOpen())
         }
 
         MenuItem {
-            text: qsTr("Save Workspace")
-            icon.source: "qrc:/icon/save.svg"
-            icon.width: 16; icon.height: 16
+            id: menuModuleFileMenuSaveWorkspaceItem
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/save.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Save Workspace")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+S"
+                }
+            }
+
+            Shortcut {
+                sequence: "Ctrl+S"
+                onActivated: menuModuleFileMenuSaveWorkspaceItem.triggered()
+            }
 
             onTriggered: mainWindow.workspaceSave("")
         }
 
         MenuItem {
-            text: qsTr("Save Workspace As")
-            icon.source: "qrc:/icon/saveAs.svg"
-            icon.width: 16; icon.height: 16
+            id: menuModuleFileMenuSaveWorkspaceAsItem
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/save.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Save Workspace")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Ctrl+Shift+S"
+                }
+            }
+
+            Shortcut {
+                sequence: "Ctrl+Shift+S"
+                onActivated: menuModuleFileMenuSaveWorkspaceAsItem.triggered()
+            }
 
             onTriggered: menuModuleFileMenuSaveDialog.open()
 
@@ -1363,7 +2454,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleEditMenu.menuSession = scriptModule.menuGet("edit")
+        onAboutToShow: menuModuleEditMenu.menuSession = documentModule.menuGet("edit")
 
         MenuItem {
             contentItem: RowLayout {
@@ -1390,7 +2481,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("undo")
+            onTriggered: documentModule.menuRequest("undo")
         }
 
         MenuItem {
@@ -1418,7 +2509,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("redo")
+            onTriggered: documentModule.menuRequest("redo")
         }
 
         MenuSeparator {
@@ -1449,7 +2540,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("cut")
+            onTriggered: documentModule.menuRequest("cut")
         }
 
         MenuItem {
@@ -1477,7 +2568,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("copy")
+            onTriggered: documentModule.menuRequest("copy")
         }
 
         MenuItem {
@@ -1505,7 +2596,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("paste")
+            onTriggered: documentModule.menuRequest("paste")
         }
 
         MenuSeparator {
@@ -1535,7 +2626,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("search")
+            onTriggered: documentModule.menuRequest("search")
         }
 
         MenuItem {
@@ -1562,7 +2653,7 @@ Item {
                 }
             }
 
-            onTriggered: scriptModule.menuRequest("replace")
+            onTriggered: documentModule.menuRequest("replace")
         }
     }
 
@@ -1699,7 +2790,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleCodeMenu.menuSession = scriptModule.menuGet("code")
+        onAboutToShow: menuModuleCodeMenu.menuSession = documentModule.menuGet("code")
 
         MenuItem {
             id: menuModuleCodeCompletionItem
@@ -1728,12 +2819,12 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Space"
                 onActivated: {
-                    menuModuleCodeMenu.menuSession = scriptModule.menuGet("code")
+                    menuModuleCodeMenu.menuSession = documentModule.menuGet("code")
                     menuModuleCodeCompletionItem.triggered()
                 }
             }
 
-            onTriggered: scriptModule.completionRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.line, menuModuleCodeMenu.menuSession.character)
+            onTriggered: documentModule.completionRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.line, menuModuleCodeMenu.menuSession.character)
         }
 
         MenuItem {
@@ -1765,16 +2856,16 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Alt+L"
                 onActivated: {
-                    menuModuleCodeMenu.menuSession = scriptModule.menuGet("code")
+                    menuModuleCodeMenu.menuSession = documentModule.menuGet("code")
                     menuModuleCodeReformatItem.triggered()
                 }
             }
 
             onTriggered: {
                 if (menuModuleCodeMenu.menuSession.text) {
-                    scriptModule.rangeFormattingRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.startLine, menuModuleCodeMenu.menuSession.startCharacter, menuModuleCodeMenu.menuSession.endLine, menuModuleCodeMenu.menuSession.endCharacter)
+                    documentModule.rangeFormattingRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.startLine, menuModuleCodeMenu.menuSession.startCharacter, menuModuleCodeMenu.menuSession.endLine, menuModuleCodeMenu.menuSession.endCharacter)
                 } else {
-                    scriptModule.formattingRequest(menuModuleCodeMenu.menuSession.scriptUrl)
+                    documentModule.formattingRequest(menuModuleCodeMenu.menuSession.scriptUrl)
                 }
             }
         }
@@ -1789,7 +2880,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.foldContractTop(menuModuleCodeMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldContractTop(menuModuleCodeMenu.menuSession.scriptUrl)
             }
 
             MenuItem {
@@ -1797,7 +2888,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.foldContractRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldContractRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
             }
 
             MenuItem {
@@ -1805,7 +2896,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: scriptModule.foldExpandRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldExpandRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
             }
         }
     }
@@ -1820,7 +2911,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleExecMenu.menuSession = scriptModule.menuGet("exec")
+        onAboutToShow: menuModuleExecMenu.menuSession = documentModule.menuGet("exec")
 
         MenuItem {
             id: menuModuleExecRunItem
@@ -1851,7 +2942,7 @@ Item {
             Shortcut {
                 sequence: "Shift+F10"
                 onActivated: {
-                    menuModuleExecMenu.menuSession = scriptModule.menuGet("exec")
+                    menuModuleExecMenu.menuSession = documentModule.menuGet("exec")
                     menuModuleExecRunItem.triggered()
                 }
             }
@@ -1894,7 +2985,7 @@ Item {
             Shortcut {
                 sequence: "Shift+F9"
                 onActivated: {
-                    menuModuleExecMenu.menuSession = scriptModule.menuGet("exec")
+                    menuModuleExecMenu.menuSession = documentModule.menuGet("exec")
                     menuModuleExecDebugItem.triggered()
                 }
             }
@@ -1966,846 +3057,6 @@ Item {
         }
     }
 
-    // script module
-    Menu {
-        id: scriptModuleEditorMenu
-        focus: false
-        property var menuSession
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            scriptModuleEditorMenu.menuSession = scriptModule.menuGet("editor")
-            scriptModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
-        }
-
-        MenuItem {
-            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Run Selected") : qsTr("Run") : false
-            icon.source: "qrc:/icon/play.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                if (scriptModuleEditorMenu.menuSession.text) {
-                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
-                } else {
-                    threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 0)
-                }
-            }
-        }
-
-        MenuItem {
-            text: qsTr("Debug")
-            icon.source: "qrc:/icon/bug.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: threadpoolModule.threadStart(scriptModuleEditorMenu.menuSession.scriptUrl, 1)
-        }
-
-        MenuSeparator {
-        }
-
-        Menu {
-            title: qsTr("Folding")
-            icon.source: "qrc:/icon/fold.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Contract Top")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.foldContractTop(scriptModuleEditorMenu.menuSession.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Contract Recursively")
-                icon.source: "qrc:/icon/collapse.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.foldContractRecursively(scriptModuleEditorMenu.menuSession.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Expand Recursively")
-                icon.source: "qrc:/icon/expand.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: scriptModule.foldExpandRecursively(scriptModuleEditorMenu.menuSession.scriptUrl)
-            }
-        }
-
-        MenuItem {
-            text: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text ? qsTr("Reformat Selected") : qsTr("Reformat") : false
-            icon.source: "qrc:/icon/brush.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                if (scriptModuleEditorMenu.menuSession.text) {
-                    scriptModule.rangeFormattingRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.startLine, scriptModuleEditorMenu.menuSession.startCharacter, scriptModuleEditorMenu.menuSession.endLine, scriptModuleEditorMenu.menuSession.endCharacter)
-                } else {
-                    scriptModule.formattingRequest(scriptModuleEditorMenu.menuSession.scriptUrl)
-                }
-            }
-        }
-
-        Menu {
-            title: qsTr("Navigation")
-            icon.source: "qrc:/icon/location.svg"
-            icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.navigation : false
-
-            MenuItem {
-                text: qsTr("Definition(s)")
-                icon.source: "qrc:/icon/definition.svg"
-                icon.width: 8; icon.height: 8
-
-                onTriggered: scriptModule.definitionRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
-            }
-
-            MenuItem {
-                text: qsTr("References(s)")
-                icon.source: "qrc:/icon/reference.svg"
-                icon.width: 8; icon.height: 8
-
-                onTriggered: scriptModule.referencesRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
-            }
-
-            MenuItem {
-                text: qsTr("Implementation(s)")
-                icon.source: "qrc:/icon/implementation.svg"
-                icon.width: 8; icon.height: 8
-
-                onTriggered: scriptModule.implementationRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
-            }
-
-            MenuItem {
-                text: qsTr("Type Definition(s)")
-                icon.source: "qrc:/icon/typeDefinition.svg"
-                icon.width: 8; icon.height: 8
-
-                onTriggered: scriptModule.typeDefinitionRequest(scriptModuleEditorMenu.menuSession.scriptUrl, scriptModuleEditorMenu.menuSession.line, scriptModuleEditorMenu.menuSession.character)
-            }
-        }
-
-        MenuSeparator {
-        }
-
-        MenuItem {
-            text: qsTr("Add Watch")
-            icon.source: "qrc:/icon/eye.svg"
-            icon.width: 16; icon.height: 16
-            enabled: scriptModuleEditorMenu.menuSession ? scriptModuleEditorMenu.menuSession.text : false
-            ToolTip.visible: hovered && !enabled
-            ToolTip.text: qsTr("Nothing selected")
-
-            onTriggered: {
-                watchModuleExpressionDialog.watchIndex = -1
-                watchModuleExpressionDialog.watchUrl = scriptModuleEditorMenu.menuSession.scriptUrl
-                watchModuleExpressionDialog.watchExpression = scriptModuleEditorMenu.menuSession.text
-                watchModuleExpressionDialog.open()
-            }
-        }
-
-        MenuItem {
-            id: scriptModuleEditorMenuRunHereItem
-            text: qsTr("Run Here")
-            icon.source: "qrc:/icon/debugContinue.svg"
-            icon.width: 16; icon.height: 16
-            enabled: false
-            ToolTip.visible: hovered && !enabled
-            ToolTip.text: qsTr("No debug sessions")
-
-            onTriggered: debugModule.stateSet("", 6)
-        }
-
-        MenuItem {
-            text: qsTr("Assembly")
-            icon.source: "qrc:/icon/assembly.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: scriptModule.assemblyToggle(scriptModuleEditorMenu.menuSession.scriptUrl, !scriptModuleEditorMenu.menuSession.assembly)
-        }
-
-        MenuSeparator {
-        }
-
-        Menu {
-            title: qsTr("Open In")
-            icon.source: "qrc:/icon/open.svg"
-            icon.width: 16; icon.height: 16
-
-            MenuItem {
-                text: qsTr("Explorer")
-                icon.source: "qrc:/icon/folder.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: systemModule.fileOpenInExplorer(scriptModuleEditorMenu.menuSession.scriptUrl)
-            }
-
-            MenuItem {
-                text: qsTr("Application")
-                icon.source: "qrc:/icon/apps.svg"
-                icon.width: 16; icon.height: 16
-
-                onTriggered: systemModule.fileOpenInApplication(scriptModuleEditorMenu.menuSession.scriptUrl)
-            }
-        }
-
-        MenuItem {
-            text: qsTr("Property")
-            icon.source: "qrc:/icon/property.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: {
-                systemModulePropertyDialog.fileUrl = scriptModuleEditorMenu.menuSession.scriptUrl
-                systemModulePropertyDialog.open()
-            }
-        }
-    }
-
-    ToolTip {
-        id: scriptModuleCompletionToolTip
-        parent: Overlay.overlay
-        x: position.x - 30; y: position.y
-        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
-        property point position
-        property var completionWidget
-        property int typed
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, false)
-            widgetCount += 1
-        }
-        onClosed: {
-            widgetCount -= 1
-            scriptModuleCompletionDetailToolTip.close()
-        }
-        onAboutToShow: {
-            scriptModuleCompletionDetailToolTip.open()
-            scriptModuleCompletionDetailTimer.restart()
-        }
-
-        contentItem: TableView {
-            id: scriptModuleCompletionTableView
-            anchors.fill: parent
-            anchors.margins: 6
-            implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
-            alternatingRows: false
-            clip: true
-            editTriggers: TableView.NoEditTriggers
-            flickableDirection: Flickable.VerticalFlick
-            property int idealWidth; property int idealHeight
-            property int hoveredRow: -1
-            property int selectedRow: -1
-
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-            }
-
-            delegate: Item {
-                implicitWidth: scriptModuleCompletionTableView.width; implicitHeight: textMetrics.height + 4
-                required property int row
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: "#ebebeb"
-                    opacity: hoverHandler.hovered ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
-                        }
-                    }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: scriptModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
-                }
-
-                TextMetrics {
-                    id: textMetrics
-                    font: scriptModuleCompletionToolTip.font
-                    text: model.display
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 0
-
-                    Item {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                        Image {
-                            anchors.centerIn: parent
-                            width: 16; height: 16
-                            source: model.decoration
-                        }
-                    }
-
-                    Label {
-                        font: scriptModuleCompletionToolTip.font
-                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: "<span style='color: #115ea3;'>" + model.display.substring(0, scriptModuleCompletionToolTip.typed) + "</span>" + model.display.substring(scriptModuleCompletionToolTip.typed)
-                        textFormat: Text.RichText
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true; Layout.preferredHeight: 24
-                    }
-                }
-
-                HoverHandler {
-                    id: hoverHandler
-
-                    onPointChanged: scriptModuleCompletionTableView.hoveredRow = row
-                    onHoveredChanged: {
-                        if (!hovered) {
-                            scriptModuleCompletionTableView.hoveredRow = -1
-                            scriptModuleCompletionDetailTimer.restart()
-                        }
-                    }
-                }
-
-                TapHandler {
-                    acceptedButtons: Qt.LeftButton
-
-                    onTapped: scriptModuleCompletionTableView.selectedRow = row
-                    onDoubleTapped: scriptModuleCompletionToolTip.completionWidget.textReplace()
-                }
-
-                Component.onCompleted: {
-                    scriptModuleCompletionTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, scriptModuleCompletionTableView.idealWidth)
-                    scriptModuleCompletionTableView.idealHeight = textMetrics.height + 4 + scriptModuleCompletionTableView.idealHeight
-                }
-            }
-
-            onHoveredRowChanged: scriptModuleCompletionDetailTimer.restart()
-
-            onSelectedRowChanged: {
-                positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
-                scriptModuleCompletionDetailTimer.restart()
-            }
-
-            Timer {
-                id: scriptModuleCompletionDetailTimer
-                interval: 150
-
-                onTriggered: {
-                    var interestRow
-                    if (scriptModuleCompletionTableView.hoveredRow !== -1) {
-                        interestRow = scriptModuleCompletionTableView.hoveredRow
-                    } else {
-                        interestRow = scriptModuleCompletionTableView.selectedRow
-                    }
-                    scriptModuleCompletionToolTip.completionWidget.detailReload(interestRow)
-                    const index = scriptModuleCompletionTableView.index(interestRow, 0);
-                    const item = scriptModuleCompletionTableView.itemAtIndex(index);
-                    if (item) {
-                        let idealY = item.mapToItem(scriptModuleCompletionTableView, 0, 0).y
-                        idealY = Math.max(0, idealY)
-                        idealY = Math.min(scriptModuleCompletionTableView.height - item.height, idealY)
-                        scriptModuleCompletionDetailToolTip.y = idealY - 6
-                    }
-                }
-            }
-
-            function completionPrev() {
-                if (selectedRow > 0) {
-                    selectedRow = selectedRow - 1
-                }
-                // else {
-                //     selectedRow = model.rowCount() - 1
-                // }
-            }
-
-            function completionNext() {
-                if (selectedRow < model.rowCount() - 1) {
-                    selectedRow = selectedRow + 1
-                }
-                // else {
-                //     selectedRow = 0
-                // }
-            }
-
-            Connections {
-                target: scriptModuleCompletionTableView.model
-
-                function onModelReset() {
-                    scriptModuleCompletionTableView.idealWidth = 0
-                    scriptModuleCompletionTableView.idealHeight = 0
-                    scriptModuleCompletionDetailTimer.restart()
-                }
-            }
-        }
-
-        ToolTip {
-            id: scriptModuleCompletionDetailToolTip
-            x: scriptModuleCompletionToolTip.width - 5
-
-            contentItem: TableView {
-                id: scriptModuleCompletionDetailTableView
-                anchors.fill: parent
-                anchors.margins: 6
-                implicitWidth: idealWidth; implicitHeight: idealHeight
-                alternatingRows: false
-                clip: true
-                editTriggers: TableView.NoEditTriggers
-                flickableDirection: Flickable.VerticalFlick
-                property int idealWidth; property int idealHeight
-
-                delegate: Item {
-                    implicitWidth: scriptModuleCompletionDetailTableView.width; implicitHeight: textMetrics.height + 4
-
-                    TextMetrics {
-                        id: textMetrics
-                        font: scriptModuleCompletionToolTip.font
-                        text: model.display
-                    }
-
-                    Label {
-                        id: scriptModuleCompletionDetailLabel
-                        anchors.fill: parent
-                        font: scriptModuleCompletionToolTip.font
-                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display
-                        elide: Text.ElideRight
-                    }
-
-                    Component.onCompleted: {
-                        scriptModuleCompletionDetailTableView.idealWidth = Math.max(textMetrics.width + 4, scriptModuleCompletionDetailTableView.idealWidth)
-                        scriptModuleCompletionDetailTableView.idealHeight = textMetrics.height + 4 + scriptModuleCompletionDetailTableView.idealHeight
-                    }
-                }
-
-                Connections {
-                    target: scriptModuleCompletionDetailTableView.model
-
-                    function onModelReset() {
-                        scriptModuleCompletionDetailTableView.idealWidth = 0
-                        scriptModuleCompletionDetailTableView.idealHeight = 0
-                    }
-                }
-            }
-        }
-    }
-
-    ToolTip {
-        id: scriptModuleDwellToolTip
-        parent: Overlay.overlay
-        x: position.x; y: position.y
-        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
-        property point position
-        property var dwellWidget
-        property var codeActions
-        property var suggestions
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, false)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        contentItem: ColumnLayout {
-
-            ScrollView {
-                visible: scriptModuleDwellDiagnosticTextArea.length > 0
-                Layout.minimumWidth: 400; Layout.maximumWidth: 800
-
-                TextArea {
-                    id: scriptModuleDwellDiagnosticTextArea
-                    background: null
-                    readOnly: true
-                    textFormat: TextEdit.RichText
-                    verticalAlignment: TextEdit.AlignTop
-                    wrapMode: Text.Wrap
-
-                    HoverHandler {
-                        id: diagnosticHoverHandler
-                        cursorShape: scriptModuleDwellDiagnosticTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.LeftButton
-                        onTapped: {
-                            if (scriptModuleDwellDiagnosticTextArea.hoveredLink) {
-                                scriptModuleDwellToolTip.dwellWidget.linkClick(scriptModuleDwellDiagnosticTextArea.hoveredLink)
-                            }
-                        }
-                    }
-                }
-            }
-
-            ScrollView {
-                visible: scriptModuleDwellHoverTextArea.length > 0
-                Layout.minimumWidth: 400; Layout.maximumWidth: 800
-
-                TextArea {
-                    id: scriptModuleDwellHoverTextArea
-                    background: null
-                    readOnly: true
-                    textFormat: TextEdit.MarkdownText
-                    verticalAlignment: TextEdit.AlignTop
-                    wrapMode: Text.Wrap
-
-                    HoverHandler {
-                        id: dwellHoverHandler
-                        cursorShape: scriptModuleDwellHoverTextArea.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
-                    }
-
-                    ToolTip {
-                        visible: scriptModuleDwellHoverTextArea.hoveredLink
-                        text: "Click to open link"
-                        x: dwellHoverHandler.point.position.x + 10
-                        y: dwellHoverHandler.point.position.y + 10
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.LeftButton
-                        onTapped: {
-                            if (scriptModuleDwellHoverTextArea.hoveredLink) {
-                                Qt.openUrlExternally(scriptModuleDwellHoverTextArea.hoveredLink)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Menu {
-            id: scriptModuleDwellCodeActionMenu
-            x: scriptModuleDwellToolTip.width - 5; y: -8
-
-            onAboutToShow: {
-                for (var i = scriptModuleDwellCodeActionMenu.count - 1; i >= 0; --i) {
-                    var item = scriptModuleDwellCodeActionMenu.itemAt(i)
-                    scriptModuleDwellCodeActionMenu.removeItem(item)
-                    item.destroy()
-                }
-                if (scriptModuleDwellToolTip.codeActions.length) {
-                    for (let i = 0; i < scriptModuleDwellToolTip.codeActions.length; ++i) {
-                        const menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
-                            null,
-                            {
-                                text: scriptModuleDwellToolTip.codeActions[i]["title"],
-                                codeAction: scriptModuleDwellToolTip.codeActions[i]["edit"]
-                            }
-                        )
-                        scriptModuleDwellCodeActionMenu.addItem(menuItem)
-                    }
-                } else {
-                    const menuItem = scriptModuleDwellCodeActionMenuComponent.createObject(
-                        null,
-                        {
-                            text: qsTr("No fixes available")
-                        }
-                    )
-                    scriptModuleDwellCodeActionMenu.addItem(menuItem)
-                }
-            }
-
-            Component {
-                id: scriptModuleDwellCodeActionMenuComponent
-
-                MenuItem {
-                    property var codeAction
-
-                    onTriggered: {
-                        scriptModuleDwellToolTip.dwellWidget.codeActionAccept(codeAction)
-                        scriptModuleDwellToolTip.close()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: text
-                }
-            }
-        }
-
-        Menu {
-            id: scriptModuleDwellSuggestionMenu
-            x: scriptModuleDwellToolTip.width - 5; y: -8
-
-            MenuItem {
-                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[0] : ""
-                visible: text
-
-                onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
-                    scriptModuleDwellToolTip.close()
-                }
-            }
-
-            MenuItem {
-                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[1] : ""
-                visible: text
-
-                onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
-                    scriptModuleDwellToolTip.close()
-                }
-            }
-
-            MenuItem {
-                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[2] : ""
-                visible: text
-
-                onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
-                    scriptModuleDwellToolTip.close()
-                }
-            }
-
-            MenuItem {
-                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[3] : ""
-                visible: text
-
-                onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
-                    scriptModuleDwellToolTip.close()
-                }
-            }
-
-            MenuItem {
-                text: scriptModuleDwellToolTip.suggestions ? scriptModuleDwellToolTip.suggestions[4] : ""
-                visible: text
-
-                onTriggered: {
-                    scriptModuleDwellToolTip.dwellWidget.suggestionAccept(text)
-                    scriptModuleDwellToolTip.close()
-                }
-            }
-        }
-    }
-
-    ToolTip {
-        id: scriptModuleNavigationToolTip
-        parent: Overlay.overlay
-        x: position.x - 30; y: position.y
-        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
-        property point position
-        property var navigationWidget
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, false)
-            widgetCount += 1
-        }
-        onClosed: {
-            widgetCount -= 1
-            scriptModuleNavigationDetailToolTip.close()
-        }
-        onAboutToShow: {
-            scriptModuleNavigationDetailToolTip.open()
-            scriptModuleNavigationDetailTimer.restart()
-        }
-
-        contentItem: TableView {
-            id: scriptModuleNavigationTableView
-            anchors.fill: parent
-            anchors.margins: 6
-            implicitWidth: Math.max(idealWidth, 200); implicitHeight: Math.min(idealHeight, 150)
-            alternatingRows: false
-            clip: true
-            editTriggers: TableView.NoEditTriggers
-            flickableDirection: Flickable.VerticalFlick
-            property int idealWidth; property int idealHeight
-            property int hoveredRow: -1
-            property int selectedRow: -1
-
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-            }
-
-            delegate: Item {
-                implicitWidth: scriptModuleNavigationTableView.width; implicitHeight: textMetrics.height + 4
-                required property int row
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: "#ebebeb"
-                    opacity: hoverHandler.hovered ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
-                        }
-                    }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: scriptModuleNavigationTableView.selectedRow === row ? "#e0e0e0" : "transparent"
-                }
-
-                TextMetrics {
-                    id: textMetrics
-                    font: scriptModuleNavigationToolTip.font
-                    text: model.display
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 0
-
-                    Item {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                        Image {
-                            anchors.centerIn: parent
-                            width: 8; height: 8
-                            source: model.decoration
-                        }
-                    }
-
-                    Label {
-                        font: scriptModuleNavigationToolTip.font
-                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true; Layout.preferredHeight: 24
-                    }
-                }
-
-                HoverHandler {
-                    id: hoverHandler
-
-                    onPointChanged: scriptModuleNavigationTableView.hoveredRow = row
-                    onHoveredChanged: {
-                        if (!hovered) {
-                            scriptModuleNavigationTableView.hoveredRow = -1
-                            scriptModuleNavigationDetailTimer.restart()
-                        }
-                    }
-                }
-
-                TapHandler {
-                    acceptedButtons: Qt.LeftButton
-
-                    onTapped: scriptModuleNavigationTableView.selectedRow = row
-                    onDoubleTapped: scriptModuleNavigationToolTip.navigationWidget.indicatorInsert()
-                }
-
-                Component.onCompleted: {
-                    scriptModuleNavigationTableView.idealWidth = Math.max(24 + textMetrics.width + 4 + 10, scriptModuleNavigationTableView.idealWidth)
-                    scriptModuleNavigationTableView.idealHeight = textMetrics.height + 4 + scriptModuleNavigationTableView.idealHeight
-                }
-            }
-
-            onHoveredRowChanged: scriptModuleNavigationDetailTimer.restart()
-
-            onSelectedRowChanged: {
-                positionViewAtRow(selectedRow, TableView.Contain, 0, Qt.rect(0, 0, 0, 0))
-                scriptModuleNavigationDetailTimer.restart()
-            }
-
-            Timer {
-                id: scriptModuleNavigationDetailTimer
-                interval: 150
-
-                onTriggered: {
-                    var interestRow
-                    if (scriptModuleNavigationTableView.hoveredRow !== -1) {
-                        interestRow = scriptModuleNavigationTableView.hoveredRow
-                    } else {
-                        interestRow = scriptModuleNavigationTableView.selectedRow
-                    }
-                    scriptModuleNavigationToolTip.navigationWidget.detailReload(interestRow)
-                    const index = scriptModuleNavigationTableView.index(interestRow, 0);
-                    const item = scriptModuleNavigationTableView.itemAtIndex(index);
-                    if (item) {
-                        let idealY = item.mapToItem(scriptModuleNavigationTableView, 0, 0).y
-                        idealY = Math.max(0, idealY)
-                        idealY = Math.min(scriptModuleNavigationTableView.height - item.height, idealY)
-                        scriptModuleNavigationDetailToolTip.y = idealY - 6
-                    }
-                }
-            }
-
-            function navigationPrev() {
-                if (selectedRow > 0) {
-                    selectedRow = selectedRow - 1
-                }
-                // else {
-                //     selectedRow = model.rowCount() - 1
-                // }
-            }
-
-            function navigationNext() {
-                if (selectedRow < model.rowCount() - 1) {
-                    selectedRow = selectedRow + 1
-                }
-                // else {
-                //     selectedRow = 0
-                // }
-            }
-
-            Connections {
-                target: scriptModuleNavigationTableView.model
-
-                function onModelReset() {
-                    scriptModuleNavigationTableView.idealWidth = 0
-                    scriptModuleNavigationTableView.idealHeight = 0
-                    scriptModuleNavigationDetailTimer.restart()
-                }
-            }
-        }
-
-        ToolTip {
-            id: scriptModuleNavigationDetailToolTip
-            x: scriptModuleNavigationToolTip.width - 5
-
-            contentItem: Label {
-                id: scriptModuleNavigationDetailLabel
-                font: scriptModuleNavigationToolTip.font
-                textFormat: Text.RichText
-            }
-        }
-    }
-
-    ToolTip {
-        id: scriptModulePositionTooltip
-        parent: Overlay.overlay
-        x: position.x + 10; y: position.y + 10
-        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
-        property point position
-
-        Behavior on x {
-            enabled: scriptModulePositionTooltip.visible
-            NumberAnimation {
-                duration: 50
-                easing.type: Easing.Linear
-            }
-        }
-        Behavior on y {
-            enabled: scriptModulePositionTooltip.visible
-            NumberAnimation {
-                duration: 50
-                easing.type: Easing.Linear
-            }
-        }
-    }
-
-    ToolTip {
-        id: scriptModuleSignatureToolTip
-        parent: Overlay.overlay
-        x: position.x - 6; y: position.y - implicitHeight
-        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
-        property point position
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, false)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-
-        contentItem: Label {
-            id: scriptModuleSignatureLabel
-            textFormat: Text.RichText
-        }
-    }
-
     // status module
     Menu {
         id: statusModuleEolModeMenu
@@ -2819,15 +3070,15 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            statusModuleEolModeMenu.eolMode = scriptModule.eolModeGet(scriptUrl)
-            statusModuleEolModeViewItem.checked = scriptModule.eolViewGet(scriptUrl)
+            statusModuleEolModeMenu.eolMode = documentModule.eolModeGet(scriptUrl)
+            statusModuleEolModeViewItem.checked = documentModule.eolViewGet(scriptUrl)
         }
 
         MenuItem {
             text: "CRLF"
             enabled: statusModuleEolModeMenu.eolMode !== 0
             onTriggered: {
-                scriptModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 0)
+                documentModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 0)
                 statusModuleEolModeMenu.eolModeButton.text = "CRLF"
             }
         }
@@ -2836,7 +3087,7 @@ Item {
             text: "CR"
             enabled: statusModuleEolModeMenu.eolMode !== 1
             onTriggered: {
-                scriptModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 1)
+                documentModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 1)
                 statusModuleEolModeMenu.eolModeButton.text = "CR"
             }
         }
@@ -2845,7 +3096,7 @@ Item {
             text: "LF"
             enabled: statusModuleEolModeMenu.eolMode !== 2
             onTriggered: {
-                scriptModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 2)
+                documentModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 2)
                 statusModuleEolModeMenu.eolModeButton.text = "LF"
             }
         }
@@ -2858,7 +3109,7 @@ Item {
             checkable: true
             text: qsTr("View EOL")
 
-            onTriggered: scriptModule.eolViewSet(statusModuleEolModeMenu.scriptUrl, statusModuleEolModeViewItem.checked)
+            onTriggered: documentModule.eolViewSet(statusModuleEolModeMenu.scriptUrl, statusModuleEolModeViewItem.checked)
         }
     }
 
@@ -2892,177 +3143,6 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: structureModuleRootMenu.treeView.expandRecursively()
-            }
-        }
-    }
-
-    // system module
-    Dialog {
-        id: systemModulePropertyDialog
-        parent: Overlay.overlay
-        anchors.centerIn: parent
-        width: 600
-        modal: true
-        title: qsTr("File Property")
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        property string fileUrl
-        property var infoSession
-
-        onOpened: {
-            mainWindow.overlayFlagSet(false, true)
-            widgetCount += 1
-        }
-        onClosed: widgetCount -= 1
-        onAboutToShow: {
-            systemModulePropertyDialog.infoSession = systemModule.fileInfo(systemModulePropertyDialog.fileUrl)
-            systemModulePropertyImage.source = systemModulePropertyDialog.infoSession.source
-            systemModulePropertyNameTextField.text = systemModulePropertyDialog.infoSession.baseName
-            systemModulePropertySizeLabel.text = systemModulePropertyDialog.infoSession.size
-            systemModulePropertyAbsolutePathLabel.text = systemModulePropertyDialog.infoSession.absolutePath
-            systemModulePropertyBirthTimeLabel.text = systemModulePropertyDialog.infoSession.birthTime
-            systemModulePropertyLastModifiedLabel.text = systemModulePropertyDialog.infoSession.lastModified
-            systemModulePropertyLastReadLabel.text = systemModulePropertyDialog.infoSession.lastRead
-            systemModulePropertyReadableCheckBox.checked = systemModulePropertyDialog.infoSession.readable
-            systemModulePropertyWritableCheckBox.checked = systemModulePropertyDialog.infoSession.writable
-            systemModulePropertyHiddenCheckBox.checked = systemModulePropertyDialog.infoSession.hidden
-        }
-
-        onAccepted: {
-            if (systemModulePropertyNameTextField.text !== systemModulePropertyDialog.infoSession.baseName) {
-                systemModule.fileRename(systemModulePropertyDialog.fileUrl, systemModulePropertyNameTextField.text)
-            }
-            if (systemModulePropertyWritableCheckBox.checked !== systemModulePropertyDialog.infoSession.writable) {
-                systemModule.fileWritable(systemModulePropertyDialog.fileUrl, systemModulePropertyWritableCheckBox.checked)
-            }
-        }
-
-        ColumnLayout {
-            width: parent.width
-
-            RowLayout {
-                Layout.preferredHeight: 64
-
-                Image {
-                    id: systemModulePropertyImage
-                    sourceSize.width: 48
-                    sourceSize.height: 48
-                    horizontalAlignment: Image.AlignLeft
-                    fillMode: Image.PreserveAspectFit
-                    Layout.preferredWidth: 150
-                }
-
-                TextField {
-                    id: systemModulePropertyNameTextField
-                    placeholderText: qsTr("Enter new name:")
-                    Layout.fillWidth: true
-
-                    onAccepted: systemModulePropertyDialog.accept()
-                    Keys.onEscapePressed: systemModulePropertyDialog.reject()
-                }
-            }
-
-            Rectangle {
-                color: "#333333"
-                Layout.fillWidth: true; Layout.preferredHeight: 1
-            }
-
-            RowLayout {
-                Layout.preferredHeight: 32
-
-                Label {
-                    text: qsTr("Absolute Path:")
-                    Layout.preferredWidth: 150
-                }
-
-                Label {
-                    id: systemModulePropertyAbsolutePathLabel
-                }
-            }
-
-            RowLayout {
-                Layout.preferredHeight: 32
-
-                Label {
-                    text: qsTr("Size:")
-                    Layout.preferredWidth: 150
-                }
-
-                Label {
-                    id: systemModulePropertySizeLabel
-                }
-            }
-
-            Rectangle {
-                color: "#333333"
-                Layout.fillWidth: true; Layout.preferredHeight: 1
-            }
-
-            RowLayout {
-                Layout.preferredHeight: 32
-
-                Label {
-                    text: qsTr("Birth Time:")
-                    Layout.preferredWidth: 150
-                }
-
-                Label {
-                    id: systemModulePropertyBirthTimeLabel
-                }
-            }
-
-            RowLayout {
-                Layout.preferredHeight: 32
-
-                Label {
-                    text: qsTr("Last Modified:")
-                    Layout.preferredWidth: 150
-                }
-
-                Label {
-                    id: systemModulePropertyLastModifiedLabel
-                }
-            }
-
-            RowLayout {
-                Layout.preferredHeight: 32
-
-                Label {
-                    text: qsTr("Last Read:")
-                    Layout.preferredWidth: 150
-                }
-
-                Label {
-                    id: systemModulePropertyLastReadLabel
-                }
-            }
-
-            Rectangle {
-                color: "#333333"
-                Layout.fillWidth: true; Layout.preferredHeight: 1
-            }
-
-            RowLayout {
-                Layout.preferredHeight: 32
-
-                Label {
-                    text: qsTr("Attributes:")
-                    Layout.preferredWidth: 150
-                }
-
-                CheckBox {
-                    id: systemModulePropertyReadableCheckBox
-                    text: qsTr("Readable")
-                }
-
-                CheckBox {
-                    id: systemModulePropertyWritableCheckBox
-                    text: qsTr("Writable")
-                }
-
-                CheckBox {
-                    id: systemModulePropertyHiddenCheckBox
-                    text: qsTr("Hidden")
-                }
             }
         }
     }
@@ -3401,10 +3481,28 @@ Item {
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
+            "documentModuleEditorMenu": documentModuleEditorMenu,
+            "documentModuleCompletionToolTip": documentModuleCompletionToolTip,
+            "documentModuleCompletionTableView": documentModuleCompletionTableView,
+            "documentModuleCompletionDetailTableView": documentModuleCompletionDetailTableView,
+            "documentModuleDwellToolTip": documentModuleDwellToolTip,
+            "documentModuleDwellDiagnosticTextArea": documentModuleDwellDiagnosticTextArea,
+            "documentModuleDwellHoverTextArea": documentModuleDwellHoverTextArea,
+            "documentModuleDwellCodeActionMenu": documentModuleDwellCodeActionMenu,
+            "documentModuleDwellSuggestionMenu": documentModuleDwellSuggestionMenu,
+            "documentModuleNavigationToolTip": documentModuleNavigationToolTip,
+            "documentModuleNavigationTableView": documentModuleNavigationTableView,
+            "documentModuleNavigationDetailLabel": documentModuleNavigationDetailLabel,
+            "documentModulePositionTooltip": documentModulePositionTooltip,
+            "documentModuleSignatureToolTip": documentModuleSignatureToolTip,
+            "documentModuleSignatureLabel": documentModuleSignatureLabel,
+            
             "explorerModuleScriptMenu": explorerModuleScriptMenu,
             "explorerModuleFolderMenu": explorerModuleFolderMenu,
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
+            "fileModulePropertyDialog": fileModulePropertyDialog,
+            
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
 
@@ -3417,27 +3515,9 @@ Item {
             "portModuleTableMenu": portModuleTableMenu,
             "portModuleRootMenu": portModuleRootMenu,
 
-            "scriptModuleEditorMenu": scriptModuleEditorMenu,
-            "scriptModuleCompletionToolTip": scriptModuleCompletionToolTip,
-            "scriptModuleCompletionTableView": scriptModuleCompletionTableView,
-            "scriptModuleCompletionDetailTableView": scriptModuleCompletionDetailTableView,
-            "scriptModuleDwellToolTip": scriptModuleDwellToolTip,
-            "scriptModuleDwellDiagnosticTextArea": scriptModuleDwellDiagnosticTextArea,
-            "scriptModuleDwellHoverTextArea": scriptModuleDwellHoverTextArea,
-            "scriptModuleDwellCodeActionMenu": scriptModuleDwellCodeActionMenu,
-            "scriptModuleDwellSuggestionMenu": scriptModuleDwellSuggestionMenu,
-            "scriptModuleNavigationToolTip": scriptModuleNavigationToolTip,
-            "scriptModuleNavigationTableView": scriptModuleNavigationTableView,
-            "scriptModuleNavigationDetailLabel": scriptModuleNavigationDetailLabel,
-            "scriptModulePositionTooltip": scriptModulePositionTooltip,
-            "scriptModuleSignatureToolTip": scriptModuleSignatureToolTip,
-            "scriptModuleSignatureLabel": scriptModuleSignatureLabel,
-
             "statusModuleEolModeMenu": statusModuleEolModeMenu,
 
             "structureModuleRootMenu": structureModuleRootMenu,
-
-            "systemModulePropertyDialog": systemModulePropertyDialog,
 
             "threadpoolModuleErrorDialog": threadpoolModuleErrorDialog,
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,

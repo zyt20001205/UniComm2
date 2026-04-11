@@ -12,7 +12,7 @@
 #include <QVideoSink>
 
 #include "globals.h"
-#include "utils/cvUtils.h"
+#include "util/cvUtils.h"
 
 // public
 VideoStream::VideoStream(const QJsonObject &portConfig, QObject *parent)

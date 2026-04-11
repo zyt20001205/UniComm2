@@ -6,7 +6,7 @@
 #include <QThread>
 
 #include "globals.h"
-#include "utils/suffixUtils.h"
+#include "util/suffixUtils.h"
 
 // public
 SerialPort::SerialPort(const QJsonObject &portConfig, QObject *parent)

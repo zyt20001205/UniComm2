@@ -18,29 +18,29 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
-#include "configManager.h"
 #include "globals.h"
-#include "systemModule.h"
-#include "logModule.h"
-#include "undoModule.h"
+#include "analysis/diagnosticsModule.h"
+#include "analysis/luaLanguageServer.h"
+#include "analysis/nuspellModule.h"
+#include "analysis/structureModule.h"
+#include "core/configManager.h"
+#include "core/explorerModule.h"
+#include "core/fileModule.h"
+#include "core/logModule.h"
+#include "core/undoModule.h"
 #include "data/databaseModule.h"
 #include "data/dataplotModule.h"
 #include "data/datatableModule.h"
-#include "runtime/interpreter/luaInterpreter.h"
-#include "service/server/luaLanguageServer.h"
+#include "debug/breakpointModule.h"
+#include "debug/debugModule.h"
+#include "debug/watchModule.h"
+#include "document/documentModule.h"
 #include "mainWindow/menuModule.h"
 #include "mainWindow/statusModule.h"
 #include "port/portModule.h"
 #include "port/sendModule.h"
-#include "scriptModule/nuspellModule.h"
-#include "scriptModule/scriptModule.h"
-#include "scriptModule/codeEditor/explorerModule.h"
-#include "scriptModule/codeDebug/breakpointModule.h"
-#include "scriptModule/codeDebug/debugModule.h"
-#include "scriptModule/codeDebug/threadpoolModule.h"
-#include "scriptModule/codeAnalysis/diagnosticsModule.h"
-#include "scriptModule/codeAnalysis/structureModule.h"
-#include "scriptModule/codeDebug/watchModule.h"
+#include "runtime/luaInterpreter.h"
+#include "runtime/threadpoolModule.h"
 
 // public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -88,9 +88,9 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
     // m_overlay->rootContext()->setContextProperty("statusModule", m_statusModule);
     // m_overlay->rootContext()->setContextProperty("structureModule", m_structureModule);
-    m_overlay->rootContext()->setContextProperty("scriptModule", m_scriptModule);
+    m_overlay->rootContext()->setContextProperty("documentModule", m_documentModule);
     // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
-    m_overlay->rootContext()->setContextProperty("systemModule", m_systemModule);
+    m_overlay->rootContext()->setContextProperty("fileModule", m_fileModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
     m_overlay->rootContext()->setContextProperty("watchModule", m_watchModule);
 
@@ -188,24 +188,24 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
-        {"systemModulePropertyDialog", objects["systemModulePropertyDialog"]},
-        {"scriptModuleEditorMenu", objects["scriptModuleEditorMenu"]},
-        {"scriptModuleCompletionToolTip", objects["scriptModuleCompletionToolTip"]},
-        {"scriptModuleCompletionTableView", objects["scriptModuleCompletionTableView"]},
-        {"scriptModuleCompletionDetailTableView", objects["scriptModuleCompletionDetailTableView"]},
-        {"scriptModuleDwellToolTip", objects["scriptModuleDwellToolTip"]},
-        {"scriptModuleDwellDiagnosticTextArea", objects["scriptModuleDwellDiagnosticTextArea"]},
-        {"scriptModuleDwellHoverTextArea", objects["scriptModuleDwellHoverTextArea"]},
-        {"scriptModuleDwellCodeActionMenu", objects["scriptModuleDwellCodeActionMenu"]},
-        {"scriptModuleDwellSuggestionMenu", objects["scriptModuleDwellSuggestionMenu"]},
-        {"scriptModuleNavigationToolTip", objects["scriptModuleNavigationToolTip"]},
-        {"scriptModuleNavigationTableView", objects["scriptModuleNavigationTableView"]},
-        {"scriptModuleNavigationDetailLabel", objects["scriptModuleNavigationDetailLabel"]},
-        {"scriptModulePositionTooltip", objects["scriptModulePositionTooltip"]},
-        {"scriptModuleSignatureToolTip", objects["scriptModuleSignatureToolTip"]},
-        {"scriptModuleSignatureLabel", objects["scriptModuleSignatureLabel"]}
+        {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
+        {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]},
+        {"documentModuleCompletionToolTip", objects["documentModuleCompletionToolTip"]},
+        {"documentModuleCompletionTableView", objects["documentModuleCompletionTableView"]},
+        {"documentModuleCompletionDetailTableView", objects["documentModuleCompletionDetailTableView"]},
+        {"documentModuleDwellToolTip", objects["documentModuleDwellToolTip"]},
+        {"documentModuleDwellDiagnosticTextArea", objects["documentModuleDwellDiagnosticTextArea"]},
+        {"documentModuleDwellHoverTextArea", objects["documentModuleDwellHoverTextArea"]},
+        {"documentModuleDwellCodeActionMenu", objects["documentModuleDwellCodeActionMenu"]},
+        {"documentModuleDwellSuggestionMenu", objects["documentModuleDwellSuggestionMenu"]},
+        {"documentModuleNavigationToolTip", objects["documentModuleNavigationToolTip"]},
+        {"documentModuleNavigationTableView", objects["documentModuleNavigationTableView"]},
+        {"documentModuleNavigationDetailLabel", objects["documentModuleNavigationDetailLabel"]},
+        {"documentModulePositionTooltip", objects["documentModulePositionTooltip"]},
+        {"documentModuleSignatureToolTip", objects["documentModuleSignatureToolTip"]},
+        {"documentModuleSignatureLabel", objects["documentModuleSignatureLabel"]}
     };
-    m_scriptModule->propertySet(scriptObjects);
+    m_documentModule->propertySet(scriptObjects);
 
     const QVariantMap sendObjects = {
         //
@@ -227,7 +227,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]}
     };
-    m_systemModule->propertySet(systemObjects);
+    m_fileModule->propertySet(systemObjects);
 
     const QVariantMap threadpoolObjects = {
         {"mainItem", objects["mainItem"]},
@@ -317,7 +317,7 @@ void MainWindow::workspaceOpen() {
 }
 
 void MainWindow::workspaceSave(const QUrl &configUrl) {
-    m_scriptModule->scriptConfigSave();
+    m_documentModule->scriptConfigSave();
     BreakpointModule::breakpointConfigSave();
     DatabaseModule::databaseConfigSave();
     DatatableModule::datatableConfigSave();
@@ -359,103 +359,103 @@ void MainWindow::moduleInit() {
     m_datatableModule = new DatatableModule();
     m_debugModule = new DebugModule();
     m_diagnosticsModule = new DiagnosticsModule();
+    m_documentModule = new DocumentModule();
     m_explorerModule = new ExplorerModule();
+    m_fileModule = new FileModule();
     m_logModule = new LogModule();
-    m_nuspellModule = new NuspellModule(this);
     m_menuModule = new MenuModule(this);
+    m_nuspellModule = new NuspellModule(this);
     m_portModule = new PortModule();
-    m_scriptModule = new ScriptModule();
     m_sendModule = new SendModule();
     m_statusModule = new StatusModule(this);
     m_structureModule = new StructureModule();
-    m_systemModule = new SystemModule();
     m_threadpoolModule = new ThreadpoolModule();
     m_undoModule = new UndoModule(this);
     m_watchModule = new WatchModule();
 
     m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
     g_database = m_databaseModule;
-    g_datatable = m_datatableModule;
     g_dataplot = m_dataplotModule;
+    g_datatable = m_datatableModule;
     g_nuspell = m_nuspellModule;
     g_port = m_portModule;
-    g_script = m_scriptModule;
+    g_document = m_documentModule;
     g_undo = m_undoModule;
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
 
-    connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_scriptModule, &ScriptModule::diagnosticsNotification);
+    connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_documentModule, &DocumentModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
-    connect(m_luals, &LuaLanguageServer::responseCodeAction, m_scriptModule, &ScriptModule::responseCodeAction);
-    connect(m_luals, &LuaLanguageServer::responseCompletion, m_scriptModule, &ScriptModule::completionResponse);
-    connect(m_luals, &LuaLanguageServer::responseDefinition, m_scriptModule, &ScriptModule::definitionResponse);
-    connect(m_luals, &LuaLanguageServer::responseDocumentHighlight, m_scriptModule, &ScriptModule::documentHighlightResponse);
-    connect(m_luals, &LuaLanguageServer::responseDocumentSymbol, m_scriptModule, &ScriptModule::documentSymbolResponse);
+    connect(m_luals, &LuaLanguageServer::responseCodeAction, m_documentModule, &DocumentModule::responseCodeAction);
+    connect(m_luals, &LuaLanguageServer::responseCompletion, m_documentModule, &DocumentModule::completionResponse);
+    connect(m_luals, &LuaLanguageServer::responseDefinition, m_documentModule, &DocumentModule::definitionResponse);
+    connect(m_luals, &LuaLanguageServer::responseDocumentHighlight, m_documentModule, &DocumentModule::documentHighlightResponse);
+    connect(m_luals, &LuaLanguageServer::responseDocumentSymbol, m_documentModule, &DocumentModule::documentSymbolResponse);
     connect(m_luals, &LuaLanguageServer::responseDocumentSymbol, m_structureModule, &StructureModule::documentSymbolResponse);
-    connect(m_luals, &LuaLanguageServer::responseFoldingRange, m_scriptModule, &ScriptModule::foldingRangeResponse);
-    connect(m_luals, &LuaLanguageServer::responseFormatting, m_scriptModule, &ScriptModule::formattingResponse);
-    connect(m_luals, &LuaLanguageServer::responseHover, m_scriptModule, &ScriptModule::hoverResponse);
-    connect(m_luals, &LuaLanguageServer::responseImplementation, m_scriptModule, &ScriptModule::implementationResponse);
-    connect(m_luals, &LuaLanguageServer::responseOnTypeFormatting, m_scriptModule, &ScriptModule::onTypeFormattingResponse);
-    connect(m_luals, &LuaLanguageServer::responseRangeFormatting, m_scriptModule, &ScriptModule::rangeFormattingResponse);
-    connect(m_luals, &LuaLanguageServer::responseReferences, m_scriptModule, &ScriptModule::referencesResponse);
-    connect(m_luals, &LuaLanguageServer::responseSemanticTokens, m_scriptModule, &ScriptModule::semanticTokensResponse);
-    connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_scriptModule, &ScriptModule::signatureHelpResponse);
-    connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_scriptModule, &ScriptModule::typeDefinitionResponse);
+    connect(m_luals, &LuaLanguageServer::responseFoldingRange, m_documentModule, &DocumentModule::foldingRangeResponse);
+    connect(m_luals, &LuaLanguageServer::responseFormatting, m_documentModule, &DocumentModule::formattingResponse);
+    connect(m_luals, &LuaLanguageServer::responseHover, m_documentModule, &DocumentModule::hoverResponse);
+    connect(m_luals, &LuaLanguageServer::responseImplementation, m_documentModule, &DocumentModule::implementationResponse);
+    connect(m_luals, &LuaLanguageServer::responseOnTypeFormatting, m_documentModule, &DocumentModule::onTypeFormattingResponse);
+    connect(m_luals, &LuaLanguageServer::responseRangeFormatting, m_documentModule, &DocumentModule::rangeFormattingResponse);
+    connect(m_luals, &LuaLanguageServer::responseReferences, m_documentModule, &DocumentModule::referencesResponse);
+    connect(m_luals, &LuaLanguageServer::responseSemanticTokens, m_documentModule, &DocumentModule::semanticTokensResponse);
+    connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_documentModule, &DocumentModule::signatureHelpResponse);
+    connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_documentModule, &DocumentModule::typeDefinitionResponse);
 
-    connect(m_breakpointModule, &BreakpointModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_breakpointModule, &BreakpointModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
-    connect(m_breakpointModule, &BreakpointModule::deleteMarker, m_scriptModule, &ScriptModule::markerDelete);
+    connect(m_breakpointModule, &BreakpointModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_breakpointModule, &BreakpointModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
+    connect(m_breakpointModule, &BreakpointModule::deleteMarker, m_documentModule, &DocumentModule::markerDelete);
 
     connect(m_databaseModule, &DatabaseModule::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_datatableModule, &DatatableModule::appendLog, m_logModule, &LogModule::logAppend);
 
-    connect(m_debugModule, &DebugModule::getIndex, m_scriptModule, &ScriptModule::indexGet);
-    connect(m_debugModule, &DebugModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
+    connect(m_debugModule, &DebugModule::getIndex, m_documentModule, &DocumentModule::indexGet);
+    connect(m_debugModule, &DebugModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
     connect(m_debugModule, &DebugModule::setState, m_threadpoolModule, &ThreadpoolModule::stateSet);
 
-    connect(m_diagnosticsModule, &DiagnosticsModule::setIndex, m_scriptModule, &ScriptModule::indexSet);
-    connect(m_diagnosticsModule, &DiagnosticsModule::fillIndicator, m_scriptModule, &ScriptModule::indicatorFill);
+    connect(m_diagnosticsModule, &DiagnosticsModule::setIndex, m_documentModule, &DocumentModule::indexSet);
+    connect(m_diagnosticsModule, &DiagnosticsModule::fillIndicator, m_documentModule, &DocumentModule::indicatorFill);
+
+    connect(m_documentModule, &DocumentModule::requestJson, m_luals, &LuaLanguageServer::jsonRequest);
+    connect(m_documentModule, &DocumentModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
+    connect(m_documentModule, &DocumentModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
+    connect(m_documentModule, &DocumentModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_documentModule, &DocumentModule::openWorkspace, this, &MainWindow::workspaceOpen);
+    connect(m_documentModule, &DocumentModule::startThread, m_threadpoolModule,
+            qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
+    connect(m_documentModule, &DocumentModule::focusScript, m_statusModule, &StatusModule::scriptFocus);
+    connect(m_documentModule, &DocumentModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
+    connect(m_documentModule, &DocumentModule::changeSelection, m_statusModule, &StatusModule::selectionChange);
+    connect(m_documentModule, &DocumentModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
+    connect(m_documentModule, &DocumentModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_explorerModule, &ExplorerModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
+    connect(m_explorerModule, &ExplorerModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
     connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule,
             qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
 
-    connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_scriptModule, &ScriptModule::spellCheckResponse);
+    connect(m_fileModule, &FileModule::appendLog, m_logModule, &LogModule::logAppend);
+    connect(m_fileModule, &FileModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
+
+    connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_documentModule, &DocumentModule::spellCheckResponse);
 
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
 
-    connect(m_scriptModule, &ScriptModule::requestJson, m_luals, &LuaLanguageServer::jsonRequest);
-    connect(m_scriptModule, &ScriptModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
-    connect(m_scriptModule, &ScriptModule::requestSpellCheck, m_nuspellModule, &NuspellModule::spellCheckRequest);
-    connect(m_scriptModule, &ScriptModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_scriptModule, &ScriptModule::openWorkspace, this, &MainWindow::workspaceOpen);
-    connect(m_scriptModule, &ScriptModule::startThread, m_threadpoolModule,
-            qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
-    connect(m_scriptModule, &ScriptModule::focusScript, m_statusModule, &StatusModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
-    connect(m_scriptModule, &ScriptModule::changeSelection, m_statusModule, &StatusModule::selectionChange);
-    connect(m_scriptModule, &ScriptModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
-    connect(m_scriptModule, &ScriptModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
-
     connect(m_structureModule, &StructureModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_structureModule, &StructureModule::setFocus, m_scriptModule, &ScriptModule::focusSet);
-    connect(m_structureModule, &StructureModule::setIndex, m_scriptModule, &ScriptModule::indexSet);
-    connect(m_structureModule, &StructureModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
-
-    connect(m_systemModule, &SystemModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_systemModule, &SystemModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_systemModule, &SystemModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
+    connect(m_structureModule, &StructureModule::setFocus, m_documentModule, &DocumentModule::focusSet);
+    connect(m_structureModule, &StructureModule::setIndex, m_documentModule, &DocumentModule::indexSet);
+    connect(m_structureModule, &StructureModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
 
     connect(m_threadpoolModule, &ThreadpoolModule::trackQuit, this, &MainWindow::quitTrack);
     connect(m_threadpoolModule, &ThreadpoolModule::refreshThread, m_statusModule, &StatusModule::threadRefresh);
-    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_scriptModule, &ScriptModule::scriptOpen);
-    connect(m_threadpoolModule, &ThreadpoolModule::addMarker, m_scriptModule, &ScriptModule::markerAdd);
-    connect(m_threadpoolModule, &ThreadpoolModule::deleteMarker, m_scriptModule, &ScriptModule::markerDelete);
+    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_threadpoolModule, &ThreadpoolModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
+    connect(m_threadpoolModule, &ThreadpoolModule::deleteMarker, m_documentModule, &DocumentModule::markerDelete);
     connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
     connect(m_threadpoolModule, &ThreadpoolModule::startDebug, m_debugModule, &DebugModule::debugStart);
     connect(m_threadpoolModule, &ThreadpoolModule::stopDebug, m_debugModule, &DebugModule::debugStop);
@@ -466,22 +466,6 @@ void MainWindow::shortcutInit() {
     auto shortcutConfig = g_workspaceConfig["shortcutConfig"].toObject();
     const auto *maximizeShortcut = new QShortcut(QKeySequence("F11"), this); // NOLINT
     connect(maximizeShortcut, &QShortcut::activated, this, &MainWindow::maximizeToggle);
-    const auto *openWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["openWorkspace"].toString()), this); // NOLINT
-    connect(openWorkspaceShortcut, &QShortcut::activated, this, &MainWindow::workspaceOpen);
-    const auto *saveWorkspaceShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspace"].toString()), this); // NOLINT
-    connect(saveWorkspaceShortcut, &QShortcut::activated, this, [this] { workspaceSave(); });
-    const auto *saveWorkspaceAsShortcut = new QShortcut(QKeySequence(shortcutConfig["saveWorkspaceAs"].toString()), this); // NOLINT
-    connect(saveWorkspaceAsShortcut, &QShortcut::activated, this, [this] {
-        const QString filePath = QFileDialog::getSaveFileName(
-            nullptr,
-            tr("Save Workspace As"),
-            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/config",
-            "JSON File (*.json)"
-        );
-        if (filePath.endsWith(".json", Qt::CaseInsensitive)) {
-            workspaceSave(filePath);
-        }
-    });
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "shortcut initialized");
@@ -545,7 +529,7 @@ void MainWindow::layoutInit() {
     auto *statusBar = this->statusBar();
     statusBar->addWidget(m_statusModule, 1);
 
-    addDockWidget(m_scriptModule->welcomePage(), KDDockWidgets::Location_OnRight);
+    addDockWidget(m_documentModule->welcomePage(), KDDockWidgets::Location_OnRight);
     // left
     addDockWidget(m_portModule, KDDockWidgets::Location_OnLeft, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(400, 0)));
     addDockWidget(m_sendModule, KDDockWidgets::Location_OnBottom, m_portModule);

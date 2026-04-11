@@ -4,7 +4,7 @@
 #include <QJsonObject>
 
 #include "basePort.h"
-#include "utils/ringBuffer.h"
+#include "util/ringBuffer.h"
 
 class QSslSocket;
 

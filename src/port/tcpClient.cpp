@@ -5,7 +5,7 @@
 #include <QTcpSocket>
 
 #include "globals.h"
-#include "utils/suffixUtils.h"
+#include "util/suffixUtils.h"
 
 // public
 TcpClient::TcpClient(const QJsonObject &portConfig, QObject *parent)

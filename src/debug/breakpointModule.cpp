@@ -1,0 +1,179 @@
+#include "debug/breakpointModule.h"
+
+#include <QQmlContext>
+#include <QQuickWidget>
+#include <QStandardItemModel>
+
+#include "globals.h"
+
+// public
+BreakpointModule::BreakpointModule()
+    : DockWidget("Breakpoint"),
+      m_breakpointWidget(new QQuickWidget()),
+      m_breakpointStandardItemModel(new QStandardItemModel()) {
+    setWidget(m_breakpointWidget);
+    m_breakpointWidget->installEventFilter(this);
+    auto breakpointConfig = g_workspaceConfig["breakpointConfig"].toObject();
+    for (const auto &key: breakpointConfig.keys()) {
+        const QUrl url(key);
+        const auto breakpointLineHash = breakpointConfig[key].toObject();
+        for (auto it = breakpointLineHash.begin(); it != breakpointLineHash.end(); ++it) {
+            const int line = it.key().toInt();
+            const QVariantHash session = it.value().toObject().toVariantHash();
+            breakpointInsert(url, line, session);
+        }
+    }
+}
+
+BreakpointModule::~BreakpointModule() {
+    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] breakpoint module destructed").arg(timestamp);
+}
+
+void BreakpointModule::propertySet(const QVariantMap &objects) {
+    m_breakpointWidget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
+    m_breakpointWidget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));
+    m_breakpointWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));
+
+    m_breakpointWidget->rootContext()->setContextProperty("breakpointModule", this);
+    m_breakpointWidget->rootContext()->setContextProperty("standardItemModel", m_breakpointStandardItemModel);
+    m_breakpointWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_breakpointWidget->setSource(QUrl("qrc:/qml/debug/breakpointModule.qml"));
+}
+
+void BreakpointModule::propertyGet(const QVariantMap &objects) {
+    m_breakpointTreeView = qvariant_cast<QObject *>(objects["treeView"]);
+}
+
+void BreakpointModule::breakpointConfigSave() {
+    auto breakpointHash = QJsonObject();
+    for (const auto &url: g_breakpoints.keys()) {
+        auto breakpointLineHash = QJsonObject();
+        for (auto it = g_breakpoints[url].begin(); it != g_breakpoints[url].end(); ++it) {
+            const int line = it.key();
+            const QVariantHash &session = it.value();
+            breakpointLineHash.insert(QString::number(line), QJsonObject::fromVariantHash(session));
+        }
+        breakpointHash.insert(url.toString(), breakpointLineHash);
+    }
+    g_workspaceConfig["breakpointConfig"] = breakpointHash;
+}
+
+void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, const QVariantHash &session) const {
+    // update g_breakpoints
+    g_breakpoints[scriptUrl][line] = session;
+    // update model
+    auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
+    lineItem->setData(scriptUrl, Qt::WhatsThisRole);
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
+    for (int i = 0; i < indent0->rowCount(); ++i) {
+        auto *indent1 = indent0->child(i);
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+            for (int j = 0; j < indent1->rowCount(); ++j) {
+                const auto *indent2 = indent1->child(j);
+                if (line < indent2->text().toInt()) {
+                    indent1->insertRow(j, lineItem);
+                    return;
+                }
+            }
+            indent1->appendRow(lineItem);
+            return;
+        }
+    }
+    auto *urlItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
+    urlItem->setData(scriptUrl, Qt::WhatsThisRole);
+    urlItem->appendRow(lineItem);
+    m_breakpointStandardItemModel->appendRow(urlItem);
+}
+
+void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) const {
+    // update g_breakpoints
+    g_breakpoints[scriptUrl].remove(line);
+    if (g_breakpoints[scriptUrl].isEmpty()) g_breakpoints.remove(scriptUrl);
+    // update model
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
+    for (int i = 0; i < indent0->rowCount(); ++i) {
+        auto *indent1 = indent0->child(i);
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+            for (int j = 0; j < indent1->rowCount(); ++j) {
+                const auto *indent2 = indent1->child(j);
+                if (line == indent2->text().toInt()) {
+                    indent1->removeRow(j);
+                    if (indent1->rowCount() == 0) {
+                        m_breakpointStandardItemModel->removeRow(i);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void BreakpointModule::scriptOpen(const QUrl &scriptUrl) {
+    emit openScript(scriptUrl);
+}
+
+void BreakpointModule::markerAdd(const QUrl &scriptUrl, const int line) {
+    emit addMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
+}
+
+void BreakpointModule::breakpointDelete(const QUrl &scriptUrl, const int line) {
+    breakpointRemove(scriptUrl, line);
+    emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+}
+
+void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
+    for (int i = 0; i < indent0->rowCount(); ++i) {
+        auto *indent1 = indent0->child(i);
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+            for (int j = indent1->rowCount() - 1; j >= 0; --j) {
+                const auto *indent2 = indent1->child(j);
+                const auto line = indent2->text().toInt();
+                breakpointDelete(scriptUrl, line);
+            }
+        }
+    }
+}
+
+void BreakpointModule::allDelete() {
+    const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
+    for (int i = indent0->rowCount() - 1; i >= 0; --i) {
+        const auto *indent1 = indent0->child(i);
+        const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
+        breakpointsDelete(scriptUrl);
+    }
+}
+
+bool BreakpointModule::enabledGet(const QUrl &scriptUrl, const int line) {
+    return g_breakpoints[scriptUrl][line]["enabled"].toBool();
+}
+
+void BreakpointModule::enabledSet(const QUrl &scriptUrl, const int line, const bool status) {
+    g_breakpoints[scriptUrl][line]["enabled"] = status;
+    if (status) {
+        emit addMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1, -1);
+        emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_DISABLED, line - 1);
+    } else {
+        emit addMarker(scriptUrl, MARKER_BREAKPOINT_DISABLED, line - 1, -1);
+        emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+    }
+}
+
+QString BreakpointModule::conditionGet(const QUrl &scriptUrl, const int line) {
+    return g_breakpoints[scriptUrl][line]["condition"].toString();
+}
+
+void BreakpointModule::conditionSet(const QUrl &scriptUrl, const int line, const QString &condition) {
+    g_breakpoints[scriptUrl][line]["condition"] = condition;
+}
+
+// protected
+bool BreakpointModule::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_breakpointWidget) {
+        if (event->type() == QEvent::FocusOut) {
+            m_breakpointTreeView->setProperty("selectedRow", -1);
+        }
+    }
+    return DockWidget::eventFilter(watched, event);
+}

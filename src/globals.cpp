@@ -6,7 +6,7 @@ DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;
 NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;
-ScriptModule *g_script = nullptr;
+DocumentModule *g_document = nullptr;
 UndoModule *g_undo = nullptr;
 
 QUrl g_workspaceUrl = {};

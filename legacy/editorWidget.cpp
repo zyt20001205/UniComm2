@@ -1,4 +1,4 @@
-// #include "scriptModule/codeEditor/editorWidget.h"
+// #include "document/module/editorWidget.h"
 //
 // #include <QMessageBox>
 //

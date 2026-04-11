@@ -20,7 +20,7 @@
 #include <visa.h>
 
 #include "globals.h"
-#include "utils/cvUtils.h"
+#include "util/cvUtils.h"
 
 // public
 PortSetting::PortSetting(QWidget *parent)

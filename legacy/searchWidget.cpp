@@ -1,4 +1,4 @@
-// #include "scriptModule/codeEditor/searchWidget.h"
+// #include "document/module/searchWidget.h"
 //
 // #include <QLabel>
 // #include <QLineEdit>

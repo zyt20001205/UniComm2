@@ -1,11 +1,11 @@
 #include "mainWindow/mainWindow.h"
 
-#include <crashHandler.h>
+#include <core/crashHandler.h>
 #include <QQuickStyle>
 #include <QStyleFactory>
 #include <kddockwidgets/Config.h>
 
-#include "configManager.h"
+#include "core/configManager.h"
 #include "mainWindow/kddwCustom.h"
 
 int main(int argc, char *argv[]) {

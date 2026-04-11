@@ -31,26 +31,49 @@ else ()
 endif ()
 
 qt_add_executable(UniComm ${GUI_TYPE}
-        include/api/lua/data.h
-        include/api/lua/http.h
-        include/api/lua/imap.h
-        include/api/lua/io.h
-        include/api/lua/key.h
-        include/api/lua/modbusAscii.h
-        include/api/lua/modbusRtu.h
-        include/api/lua/modbusTcp.h
-        include/api/lua/mouse.h
-        include/api/lua/port.h
-        include/api/lua/smtp.h
-        include/api/lua/string.h
-        include/api/lua/thread.h
-        include/configManager.h
-        include/crashHandler.h
+        include/globals.h
+        include/analysis/codeAssistant.h
+        include/analysis/completionWidget.h
+        include/analysis/diagnosticsModule.h
+        include/analysis/dwellWidget.h
+        include/analysis/luaLanguageServer.h
+        include/analysis/navigationWidget.h
+        include/analysis/nuspellModule.h
+        include/analysis/positionWidget.h
+        include/analysis/signatureWidget.h
+        include/analysis/structureModule.h
+        include/analysis/symbolWidget.h
+        include/api/data.h
+        include/api/http.h
+        include/api/imap.h
+        include/api/io.h
+        include/api/key.h
+        include/api/modbusAscii.h
+        include/api/modbusRtu.h
+        include/api/modbusTcp.h
+        include/api/mouse.h
+        include/api/port.h
+        include/api/smtp.h
+        include/api/string.h
+        include/api/thread.h
+        include/core/configManager.h
+        include/core/crashHandler.h
+        include/core/explorerModule.h
+        include/core/fileModule.h
+        include/core/logModule.h
+        include/core/undoModule.h
         include/data/databaseModule.h
         include/data/dataplotModule.h
         include/data/datatableModule.h
-        include/globals.h
-        include/logModule.h
+        include/debug/breakpointModule.h
+        include/debug/debugModule.h
+        include/debug/watchModule.h
+        include/document/documentModule.h
+        include/document/module/replaceWidget.h
+        include/document/module/scintillaWidget.h
+        include/document/module/searchWidget.h
+        include/document/page/luaPage.h
+        include/document/page/welcomePage.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
@@ -67,59 +90,59 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/port/udpSocket.h
         include/port/videoStream.h
         include/port/visa.h
-        include/runtime/interpreter/luaInterpreter.h
-        include/scriptModule/codeAnalysis/codeAssistant.h
-        include/scriptModule/codeAnalysis/completionWidget.h
-        include/scriptModule/codeAnalysis/diagnosticsModule.h
-        include/scriptModule/codeAnalysis/dwellWidget.h
-        include/scriptModule/codeAnalysis/navigationWidget.h
-        include/scriptModule/codeAnalysis/positionWidget.h
-        include/scriptModule/codeAnalysis/signatureWidget.h
-        include/scriptModule/codeAnalysis/structureModule.h
-        include/scriptModule/codeAnalysis/symbolWidget.h
-        include/scriptModule/codeDebug/breakpointModule.h
-        include/scriptModule/codeDebug/debugModule.h
-        include/scriptModule/codeDebug/threadpoolModule.h
-        include/scriptModule/codeDebug/watchModule.h
-        include/scriptModule/codeEditor/explorerModule.h
-        include/scriptModule/codeEditor/replaceWidget.h
-        include/scriptModule/codeEditor/scintillaWidget.h
-        include/scriptModule/codeEditor/searchWidget.h
-        include/scriptModule/nuspellModule.h
-        include/scriptModule/scriptModule.h
-        include/scriptModule/scriptPage.h
-        include/scriptModule/welcomePage.h
-        include/service/server/luaLanguageServer.h
-        include/systemModule.h
-        include/undoModule.h
-        include/utils/cmarkUtils.h
-        include/utils/cvUtils.h
-        include/utils/luaUtils.h
-        include/utils/qtUtils.h
-        include/utils/ringBuffer.h
-        include/utils/suffixUtils.h
-        include/utils/uniCast.h
-        src/api/lua/data.cpp
-        src/api/lua/http.cpp
-        src/api/lua/imap.cpp
-        src/api/lua/io.cpp
-        src/api/lua/key.cpp
-        src/api/lua/modbusAscii.cpp
-        src/api/lua/modbusRtu.cpp
-        src/api/lua/modbusTcp.cpp
-        src/api/lua/mouse.cpp
-        src/api/lua/port.cpp
-        src/api/lua/smtp.cpp
-        src/api/lua/string.cpp
-        src/api/lua/thread.cpp
-        src/configManager.cpp
-        src/crashHandler.cpp
+        include/runtime/luaInterpreter.h
+        include/runtime/threadpoolModule.h
+        include/util/cmarkUtils.h
+        include/util/cvUtils.h
+        include/util/luaUtils.h
+        include/util/qtUtils.h
+        include/util/ringBuffer.h
+        include/util/suffixUtils.h
+        include/util/uniCast.h
+        src/globals.cpp
+        src/main.cpp
+        src/analysis/codeAssistant.cpp
+        src/analysis/completionWidget.cpp
+        src/analysis/diagnosticsModule.cpp
+        src/analysis/dwellWidget.cpp
+        src/analysis/luaLanguageServer.cpp
+        src/analysis/navigationWidget.cpp
+        src/analysis/nuspellModule.cpp
+        src/analysis/positionWidget.cpp
+        src/analysis/signatureWidget.cpp
+        src/analysis/structureModule.cpp
+        src/analysis/symbolWidget.cpp
+        src/api/data.cpp
+        src/api/http.cpp
+        src/api/imap.cpp
+        src/api/io.cpp
+        src/api/key.cpp
+        src/api/modbusAscii.cpp
+        src/api/modbusRtu.cpp
+        src/api/modbusTcp.cpp
+        src/api/mouse.cpp
+        src/api/port.cpp
+        src/api/smtp.cpp
+        src/api/string.cpp
+        src/api/thread.cpp
+        src/core/configManager.cpp
+        src/core/crashHandler.cpp
+        src/core/explorerModule.cpp
+        src/core/fileModule.cpp
+        src/core/logModule.cpp
+        src/core/undoModule.cpp
         src/data/databaseModule.cpp
         src/data/dataplotModule.cpp
         src/data/datatableModule.cpp
-        src/globals.cpp
-        src/logModule.cpp
-        src/main.cpp
+        src/debug/breakpointModule.cpp
+        src/debug/debugModule.cpp
+        src/debug/watchModule.cpp
+        src/document/documentModule.cpp
+        src/document/module/replaceWidget.cpp
+        src/document/module/scintillaWidget.cpp
+        src/document/module/searchWidget.cpp
+        src/document/page/luaPage.cpp
+        src/document/page/welcomePage.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp
@@ -136,65 +159,42 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/port/udpSocket.cpp
         src/port/videoStream.cpp
         src/port/visa.cpp
-        src/runtime/interpreter/luaInterpreter.cpp
-        src/scriptModule/codeAnalysis/codeAssistant.cpp
-        src/scriptModule/codeAnalysis/completionWidget.cpp
-        src/scriptModule/codeAnalysis/diagnosticsModule.cpp
-        src/scriptModule/codeAnalysis/dwellWidget.cpp
-        src/scriptModule/codeAnalysis/navigationWidget.cpp
-        src/scriptModule/codeAnalysis/positionWidget.cpp
-        src/scriptModule/codeAnalysis/signatureWidget.cpp
-        src/scriptModule/codeAnalysis/structureModule.cpp
-        src/scriptModule/codeAnalysis/symbolWidget.cpp
-        src/scriptModule/codeDebug/breakpointModule.cpp
-        src/scriptModule/codeDebug/debugModule.cpp
-        src/scriptModule/codeDebug/threadpoolModule.cpp
-        src/scriptModule/codeDebug/watchModule.cpp
-        src/scriptModule/codeEditor/explorerModule.cpp
-        src/scriptModule/codeEditor/replaceWidget.cpp
-        src/scriptModule/codeEditor/scintillaWidget.cpp
-        src/scriptModule/codeEditor/searchWidget.cpp
-        src/scriptModule/nuspellModule.cpp
-        src/scriptModule/scriptModule.cpp
-        src/scriptModule/scriptPage.cpp
-        src/scriptModule/welcomePage.cpp
-        src/service/server/luaLanguageServer.cpp
-        src/systemModule.cpp
-        src/undoModule.cpp
-        src/utils/cmarkUtils.cpp
-        src/utils/cvUtils.cpp
-        src/utils/luaUtils.cpp
-        src/utils/qtUtils.cpp
-        src/utils/ringBuffer.cpp
-        src/utils/suffixUtils.cpp
-        src/utils/uniCast.cpp
+        src/runtime/luaInterpreter.cpp
+        src/runtime/threadpoolModule.cpp
+        src/util/cmarkUtils.cpp
+        src/util/cvUtils.cpp
+        src/util/luaUtils.cpp
+        src/util/qtUtils.cpp
+        src/util/ringBuffer.cpp
+        src/util/suffixUtils.cpp
+        src/util/uniCast.cpp
 )
 
 qt_add_resources(UniComm "qml_resources"
         PREFIX "/qml"
         BASE "qml"
         FILES
+        "qml/analysis/diagnosticsModule.qml"
+        "qml/analysis/structureModule.qml"
+        "qml/analysis/symbolWidget.qml"
+        "qml/core/explorerModule.qml"
+        "qml/core/logModule.qml"
         "qml/data/databaseModule.qml"
         "qml/data/dataplotModule.qml"
         "qml/data/datatableModule.qml"
-        "qml/logModule.qml"
+        "qml/debug/breakpointModule.qml"
+        "qml/debug/debugModule.qml"
+        "qml/debug/watchModule.qml"
+        "qml/document/module/replaceWidget.qml"
+        "qml/document/module/searchWidget.qml"
+        "qml/document/page/welcomePage.qml"
         "qml/mainWindow/mainWindow.qml"
         "qml/mainWindow/menuModule.qml"
         "qml/mainWindow/statusModule.qml"
         "qml/port/portModule.qml"
         "qml/port/portSetting.qml"
         "qml/port/sendModule.qml"
-        "qml/scriptModule/codeAnalysis/diagnosticsModule.qml"
-        "qml/scriptModule/codeAnalysis/structureModule.qml"
-        "qml/scriptModule/codeAnalysis/symbolWidget.qml"
-        "qml/scriptModule/codeDebug/breakpointModule.qml"
-        "qml/scriptModule/codeDebug/debugModule.qml"
-        "qml/scriptModule/codeDebug/threadpoolModule.qml"
-        "qml/scriptModule/codeDebug/watchModule.qml"
-        "qml/scriptModule/codeEditor/explorerModule.qml"
-        "qml/scriptModule/codeEditor/replaceWidget.qml"
-        "qml/scriptModule/codeEditor/searchWidget.qml"
-        "qml/scriptModule/welcomePage.qml"
+        "qml/runtime/threadpoolModule.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"

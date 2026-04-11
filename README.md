@@ -41,7 +41,7 @@ flowchart RL
 
     subgraph UniComm
         direction LR
-        scriptModule[Script Module]
+        documentModule[Script Module]
         luaInterpreter[Lua Interpreter]
         debugModule[Debug Module]
         subgraph threadpoolModule[Threadpool Module]
@@ -68,7 +68,7 @@ flowchart RL
 %%    LuaLS e2@ -->|LSP Response| UniComm
 %%    e1@{animate: true}
 %%    e2@{animate: true}
-    scriptModule -->|run/debug signal| threadpoolModule
+    documentModule -->|run/debug signal| threadpoolModule
     luaInterpreter -->|instantiation| threadpoolModule
     debugModule <-->|debug session| threadpoolModule
     threadpoolModule <-->|port control| portModule
@@ -284,18 +284,18 @@ gantt
 ```mermaid
 flowchart LR
     luaLanguageServer[Lua Language Server 3.16.4]
-    scriptModule[Script Module]
+    documentModule[Script Module]
     subgraph scintilla[Scintilla 5.5.9]
         direction LR
-        scriptPage1[Script Page 1]
-        scriptPage2[Script Page 2]
-        scriptPage3[Script Page 3]
-        scriptPage4[...]
+        luaPage1[Script Page 1]
+        luaPage2[Script Page 2]
+        luaPage3[Script Page 3]
+        luaPage4[...]
     end
-    scriptModule e1@ -->|LSP Request| luaLanguageServer
-    scriptModule <==>|LSP Notification| luaLanguageServer
-    luaLanguageServer e2@ -->|LSP Response| scriptModule
-    scriptModule --- scintilla
+    documentModule e1@ -->|LSP Request| luaLanguageServer
+    documentModule <==>|LSP Notification| luaLanguageServer
+    luaLanguageServer e2@ -->|LSP Response| documentModule
+    documentModule --- scintilla
     e1@{animate: true}
     e2@{animate: true}
 ```

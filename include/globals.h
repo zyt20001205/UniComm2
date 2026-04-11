@@ -13,7 +13,7 @@ class DataplotModule;
 class DebugModule;
 class LogModule;
 class PortModule;
-class ScriptModule;
+class DocumentModule;
 class StructureModule;
 class ThreadpoolModule;
 class UndoModule;
@@ -24,7 +24,7 @@ extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;
-extern ScriptModule *g_script;
+extern DocumentModule *g_document;
 extern UndoModule *g_undo;
 
 extern QUrl g_workspaceUrl;

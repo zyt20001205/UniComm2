@@ -6,8 +6,8 @@
 #include <QTcpSocket>
 
 #include "globals.h"
-#include "utils/ringBuffer.h"
-#include "utils/suffixUtils.h"
+#include "util/ringBuffer.h"
+#include "util/suffixUtils.h"
 
 TcpServer::TcpServer(const QJsonObject &portConfig, QObject *parent)
     : BasePort(parent),
