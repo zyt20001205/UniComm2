@@ -15,7 +15,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void scriptFocus(const QUrl &scriptUrl, const QVariantHash &session) const;
+    void documentFocus(const QUrl &documentUrl, const QVariantHash &session) const;
 
     void selectionChange(const QHash<QString, int> &selection) const;
 

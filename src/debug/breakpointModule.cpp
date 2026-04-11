@@ -59,16 +59,16 @@ void BreakpointModule::breakpointConfigSave() {
     g_workspaceConfig["breakpointConfig"] = breakpointHash;
 }
 
-void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, const QVariantHash &session) const {
+void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line, const QVariantHash &session) const {
     // update g_breakpoints
-    g_breakpoints[scriptUrl][line] = session;
+    g_breakpoints[documentUrl][line] = session;
     // update model
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-    lineItem->setData(scriptUrl, Qt::WhatsThisRole);
+    lineItem->setData(documentUrl, Qt::WhatsThisRole);
     const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == documentUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
                 if (line < indent2->text().toInt()) {
@@ -80,21 +80,21 @@ void BreakpointModule::breakpointInsert(const QUrl &scriptUrl, const int line, c
             return;
         }
     }
-    auto *urlItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
-    urlItem->setData(scriptUrl, Qt::WhatsThisRole);
+    auto *urlItem = new QStandardItem(documentUrl.fileName()); // NOLINT
+    urlItem->setData(documentUrl, Qt::WhatsThisRole);
     urlItem->appendRow(lineItem);
     m_breakpointStandardItemModel->appendRow(urlItem);
 }
 
-void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) const {
+void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line) const {
     // update g_breakpoints
-    g_breakpoints[scriptUrl].remove(line);
-    if (g_breakpoints[scriptUrl].isEmpty()) g_breakpoints.remove(scriptUrl);
+    g_breakpoints[documentUrl].remove(line);
+    if (g_breakpoints[documentUrl].isEmpty()) g_breakpoints.remove(documentUrl);
     // update model
     const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == documentUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
                 if (line == indent2->text().toInt()) {
@@ -109,28 +109,28 @@ void BreakpointModule::breakpointRemove(const QUrl &scriptUrl, const int line) c
     }
 }
 
-void BreakpointModule::scriptOpen(const QUrl &scriptUrl) {
-    emit openScript(scriptUrl);
+void BreakpointModule::documentOpen(const QUrl &documentUrl) {
+    emit openDocument(documentUrl);
 }
 
-void BreakpointModule::markerAdd(const QUrl &scriptUrl, const int line) {
-    emit addMarker(scriptUrl, MARKER_HINT, line - 1, 1000);
+void BreakpointModule::markerAdd(const QUrl &documentUrl, const int line) {
+    emit addMarker(documentUrl, MARKER_HINT, line - 1, 1000);
 }
 
-void BreakpointModule::breakpointDelete(const QUrl &scriptUrl, const int line) {
-    breakpointRemove(scriptUrl, line);
-    emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+void BreakpointModule::breakpointDelete(const QUrl &documentUrl, const int line) {
+    breakpointRemove(documentUrl, line);
+    emit deleteMarker(documentUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
 }
 
-void BreakpointModule::breakpointsDelete(const QUrl &scriptUrl) {
+void BreakpointModule::breakpointsDelete(const QUrl &documentUrl) {
     const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::WhatsThisRole).toUrl() == scriptUrl) {
+        if (indent1->data(Qt::WhatsThisRole).toUrl() == documentUrl) {
             for (int j = indent1->rowCount() - 1; j >= 0; --j) {
                 const auto *indent2 = indent1->child(j);
                 const auto line = indent2->text().toInt();
-                breakpointDelete(scriptUrl, line);
+                breakpointDelete(documentUrl, line);
             }
         }
     }
@@ -140,32 +140,32 @@ void BreakpointModule::allDelete() {
     const auto *indent0 = m_breakpointStandardItemModel->invisibleRootItem();
     for (int i = indent0->rowCount() - 1; i >= 0; --i) {
         const auto *indent1 = indent0->child(i);
-        const auto scriptUrl = indent1->data(Qt::WhatsThisRole).toUrl();
-        breakpointsDelete(scriptUrl);
+        const auto documentUrl = indent1->data(Qt::WhatsThisRole).toUrl();
+        breakpointsDelete(documentUrl);
     }
 }
 
-bool BreakpointModule::enabledGet(const QUrl &scriptUrl, const int line) {
-    return g_breakpoints[scriptUrl][line]["enabled"].toBool();
+bool BreakpointModule::enabledGet(const QUrl &documentUrl, const int line) {
+    return g_breakpoints[documentUrl][line]["enabled"].toBool();
 }
 
-void BreakpointModule::enabledSet(const QUrl &scriptUrl, const int line, const bool status) {
-    g_breakpoints[scriptUrl][line]["enabled"] = status;
+void BreakpointModule::enabledSet(const QUrl &documentUrl, const int line, const bool status) {
+    g_breakpoints[documentUrl][line]["enabled"] = status;
     if (status) {
-        emit addMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1, -1);
-        emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_DISABLED, line - 1);
+        emit addMarker(documentUrl, MARKER_BREAKPOINT_ENABLED, line - 1, -1);
+        emit deleteMarker(documentUrl, MARKER_BREAKPOINT_DISABLED, line - 1);
     } else {
-        emit addMarker(scriptUrl, MARKER_BREAKPOINT_DISABLED, line - 1, -1);
-        emit deleteMarker(scriptUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+        emit addMarker(documentUrl, MARKER_BREAKPOINT_DISABLED, line - 1, -1);
+        emit deleteMarker(documentUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
     }
 }
 
-QString BreakpointModule::conditionGet(const QUrl &scriptUrl, const int line) {
-    return g_breakpoints[scriptUrl][line]["condition"].toString();
+QString BreakpointModule::conditionGet(const QUrl &documentUrl, const int line) {
+    return g_breakpoints[documentUrl][line]["condition"].toString();
 }
 
-void BreakpointModule::conditionSet(const QUrl &scriptUrl, const int line, const QString &condition) {
-    g_breakpoints[scriptUrl][line]["condition"] = condition;
+void BreakpointModule::conditionSet(const QUrl &documentUrl, const int line, const QString &condition) {
+    g_breakpoints[documentUrl][line]["condition"] = condition;
 }
 
 // protected

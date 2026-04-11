@@ -120,8 +120,8 @@ void LuaLanguageServer::jsonParser() {
                 const auto params = json["params"].toObject();
                 const auto diagnostics = params["diagnostics"].toArray();
                 const auto uri = params["uri"].toString();
-                const auto scriptUrl = uni_cast<QUrl>(uri);
-                emit notificationPublishDiagnostics(scriptUrl, diagnostics);
+                const auto documentUrl = uni_cast<QUrl>(uri);
+                emit notificationPublishDiagnostics(documentUrl, diagnostics);
             } else if (method == "$/hello") {
                 // hello notification
                 // qDebug() << json;
@@ -165,7 +165,7 @@ void LuaLanguageServer::jsonParser() {
             // lsp response
             const auto id = json["id"].toInt();
             const auto method = m_methods[id];
-            const auto scriptUrl = m_urls[id];
+            const auto documentUrl = m_urls[id];
             m_methods.remove(id);
             m_urls.remove(id);
             if (method == "initialize") {
@@ -180,92 +180,92 @@ void LuaLanguageServer::jsonParser() {
                 // code action response
                 // if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseCodeAction(scriptUrl, result);
+                emit responseCodeAction(documentUrl, result);
             } else if (method == "textDocument/completion") {
                 // completion response
                 if (!json["result"].isObject()) return; // null result
                 const auto result = json["result"].toObject();
                 const auto items = result["items"].toArray();
-                emit responseCompletion(scriptUrl, items);
+                emit responseCompletion(documentUrl, items);
             } else if (method == "textDocument/definition") {
                 // definition response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseDefinition(scriptUrl, result);
+                emit responseDefinition(documentUrl, result);
             } else if (method == "textDocument/documentHighlight") {
                 // document highlight response
                 // if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseDocumentHighlight(scriptUrl, result);
+                emit responseDocumentHighlight(documentUrl, result);
             } else if (method == "textDocument/documentSymbol") {
                 // document symbol response
                 // if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseDocumentSymbol(scriptUrl, result);
+                emit responseDocumentSymbol(documentUrl, result);
             } else if (method == "textDocument/foldingRange") {
                 // folding range response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseFoldingRange(scriptUrl, result);
+                emit responseFoldingRange(documentUrl, result);
             } else if (method == "textDocument/formatting") {
                 // formatting response
                 if (!json["result"].isArray()) {
-                    emit responseFormatting(scriptUrl, QString());
+                    emit responseFormatting(documentUrl, QString());
                 } else {
                     const auto result = json["result"].toArray();
                     const auto newText = result[0]["newText"].toString();
-                    emit responseFormatting(scriptUrl, newText);
+                    emit responseFormatting(documentUrl, newText);
                 }
             } else if (method == "textDocument/hover") {
                 // hover response
                 if (!json["result"].isObject()) {
                     // null result
-                    emit responseHover(scriptUrl, QString());
+                    emit responseHover(documentUrl, QString());
                 } else {
                     const auto result = json["result"].toObject();
                     const auto contents = result["contents"].toObject();
                     const auto value = contents["value"].toString();
-                    emit responseHover(scriptUrl, value);
+                    emit responseHover(documentUrl, value);
                 }
             } else if (method == "textDocument/implementation") {
                 // implementation response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseImplementation(scriptUrl, result);
+                emit responseImplementation(documentUrl, result);
             } else if (method == "textDocument/onTypeFormatting") {
                 // on type formatting response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
                 const auto newText = result[0].toObject();
-                emit responseOnTypeFormatting(scriptUrl, newText);
+                emit responseOnTypeFormatting(documentUrl, newText);
             } else if (method == "textDocument/rangeFormatting") {
                 // range formatting response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
                 const auto newText = result[0]["newText"].toString();
-                emit responseRangeFormatting(scriptUrl, newText);
+                emit responseRangeFormatting(documentUrl, newText);
             } else if (method == "textDocument/references") {
                 // references response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseReferences(scriptUrl, result);
+                emit responseReferences(documentUrl, result);
             } else if (method == "textDocument/semanticTokens/full") {
                 // semanticTokens response
                 if (!json["result"].isObject()) return; // null result
                 const auto result = json["result"].toObject();
                 const auto data = result["data"].toArray();
-                emit responseSemanticTokens(scriptUrl, data);
+                emit responseSemanticTokens(documentUrl, data);
             } else if (method == "textDocument/signatureHelp") {
                 // signatureHelp response
                 if (!json["result"].isObject()) return; // null result
                 const auto result = json["result"].toObject();
                 const auto signatures = result["signatures"].toArray();
-                emit responseSignatureHelp(scriptUrl, signatures);
+                emit responseSignatureHelp(documentUrl, signatures);
             } else if (method == "textDocument/typeDefinition") {
                 // typeDefinition response
                 if (!json["result"].isArray()) return; // null result
                 const auto result = json["result"].toArray();
-                emit responseTypeDefinition(scriptUrl, result);
+                emit responseTypeDefinition(documentUrl, result);
             } else {
                 qDebug() << "unknown lsp pack";
                 qDebug() << json;

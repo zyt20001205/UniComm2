@@ -176,7 +176,7 @@ void CompletionWidget::textReplace() {
     } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
         if (insertText == "\"Get Position\"") {
             const QVariantMap gotoSession = {
-                {"scriptUrl", m_completionSession["scriptUrl"].toUrl()},
+                {"documentUrl", m_completionSession["documentUrl"].toUrl()},
                 {"line", m_completionSession["startLine"].toInt()},
                 {"character", m_completionSession["startCharacter"].toInt()}
             };
@@ -186,7 +186,7 @@ void CompletionWidget::textReplace() {
         insertText.replace("\\", "\\\\");
     }
     emit setText(
-        m_completionSession["scriptUrl"].toUrl(),
+        m_completionSession["documentUrl"].toUrl(),
         insertText,
         m_completionSession["startLine"].toInt(),
         m_completionSession["startCharacter"].toInt(),
@@ -199,13 +199,13 @@ void CompletionWidget::textReplace() {
         cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size();
     }
     emit setIndex(
-        m_completionSession["scriptUrl"].toUrl(),
+        m_completionSession["documentUrl"].toUrl(),
         m_completionSession["startLine"].toInt(),
         cursorPosition);
     if (kind == COMPLETION_KIND_FUNCTION) {
-        emit addChar(m_completionSession["scriptUrl"].toUrl(), '(');
+        emit addChar(m_completionSession["documentUrl"].toUrl(), '(');
     } else if (kind == COMPLETION_KIND_FIELD) {
-        emit addChar(m_completionSession["scriptUrl"].toUrl(), '.');
+        emit addChar(m_completionSession["documentUrl"].toUrl(), '.');
     }
     completionHide();
 }

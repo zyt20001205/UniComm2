@@ -115,7 +115,7 @@ Item {
                     treeView.selectedRow = row
                     if (isTreeNode && hasChildren) {
                         treeView.toggleExpanded(row)
-                        breakpointModule.scriptOpen(model.whatsThis)
+                        breakpointModule.documentOpen(model.whatsThis)
                     } else {
                         breakpointModule.markerAdd(model.whatsThis, model.display)
                     }
@@ -128,11 +128,11 @@ Item {
 
                 onTapped: {
                     if (isTreeNode && hasChildren) {
-                        fileMenu.scriptUrl = model.whatsThis
+                        fileMenu.documentUrl = model.whatsThis
                         fileMenu.treeView = treeView
                         fileMenu.popup()
                     } else {
-                        lineMenu.scriptUrl = model.whatsThis
+                        lineMenu.documentUrl = model.whatsThis
                         lineMenu.line = model.display
                         lineMenu.treeView = treeView
                         lineMenu.popup()

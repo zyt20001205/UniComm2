@@ -84,7 +84,7 @@ Item {
 
             onClicked: {
                 eolModeMenu.eolModeButton = eolModeButton
-                eolModeMenu.scriptUrl = scriptUrl
+                eolModeMenu.documentUrl = documentUrl
                 const globalPos = eolModeButton.mapToGlobal(0, -eolModeMenu.height);
                 const localPos = eolModeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
                 eolModeMenu.popup(localPos.x, localPos.y)
@@ -139,7 +139,7 @@ Item {
         statusModule.propertyGet(objects)
     }
 
-    function scriptPathLoad(pathList) {
+    function documentPathLoad(pathList) {
         pathBreadcrumb.children = [];
         for (const path of pathList) {
             const item = breadcrumbComponent.createObject(pathBreadcrumb, {

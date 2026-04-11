@@ -40,7 +40,7 @@ void PositionWidget::positionHide() const {
 
 void PositionWidget::textReplace() {
     emit setText(
-        m_positionSession["scriptUrl"].toUrl(),
+        m_positionSession["documentUrl"].toUrl(),
         m_tooltip->property("text").toString(),
         m_positionSession["line"].toInt(),
         m_positionSession["character"].toInt(),

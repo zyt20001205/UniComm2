@@ -21,9 +21,9 @@ public:
 
     void quit();
 
-    void threadStart(const QUrl &scriptUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    void threadStart(const QUrl &documentUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
-    Q_INVOKABLE void threadStart(const QUrl &scriptUrl, int mode, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    Q_INVOKABLE void threadStart(const QUrl &documentUrl, int mode, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
     void threadStart(const QString &scriptPath, int mode, QString &threadId);
 
@@ -35,18 +35,18 @@ public:
 
     void stateSet(const QString &threadId, int state);
 
-    Q_INVOKABLE void valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
+    Q_INVOKABLE void valueSet(const QString &threadId, const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
 
 signals:
     void trackQuit(float secondaryProgress, const QString &secondaryLog) const;
 
     void refreshThread(int run, int debug);
 
-    void openScript(const QUrl &scriptUrl);
+    void openDocument(const QUrl &documentUrl);
 
-    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &documentUrl, int type, int line, int time);
 
-    void deleteMarker(const QUrl &scriptUrl, int type, int line);
+    void deleteMarker(const QUrl &documentUrl, int type, int line);
 
     void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 

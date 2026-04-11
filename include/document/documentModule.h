@@ -30,7 +30,7 @@ public:
         return m_welcomePage;
     }
 
-    void scriptConfigSave();
+    void documentConfigSave();
 
     void scriptFontReload(const QJsonObject &fontConfigScript) const;
 
@@ -44,143 +44,143 @@ public:
 
     void scriptMarkerSave(const QJsonObject &markerConfigScript);
 
-    void scriptOpen(const QUrl &scriptUrl);
+    void documentOpen(const QUrl &documentUrl);
 
     Q_INVOKABLE [[nodiscard]] QVariantHash menuGet(const QString &name);
 
     Q_INVOKABLE void menuRequest(const QString &request);
 
-    Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &scriptUrl) const;
+    Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &documentUrl) const;
 
-    Q_INVOKABLE void eolModeSet(const QUrl &scriptUrl, int eolMode) const;
+    Q_INVOKABLE void eolModeSet(const QUrl &documentUrl, int eolMode) const;
 
-    Q_INVOKABLE [[nodiscard]] bool eolViewGet(const QUrl &scriptUrl);
+    Q_INVOKABLE [[nodiscard]] bool eolViewGet(const QUrl &documentUrl);
 
-    Q_INVOKABLE void eolViewSet(const QUrl &scriptUrl, bool status) const;
+    Q_INVOKABLE void eolViewSet(const QUrl &documentUrl, bool status) const;
 
-    Q_INVOKABLE void foldContractTop(const QUrl &scriptUrl);
+    Q_INVOKABLE void foldContractTop(const QUrl &documentUrl);
 
-    Q_INVOKABLE void foldContractRecursively(const QUrl &scriptUrl);
+    Q_INVOKABLE void foldContractRecursively(const QUrl &documentUrl);
 
-    Q_INVOKABLE void foldExpandRecursively(const QUrl &scriptUrl);
+    Q_INVOKABLE void foldExpandRecursively(const QUrl &documentUrl);
 
-    Q_INVOKABLE void assemblyToggle(const QUrl &scriptUrl, bool status);
+    Q_INVOKABLE void assemblyToggle(const QUrl &documentUrl, bool status);
 
-    void focusSet(const QUrl &scriptUrl, bool status);
+    void focusSet(const QUrl &documentUrl, bool status);
 
-    void indexSet(const QUrl &scriptUrl, int line, int character);
+    void indexSet(const QUrl &documentUrl, int line, int character);
 
     void indexGet() const;
 
-    [[nodiscard]] QString textGet(const QUrl &scriptUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
-    void indicatorFill(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1);
+    void indicatorFill(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1);
 
-    void indicatorClear(const QUrl &scriptUrl, int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    void indicatorClear(const QUrl &documentUrl, int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
-    void markerAdd(const QUrl &scriptUrl, int type, int line, int time = -1);
+    void markerAdd(const QUrl &documentUrl, int type, int line, int time = -1);
 
-    void markerDelete(const QUrl &scriptUrl, int type, int line = -1);
+    void markerDelete(const QUrl &documentUrl, int type, int line = -1);
 
-    void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
+    void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
-    void codeActionRequest(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    void codeActionRequest(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    Q_INVOKABLE void completionRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void completionRequest(const QUrl &documentUrl, int line, int character);
 
-    void completionResponse(const QUrl &scriptUrl, const QJsonArray &items) const;
+    void completionResponse(const QUrl &documentUrl, const QJsonArray &items) const;
 
-    Q_INVOKABLE void definitionRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void definitionRequest(const QUrl &documentUrl, int line, int character);
 
-    void definitionResponse(const QUrl &scriptUrl, const QJsonArray &definitions) const;
+    void definitionResponse(const QUrl &documentUrl, const QJsonArray &definitions) const;
 
-    void documentSymbolRequest(const QUrl &scriptUrl);
+    void documentSymbolRequest(const QUrl &documentUrl);
 
-    void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
+    void documentSymbolResponse(const QUrl &documentUrl, const QJsonArray &result);
 
-    void documentHighlightRequest(const QUrl &scriptUrl, int line, int character);
+    void documentHighlightRequest(const QUrl &documentUrl, int line, int character);
 
-    void documentHighlightResponse(const QUrl &scriptUrl, const QJsonArray &result);
+    void documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result);
 
-    void foldingRangeRequest(const QUrl &scriptUrl);
+    void foldingRangeRequest(const QUrl &documentUrl);
 
-    void foldingRangeResponse(const QUrl &scriptUrl, const QJsonArray &result) const;
+    void foldingRangeResponse(const QUrl &documentUrl, const QJsonArray &result) const;
 
-    Q_INVOKABLE void formattingRequest(const QUrl &scriptUrl);
+    Q_INVOKABLE void formattingRequest(const QUrl &documentUrl);
 
-    void formattingResponse(const QUrl &scriptUrl, const QString &newText) const;
+    void formattingResponse(const QUrl &documentUrl, const QString &newText) const;
 
-    void hoverRequest(const QUrl &scriptUrl, int line, int character);
+    void hoverRequest(const QUrl &documentUrl, int line, int character);
 
-    void hoverResponse(const QUrl &scriptUrl, const QString &message) const;
+    void hoverResponse(const QUrl &documentUrl, const QString &message) const;
 
-    Q_INVOKABLE void implementationRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void implementationRequest(const QUrl &documentUrl, int line, int character);
 
-    void implementationResponse(const QUrl &scriptUrl, const QJsonArray &implementations) const;
+    void implementationResponse(const QUrl &documentUrl, const QJsonArray &implementations) const;
 
-    void onTypeFormattingRequest(const QUrl &scriptUrl, int line, int character);
+    void onTypeFormattingRequest(const QUrl &documentUrl, int line, int character);
 
-    void onTypeFormattingResponse(const QUrl &scriptUrl, const QJsonObject &newText) const;
+    void onTypeFormattingResponse(const QUrl &documentUrl, const QJsonObject &newText) const;
 
-    Q_INVOKABLE void rangeFormattingRequest(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    Q_INVOKABLE void rangeFormattingRequest(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void rangeFormattingResponse(const QUrl &scriptUrl, const QString &newText) const;
+    void rangeFormattingResponse(const QUrl &documentUrl, const QString &newText) const;
 
-    Q_INVOKABLE void referencesRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void referencesRequest(const QUrl &documentUrl, int line, int character);
 
-    void referencesResponse(const QUrl &scriptUrl, const QJsonArray &references) const;
+    void referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const;
 
-    void semanticTokensRequest(const QUrl &scriptUrl);
+    void semanticTokensRequest(const QUrl &documentUrl);
 
-    void semanticTokensResponse(const QUrl &scriptUrl, const QJsonArray &data) const;
+    void semanticTokensResponse(const QUrl &documentUrl, const QJsonArray &data) const;
 
-    void signatureHelpRequest(const QUrl &scriptUrl, int line, int character);
+    void signatureHelpRequest(const QUrl &documentUrl, int line, int character);
 
-    void signatureHelpResponse(const QUrl &scriptUrl, const QJsonArray &signatures) const;
+    void signatureHelpResponse(const QUrl &documentUrl, const QJsonArray &signatures) const;
 
-    Q_INVOKABLE void typeDefinitionRequest(const QUrl &scriptUrl, int line, int character);
+    Q_INVOKABLE void typeDefinitionRequest(const QUrl &documentUrl, int line, int character);
 
-    void typeDefinitionResponse(const QUrl &scriptUrl, const QJsonArray &typeDefinitions) const;
+    void typeDefinitionResponse(const QUrl &documentUrl, const QJsonArray &typeDefinitions) const;
 
-    void spellCheckResponse(const QUrl &scriptUrl, const QVariantList &typos);
+    void spellCheckResponse(const QUrl &documentUrl, const QVariantList &typos);
 
 signals:
     void appendLog(const QString &message, int type);
 
     void openWorkspace();
 
-    void startThread(const QUrl &scriptUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
+    void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void focusScript(const QUrl &scriptUrl, const QVariantHash &session);
+    void focusDocument(const QUrl &documentUrl, const QVariantHash &session);
 
     void changeSelection(const QHash<QString, int> &selection);
 
-    void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
+    void insertBreakpoint(const QUrl &documentUrl, int line, const QVariantHash &session);
 
-    void removeBreakpoint(const QUrl &scriptUrl, int line);
+    void removeBreakpoint(const QUrl &documentUrl, int line);
 
     void requestJson(const QString &method, const QJsonObject &params);
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
-    void responseCodeAction(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseCodeAction(const QUrl &documentUrl, const QJsonArray &result);
 
-    void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
+    void requestSpellCheck(const QUrl &documentUrl, const QString &script);
 
-    void requestSpellSuggest(const QUrl &scriptUrl, const QString &word);
+    void requestSpellSuggest(const QUrl &documentUrl, const QString &word);
 
 private:
-    void scriptFocus(const LuaPage *luaPage, bool status);
+    void documentFocus(const LuaPage *luaPage, bool status);
 
-    void scriptClose(const QUrl &scriptUrl);
+    void documentClose(const QUrl &documentUrl);
 
-    void charAdd(const QUrl &scriptUrl, QChar character) const;
+    void charAdd(const QUrl &documentUrl, QChar character) const;
 
-    void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
+    void textSet(const QUrl &documentUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void textSetSelected(const QUrl &scriptUrl, const QString &text);
+    void textSetSelected(const QUrl &documentUrl, const QString &text);
 
-    QJsonObject m_scriptConfig{};
+    QJsonObject m_documentConfig{};
     QObject *m_messageDialog{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
@@ -188,7 +188,7 @@ private:
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
     QUrl m_focusedPage{};
-    QHash<QUrl, LuaPage *> m_luaPageHash{};
+    QHash<QUrl, LuaPage *> m_pageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};
 };

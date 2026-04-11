@@ -278,7 +278,7 @@ Item {
         modal: true
         title: qsTr("Breakpoint Setting")
         standardButtons: Dialog.Ok
-        property url scriptUrl
+        property url documentUrl
         property int line
 
         onOpened: {
@@ -287,21 +287,21 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            breakpointModuleEnabledCheckBox.checkState = breakpointModule.enabledGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line) ? Qt.Checked : Qt.Unchecked
-            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line)
+            breakpointModuleEnabledCheckBox.checkState = breakpointModule.enabledGet(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line) ? Qt.Checked : Qt.Unchecked
+            breakpointModuleConditionTextField.text = breakpointModule.conditionGet(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line)
             breakpointModuleConditionTextField.forceActiveFocus()
             breakpointModuleConditionTextField.selectAll()
         }
         onAccepted: {
-            breakpointModule.enabledSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleEnabledCheckBox.checked)
-            breakpointModule.conditionSet(breakpointModuleEditDialog.scriptUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
+            breakpointModule.enabledSet(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line, breakpointModuleEnabledCheckBox.checked)
+            breakpointModule.conditionSet(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
         }
 
         ColumnLayout {
             width: parent.width
 
             Label {
-                text: breakpointModuleEditDialog.scriptUrl + ":" + breakpointModuleEditDialog.line
+                text: breakpointModuleEditDialog.documentUrl + ":" + breakpointModuleEditDialog.line
                 horizontalAlignment: Text.AlignLeft
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
@@ -325,7 +325,7 @@ Item {
 
     Menu {
         id: breakpointModuleLineMenu
-        property url scriptUrl
+        property url documentUrl
         property int line
         property var treeView
 
@@ -340,7 +340,7 @@ Item {
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.markerAdd(breakpointModuleLineMenu.scriptUrl, breakpointModuleLineMenu.line)
+            onTriggered: breakpointModule.markerAdd(breakpointModuleLineMenu.documentUrl, breakpointModuleLineMenu.line)
         }
 
         MenuItem {
@@ -349,7 +349,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                breakpointModuleEditDialog.scriptUrl = breakpointModuleLineMenu.scriptUrl
+                breakpointModuleEditDialog.documentUrl = breakpointModuleLineMenu.documentUrl
                 breakpointModuleEditDialog.line = breakpointModuleLineMenu.line
                 breakpointModuleEditDialog.open()
             }
@@ -360,7 +360,7 @@ Item {
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.scriptUrl, breakpointModuleLineMenu.line)
+            onTriggered: breakpointModule.breakpointDelete(breakpointModuleLineMenu.documentUrl, breakpointModuleLineMenu.line)
         }
 
         MenuSeparator {
@@ -391,7 +391,7 @@ Item {
 
     Menu {
         id: breakpointModuleFileMenu
-        property url scriptUrl
+        property url documentUrl
         property var treeView
 
         onOpened: {
@@ -410,7 +410,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    breakpointModule.breakpointsDelete(breakpointModuleFileMenu.scriptUrl)
+                    breakpointModule.breakpointsDelete(breakpointModuleFileMenu.documentUrl)
                     progress = 0
                     breakpointModuleFileMenu.close()
                 }
@@ -887,9 +887,9 @@ Item {
 
             onTriggered: {
                 if (documentModuleEditorMenu.menuSession.text) {
-                    threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.scriptUrl, 0, documentModuleEditorMenu.menuSession.startLine, documentModuleEditorMenu.menuSession.startCharacter, documentModuleEditorMenu.menuSession.endLine, documentModuleEditorMenu.menuSession.endCharacter)
+                    threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.documentUrl, 0, documentModuleEditorMenu.menuSession.startLine, documentModuleEditorMenu.menuSession.startCharacter, documentModuleEditorMenu.menuSession.endLine, documentModuleEditorMenu.menuSession.endCharacter)
                 } else {
-                    threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.scriptUrl, 0)
+                    threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.documentUrl, 0)
                 }
             }
         }
@@ -899,7 +899,7 @@ Item {
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.scriptUrl, 1)
+            onTriggered: threadpoolModule.threadStart(documentModuleEditorMenu.menuSession.documentUrl, 1)
         }
 
         MenuSeparator {
@@ -915,7 +915,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: documentModule.foldContractTop(documentModuleEditorMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldContractTop(documentModuleEditorMenu.menuSession.documentUrl)
             }
 
             MenuItem {
@@ -923,7 +923,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: documentModule.foldContractRecursively(documentModuleEditorMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldContractRecursively(documentModuleEditorMenu.menuSession.documentUrl)
             }
 
             MenuItem {
@@ -931,7 +931,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: documentModule.foldExpandRecursively(documentModuleEditorMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldExpandRecursively(documentModuleEditorMenu.menuSession.documentUrl)
             }
         }
 
@@ -942,9 +942,9 @@ Item {
 
             onTriggered: {
                 if (documentModuleEditorMenu.menuSession.text) {
-                    documentModule.rangeFormattingRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.startLine, documentModuleEditorMenu.menuSession.startCharacter, documentModuleEditorMenu.menuSession.endLine, documentModuleEditorMenu.menuSession.endCharacter)
+                    documentModule.rangeFormattingRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.startLine, documentModuleEditorMenu.menuSession.startCharacter, documentModuleEditorMenu.menuSession.endLine, documentModuleEditorMenu.menuSession.endCharacter)
                 } else {
-                    documentModule.formattingRequest(documentModuleEditorMenu.menuSession.scriptUrl)
+                    documentModule.formattingRequest(documentModuleEditorMenu.menuSession.documentUrl)
                 }
             }
         }
@@ -960,7 +960,7 @@ Item {
                 icon.source: "qrc:/icon/definition.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: documentModule.definitionRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+                onTriggered: documentModule.definitionRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
@@ -968,7 +968,7 @@ Item {
                 icon.source: "qrc:/icon/reference.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: documentModule.referencesRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+                onTriggered: documentModule.referencesRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
@@ -976,7 +976,7 @@ Item {
                 icon.source: "qrc:/icon/implementation.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: documentModule.implementationRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+                onTriggered: documentModule.implementationRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
@@ -984,7 +984,7 @@ Item {
                 icon.source: "qrc:/icon/typeDefinition.svg"
                 icon.width: 8; icon.height: 8
 
-                onTriggered: documentModule.typeDefinitionRequest(documentModuleEditorMenu.menuSession.scriptUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
+                onTriggered: documentModule.typeDefinitionRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
         }
 
@@ -1001,7 +1001,7 @@ Item {
 
             onTriggered: {
                 watchModuleExpressionDialog.watchIndex = -1
-                watchModuleExpressionDialog.watchUrl = documentModuleEditorMenu.menuSession.scriptUrl
+                watchModuleExpressionDialog.watchUrl = documentModuleEditorMenu.menuSession.documentUrl
                 watchModuleExpressionDialog.watchExpression = documentModuleEditorMenu.menuSession.text
                 watchModuleExpressionDialog.open()
             }
@@ -1024,7 +1024,7 @@ Item {
             icon.source: "qrc:/icon/assembly.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: documentModule.assemblyToggle(documentModuleEditorMenu.menuSession.scriptUrl, !documentModuleEditorMenu.menuSession.assembly)
+            onTriggered: documentModule.assemblyToggle(documentModuleEditorMenu.menuSession.documentUrl, !documentModuleEditorMenu.menuSession.assembly)
         }
 
         MenuSeparator {
@@ -1040,7 +1040,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: fileModule.fileOpenInExplorer(documentModuleEditorMenu.menuSession.scriptUrl)
+                onTriggered: fileModule.fileOpenInExplorer(documentModuleEditorMenu.menuSession.documentUrl)
             }
 
             MenuItem {
@@ -1048,7 +1048,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: fileModule.fileOpenInApplication(documentModuleEditorMenu.menuSession.scriptUrl)
+                onTriggered: fileModule.fileOpenInApplication(documentModuleEditorMenu.menuSession.documentUrl)
             }
         }
 
@@ -1058,7 +1058,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                fileModulePropertyDialog.fileUrl = documentModuleEditorMenu.menuSession.scriptUrl
+                fileModulePropertyDialog.fileUrl = documentModuleEditorMenu.menuSession.documentUrl
                 fileModulePropertyDialog.open()
             }
         }
@@ -1706,12 +1706,12 @@ Item {
     
     // explorer module
     Dialog {
-        id: explorerModuleScriptNewDialog
+        id: explorerModuleFileNewDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: 600
         modal: true
-        title: qsTr("New Script")
+        title: qsTr("New File")
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string filePath
 
@@ -1722,18 +1722,18 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            explorerModuleScriptNameTextField.clear()
-            explorerModuleScriptNameTextField.forceActiveFocus()
+            explorerModuleFileNameTextField.clear()
+            explorerModuleFileNameTextField.forceActiveFocus()
         }
-        onAccepted: fileModule.fileNew("file:///" + explorerModuleScriptNewDialog.filePath + "/" + explorerModuleScriptNameTextField.text + ".lua")
+        onAccepted: fileModule.fileNew("file:///" + explorerModuleFileNewDialog.filePath + "/" + explorerModuleFileNameTextField.text)
 
         TextField {
-            id: explorerModuleScriptNameTextField
+            id: explorerModuleFileNameTextField
             width: parent.width
-            placeholderText: qsTr("Enter script name:")
+            placeholderText: qsTr("Enter file name:")
 
-            onAccepted: explorerModuleScriptNewDialog.accept()
-            Keys.onEscapePressed: explorerModuleScriptNewDialog.reject()
+            onAccepted: explorerModuleFileNewDialog.accept()
+            Keys.onEscapePressed: explorerModuleFileNewDialog.reject()
         }
     }
 
@@ -1769,7 +1769,7 @@ Item {
     }
 
     Menu {
-        id: explorerModuleScriptMenu
+        id: explorerModuleFileMenu
         property string filePath
         property string fileName
         property var treeView
@@ -1785,7 +1785,7 @@ Item {
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: explorerModule.scriptRun(explorerModuleScriptMenu.filePath)
+            onTriggered: explorerModule.scriptRun(explorerModuleFileMenu.filePath)
         }
 
         MenuItem {
@@ -1793,7 +1793,7 @@ Item {
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: explorerModule.scriptDebug(explorerModuleScriptMenu.filePath)
+            onTriggered: explorerModule.scriptDebug(explorerModuleFileMenu.filePath)
         }
 
         MenuSeparator {
@@ -1809,7 +1809,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleFileMenu.filePath)
             }
 
             MenuItem {
@@ -1817,7 +1817,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: fileModule.fileOpenInApplication("file:///" + explorerModuleScriptMenu.filePath)
+                onTriggered: fileModule.fileOpenInApplication("file:///" + explorerModuleFileMenu.filePath)
             }
         }
 
@@ -1827,7 +1827,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleScriptMenu.filePath
+                fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleFileMenu.filePath
                 fileModulePropertyDialog.open()
             }
         }
@@ -1842,9 +1842,9 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    fileModule.fileDelete("file:///" + explorerModuleScriptMenu.filePath)
+                    fileModule.fileDelete("file:///" + explorerModuleFileMenu.filePath)
                     progress = 0
-                    explorerModuleScriptMenu.close()
+                    explorerModuleFileMenu.close()
                 }
             }
         }
@@ -1863,8 +1863,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    for (let i = 0; i < explorerModuleScriptMenu.treeView.rows; ++i) {
-                        explorerModuleScriptMenu.treeView.collapseRecursively(i)
+                    for (let i = 0; i < explorerModuleFileMenu.treeView.rows; ++i) {
+                        explorerModuleFileMenu.treeView.collapseRecursively(i)
                     }
                 }
             }
@@ -1875,8 +1875,8 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    for (let i = 0; i < explorerModuleScriptMenu.treeView.rows; ++i) {
-                        explorerModuleScriptMenu.treeView.expandRecursively(i)
+                    for (let i = 0; i < explorerModuleFileMenu.treeView.rows; ++i) {
+                        explorerModuleFileMenu.treeView.expandRecursively(i)
                     }
                 }
             }
@@ -1909,13 +1909,13 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("Script")
+                text: qsTr("File")
                 icon.source: "qrc:/icon/document.svg"
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleScriptNewDialog.filePath = explorerModuleFolderMenu.filePath
-                    explorerModuleScriptNewDialog.open()
+                    explorerModuleFileNewDialog.filePath = explorerModuleFolderMenu.filePath
+                    explorerModuleFileNewDialog.open()
                 }
             }
 
@@ -2018,13 +2018,13 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("Script")
+                text: qsTr("File")
                 icon.source: "qrc:/icon/document.svg"
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleScriptNewDialog.filePath = explorerModuleRootMenu.rootPath
-                    explorerModuleScriptNewDialog.open()
+                    explorerModuleFileNewDialog.filePath = explorerModuleRootMenu.rootPath
+                    explorerModuleFileNewDialog.open()
                 }
             }
 
@@ -2824,7 +2824,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.completionRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.line, menuModuleCodeMenu.menuSession.character)
+            onTriggered: documentModule.completionRequest(menuModuleCodeMenu.menuSession.documentUrl, menuModuleCodeMenu.menuSession.line, menuModuleCodeMenu.menuSession.character)
         }
 
         MenuItem {
@@ -2863,9 +2863,9 @@ Item {
 
             onTriggered: {
                 if (menuModuleCodeMenu.menuSession.text) {
-                    documentModule.rangeFormattingRequest(menuModuleCodeMenu.menuSession.scriptUrl, menuModuleCodeMenu.menuSession.startLine, menuModuleCodeMenu.menuSession.startCharacter, menuModuleCodeMenu.menuSession.endLine, menuModuleCodeMenu.menuSession.endCharacter)
+                    documentModule.rangeFormattingRequest(menuModuleCodeMenu.menuSession.documentUrl, menuModuleCodeMenu.menuSession.startLine, menuModuleCodeMenu.menuSession.startCharacter, menuModuleCodeMenu.menuSession.endLine, menuModuleCodeMenu.menuSession.endCharacter)
                 } else {
-                    documentModule.formattingRequest(menuModuleCodeMenu.menuSession.scriptUrl)
+                    documentModule.formattingRequest(menuModuleCodeMenu.menuSession.documentUrl)
                 }
             }
         }
@@ -2880,7 +2880,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: documentModule.foldContractTop(menuModuleCodeMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldContractTop(menuModuleCodeMenu.menuSession.documentUrl)
             }
 
             MenuItem {
@@ -2888,7 +2888,7 @@ Item {
                 icon.source: "qrc:/icon/collapse.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: documentModule.foldContractRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldContractRecursively(menuModuleCodeMenu.menuSession.documentUrl)
             }
 
             MenuItem {
@@ -2896,7 +2896,7 @@ Item {
                 icon.source: "qrc:/icon/expand.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: documentModule.foldExpandRecursively(menuModuleCodeMenu.menuSession.scriptUrl)
+                onTriggered: documentModule.foldExpandRecursively(menuModuleCodeMenu.menuSession.documentUrl)
             }
         }
     }
@@ -2927,7 +2927,7 @@ Item {
                 }
 
                 Label {
-                    text: qsTr("Run ") + (menuModuleExecMenu.menuSession.text ? "Selected" : menuModuleExecMenu.menuSession.scriptName)
+                    text: qsTr("Run ") + (menuModuleExecMenu.menuSession.text ? "Selected" : menuModuleExecMenu.menuSession.documentName)
                 }
 
                 Item {
@@ -2949,9 +2949,9 @@ Item {
 
             onTriggered: {
                 if (menuModuleExecMenu.menuSession.text) {
-                    threadpoolModule.threadStart(menuModuleExecMenu.menuSession.scriptUrl, 0, menuModuleExecMenu.menuSession.startLine, menuModuleExecMenu.menuSession.startCharacter, menuModuleExecMenu.menuSession.endLine, menuModuleExecMenu.menuSession.endCharacter)
+                    threadpoolModule.threadStart(menuModuleExecMenu.menuSession.documentUrl, 0, menuModuleExecMenu.menuSession.startLine, menuModuleExecMenu.menuSession.startCharacter, menuModuleExecMenu.menuSession.endLine, menuModuleExecMenu.menuSession.endCharacter)
                 } else {
-                    threadpoolModule.threadStart(menuModuleExecMenu.menuSession.scriptUrl, 0)
+                    threadpoolModule.threadStart(menuModuleExecMenu.menuSession.documentUrl, 0)
                 }
             }
         }
@@ -2970,7 +2970,7 @@ Item {
                 }
 
                 Label {
-                    text: qsTr("Debug ") + menuModuleExecMenu.menuSession.scriptName
+                    text: qsTr("Debug ") + menuModuleExecMenu.menuSession.documentName
                 }
 
                 Item {
@@ -2990,7 +2990,7 @@ Item {
                 }
             }
 
-            onTriggered: threadpoolModule.threadStart(menuModuleExecMenu.menuSession.scriptUrl, 1)
+            onTriggered: threadpoolModule.threadStart(menuModuleExecMenu.menuSession.documentUrl, 1)
         }
     }
 
@@ -3061,7 +3061,7 @@ Item {
     Menu {
         id: statusModuleEolModeMenu
         property var eolModeButton
-        property url scriptUrl
+        property url documentUrl
         property int eolMode
 
         onOpened: {
@@ -3070,15 +3070,15 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            statusModuleEolModeMenu.eolMode = documentModule.eolModeGet(scriptUrl)
-            statusModuleEolModeViewItem.checked = documentModule.eolViewGet(scriptUrl)
+            statusModuleEolModeMenu.eolMode = documentModule.eolModeGet(documentUrl)
+            statusModuleEolModeViewItem.checked = documentModule.eolViewGet(documentUrl)
         }
 
         MenuItem {
             text: "CRLF"
             enabled: statusModuleEolModeMenu.eolMode !== 0
             onTriggered: {
-                documentModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 0)
+                documentModule.eolModeSet(statusModuleEolModeMenu.documentUrl, 0)
                 statusModuleEolModeMenu.eolModeButton.text = "CRLF"
             }
         }
@@ -3087,7 +3087,7 @@ Item {
             text: "CR"
             enabled: statusModuleEolModeMenu.eolMode !== 1
             onTriggered: {
-                documentModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 1)
+                documentModule.eolModeSet(statusModuleEolModeMenu.documentUrl, 1)
                 statusModuleEolModeMenu.eolModeButton.text = "CR"
             }
         }
@@ -3096,7 +3096,7 @@ Item {
             text: "LF"
             enabled: statusModuleEolModeMenu.eolMode !== 2
             onTriggered: {
-                documentModule.eolModeSet(statusModuleEolModeMenu.scriptUrl, 2)
+                documentModule.eolModeSet(statusModuleEolModeMenu.documentUrl, 2)
                 statusModuleEolModeMenu.eolModeButton.text = "LF"
             }
         }
@@ -3109,7 +3109,7 @@ Item {
             checkable: true
             text: qsTr("View EOL")
 
-            onTriggered: documentModule.eolViewSet(statusModuleEolModeMenu.scriptUrl, statusModuleEolModeViewItem.checked)
+            onTriggered: documentModule.eolViewSet(statusModuleEolModeMenu.documentUrl, statusModuleEolModeViewItem.checked)
         }
     }
 
@@ -3497,7 +3497,7 @@ Item {
             "documentModuleSignatureToolTip": documentModuleSignatureToolTip,
             "documentModuleSignatureLabel": documentModuleSignatureLabel,
             
-            "explorerModuleScriptMenu": explorerModuleScriptMenu,
+            "explorerModuleFileMenu": explorerModuleFileMenu,
             "explorerModuleFolderMenu": explorerModuleFolderMenu,
             "explorerModuleRootMenu": explorerModuleRootMenu,
 

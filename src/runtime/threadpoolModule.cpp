@@ -65,23 +65,23 @@ void ThreadpoolModule::quit() {
     }
 }
 
-void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
     // preload thread with lua session
     QVariantMap luaSession{};
     luaSession.insert("mode", mode);
     luaSession.insert("workspaceUrl", g_workspaceUrl);
-    luaSession.insert("scriptUrl", scriptUrl);
+    luaSession.insert("documentUrl", documentUrl);
     luaSession.insert("threadId", threadId);
     if (mode == THREAD_DEBUG) {
-        luaSession.insert("currentUrl", scriptUrl);
+        luaSession.insert("currentUrl", documentUrl);
         luaSession.insert("state", DEBUG_RESUME);
         luaSession.insert("baseDepth", 0);
         luaSession.insert("currentDepth", 0);
     }
     auto *interpreter = new LuaInterpreter(luaSession); // NOLINT
-    connect(interpreter, &LuaInterpreter::openScript, this, &ThreadpoolModule::openScript);
+    connect(interpreter, &LuaInterpreter::openDocument, this, &ThreadpoolModule::openDocument);
     connect(interpreter, &LuaInterpreter::addMarker, this, &ThreadpoolModule::addMarker);
     connect(interpreter, &LuaInterpreter::deleteMarker, this, &ThreadpoolModule::deleteMarker);
     connect(interpreter, &LuaInterpreter::insertCallStack, this, &ThreadpoolModule::insertCallStack);
@@ -93,7 +93,7 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     // load thread with script
-    const QString script = g_document->textGet(scriptUrl, startLine, startCharacter, endLine, endCharacter);
+    const QString script = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
     connect(worker, &QThread::started, [interpreter, script] {
         interpreter->start(script);
         QThread::currentThread()->quit();
@@ -104,21 +104,21 @@ void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, QStrin
     m_interpreterHash.insert(threadId, interpreter);
     connect(worker, &QThread::finished, this, [this, threadId] { m_threadHash.remove(threadId); });
     connect(worker, &QThread::finished, this, [this, threadId] { m_interpreterHash.remove(threadId); });
-    threadAppend(mode, scriptUrl.fileName(), threadId);
+    threadAppend(mode, documentUrl.fileName(), threadId);
     if (mode == THREAD_DEBUG) {
         emit startDebug(threadId);
         connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
     }
 }
 
-void ThreadpoolModule::threadStart(const QUrl &scriptUrl, const int mode, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     QString threadId{};
-    threadStart(scriptUrl, mode, threadId, startLine, startCharacter, endLine, endCharacter);
+    threadStart(documentUrl, mode, threadId, startLine, startCharacter, endLine, endCharacter);
 }
 
-void ThreadpoolModule::threadStart(const QString &scriptPath, const int mode, QString &threadId) {
-    const auto scriptUrl = QUrl::fromLocalFile(scriptPath);
-    threadStart(scriptUrl, mode, threadId);
+void ThreadpoolModule::threadStart(const QString &documentPath, const int mode, QString &threadId) {
+    const auto documentUrl = QUrl::fromLocalFile(documentPath);
+    threadStart(documentUrl, mode, threadId);
 }
 
 void ThreadpoolModule::threadStop(const QString &threadId) {
@@ -162,11 +162,11 @@ void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
     }
 }
 
-void ThreadpoolModule::valueSet(const QString &threadId, const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+void ThreadpoolModule::valueSet(const QString &threadId, const QString &documentUrl, const QString &expression, const QString &value, const QString &type) {
     if (m_interpreterHash.contains(threadId)) {
         auto *interpreter = m_interpreterHash[threadId];
-        QMetaObject::invokeMethod(interpreter, [interpreter, scriptUrl, expression, value, type] {
-            interpreter->valueSet(scriptUrl, expression, value, type);
+        QMetaObject::invokeMethod(interpreter, [interpreter, documentUrl, expression, value, type] {
+            interpreter->valueSet(documentUrl, expression, value, type);
         }, Qt::BlockingQueuedConnection);
     }
 }

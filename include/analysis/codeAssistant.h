@@ -29,7 +29,7 @@ public:
 
     void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
-    void codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const;
+    void codeActionShow(const QUrl &documentUrl, const QJsonArray &result) const;
 
     void dwellHide() const;
 
@@ -44,19 +44,19 @@ public:
 signals:
     void appendLog(const QString &message, int type);
 
-    void addChar(const QUrl &scriptUrl, QChar character);
+    void addChar(const QUrl &documentUrl, QChar character);
 
-    void setIndex(const QUrl &scriptUrl, int line, int character);
+    void setIndex(const QUrl &documentUrl, int line, int character);
 
-    void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
+    void setText(const QUrl &documentUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void setTextSelected(const QUrl &scriptUrl, const QString &text);
+    void setTextSelected(const QUrl &documentUrl, const QString &text);
 
-    void getText(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    void getText(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void insertIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void insertIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
-    void requestCodeAction(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    void requestCodeAction(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
     CompletionWidget *m_completionWidget{};

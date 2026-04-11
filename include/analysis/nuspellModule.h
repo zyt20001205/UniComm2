@@ -12,12 +12,12 @@ public:
 
     ~NuspellModule() override = default;
 
-    void spellCheckRequest(const QUrl &scriptUrl, const QString &script);
+    void spellCheckRequest(const QUrl &documentUrl, const QString &script);
 
     QStringList spellSuggestRequest(const QString &word) const;
 
 signals:
-    void responseSpellCheck(const QUrl &scriptUrl, const QVariantList &typos);
+    void responseSpellCheck(const QUrl &documentUrl, const QVariantList &typos);
 
 private:
     nuspell::Dictionary m_dict{};

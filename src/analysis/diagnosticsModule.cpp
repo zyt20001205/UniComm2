@@ -35,12 +35,12 @@ void DiagnosticsModule::propertySet(const QVariantMap &objects) {
     m_rootItem = m_diagnosticsWidget->rootObject();
 }
 
-void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics) {
+void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
     QStandardItemModel *diagnosticsModel{};
-    if (!m_diagnosticsModelHash.contains(scriptUrl)) {
+    if (!m_diagnosticsModelHash.contains(documentUrl)) {
         diagnosticsModel = new QStandardItemModel(this); // NOLINT
     } else {
-        diagnosticsModel = m_diagnosticsModelHash[scriptUrl];
+        diagnosticsModel = m_diagnosticsModelHash[documentUrl];
         diagnosticsModel->clear();
     }
     for (const auto &value: diagnostics) {
@@ -50,7 +50,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         const QJsonObject start = range["start"].toObject();
         const QJsonObject end = range["end"].toObject();
         const QVariantHash position = {
-            {"scriptUrl", scriptUrl},
+            {"documentUrl", documentUrl},
             {"startLine", start["line"].toInt()},
             {"startCharacter", start["character"].toInt()},
             {"endLine", end["line"].toInt()},
@@ -91,11 +91,11 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &scriptUrl, const QJs
         auto *messageItem = new QStandardItem(message); // NOLINT
         diagnosticsModel->appendRow({severityItem, sourceItem, codeItem, dataItem, messageItem});
     }
-    if (!m_diagnosticsModelHash.contains(scriptUrl)) {
-        m_diagnosticsModelHash.insert(scriptUrl, diagnosticsModel);
-        QMetaObject::invokeMethod(m_rootItem, "append", Q_ARG(QVariant, scriptUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
+    if (!m_diagnosticsModelHash.contains(documentUrl)) {
+        m_diagnosticsModelHash.insert(documentUrl, diagnosticsModel);
+        QMetaObject::invokeMethod(m_rootItem, "append", Q_ARG(QVariant, documentUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
     } else {
-        m_diagnosticsModelHash[scriptUrl] = diagnosticsModel;
+        m_diagnosticsModelHash[documentUrl] = diagnosticsModel;
     }
 }
 
@@ -106,11 +106,11 @@ void DiagnosticsModule::diagnosticCopy(const QString &diagnostic) {
 
 void DiagnosticsModule::indicatorFill(const QVariantHash &position) {
     emit setIndex(
-        position["scriptUrl"].toUrl(),
+        position["documentUrl"].toUrl(),
         position["startLine"].toInt(),
         position["startCharacter"].toInt());
     emit fillIndicator(
-        position["scriptUrl"].toUrl(),
+        position["documentUrl"].toUrl(),
         INDICATOR_SELECTION,
         position["startLine"].toInt(),
         position["startCharacter"].toInt(),

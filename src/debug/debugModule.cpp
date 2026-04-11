@@ -102,7 +102,7 @@ void DebugModule::callStackSwitch(const QString &threadId) const {
 
 void DebugModule::markerAdd(const QVariantHash &position) {
     emit addMarker(
-        position["scriptUrl"].toUrl(),
+        position["documentUrl"].toUrl(),
         MARKER_HINT,
         position["line"].toInt() - 1,
         1000);

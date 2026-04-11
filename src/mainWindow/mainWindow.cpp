@@ -154,8 +154,31 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_diagnosticsModule->propertySet(diagnosticsObjects);
 
+    const QVariantMap documentObjects = {
+        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
+        {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
+        {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
+        {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]},
+        {"documentModuleCompletionToolTip", objects["documentModuleCompletionToolTip"]},
+        {"documentModuleCompletionTableView", objects["documentModuleCompletionTableView"]},
+        {"documentModuleCompletionDetailTableView", objects["documentModuleCompletionDetailTableView"]},
+        {"documentModuleDwellToolTip", objects["documentModuleDwellToolTip"]},
+        {"documentModuleDwellDiagnosticTextArea", objects["documentModuleDwellDiagnosticTextArea"]},
+        {"documentModuleDwellHoverTextArea", objects["documentModuleDwellHoverTextArea"]},
+        {"documentModuleDwellCodeActionMenu", objects["documentModuleDwellCodeActionMenu"]},
+        {"documentModuleDwellSuggestionMenu", objects["documentModuleDwellSuggestionMenu"]},
+        {"documentModuleNavigationToolTip", objects["documentModuleNavigationToolTip"]},
+        {"documentModuleNavigationTableView", objects["documentModuleNavigationTableView"]},
+        {"documentModuleNavigationDetailLabel", objects["documentModuleNavigationDetailLabel"]},
+        {"documentModulePositionTooltip", objects["documentModulePositionTooltip"]},
+        {"documentModuleSignatureToolTip", objects["documentModuleSignatureToolTip"]},
+        {"documentModuleSignatureLabel", objects["documentModuleSignatureLabel"]}
+    };
+    m_documentModule->propertySet(documentObjects);
+
     const QVariantMap explorerObjects = {
-        {"explorerModuleScriptMenu", objects["explorerModuleScriptMenu"]},
+        {"explorerModuleFileMenu", objects["explorerModuleFileMenu"]},
         {"explorerModuleFolderMenu", objects["explorerModuleFolderMenu"]},
         {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}
     };
@@ -183,29 +206,6 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
     m_portModule->propertySet(portObjects);
-
-    const QVariantMap scriptObjects = {
-        {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
-        {"mainWindowToolTip", objects["mainWindowToolTip"]},
-        {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
-        {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
-        {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]},
-        {"documentModuleCompletionToolTip", objects["documentModuleCompletionToolTip"]},
-        {"documentModuleCompletionTableView", objects["documentModuleCompletionTableView"]},
-        {"documentModuleCompletionDetailTableView", objects["documentModuleCompletionDetailTableView"]},
-        {"documentModuleDwellToolTip", objects["documentModuleDwellToolTip"]},
-        {"documentModuleDwellDiagnosticTextArea", objects["documentModuleDwellDiagnosticTextArea"]},
-        {"documentModuleDwellHoverTextArea", objects["documentModuleDwellHoverTextArea"]},
-        {"documentModuleDwellCodeActionMenu", objects["documentModuleDwellCodeActionMenu"]},
-        {"documentModuleDwellSuggestionMenu", objects["documentModuleDwellSuggestionMenu"]},
-        {"documentModuleNavigationToolTip", objects["documentModuleNavigationToolTip"]},
-        {"documentModuleNavigationTableView", objects["documentModuleNavigationTableView"]},
-        {"documentModuleNavigationDetailLabel", objects["documentModuleNavigationDetailLabel"]},
-        {"documentModulePositionTooltip", objects["documentModulePositionTooltip"]},
-        {"documentModuleSignatureToolTip", objects["documentModuleSignatureToolTip"]},
-        {"documentModuleSignatureLabel", objects["documentModuleSignatureLabel"]}
-    };
-    m_documentModule->propertySet(scriptObjects);
 
     const QVariantMap sendObjects = {
         //
@@ -317,7 +317,7 @@ void MainWindow::workspaceOpen() {
 }
 
 void MainWindow::workspaceSave(const QUrl &configUrl) {
-    m_documentModule->scriptConfigSave();
+    m_documentModule->documentConfigSave();
     BreakpointModule::breakpointConfigSave();
     DatabaseModule::databaseConfigSave();
     DatatableModule::datatableConfigSave();
@@ -405,7 +405,7 @@ void MainWindow::moduleInit() {
     connect(m_luals, &LuaLanguageServer::responseSignatureHelp, m_documentModule, &DocumentModule::signatureHelpResponse);
     connect(m_luals, &LuaLanguageServer::responseTypeDefinition, m_documentModule, &DocumentModule::typeDefinitionResponse);
 
-    connect(m_breakpointModule, &BreakpointModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_breakpointModule, &BreakpointModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_breakpointModule, &BreakpointModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
     connect(m_breakpointModule, &BreakpointModule::deleteMarker, m_documentModule, &DocumentModule::markerDelete);
 
@@ -427,19 +427,19 @@ void MainWindow::moduleInit() {
     connect(m_documentModule, &DocumentModule::openWorkspace, this, &MainWindow::workspaceOpen);
     connect(m_documentModule, &DocumentModule::startThread, m_threadpoolModule,
             qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
-    connect(m_documentModule, &DocumentModule::focusScript, m_statusModule, &StatusModule::scriptFocus);
-    connect(m_documentModule, &DocumentModule::focusScript, m_structureModule, &StructureModule::scriptFocus);
+    connect(m_documentModule, &DocumentModule::focusDocument, m_statusModule, &StatusModule::documentFocus);
+    connect(m_documentModule, &DocumentModule::focusDocument, m_structureModule, &StructureModule::documentFocus);
     connect(m_documentModule, &DocumentModule::changeSelection, m_statusModule, &StatusModule::selectionChange);
     connect(m_documentModule, &DocumentModule::insertBreakpoint, m_breakpointModule, &BreakpointModule::breakpointInsert);
     connect(m_documentModule, &DocumentModule::removeBreakpoint, m_breakpointModule, &BreakpointModule::breakpointRemove);
 
     connect(m_explorerModule, &ExplorerModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_explorerModule, &ExplorerModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_explorerModule, &ExplorerModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_explorerModule, &ExplorerModule::startThread, m_threadpoolModule,
             qOverload<const QUrl &, const int, const int, const int, const int, const int>(&ThreadpoolModule::threadStart));
 
     connect(m_fileModule, &FileModule::appendLog, m_logModule, &LogModule::logAppend);
-    connect(m_fileModule, &FileModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_fileModule, &FileModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_documentModule, &DocumentModule::spellCheckResponse);
@@ -453,7 +453,7 @@ void MainWindow::moduleInit() {
 
     connect(m_threadpoolModule, &ThreadpoolModule::trackQuit, this, &MainWindow::quitTrack);
     connect(m_threadpoolModule, &ThreadpoolModule::refreshThread, m_statusModule, &StatusModule::threadRefresh);
-    connect(m_threadpoolModule, &ThreadpoolModule::openScript, m_documentModule, &DocumentModule::scriptOpen);
+    connect(m_threadpoolModule, &ThreadpoolModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_threadpoolModule, &ThreadpoolModule::addMarker, m_documentModule, &DocumentModule::markerAdd);
     connect(m_threadpoolModule, &ThreadpoolModule::deleteMarker, m_documentModule, &DocumentModule::markerDelete);
     connect(m_threadpoolModule, &ThreadpoolModule::insertCallStack, m_debugModule, &DebugModule::callStackInsert);
@@ -477,38 +477,38 @@ void MainWindow::shortcutInit() {
 //     toolBar->addAction(settingAction);
 //     connect(settingAction, &QAction::triggered, this, [this] {
 //         const QJsonObject logConfig = g_workspaceConfig["logConfig"].toObject();
-//         const QJsonObject scriptConfig = g_workspaceConfig["scriptConfig"].toObject();
+//         const QJsonObject documentConfig = g_workspaceConfig["documentConfig"].toObject();
 //         const QJsonObject settingConfig = {
 //             {"fontFamilyLog", logConfig["fontFamily"].toString()},
 //             {"fontSizeLog", logConfig["fontSize"].toInt()},
-//             {"fontFamilyScript", scriptConfig["fontFamily"].toString()},
-//             {"fontSizeScript", scriptConfig["fontSize"].toInt()},
-//             {"indicatorErrorStyleScript", scriptConfig["indicatorErrorStyle"].toInt()},
-//             {"indicatorErrorColorScript", scriptConfig["indicatorErrorColor"].toString()},
-//             {"indicatorWarningStyleScript", scriptConfig["indicatorWarningStyle"].toInt()},
-//             {"indicatorWarningColorScript", scriptConfig["indicatorWarningColor"].toString()},
-//             {"indicatorInfoStyleScript", scriptConfig["indicatorInfoStyle"].toInt()},
-//             {"indicatorInfoColorScript", scriptConfig["indicatorInfoColor"].toString()},
-//             {"indicatorHintStyleScript", scriptConfig["indicatorHintStyle"].toInt()},
-//             {"indicatorHintColorScript", scriptConfig["indicatorHintColor"].toString()},
-//             {"indicatorHighlightStyleScript", scriptConfig["indicatorHighlightStyle"].toInt()},
-//             {"indicatorHighlightColorScript", scriptConfig["indicatorHighlightColor"].toString()},
-//             {"indicatorReadStyleScript", scriptConfig["indicatorReadStyle"].toInt()},
-//             {"indicatorReadColorScript", scriptConfig["indicatorReadColor"].toString()},
-//             {"indicatorWriteStyleScript", scriptConfig["indicatorWriteStyle"].toInt()},
-//             {"indicatorWriteColorScript", scriptConfig["indicatorWriteColor"].toString()},
-//             {"indicatorSearchStyleScript", scriptConfig["indicatorSearchStyle"].toInt()},
-//             {"indicatorSearchColorScript", scriptConfig["indicatorSearchColor"].toString()},
-//             {"indicatorSelectionStyleScript", scriptConfig["indicatorSelectionStyle"].toInt()},
-//             {"indicatorSelectionColorScript", scriptConfig["indicatorSelectionColor"].toString()},
-//             {"indicatorHyperlinkStyleScript", scriptConfig["indicatorHyperlinkStyle"].toInt()},
-//             {"indicatorHyperlinkColorScript", scriptConfig["indicatorHyperlinkColor"].toString()},
-//             {"markerBreakpointStyleScript", scriptConfig["markerBreakpointStyle"].toInt()},
-//             {"markerBreakpointBackgroundScript", scriptConfig["markerBreakpointBackground"].toString()},
-//             {"markerBreakpointForegroundScript", scriptConfig["markerBreakpointForeground"].toString()},
-//             {"markerDebugStyleScript", scriptConfig["markerDebugStyle"].toInt()},
-//             {"markerDebugBackgroundScript", scriptConfig["markerDebugBackground"].toString()},
-//             {"markerDebugForegroundScript", scriptConfig["markerDebugForeground"].toString()}
+//             {"fontFamilyScript", documentConfig["fontFamily"].toString()},
+//             {"fontSizeScript", documentConfig["fontSize"].toInt()},
+//             {"indicatorErrorStyleScript", documentConfig["indicatorErrorStyle"].toInt()},
+//             {"indicatorErrorColorScript", documentConfig["indicatorErrorColor"].toString()},
+//             {"indicatorWarningStyleScript", documentConfig["indicatorWarningStyle"].toInt()},
+//             {"indicatorWarningColorScript", documentConfig["indicatorWarningColor"].toString()},
+//             {"indicatorInfoStyleScript", documentConfig["indicatorInfoStyle"].toInt()},
+//             {"indicatorInfoColorScript", documentConfig["indicatorInfoColor"].toString()},
+//             {"indicatorHintStyleScript", documentConfig["indicatorHintStyle"].toInt()},
+//             {"indicatorHintColorScript", documentConfig["indicatorHintColor"].toString()},
+//             {"indicatorHighlightStyleScript", documentConfig["indicatorHighlightStyle"].toInt()},
+//             {"indicatorHighlightColorScript", documentConfig["indicatorHighlightColor"].toString()},
+//             {"indicatorReadStyleScript", documentConfig["indicatorReadStyle"].toInt()},
+//             {"indicatorReadColorScript", documentConfig["indicatorReadColor"].toString()},
+//             {"indicatorWriteStyleScript", documentConfig["indicatorWriteStyle"].toInt()},
+//             {"indicatorWriteColorScript", documentConfig["indicatorWriteColor"].toString()},
+//             {"indicatorSearchStyleScript", documentConfig["indicatorSearchStyle"].toInt()},
+//             {"indicatorSearchColorScript", documentConfig["indicatorSearchColor"].toString()},
+//             {"indicatorSelectionStyleScript", documentConfig["indicatorSelectionStyle"].toInt()},
+//             {"indicatorSelectionColorScript", documentConfig["indicatorSelectionColor"].toString()},
+//             {"indicatorHyperlinkStyleScript", documentConfig["indicatorHyperlinkStyle"].toInt()},
+//             {"indicatorHyperlinkColorScript", documentConfig["indicatorHyperlinkColor"].toString()},
+//             {"markerBreakpointStyleScript", documentConfig["markerBreakpointStyle"].toInt()},
+//             {"markerBreakpointBackgroundScript", documentConfig["markerBreakpointBackground"].toString()},
+//             {"markerBreakpointForegroundScript", documentConfig["markerBreakpointForeground"].toString()},
+//             {"markerDebugStyleScript", documentConfig["markerDebugStyle"].toInt()},
+//             {"markerDebugBackgroundScript", documentConfig["markerDebugBackground"].toString()},
+//             {"markerDebugForegroundScript", documentConfig["markerDebugForeground"].toString()}
 //         };
 //         m_settingModule->settingImport(settingConfig);
 //         if (m_settingModule->exec() == QDialog::Accepted) {

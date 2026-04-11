@@ -24,9 +24,9 @@ public:
     void signatureNext();
 
 signals:
-    void setTextSelected(const QUrl &scriptUrl, const QString &text);
+    void setTextSelected(const QUrl &documentUrl, const QString &text);
 
-    void addChar(const QUrl &scriptUrl, QChar character);
+    void addChar(const QUrl &documentUrl, QChar character);
 
 private:
     QObject *m_tooltip{};

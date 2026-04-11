@@ -16,7 +16,7 @@ NuspellModule::NuspellModule(QObject *parent)
     m_dict.load_aff_dic(dictPath);
 }
 
-void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &script) {
+void NuspellModule::spellCheckRequest(const QUrl &documentUrl, const QString &script) {
     QVariantList typos{};
     int currentLine = 0;
     // 1: separate script to lines
@@ -48,7 +48,7 @@ void NuspellModule::spellCheckRequest(const QUrl &scriptUrl, const QString &scri
         }
         currentLine++;
     }
-    emit responseSpellCheck(scriptUrl, typos);
+    emit responseSpellCheck(documentUrl, typos);
 }
 
 QStringList NuspellModule::spellSuggestRequest(const QString &word) const {

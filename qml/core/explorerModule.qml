@@ -131,7 +131,7 @@ Item {
                 }
                 onDoubleTapped: {
                     if (!(isTreeNode && hasChildren)) {
-                        explorerModule.scriptOpen(model.filePath)
+                        explorerModule.documentOpen(model.filePath)
                     }
                 }
             }

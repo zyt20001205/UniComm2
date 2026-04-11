@@ -17,7 +17,7 @@
   },
   "portConfig": [
   ],
-  "scriptConfig": {
+  "documentConfig": {
     "fontFamily": "Consolas",
     "fontSize": 12,
     "formatting": "Ctrl+Alt+L",
@@ -49,8 +49,8 @@
     "markerDebugBackground" : "#ffa500",
     "markerDebugForeground" : "#000000",
     "markerDebugStyle" : 2,
-    "scriptFocused": "",
-    "scriptList": [
+    "documentFocused": "",
+    "documentList": [
     ]
   },
   "sendConfig": [

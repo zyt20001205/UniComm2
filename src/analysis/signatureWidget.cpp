@@ -76,9 +76,9 @@ void SignatureWidget::signatureHide() const {
 
 void SignatureWidget::signatureNext() {
     emit setTextSelected(
-        m_signatureSession["scriptUrl"].toUrl(),
+        m_signatureSession["documentUrl"].toUrl(),
         ", ");
     emit addChar(
-        m_signatureSession["scriptUrl"].toUrl(),
+        m_signatureSession["documentUrl"].toUrl(),
         ',');
 }

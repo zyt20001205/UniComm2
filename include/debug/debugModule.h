@@ -44,7 +44,7 @@ public:
 signals:
     void getIndex();
 
-    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &documentUrl, int type, int line, int time);
 
     void setState(const QString &threadId, int state);
 

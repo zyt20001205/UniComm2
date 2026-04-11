@@ -17,11 +17,11 @@ public:
 
     void watchConfigSave() const;
 
-    Q_INVOKABLE void watchInsert(int index, const QUrl &scriptUrl, const QString &expression);
+    Q_INVOKABLE void watchInsert(int index, const QUrl &documentUrl, const QString &expression);
 
     Q_INVOKABLE void watchRemove(int index);
 
-    Q_INVOKABLE void watchRename(int index, const QUrl &scriptUrl, const QString &expression);
+    Q_INVOKABLE void watchRename(int index, const QUrl &documentUrl, const QString &expression);
 
     Q_INVOKABLE void watchSwap(int src, int dst);
 

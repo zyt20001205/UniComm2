@@ -17,9 +17,9 @@ WatchModule::WatchModule()
     auto watchConfig = g_workspaceConfig["watchConfig"].toArray();
     for (const auto &value : watchConfig) {
         const auto pair = value.toArray();
-        const auto scriptUrl = QUrl(pair[0].toString());
+        const auto documentUrl = QUrl(pair[0].toString());
         const QString expression = pair[1].toString();
-        watchInsert(-1, scriptUrl, expression);
+        watchInsert(-1, documentUrl, expression);
     }
 }
 
@@ -50,10 +50,10 @@ void WatchModule::watchConfigSave() const {
     g_workspaceConfig["watchConfig"] = watchArray;
 }
 
-void WatchModule::watchInsert(int index, const QUrl &scriptUrl, const QString &expression) {
+void WatchModule::watchInsert(int index, const QUrl &documentUrl, const QString &expression) {
     index = g_watchStandardItemModel->rowCount();
     auto *expressionItem = new QStandardItem(expression); // NOLINT
-    expressionItem->setData(scriptUrl, Qt::WhatsThisRole);
+    expressionItem->setData(documentUrl, Qt::WhatsThisRole);
     auto *valueItem = new QStandardItem("nil"); // NOLINT
     valueItem->setData("nil", Qt::WhatsThisRole);
     g_watchStandardItemModel->insertRow(index, {expressionItem, valueItem});
@@ -63,8 +63,8 @@ void WatchModule::watchRemove(const int index) {
     g_watchStandardItemModel->removeRow(index);
 }
 
-void WatchModule::watchRename(const int index, const QUrl &scriptUrl, const QString &expression) {
-    g_watchStandardItemModel->item(index, 0)->setData(scriptUrl, Qt::WhatsThisRole);
+void WatchModule::watchRename(const int index, const QUrl &documentUrl, const QString &expression) {
+    g_watchStandardItemModel->item(index, 0)->setData(documentUrl, Qt::WhatsThisRole);
     g_watchStandardItemModel->item(index, 0)->setText(expression);
 }
 

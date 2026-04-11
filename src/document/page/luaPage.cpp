@@ -20,9 +20,9 @@
 #include "util/cmarkUtils.h"
 
 // public
-LuaPage::LuaPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
-    : DockWidget(scriptUrl.toString()),
-      m_scriptUrl(scriptUrl),
+LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
+    : DockWidget(documentUrl.toString()),
+      m_documentUrl(documentUrl),
       m_editorWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
       m_replaceWidget(new ReplaceWidget(this)),
@@ -36,7 +36,7 @@ LuaPage::LuaPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
       m_onTypeFormattingSet{'\n'},
       m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}},
       m_fileWatcher(new QFileSystemWatcher()) {
-    setTitle(scriptUrl.fileName());
+    setTitle(documentUrl.fileName());
     auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
     connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
     shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
@@ -121,9 +121,9 @@ LuaPage::LuaPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             // for debug
             // m_editorWidget->send(SCI_SETVIEWEOL, true); // NOLINT
             // script
-            const QUrl &url(scriptUrl);
-            const QString scriptPath = url.toLocalFile();
-            QFile file(scriptPath);
+            const QUrl &url(documentUrl);
+            const QString documentPath = url.toLocalFile();
+            QFile file(documentPath);
             if (!file.open(QIODevice::ReadOnly)) return;
             QTextStream in(&file);
             const QString script = in.readAll();
@@ -134,7 +134,7 @@ LuaPage::LuaPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             m_editorWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
         }
         // font
-        m_editorWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        m_editorWidget->fontSet(QFont(documentConfig["fontFamily"].toString(), documentConfig["fontSize"].toInt()));
         // indicator
         {
             m_editorWidget->indicatorDefine(
@@ -495,7 +495,7 @@ LuaPage::LuaPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             m_assemblyWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
         }
         // font
-        m_assemblyWidget->fontSet(QFont(scriptConfig["fontFamily"].toString(), scriptConfig["fontSize"].toInt()));
+        m_assemblyWidget->fontSet(QFont(documentConfig["fontFamily"].toString(), documentConfig["fontSize"].toInt()));
         // margin
         {
             m_assemblyWidget->marginDefine(
@@ -582,9 +582,9 @@ LuaPage::LuaPage(const QJsonObject &scriptConfig, const QUrl &scriptUrl)
             {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
         });
         // logging
-        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
+        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_scriptUrl.toString());
+        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_documentUrl.toString());
     });
 }
 
@@ -607,7 +607,7 @@ QVariantHash LuaPage::menuGet(const QString &name) const {
         };
     } else if (name == "code") {
         menuSession = {
-            {"scriptUrl", session["scriptUrl"]},
+            {"documentUrl", session["documentUrl"]},
             {"line", session["line"]},
             {"character", session["character"]},
             {"startLine", session["startLine"]},
@@ -620,8 +620,8 @@ QVariantHash LuaPage::menuGet(const QString &name) const {
         };
     } else if (name == "exec") {
         menuSession = {
-            {"scriptUrl", session["scriptUrl"]},
-            {"scriptName", session["scriptName"]},
+            {"documentUrl", session["documentUrl"]},
+            {"documentName", session["documentName"]},
             {"startLine", session["startLine"]},
             {"startCharacter", session["startCharacter"]},
             {"endLine", session["endLine"]},
@@ -630,7 +630,7 @@ QVariantHash LuaPage::menuGet(const QString &name) const {
         };
     } else if (name == "editor") {
         menuSession = {
-            {"scriptUrl", session["scriptUrl"]},
+            {"documentUrl", session["documentUrl"]},
             {"line", session["line"]},
             {"character", session["character"]},
             {"startLine", session["startLine"]},
@@ -664,8 +664,8 @@ QVariantHash LuaPage::menuGetAll() const {
         {"copiable", m_editorWidget->copiable()},
         {"pastable", m_editorWidget->pastable()},
         // code
-        {"scriptUrl", m_scriptUrl},
-        {"scriptName", m_scriptUrl.fileName()},
+        {"documentUrl", m_documentUrl},
+        {"documentName", m_documentUrl.fileName()},
         {"line", index["line"]},
         {"character", index["character"]},
         {"startLine", m_selection["startLine"]},
@@ -700,9 +700,9 @@ void LuaPage::menuRequest(const QString &request) {
 
 // public: file
 void LuaPage::pathDisambiguation() {
-    const QString scriptPath = m_scriptUrl.toLocalFile();
+    const QString documentPath = m_documentUrl.toLocalFile();
     const QString workspacePath = g_workspaceUrl.toLocalFile();
-    const QString relatedPath = QDir(workspacePath).relativeFilePath(scriptPath);
+    const QString relatedPath = QDir(workspacePath).relativeFilePath(documentPath);
     setTitle(relatedPath);
 }
 
@@ -712,27 +712,27 @@ void LuaPage::scriptReload() {
     //     tr("Reload"),
     //     QString(tr("%1\n\n"
     //         "This file has been modified by another program.\n"
-    //         "Do you want to reload it?")).arg(m_scriptUrl.toString()),
+    //         "Do you want to reload it?")).arg(m_documentUrl.toString()),
     //     QMessageBox::Yes | QMessageBox::No);
     // if (reply != QMessageBox::Yes) {
     //     return;
     // }
     // // reload new script
-    // const QUrl &url(m_scriptUrl);
-    // const QString scriptPath = url.toLocalFile();
-    // QFile file(scriptPath);
+    // const QUrl &url(m_documentUrl);
+    // const QString documentPath = url.toLocalFile();
+    // QFile file(documentPath);
     // file.open(QIODevice::ReadOnly);
     // QTextStream in(&file);
     // const QString content = in.readAll();
     // file.close();
     // m_editorWidget->setText(content);
     // // logging
-    // emit appendLog(QString("<a href='%1'>%2</a> reloaded").arg(m_scriptUrl.toString(), m_scriptUrl.fileName()), "info");
+    // emit appendLog(QString("<a href='%1'>%2</a> reloaded").arg(m_documentUrl.toString(), m_documentUrl.fileName()), "info");
     // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    // qDebug() << QString("[%1] %2 reloaded").arg(timestamp, m_scriptUrl.fileName());
+    // qDebug() << QString("[%1] %2 reloaded").arg(timestamp, m_documentUrl.fileName());
 }
 
-void LuaPage::scriptSave() {
+void LuaPage::documentSave() {
     if (!m_editorWidget->modifyGet()) return;
     // update status
     m_editorWidget->savepointSet();
@@ -740,21 +740,21 @@ void LuaPage::scriptSave() {
     // block file watcher signals
     m_fileWatcher->blockSignals(true);
     // save file
-    const QString scriptPath = m_scriptUrl.toLocalFile();
-    QFile file(scriptPath);
+    const QString documentPath = m_documentUrl.toLocalFile();
+    QFile file(documentPath);
     if (!file.open(QIODevice::WriteOnly)) return;
     QTextStream out(&file);
     out << m_editorWidget->textGet();
     file.close();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
+    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_scriptUrl.toString());
+    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_documentUrl.toString());
     // restore file watcher signals 1 sec later
     QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
 }
 
-void LuaPage::scriptClose() {
+void LuaPage::documentClose() {
     // ask for saving
     if (m_editorWidget->modifyGet()) {
         const QMessageBox::StandardButton reply = QMessageBox::question(
@@ -764,21 +764,21 @@ void LuaPage::scriptClose() {
             QMessageBox::Yes | QMessageBox::No,
             QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            scriptSave();
+            documentSave();
         }
     }
     didCloseNotification();
-    emit closeScript(m_scriptUrl);
+    emit closeDocument(m_documentUrl);
     deleteLater();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_scriptUrl.toString(), m_scriptUrl.toString()), LOG_INFO);
+    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_scriptUrl.toString());
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_documentUrl.toString());
 }
 
 // public: lsp
 void LuaPage::diagnosticsNotification(const QJsonArray &diagnostics) {
-    if (!m_scriptUrl.toString().endsWith(".lua")) return;
+    if (!m_documentUrl.toString().endsWith(".lua")) return;
     m_diagnostic = diagnostics;
     // clear
     m_editorWidget->indicatorClear(INDICATOR_PASSWORD);
@@ -854,7 +854,7 @@ void LuaPage::documentHighlightResponse(const QJsonArray &result) const {
 }
 
 void LuaPage::documentSymbolResponse(const QJsonArray &result) {
-    if (!m_scriptUrl.toString().endsWith(".lua")) return;
+    if (!m_documentUrl.toString().endsWith(".lua")) return;
     m_symbol = result;
 }
 
@@ -1094,8 +1094,8 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
                 if (modifiers == Qt::ControlModifier) {
                     m_editorWidget->positionSet(position);
                     if (m_editorWidget->indicatorGet(position) & 1 << INDICATOR_HYPERLINK) {
-                        emit requestDefinition(m_scriptUrl, index["line"], index["character"]);
-                        emit requestReferences(m_scriptUrl, index["line"], index["character"]);
+                        emit requestDefinition(m_documentUrl, index["line"], index["character"]);
+                        emit requestReferences(m_documentUrl, index["line"], index["character"]);
                     }
                     return false;
                 }
@@ -1147,7 +1147,7 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
 
 // protected
 void LuaPage::closeEvent(QCloseEvent *event) {
-    scriptClose();
+    documentClose();
     event->accept();
 }
 
@@ -1160,21 +1160,21 @@ void LuaPage::marginClick(const Scintilla::Position position, const int mouseBut
                 for (int current = line; current < m_editorWidget->lineCountGet(); ++current) {
                     const QString text = m_editorWidget->textGet(current, 0, current, -1);
                     if (text.contains("--#endregion")) {
-                        emit startThread(m_scriptUrl, THREAD_RUN, line + 1, 0, current - 1, -1);
+                        emit startThread(m_documentUrl, THREAD_RUN, line + 1, 0, current - 1, -1);
                         return;
                     }
                 }
                 qDebug() << "error: --#endregion not found";
             } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED) {
-                emit removeBreakpoint(m_scriptUrl, line + 1);
+                emit removeBreakpoint(m_documentUrl, line + 1);
                 m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED, line);
             } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
-                emit removeBreakpoint(m_scriptUrl, line + 1);
+                emit removeBreakpoint(m_documentUrl, line + 1);
                 m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED, line);
             } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
                 m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
             } else {
-                emit insertBreakpoint(m_scriptUrl, line + 1, QVariantHash({
+                emit insertBreakpoint(m_documentUrl, line + 1, QVariantHash({
                                           {"condition", ""},
                                           {"enabled", true}
                                       }));
@@ -1230,8 +1230,8 @@ void LuaPage::savepointChange(const bool status) {
 
 // private: file
 void LuaPage::permissionGet() {
-    const QString scriptPath = m_scriptUrl.toLocalFile();
-    const QFileInfo fileInfo(scriptPath);
+    const QString documentPath = m_documentUrl.toLocalFile();
+    const QFileInfo fileInfo(documentPath);
     if (fileInfo.isWritable()) {
         setIcon(QIcon());
         m_editorWidget->readonlySet(false);
@@ -1242,23 +1242,23 @@ void LuaPage::permissionGet() {
 }
 
 void LuaPage::permissionSet() const {
-    m_systemPropertyDialog->setProperty("fileUrl", m_scriptUrl);
+    m_systemPropertyDialog->setProperty("fileUrl", m_documentUrl);
     QMetaObject::invokeMethod(m_systemPropertyDialog, "open");
 }
 
 void LuaPage::breakpointGet() const {
     m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED);
     m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED);
-    if (g_breakpoints.contains(m_scriptUrl)) {
-        for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
-            if (g_breakpoints[m_scriptUrl][line]["enabled"].toBool()) m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line - 1);
+    if (g_breakpoints.contains(m_documentUrl)) {
+        for (const auto &line: g_breakpoints[m_documentUrl].keys()) {
+            if (g_breakpoints[m_documentUrl][line]["enabled"].toBool()) m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line - 1);
             else m_editorWidget->markerAdd(MARKER_BREAKPOINT_DISABLED, line - 1);
         }
     }
 }
 
 void LuaPage::breakpointSet(const int line) const {
-    m_breakpointEditDialog->setProperty("scriptUrl", m_scriptUrl);
+    m_breakpointEditDialog->setProperty("documentUrl", m_documentUrl);
     m_breakpointEditDialog->setProperty("line", line);
     QMetaObject::invokeMethod(m_breakpointEditDialog, "open");
 }
@@ -1279,7 +1279,7 @@ void LuaPage::didOpenNotification() {
     const QJsonObject didOpenParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()},
+                {"uri", m_documentUrl.toString()},
                 {"languageId", "lua"},
                 {"version", m_version++},
                 {"text", m_editorWidget->textGet()}
@@ -1295,7 +1295,7 @@ void LuaPage::didChangeNotification() {
     const QJsonObject didChangeParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()},
+                {"uri", m_documentUrl.toString()},
                 {"version", m_version++}
             }
         },
@@ -1315,7 +1315,7 @@ void LuaPage::didSaveNotification() {
     const QJsonObject didSaveParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
+                {"uri", m_documentUrl.toString()}
             }
         }
     };
@@ -1327,7 +1327,7 @@ void LuaPage::didCloseNotification() {
     const QJsonObject didCloseParams{
         {
             "textDocument", QJsonObject{
-                {"uri", m_scriptUrl.toString()}
+                {"uri", m_documentUrl.toString()}
             }
         }
     };
@@ -1336,32 +1336,32 @@ void LuaPage::didCloseNotification() {
 
 void LuaPage::completionRequest() {
     // completion request to script module
-    emit requestCompletion(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestCompletion(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::definitionRequest() {
     // definition request to script module
-    emit requestDefinition(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestDefinition(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::documentHighlightRequest() {
     // document highlight request to script module
-    emit requestDocumentHighlight(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestDocumentHighlight(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::documentSymbolRequest() {
     // document symbol request to script module
-    emit requestDocumentSymbol(m_scriptUrl);
+    emit requestDocumentSymbol(m_documentUrl);
 }
 
 void LuaPage::foldingRangeRequest() {
     // folding range request to script module
-    emit requestFoldingRange(m_scriptUrl);
+    emit requestFoldingRange(m_documentUrl);
 }
 
 void LuaPage::formattingRequest() {
     // formatting request to script module
-    emit requestFormatting(m_scriptUrl);
+    emit requestFormatting(m_documentUrl);
 }
 
 void LuaPage::hoverRequest() {
@@ -1433,7 +1433,7 @@ void LuaPage::hoverRequest() {
     // call diagnostic show
     const QPoint position = m_editorWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     const QVariantHash diagnosticSession = {
-        {"scriptUrl", m_scriptUrl},
+        {"documentUrl", m_documentUrl},
         {"position", position}
     };
     if (diagnosticText == "<table width='100%'>") {
@@ -1443,44 +1443,44 @@ void LuaPage::hoverRequest() {
         emit showDiagnostic(diagnosticSession, diagnosticText);
     }
     // hover request to script module
-    emit requestHover(m_scriptUrl, line, character);
+    emit requestHover(m_documentUrl, line, character);
 }
 
 void LuaPage::implementationRequest() {
     // implementation request to script module
-    emit requestImplementation(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestImplementation(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::referencesRequest() {
     // references request to script module
-    emit requestReferences(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestReferences(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::onTypeFormattingRequest() {
     // on type formatting request to script module
-    emit requestOnTypeFormatting(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestOnTypeFormatting(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::semanticTokensRequest() {
     // semantic tokens request to script module
-    emit requestSemanticTokens(m_scriptUrl);
+    emit requestSemanticTokens(m_documentUrl);
 }
 
 void LuaPage::signatureHelpRequest() {
     // signature help request to script module
-    emit requestSignatureHelp(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestSignatureHelp(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 void LuaPage::typeDefinitionRequest() {
     // type definition request to script module
-    emit requestTypeDefinition(m_scriptUrl, m_selection["line"], m_selection["character"]);
+    emit requestTypeDefinition(m_documentUrl, m_selection["line"], m_selection["character"]);
 }
 
 // private: typo
 void LuaPage::spellCheckRequest() {
-    if (!m_scriptUrl.toString().endsWith(".lua")) return;
+    if (!m_documentUrl.toString().endsWith(".lua")) return;
     // spell check request to script module
-    emit requestSpellCheck(m_scriptUrl, m_editorWidget->textGet());
+    emit requestSpellCheck(m_documentUrl, m_editorWidget->textGet());
 }
 
 // private: misc

@@ -7,7 +7,6 @@
 
 #include "ScintillaTypes.h"
 
-
 class QFileSystemWatcher;
 class QLabel;
 class QLineEdit;
@@ -22,7 +21,7 @@ class LuaPage final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit LuaPage(const QJsonObject &scriptConfig = QJsonObject(), const QUrl &scriptUrl = QUrl());
+    explicit LuaPage(const QJsonObject &documentConfig = QJsonObject(), const QUrl &documentUrl = QUrl());
 
     ~LuaPage() override = default;
 
@@ -39,9 +38,9 @@ public:
 
     void scriptReload();
 
-    void scriptSave();
+    void documentSave();
 
-    void scriptClose();
+    void documentClose();
 
     // public: lsp
     void diagnosticsNotification(const QJsonArray &diagnostics);
@@ -69,49 +68,49 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
-    QUrl m_scriptUrl{};
+    QUrl m_documentUrl{};
     ScintillaWidget *m_editorWidget{};
 
 signals:
     void appendLog(const QString &message, int type);
 
-    void closeScript(const QUrl &scriptUrl);
+    void closeDocument(const QUrl &documentUrl);
 
-    void startThread(const QUrl &scriptUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
+    void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void changeSelection(const QHash<QString, int> &selection);
 
-    void insertBreakpoint(const QUrl &scriptUrl, int line, const QVariantHash &session);
+    void insertBreakpoint(const QUrl &documentUrl, int line, const QVariantHash &session);
 
-    void removeBreakpoint(const QUrl &scriptUrl, int line);
+    void removeBreakpoint(const QUrl &documentUrl, int line);
 
-    void requestCompletion(const QUrl &scriptUrl, int line, int character);
+    void requestCompletion(const QUrl &documentUrl, int line, int character);
 
-    void requestDefinition(const QUrl &scriptUrl, int line, int character);
+    void requestDefinition(const QUrl &documentUrl, int line, int character);
 
-    void requestDocumentHighlight(const QUrl &scriptUrl, int line, int character);
+    void requestDocumentHighlight(const QUrl &documentUrl, int line, int character);
 
-    void requestDocumentSymbol(const QUrl &scriptUrl);
+    void requestDocumentSymbol(const QUrl &documentUrl);
 
-    void requestFoldingRange(const QUrl &scriptUrl);
+    void requestFoldingRange(const QUrl &documentUrl);
 
-    void requestFormatting(const QUrl &scriptUrl);
+    void requestFormatting(const QUrl &documentUrl);
 
-    void requestHover(const QUrl &scriptUrl, int line, int character);
+    void requestHover(const QUrl &documentUrl, int line, int character);
 
-    void requestImplementation(const QUrl &scriptUrl, int line, int character);
+    void requestImplementation(const QUrl &documentUrl, int line, int character);
 
-    void requestOnTypeFormatting(const QUrl &scriptUrl, int line, int character);
+    void requestOnTypeFormatting(const QUrl &documentUrl, int line, int character);
 
-    void requestReferences(const QUrl &scriptUrl, int line, int character);
+    void requestReferences(const QUrl &documentUrl, int line, int character);
 
-    void requestSemanticTokens(const QUrl &scriptUrl);
+    void requestSemanticTokens(const QUrl &documentUrl);
 
-    void requestSignatureHelp(const QUrl &scriptUrl, int line, int character);
+    void requestSignatureHelp(const QUrl &documentUrl, int line, int character);
 
-    void requestSpellCheck(const QUrl &scriptUrl, const QString &script);
+    void requestSpellCheck(const QUrl &documentUrl, const QString &script);
 
-    void requestTypeDefinition(const QUrl &scriptUrl, int line, int character);
+    void requestTypeDefinition(const QUrl &documentUrl, int line, int character);
 
     void notificationJson(const QString &method, const QJsonObject &params);
 

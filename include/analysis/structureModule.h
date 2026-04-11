@@ -20,9 +20,9 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result);
+    void documentSymbolResponse(const QUrl &documentUrl, const QJsonArray &result);
 
-    void scriptFocus(const QUrl &scriptUrl, const QVariantHash &session);
+    void documentFocus(const QUrl &documentUrl, const QVariantHash &session);
 
     Q_INVOKABLE void markerAdd(const QVariantHash &position);
 
@@ -31,16 +31,16 @@ public:
 signals:
     void appendLog(const QString &text, int type);
 
-    void setFocus(const QUrl &scriptUrl, bool status);
+    void setFocus(const QUrl &documentUrl, bool status);
 
-    void setIndex(const QUrl &scriptUrl, int startLine, int startCharacter);
+    void setIndex(const QUrl &documentUrl, int startLine, int startCharacter);
 
-    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &documentUrl, int type, int line, int time);
 
 private:
     void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem);
 
-    QUrl m_currentScriptUrl{};
+    QUrl m_currentDocumentUrl{};
     QQuickWidget *m_structureWidget{};
     QObject *m_structureTreeView{};
     QStandardItemModel *m_structureStandardItemModel{};

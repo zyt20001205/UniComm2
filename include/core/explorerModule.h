@@ -22,16 +22,16 @@ public:
 
     Q_INVOKABLE void scriptDebug(const QString &scriptPath);
 
-    Q_INVOKABLE void scriptOpen(const QString &scriptPath);
+    Q_INVOKABLE void documentOpen(const QString &scriptPath);
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
     void appendLog(const QString &message, int type);
 
-    void openScript(const QUrl &scriptUrl);
+    void openDocument(const QUrl &documentUrl);
 
-    void startThread(const QUrl &scriptUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
+    void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
     QQuickWidget *m_explorerWidget{};

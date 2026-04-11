@@ -20,7 +20,7 @@ public:
 
     void hoverShow(const QVariantHash &hoverSession, const QString &message) const;
 
-    void codeActionShow(const QUrl &scriptUrl, const QJsonArray &result) const;
+    void codeActionShow(const QUrl &documentUrl, const QJsonArray &result) const;
 
     void dwellHide() const;
 
@@ -31,9 +31,9 @@ public:
     Q_INVOKABLE void codeActionAccept(const QJsonObject &codeAction);
 
 signals:
-    void textSet(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
+    void textSet(const QUrl &documentUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void requestCodeAction(const QUrl &scriptUrl, int startLine, int startCharacter, int endLine, int endCharacter);
+    void requestCodeAction(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
     QObject *m_tooltip{};
@@ -42,7 +42,7 @@ private:
     QObject *m_codeActionMenu{};
     QObject *m_suggestionMenu{};
 
-    QUrl m_scriptUrl{};
+    QUrl m_documentUrl{};
     int m_diagnosticStartLine{};
     int m_diagnosticEndLine{};
     int m_diagnosticStartCharacter{};

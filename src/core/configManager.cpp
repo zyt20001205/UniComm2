@@ -85,32 +85,32 @@ void ConfigManager::workspaceInit() {
             const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
             if (!jsonDoc.isObject()) return;
             const QJsonObject jsonObject = jsonDoc.object();
-            // validate script config
+            // validate document config
             {
-                QJsonObject scriptConfig = jsonObject["scriptConfig"].toObject();
-                // clear invalid script url in script list
-                QJsonArray validScriptList;
-                for (const auto &value: scriptConfig["scriptList"].toArray()) {
-                    if (const auto scriptUrl = QUrl(value.toString()); QFileInfo::exists(scriptUrl.toLocalFile())) {
-                        validScriptList.append(value);
+                QJsonObject documentConfig = jsonObject["documentConfig"].toObject();
+                // clear invalid document url in document list
+                QJsonArray validDocumentList;
+                for (const auto &value: documentConfig["documentList"].toArray()) {
+                    if (const auto documentUrl = QUrl(value.toString()); QFileInfo::exists(documentUrl.toLocalFile())) {
+                        validDocumentList.append(value);
                     } else {
-                        qDebug() << "invalid script url found in script list:" << scriptUrl;
+                        qDebug() << "invalid document url found in document list:" << documentUrl;
                     }
                 }
-                scriptConfig["scriptList"] = validScriptList;
-                // clear invalid script url in breakpoint hash
-                QJsonObject breakpointHash = scriptConfig["breakpointHash"].toObject();
+                documentConfig["documentList"] = validDocumentList;
+                // clear invalid document url in breakpoint hash
+                QJsonObject breakpointHash = documentConfig["breakpointHash"].toObject();
                 QJsonObject validBreakpointHash;
                 for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
-                    if (const auto scriptUrl = QUrl(it.key()); QFileInfo::exists(scriptUrl.toLocalFile())) {
+                    if (const auto documentUrl = QUrl(it.key()); QFileInfo::exists(documentUrl.toLocalFile())) {
                         validBreakpointHash.insert(it.key(), it.value());
                     } else {
-                        qDebug() << "invalid script url found in breakpoint hash:" << scriptUrl;
+                        qDebug() << "invalid document url found in breakpoint hash:" << documentUrl;
                     }
                 }
-                scriptConfig["breakpointHash"] = validBreakpointHash;
-                // write valid script config back
-                jsonObject["scriptConfig"] = scriptConfig;
+                documentConfig["breakpointHash"] = validBreakpointHash;
+                // write valid document config back
+                jsonObject["documentConfig"] = documentConfig;
             }
             g_workspaceConfig = jsonObject;
             const QJsonDocument doc(jsonObject);

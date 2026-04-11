@@ -41,7 +41,7 @@ flowchart RL
 
     subgraph UniComm
         direction LR
-        documentModule[Script Module]
+        documentModule[ Module]
         luaInterpreter[Lua Interpreter]
         debugModule[Debug Module]
         subgraph threadpoolModule[Threadpool Module]
@@ -277,19 +277,19 @@ gantt
 |           |              NOOP (NOOP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 | smtp.quit |              QUIT (QUIT)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
-# Script Module
+# Document Module
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     luaLanguageServer[Lua Language Server 3.16.4]
-    documentModule[Script Module]
+    documentModule[Document Module]
     subgraph scintilla[Scintilla 5.5.9]
         direction LR
-        luaPage1[Script Page 1]
-        luaPage2[Script Page 2]
-        luaPage3[Script Page 3]
+        luaPage1[Lua Page 1]
+        luaPage2[Lua Page 2]
+        luaPage3[Lua Page 3]
         luaPage4[...]
     end
     documentModule e1@ -->|LSP Request| luaLanguageServer

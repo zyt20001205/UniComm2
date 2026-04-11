@@ -37,11 +37,11 @@ public:
 signals:
     void appendLog(const QString &message, int type);
 
-    void setIndex(const QUrl &scriptUrl, int line, int character);
+    void setIndex(const QUrl &documentUrl, int line, int character);
 
-    void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
+    void setText(const QUrl &documentUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
-    void addChar(const QUrl &scriptUrl, QChar character);
+    void addChar(const QUrl &documentUrl, QChar character);
 
     void showPosition(const QVariantMap &positionSession);
 

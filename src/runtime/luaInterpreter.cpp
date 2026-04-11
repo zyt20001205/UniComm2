@@ -211,7 +211,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Thread lib
     {
         sol::table thread = m_lua.create_table();
-        thread.set_function("start", [this](const sol::this_state ts, const std::string &scriptPath) { return m_thread->start(ts, scriptPath); });
+        thread.set_function("start", [this](const sol::this_state ts, const std::string &documentPath) { return m_thread->start(ts, documentPath); });
         thread.set_function("stop", [this](const std::string &threadId) { m_thread->stop(threadId); });
         thread.set_function("sleep", [this](const int ms) { m_thread->sleep(ms); });
         m_lua["thread"] = thread;
@@ -234,10 +234,10 @@ void LuaInterpreter::start(const QString &script) {
         lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     }
     // frontend
-    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
-    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_ERROR, -1);
 
-    const QString filePath = "@" + m_luaSession["scriptUrl"].toUrl().toLocalFile();
+    const QString filePath = "@" + m_luaSession["documentUrl"].toUrl().toLocalFile();
     const sol::protected_function_result result = m_lua.safe_script(
         script.toStdString(),
         sol::script_pass_on_error,
@@ -248,8 +248,8 @@ void LuaInterpreter::start(const QString &script) {
         emit appendLog(QString::fromStdString(err.what()), LOG_ERROR);
     }
     // frontend
-    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_DEBUG, -1);
-    emit deleteMarker(m_luaSession["scriptUrl"].toUrl(), MARKER_ERROR, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_ERROR, -1);
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
 }
@@ -270,13 +270,13 @@ void LuaInterpreter::stackSet(lua_State *L, lua_Debug *ar) {
     int level = 0;
     while (lua_getstack(L, level, ar)) {
         lua_getinfo(L, "nSl", ar);
-        const QUrl scriptUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
+        const QUrl documentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         const int line = ar->currentline;
         const QVariantHash position = {
-            {"scriptUrl", scriptUrl},
+            {"documentUrl", documentUrl},
             {"line", line}
         };
-        auto *fileItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
+        auto *fileItem = new QStandardItem(documentUrl.fileName()); // NOLINT
         fileItem->setData(position, Qt::WhatsThisRole);
         auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
         auto *nameItem = new QStandardItem(ar->name ? ar->name : "main"); // NOLINT
@@ -341,8 +341,8 @@ void LuaInterpreter::watchSet(lua_State *L, lua_Debug *ar) {
     }
 }
 
-void LuaInterpreter::valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
-    emit setValue(scriptUrl, expression, value, type);
+void LuaInterpreter::valueSet(const QString &documentUrl, const QString &expression, const QString &value, const QString &type) {
+    emit setValue(documentUrl, expression, value, type);
 }
 
 // private
@@ -436,7 +436,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             session["state"] = DEBUG_PAUSE;
         if (session["state"].toInt() == DEBUG_PAUSE) {
             // url handle
-            emit This->openScript(currentUrl);
+            emit This->openDocument(currentUrl);
             if (currentUrl != session["currentUrl"].toUrl()) session["currentUrl"] = currentUrl;
             // line handle
             emit This->addMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
@@ -448,9 +448,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             QEventLoop loop;
             connect(This, &LuaInterpreter::quitLoop, &loop, &QEventLoop::quit);
             connect(This, &LuaInterpreter::setValue, This,
-                    [This, L, ar, currentUrl](const QString &scriptUrl, const QString &expression, const QString &value, const QString &type) {
+                    [This, L, ar, currentUrl](const QString &documentUrl, const QString &expression, const QString &value, const QString &type) {
                         disconnect(This, &LuaInterpreter::setValue, This, nullptr);
-                        if (currentUrl != scriptUrl) {
+                        if (currentUrl != documentUrl) {
                             emit This->appendLog(QString("Hot update failed: Not in the current file scope"), LOG_ERROR);
                             return;
                         }

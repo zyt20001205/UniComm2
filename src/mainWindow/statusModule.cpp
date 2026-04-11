@@ -33,14 +33,14 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
-void StatusModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &session) const {
-    rootContext()->setContextProperty("scriptUrl", scriptUrl);
-    const QString scriptPath = scriptUrl.toLocalFile();
+void StatusModule::documentFocus(const QUrl &documentUrl, const QVariantHash &session) const {
+    rootContext()->setContextProperty("documentUrl", documentUrl);
+    const QString documentPath = documentUrl.toLocalFile();
     const QString workspacePath = g_workspaceUrl.toLocalFile();
     const QDir workspaceDir(workspacePath);
-    const QString relativePath = workspaceDir.relativeFilePath(scriptPath);
+    const QString relativePath = workspaceDir.relativeFilePath(documentPath);
     const QVariantList pathList = QVariant::fromValue(relativePath.split('/')).toList();
-    QMetaObject::invokeMethod(m_rootItem, "scriptPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
+    QMetaObject::invokeMethod(m_rootItem, "documentPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
 
     switch (session["eolMode"].toInt()) {
         case SC_EOL_CRLF: m_eolModeButton->setProperty("text", tr("CRLF"));

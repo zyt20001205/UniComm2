@@ -40,11 +40,11 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
     for (const auto &value: navigations) {
         const QJsonObject navigation = value.toObject();
         QString uri = navigation["uri"].toString();
-        const auto scriptUrl = uni_cast<QUrl>(uri);
+        const auto documentUrl = uni_cast<QUrl>(uri);
         const QJsonObject range = navigation["range"].toObject();
         const QJsonObject start = range["start"].toObject();
         const QJsonObject end = range["end"].toObject();
-        auto *standardItem = new QStandardItem(scriptUrl.fileName()); // NOLINT
+        auto *standardItem = new QStandardItem(documentUrl.fileName()); // NOLINT
         QUrl iconSource{};
         if (const QString type = navigationSession["type"].toString(); type == "definition") {
             iconSource = "qrc:/icon/definition.svg";
@@ -57,7 +57,7 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
         }
         standardItem->setData(iconSource, Qt::DecorationRole);
         standardItem->setData(QVariantHash({
-            {"scriptUrl", scriptUrl},
+            {"documentUrl", documentUrl},
             {"startLine", start["line"].toInt()},
             {"startCharacter", start["character"].toInt()},
             {"endLine", end["line"].toInt()},
@@ -90,7 +90,7 @@ void NavigationWidget::navigationNext() const {
 void NavigationWidget::detailReload(const int index) {
     m_detailIndex = index;
     const auto position = m_navigationModel->item(m_detailIndex, 0)->data(Qt::WhatsThisRole).toHash();
-    const auto hint = g_document->textGet(position["scriptUrl"].toUrl(), position["startLine"].toInt(), 0, position["startLine"].toInt(), -1);
+    const auto hint = g_document->textGet(position["documentUrl"].toUrl(), position["startLine"].toInt(), 0, position["startLine"].toInt(), -1);
     const int startCharacter = position["startCharacter"].toInt();
     const int endCharacter = position["endCharacter"].toInt();
     const auto hintText = QString("<span style='white-space: pre;'>%1<span style='color: orange;'>%2</span>%3</span>").arg(
@@ -104,11 +104,11 @@ void NavigationWidget::indicatorInsert() {
     const int index = m_tableView->property("selectedRow").toInt();
     const auto position = m_navigationModel->item(index, 0)->data(Qt::WhatsThisRole).toHash();
     emit setCursorPosition(
-            position["scriptUrl"].toUrl(),
+            position["documentUrl"].toUrl(),
             position["startLine"].toInt(),
             position["startCharacter"].toInt());
     emit insertIndicator(
-        position["scriptUrl"].toUrl(),
+        position["documentUrl"].toUrl(),
         INDICATOR_SELECTION,
         position["startLine"].toInt(),
         position["startCharacter"].toInt(),

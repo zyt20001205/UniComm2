@@ -25,7 +25,7 @@ public:
     Q_INVOKABLE void textReplace();
 
 signals:
-    void setText(const QUrl &scriptUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
+    void setText(const QUrl &documentUrl, const QString &text, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
     QObject *m_tooltip{};

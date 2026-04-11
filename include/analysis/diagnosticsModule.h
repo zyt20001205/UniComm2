@@ -19,16 +19,16 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void diagnosticsNotification(const QUrl &scriptUrl, const QJsonArray &diagnostics);
+    void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
     Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
 
     Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 
 signals:
-    void setIndex(const QUrl &scriptUrl, int startLine, int startCharacter);
+    void setIndex(const QUrl &documentUrl, int startLine, int startCharacter);
 
-    void fillIndicator(const QUrl &scriptUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+    void fillIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
     QQuickWidget *m_diagnosticsWidget{};

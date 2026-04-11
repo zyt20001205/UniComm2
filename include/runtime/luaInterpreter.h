@@ -36,14 +36,14 @@ public:
 
     static void watchSet(lua_State *L, lua_Debug *ar);
 
-    void valueSet(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
+    void valueSet(const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
 
 signals:
-    void openScript(const QUrl &scriptUrl);
+    void openDocument(const QUrl &documentUrl);
 
-    void addMarker(const QUrl &scriptUrl, int type, int line, int time);
+    void addMarker(const QUrl &documentUrl, int type, int line, int time);
 
-    void deleteMarker(const QUrl &scriptUrl, int type, int line);
+    void deleteMarker(const QUrl &documentUrl, int type, int line);
 
     void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 
@@ -55,7 +55,7 @@ signals:
 
     void stopThread(const QString &threadId);
 
-    void setValue(const QString &scriptUrl, const QString &expression, const QString &value, const QString &type);
+    void setValue(const QString &documentUrl, const QString &expression, const QString &value, const QString &type);
 
     void quitLoop();
 

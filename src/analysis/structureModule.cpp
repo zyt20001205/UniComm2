@@ -37,30 +37,30 @@ void StructureModule::propertyGet(const QVariantMap &objects) {
     m_structureTreeView = qvariant_cast<QObject *>(objects["treeView"]);
 }
 
-void StructureModule::documentSymbolResponse(const QUrl &scriptUrl, const QJsonArray &result) {
-    m_documentSymbolHash[scriptUrl] = result;
-    if (scriptUrl == m_currentScriptUrl) {
+void StructureModule::documentSymbolResponse(const QUrl &documentUrl, const QJsonArray &result) {
+    m_documentSymbolHash[documentUrl] = result;
+    if (documentUrl == m_currentDocumentUrl) {
         m_structureStandardItemModel->clear();
         documentSymbolPublish(result, nullptr);
     }
 }
 
-void StructureModule::scriptFocus(const QUrl &scriptUrl, const QVariantHash &session) {
-    if (scriptUrl == m_currentScriptUrl) return;
-    m_currentScriptUrl = scriptUrl;
+void StructureModule::documentFocus(const QUrl &documentUrl, const QVariantHash &session) {
+    if (documentUrl == m_currentDocumentUrl) return;
+    m_currentDocumentUrl = documentUrl;
     m_structureStandardItemModel->clear();
-    if (m_documentSymbolHash.contains(scriptUrl)) {
-        documentSymbolPublish(m_documentSymbolHash[scriptUrl], nullptr);
+    if (m_documentSymbolHash.contains(documentUrl)) {
+        documentSymbolPublish(m_documentSymbolHash[documentUrl], nullptr);
     }
 }
 
 void StructureModule::markerAdd(const QVariantHash &position) {
-    emit setFocus(m_currentScriptUrl,
+    emit setFocus(m_currentDocumentUrl,
                   true);
-    emit setIndex(m_currentScriptUrl,
+    emit setIndex(m_currentDocumentUrl,
                   position["startLine"].toInt(),
                   position["startCharacter"].toInt());
-    emit addMarker(m_currentScriptUrl,
+    emit addMarker(m_currentDocumentUrl,
                    MARKER_HINT,
                    position["startLine"].toInt(),
                    1000);

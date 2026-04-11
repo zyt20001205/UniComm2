@@ -5,9 +5,9 @@
 // #include "globals.h"
 //
 // // EditorWidget public
-// EditorWidget::EditorWidget(const QUrl &scriptUrl, QWidget *parent)
+// EditorWidget::EditorWidget(const QUrl &documentUrl, QWidget *parent)
 //     : QsciScintilla(parent),
-//       m_scriptUrl(scriptUrl),
+//       m_documentUrl(documentUrl),
 //       m_autoPairHash{
 //           {'(', ')'},
 //           {'[', ']'},
@@ -95,8 +95,8 @@
 // }
 //
 // void EditorWidget::breakpointLoad() {
-//     if (g_breakpoints.contains(m_scriptUrl)) {
-//         for (const auto &line: g_breakpoints[m_scriptUrl].keys()) {
+//     if (g_breakpoints.contains(m_documentUrl)) {
+//         for (const auto &line: g_breakpoints[m_documentUrl].keys()) {
 //             markerInsert(MARKER_BREAKPOINT_ENABLED, line - 1);
 //         }
 //     }

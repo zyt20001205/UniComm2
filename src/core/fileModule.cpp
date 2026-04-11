@@ -120,7 +120,7 @@ void FileModule::fileNew(const QUrl &fileUrl) {
             QFile file(filePath);
             if (file.open(QIODevice::WriteOnly)) {
                 file.close();
-                emit openScript(fileUrl);
+                emit openDocument(fileUrl);
                 emit appendLog(QString("file created at <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), LOG_INFO);
                 // logging
                 QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -202,9 +202,9 @@ void FileModule::copyToClipboard(const QUrl &fileUrl) {
     clipboard->setText(fileUrl.toString());
 }
 
-QString FileModule::textGet(const QUrl &scriptUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+QString FileModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     // TODO: character not implemented
-    QFile file(scriptUrl.toLocalFile());
+    QFile file(documentUrl.toLocalFile());
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {};
     QTextStream in(&file);
     if (startLine == -1) return in.readAll();

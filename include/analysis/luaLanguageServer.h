@@ -28,37 +28,37 @@ signals:
 
     void shutdowned();
 
-    void notificationPublishDiagnostics(const QUrl &scriptUrl, const QJsonArray &diagnostics);
+    void notificationPublishDiagnostics(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
-    void responseCodeAction(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseCodeAction(const QUrl &documentUrl, const QJsonArray &result);
 
-    void responseCompletion(const QUrl &scriptUrl, const QJsonArray &items);
+    void responseCompletion(const QUrl &documentUrl, const QJsonArray &items);
 
-    void responseDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
+    void responseDefinition(const QUrl &documentUrl, const QJsonArray &ranges);
 
-    void responseDocumentHighlight(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseDocumentHighlight(const QUrl &documentUrl, const QJsonArray &result);
 
-    void responseDocumentSymbol(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseDocumentSymbol(const QUrl &documentUrl, const QJsonArray &result);
 
-    void responseFoldingRange(const QUrl &scriptUrl, const QJsonArray &result);
+    void responseFoldingRange(const QUrl &documentUrl, const QJsonArray &result);
 
-    void responseFormatting(const QUrl &scriptUrl, const QString &newText);
+    void responseFormatting(const QUrl &documentUrl, const QString &newText);
 
-    void responseHover(const QUrl &scriptUrl, const QString &message);
+    void responseHover(const QUrl &documentUrl, const QString &message);
 
-    void responseImplementation(const QUrl &scriptUrl, const QJsonArray &ranges);
+    void responseImplementation(const QUrl &documentUrl, const QJsonArray &ranges);
 
-    void responseOnTypeFormatting(const QUrl &scriptUrl, const QJsonObject &newText);
+    void responseOnTypeFormatting(const QUrl &documentUrl, const QJsonObject &newText);
 
-    void responseRangeFormatting(const QUrl &scriptUrl, const QString &newText);
+    void responseRangeFormatting(const QUrl &documentUrl, const QString &newText);
 
-    void responseReferences(const QUrl &scriptUrl, const QJsonArray &ranges);
+    void responseReferences(const QUrl &documentUrl, const QJsonArray &ranges);
 
-    void responseSemanticTokens(const QUrl &scriptUrl, const QJsonArray &data);
+    void responseSemanticTokens(const QUrl &documentUrl, const QJsonArray &data);
 
-    void responseSignatureHelp(const QUrl &scriptUrl, const QJsonArray &signature);
+    void responseSignatureHelp(const QUrl &documentUrl, const QJsonArray &signature);
 
-    void responseTypeDefinition(const QUrl &scriptUrl, const QJsonArray &ranges);
+    void responseTypeDefinition(const QUrl &documentUrl, const QJsonArray &ranges);
 
 private:
     void initializeNotification();

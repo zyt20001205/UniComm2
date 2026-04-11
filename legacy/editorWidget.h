@@ -8,7 +8,7 @@
 //     Q_OBJECT
 //
 // public:
-//     explicit EditorWidget(const QUrl &scriptUrl, QWidget *parent = nullptr);
+//     explicit EditorWidget(const QUrl &documentUrl, QWidget *parent = nullptr);
 //
 //     ~EditorWidget() override = default;
 //
@@ -96,7 +96,7 @@
 //
 //     void searchHandle();
 //
-//     QUrl m_scriptUrl{};
+//     QUrl m_documentUrl{};
 //     QString m_searchText = {};
 //     int m_searchFlag = 0;
 //     QList<QList<int> > m_searchList{};
