@@ -2762,7 +2762,7 @@ function CS.UnityEngine.Networking.DownloadHandlerTexture:GetContent(www) end
 --Error processing data. The request succeeded in communicating with the server, but encountered an error when processing the received data. For example, the data was corrupted or not in the correct format.
 --
 ---@source UnityEngine.UnityWebRequestModule.dll
----@field DataProcessingError UnityEngine.Networking.UnityWebRequest.Result
+---@field DataingError UnityEngine.Networking.UnityWebRequest.Result
 ---@source UnityEngine.UnityWebRequestModule.dll
 CS.UnityEngine.Networking.Result = {}
 

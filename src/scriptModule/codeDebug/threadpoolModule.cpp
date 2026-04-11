@@ -11,7 +11,7 @@
 #include <QTimer>
 
 #include "globals.h"
-#include "luaModule/luaInterpreter.h"
+#include "runtime/interpreter/luaInterpreter.h"
 #include "scriptModule/scriptModule.h"
 
 // public

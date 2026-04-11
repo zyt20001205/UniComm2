@@ -31,50 +31,43 @@ else ()
 endif ()
 
 qt_add_executable(UniComm ${GUI_TYPE}
-        src/main.cpp
+        include/api/lua/data.h
+        include/api/lua/http.h
+        include/api/lua/imap.h
+        include/api/lua/io.h
+        include/api/lua/key.h
+        include/api/lua/modbusAscii.h
+        include/api/lua/modbusRtu.h
+        include/api/lua/modbusTcp.h
+        include/api/lua/mouse.h
+        include/api/lua/port.h
+        include/api/lua/smtp.h
+        include/api/lua/string.h
+        include/api/lua/thread.h
         include/configManager.h
         include/crashHandler.h
-        include/dataModule/databaseModule.h
-        include/dataModule/dataplotModule.h
-        include/dataModule/datatableModule.h
+        include/data/databaseModule.h
+        include/data/dataplotModule.h
+        include/data/datatableModule.h
         include/globals.h
-        include/systemModule.h
         include/logModule.h
-        include/luaModule/dataProcess.h
-        include/luaModule/http.h
-        include/luaModule/imap.h
-        include/luaModule/io.h
-        include/luaModule/key.h
-        include/luaModule/luaInterpreter.h
-        include/luaModule/luaLanguageServer.h
-        include/luaModule/modbusAscii.h
-        include/luaModule/modbusRtu.h
-        include/luaModule/modbusTcp.h
-        include/luaModule/mouse.h
-        include/luaModule/port.h
-        include/luaModule/smtp.h
-        include/luaModule/string.h
-        include/luaModule/thread.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
         include/mainWindow/statusModule.h
-        include/portModule/basePort.h
-        include/portModule/pixmapPreview.h
-        include/portModule/portModule.h
-        include/portModule/portSetting.h
-        include/portModule/sendModule.h
-        include/portModule/serialPort.h
-        include/portModule/sslClient.h
-        include/portModule/tcpClient.h
-        include/portModule/tcpServer.h
-        include/portModule/udpSocket.h
-        include/portModule/videoStream.h
-        include/portModule/visa.h
-        include/scriptModule/nuspellModule.h
-        include/scriptModule/scriptModule.h
-        include/scriptModule/scriptPage.h
-        include/scriptModule/welcomePage.h
+        include/port/basePort.h
+        include/port/pixmapPreview.h
+        include/port/portModule.h
+        include/port/portSetting.h
+        include/port/sendModule.h
+        include/port/serialPort.h
+        include/port/sslClient.h
+        include/port/tcpClient.h
+        include/port/tcpServer.h
+        include/port/udpSocket.h
+        include/port/videoStream.h
+        include/port/visa.h
+        include/runtime/interpreter/luaInterpreter.h
         include/scriptModule/codeAnalysis/codeAssistant.h
         include/scriptModule/codeAnalysis/completionWidget.h
         include/scriptModule/codeAnalysis/diagnosticsModule.h
@@ -89,9 +82,15 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/scriptModule/codeDebug/threadpoolModule.h
         include/scriptModule/codeDebug/watchModule.h
         include/scriptModule/codeEditor/explorerModule.h
-        include/scriptModule/codeEditor/scintillaWidget.h
         include/scriptModule/codeEditor/replaceWidget.h
+        include/scriptModule/codeEditor/scintillaWidget.h
         include/scriptModule/codeEditor/searchWidget.h
+        include/scriptModule/nuspellModule.h
+        include/scriptModule/scriptModule.h
+        include/scriptModule/scriptPage.h
+        include/scriptModule/welcomePage.h
+        include/service/server/luaLanguageServer.h
+        include/systemModule.h
         include/undoModule.h
         include/utils/cmarkUtils.h
         include/utils/cvUtils.h
@@ -100,49 +99,44 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/utils/ringBuffer.h
         include/utils/suffixUtils.h
         include/utils/uniCast.h
+        src/api/lua/data.cpp
+        src/api/lua/http.cpp
+        src/api/lua/imap.cpp
+        src/api/lua/io.cpp
+        src/api/lua/key.cpp
+        src/api/lua/modbusAscii.cpp
+        src/api/lua/modbusRtu.cpp
+        src/api/lua/modbusTcp.cpp
+        src/api/lua/mouse.cpp
+        src/api/lua/port.cpp
+        src/api/lua/smtp.cpp
+        src/api/lua/string.cpp
+        src/api/lua/thread.cpp
         src/configManager.cpp
         src/crashHandler.cpp
-        src/dataModule/databaseModule.cpp
-        src/dataModule/dataplotModule.cpp
-        src/dataModule/datatableModule.cpp
+        src/data/databaseModule.cpp
+        src/data/dataplotModule.cpp
+        src/data/datatableModule.cpp
         src/globals.cpp
-        src/systemModule.cpp
         src/logModule.cpp
-        src/luaModule/dataProcess.cpp
-        src/luaModule/http.cpp
-        src/luaModule/imap.cpp
-        src/luaModule/io.cpp
-        src/luaModule/key.cpp
-        src/luaModule/luaInterpreter.cpp
-        src/luaModule/luaLanguageServer.cpp
-        src/luaModule/modbusAscii.cpp
-        src/luaModule/modbusRtu.cpp
-        src/luaModule/modbusTcp.cpp
-        src/luaModule/mouse.cpp
-        src/luaModule/port.cpp
-        src/luaModule/smtp.cpp
-        src/luaModule/string.cpp
-        src/luaModule/thread.cpp
+        src/main.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp
         src/mainWindow/statusModule.cpp
-        src/portModule/basePort.cpp
-        src/portModule/pixmapPreview.cpp
-        src/portModule/portModule.cpp
-        src/portModule/portSetting.cpp
-        src/portModule/sendModule.cpp
-        src/portModule/serialPort.cpp
-        src/portModule/sslClient.cpp
-        src/portModule/tcpClient.cpp
-        src/portModule/tcpServer.cpp
-        src/portModule/udpSocket.cpp
-        src/portModule/videoStream.cpp
-        src/portModule/visa.cpp
-        src/scriptModule/nuspellModule.cpp
-        src/scriptModule/scriptModule.cpp
-        src/scriptModule/scriptPage.cpp
-        src/scriptModule/welcomePage.cpp
+        src/port/basePort.cpp
+        src/port/pixmapPreview.cpp
+        src/port/portModule.cpp
+        src/port/portSetting.cpp
+        src/port/sendModule.cpp
+        src/port/serialPort.cpp
+        src/port/sslClient.cpp
+        src/port/tcpClient.cpp
+        src/port/tcpServer.cpp
+        src/port/udpSocket.cpp
+        src/port/videoStream.cpp
+        src/port/visa.cpp
+        src/runtime/interpreter/luaInterpreter.cpp
         src/scriptModule/codeAnalysis/codeAssistant.cpp
         src/scriptModule/codeAnalysis/completionWidget.cpp
         src/scriptModule/codeAnalysis/diagnosticsModule.cpp
@@ -157,9 +151,15 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/scriptModule/codeDebug/threadpoolModule.cpp
         src/scriptModule/codeDebug/watchModule.cpp
         src/scriptModule/codeEditor/explorerModule.cpp
-        src/scriptModule/codeEditor/scintillaWidget.cpp
         src/scriptModule/codeEditor/replaceWidget.cpp
+        src/scriptModule/codeEditor/scintillaWidget.cpp
         src/scriptModule/codeEditor/searchWidget.cpp
+        src/scriptModule/nuspellModule.cpp
+        src/scriptModule/scriptModule.cpp
+        src/scriptModule/scriptPage.cpp
+        src/scriptModule/welcomePage.cpp
+        src/service/server/luaLanguageServer.cpp
+        src/systemModule.cpp
         src/undoModule.cpp
         src/utils/cmarkUtils.cpp
         src/utils/cvUtils.cpp
@@ -174,17 +174,16 @@ qt_add_resources(UniComm "qml_resources"
         PREFIX "/qml"
         BASE "qml"
         FILES
+        "qml/data/databaseModule.qml"
+        "qml/data/dataplotModule.qml"
+        "qml/data/datatableModule.qml"
         "qml/logModule.qml"
-        "qml/dataModule/databaseModule.qml"
-        "qml/dataModule/dataplotModule.qml"
-        "qml/dataModule/datatableModule.qml"
         "qml/mainWindow/mainWindow.qml"
         "qml/mainWindow/menuModule.qml"
         "qml/mainWindow/statusModule.qml"
-        "qml/portModule/portModule.qml"
-        "qml/portModule/portSetting.qml"
-        "qml/portModule/sendModule.qml"
-        "qml/scriptModule/welcomePage.qml"
+        "qml/port/portModule.qml"
+        "qml/port/portSetting.qml"
+        "qml/port/sendModule.qml"
         "qml/scriptModule/codeAnalysis/diagnosticsModule.qml"
         "qml/scriptModule/codeAnalysis/structureModule.qml"
         "qml/scriptModule/codeAnalysis/symbolWidget.qml"
@@ -195,6 +194,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/scriptModule/codeEditor/explorerModule.qml"
         "qml/scriptModule/codeEditor/replaceWidget.qml"
         "qml/scriptModule/codeEditor/searchWidget.qml"
+        "qml/scriptModule/welcomePage.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"
