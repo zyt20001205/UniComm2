@@ -449,7 +449,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         connect(m_editorWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
             if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
         });
-        connect(m_editorWidget, &ScintillaEdit::hotSpotClick, this, [this](Scintilla::Position position, Scintilla::KeyMod modifiers) {
+        connect(m_editorWidget, &ScintillaEdit::hotSpotClick, this, [](Scintilla::Position position, Scintilla::KeyMod modifiers) {
             qDebug() << "hotspot triggered!";
         });
         m_editorWidget->installEventFilter(this);
