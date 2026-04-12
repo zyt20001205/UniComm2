@@ -91,7 +91,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const Q
         auto *messageItem = new QStandardItem(message); // NOLINT
         diagnosticsModel->appendRow({severityItem, sourceItem, codeItem, dataItem, messageItem});
     }
-    if (!m_diagnosticsModelHash.contains(documentUrl)) {
+    if (!m_diagnosticsModelHash.contains(documentUrl) && diagnosticsModel->rowCount() != 0) {
         m_diagnosticsModelHash.insert(documentUrl, diagnosticsModel);
         QMetaObject::invokeMethod(m_rootItem, "append", Q_ARG(QVariant, documentUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
     } else {
