@@ -63,15 +63,17 @@ void DocumentModule::documentConfigSave() {
     // save config
     auto documentList = QJsonArray();
     for (const auto &url: m_pageHash.keys()) {
-        LuaPage *luaPage = m_pageHash[url];
-        luaPage->documentSave();
+        if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[url])) {
+            luaPage->documentSave();
+            documentList.append(url.toString());
+        }
         documentList.append(url.toString());
     }
     m_documentConfig["documentList"] = documentList;
-    if (m_focusedPage.isEmpty()) {
+    if (m_focusedUrl.isEmpty()) {
         m_documentConfig["documentFocused"] = "";
     } else {
-        m_documentConfig["documentFocused"] = m_focusedPage.toString();
+        m_documentConfig["documentFocused"] = m_focusedUrl.toString();
     }
     g_workspaceConfig["documentConfig"] = m_documentConfig;
 }
@@ -185,11 +187,10 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         const auto documentPath = documentUrl.toLocalFile();
         const QFileInfo documentInfo(documentPath);
         const auto suffix = documentInfo.suffix();
-        // TODO: add base page later
-        // if (suffix == "lua") {
-        // if (true) {
-        if (false) {
-            auto *luaPage = new LuaPage(m_documentConfig, documentUrl);
+        BasePage *newPage{};
+        if (suffix == "lua") {
+            newPage = new LuaPage(m_documentConfig, documentUrl);
+            auto *luaPage = qobject_cast<LuaPage *>(newPage);
             luaPage->propertySet(QVariantMap{
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
@@ -219,116 +220,150 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
             connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
             connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
-            // path disambiguation
-            bool conflict = false;
-            for (const auto &url: m_pageHash.keys()) {
-                if (url.fileName() == documentUrl.fileName()) {
-                    conflict = true;
-                    LuaPage *conflictPage = m_pageHash[url];
-                    conflictPage->pathDisambiguation();
-                }
-            }
-            if (conflict) {
-                luaPage->pathDisambiguation();
-            }
-            m_pageHash[documentUrl] = luaPage;
-            if (m_focusedPage.isEmpty()) {
-                m_welcomePage->open();
-                m_welcomePage->addDockWidgetAsTab(luaPage);
-                m_welcomePage->close();
-            } else {
-                m_pageHash[m_focusedPage]->addDockWidgetAsTab(luaPage);
-            }
             luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
         } else {
-            auto *textPage = new TextPage(m_documentConfig, documentUrl);
+            newPage = new TextPage(m_documentConfig, documentUrl);
+            auto *textPage = qobject_cast<TextPage *>(newPage);
             textPage->propertySet(QVariantMap{
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)}
             });
             connect(textPage, &TextPage::destroyed, this, [textPage] {
             });
-
-            if (m_focusedPage.isEmpty()) {
-                m_welcomePage->open();
-                m_welcomePage->addDockWidgetAsTab(textPage);
-                m_welcomePage->close();
-            } else {
-                m_pageHash[m_focusedPage]->addDockWidgetAsTab(textPage);
+        }
+        // path disambiguation
+        bool conflict = false;
+        for (const auto &url: m_pageHash.keys()) {
+            if (url.fileName() == documentUrl.fileName()) {
+                conflict = true;
+                auto *conflictPage = m_pageHash[url];
+                conflictPage->pathDisambiguation();
             }
         }
+        if (conflict) {
+            newPage->pathDisambiguation();
+        }
+        m_pageHash[documentUrl] = newPage;
+        if (m_focusedUrl.isEmpty()) {
+            m_welcomePage->open();
+            m_welcomePage->addDockWidgetAsTab(newPage);
+            m_welcomePage->close();
+        } else {
+            m_pageHash[m_focusedUrl]->addDockWidgetAsTab(newPage);
+        }
     }
-    // m_pageHash[documentUrl]->raise();
-    // m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+    m_pageHash[documentUrl]->raise();
+    m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
 QVariantHash DocumentModule::menuGet(const QString &name) {
-    return m_pageHash[m_focusedPage]->menuGet(name);
+    // TODO: text page
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])) {
+        return luaPage->menuGet(name);
+    }
+    return {};
 }
 
 void DocumentModule::menuRequest(const QString &request) {
-    m_pageHash[m_focusedPage]->menuRequest(request);
+    // TODO: text page
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])) {
+        luaPage->menuRequest(request);
+    }
 }
 
 int DocumentModule::eolModeGet(const QUrl &documentUrl) const {
-    return m_pageHash[documentUrl]->m_editorWidget->eolModeGet();
+    // TODO: text page
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        return luaPage->m_editorWidget->eolModeGet();
+    }
+    return {};
 }
 
 void DocumentModule::eolModeSet(const QUrl &documentUrl, const int eolMode) const {
-    m_pageHash[documentUrl]->m_editorWidget->eolModeSet(eolMode);
+    // TODO: text page
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->eolModeSet(eolMode);
+    }
 }
 
 bool DocumentModule::eolViewGet(const QUrl &documentUrl) {
-    return m_pageHash[documentUrl]->m_editorWidget->eolViewGet();
+    // TODO: text page
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        return luaPage->m_editorWidget->eolViewGet();
+    }
+    return {};
 }
 
 void DocumentModule::eolViewSet(const QUrl &documentUrl, const bool status) const {
-    m_pageHash[documentUrl]->m_editorWidget->eolViewSet(status);
+    // TODO: text page
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->eolViewSet(status);
+    }
 }
 
 // public: document
 void DocumentModule::foldContractTop(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->foldContractTop();
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->foldContractTop();
+    }
 }
 
 void DocumentModule::foldContractRecursively(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->foldContractRecursively();
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->foldContractRecursively();
+    }
 }
 
 void DocumentModule::foldExpandRecursively(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->foldExpandRecursively();
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->foldExpandRecursively();
+    }
 }
 
 void DocumentModule::assemblyToggle(const QUrl &documentUrl, const bool status) {
-    m_pageHash[documentUrl]->assemblyToggle(status);
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->assemblyToggle(status);
+    }
 }
 
 void DocumentModule::focusSet(const QUrl &documentUrl, const bool status) {
+    // TODO: text page
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->focusSet(status);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->focusSet(status);
+    }
 }
 
 void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int character) {
+    // TODO: text page
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->indexSet(line, character);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->indexSet(line, character);
+    }
 }
 
 void DocumentModule::indexGet() const {
-    const auto documentUrl = m_focusedPage;
-    const auto index = m_pageHash[documentUrl]->m_editorWidget->indexGet();
-    g_cursorPosition = {
-        {"url", documentUrl},
-        {"line", index["line"]},
-        {"character", index["character"]}
-    };
+    // TODO: text page
+    QHash<QString, int> index{};
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])) {
+        index = luaPage->m_editorWidget->indexGet();
+        g_cursorPosition = {
+            {"url", m_focusedUrl},
+            {"line", index["line"]},
+            {"character", index["character"]}
+        };
+    }
 }
 
 QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    // TODO: text page
     if (m_pageHash.contains(documentUrl)) {
-        return m_pageHash[documentUrl]->m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+        if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+            return luaPage->m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+        }
     }
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
 }
@@ -336,29 +371,39 @@ QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, co
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
                                    const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
+    }
 }
 
 void DocumentModule::indicatorClear(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_pageHash.contains(documentUrl)) return;
-    m_pageHash[documentUrl]->m_editorWidget->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
+    }
 }
 
 void DocumentModule::markerAdd(const QUrl &documentUrl, const int type, const int line, const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->markerAdd(type, line, time);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->markerAdd(type, line, time);
+    }
 }
 
 void DocumentModule::markerDelete(const QUrl &documentUrl, const int type, const int line) {
     if (!m_pageHash.contains(documentUrl)) return;
-    m_pageHash[documentUrl]->m_editorWidget->markerDelete(type, line);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->markerDelete(type, line);
+    }
 }
 
 // public: lsp
 void DocumentModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(documentUrl, diagnostics);
     if (m_pageHash.contains(documentUrl)) {
-        m_pageHash[documentUrl]->diagnosticsNotification(diagnostics);
+        if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+            luaPage->diagnosticsNotification(diagnostics);
+        }
     }
 }
 
@@ -426,30 +471,31 @@ void DocumentModule::completionRequest(const QUrl &documentUrl, int line, int ch
 }
 
 void DocumentModule::completionResponse(const QUrl &documentUrl, const QJsonArray &items) const {
-    const auto *luaPage = m_pageHash[documentUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
-    const auto wordIndex = scintilla->wordIndexGet();
-    const auto startLine = wordIndex["startLine"];
-    const auto startCharacter = wordIndex["startCharacter"];
-    const auto endLine = wordIndex["endLine"];
-    const auto endCharacter = wordIndex["endCharacter"];
-    const auto typed = scintilla->indexGet()["character"] - startCharacter;
-    const auto height = scintilla->heightGet();
-    const auto point = scintilla->pointGet(startLine, startCharacter);
-    const auto x = point["x"];
-    const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
-    // call completion show
-    const QVariantHash completionSession = {
-        {"documentUrl", documentUrl},
-        {"position", position},
-        {"startLine", startLine},
-        {"startCharacter", startCharacter},
-        {"endLine", endLine},
-        {"endCharacter", endCharacter},
-        {"typed", typed}
-    };
-    m_codeAssistant->completionShow(completionSession, items);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto wordIndex = scintilla->wordIndexGet();
+        const auto startLine = wordIndex["startLine"];
+        const auto startCharacter = wordIndex["startCharacter"];
+        const auto endLine = wordIndex["endLine"];
+        const auto endCharacter = wordIndex["endCharacter"];
+        const auto typed = scintilla->indexGet()["character"] - startCharacter;
+        const auto height = scintilla->heightGet();
+        const auto point = scintilla->pointGet(startLine, startCharacter);
+        const auto x = point["x"];
+        const auto y = point["y"] + height;
+        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        // call completion show
+        const QVariantHash completionSession = {
+            {"documentUrl", documentUrl},
+            {"position", position},
+            {"startLine", startLine},
+            {"startCharacter", startCharacter},
+            {"endLine", endLine},
+            {"endCharacter", endCharacter},
+            {"typed", typed}
+        };
+        m_codeAssistant->completionShow(completionSession, items);
+    }
 }
 
 void DocumentModule::definitionRequest(const QUrl &documentUrl, const int line, const int character) {
@@ -471,23 +517,24 @@ void DocumentModule::definitionRequest(const QUrl &documentUrl, const int line, 
 }
 
 void DocumentModule::definitionResponse(const QUrl &documentUrl, const QJsonArray &definitions) const {
-    const auto *luaPage = m_pageHash[documentUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
-    const auto wordIndex = scintilla->wordIndexGet();
-    const auto startLine = wordIndex["startLine"];
-    const auto startCharacter = wordIndex["startCharacter"];
-    const auto height = scintilla->heightGet();
-    const auto point = scintilla->pointGet(startLine, startCharacter);
-    const auto x = point["x"];
-    const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "definition"},
-        {"documentUrl", documentUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, definitions);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto wordIndex = scintilla->wordIndexGet();
+        const auto startLine = wordIndex["startLine"];
+        const auto startCharacter = wordIndex["startCharacter"];
+        const auto height = scintilla->heightGet();
+        const auto point = scintilla->pointGet(startLine, startCharacter);
+        const auto x = point["x"];
+        const auto y = point["y"] + height;
+        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        // call navigation show
+        const QVariantHash navigationSession = {
+            {"type", "definition"},
+            {"documentUrl", documentUrl},
+            {"position", position}
+        };
+        m_codeAssistant->navigationShow(navigationSession, definitions);
+    }
 }
 
 void DocumentModule::documentSymbolRequest(const QUrl &documentUrl) {
@@ -503,7 +550,9 @@ void DocumentModule::documentSymbolRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::documentSymbolResponse(const QUrl &documentUrl, const QJsonArray &result) {
-    m_pageHash[documentUrl]->documentSymbolResponse(result);
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->documentSymbolResponse(result);
+    }
 }
 
 void DocumentModule::documentHighlightRequest(const QUrl &documentUrl, const int line, const int character) {
@@ -525,7 +574,9 @@ void DocumentModule::documentHighlightRequest(const QUrl &documentUrl, const int
 }
 
 void DocumentModule::documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result) {
-    m_pageHash[documentUrl]->documentHighlightResponse(result);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->documentHighlightResponse(result);
+    }
 }
 
 void DocumentModule::foldingRangeRequest(const QUrl &documentUrl) {
@@ -541,7 +592,9 @@ void DocumentModule::foldingRangeRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::foldingRangeResponse(const QUrl &documentUrl, const QJsonArray &result) const {
-    m_pageHash[documentUrl]->foldingRangeResponse(result);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->foldingRangeResponse(result);
+    }
 }
 
 void DocumentModule::formattingRequest(const QUrl &documentUrl) {
@@ -569,8 +622,8 @@ void DocumentModule::formattingResponse(const QUrl &documentUrl, const QString &
         m_messageDialog->setProperty("title", tr("Information"));
         m_messageDialog->setProperty("text", tr("File already reformatted."));
         QMetaObject::invokeMethod(m_messageDialog, "open");
-    } else {
-        m_pageHash[documentUrl]->formattingResponse(newText);
+    } else if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->formattingResponse(newText);
     }
 }
 
@@ -620,23 +673,24 @@ void DocumentModule::implementationRequest(const QUrl &documentUrl, const int li
 }
 
 void DocumentModule::implementationResponse(const QUrl &documentUrl, const QJsonArray &implementations) const {
-    const auto *luaPage = m_pageHash[documentUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
-    const auto wordIndex = scintilla->wordIndexGet();
-    const auto startLine = wordIndex["startLine"];
-    const auto startCharacter = wordIndex["startCharacter"];
-    const auto height = scintilla->heightGet();
-    const auto point = scintilla->pointGet(startLine, startCharacter);
-    const auto x = point["x"];
-    const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "implementation"},
-        {"documentUrl", documentUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, implementations);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto wordIndex = scintilla->wordIndexGet();
+        const auto startLine = wordIndex["startLine"];
+        const auto startCharacter = wordIndex["startCharacter"];
+        const auto height = scintilla->heightGet();
+        const auto point = scintilla->pointGet(startLine, startCharacter);
+        const auto x = point["x"];
+        const auto y = point["y"] + height;
+        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        // call navigation show
+        const QVariantHash navigationSession = {
+            {"type", "implementation"},
+            {"documentUrl", documentUrl},
+            {"position", position}
+        };
+        m_codeAssistant->navigationShow(navigationSession, implementations);
+    }
 }
 
 void DocumentModule::onTypeFormattingRequest(const QUrl &documentUrl, int line, int character) {
@@ -667,7 +721,9 @@ void DocumentModule::onTypeFormattingRequest(const QUrl &documentUrl, int line, 
 }
 
 void DocumentModule::onTypeFormattingResponse(const QUrl &documentUrl, const QJsonObject &newText) const {
-    m_pageHash[documentUrl]->onTypeFormattingResponse(newText);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->onTypeFormattingResponse(newText);
+    }
 }
 
 void DocumentModule::rangeFormattingRequest(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
@@ -707,9 +763,11 @@ void DocumentModule::rangeFormattingRequest(const QUrl &documentUrl, const int s
 }
 
 void DocumentModule::rangeFormattingResponse(const QUrl &documentUrl, const QString &newText) const {
-    auto text = newText;
-    if (text.endsWith("\r\n")) text.chop(2);
-    m_pageHash[documentUrl]->rangeFormattingResponse(text);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        auto text = newText;
+        if (text.endsWith("\r\n")) text.chop(2);
+        luaPage->rangeFormattingResponse(text);
+    }
 }
 
 void DocumentModule::referencesRequest(const QUrl &documentUrl, int line, int character) {
@@ -736,23 +794,24 @@ void DocumentModule::referencesRequest(const QUrl &documentUrl, int line, int ch
 }
 
 void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const {
-    const auto *luaPage = m_pageHash[documentUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
-    const auto wordIndex = scintilla->wordIndexGet();
-    const auto startLine = wordIndex["startLine"];
-    const auto startCharacter = wordIndex["startCharacter"];
-    const auto height = scintilla->heightGet();
-    const auto point = scintilla->pointGet(startLine, startCharacter);
-    const auto x = point["x"];
-    const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "reference"},
-        {"documentUrl", documentUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, references);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto wordIndex = scintilla->wordIndexGet();
+        const auto startLine = wordIndex["startLine"];
+        const auto startCharacter = wordIndex["startCharacter"];
+        const auto height = scintilla->heightGet();
+        const auto point = scintilla->pointGet(startLine, startCharacter);
+        const auto x = point["x"];
+        const auto y = point["y"] + height;
+        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        // call navigation show
+        const QVariantHash navigationSession = {
+            {"type", "reference"},
+            {"documentUrl", documentUrl},
+            {"position", position}
+        };
+        m_codeAssistant->navigationShow(navigationSession, references);
+    }
 }
 
 void DocumentModule::semanticTokensRequest(const QUrl &documentUrl) {
@@ -768,7 +827,9 @@ void DocumentModule::semanticTokensRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::semanticTokensResponse(const QUrl &documentUrl, const QJsonArray &data) const {
-    m_pageHash[documentUrl]->semanticTokensResponse(data);
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->semanticTokensResponse(data);
+    }
 }
 
 void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int character) {
@@ -790,21 +851,22 @@ void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int
 }
 
 void DocumentModule::signatureHelpResponse(const QUrl &documentUrl, const QJsonArray &signatures) const {
-    const auto *luaPage = m_pageHash[documentUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
-    const auto wordIndex = scintilla->wordIndexGet();
-    const auto startLine = wordIndex["startLine"];
-    const auto startCharacter = wordIndex["startCharacter"];
-    const auto point = scintilla->pointGet(startLine, startCharacter - 1);
-    const auto x = point["x"];
-    const auto y = point["y"];
-    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
-    // call signature show
-    const QVariantHash signatureSession = {
-        {"documentUrl", documentUrl},
-        {"position", position}
-    };
-    m_codeAssistant->signatureShow(signatureSession, signatures);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto wordIndex = scintilla->wordIndexGet();
+        const auto startLine = wordIndex["startLine"];
+        const auto startCharacter = wordIndex["startCharacter"];
+        const auto point = scintilla->pointGet(startLine, startCharacter - 1);
+        const auto x = point["x"];
+        const auto y = point["y"];
+        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        // call signature show
+        const QVariantHash signatureSession = {
+            {"documentUrl", documentUrl},
+            {"position", position}
+        };
+        m_codeAssistant->signatureShow(signatureSession, signatures);
+    }
 }
 
 void DocumentModule::typeDefinitionRequest(const QUrl &documentUrl, const int line, const int character) {
@@ -826,41 +888,46 @@ void DocumentModule::typeDefinitionRequest(const QUrl &documentUrl, const int li
 }
 
 void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJsonArray &typeDefinitions) const {
-    const auto *luaPage = m_pageHash[documentUrl];
-    const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
-    const auto wordIndex = scintilla->wordIndexGet();
-    const auto startLine = wordIndex["startLine"];
-    const auto startCharacter = wordIndex["startCharacter"];
-    const auto height = scintilla->heightGet();
-    const auto point = scintilla->pointGet(startLine, startCharacter);
-    const auto x = point["x"];
-    const auto y = point["y"] + height;
-    const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
-    // call navigation show
-    const QVariantHash navigationSession = {
-        {"type", "typeDefinition"},
-        {"documentUrl", documentUrl},
-        {"position", position}
-    };
-    m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto wordIndex = scintilla->wordIndexGet();
+        const auto startLine = wordIndex["startLine"];
+        const auto startCharacter = wordIndex["startCharacter"];
+        const auto height = scintilla->heightGet();
+        const auto point = scintilla->pointGet(startLine, startCharacter);
+        const auto x = point["x"];
+        const auto y = point["y"] + height;
+        const QPoint position = scintilla->mapToGlobal(QPoint(x, y));
+        // call navigation show
+        const QVariantHash navigationSession = {
+            {"type", "typeDefinition"},
+            {"documentUrl", documentUrl},
+            {"position", position}
+        };
+        m_codeAssistant->navigationShow(navigationSession, typeDefinitions);
+    }
 }
 
 // public: typo
 void DocumentModule::spellCheckResponse(const QUrl &documentUrl, const QVariantList &typos) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->spellCheckResponse(typos);
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->spellCheckResponse(typos);
+    }
 }
 
 // private
-void DocumentModule::documentFocus(const LuaPage *luaPage, const bool status) {
+void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
     if (status) {
-        m_focusedPage = luaPage->m_documentUrl;
-        const QVariantHash session = {
-            {"codePage", luaPage->m_editorWidget->codePageGet()},
-            {"eolMode", luaPage->m_editorWidget->eolModeGet()}
-        };
-        emit focusDocument(luaPage->m_documentUrl, session);
-    } else {
+        m_focusedUrl = basePage->documentUrl();
+        if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
+            const QVariantHash session = {
+                {"codePage", luaPage->m_editorWidget->codePageGet()},
+                {"eolMode", luaPage->m_editorWidget->eolModeGet()}
+            };
+            emit focusDocument(m_focusedUrl, session);
+        }
+    } else if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
         luaPage->m_editorWidget->indicatorClear(INDICATOR_HIGHLIGHT);
         luaPage->m_editorWidget->indicatorClear(INDICATOR_READ);
         luaPage->m_editorWidget->indicatorClear(INDICATOR_WRITE);
@@ -871,23 +938,29 @@ void DocumentModule::documentClose(const QUrl &documentUrl) {
     m_pageHash.remove(documentUrl);
     if (m_pageHash.isEmpty()) {
         m_welcomePage->open();
-        m_focusedPage = nullptr;
+        m_focusedUrl = nullptr;
     } else {
         const auto begin = m_pageHash.begin();
-        m_focusedPage = begin.key();
+        m_focusedUrl = begin.key();
     }
 }
 
 void DocumentModule::charAdd(const QUrl &documentUrl, const QChar character) const {
-    m_pageHash[documentUrl]->charAdd(character.toLatin1());
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->charAdd(character.toLatin1());
+    }
 }
 
 void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    }
 }
 
 void DocumentModule::textSetSelected(const QUrl &documentUrl, const QString &text) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    m_pageHash[documentUrl]->m_editorWidget->textSetSelected(text);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->textSetSelected(text);
+    }
 }

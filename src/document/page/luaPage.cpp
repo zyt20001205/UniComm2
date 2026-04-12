@@ -21,8 +21,7 @@
 
 // public
 LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
-    : DockWidget(documentUrl.toString()),
-      m_documentUrl(documentUrl),
+    : BasePage(documentUrl),
       m_editorWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
       m_replaceWidget(new ReplaceWidget(this)),
@@ -34,8 +33,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'},
-      m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}},
-      m_fileWatcher(new QFileSystemWatcher()) {
+      m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}} {
     setTitle(documentUrl.fileName());
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, this, &LuaPage::searchToggle);
@@ -566,22 +564,11 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 
     QTimer::singleShot(0, this, [this] {
         // state
-        permissionGet();
         breakpointGet();
         regionGet();
         // lsp
         didOpenNotification();
         contentChange();
-        // widgets
-        m_symbolWidget->propertySet(QVariantMap{
-            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
-        });
-        m_searchWidget->propertySet(QVariantMap{
-            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
-        });
-        m_replaceWidget->propertySet(QVariantMap{
-            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
-        });
         // logging
         emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -594,6 +581,15 @@ void LuaPage::propertySet(const QVariantMap &objects) {
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
+    m_symbolWidget->propertySet(QVariantMap{
+            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
+        });
+    m_searchWidget->propertySet(QVariantMap{
+        {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
+    });
+    m_replaceWidget->propertySet(QVariantMap{
+        {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
+    });
 }
 
 QVariantHash LuaPage::menuGet(const QString &name) const {
@@ -700,47 +696,11 @@ void LuaPage::menuRequest(const QString &request) {
 }
 
 // public: file
-void LuaPage::pathDisambiguation() {
-    const QString documentPath = m_documentUrl.toLocalFile();
-    const QString workspacePath = g_workspaceUrl.toLocalFile();
-    const QString relatedPath = QDir(workspacePath).relativeFilePath(documentPath);
-    setTitle(relatedPath);
-}
-
-void LuaPage::documentReload() {
-    // TODO: waiting for frontend & filewatcher
-    // const QMessageBox::StandardButton reply = QMessageBox::question(
-    //     nullptr,
-    //     tr("Reload"),
-    //     QString(tr("%1\n\n"
-    //         "This file has been modified by another program.\n"
-    //         "Do you want to reload it?")).arg(m_documentUrl.toString()),
-    //     QMessageBox::Yes | QMessageBox::No);
-    // if (reply != QMessageBox::Yes) {
-    //     return;
-    // }
-    // // reload new script
-    // const QUrl &url(m_documentUrl);
-    // const QString documentPath = url.toLocalFile();
-    // QFile file(documentPath);
-    // file.open(QIODevice::ReadOnly);
-    // QTextStream in(&file);
-    // const QString content = in.readAll();
-    // file.close();
-    // m_editorWidget->setText(content);
-    // // logging
-    // emit appendLog(QString("<a href='%1'>%2</a> reloaded").arg(m_documentUrl.toString(), m_documentUrl.fileName()), "info");
-    // QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    // qDebug() << QString("[%1] %2 reloaded").arg(timestamp, m_documentUrl.fileName());
-}
-
 void LuaPage::documentSave() {
     if (!m_editorWidget->modifyGet()) return;
     // update status
     m_editorWidget->savepointSet();
     didSaveNotification();
-    // block file watcher signals
-    m_fileWatcher->blockSignals(true);
     // save file
     const QString documentPath = m_documentUrl.toLocalFile();
     QFile file(documentPath);
@@ -752,30 +712,6 @@ void LuaPage::documentSave() {
     emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 saved").arg(timestamp, m_documentUrl.toString());
-    // restore file watcher signals 1 sec later
-    QTimer::singleShot(1000, this, [this] { m_fileWatcher->blockSignals(false); });
-}
-
-void LuaPage::documentClose() {
-    // ask for saving
-    if (m_editorWidget->modifyGet()) {
-        const QMessageBox::StandardButton reply = QMessageBox::question(
-            nullptr,
-            tr("Close Script"),
-            tr("The script has been edited. Save changes?"),
-            QMessageBox::Yes | QMessageBox::No,
-            QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
-            documentSave();
-        }
-    }
-    didCloseNotification();
-    emit closeDocument(m_documentUrl);
-    deleteLater();
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_documentUrl.toString());
 }
 
 // public: lsp
@@ -1231,18 +1167,6 @@ void LuaPage::savepointChange(const bool status) {
 }
 
 // private: file
-void LuaPage::permissionGet() {
-    const QString documentPath = m_documentUrl.toLocalFile();
-    const QFileInfo fileInfo(documentPath);
-    if (fileInfo.isWritable()) {
-        setIcon(QIcon());
-        m_editorWidget->readonlySet(false);
-    } else {
-        setIcon(QIcon(":/icon/lockClosed.svg"));
-        m_editorWidget->readonlySet(true);
-    }
-}
-
 void LuaPage::permissionSet() const {
     m_systemPropertyDialog->setProperty("fileUrl", m_documentUrl);
     QMetaObject::invokeMethod(m_systemPropertyDialog, "open");

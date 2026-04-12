@@ -9,7 +9,7 @@ class SearchWidget;
 class ReplaceWidget;
 class ScintillaWidget;
 
-class TextPage : public BasePage {
+class TextPage final : public BasePage {
     Q_OBJECT
 
 public:

@@ -1,13 +1,12 @@
 #ifndef UNICOMM_LUAPAGE_H
 #define UNICOMM_LUAPAGE_H
 
-#include <QJsonArray>
-#include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QJsonArray>
+#include <ScintillaTypes.h>
 
-#include "ScintillaTypes.h"
+#include "basePage.h"
 
-class QFileSystemWatcher;
 class QLabel;
 class QLineEdit;
 class QPushButton;
@@ -17,7 +16,7 @@ class ReplaceWidget;
 class ScintillaWidget;
 class SymbolWidget;
 
-class LuaPage final : public KDDockWidgets::QtWidgets::DockWidget {
+class LuaPage final : public BasePage {
     Q_OBJECT
 
 public:
@@ -34,13 +33,7 @@ public:
     void menuRequest(const QString &request);
 
     // public: file
-    void pathDisambiguation();
-
-    void documentReload();
-
     void documentSave();
-
-    void documentClose();
 
     // public: lsp
     void diagnosticsNotification(const QJsonArray &diagnostics);
@@ -68,12 +61,9 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
-    QUrl m_documentUrl{};
     ScintillaWidget *m_editorWidget{};
 
 signals:
-    void appendLog(const QString &message, int type);
-
     void closeDocument(const QUrl &documentUrl);
 
     void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
@@ -131,8 +121,6 @@ private:
     void savepointChange(bool status);
 
     // private: file
-    void permissionGet();
-
     void permissionSet() const;
 
     void breakpointGet() const;
@@ -223,8 +211,6 @@ private:
     QSet<QChar> m_signatureHelpSet{};
     QSet<QChar> m_onTypeFormattingSet{};
     QHash<QChar, QChar> m_pairHash{};
-
-    QFileSystemWatcher *m_fileWatcher{};
 
     int m_version = 1;
     QJsonArray m_diagnostic{};

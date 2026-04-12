@@ -6,6 +6,7 @@
 
 #include "document/page/welcomePage.h"
 
+class BasePage;
 class QLabel;
 class QTableWidget;
 class QTabWidget;
@@ -170,7 +171,7 @@ signals:
     void requestSpellSuggest(const QUrl &documentUrl, const QString &word);
 
 private:
-    void documentFocus(const LuaPage *luaPage, bool status);
+    void documentFocus(BasePage *basePage, bool status);
 
     void documentClose(const QUrl &documentUrl);
 
@@ -187,8 +188,8 @@ private:
     QObject *m_systemPropertyDialog{};
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
-    QUrl m_focusedPage{};
-    QHash<QUrl, LuaPage *> m_pageHash{};
+    QUrl m_focusedUrl{};
+    QHash<QUrl, BasePage *> m_pageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
     CodeAssistant *m_codeAssistant{};
 };

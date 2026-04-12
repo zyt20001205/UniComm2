@@ -24,8 +24,6 @@ public:
 signals:
     void appendLog(const QString &message, int type);
 
-    void closeDocument(const QUrl &documentUrl);
-
 protected:
     void closeEvent(QCloseEvent *event) override;
 
