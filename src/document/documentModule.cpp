@@ -252,7 +252,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
-    qDebug() << m_pageHash.keys();
 }
 
 QVariantHash DocumentModule::menuGet(const QString &name) {
@@ -942,7 +941,6 @@ void DocumentModule::documentClose(const QUrl &documentUrl) {
         const auto begin = m_pageHash.begin();
         m_focusedUrl = begin.key();
     }
-    qDebug() << m_pageHash.keys();
 }
 
 void DocumentModule::charAdd(const QUrl &documentUrl, const QChar character) const {
