@@ -40,6 +40,7 @@ QUrl BasePage::documentUrl() {
     return m_documentUrl;
 }
 
+// protected
 void BasePage::closeEvent(QCloseEvent *event) {
     documentClose();
     event->accept();

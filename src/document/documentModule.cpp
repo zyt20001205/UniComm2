@@ -199,7 +199,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             });
             connect(luaPage, &LuaPage::isFocusedChanged, this, [this, luaPage](const bool status) { documentFocus(luaPage, status); });
             connect(luaPage, &LuaPage::appendLog, this, &DocumentModule::appendLog);
-            connect(luaPage, &LuaPage::closeDocument, this, &DocumentModule::documentClose);
             connect(luaPage, &LuaPage::startThread, this, &DocumentModule::startThread);
             connect(luaPage, &LuaPage::changeSelection, this, &DocumentModule::changeSelection);
             connect(luaPage, &LuaPage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
@@ -228,8 +227,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)}
             });
-            connect(textPage, &TextPage::destroyed, this, [textPage] {
-            });
         }
         // path disambiguation
         bool conflict = false;
@@ -251,9 +248,11 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         } else {
             m_pageHash[m_focusedUrl]->addDockWidgetAsTab(newPage);
         }
+        connect(newPage, &BasePage::destroyed, this, [this, documentUrl] { documentClose(documentUrl); });
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+    qDebug() << m_pageHash.keys();
 }
 
 QVariantHash DocumentModule::menuGet(const QString &name) {
@@ -943,6 +942,7 @@ void DocumentModule::documentClose(const QUrl &documentUrl) {
         const auto begin = m_pageHash.begin();
         m_focusedUrl = begin.key();
     }
+    qDebug() << m_pageHash.keys();
 }
 
 void DocumentModule::charAdd(const QUrl &documentUrl, const QChar character) const {

@@ -27,9 +27,9 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-    QUrl m_documentUrl{};
-private:
     void permissionGet();
+
+    QUrl m_documentUrl{};
 };
 
 #endif //UNICOMM_BASEPAGE_H

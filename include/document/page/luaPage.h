@@ -64,8 +64,6 @@ public:
     ScintillaWidget *m_editorWidget{};
 
 signals:
-    void closeDocument(const QUrl &documentUrl);
-
     void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void changeSelection(const QHash<QString, int> &selection);
@@ -105,9 +103,6 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
-
-protected:
-    void closeEvent(QCloseEvent *event) override;
 
 private:
     void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);

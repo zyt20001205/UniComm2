@@ -43,8 +43,6 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 
         m_editorWidget->send(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xffffff); // NOLINT
 
-        // m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
-
         m_editorWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
         m_editorWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
 
@@ -52,6 +50,21 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
         m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
         m_editorWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+        // load
+        const QUrl &url(documentUrl);
+        const QString documentPath = url.toLocalFile();
+        QFile file(documentPath);
+        if (!file.open(QIODevice::ReadOnly)) return;
+        QTextStream in(&file);
+        const QString text = in.readAll();
+        file.close();
+        m_editorWidget->textSet(text);
+        // permission
+        const QFileInfo documentInfo(documentPath);
+        m_editorWidget->readonlySet(!documentInfo.isWritable());
+        // history
+        m_editorWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
+        m_editorWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
     }
     // font
     m_editorWidget->fontSet(QFont(documentConfig["fontFamily"].toString(), documentConfig["fontSize"].toInt()));
@@ -81,26 +94,17 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         m_editorWidget->marginDefine(
             0,
             QJsonObject{
-                {"type", SC_MARGIN_TEXT},
+                {"type", SC_MARGIN_NUMBER},
                 {"width", 32}
             });
         m_editorWidget->marginDefine(
-            3,
+            1,
             QJsonObject{
                 {"type", SC_MARGIN_SYMBOL},
                 {"width", 4},
                 {"mask", SC_MASK_HISTORY},
             });
     }
-    // load
-    const QUrl &url(documentUrl);
-    const QString documentPath = url.toLocalFile();
-    QFile file(documentPath);
-    if (!file.open(QIODevice::ReadOnly)) return;
-    QTextStream in(&file);
-    const QString text = in.readAll();
-    file.close();
-    m_editorWidget->textSet(text);
 
     connect(m_editorWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &TextPage::permissionSet);
     connect(m_editorWidget, &ScintillaEdit::savePointChanged, this, &TextPage::savepointChange);
@@ -125,18 +129,12 @@ void TextPage::documentSave() {
     // TODO: waiting for filewatcher
 }
 
-// protected
-void TextPage::closeEvent(QCloseEvent *event) {
-    documentClose();
-    DockWidget::closeEvent(event);
-}
-
+// private: slot
 void TextPage::selectionChange() {
     m_selection = m_editorWidget->selectionGet();
     emit changeSelection(m_selection);
 }
 
-// private: slot
 void TextPage::savepointChange(const bool status) {
     const QString pageName = title();
     if (status) {

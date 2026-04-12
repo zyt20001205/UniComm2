@@ -27,9 +27,6 @@ public:
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 
-protected:
-    void closeEvent(QCloseEvent *event) override;
-
 private:
     void selectionChange();
 

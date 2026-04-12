@@ -117,17 +117,18 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
             m_editorWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-            // for debug
-            // m_editorWidget->send(SCI_SETVIEWEOL, true); // NOLINT
-            // script
+            // load
             const QUrl &url(documentUrl);
             const QString documentPath = url.toLocalFile();
             QFile file(documentPath);
             if (!file.open(QIODevice::ReadOnly)) return;
             QTextStream in(&file);
-            const QString script = in.readAll();
+            const QString text = in.readAll();
             file.close();
-            m_editorWidget->textSet(script);
+            m_editorWidget->textSet(text);
+            // permission
+            const QFileInfo documentInfo(documentPath);
+            m_editorWidget->readonlySet(!documentInfo.isWritable());
             // history
             m_editorWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
             m_editorWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
@@ -1081,12 +1082,6 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     return DockWidget::eventFilter(watched, event);
-}
-
-// protected
-void LuaPage::closeEvent(QCloseEvent *event) {
-    documentClose();
-    event->accept();
 }
 
 // private: slot
