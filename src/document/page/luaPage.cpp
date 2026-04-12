@@ -1150,7 +1150,7 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
 // protected
 void LuaPage::closeEvent(QCloseEvent *event) {
     documentClose();
-    DockWidget::closeEvent(event);
+    event->accept();
 }
 
 // private: slot

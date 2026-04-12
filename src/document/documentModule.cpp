@@ -187,7 +187,8 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         const auto suffix = documentInfo.suffix();
         // TODO: add base page later
         // if (suffix == "lua") {
-        if (true) {
+        // if (true) {
+        if (false) {
             auto *luaPage = new LuaPage(m_documentConfig, documentUrl);
             luaPage->propertySet(QVariantMap{
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
@@ -245,10 +246,20 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)}
             });
+            connect(textPage, &TextPage::destroyed, this, [textPage] {
+            });
+
+            if (m_focusedPage.isEmpty()) {
+                m_welcomePage->open();
+                m_welcomePage->addDockWidgetAsTab(textPage);
+                m_welcomePage->close();
+            } else {
+                m_pageHash[m_focusedPage]->addDockWidgetAsTab(textPage);
+            }
         }
     }
-    m_pageHash[documentUrl]->raise();
-    m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+    // m_pageHash[documentUrl]->raise();
+    // m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
 QVariantHash DocumentModule::menuGet(const QString &name) {

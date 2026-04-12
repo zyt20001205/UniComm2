@@ -29,7 +29,7 @@ void BasePage::documentReload() {
 void BasePage::documentClose() {
     // ask for saving
     // TODO: waiting for frontend
-    emit closeDocument(m_documentUrl);
+    deleteLater();
     // logging
     emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
@@ -42,7 +42,7 @@ QUrl BasePage::documentUrl() {
 
 void BasePage::closeEvent(QCloseEvent *event) {
     documentClose();
-    DockWidget::closeEvent(event);
+    event->accept();
 }
 
 void BasePage::permissionGet() {

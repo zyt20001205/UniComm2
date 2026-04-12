@@ -92,13 +92,22 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                 {"mask", SC_MASK_HISTORY},
             });
     }
+    // load
+    const QUrl &url(documentUrl);
+    const QString documentPath = url.toLocalFile();
+    QFile file(documentPath);
+    if (!file.open(QIODevice::ReadOnly)) return;
+    QTextStream in(&file);
+    const QString text = in.readAll();
+    file.close();
+    m_editorWidget->textSet(text);
 
     connect(m_editorWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &TextPage::permissionSet);
     connect(m_editorWidget, &ScintillaEdit::savePointChanged, this, &TextPage::savepointChange);
 
-    layout->addWidget(m_editorWidget);
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_replaceWidget);
+    layout->addWidget(m_editorWidget);
 }
 
 void TextPage::propertySet(const QVariantMap &objects) {
