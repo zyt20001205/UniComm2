@@ -107,6 +107,7 @@ gantt
         ringbuffer class: done, 03-01, 16d
         fullscreen overlay: done, 03-26, 3d
         undo stack: 04-01, 10d
+        document module: done, 04-10, 7d
 
     section coding
         assembly view: done, 03-13, 19d
