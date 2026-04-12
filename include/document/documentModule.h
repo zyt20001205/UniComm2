@@ -47,6 +47,8 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
+    void permissionSet(const QUrl &documentUrl);
+
     Q_INVOKABLE void documentSave(const QUrl &documentUrl);
 
     Q_INVOKABLE [[nodiscard]] QVariantHash menuGet(const QString &name);
@@ -191,6 +193,7 @@ private:
     QObject *m_saveDialog{};
     QObject *m_editorMenu{};
     WelcomePage *m_welcomePage{};
+    bool m_quit = false;
     QUrl m_focusedUrl{};
     QHash<QUrl, BasePage *> m_pageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};

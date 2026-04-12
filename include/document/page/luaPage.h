@@ -34,6 +34,8 @@ public:
     // public: file
     void documentSave();
 
+    void permissionGet() override;
+
     // public: lsp
     void diagnosticsNotification(const QJsonArray &diagnostics);
 

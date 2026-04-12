@@ -118,7 +118,7 @@ gantt
 
     section ui
         status bar: done, 03-10, 3d
-        file property dialog: active, 04-10, 3d
+        file property dialog: done, 04-10, 3d
         port session monitor: 05-01, 7d
         git integration: 05-08, 12d
         cli integration: 05-20, 12d

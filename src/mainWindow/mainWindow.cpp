@@ -441,6 +441,7 @@ void MainWindow::moduleInit() {
 
     connect(m_fileModule, &FileModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_fileModule, &FileModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
+    connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_documentModule, &DocumentModule::spellCheckResponse);

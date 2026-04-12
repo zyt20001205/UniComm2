@@ -108,8 +108,8 @@ void FileModule::fileWritable(const QUrl &fileUrl, const bool status) {
     auto permissions = fileInfo.permissions();
     if (status) permissions|= QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther;
     else permissions &= ~(QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther);
-    const auto file(filePath);
     QFile::setPermissions(filePath, permissions);
+    emit setPermission(fileUrl);
 }
 
 void FileModule::fileNew(const QUrl &fileUrl) {

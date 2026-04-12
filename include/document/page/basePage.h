@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] QUrl documentUrl();
 
+    virtual void permissionGet();
+
 signals:
     void appendLog(const QString &message, int type);
 
@@ -26,8 +28,6 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
     virtual void documentClose();
-
-    void permissionGet();
 
     QUrl m_documentUrl{};
 };

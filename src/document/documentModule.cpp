@@ -60,6 +60,7 @@ void DocumentModule::propertySet(const QVariantMap &objects) {
 }
 
 void DocumentModule::documentConfigSave() {
+    m_quit = true;
     // save config
     auto documentList = QJsonArray();
     for (const auto &url: m_pageHash.keys()) {
@@ -253,6 +254,12 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+}
+
+void DocumentModule::permissionSet(const QUrl &documentUrl) {
+    if (m_pageHash.contains(documentUrl)) {
+        m_pageHash[documentUrl]->permissionGet();
+    }
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) {
@@ -941,9 +948,10 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
 }
 
 void DocumentModule::documentClose(const QUrl &documentUrl) {
+    if (m_quit) return;
     m_pageHash.remove(documentUrl);
     if (m_pageHash.isEmpty()) {
-        m_welcomePage->open();
+        // m_welcomePage->open();
         m_focusedUrl = nullptr;
     } else {
         const auto begin = m_pageHash.begin();

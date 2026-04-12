@@ -716,6 +716,13 @@ void LuaPage::documentSave() {
     qDebug() << QString("[%1] %2 saved").arg(timestamp, m_documentUrl.toString());
 }
 
+void LuaPage::permissionGet() {
+    const QString documentPath = m_documentUrl.toLocalFile();
+    const QFileInfo documentInfo(documentPath);
+    m_editorWidget->readonlySet(!documentInfo.isWritable());
+    BasePage::permissionGet();
+}
+
 // public: lsp
 void LuaPage::diagnosticsNotification(const QJsonArray &diagnostics) {
     if (!m_documentUrl.toString().endsWith(".lua")) return;

@@ -23,7 +23,7 @@ public:
 
     Q_INVOKABLE static QVariantHash fileInfo(const QUrl &fileUrl);
 
-    Q_INVOKABLE static void fileWritable(const QUrl &fileUrl, bool status);
+    Q_INVOKABLE void fileWritable(const QUrl &fileUrl, bool status);
 
     Q_INVOKABLE void fileNew(const QUrl &fileUrl);
 
@@ -41,6 +41,8 @@ signals:
     void appendLog(const QString &message, int type);
 
     void openDocument(const QUrl &documentUrl);
+
+    void setPermission(const QUrl &documentUrl);
 
     void notificationJson(const QString &method, const QJsonObject &params);
 
