@@ -20,7 +20,6 @@ DocumentModule::DocumentModule(QWidget *parent)
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     qApp->installEventFilter(m_codeAssistant);
-    m_welcomePage->setObjectName("welcomePage");
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
     connect(m_codeAssistant, &CodeAssistant::addChar, this, &DocumentModule::charAdd);
@@ -42,6 +41,7 @@ void DocumentModule::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
+    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
 
     for (const auto &value: m_documentConfig["documentList"].toArray()) {
@@ -195,6 +195,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
                 {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
             });
             connect(luaPage, &LuaPage::isFocusedChanged, this, [this, luaPage](const bool status) { documentFocus(luaPage, status); });
@@ -252,6 +253,13 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+}
+
+void DocumentModule::documentSave(const QUrl &documentUrl) {
+    // TODO: text page
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->documentSave();
+    }
 }
 
 QVariantHash DocumentModule::menuGet(const QString &name) {

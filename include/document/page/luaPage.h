@@ -1,7 +1,6 @@
 #ifndef UNICOMM_LUAPAGE_H
 #define UNICOMM_LUAPAGE_H
 
-#include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonArray>
 #include <ScintillaTypes.h>
 
@@ -104,6 +103,9 @@ signals:
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
+protected:
+    // void documentClose() override;
+
 private:
     void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
 
@@ -200,6 +202,7 @@ private:
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};
+    QObject *m_saveDialog{};
     QObject *m_editorMenu{};
 
     QSet<QChar> m_completionSet{};

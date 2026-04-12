@@ -1,8 +1,6 @@
 #ifndef UNICOMM_TEXTPAGE_H
 #define UNICOMM_TEXTPAGE_H
 
-#include <kddockwidgets/qtwidgets/views/DockWidget.h>
-
 #include "basePage.h"
 
 class SearchWidget;

@@ -26,16 +26,6 @@ void BasePage::pathDisambiguation() {
 void BasePage::documentReload() {
 }
 
-void BasePage::documentClose() {
-    // ask for saving
-    // TODO: waiting for frontend
-    deleteLater();
-    // logging
-    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_documentUrl.toString());
-}
-
 QUrl BasePage::documentUrl() {
     return m_documentUrl;
 }
@@ -44,6 +34,14 @@ QUrl BasePage::documentUrl() {
 void BasePage::closeEvent(QCloseEvent *event) {
     documentClose();
     event->accept();
+}
+
+void BasePage::documentClose() {
+    deleteLater();
+    // logging
+    emit appendLog(QString("<a href='%1'>%2</a> closed").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_documentUrl.toString());
 }
 
 void BasePage::permissionGet() {

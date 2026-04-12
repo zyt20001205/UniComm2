@@ -17,8 +17,6 @@ public:
 
     void documentReload();
 
-    void documentClose();
-
     [[nodiscard]] QUrl documentUrl();
 
 signals:
@@ -26,6 +24,8 @@ signals:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+
+    virtual void documentClose();
 
     void permissionGet();
 

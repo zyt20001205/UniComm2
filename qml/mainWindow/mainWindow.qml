@@ -865,6 +865,33 @@ Item {
     }
 
     // document module
+    Dialog {
+        id: documentModuleSaveDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Save and Exit")
+
+        standardButtons: Dialog.Yes | Dialog.No
+        property string documentUrl
+        property string documentName
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAccepted: {
+            documentModuleSaveDialog.close()
+            documentModule.documentSave(documentUrl)
+        }
+
+        Label {
+            text: qsTr("Do you want to save changes to " + documentModuleSaveDialog.documentName + "?")
+        }
+    }
+
     Menu {
         id: documentModuleEditorMenu
         focus: false
@@ -1703,7 +1730,7 @@ Item {
             textFormat: Text.RichText
         }
     }
-    
+
     // explorer module
     Dialog {
         id: explorerModuleFileNewDialog
@@ -2248,7 +2275,7 @@ Item {
             }
         }
     }
-    
+
     // log module
     Dialog {
         id: logModuleHeightDialog
@@ -2334,8 +2361,8 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        
-        
+
+
         MenuItem {
             id: menuModuleFileMenuOpenWorkspaceItem
 
@@ -3485,6 +3512,7 @@ Item {
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
+            "documentModuleSaveDialog": documentModuleSaveDialog,
             "documentModuleEditorMenu": documentModuleEditorMenu,
             "documentModuleCompletionToolTip": documentModuleCompletionToolTip,
             "documentModuleCompletionTableView": documentModuleCompletionTableView,
@@ -3500,13 +3528,13 @@ Item {
             "documentModulePositionTooltip": documentModulePositionTooltip,
             "documentModuleSignatureToolTip": documentModuleSignatureToolTip,
             "documentModuleSignatureLabel": documentModuleSignatureLabel,
-            
+
             "explorerModuleFileMenu": explorerModuleFileMenu,
             "explorerModuleFolderMenu": explorerModuleFolderMenu,
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
             "fileModulePropertyDialog": fileModulePropertyDialog,
-            
+
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,
 

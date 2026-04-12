@@ -581,10 +581,11 @@ void LuaPage::propertySet(const QVariantMap &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
+    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     m_symbolWidget->propertySet(QVariantMap{
-            {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
-        });
+        {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
+    });
     m_searchWidget->propertySet(QVariantMap{
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
@@ -1083,6 +1084,14 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
     }
     return DockWidget::eventFilter(watched, event);
 }
+
+// void LuaPage::documentClose() {
+//     if () {
+//     m_saveDialog->setProperty("documentUrl", m_documentUrl);
+//     m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
+//     QMetaObject::invokeMethod(m_saveDialog, "open");
+//     }
+// }
 
 // private: slot
 void LuaPage::marginClick(const Scintilla::Position position, const int mouseButton, const Scintilla::KeyMod modifiers, const int margin) {

@@ -159,6 +159,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
+        {"documentModuleSaveDialog", objects["documentModuleSaveDialog"]},
         {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]},
         {"documentModuleCompletionToolTip", objects["documentModuleCompletionToolTip"]},
         {"documentModuleCompletionTableView", objects["documentModuleCompletionTableView"]},
