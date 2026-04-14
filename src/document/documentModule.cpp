@@ -9,6 +9,7 @@
 #include "analysis/codeAssistant.h"
 #include "core/fileModule.h"
 #include "document/module/scintillaWidget.h"
+#include "document/page/imagePage.h"
 #include "document/page/luaPage.h"
 #include "document/page/textPage.h"
 #include "document/page/welcomePage.h"
@@ -189,7 +190,13 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         const QFileInfo documentInfo(documentPath);
         const auto suffix = documentInfo.suffix();
         BasePage *newPage{};
-        if (suffix == "lua") {
+        const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
+        if (imageType.contains(suffix)) {
+            newPage = new ImagePage(m_documentConfig, documentUrl);
+            auto *imagePage = qobject_cast<ImagePage *>(newPage);
+            imagePage->propertySet(QVariantMap{
+            });
+        } else if (suffix == "lua") {
             newPage = new LuaPage(m_documentConfig, documentUrl);
             auto *luaPage = qobject_cast<LuaPage *>(newPage);
             luaPage->propertySet(QVariantMap{

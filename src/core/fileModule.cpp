@@ -72,8 +72,8 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
     const QFileInfo fileInfo(filePath);
     QUrl source{};
     const auto suffix = fileInfo.suffix();
-    const QStringList typeImage = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
-    if (typeImage.contains(suffix)) {
+    const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
+    if (imageType.contains(suffix)) {
         source = "qrc:/icon/fileTypeImage.svg";
     } else if (suffix == "csv") {
         source = "qrc:/icon/fileTypeCsv.svg";
