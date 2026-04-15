@@ -23,9 +23,10 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_completionWidget, &CompletionWidget::showPosition, m_positionWidget, &PositionWidget::positionShow);
     connect(m_dwellWidget, &DwellWidget::textSet, this, &CodeAssistant::setText);
     connect(m_dwellWidget, &DwellWidget::requestCodeAction, this, &CodeAssistant::requestCodeAction);
-    connect(m_navigationWidget, &NavigationWidget::setCursorPosition, this, &CodeAssistant::setIndex);
+    connect(m_navigationWidget, &NavigationWidget::setIndex, this, &CodeAssistant::setIndex);
     connect(m_navigationWidget, &NavigationWidget::getText, this, &CodeAssistant::getText);
     connect(m_navigationWidget, &NavigationWidget::insertIndicator, this, &CodeAssistant::insertIndicator);
+    connect(m_navigationWidget, &NavigationWidget::recordNavigation, this, &CodeAssistant::recordNavigation);
     connect(m_positionWidget, &PositionWidget::setText, this, &CodeAssistant::setText);
     connect(m_signatureWidget, &SignatureWidget::addChar, this, &CodeAssistant::addChar);
     connect(m_signatureWidget, &SignatureWidget::setTextSelected, this, &CodeAssistant::setTextSelected);

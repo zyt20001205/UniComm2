@@ -20,6 +20,10 @@ DocumentModule::DocumentModule(QWidget *parent)
       m_documentConfig(g_workspaceConfig["documentConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
+    m_navigationHistory = QVariantHash{
+        {"index", -1},
+        {"list", QVariantList{}}
+    };
     qApp->installEventFilter(m_codeAssistant);
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
@@ -30,6 +34,7 @@ DocumentModule::DocumentModule(QWidget *parent)
     connect(m_codeAssistant, &CodeAssistant::setTextSelected, this, &DocumentModule::textSetSelected);
     connect(m_codeAssistant, &CodeAssistant::insertIndicator, this, &DocumentModule::indicatorFill);
     connect(m_codeAssistant, &CodeAssistant::requestCodeAction, this, &DocumentModule::codeActionRequest);
+    connect(m_codeAssistant, &CodeAssistant::recordNavigation, this, &DocumentModule::navigationRecord);
 }
 
 DocumentModule::~DocumentModule() {
@@ -261,6 +266,9 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        luaPage->m_editorWidget->focusSet(true);
+    }
 }
 
 void DocumentModule::permissionSet(const QUrl &documentUrl) {
@@ -279,6 +287,12 @@ void DocumentModule::documentSave(const QUrl &documentUrl) {
 QVariantHash DocumentModule::menuGet(const QString &name) {
     // TODO: text page
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])) {
+        if (name == "nav") {
+            auto menuSession = luaPage->menuGet(name);
+            menuSession.insert("prev", m_navigationHistory["index"].toInt() > 0);
+            menuSession.insert("next", m_navigationHistory["index"].toInt() < m_navigationHistory["list"].toList().size() - 1);
+            return menuSession;
+        }
         return luaPage->menuGet(name);
     }
     return {};
@@ -343,6 +357,22 @@ void DocumentModule::foldExpandRecursively(const QUrl &documentUrl) {
     }
 }
 
+void DocumentModule::navigationPrev() {
+    const auto index = m_navigationHistory["index"].toInt() - 1;
+    if (index < 0) return;
+    m_navigationHistory["index"] = index;
+    const QVariantHash navigationSession = m_navigationHistory["list"].toList()[index].toHash();
+    indexSet(navigationSession["documentUrl"].toUrl(), navigationSession["line"].toInt(), navigationSession["character"].toInt());
+}
+
+void DocumentModule::navigationNext() {
+    const auto index = m_navigationHistory["index"].toInt() + 1;
+    if (index >= m_navigationHistory["list"].toList().size()) return;
+    m_navigationHistory["index"] = index;
+    const QVariantHash navigationSession = m_navigationHistory["list"].toList()[index].toHash();
+    indexSet(navigationSession["documentUrl"].toUrl(), navigationSession["line"].toInt(), navigationSession["character"].toInt());
+}
+
 void DocumentModule::assemblyToggle(const QUrl &documentUrl, const bool status) {
     if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->assemblyToggle(status);
@@ -359,7 +389,7 @@ void DocumentModule::focusSet(const QUrl &documentUrl, const bool status) {
 
 void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int character) {
     // TODO: text page
-    if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
+    if (documentUrl != m_focusedUrl) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->m_editorWidget->indexSet(line, character);
     }
@@ -983,5 +1013,38 @@ void DocumentModule::textSetSelected(const QUrl &documentUrl, const QString &tex
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->m_editorWidget->textSetSelected(text);
+    }
+}
+
+void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, const int character) {
+    // not at end, resize
+    if (m_navigationHistory["index"].toInt() < m_navigationHistory["list"].toList().size() - 1) {
+        QVariantList list = m_navigationHistory["list"].toList();
+        list.resize(m_navigationHistory["index"].toInt() + 1);
+        m_navigationHistory["list"] = list;
+    }
+    m_navigationHistory["index"] = m_navigationHistory["index"].toInt() + 1;
+    // src index
+    if (documentUrl.isEmpty()) {
+        const auto index = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])->m_editorWidget->indexGet();
+        const auto navigationSession = QVariantHash{
+            {"documentUrl", m_focusedUrl},
+            {"line", index["line"]},
+            {"character", index["character"]}
+        };
+        QVariantList list = m_navigationHistory["list"].toList();
+        list.append(navigationSession);
+        m_navigationHistory["list"] = list;
+    }
+    // dst index
+    else {
+        const auto navigationSession = QVariantHash{
+                {"documentUrl", documentUrl},
+                {"line", line},
+                {"character", character}
+        };
+        QVariantList list = m_navigationHistory["list"].toList();
+        list.append(navigationSession);
+        m_navigationHistory["list"] = list;
     }
 }

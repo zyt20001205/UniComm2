@@ -69,6 +69,10 @@ public:
 
     Q_INVOKABLE void foldExpandRecursively(const QUrl &documentUrl);
 
+    Q_INVOKABLE void navigationPrev();
+
+    Q_INVOKABLE void navigationNext();
+
     Q_INVOKABLE void assemblyToggle(const QUrl &documentUrl, bool status);
 
     void focusSet(const QUrl &documentUrl, bool status);
@@ -185,6 +189,8 @@ private:
 
     void textSetSelected(const QUrl &documentUrl, const QString &text);
 
+    void navigationRecord(const QUrl &documentUrl, int line, int character);
+
     QJsonObject m_documentConfig{};
     QObject *m_messageDialog{};
     QObject *m_toolTip{};
@@ -192,12 +198,13 @@ private:
     QObject *m_systemPropertyDialog{};
     QObject *m_saveDialog{};
     QObject *m_editorMenu{};
-    WelcomePage *m_welcomePage{};
     bool m_quit = false;
     QUrl m_focusedUrl{};
+    WelcomePage *m_welcomePage{}; // TODO: inherits base page later
+    CodeAssistant *m_codeAssistant{};
     QHash<QUrl, BasePage *> m_pageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
-    CodeAssistant *m_codeAssistant{};
+    QVariantHash m_navigationHistory{};
 };
 
 #endif //UNICOMM_DOCUMENTMODULE_H

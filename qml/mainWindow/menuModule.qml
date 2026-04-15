@@ -52,6 +52,20 @@ Item {
         }
 
         Button {
+            id: navMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            text: "Nav"
+
+            onClicked: {
+                const globalPos = navMenuButton.mapToGlobal(0, navMenuButton.height);
+                const localPos = navMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                navMenu.popup(localPos.x, localPos.y)
+            }
+        }
+
+        Button {
             id: codeMenuButton
             Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true

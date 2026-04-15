@@ -35,11 +35,13 @@ public:
     Q_INVOKABLE void indicatorInsert();
 
 signals:
-    void setCursorPosition(const QUrl &documentUrl, int startLine, int startCharacter);
+    void setIndex(const QUrl &documentUrl, int startLine, int startCharacter);
 
     void getText(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void insertIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
+
+    void recordNavigation(const QUrl &documentUrl, int line, int character);
 
 private:
     QObject *m_tooltip{};

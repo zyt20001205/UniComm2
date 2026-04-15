@@ -604,6 +604,13 @@ QVariantHash LuaPage::menuGet(const QString &name) const {
             {"copiable", session["copiable"]},
             {"pastable", session["pastable"]}
         };
+    } else if (name == "nav") {
+        menuSession = {
+            {"documentUrl", session["documentUrl"]},
+            {"line", session["line"]},
+            {"character", session["character"]},
+            {"navigation", session["navigation"]}
+        };
     } else if (name == "code") {
         menuSession = {
             {"documentUrl", session["documentUrl"]},
@@ -613,9 +620,7 @@ QVariantHash LuaPage::menuGet(const QString &name) const {
             {"startCharacter", session["startCharacter"]},
             {"endLine", session["endLine"]},
             {"endCharacter", session["endCharacter"]},
-            {"text", session["text"]},
-            {"navigation", session["navigation"]},
-            {"assembly", session["assembly"]}
+            {"text", session["text"]}
         };
     } else if (name == "exec") {
         menuSession = {

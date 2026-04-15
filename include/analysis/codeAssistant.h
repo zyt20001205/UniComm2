@@ -58,6 +58,8 @@ signals:
 
     void requestCodeAction(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
 
+    void recordNavigation(const QUrl &documentUrl, int line, int character);
+
 private:
     CompletionWidget *m_completionWidget{};
     DwellWidget *m_dwellWidget{};

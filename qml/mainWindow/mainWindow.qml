@@ -37,7 +37,7 @@ Item {
 
     onWidgetCountChanged: {
         if (widgetCount < 0) {
-            console.log("severe error occured!!! widget count: " + widgetCount)
+            console.log("severe error occurred!!! widget count: " + widgetCount)
             widgetCount = 0
         }
         if (widgetCount === 0) {
@@ -2488,10 +2488,11 @@ Item {
         onAboutToShow: menuModuleEditMenu.menuSession = documentModule.menuGet("edit")
 
         MenuItem {
+            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.undoable : false
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.undoable : false
 
                 Image {
                     source: "qrc:/icon/undo.svg"
@@ -2516,10 +2517,11 @@ Item {
         }
 
         MenuItem {
+            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.redoable : false
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.redoable : false
 
                 Image {
                     source: "qrc:/icon/redo.svg"
@@ -2547,10 +2549,11 @@ Item {
         }
 
         MenuItem {
+            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
 
                 Image {
                     source: "qrc:/icon/cut.svg"
@@ -2575,10 +2578,11 @@ Item {
         }
 
         MenuItem {
+            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
 
                 Image {
                     source: "qrc:/icon/copy.svg"
@@ -2603,10 +2607,11 @@ Item {
         }
 
         MenuItem {
+            enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.pastable : false
+
             contentItem: RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
-                enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.pastable : false
 
                 Image {
                     source: "qrc:/icon/paste.svg"
@@ -2808,6 +2813,89 @@ Item {
             checked: watchModuleAction ? watchModuleAction.checked : false
 
             onTriggered: watchModuleAction.toggle()
+        }
+    }
+
+    Menu {
+        id: menuModuleNavMenu
+        implicitWidth: 300
+        property var menuSession
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: menuModuleNavMenu.menuSession = documentModule.menuGet("nav")
+
+        MenuItem {
+            id: menuModuleNavMenuNavigatePrevItem
+            enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.prev : false
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/arrowLeft.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Prev")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Alt+Left"
+                }
+            }
+
+            Shortcut {
+                sequence: "Alt+Left"
+                onActivated: menuModuleNavMenuNavigatePrevItem.triggered()
+            }
+
+            onTriggered: documentModule.navigationPrev()
+        }
+
+        MenuItem {
+            id: menuModuleNavMenuNavigateNextItem
+            enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.next : false
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/arrowRight.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Next")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "Alt+Right"
+                }
+            }
+
+            Shortcut {
+                sequence: "Alt+Right"
+                onActivated: menuModuleNavMenuNavigateNextItem.triggered()
+            }
+
+            onTriggered: documentModule.navigationNext()
         }
     }
 
@@ -3541,6 +3629,7 @@ Item {
             "menuModuleFileMenu": menuModuleFileMenu,
             "menuModuleEditMenu": menuModuleEditMenu,
             "menuModuleViewMenu": menuModuleViewMenu,
+            "menuModuleNavMenu": menuModuleNavMenu,
             "menuModuleCodeMenu": menuModuleCodeMenu,
             "menuModuleExecMenu": menuModuleExecMenu,
 

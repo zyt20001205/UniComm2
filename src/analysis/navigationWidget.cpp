@@ -10,7 +10,7 @@
 // public
 NavigationWidget::NavigationWidget(QWidget *parent)
     : QObject(parent),
-      m_navigationModel(new QStandardItemModel(this)){
+      m_navigationModel(new QStandardItemModel(this)) {
 }
 
 void NavigationWidget::propertySet(const QVariantMap &objects) {
@@ -57,12 +57,12 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
         }
         standardItem->setData(iconSource, Qt::DecorationRole);
         standardItem->setData(QVariantHash({
-            {"documentUrl", documentUrl},
-            {"startLine", start["line"].toInt()},
-            {"startCharacter", start["character"].toInt()},
-            {"endLine", end["line"].toInt()},
-            {"endCharacter", end["character"].toInt()}
-        }), Qt::WhatsThisRole);
+                                  {"documentUrl", documentUrl},
+                                  {"startLine", start["line"].toInt()},
+                                  {"startCharacter", start["character"].toInt()},
+                                  {"endLine", end["line"].toInt()},
+                                  {"endCharacter", end["character"].toInt()}
+                              }), Qt::WhatsThisRole);
         m_navigationModel->appendRow(standardItem);
     }
     if (m_navigationModel->rowCount() > 0) {
@@ -103,10 +103,15 @@ void NavigationWidget::detailReload(const int index) {
 void NavigationWidget::indicatorInsert() {
     const int index = m_tableView->property("selectedRow").toInt();
     const auto position = m_navigationModel->item(index, 0)->data(Qt::WhatsThisRole).toHash();
-    emit setCursorPosition(
-            position["documentUrl"].toUrl(),
-            position["startLine"].toInt(),
-            position["startCharacter"].toInt());
+    emit recordNavigation(QUrl(), 0, 0);
+    emit recordNavigation(
+        position["documentUrl"].toUrl(),
+        position["startLine"].toInt(),
+        position["startCharacter"].toInt());
+    emit setIndex(
+        position["documentUrl"].toUrl(),
+        position["startLine"].toInt(),
+        position["startCharacter"].toInt());
     emit insertIndicator(
         position["documentUrl"].toUrl(),
         INDICATOR_SELECTION,

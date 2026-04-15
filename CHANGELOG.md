@@ -2,14 +2,20 @@
 
 ## APIS
 
-- ModbusAscii rewrite.
-- ModbusRtu rewrite.
-- ModbusTcp supported.
+- Rewrite ModbusAscii APIS.
+- Rewrite ModbusRtu APIS.
+- Added ModbusTcp support.
+
+## Infrastructure
+
+- DocumentModule implemented.
+- Current supports image/text/code page. More to go...
 
 ## UI
 
 - Password is now shown when hovered.
 - Expanded menu bar features to perform edit, code actions.
+- Added file property dialog.
 
 # v0.2.0-alpha1
 
