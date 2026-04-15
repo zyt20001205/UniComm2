@@ -44,17 +44,18 @@ Item {
                 }
             }
 
+            TapHandler {
+                acceptedButtons: Qt.MiddleButton
+
+                onTapped: {
+                    flickable.ratio = 1.0
+                }
+            }
+
             WheelHandler {
-                acceptedDevices: PointerDevice.Mouse
                 onWheel: function (event) {
-                    const zoom = event.angleDelta.y > 0 ? 1.1 : 0.9;
-                    let newScale = flickable.ratio * zoom;
-
-                    newScale = Math.max(flickable.minRatio, Math.min(flickable.maxRatio, newScale))
-
-                    flickable.ratio = newScale
-                    ratioLabel.text = "x" + newScale.toFixed(2)
-
+                    const zoom = event.angleDelta.y > 0 ? 1.2 : 0.8;
+                    flickable.ratio = Math.max(flickable.minRatio, Math.min(flickable.maxRatio, flickable.ratio * zoom))
                     event.accepted = true
                 }
             }
@@ -62,6 +63,8 @@ Item {
 
         Label {
             id: ratioLabel
+            font.pointSize: 24
+            text: "x" + flickable.ratio.toFixed(2)
             Layout.alignment: Qt.AlignHCenter
         }
     }
