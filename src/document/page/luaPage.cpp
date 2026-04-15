@@ -672,6 +672,8 @@ QVariantHash LuaPage::menuGetAll() const {
         {"documentName", m_documentUrl.fileName()},
         {"line", index["line"]},
         {"character", index["character"]},
+        // {"line", m_selection["line"]},
+        // {"character", m_selection["character"]},
         {"startLine", m_selection["startLine"]},
         {"startCharacter", m_selection["startCharacter"]},
         {"endLine", m_selection["endLine"]},
