@@ -291,6 +291,7 @@ QVariantHash DocumentModule::menuGet(const QString &name) {
             auto menuSession = luaPage->menuGet(name);
             menuSession.insert("prev", m_navigationHistory["index"].toInt() > 0);
             menuSession.insert("next", m_navigationHistory["index"].toInt() < m_navigationHistory["list"].toList().size() - 1);
+            qDebug() << menuSession["documentUrl"] << menuSession["line"] << menuSession["character"] << menuSession["navigation"];
             return menuSession;
         }
         return luaPage->menuGet(name);
@@ -1039,9 +1040,9 @@ void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, c
     // dst index
     else {
         const auto navigationSession = QVariantHash{
-                {"documentUrl", documentUrl},
-                {"line", line},
-                {"character", character}
+            {"documentUrl", documentUrl},
+            {"line", line},
+            {"character", character}
         };
         QVariantList list = m_navigationHistory["list"].toList();
         list.append(navigationSession);

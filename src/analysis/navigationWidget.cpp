@@ -36,7 +36,6 @@ bool NavigationWidget::isVisible() const {
 
 void NavigationWidget::navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations) {
     m_navigationSession = navigationSession;
-    m_navigationModel->clear();
     for (const auto &value: navigations) {
         const QJsonObject navigation = value.toObject();
         QString uri = navigation["uri"].toString();
@@ -45,8 +44,9 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
         const QJsonObject start = range["start"].toObject();
         const QJsonObject end = range["end"].toObject();
         auto *standardItem = new QStandardItem(documentUrl.fileName()); // NOLINT
+        const QString type = navigationSession["type"].toString();
         QUrl iconSource{};
-        if (const QString type = navigationSession["type"].toString(); type == "definition") {
+        if (type == "definition") {
             iconSource = "qrc:/icon/definition.svg";
         } else if (type == "implementation") {
             iconSource = "qrc:/icon/implementation.svg";
@@ -63,7 +63,8 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
                                   {"endLine", end["line"].toInt()},
                                   {"endCharacter", end["character"].toInt()}
                               }), Qt::WhatsThisRole);
-        m_navigationModel->appendRow(standardItem);
+        if (type == "definition") m_navigationModel->insertRow(0, standardItem);
+        else m_navigationModel->appendRow(standardItem);
     }
     if (m_navigationModel->rowCount() > 0) {
         const auto position = navigationSession["position"].toPoint();
@@ -76,6 +77,7 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
 }
 
 void NavigationWidget::navigationHide() const {
+    m_navigationModel->clear();
     QMetaObject::invokeMethod(m_tooltip, "close");
 }
 

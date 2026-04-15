@@ -2897,6 +2897,41 @@ Item {
 
             onTriggered: documentModule.navigationNext()
         }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            id: menuModuleNavMenuNavigateDefinitionItem
+            enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
+            text: qsTr("Definition(s)")
+
+            onTriggered: documentModule.definitionRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
+        }
+
+        MenuItem {
+            id: menuModuleNavMenuNavigateReferenceItem
+            enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
+            text: qsTr("Reference(s)")
+
+            onTriggered: documentModule.referenceRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
+        }
+
+        MenuItem {
+            id: menuModuleNavMenuNavigateImplementationItem
+            enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
+            text: qsTr("Implementation(s)")
+
+            onTriggered: documentModule.implementationRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
+        }
+
+        MenuItem {
+            id: menuModuleNavMenuNavigateTypeDefinitionItem
+            enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
+            text: qsTr("Type Definition(s)")
+
+            onTriggered: documentModule.typeDefinitionRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
+        }
     }
 
     Menu {
