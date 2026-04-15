@@ -291,7 +291,7 @@ QVariantHash DocumentModule::menuGet(const QString &name) {
             auto menuSession = luaPage->menuGet(name);
             menuSession.insert("prev", m_navigationHistory["index"].toInt() > 0);
             menuSession.insert("next", m_navigationHistory["index"].toInt() < m_navigationHistory["list"].toList().size() - 1);
-            qDebug() << menuSession["documentUrl"] << menuSession["line"] << menuSession["character"] << menuSession["navigation"];
+            // qDebug() << menuSession["documentUrl"] << menuSession["line"] << menuSession["character"] << menuSession["navigation"];
             return menuSession;
         }
         return luaPage->menuGet(name);

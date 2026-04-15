@@ -2357,7 +2357,7 @@ Item {
         implicitWidth: 300
 
         onOpened: {
-            mainWindow.overlayFlagSet(false, true)
+            mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2481,7 +2481,7 @@ Item {
         property var menuSession
 
         onOpened: {
-            mainWindow.overlayFlagSet(false, true)
+            mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2697,7 +2697,7 @@ Item {
         id: menuModuleViewMenu
 
         onOpened: {
-            mainWindow.overlayFlagSet(false, true)
+            mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2822,7 +2822,7 @@ Item {
         property var menuSession
 
         onOpened: {
-            mainWindow.overlayFlagSet(false, true)
+            mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
@@ -2914,7 +2914,7 @@ Item {
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
             text: qsTr("Reference(s)")
 
-            onTriggered: documentModule.referenceRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
+            onTriggered: documentModule.referencesRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
         }
 
         MenuItem {
@@ -2940,7 +2940,7 @@ Item {
         property var menuSession
 
         onOpened: {
-            mainWindow.overlayFlagSet(false, true)
+            mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1

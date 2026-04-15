@@ -27,8 +27,6 @@ public:
 
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
-    [[nodiscard]] QVariantHash menuGetAll() const;
-
     void menuRequest(const QString &request);
 
     // public: file
@@ -168,6 +166,8 @@ private:
 
     // private: misc
     void commentToggle();
+
+    [[nodiscard]] bool navigable(Scintilla::Position position) const;
 
     void navigationToggle(Scintilla::Position position = -1) const;
 

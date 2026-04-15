@@ -6,6 +6,7 @@
 MenuModule::MenuModule(QWidget *parent)
     : QQuickWidget(parent) {
     setFixedHeight(24);
+    setFocusPolicy(Qt::NoFocus);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 

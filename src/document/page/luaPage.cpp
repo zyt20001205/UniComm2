@@ -595,94 +595,57 @@ void LuaPage::propertySet(const QVariantMap &objects) {
 }
 
 QVariantHash LuaPage::menuGet(const QString &name) const {
-    const auto session = menuGetAll();
     QVariantHash menuSession{};
     if (name == "edit") {
         menuSession = {
-            {"undoable", session["undoable"]},
-            {"redoable", session["redoable"]},
-            {"copiable", session["copiable"]},
-            {"pastable", session["pastable"]}
+            {"undoable", m_editorWidget->undoable()},
+            {"redoable", m_editorWidget->redoable()},
+            {"copiable", m_editorWidget->copiable()},
+            {"pastable", m_editorWidget->pastable()}
         };
     } else if (name == "nav") {
         menuSession = {
-            {"documentUrl", session["documentUrl"]},
-            {"line", session["line"]},
-            {"character", session["character"]},
-            {"navigation", session["navigation"]}
+            {"documentUrl", m_documentUrl},
+            {"line", m_selection["startLine"]},
+            {"character", m_selection["character"]},
+            {"navigation", navigable(m_editorWidget->currentPos())}
         };
     } else if (name == "code") {
         menuSession = {
-            {"documentUrl", session["documentUrl"]},
-            {"line", session["line"]},
-            {"character", session["character"]},
-            {"startLine", session["startLine"]},
-            {"startCharacter", session["startCharacter"]},
-            {"endLine", session["endLine"]},
-            {"endCharacter", session["endCharacter"]},
-            {"text", session["text"]}
+            {"documentUrl", m_documentUrl},
+            {"line", m_selection["line"]},
+            {"character", m_selection["character"]},
+            {"startLine", m_selection["startLine"]},
+            {"startCharacter", m_selection["startCharacter"]},
+            {"endLine", m_selection["endLine"]},
+            {"endCharacter", m_selection["endCharacter"]},
+            {"text", m_editorWidget->textGetSelected()}
         };
     } else if (name == "exec") {
         menuSession = {
-            {"documentUrl", session["documentUrl"]},
-            {"documentName", session["documentName"]},
-            {"startLine", session["startLine"]},
-            {"startCharacter", session["startCharacter"]},
-            {"endLine", session["endLine"]},
-            {"endCharacter", session["endCharacter"]},
-            {"text", session["text"]}
+            {"documentUrl", m_documentUrl},
+            {"documentName", m_documentUrl.fileName()},
+            {"startLine", m_selection["startLine"]},
+            {"startCharacter", m_selection["startCharacter"]},
+            {"endLine", m_selection["endLine"]},
+            {"endCharacter", m_selection["endCharacter"]},
+            {"text", m_editorWidget->textGetSelected()}
         };
     } else if (name == "editor") {
         menuSession = {
-            {"documentUrl", session["documentUrl"]},
-            {"line", session["line"]},
-            {"character", session["character"]},
-            {"startLine", session["startLine"]},
-            {"startCharacter", session["startCharacter"]},
-            {"endLine", session["endLine"]},
-            {"endCharacter", session["endCharacter"]},
-            {"text", session["text"]},
-            {"navigation", session["navigation"]},
-            {"assembly", session["assembly"]}
+            {"documentUrl", m_documentUrl},
+            {"line", m_selection["line"]},
+            {"character", m_selection["character"]},
+            {"startLine", m_selection["startLine"]},
+            {"startCharacter", m_selection["startCharacter"]},
+            {"endLine", m_selection["endLine"]},
+            {"endCharacter", m_selection["endCharacter"]},
+            {"text", m_editorWidget->textGetSelected()},
+            {"navigation", navigable(m_editorWidget->currentPos())},
+            {"assembly", m_assemblyWidget->isVisible()}
         };
     }
     return menuSession;
-}
-
-QVariantHash LuaPage::menuGetAll() const {
-    const QPoint globalPos = QCursor::pos();
-    const QPoint localPos = m_editorWidget->viewport()->mapFromGlobal(globalPos);
-    const auto position = m_editorWidget->positionGet(localPos);
-    const auto index = m_editorWidget->indexGet(position);
-    bool navigation = false;
-    QString text{};
-    text = m_editorWidget->textGetSelected();
-    if (text.isEmpty()) m_editorWidget->positionSet(position);
-    const int type = m_editorWidget->styleGet(position);
-    if (type > 0 && type < LUA_TOKEN_MACRO) navigation = true;
-
-    const QVariantHash session = {
-        // edit
-        {"undoable", m_editorWidget->undoable()},
-        {"redoable", m_editorWidget->redoable()},
-        {"copiable", m_editorWidget->copiable()},
-        {"pastable", m_editorWidget->pastable()},
-        // code
-        {"documentUrl", m_documentUrl},
-        {"documentName", m_documentUrl.fileName()},
-        {"line", index["line"]},
-        {"character", index["character"]},
-        // {"line", m_selection["line"]},
-        // {"character", m_selection["character"]},
-        {"startLine", m_selection["startLine"]},
-        {"startCharacter", m_selection["startCharacter"]},
-        {"endLine", m_selection["endLine"]},
-        {"endCharacter", m_selection["endCharacter"]},
-        {"text", text},
-        {"navigation", navigation},
-        {"assembly", m_assemblyWidget->isVisible()}
-    };
-    return session;
 }
 
 void LuaPage::menuRequest(const QString &request) {
@@ -1055,6 +1018,7 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
                 }
             }
             if (mouseEvent->button() == Qt::RightButton) {
+                if (m_editorWidget->textGetSelected().isEmpty()) m_editorWidget->positionSet(position);
                 QMetaObject::invokeMethod(m_editorMenu, "popup");
                 return true;
             }
@@ -1452,13 +1416,18 @@ void LuaPage::commentToggle() {
     contentChange();
 }
 
+bool LuaPage::navigable(const Scintilla::Position position) const {
+    const int type = m_editorWidget->styleGet(position);
+    if (type > 0 && type < LUA_TOKEN_MACRO) return true;
+    return false;
+}
+
 void LuaPage::navigationToggle(const Scintilla::Position position) const {
     if (position == -1) {
         m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
         m_toolTip->setProperty("text", "");
     } else {
-        const int type = m_editorWidget->styleGet(position);
-        if (type > 0 && type < LUA_TOKEN_MACRO) {
+        if (navigable(position)) {
             const auto wordIndex = m_editorWidget->wordIndexGet(position);
             m_editorWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
             m_toolTip->setProperty("position", QCursor::pos());
