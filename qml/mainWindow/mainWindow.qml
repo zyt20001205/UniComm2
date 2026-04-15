@@ -1518,7 +1518,8 @@ Item {
         }
         onClosed: {
             widgetCount -= 1
-            documentModuleNavigationDetailToolTip.close()
+            navigationWidget.navigationHide()
+            documentModuleNavigationDetailTimer.stop()
         }
         onAboutToShow: {
             documentModuleNavigationDetailToolTip.open()

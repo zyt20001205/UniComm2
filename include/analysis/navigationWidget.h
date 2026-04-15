@@ -24,7 +24,7 @@ public:
 
     void navigationShow(const QVariantHash &navigationSession, const QJsonArray &navigations);
 
-    void navigationHide() const;
+    Q_INVOKABLE void navigationHide() const;
 
     void navigationPrev() const;
 
