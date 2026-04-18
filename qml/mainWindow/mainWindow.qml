@@ -1106,7 +1106,8 @@ Item {
         }
         onClosed: {
             widgetCount -= 1
-            documentModuleCompletionDetailToolTip.close()
+            documentModuleCompletionDetailTimer.stop()
+            completionWidget.completionHide()
         }
         onAboutToShow: {
             documentModuleCompletionDetailToolTip.open()
@@ -1175,7 +1176,7 @@ Item {
                     Label {
                         font: documentModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: "<span style='color: #115ea3;'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed)
+                        text: model.display ? "<span style='color: #115ea3;'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed) : ""
                         textFormat: Text.RichText
                         elide: Text.ElideRight
                         Layout.fillWidth: true; Layout.preferredHeight: 24
@@ -1331,7 +1332,10 @@ Item {
             mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
-        onClosed: widgetCount -= 1
+        onClosed: {
+            widgetCount -= 1
+            dwellWidget.dwellHide()
+        }
 
         contentItem: ColumnLayout {
 
@@ -1518,8 +1522,8 @@ Item {
         }
         onClosed: {
             widgetCount -= 1
-            navigationWidget.navigationHide()
             documentModuleNavigationDetailTimer.stop()
+            navigationWidget.navigationHide()
         }
         onAboutToShow: {
             documentModuleNavigationDetailToolTip.open()
@@ -1719,12 +1723,16 @@ Item {
         x: position.x - 6; y: position.y - implicitHeight
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
+        property var signatureWidget
 
         onOpened: {
             mainWindow.overlayFlagSet(false, false)
             widgetCount += 1
         }
-        onClosed: widgetCount -= 1
+        onClosed: {
+            widgetCount -= 1
+            signatureWidget.signatureHide()
+        }
 
         contentItem: Label {
             id: documentModuleSignatureLabel

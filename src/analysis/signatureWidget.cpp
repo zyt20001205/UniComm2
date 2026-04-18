@@ -13,6 +13,7 @@ SignatureWidget::SignatureWidget(QWidget *parent)
 
 void SignatureWidget::propertySet(const QVariantMap &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["documentModuleSignatureToolTip"]);
+    m_tooltip->setProperty("signatureWidget", QVariant::fromValue(this));
     m_label = qvariant_cast<QObject *>(objects["documentModuleSignatureLabel"]);
 }
 
@@ -72,6 +73,7 @@ void SignatureWidget::signatureShow(const QVariantHash &signatureSession, const 
 
 void SignatureWidget::signatureHide() const {
     QMetaObject::invokeMethod(m_tooltip, "close");
+    m_label->setProperty("text", "");
 }
 
 void SignatureWidget::signatureNext() {

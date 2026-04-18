@@ -77,8 +77,8 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
 }
 
 void NavigationWidget::navigationHide() const {
-    m_navigationModel->clear();
     QMetaObject::invokeMethod(m_tooltip, "close");
+    m_navigationModel->clear();
 }
 
 void NavigationWidget::navigationPrev() const {

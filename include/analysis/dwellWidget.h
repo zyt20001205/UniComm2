@@ -22,7 +22,7 @@ public:
 
     void codeActionShow(const QUrl &documentUrl, const QJsonArray &result) const;
 
-    void dwellHide() const;
+    Q_INVOKABLE void dwellHide() const;
 
     Q_INVOKABLE void linkClick(const QUrl &commandLine);
 

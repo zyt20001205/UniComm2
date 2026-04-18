@@ -19,7 +19,7 @@ public:
 
     void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures);
 
-    void signatureHide() const;
+    Q_INVOKABLE void signatureHide() const;
 
     void signatureNext();
 

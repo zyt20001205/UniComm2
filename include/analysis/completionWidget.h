@@ -24,7 +24,7 @@ public:
 
     void completionShow(const QVariantHash &completionSession, const QJsonArray &items);
 
-    void completionHide() const;
+    Q_INVOKABLE void completionHide() const;
 
     void completionPrev() const;
 

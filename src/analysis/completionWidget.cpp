@@ -146,6 +146,8 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
 
 void CompletionWidget::completionHide() const {
     QMetaObject::invokeMethod(m_tooltip, "close");
+    m_completionModel->clear();
+    m_detailModel->clear();
 }
 
 void CompletionWidget::completionPrev() const {

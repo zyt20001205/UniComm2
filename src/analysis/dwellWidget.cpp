@@ -62,6 +62,8 @@ void DwellWidget::codeActionShow(const QUrl &documentUrl, const QJsonArray &resu
 
 void DwellWidget::dwellHide() const {
     QMetaObject::invokeMethod(m_tooltip, "close");
+    m_diagnosticTextArea->setProperty("text", "");
+    m_hoverTextArea->setProperty("text", "");
 }
 
 void DwellWidget::linkClick(const QUrl &commandLine) {
