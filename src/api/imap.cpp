@@ -292,30 +292,67 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
 }
 
 QVariantHash Imap::fetchParser(const QByteArray &rxData) {
-    // TODO: only supports from/to/subjects for now
     QVariantHash parsed{};
     const auto separator = rxData.indexOf("\r\n\r\n");
     // parse header
+    QVariantHash headerHash{};
     auto headers = rxData.left(separator + 4);
     headers.replace("\r\n", "\n");
     QString key{};
-    QString value{};
+    QVariant value{};
     for (const auto &header: headers.split('\n')) {
         // header line
         if (header.contains(':')) {
-            if (!key.isEmpty()) parsed[key] = value;
+            if (!key.isEmpty()) {
+                headerHash[key] = value;
+                value.clear();
+            }
             const auto comma = header.indexOf(':');
             key = header.left(comma);
             value = header.mid(comma + 2);
         }
         // continuation line
         else {
-            value += " " + header.trimmed();
+            value = value.toString() + " " + header.trimmed();
         }
     }
-    if (!key.isEmpty()) parsed[key] = value;
+    if (!key.isEmpty()) {
+        headerHash[key] = value;
+        value.clear();
+    }
+    parsed["header"] = headerHash;
     // parse body
-    const auto body = rxData.mid(separator + 4);
-    qDebug() << "body" << body;
+    QVariantHash bodyHash{};
+    const auto bodies = rxData.mid(separator + 4);
+    qsizetype pos = 0;
+    while (true) {
+        const auto current = bodies.indexOf("\r\n\r\n", pos);
+        if (current == -1) break;
+        auto body = bodies.mid(pos, current - pos);
+        // content
+        if (body.contains("Content-Type: ")) {
+            if (!key.isEmpty() && !value.toString().isEmpty()) {
+                bodyHash[key] = value;
+                value.clear();
+            }
+            const auto keyStart = body.indexOf("Content-Type: ") + QByteArray("Content-Type: ").size();
+            const auto keyEnd = body.indexOf("\r\n", keyStart);
+            key = body.mid(keyStart, keyEnd - keyStart);
+        }
+        // TODO: boundary is not recorded
+        else if (body.contains("--")) {
+
+        }
+        // data
+        else {
+            value = QByteArray::fromBase64(body);
+        }
+        pos = current + 4;
+    }
+    if (!key.isEmpty()) {
+        bodyHash[key] = value;
+        value.clear();
+    }
+    parsed["body"] = bodyHash;
     return parsed;
 }

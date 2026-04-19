@@ -164,6 +164,10 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
         }
         case QMetaType::QString:
             return sol::make_object(lua, s.toString().toStdString());
+        case QMetaType::QByteArray: {
+            const auto ba = s.toByteArray();
+            return sol::make_object(lua, std::string(ba.constData(), ba.size()));
+        }
         case QMetaType::QVariantHash: {
             const auto _s = s.toHash();
             sol::table _d = lua.create_table();
