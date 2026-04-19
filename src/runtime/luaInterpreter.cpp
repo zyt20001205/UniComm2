@@ -86,7 +86,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     }
     // IO lib
     {
-        auto io = m_lua.create_table();
+        auto io = m_lua["io"].get_or_create<sol::table>();
         io.set_function("log", [this](const sol::variadic_args &args) { m_io->log(args); });
         io.set_function("message", [this](const std::string &text) { m_io->message(text); });
         io.set_function("speak", [](const std::string &text) { IO::speak(text); });
