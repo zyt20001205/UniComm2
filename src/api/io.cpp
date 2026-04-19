@@ -1,6 +1,5 @@
 #include "api/io.h"
 
-#include <QEventLoop>
 #include <QTextToSpeech>
 #include <QThread>
 #include <QVariant>

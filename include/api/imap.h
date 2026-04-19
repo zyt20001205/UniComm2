@@ -2,7 +2,7 @@
 #define UNICOMM_IMAP_H
 
 #include <QObject>
-#include <sol/table.hpp>
+#include <sol/object.hpp>
 
 class Imap final : public QObject {
     Q_OBJECT
@@ -12,13 +12,13 @@ public:
 
     ~Imap() override = default;
 
+    int idle(const std::string &portName, int timeout);
+
     void login(const std::string &portName, const std::string &username, const std::string &password, int timeout);
 
     void select(const std::string &portName, const std::string &mailbox, int timeout);
 
-    sol::table fetch(const std::string &portName, int timeout);
-
-    int idle(const std::string &portName, int timeout);
+    sol::object fetch(sol::this_state ts, const std::string &portName, int sequenceNumber, int timeout);
 
 private:
     [[nodiscard]] QVariantHash parser(const QByteArray &command, const QByteArray &rxData);
@@ -28,6 +28,8 @@ private:
     [[nodiscard]] QString taggedParser(const QByteArray &command, const QByteArray &rxData);
 
     static QVariantHash untaggedParser(const QByteArray &command, const QByteArray &rxData);
+
+    static QVariantHash fetchParser(const QByteArray &rxData);
 
     int m_count{};
 };

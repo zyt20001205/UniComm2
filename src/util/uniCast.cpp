@@ -6,7 +6,7 @@
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
 
-// luals -> qt
+// lua -> qt
 template<>
 QUrl uni_cast<QUrl, QString>(const QString &s, const int depth) {
     auto uri = QUrl::fromPercentEncoding(s.toUtf8());
@@ -96,7 +96,7 @@ QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) 
         }
         case sol::type::table: {
             const auto table = s.as<sol::table>();
-            QVariantMap map;
+            QVariantMap map{};
             for (const auto &[key, value]: table) {
                 QString key_str;
                 if (key.is<std::string>()) {

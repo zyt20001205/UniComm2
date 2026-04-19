@@ -18,7 +18,7 @@ std::string ModbusAscii::readHoldingRegisters(const std::string &portName, const
     QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x03;
-    QByteArray txData =
+    const QByteArray txData =
             ':'
             + QByteArray::number(slaveAddr, 16).rightJustified(2, '0').toUpper()
             + QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper()
@@ -60,7 +60,7 @@ void ModbusAscii::writeSingleRegister(const std::string &portName, const int sla
     QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     constexpr int funcCode = 0x06;
-    QByteArray txData =
+    const QByteArray txData =
             ':'
             + QByteArray::number(slaveAddr, 16).rightJustified(2, '0').toUpper()
             + QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper()
@@ -101,7 +101,7 @@ void ModbusAscii::writeMultipleRegisters(const std::string &portName, const int 
     const auto size = static_cast<qsizetype>(data.size() / 2);
     const int regCount = static_cast<int>(size) / 2;
     const int byteCount = static_cast<int>(size);
-    QByteArray txData =
+    const QByteArray txData =
             ':'
             + QByteArray::number(slaveAddr, 16).rightJustified(2, '0').toUpper()
             + QByteArray::number(funcCode, 16).rightJustified(2, '0').toUpper()

@@ -312,7 +312,7 @@ gantt
 |             |    CLOSE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |   EXPUNGE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |    SEARCH    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-|             |    FETCH     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+| imap.fetch  |    FETCH     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |    STORE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |     COPY     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |     UID      |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |

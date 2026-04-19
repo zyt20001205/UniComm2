@@ -12,100 +12,13 @@ Imap::Imap(QObject *parent)
     : QObject(parent) {
 }
 
-void Imap::login(const std::string &portName, const std::string &username, const std::string &password, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
-    m_count = 1;
-
-    QString exception{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "LOGIN"
-            + ' '
-            + QByteArray::fromStdString(username)
-            + ' '
-            + QByteArray::fromStdString(password);
-
-    QMetaObject::invokeMethod(port, [&exception, this, &port, &txData, &timeout] {
-        QByteArray rxData{};
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            const auto session = parser("GREET", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-
-        if (!port->write(txData, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parser("LOGIN", rxData)["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
-}
-
-void Imap::select(const std::string &portName, const std::string &mailbox, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
-
-    QString exception{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "SELECT"
-            + ' '
-            + QByteArray::fromStdString(mailbox);
-
-    QMetaObject::invokeMethod(port, [&exception, this, &port, &txData, &timeout] {
-        QByteArray rxData{};
-
-        if (!port->write(txData, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            const auto session = parser("SELECT", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
-}
-
-sol::table Imap::fetch(const std::string &portName, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
-
-    QString exception{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QByteArray txData =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "UID SEARCH";
-
-    qDebug() << txData;
-    return {};
-}
-
 int Imap::idle(const std::string &portName, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
     QString exception{};
     int exists{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    QByteArray txData =
+    const QByteArray txData =
             'A'
             + QByteArray::number(m_count).rightJustified(3, '0')
             + ' '
@@ -154,6 +67,128 @@ int Imap::idle(const std::string &portName, const int timeout) {
     return exists;
 }
 
+void Imap::login(const std::string &portName, const std::string &username, const std::string &password, const int timeout) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+    m_count = 1;
+
+    QString exception{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    const QByteArray txData =
+            'A'
+            + QByteArray::number(m_count).rightJustified(3, '0')
+            + ' '
+            + "LOGIN"
+            + ' '
+            + QByteArray::fromStdString(username)
+            + ' '
+            + QByteArray::fromStdString(password);
+
+    QMetaObject::invokeMethod(port, [&exception, this, &port, &txData, &timeout] {
+        QByteArray rxData{};
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            const auto session = parser("GREET", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        if (!port->write(txData, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            exception = parser("LOGIN", rxData)["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+}
+
+void Imap::select(const std::string &portName, const std::string &mailbox, const int timeout) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+
+    QString exception{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    const QByteArray txData =
+            'A'
+            + QByteArray::number(m_count).rightJustified(3, '0')
+            + ' '
+            + "SELECT"
+            + ' '
+            + QByteArray::fromStdString(mailbox);
+
+    QMetaObject::invokeMethod(port, [&exception, this, &port, &txData, &timeout] {
+        QByteArray rxData{};
+
+        if (!port->write(txData, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            const auto session = parser("SELECT", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+}
+
+sol::object Imap::fetch(const sol::this_state ts, const std::string &portName, const int sequenceNumber, const int timeout) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+
+    QString exception{};
+    QVariantHash parsed{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    const QByteArray txData =
+            'A'
+            + QByteArray::number(m_count).rightJustified(3, '0')
+            + ' '
+            + "FETCH"
+            + ' '
+            + QByteArray::number(sequenceNumber)
+            + ' '
+            + "BODY.PEEK[]";
+
+    QMetaObject::invokeMethod(port, [&exception, &parsed, this, &port, &txData, &timeout] {
+        QByteArray rxData{};
+        QVariantHash session{};
+        int size{};
+
+        if (!port->write(txData, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("FETCH", rxData);
+            exception = session["exception"].toString();
+            size = session["size"].toInt();
+        }
+        if (exception == "end") exception = "";
+
+        rxData = port->read(size, timeout, "utf-8");
+        parsed = fetchParser(rxData);
+        // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
+        rxData = port->read(3, timeout, "utf-8");
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("IDLE", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+    return uni_cast<sol::object>(ts, parsed);
+}
+
 // private
 QVariantHash Imap::parser(const QByteArray &command, const QByteArray &rxData) {
     QVariantHash session{};
@@ -198,9 +233,10 @@ QString Imap::taggedParser(const QByteArray &command, const QByteArray &rxData) 
     if (status == "OK") return "end";
     if (status == "BAD") return "command unknown or arguments invalid";
     if (status == "NO") {
+        if (command == "IDLE") return "failure: the server will not allow the IDLE command at this time";
         if (command == "LOGIN") return "login failure: user name or password rejected";
         if (command == "SELECT") return "select failure, now in authenticated state: no such mailbox, can't access mailbox";
-        if (command == "IDLE") return "failure: the server will not allow the IDLE command at this time";
+        if (command == "FETCH") return "fetch error: can't fetch that data";
     }
 
     return "contact author: unsupported tagged response(" + QString::fromUtf8(rxData) + ")";
@@ -223,15 +259,22 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
 
     // numeric
     if (head[0] >= '0' && head[0] <= '9') {
-        if (command == "IDLE") session["exception"] = "end";
-        else session["exception"] = "";
-        const auto name = QString::fromUtf8(rxData.mid(space2 + 1));
-        const auto number = head.toInt();
-        session[name] = number;
+        if (command == "IDLE") {
+            session["exception"] = "end";
+            const auto name = QString::fromUtf8(rxData.mid(space2 + 1));
+            const auto number = head.toInt();
+            session[name] = number;
+        } else if (command == "FETCH") {
+            session["exception"] = "end";
+            const auto openingBrace = rxData.indexOf('{');
+            const auto closingBrace = rxData.indexOf('}');
+            const auto size = rxData.mid(openingBrace + 1, closingBrace - openingBrace - 1).toInt();
+            session["size"] = size;
+        } else session["exception"] = "";
     }
     // status
     else if (head == "OK" || head == "NO") {
-        const auto& status = head;
+        const auto &status = head;
         // TODO: split resp
         // const auto text = rxData.mid(space2 + 1);
         // qDebug() << text;
@@ -246,4 +289,33 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
         session["exception"] = "";
     }
     return session;
+}
+
+QVariantHash Imap::fetchParser(const QByteArray &rxData) {
+    // TODO: only supports from/to/subjects for now
+    QVariantHash parsed{};
+    const auto separator = rxData.indexOf("\r\n\r\n");
+    // parse header
+    auto headers = rxData.left(separator + 4);
+    headers.replace("\r\n", "\n");
+    QString key{};
+    QString value{};
+    for (const auto &header: headers.split('\n')) {
+        // header line
+        if (header.contains(':')) {
+            if (!key.isEmpty()) parsed[key] = value;
+            const auto comma = header.indexOf(':');
+            key = header.left(comma);
+            value = header.mid(comma + 2);
+        }
+        // continuation line
+        else {
+            value += " " + header.trimmed();
+        }
+    }
+    if (!key.isEmpty()) parsed[key] = value;
+    // parse body
+    const auto body = rxData.mid(separator + 4);
+    qDebug() << "body" << body;
+    return parsed;
 }
