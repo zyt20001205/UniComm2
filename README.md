@@ -41,7 +41,7 @@ flowchart RL
 
     subgraph UniComm
         direction LR
-        documentModule[ Module]
+        documentModule[Module]
         luaInterpreter[Lua Interpreter]
         debugModule[Debug Module]
         subgraph threadpoolModule[Threadpool Module]
@@ -136,6 +136,8 @@ gantt
 ### [Modbus](#modbus-apis)
 
 ### [SMTP](#smtp-apis)
+
+### [IMAP](#imap-apis)
 
 ## Data Process
 
@@ -268,15 +270,52 @@ gantt
 |   APIS    |               RFC 5321                |                               Status                                |                           
 |:---------:|:-------------------------------------:|:-------------------------------------------------------------------:|
 | smtp.ehlo | Extended HELLO (EHLO) or HELLO (HELO) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| smtp.send |              MAIL (MAIL)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
-| smtp.send |           RECIPIENT (RCPT)            | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| smtp.send |              DATA (DATA)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|           |              MAIL (MAIL)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|           |           RECIPIENT (RCPT)            |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|           |              DATA (DATA)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             RESET (RSET)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             VERIFY (VRFY)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |             EXPAND (EXPN)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              HELP (HELP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              NOOP (NOOP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 | smtp.quit |              QUIT (QUIT)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+|   APIS    |      UniComm       |                               Status                                |                           
+|:---------:|:------------------:|:-------------------------------------------------------------------:|
+| smtp.send | MAIL + RCPT + DATA | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+## IMAP APIS
+
+|   APIS    | RFC 2177 |                               Status                                |                           
+|:---------:|:--------:|:-------------------------------------------------------------------:|
+| imap.idle |   IDLE   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+|    APIS     |   RFC 3501   |                               Status                                |                           
+|:-----------:|:------------:|:-------------------------------------------------------------------:|
+|             |   STARTTLS   |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+|             | AUTHENTICATE |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
+| imap.login  |    LOGIN     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|             |              |                                                                     |
+| imap.select |    SELECT    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|             |   EXAMINE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    CREATE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    DELETE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    RENAME    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |  SUBSCRIBE   |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             | UNSUBSCRUBE  |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |     LIST     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |     LSUB     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    STATUS    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    APPEND    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |              |                                                                     |
+|             |    CHECK     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    CLOSE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |   EXPUNGE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    SEARCH    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    FETCH     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |    STORE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |     COPY     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+|             |     UID      |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 
 # Document Module
 
