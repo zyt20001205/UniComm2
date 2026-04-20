@@ -91,7 +91,9 @@ void NavigationWidget::navigationNext() const {
 
 void NavigationWidget::detailReload(const int index) {
     m_detailIndex = index;
-    const auto position = m_navigationModel->item(m_detailIndex, 0)->data(Qt::WhatsThisRole).toHash();
+    const auto *item = m_navigationModel->item(m_detailIndex, 0);
+    if (!item) return;
+    const auto position = item->data(Qt::WhatsThisRole).toHash();
     const auto hint = g_document->textGet(position["documentUrl"].toUrl(), position["startLine"].toInt(), 0, position["startLine"].toInt(), -1);
     const int startCharacter = position["startCharacter"].toInt();
     const int endCharacter = position["endCharacter"].toInt();
