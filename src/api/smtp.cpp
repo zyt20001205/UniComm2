@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "port/basePort.h"
 #include "port/portModule.h"
-#include "util/luaUtils.h"
+#include "util/uniCast.h"
 
 // public
 Smtp::Smtp(QObject *parent)
@@ -117,10 +117,12 @@ void Smtp::send(const std::string &portName, const std::string &from, const std:
             + "\r\n"
             + QByteArray::fromStdString(body) + "\r\n";
     if (!attachment.empty()) {
-        const auto &filePath = lua2filepath(attachment);
+        const LPath luaPath = QString::fromStdString(attachment);
+        const auto documentUrl = uni_cast<QUrl>(luaPath);
+        const auto documentPath = documentUrl.toLocalFile();
         const QMimeDatabase mimeDb{};
-        const auto &mimeType = mimeDb.mimeTypeForFile(filePath).name();
-        const auto &fileName = QFileInfo(filePath).fileName();
+        const auto &mimeType = mimeDb.mimeTypeForFile(documentPath).name();
+        const auto &fileName = QFileInfo(documentPath).fileName();
 
         txData3 +=
                 "--" + boundary.toUtf8() + "\r\n"
@@ -129,7 +131,7 @@ void Smtp::send(const std::string &portName, const std::string &from, const std:
                 + "Content-Disposition: attachment; filename=\"" + fileName.toUtf8() + "\"\r\n"
                 + "\r\n";
 
-        QFile attachmentFile(filePath);
+        QFile attachmentFile(documentPath);
         if (attachmentFile.open(QIODevice::ReadOnly)) {
             const auto base64Data = attachmentFile.readAll().toBase64();
             txData3 += base64Data + "\r\n";

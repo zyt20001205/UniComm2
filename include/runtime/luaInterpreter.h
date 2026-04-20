@@ -51,7 +51,7 @@ signals:
 
     void newMessageDialog(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 
-    void startThread(const QString &scriptPath, int mode, QString &threadId);
+    void startThread(const QUrl &documentUrl, int mode, QString &threadId, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void stopThread(const QString &threadId);
 

@@ -119,7 +119,7 @@ void LuaLanguageServer::jsonParser() {
                 // publish diagnostics notification
                 const auto params = json["params"].toObject();
                 const auto diagnostics = params["diagnostics"].toArray();
-                const auto uri = params["uri"].toString();
+                const LUrl uri = params["uri"].toString();
                 const auto documentUrl = uni_cast<QUrl>(uri);
                 emit notificationPublishDiagnostics(documentUrl, diagnostics);
             } else if (method == "$/hello") {
@@ -142,7 +142,7 @@ void LuaLanguageServer::jsonParser() {
                 // log message notification
                 // qDebug() << json;
                 const auto params = json["params"].toObject();
-                const auto message = params["message"].toString().remove("Log path: ");
+                const LUrl message = params["message"].toString().remove("Log path: ");
                 const auto url = uni_cast<QUrl>(message);
                 // logging
                 QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");

@@ -25,8 +25,6 @@ public:
 
     Q_INVOKABLE void threadStart(const QUrl &documentUrl, int mode, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
-    void threadStart(const QString &scriptPath, int mode, QString &threadId);
-
     Q_INVOKABLE void threadStop(const QString &threadId);
 
     Q_INVOKABLE [[nodiscard]] bool debugging() const;

@@ -85,7 +85,7 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
     connect(interpreter, &LuaInterpreter::addMarker, this, &ThreadpoolModule::addMarker);
     connect(interpreter, &LuaInterpreter::deleteMarker, this, &ThreadpoolModule::deleteMarker);
     connect(interpreter, &LuaInterpreter::insertCallStack, this, &ThreadpoolModule::insertCallStack);
-    connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QString &, const int, QString &>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QUrl &, const int, QString &, const int, const int, const int, const int>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::newMessageDialog, this, &ThreadpoolModule::messageDialogNew);
@@ -114,11 +114,6 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
 void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     QString threadId{};
     threadStart(documentUrl, mode, threadId, startLine, startCharacter, endLine, endCharacter);
-}
-
-void ThreadpoolModule::threadStart(const QString &documentPath, const int mode, QString &threadId) {
-    const auto documentUrl = QUrl::fromLocalFile(documentPath);
-    threadStart(documentUrl, mode, threadId);
 }
 
 void ThreadpoolModule::threadStop(const QString &threadId) {

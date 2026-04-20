@@ -15,14 +15,14 @@ public:
 
     ~Thread() override = default;
 
-    std::string start(sol::this_state ts, const std::string &scriptPath);
+    std::string start(sol::this_state ts, const std::string &documentPath);
 
     void stop(const std::string &threadId);
 
     void sleep(int ms);
 
 signals:
-    void startThread(const QString &scriptPath, int mode, QString &threadId);
+    void startThread(const QUrl &documentUrl, int mode, QString &threadId, int startLine, int startCharacter, int endLine, int endCharacter);
 
     void stopThread(const QString &threadId);
 };

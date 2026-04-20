@@ -96,7 +96,7 @@ void DwellWidget::suggestionAccept(const QString &text) {
 void DwellWidget::codeActionAccept(const QJsonObject &codeAction) {
     const auto changes = codeAction["changes"].toObject();
     for (auto it = changes.begin(); it != changes.end(); ++it) {
-        QString uri = it.key();
+        const LUrl uri = it.key();
         const auto documentUrl = uni_cast<QUrl>(uri);
         const QJsonArray changeArray = it.value().toArray();
         for (const auto &value: changeArray) {

@@ -38,7 +38,7 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
     m_navigationSession = navigationSession;
     for (const auto &value: navigations) {
         const QJsonObject navigation = value.toObject();
-        QString uri = navigation["uri"].toString();
+        const LUrl uri = navigation["uri"].toString();
         const auto documentUrl = uni_cast<QUrl>(uri);
         const QJsonObject range = navigation["range"].toObject();
         const QJsonObject start = range["start"].toObject();

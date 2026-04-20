@@ -1,15 +1,17 @@
 #include "util/uniCast.h"
 
-#include <QUrl>
+#include <QDir>
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
 #include <sol/variadic_args.hpp>
 #include <sol/userdata.hpp>
 
+#include "globals.h"
+
 // lua -> qt
 template<>
-QUrl uni_cast<QUrl, QString>(const QString &s, const int depth) {
-    auto uri = QUrl::fromPercentEncoding(s.toUtf8());
+QUrl uni_cast<QUrl, LUrl>(const LUrl &s, const int depth) {
+    auto uri = QUrl::fromPercentEncoding(s.value.toUtf8());
     if (uri.size() > 8) {
         const QChar drive = uri[8];
         if (drive.isLetter() && drive.isLower()) {
@@ -17,6 +19,14 @@ QUrl uni_cast<QUrl, QString>(const QString &s, const int depth) {
         }
     }
     return {uri};
+}
+
+template<>
+QUrl uni_cast<QUrl, LPath>(const LPath &s, int depth) {
+    const QDir workspaceDir(g_workspaceUrl.toLocalFile());
+    const auto documentPath = workspaceDir.absoluteFilePath(s.value);
+    const auto documentUrl = QUrl::fromLocalFile(documentPath);
+    return documentUrl;
 }
 
 // sol -> qt

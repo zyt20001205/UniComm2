@@ -4,15 +4,30 @@
 #include <QVariant>
 #include <sol/object.hpp>
 
+struct LUrl {
+    QString value;
+    LUrl(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
+struct LPath {
+    QString value;
+    LPath(QString s) : value(std::move(s)) {}
+    operator QString() const { return value; }
+};
+
 template<typename D, typename S>
 [[nodiscard]] D uni_cast(const S& s, int depth = 0);
 
 template<typename D, typename S>
 [[nodiscard]] D uni_cast(sol::this_state ts, const S& s, int depth = 0);
 
-// luals -> qt
+// lua -> qt
 template<>
-[[nodiscard]] QUrl uni_cast<QUrl, QString>(const QString &s, int depth);
+[[nodiscard]] QUrl uni_cast<QUrl, LUrl>(const LUrl &s, int depth);
+
+template<>
+[[nodiscard]] QUrl uni_cast<QUrl, LPath>(const LPath &s, int depth);
 
 // sol -> qt
 template<>

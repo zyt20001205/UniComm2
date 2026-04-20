@@ -3,15 +3,6 @@
 #include <QDir>
 #include <QVariant>
 
-#include "globals.h"
-
-QString lua2filepath(const std::string &luaPath) {
-    const QString relativePath = QString::fromStdString(luaPath);
-    const QDir workspaceDir(g_workspaceUrl.toLocalFile());
-    const QString filePath = workspaceDir.absoluteFilePath(relativePath);
-    return filePath;
-}
-
 void lua_pushvariant(lua_State *L, const QString &variant, const QString &type) {
     if (type == "boolean") {
         const QVariant tmp(variant);
