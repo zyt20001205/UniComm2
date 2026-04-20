@@ -5,6 +5,10 @@
   },
   "runtime": {
     "special" : {
+      "f.open": "require",
+      "f.close": "require",
+      "f.read": "require",
+      "f.write": "require",
       "smtp.mail": "require",
       "thread.start": "require"
     },

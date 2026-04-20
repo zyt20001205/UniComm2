@@ -32,7 +32,7 @@ public:
 
     Q_INVOKABLE void datatableClear();
 
-    Q_INVOKABLE void datatableExport(const QString &fileName);
+    Q_INVOKABLE void datatableExport(const QString &path);
 
     [[nodiscard]] bool datatableWrite(const QString &key, const QString &value);
 

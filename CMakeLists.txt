@@ -44,6 +44,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/analysis/structureModule.h
         include/analysis/symbolWidget.h
         include/api/data.h
+        include/api/file.h
         include/api/http.h
         include/api/imap.h
         include/api/io.h
@@ -116,6 +117,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/analysis/structureModule.cpp
         src/analysis/symbolWidget.cpp
         src/api/data.cpp
+        src/api/file.cpp
         src/api/http.cpp
         src/api/imap.cpp
         src/api/io.cpp
@@ -336,6 +338,7 @@ qt_add_resources(UniComm "lib_resources"
         "resources/lib/alias.d.lua"
         "resources/lib/database.d.lua"
         "resources/lib/datatable.d.lua"
+        "resources/lib/file.d.lua"
         "resources/lib/http.d.lua"
         "resources/lib/imap.d.lua"
         "resources/lib/io.d.lua"

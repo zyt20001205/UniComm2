@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "api/data.h"
+#include "api/file.h"
 #include "api/http.h"
 #include "api/imap.h"
 #include "api/io.h"
@@ -28,6 +29,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     : QObject(parent),
       m_luaSession(luaSession),
       m_data(new Data(this)),
+      m_file(new File(this)),
+      m_http(new Http(this)),
       m_imap(new Imap(this)),
       m_io(new IO(this)),
       m_key(new Key(this)),
@@ -61,6 +64,15 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         datatable.set_function("write", [](const std::string &key, const sol::object &value) { Data::datatableWrite(key, value); });
         datatable.set_function("export", [](const sol::optional<std::string> &fileName) { Data::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;
+    }
+    // File lib
+    {
+        auto f = m_lua.create_table();
+        f.set_function("close", [this](const std::string &path) { m_file->close(path); });
+        f.set_function("open", [this](const std::string &path, const sol::optional<const std::string> &mode) { m_file->open(path, mode.value_or("r")); });
+        f.set_function("read", [this](const std::string &path) { return m_file->read(path); });
+        f.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
+        m_lua["f"] = f;
     }
     // Http lib
     {

@@ -49,8 +49,8 @@ void Data::datatableWrite(const std::string &key, const sol::object &value) {
     }
 }
 
-void Data::datatableExport(const std::string &fileName) {
-    QMetaObject::invokeMethod(g_datatable, [&fileName] {
-        g_datatable->datatableExport(QString::fromStdString(fileName));
+void Data::datatableExport(const std::string &path) {
+    QMetaObject::invokeMethod(g_datatable, [&path] {
+        g_datatable->datatableExport(QString::fromStdString(path));
     }, Qt::BlockingQueuedConnection);
 }

@@ -10,6 +10,7 @@
 #include <QVariantList>
 
 #include "globals.h"
+#include "util/uniCast.h"
 
 // public
 DatatableModule::DatatableModule()
@@ -107,16 +108,12 @@ void DatatableModule::datatableClear() {
     g_datatableStandardItemModel->clear();
 }
 
-void DatatableModule::datatableExport(const QString &fileName) {
-    const auto workspacePath = g_workspaceUrl.toLocalFile();
-    QString filePath{};
-    if (fileName.isEmpty()) {
-        const QString defaultName = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
-        filePath = QDir(workspacePath).filePath(defaultName);
-    } else {
-        filePath = QDir(workspacePath).filePath(fileName + ".csv");
-    }
-    QFile file(filePath);
+void DatatableModule::datatableExport(const QString &path) {
+    LPath luaPath = path;
+    if (path.isEmpty()) luaPath = "data_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".csv";
+    const auto documentUrl = uni_cast<QUrl>(luaPath);
+    const auto documentPath = documentUrl.toLocalFile();
+    QFile file(documentPath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
     QTextStream out(&file);
     // write header
@@ -141,8 +138,7 @@ void DatatableModule::datatableExport(const QString &fileName) {
     }
     file.close();
     // logging
-    const QUrl fileUrl = QUrl::fromLocalFile(filePath);
-    emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), LOG_INFO);
+    emit appendLog(QString("data exported to <a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()), LOG_INFO);
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] data exported").arg(timestamp);
 }

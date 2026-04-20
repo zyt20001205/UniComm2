@@ -12,24 +12,24 @@ public:
 
     ~Imap() override = default;
 
-    int idle(const std::string &portName, int timeout);
+    [[nodiscard]] int idle(const std::string &portName, int timeout);
 
     void login(const std::string &portName, const std::string &username, const std::string &password, int timeout);
 
     void select(const std::string &portName, const std::string &mailbox, int timeout);
 
-    sol::object fetch(sol::this_state ts, const std::string &portName, int sequenceNumber, int timeout);
+    [[nodiscard]] sol::object fetch(sol::this_state ts, const std::string &portName, int sequenceNumber, int timeout);
 
 private:
     [[nodiscard]] QVariantHash parser(const QByteArray &command, const QByteArray &rxData);
 
-    static QString continuationParser(const QByteArray &command, const QByteArray &rxData);
+    [[nodiscard]] static QString continuationParser(const QByteArray &command, const QByteArray &rxData);
 
     [[nodiscard]] QString taggedParser(const QByteArray &command, const QByteArray &rxData);
 
-    static QVariantHash untaggedParser(const QByteArray &command, const QByteArray &rxData);
+    [[nodiscard]] static QVariantHash untaggedParser(const QByteArray &command, const QByteArray &rxData);
 
-    static QVariantHash fetchParser(const QByteArray &rxData);
+    [[nodiscard]] static QVariantHash fetchParser(const QByteArray &rxData);
 
     int m_count{};
 };

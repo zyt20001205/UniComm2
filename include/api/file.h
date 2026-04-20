@@ -1,17 +1,38 @@
 #ifndef UNICOMM_FILE_H
 #define UNICOMM_FILE_H
 
-#include <string>
+#include <QFile>
+#include <QHash>
+#include <QObject>
+#include <sol/variadic_args.hpp>
 
-class FileSystem final {
+namespace sol {
+    struct variadic_args;
+}
+
+class File final : public QObject {
+    Q_OBJECT
+
 public:
-    static void open(const std::string &path, const std::string &mode);
+    explicit File(QObject *parent = nullptr);
 
-    static void close(const std::string &path);
+    ~File() override = default;
 
-    static std::string read(const std::string &path);
+    void open(const std::string &path, const std::string &mode);
 
-    static void write(const std::string &path, const std::string &data);
+    void close(const std::string &path);
+
+    [[nodiscard]] std::string read(const std::string &path);
+
+    void write(const std::string &path, const sol::variadic_args &args);
+
+private:
+    struct FileHandle {
+        QFile file;
+        bool binary = false;
+    };
+
+    QHash<QUrl, std::shared_ptr<FileHandle> > m_handleHash;
 };
 
 #endif //UNICOMM_FILE_H

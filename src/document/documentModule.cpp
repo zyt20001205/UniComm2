@@ -72,7 +72,6 @@ void DocumentModule::documentConfigSave() {
     for (const auto &url: m_pageHash.keys()) {
         if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[url])) {
             luaPage->documentSave();
-            documentList.append(url.toString());
         }
         documentList.append(url.toString());
     }
@@ -986,8 +985,8 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
 }
 
 void DocumentModule::documentClose(const QUrl &documentUrl) {
-    if (m_quit) return;
     m_pageHash.remove(documentUrl);
+    if (m_quit) return;
     if (m_pageHash.isEmpty()) {
         // m_welcomePage->open();
         m_focusedUrl = nullptr;

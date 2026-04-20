@@ -9,6 +9,7 @@
 class QEventLoop;
 class QStandardItemModel;
 class Data;
+class File;
 class Http;
 class Imap;
 class IO;
@@ -67,6 +68,7 @@ private:
     sol::state m_lua{};
     QVariantMap m_luaSession{};
     Data *m_data{};
+    File *m_file{};
     Http *m_http{};
     Imap *m_imap{};
     IO *m_io{};

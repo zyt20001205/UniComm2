@@ -15,7 +15,7 @@ public:
 
     ~Thread() override = default;
 
-    std::string start(sol::this_state ts, const std::string &documentPath);
+    [[nodiscard]] std::string start(sol::this_state ts, const std::string &documentPath);
 
     void stop(const std::string &threadId);
 

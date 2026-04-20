@@ -20,7 +20,7 @@ public:
 
     static void datatableWrite(const std::string &key, const sol::object &value);
 
-    static void datatableExport(const std::string &fileName);
+    static void datatableExport(const std::string &path);
 };
 
 #endif //UNICOMM_DATA_H

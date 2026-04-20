@@ -1,20 +1,20 @@
---- @meta
+---@meta
 
---- @alias databaseKey
---- | string
---- | '"__PLACEHOLDER__DATABASEKEY__"'
+---@alias databaseKey
+---| string
+---| '"__PLACEHOLDER__DATABASEKEY__"'
 
 database = {}
 
---- Retrieves a list of all available database keys.
---- @return table
+---Retrieves a list of all available database keys.
+---@return table
 function database.list() end
 
---- Writes data to a key in database.
---- @param key databaseKey The key to write to.
---- @param value boolean|number|string The value to write.
---- @return nil
+---Writes data to a key in database.
+---@param key databaseKey The key to write to.
+---@param value boolean|number|string The value to write.
+---@return nil
 function database.write(key, value) end
 
---- Clears all data in database.
+---Clears all data in database.
 function database.clear() end
