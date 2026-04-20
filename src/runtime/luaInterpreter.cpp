@@ -70,7 +70,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         auto f = m_lua.create_table();
         f.set_function("close", [this](const std::string &path) { m_file->close(path); });
         f.set_function("open", [this](const std::string &path, const sol::optional<const std::string> &mode) { m_file->open(path, mode.value_or("r")); });
-        f.set_function("read", [this](const std::string &path) { return m_file->read(path); });
+        f.set_function("read", [this](const std::string &path, const sol::variadic_args &args) { return m_file->read(path, args); });
         f.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
         m_lua["f"] = f;
     }

@@ -172,6 +172,14 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
             }
             return sol::make_object(lua, _d);
         }
+        case QMetaType::QVariantList: {
+            const auto _s = s.toList();
+            sol::table _d = lua.create_table();
+            for (int i = 0; i < _s.size(); ++i) {
+                _d[i + 1] = uni_cast<sol::object>(ts, _s[i], depth + 1);
+            }
+            return sol::make_object(lua, _d);
+        }
         case QMetaType::QString:
             return sol::make_object(lua, s.toString().toStdString());
         case QMetaType::QByteArray: {
@@ -204,12 +212,18 @@ sol::object uni_cast<sol::object, QVariant>(const sol::this_state ts, const QVar
 }
 
 template<>
-sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const QVariantHash &s, const int depth) {
+sol::object uni_cast<sol::object, QVariantMap>(const sol::this_state ts, const QVariantMap &s, const int depth) {
     return uni_cast<sol::object, QVariant>(ts, QVariant::fromValue(s), depth);
 }
 
 template<>
-sol::object uni_cast<sol::object, QVariantMap>(const sol::this_state ts, const QVariantMap &s, const int depth) {
+sol::object uni_cast<sol::object, QVariantList>(const sol::this_state ts, const QVariantList &s, const int depth) {
+    if (s.size() == 1) return uni_cast<sol::object, QVariant>(ts, s[0], depth);
+    return uni_cast<sol::object, QVariant>(ts, QVariant::fromValue(s), depth);
+}
+
+template<>
+sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const QVariantHash &s, const int depth) {
     return uni_cast<sol::object, QVariant>(ts, QVariant::fromValue(s), depth);
 }
 

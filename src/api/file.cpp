@@ -47,8 +47,51 @@ void File::close(const std::string &path) {
     m_handleHash.remove(documentUrl);
 }
 
-std::string File::read(const std::string &path) {
-    return {};
+sol::object File::read(const std::string &path, const sol::variadic_args &args) {
+    const LPath luaPath = QString::fromStdString(path);
+    const auto documentUrl = uni_cast<QUrl>(luaPath);
+    if (!m_handleHash.contains(documentUrl)) throw sol::error("file not opened: " + path);
+
+    const auto &handle = m_handleHash[documentUrl];
+    QVariantList results{};
+    auto _args = uni_cast<QVariantList>(args);
+    if (_args.isEmpty()) _args = QVariantList({"l"});
+    if (handle->binary) {
+        QDataStream stream(&handle->file);
+        for (const auto &arg: _args) {
+            if (arg.typeId() == QMetaType::Int) {
+                const int n = arg.toInt();
+                QByteArray data(n, Qt::Uninitialized);
+                const auto read = stream.readRawData(data.data(), n);
+                if (read <= 0) results.append(QVariant());
+                else results.append(QVariant(data.left(static_cast<int>(read))));
+            } else if (arg.typeId() == QMetaType::QString && arg.toString() == "a") {
+                results.append(QVariant(handle->file.readAll()));
+            } else throw sol::error("invalid read mode: " + arg.toString().toStdString());
+        }
+    } else {
+        QTextStream stream(&handle->file);
+        for (const auto &arg: _args) {
+            if (arg.typeId() == QMetaType::Int) {
+                const auto data = stream.read(arg.toInt());
+                results.append(data.isNull() ? QVariant() : QVariant(data));
+            } else if (arg.typeId() == QMetaType::QString) {
+                const auto _arg = arg.toString();
+                if (_arg == "n") {
+                    double n{};
+                    stream >> n;
+                    results.append(stream.status() == QTextStream::Ok ? QVariant(n) : QVariant());
+                } else if (_arg == "a") {
+                    results.append(QVariant(stream.readAll()));
+                } else if (_arg == "l") {
+                    results.append(stream.atEnd() ? QVariant() : QVariant(stream.readLine()));
+                } else if (_arg == "L") {
+                    results.append(stream.atEnd() ? QVariant() : QVariant(stream.readLine() + "\n"));
+                } else throw sol::error("invalid read format: " + _arg.toStdString());
+            } else throw sol::error("invalid read mode: " + arg.toString().toStdString());
+        }
+    }
+    return uni_cast<sol::object>(args.lua_state(), results);
 }
 
 void File::write(const std::string &path, const sol::variadic_args &args) {

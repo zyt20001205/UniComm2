@@ -22,7 +22,7 @@ public:
 
     void close(const std::string &path);
 
-    [[nodiscard]] std::string read(const std::string &path);
+    [[nodiscard]] sol::object read(const std::string &path, const sol::variadic_args &args);
 
     void write(const std::string &path, const sol::variadic_args &args);
 

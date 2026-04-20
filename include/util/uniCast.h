@@ -44,10 +44,13 @@ template<>
 [[nodiscard]] sol::object uni_cast<sol::object, QVariant>(sol::this_state ts, const QVariant &s, int depth);
 
 template<>
-[[nodiscard]] sol::object uni_cast<sol::object, QVariantHash>(sol::this_state ts, const QVariantHash &s, int depth);
+[[nodiscard]] sol::object uni_cast<sol::object, QVariantMap>(sol::this_state ts, const QVariantMap &s, int depth);
 
 template<>
-[[nodiscard]] sol::object uni_cast<sol::object, QVariantMap>(sol::this_state ts, const QVariantMap &s, int depth);
+[[nodiscard]] sol::object uni_cast<sol::object, QVariantList>(sol::this_state ts, const QVariantList &s, int depth);
+
+template<>
+[[nodiscard]] sol::object uni_cast<sol::object, QVariantHash>(sol::this_state ts, const QVariantHash &s, int depth);
 
 template<>
 [[nodiscard]] sol::table uni_cast<sol::table, QSet<QString>>(sol::this_state ts, const QSet<QString> &s, int depth);
