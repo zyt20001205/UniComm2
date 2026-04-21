@@ -9,11 +9,6 @@ File::File(QObject *parent)
     : QObject(parent) {
 }
 
-std::string File::current() {
-    const auto currentPath = g_workspaceUrl.toLocalFile();
-    return currentPath.toStdString();
-}
-
 void File::open(const std::string &path, const std::string &mode) {
     const LPath luaPath = QString::fromStdString(path);
     const auto documentUrl = uni_cast<QUrl>(luaPath);

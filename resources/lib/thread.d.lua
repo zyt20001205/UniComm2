@@ -3,7 +3,7 @@
 thread = {}
 
 ---Spawns a thread using the given file path.
----@param path string Path to the Lua script.
+---@param path string The relative path to the Lua script.
 ---@return string threadId Unique identifier for the spawned thread.
 function thread.start(path) end
 
