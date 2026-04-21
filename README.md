@@ -100,6 +100,7 @@ gantt
         modbusRtu(hex string refractor): done, 04-01, 7d
         modbusTcp: done, 04-01, 7d
         imap: active, 04-08, 8d
+        file: done, 04-20, 2d
         mqtt: 04-16, 15d
 
     section infra
@@ -129,6 +130,16 @@ gantt
 
 # APIS
 
+## Miscellaneous
+
+### [IO](#io-apis)
+
+### [String](#string-apis)
+
+### [File](#file-apis)
+
+### [Thread](#thread-apis)
+
 ## Port Communication
 
 ### [Base](#base-apis)
@@ -150,14 +161,6 @@ gantt
 ### [Mouse](#mouse-apis)
 
 ### [Key](#key-apis)
-
-## Miscellaneous
-
-### [IO](#io-apis)
-
-### [String](#string-apis)
-
-### [Thread](#thread-apis)
 
 # Port Module
 
@@ -442,18 +445,29 @@ flowchart LR
 
 ## IO APIS
 
-|    APIS    |                               Status                                |                           
-|:----------:|:-------------------------------------------------------------------:|
-|   io.log   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| io.message | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-|  io.speak  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|    APIS    |                               Status                                | Discription         |
+|:----------:|:-------------------------------------------------------------------:|:--------------------|
+|   io.log   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | better then print() |
+| io.message | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | messagebox          |
+|  io.speak  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | tts                 |
 
 ## String APIS
 
-|      APIS      |                               Status                                |                           
-|:--------------:|:-------------------------------------------------------------------:|
-|  string.toHex  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
-| string.fromHex | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|       APIS        |                               Status                                |                           
+|:-----------------:|:-------------------------------------------------------------------:|
+|   string.toHex    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|  string.fromHex   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+|  string.toBase64  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| string.fromBase64 | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+
+## File APIS
+
+|  APIS   |                               Status                                |                           
+|:-------:|:-------------------------------------------------------------------:|
+| f.close | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| f.open  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| f.read  | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| f.write | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ## Thread APIS
 
