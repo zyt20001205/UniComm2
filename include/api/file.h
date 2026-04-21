@@ -18,6 +18,8 @@ public:
 
     ~File() override = default;
 
+    [[nodiscard]] static std::string current();
+
     void open(const std::string &path, const std::string &mode);
 
     void close(const std::string &path);

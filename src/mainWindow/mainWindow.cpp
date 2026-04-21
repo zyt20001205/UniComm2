@@ -284,7 +284,7 @@ void MainWindow::quit() {
 }
 
 void MainWindow::terminate() {
-    m_askForSaving = false;
+    g_terminating = true;
     close();
 }
 
@@ -314,7 +314,7 @@ void MainWindow::workspaceOpen() {
     mainConfig.close();
     // restart main process
     QProcess::startDetached(QCoreApplication::applicationFilePath());
-    m_askForSaving = false;
+    g_terminating = true;
     QApplication::quit();
 }
 
@@ -338,11 +338,11 @@ void MainWindow::quitTrack(const float secondaryProgress, const QString &seconda
 
 // protected
 void MainWindow::closeEvent(QCloseEvent *event) {
-    if (m_askForSaving) {
+    if (g_terminating) {
+        event->accept();
+    } else {
         event->ignore();
         QMetaObject::invokeMethod(m_closeDialog, "open");
-    } else {
-        event->accept();
     }
 }
 

@@ -9,6 +9,7 @@ PortModule *g_port = nullptr;
 DocumentModule *g_document = nullptr;
 UndoModule *g_undo = nullptr;
 
+bool g_terminating = false;
 QUrl g_workspaceUrl = {};
 QJsonObject g_workspaceConfig = {};
 

@@ -66,7 +66,6 @@ void DocumentModule::propertySet(const QVariantMap &objects) {
 }
 
 void DocumentModule::documentConfigSave() {
-    m_quit = true;
     // save config
     auto documentList = QJsonArray();
     for (const auto &url: m_pageHash.keys()) {
@@ -986,9 +985,9 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
 
 void DocumentModule::documentClose(const QUrl &documentUrl) {
     m_pageHash.remove(documentUrl);
-    if (m_quit) return;
+    if (g_terminating) return;
     if (m_pageHash.isEmpty()) {
-        // m_welcomePage->open();
+        m_welcomePage->open();
         m_focusedUrl = nullptr;
     } else {
         const auto begin = m_pageHash.begin();

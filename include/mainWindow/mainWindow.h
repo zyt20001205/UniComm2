@@ -80,7 +80,6 @@ private:
     QQuickView *m_overlay{};
     QObject *m_closeDialog{};
     QObject *m_quitDialog{};
-    bool m_askForSaving = true;
 
     ConfigManager *m_configManager{};
     LuaLanguageServer *m_luals{};

@@ -198,7 +198,6 @@ private:
     QObject *m_systemPropertyDialog{};
     QObject *m_saveDialog{};
     QObject *m_editorMenu{};
-    bool m_quit = false;
     QUrl m_focusedUrl{};
     WelcomePage *m_welcomePage{}; // TODO: inherits base page later
     CodeAssistant *m_codeAssistant{};

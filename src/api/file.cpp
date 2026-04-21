@@ -1,12 +1,17 @@
 #include "api/file.h"
 
 #include <QDataStream>
-#include <QUrl>
 
+#include "globals.h"
 #include "util/uniCast.h"
 
 File::File(QObject *parent)
     : QObject(parent) {
+}
+
+std::string File::current() {
+    const auto currentPath = g_workspaceUrl.toLocalFile();
+    return currentPath.toStdString();
 }
 
 void File::open(const std::string &path, const std::string &mode) {
