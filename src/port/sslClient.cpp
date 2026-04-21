@@ -81,6 +81,10 @@ bool SslClient::open() {
     m_sslClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     // open port
     m_sslClient->connectToHostEncrypted(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
+    if (!m_sslClient->waitForEncrypted()) {
+        handleError();
+        return false;
+    }
     emit refreshPort(m_portConfig["portName"].toString(), true);
     emit appendLog(QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
                                                          QString::number(m_portConfig["remotePort"].toInt())), LOG_INFO);

@@ -305,6 +305,7 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         if (header.contains(':')) {
             if (!key.isEmpty()) {
                 headerHash[key] = value;
+                key.clear();
                 value.clear();
             }
             const auto comma = header.indexOf(':');
@@ -318,6 +319,7 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
     }
     if (!key.isEmpty()) {
         headerHash[key] = value;
+        key.clear();
         value.clear();
     }
     parsed["header"] = headerHash;
@@ -331,8 +333,9 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         auto body = bodies.mid(pos, current - pos);
         // content
         if (body.contains("Content-Type: ")) {
-            if (!key.isEmpty() && !value.toString().isEmpty()) {
+            if (!key.isEmpty() && value.isValid()) {
                 bodyHash[key] = value;
+                key.clear();
                 value.clear();
             }
             const auto keyStart = body.indexOf("Content-Type: ") + QByteArray("Content-Type: ").size();
@@ -341,7 +344,6 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         }
         // TODO: boundary is not recorded
         else if (body.contains("--")) {
-
         }
         // data
         else {
@@ -349,8 +351,9 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         }
         pos = current + 4;
     }
-    if (!key.isEmpty()) {
+    if (!key.isEmpty() && value.isValid()) {
         bodyHash[key] = value;
+        key.clear();
         value.clear();
     }
     parsed["body"] = bodyHash;

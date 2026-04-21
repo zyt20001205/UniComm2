@@ -69,14 +69,14 @@ void DwellWidget::dwellHide() const {
 void DwellWidget::linkClick(const QUrl &commandLine) {
     // qDebug() << commandLine;
     const QString command = commandLine.scheme();
-    if (command == "requestcodeaction") {
+    if (command == "request.code.action") {
         const QStringList arguments = commandLine.path().split('/');
         m_diagnosticStartLine = arguments[1].toInt();
         m_diagnosticStartCharacter = arguments[2].toInt();
         m_diagnosticEndLine = arguments[3].toInt();
         m_diagnosticEndCharacter = arguments[4].toInt();
         emit requestCodeAction(m_documentUrl, m_diagnosticStartLine, m_diagnosticStartCharacter, m_diagnosticEndLine, m_diagnosticEndCharacter);
-    } else if (command == "requestspellsuggest") {
+    } else if (command == "request.spell.suggestion") {
         const QString word = commandLine.host();
         const QStringList arguments = commandLine.path().split('/');
         m_typoStartLine = arguments[1].toInt();

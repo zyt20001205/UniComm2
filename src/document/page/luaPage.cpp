@@ -1319,7 +1319,7 @@ void LuaPage::hoverRequest() {
         }
         const QString message = diagnostic["message"].toString();
         // qDebug() << message << parsed;
-        const QString commandLine = QString("requestcodeaction://codeAction/%2/%3/%4/%5").arg(
+        const QString commandLine = QString("request.code.action://reserved/%1/%2/%3/%4").arg(
             QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
         diagnosticText += QString("<tr><td><b>%1</b>: %2</td><td align='right'><a href='%3'>Code Action</a></td></tr>").arg(severityString, md2html(message), commandLine);
     }
@@ -1334,7 +1334,7 @@ void LuaPage::hoverRequest() {
         if (line == startLine && character < startCharacter) continue;
         if (line == endLine && character > endCharacter) continue;
         const QString word = m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
-        const QString commandLine = QString("requestspellsuggest://%1/%2/%3/%4/%5").arg(
+        const QString commandLine = QString("request.spell.suggestion://%1/%2/%3/%4/%5").arg(
             word, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
         diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, commandLine);
     }

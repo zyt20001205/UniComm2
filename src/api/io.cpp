@@ -13,31 +13,26 @@ IO::IO(QObject *parent)
 }
 
 void IO::log(const sol::variadic_args &args) {
-    std::function<void(const QVariant &)> logging = [&](const QVariant &var) {
-        if (var.typeId() == QMetaType::QVariantMap) {
-            QVariantMap map = var.toMap();
-            if (map.isEmpty()) {
-                emit appendLog("{}", LOG_INFO);
-                return;
-            }
+    std::function<void(const QString &, const QVariant &, int)> logging = [&](const QString &key, const QVariant &value, const int depth) {
+        QString indent{};
+        if (depth > 0) indent = QString("&nbsp;").repeated(depth * 4);
+
+        if (value.typeId() == QMetaType::QVariantMap) {
+            if (key.isEmpty()) emit appendLog(QString("%1{").arg(indent), LOG_INFO);
+            else emit appendLog(QString("%1%2: {").arg(indent, key), LOG_INFO);
+            QVariantMap map = value.toMap();
             for (auto it = map.begin(); it != map.end(); ++it) {
-                const QString &key = it.key();
-                const QVariant &value = it.value();
-                if (value.typeId() == QMetaType::QVariantMap) {
-                    emit appendLog(QString("%1: {").arg(key), LOG_INFO);
-                    logging(value);
-                    emit appendLog("}", LOG_INFO);
-                } else {
-                    emit appendLog(QString("%1: %2").arg(key, value.toString()), LOG_INFO);
-                }
+                logging(it.key(), it.value(), depth + 1);
             }
+            emit appendLog(QString("%1}").arg(indent), LOG_INFO);
         } else {
-            emit appendLog(var.toString(), LOG_INFO);
+            if (key.isEmpty()) emit appendLog(QString("%1%2").arg(indent, value.toString()), LOG_INFO);
+            else emit appendLog(QString("%1%2: %3").arg(indent, key, value.toString()), LOG_INFO);
         }
     };
 
-    for (const auto &parsed: uni_cast<QVariantList>(args)) {
-        logging(parsed);
+    for (const auto &arg: uni_cast<QVariantList>(args)) {
+        logging("", arg, 0);
     }
 }
 
