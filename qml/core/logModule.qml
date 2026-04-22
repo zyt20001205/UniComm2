@@ -171,7 +171,12 @@ RowLayout {
                 acceptedModifiers: Qt.ControlModifier
                 onTapped: {
                     if (textArea.hoveredLink) {
-                        Qt.openUrlExternally(textArea.hoveredLink)
+                        const url = textArea.hoveredLink
+                        if (url.startsWith("request.expand://")) {
+                            logModule.linkClick(url)
+                        } else {
+                            Qt.openUrlExternally(url)
+                        }
                     }
                 }
             }

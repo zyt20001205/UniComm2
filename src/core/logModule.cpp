@@ -66,39 +66,42 @@ void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
 }
 
 void LogModule::logAppend(const QString &message, const int type) {
-    // check timestamp
-    QString timestamp = "";
-    if (m_logConfig["timestamp"].toBool()) {
-        timestamp = QString("[%1] ").arg(QDateTime::currentDateTime().toString("HH:mm:ss.zzz"));
+    auto _message = message;
+    // check length
+    if (_message.size() >= 200) {
+        _message = QString::fromLatin1(_message.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
+        _message = QString("Long message omitted (%1 chars). <a href='request.expand://reserved/%2'> Click to view.</a>").arg(QString::number(_message.size()), _message);
     }
-    // logging
-    QString f_message = QString("%1%2").arg(timestamp, message);
     // check level
     switch (type) {
         case LOG_ERROR: {
-            f_message = QString("<span style='color:red'>%1</span>").arg(f_message);
+            _message = QString("<span style='color:red'>%1</span>").arg(_message);
         }
         break;
         case LOG_WARNING: {
-            f_message = QString("<span style='color:orange'>%1</span>").arg(f_message);
+            _message = QString("<span style='color:orange'>%1</span>").arg(_message);
         }
         break;
         case LOG_INFO: {
-            f_message = QString("<span style='color:black'>%1</span>").arg(f_message);
+            _message = QString("<span style='color:black'>%1</span>").arg(_message);
         }
         break;
         case LOG_TX: {
-            f_message = QString("%1").arg(f_message);
+            _message = QString("%1").arg(_message);
         }
         break;
         case LOG_RX: {
-            f_message = QString("%1").arg(f_message);
+            _message = QString("%1").arg(_message);
         }
         break;
         default: break;
     }
-    // append log
-    QMetaObject::invokeMethod(m_logTextArea, "append", Q_ARG(QString, f_message));
+    // check timestamp
+    if (m_logConfig["timestamp"].toBool()) {
+        const auto timestamp = QString("[%1] ").arg(QDateTime::currentDateTime().toString("HH:mm:ss.zzz"));
+        _message = timestamp + _message;
+    }
+    QMetaObject::invokeMethod(m_logTextArea, "append", Q_ARG(QString, _message));
 }
 
 void LogModule::timestampToggle(const bool status) {
@@ -150,5 +153,15 @@ void LogModule::logSave(const QUrl &fileUrl) {
             const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log save failed").arg(timestamp);
         }
+    }
+}
+
+void LogModule::linkClick(const QUrl &customUrl) {
+    // qDebug() << customUrl;
+    const QString scheme = customUrl.scheme();
+    if (scheme == "request.expand") {
+        const QStringList arguments = customUrl.path().split('/');
+        const auto data = QString::fromUtf8(QByteArray::fromBase64(arguments[1].toLatin1(), QByteArray::Base64UrlEncoding));
+        qDebug() << data;
     }
 }

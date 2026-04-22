@@ -40,6 +40,8 @@ public:
 
     Q_INVOKABLE void logSave(const QUrl &fileUrl);
 
+    Q_INVOKABLE void linkClick(const QUrl &customUrl);
+
 private:
     QJsonObject m_logConfig{};
     QQuickWidget *m_logWidget{};

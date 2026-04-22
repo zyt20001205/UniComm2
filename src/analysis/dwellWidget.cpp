@@ -66,24 +66,24 @@ void DwellWidget::dwellHide() const {
     m_hoverTextArea->setProperty("text", "");
 }
 
-void DwellWidget::linkClick(const QUrl &commandLine) {
-    // qDebug() << commandLine;
-    const QString command = commandLine.scheme();
-    if (command == "request.code.action") {
-        const QStringList arguments = commandLine.path().split('/');
+void DwellWidget::linkClick(const QUrl &customUrl) {
+    // qDebug() << customUrl;
+    const QString scheme = customUrl.scheme();
+    if (scheme == "request.code.action") {
+        const QStringList arguments = customUrl.path().split('/');
         m_diagnosticStartLine = arguments[1].toInt();
         m_diagnosticStartCharacter = arguments[2].toInt();
         m_diagnosticEndLine = arguments[3].toInt();
         m_diagnosticEndCharacter = arguments[4].toInt();
         emit requestCodeAction(m_documentUrl, m_diagnosticStartLine, m_diagnosticStartCharacter, m_diagnosticEndLine, m_diagnosticEndCharacter);
-    } else if (command == "request.spell.suggestion") {
-        const QString word = commandLine.host();
-        const QStringList arguments = commandLine.path().split('/');
+    } else if (scheme == "request.spell.suggestion") {
+        const QString host = customUrl.host();
+        const QStringList arguments = customUrl.path().split('/');
         m_typoStartLine = arguments[1].toInt();
         m_typoStartCharacter = arguments[2].toInt();
         m_typoEndLine = arguments[3].toInt();
         m_typoEndCharacter = arguments[4].toInt();
-        const QStringList suggestions = g_nuspell->spellSuggestRequest(word);
+        const QStringList suggestions = g_nuspell->spellSuggestRequest(host);
         m_tooltip->setProperty("suggestions", suggestions);
         QMetaObject::invokeMethod(m_suggestionMenu, "open");
     }

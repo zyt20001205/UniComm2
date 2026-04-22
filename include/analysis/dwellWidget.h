@@ -24,7 +24,7 @@ public:
 
     Q_INVOKABLE void dwellHide() const;
 
-    Q_INVOKABLE void linkClick(const QUrl &commandLine);
+    Q_INVOKABLE void linkClick(const QUrl &customUrl);
 
     Q_INVOKABLE void suggestionAccept(const QString &text);
 
