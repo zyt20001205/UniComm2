@@ -695,10 +695,9 @@ void DocumentModule::hoverRequest(const QUrl &documentUrl, int line, int charact
 }
 
 void DocumentModule::hoverResponse(const QUrl &documentUrl, const QString &message) const {
-    const QPoint position = QCursor::pos() + QPoint(10, 10);
     // call hover show
     const QVariantHash hoverSession = {
-        {"position", position}
+        {"position", QCursor::pos()}
     };
     m_codeAssistant->hoverShow(hoverSession, message);
 }

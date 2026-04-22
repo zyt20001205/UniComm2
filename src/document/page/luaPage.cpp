@@ -1338,10 +1338,9 @@ void LuaPage::hoverRequest() {
         diagnosticText += QString("<tr><td><b>Typo</b>: In word '%1'</td><td align='right'><a href='%2'>Show Suggestions</a></td></tr>").arg(word, customUrl);
     }
     // call diagnostic show
-    const QPoint position = m_editorWidget->window()->mapFromGlobal(QCursor::pos() + QPoint(10, 10));
     const QVariantHash diagnosticSession = {
         {"documentUrl", m_documentUrl},
-        {"position", position}
+        {"position", QCursor::pos()}
     };
     if (diagnosticText == "<table width='100%'>") {
         emit showDiagnostic(diagnosticSession, "");

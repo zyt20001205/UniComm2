@@ -1416,8 +1416,8 @@ Item {
             dwellWidget.dwellHide()
         }
         onAboutToShow: {
-            x = position.x
-            y = position.y
+            x = position.x + 10
+            y = position.y + 10
         }
 
         contentItem: ColumnLayout {
