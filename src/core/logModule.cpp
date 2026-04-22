@@ -74,7 +74,7 @@ void LogModule::logAppend(const int type, const QString &prefix, const QString &
     const auto size = _message.size();
     if (size >= 200) {
         _message = QString::fromLatin1(_message.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
-        _message = QString("Long message omitted (%1 chars). <a href='request.expand://reserved/%2'> Click to view.</a>").arg(QString::number(size), _message);
+        _message = QString("[<a href='request.expand://reserved/%1'>%2 chars collapsed</a>]").arg(_message, QString::number(size));
     }
     // check level
     switch (type) {
