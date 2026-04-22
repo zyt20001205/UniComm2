@@ -5,7 +5,6 @@
 #include <QFileSystemWatcher>
 #include <QJsonArray>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QProcess>
 #include <QShortcut>
 #include <QTemporaryFile>
