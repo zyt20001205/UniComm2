@@ -226,8 +226,6 @@ Item {
         }
 
         contentItem: ColumnLayout {
-            Layout.minimumHeight: 300; Layout.maximumHeight: 600
-
             RowLayout {
                 id: mainWindowTextViewLayout
 
@@ -272,6 +270,7 @@ Item {
 
             ScrollView {
                 Layout.minimumWidth: 400; Layout.maximumWidth: 800
+                Layout.minimumHeight: 200; Layout.maximumHeight: 400
 
                 TextArea {
                     id: mainWindowTextViewTextArea
