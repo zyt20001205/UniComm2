@@ -35,7 +35,7 @@ public:
     Q_INVOKABLE void textReplace();
 
 signals:
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
     void setIndex(const QUrl &documentUrl, int line, int character);
 

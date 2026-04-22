@@ -29,7 +29,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
-    void appendLog(const QString &text, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
     void setFocus(const QUrl &documentUrl, bool status);
 

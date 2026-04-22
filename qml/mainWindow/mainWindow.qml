@@ -218,7 +218,6 @@ Item {
         onClosed: {
             widgetCount -= 1
             mainWindowTextView.data = ""
-            mainWindowTextViewComboBox.currentValue = TextEdit.RichText
         }
         onAboutToShow: {
             x = position.x + 10
@@ -230,7 +229,7 @@ Item {
                 id: mainWindowTextViewLayout
 
                 Item {
-                    Layout.fillWidth: true; Layout.fillHeight: true
+                    Layout.fillWidth: true; Layout.preferredHeight: 12
 
                     MouseArea {
                         anchors.fill: parent
@@ -249,23 +248,6 @@ Item {
                         }
                     }
                 }
-
-                ComboBox {
-                    id: mainWindowTextViewComboBox
-                    currentValue: TextEdit.RichText
-                    model: [
-                        {text: "Auto", value: TextEdit.AutoText},
-                        {text: "Plain", value: TextEdit.PlainText},
-                        {text: "Rich", value: TextEdit.RichText},
-                        {text: "Markdown", value: TextEdit.MarkdownText}
-                    ]
-                    textRole: "text"
-                    valueRole: "value"
-
-                    onCurrentValueChanged: {
-                        mainWindowTextViewTextArea.textFormat = mainWindowTextViewComboBox.currentValue
-                    }
-                }
             }
 
             ScrollView {
@@ -275,7 +257,7 @@ Item {
                 TextArea {
                     id: mainWindowTextViewTextArea
                     text: mainWindowTextView.data
-                    textFormat: TextEdit.RichText
+                    textFormat: TextEdit.AutoText
                     verticalAlignment: TextEdit.AlignTop
                     wrapMode: TextEdit.Wrap
                 }

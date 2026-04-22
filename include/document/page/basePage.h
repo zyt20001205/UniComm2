@@ -22,7 +22,7 @@ public:
     virtual void permissionGet();
 
 signals:
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

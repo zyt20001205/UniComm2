@@ -570,7 +570,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         didOpenNotification();
         contentChange();
         // logging
-        emit appendLog(QString("<a href='%1'>%2</a> opened").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
+        emit appendLog(LOG_INFO, QString("<a href='%1'>%2</a> opened").arg(m_documentUrl.toString(), m_documentUrl.toString()), "");
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 opened").arg(timestamp, m_documentUrl.toString());
     });
@@ -680,7 +680,7 @@ void LuaPage::documentSave() {
     out << m_editorWidget->textGet();
     file.close();
     // logging
-    emit appendLog(QString("<a href='%1'>%2</a> saved").arg(m_documentUrl.toString(), m_documentUrl.toString()), LOG_INFO);
+    emit appendLog(LOG_INFO, QString("<a href='%1'>%2</a> saved").arg(m_documentUrl.toString(), m_documentUrl.toString()), "");
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 saved").arg(timestamp, m_documentUrl.toString());
 }
@@ -876,7 +876,7 @@ void LuaPage::semanticTokensResponse(const QJsonArray &data) {
                 type = LUA_TOKEN_OPERATOR;
                 break;
             default:
-                emit appendLog(QString("contact author: unsupported semantic(token type:%1)").arg(QString::number(tokenType)), LOG_WARNING);
+                emit appendLog(LOG_WARNING, QString("contact author: unsupported semantic(token type:%1)").arg(QString::number(tokenType)), "");
                 break;
         }
         m_editorWidget->styleSet(type, line, character, length);

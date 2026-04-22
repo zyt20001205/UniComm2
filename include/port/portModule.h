@@ -43,7 +43,7 @@ public:
 
     QHash<QString, BasePort *> m_portHash{};
 signals:
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
 private:
     QQuickWidget *m_portWidget{};

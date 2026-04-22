@@ -68,7 +68,7 @@ void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
     m_logConfig["fontSize"] = fontConfigLog["fontSize"].toInt();
 }
 
-void LogModule::logAppend(const QString &message, const int type) {
+void LogModule::logAppend(const int type, const QString &prefix, const QString &message) {
     auto _message = message;
     // check size
     const auto size = _message.size();
@@ -79,23 +79,23 @@ void LogModule::logAppend(const QString &message, const int type) {
     // check level
     switch (type) {
         case LOG_ERROR: {
-            _message = QString("<span style='color:red'>%1</span>").arg(_message);
+            _message = QString("<span style='color:red'>%1%2</span>").arg(prefix, _message);
         }
         break;
         case LOG_WARNING: {
-            _message = QString("<span style='color:orange'>%1</span>").arg(_message);
+            _message = QString("<span style='color:orange'>%1%2</span>").arg(prefix, _message);
         }
         break;
         case LOG_INFO: {
-            _message = QString("<span style='color:black'>%1</span>").arg(_message);
+            _message = QString("<span style='color:black'>%1%2</span>").arg(prefix, _message);
         }
         break;
         case LOG_TX: {
-            _message = QString("%1").arg(_message);
+            _message = QString("%1%2").arg(prefix, _message);
         }
         break;
         case LOG_RX: {
-            _message = QString("%1").arg(_message);
+            _message = QString("%1%2").arg(prefix, _message);
         }
         break;
         default: break;
@@ -147,12 +147,12 @@ void LogModule::logSave(const QUrl &fileUrl) {
             QTextStream stream(&file);
             stream << document.toPlainText();
             file.close();
-            logAppend(QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), LOG_INFO);
+            logAppend(LOG_INFO, QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
         } else {
-            logAppend("log save failed", LOG_ERROR);
+            logAppend(LOG_ERROR, "log save failed", "");
             // logging
             const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log save failed").arg(timestamp);

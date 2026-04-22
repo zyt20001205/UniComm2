@@ -120,7 +120,7 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
                 break;
                 default: {
                     iconSource = "qrc:/icon/symbolMisc.svg";
-                    emit appendLog(QString("contact author: unsupported completion(kind:%1, text:%2)").arg(QString::number(kind), insertText), LOG_WARNING);
+                    emit appendLog(LOG_WARNING, QString("contact author: unsupported completion(kind:%1, text:%2)").arg(QString::number(kind), insertText), "");
                 }
                 break;
             }

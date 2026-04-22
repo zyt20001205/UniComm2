@@ -18,16 +18,16 @@ void IO::log(const sol::variadic_args &args) {
         if (depth > 0) indent = QString("&nbsp;").repeated(depth * 4);
 
         if (value.typeId() == QMetaType::QVariantMap) {
-            if (key.isEmpty()) emit appendLog(QString("%1{").arg(indent), LOG_INFO);
-            else emit appendLog(QString("%1%2: {").arg(indent, key), LOG_INFO);
+            if (key.isEmpty()) emit appendLog(LOG_INFO, QString("%1{").arg(indent), "");
+            else emit appendLog(LOG_INFO, QString("%1%2: {").arg(indent, key), "");
             QVariantMap map = value.toMap();
             for (auto it = map.begin(); it != map.end(); ++it) {
                 logging(it.key(), it.value(), depth + 1);
             }
-            emit appendLog(QString("%1}").arg(indent), LOG_INFO);
+            emit appendLog(LOG_INFO, QString("%1}").arg(indent), "");
         } else {
-            if (key.isEmpty()) emit appendLog(QString("%1%2").arg(indent, value.toString()), LOG_INFO);
-            else emit appendLog(QString("%1%2: %3").arg(indent, key, value.toString()), LOG_INFO);
+            if (key.isEmpty()) emit appendLog(LOG_INFO, indent, value.toString());
+            else emit appendLog(LOG_INFO, QString("%1%2: ").arg(indent, key), value.toString());
         }
     };
 

@@ -27,7 +27,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
     void openDocument(const QUrl &documentUrl);
 

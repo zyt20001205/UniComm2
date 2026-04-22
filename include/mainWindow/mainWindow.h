@@ -56,7 +56,7 @@ public:
     void quitTrack(float secondaryProgress, const QString &secondaryLog) const;
 
 signals:
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
     void startThread(const QUrl &documentUrl, int mode, QString &threadId);
 

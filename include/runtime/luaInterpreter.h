@@ -48,7 +48,7 @@ signals:
 
     void insertCallStack(const QString &threadId, QStandardItemModel *callStackModel);
 
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
     void newMessageDialog(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 

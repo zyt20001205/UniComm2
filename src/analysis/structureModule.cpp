@@ -138,7 +138,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
             break;
             default: {
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                emit appendLog(QString("contact author: unsupported symbol(kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail), LOG_WARNING);
+                emit appendLog(LOG_WARNING, QString("contact author: unsupported symbol(kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail), "");
             }
             break;
         }

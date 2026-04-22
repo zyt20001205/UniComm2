@@ -19,7 +19,7 @@ public:
     void workspaceConfigSave(const QUrl &configUrl);
 
 signals:
-    void appendLog(const QString &message, int type);
+    void appendLog(int type, const QString &prefix, const QString &message);
 
     void openWorkspace();
 

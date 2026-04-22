@@ -76,14 +76,14 @@ bool VideoStream::open() {
     else if (m_cameraCapture) m_cameraCapture->start();
     else {
         emit refreshPort(m_portConfig["portName"].toString(), false);
-        emit appendLog(QString("%1 open failed").arg(m_portConfig["portName"].toString()), LOG_INFO);
+        emit appendLog(LOG_INFO, QString("%1 open failed").arg(m_portConfig["portName"].toString()), "");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portConfig["portName"].toString());
         return false;
     }
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(QString("%1 opened").arg(m_portConfig["portName"].toString()), LOG_INFO);
+    emit appendLog(LOG_INFO, QString("%1 opened").arg(m_portConfig["portName"].toString()), "");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portConfig["portName"].toString());
@@ -96,7 +96,7 @@ void VideoStream::close() {
     else if (m_cameraCapture) m_cameraCapture->stop();
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(QString("%1 closed").arg(m_portConfig["portName"].toString()), LOG_INFO);
+    emit appendLog(LOG_INFO, QString("%1 closed").arg(m_portConfig["portName"].toString()), "");
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
@@ -116,7 +116,7 @@ bool VideoStream::write(const QByteArray &txData, const QString &txFormat, const
     else if (m_cameraCapture) status = m_cameraCapture->isActive();
     // check port status
     if (!status) {
-        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), LOG_ERROR);
+        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
@@ -143,7 +143,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
     else if (m_cameraCapture) status = m_cameraCapture->isActive();
     // check port status
     if (!status) {
-        emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), LOG_ERROR);
+        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());

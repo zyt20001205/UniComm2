@@ -26,7 +26,7 @@ public:
 
     void logFontSave(const QJsonObject &fontConfigLog);
 
-    void logAppend(const QString &message, int type);
+    void logAppend(int type, const QString &prefix, const QString &message);
 
     Q_INVOKABLE void timestampToggle(bool status);
 
