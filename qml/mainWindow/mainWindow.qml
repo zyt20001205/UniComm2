@@ -205,6 +205,86 @@ Item {
     }
 
     ToolTip {
+        id: mainWindowTextView
+        parent: Overlay.overlay
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
+        property point position
+        property string data
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: {
+            widgetCount -= 1
+            mainWindowTextView.data = ""
+            mainWindowTextViewComboBox.currentValue = TextEdit.RichText
+        }
+        onAboutToShow: {
+            x = position.x + 10
+            y = position.y + 10
+        }
+
+        contentItem: ColumnLayout {
+            Layout.minimumHeight: 300; Layout.maximumHeight: 600
+
+            RowLayout {
+                id: mainWindowTextViewLayout
+
+                Item {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+
+                    MouseArea {
+                        anchors.fill: parent
+                        preventStealing: true
+                        property real lastX
+                        property real lastY
+
+                        onPressed: (mouse) => {
+                            lastX = mouse.x
+                            lastY = mouse.y
+                        }
+
+                        onPositionChanged: (mouse) => {
+                            mainWindowTextView.x += mouse.x - lastX
+                            mainWindowTextView.y += mouse.y - lastY
+                        }
+                    }
+                }
+
+                ComboBox {
+                    id: mainWindowTextViewComboBox
+                    currentValue: TextEdit.RichText
+                    model: [
+                        {text: "Auto", value: TextEdit.AutoText},
+                        {text: "Plain", value: TextEdit.PlainText},
+                        {text: "Rich", value: TextEdit.RichText},
+                        {text: "Markdown", value: TextEdit.MarkdownText}
+                    ]
+                    textRole: "text"
+                    valueRole: "value"
+
+                    onCurrentValueChanged: {
+                        mainWindowTextViewTextArea.textFormat = mainWindowTextViewComboBox.currentValue
+                    }
+                }
+            }
+
+            ScrollView {
+                Layout.minimumWidth: 400; Layout.maximumWidth: 800
+
+                TextArea {
+                    id: mainWindowTextViewTextArea
+                    text: mainWindowTextView.data
+                    textFormat: TextEdit.RichText
+                    verticalAlignment: TextEdit.AlignTop
+                    wrapMode: TextEdit.Wrap
+                }
+            }
+        }
+    }
+
+    ToolTip {
         id: mainWindowToolTip
         parent: Overlay.overlay
         x: position.x + 10; y: position.y + 10
@@ -1094,7 +1174,6 @@ Item {
     ToolTip {
         id: documentModuleCompletionToolTip
         parent: Overlay.overlay
-        x: position.x - 30; y: position.y
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var completionWidget
@@ -1110,6 +1189,8 @@ Item {
             completionWidget.completionHide()
         }
         onAboutToShow: {
+            x = position.x - 30
+            y = position.y
             documentModuleCompletionDetailToolTip.open()
             documentModuleCompletionDetailTimer.restart()
         }
@@ -1321,7 +1402,6 @@ Item {
     ToolTip {
         id: documentModuleDwellToolTip
         parent: Overlay.overlay
-        x: position.x; y: position.y
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var dwellWidget
@@ -1335,6 +1415,10 @@ Item {
         onClosed: {
             widgetCount -= 1
             dwellWidget.dwellHide()
+        }
+        onAboutToShow: {
+            x = position.x
+            y = position.y
         }
 
         contentItem: ColumnLayout {
@@ -1511,7 +1595,6 @@ Item {
     ToolTip {
         id: documentModuleNavigationToolTip
         parent: Overlay.overlay
-        x: position.x - 30; y: position.y
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var navigationWidget
@@ -1526,6 +1609,8 @@ Item {
             navigationWidget.navigationHide()
         }
         onAboutToShow: {
+            x = position.x - 30
+            y = position.y
             documentModuleNavigationDetailToolTip.open()
             documentModuleNavigationDetailTimer.restart()
         }
@@ -1720,7 +1805,6 @@ Item {
     ToolTip {
         id: documentModuleSignatureToolTip
         parent: Overlay.overlay
-        x: position.x - 6; y: position.y - implicitHeight
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
         property var signatureWidget
@@ -1732,6 +1816,10 @@ Item {
         onClosed: {
             widgetCount -= 1
             signatureWidget.signatureHide()
+        }
+        onAboutToShow: {
+            x = position.x - 6
+            y = position.y - documentModuleSignatureToolTip.implicitHeight
         }
 
         contentItem: Label {
@@ -3621,6 +3709,7 @@ Item {
             "mainWindowCloseDialog": mainWindowCloseDialog,
             "mainWindowMessageDialog": mainWindowMessageDialog,
             "mainWindowQuitDialog": mainWindowQuitDialog,
+            "mainWindowTextView": mainWindowTextView,
             "mainWindowToolTip": mainWindowToolTip,
 
             "lualsProgressDialog": lualsProgressDialog,

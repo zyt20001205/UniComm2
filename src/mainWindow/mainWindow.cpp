@@ -187,6 +187,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantMap logObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
+        {"mainWindowTextView", objects["mainWindowTextView"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"logModuleHeightDialog", objects["logModuleHeightDialog"]},
         {"logModuleLinkMenu", objects["logModuleLinkMenu"]}

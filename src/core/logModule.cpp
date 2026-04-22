@@ -25,6 +25,9 @@ LogModule::~LogModule() {
 
 void LogModule::propertySet(const QVariantMap &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
+    m_textView = qvariant_cast<QObject *>(objects["mainWindowTextView"]);
+    const auto font = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
+    m_textView->setProperty("font", font);
     m_logWidget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_logWidget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
     m_logWidget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
@@ -43,8 +46,8 @@ void LogModule::propertyGet(const QVariantMap &objects) {
     wrapButton->setProperty("checked", m_logConfig["wrap"].toBool());
     // set font
     m_logTextArea = qvariant_cast<QObject *>(objects["textArea"]);
-    const auto logFont = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
-    m_logTextArea->setProperty("font", logFont);
+    const auto font = QFont(m_logConfig["fontFamily"].toString(), m_logConfig["fontSize"].toInt());
+    m_logTextArea->setProperty("font", font);
     // set height
     const auto *quickTextDocument = qvariant_cast<QQuickTextDocument *>(m_logTextArea->property("textDocument"));
     m_logTextDocument = quickTextDocument->textDocument();
@@ -67,10 +70,11 @@ void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
 
 void LogModule::logAppend(const QString &message, const int type) {
     auto _message = message;
-    // check length
-    if (_message.size() >= 200) {
+    // check size
+    const auto size = _message.size();
+    if (size >= 200) {
         _message = QString::fromLatin1(_message.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
-        _message = QString("Long message omitted (%1 chars). <a href='request.expand://reserved/%2'> Click to view.</a>").arg(QString::number(_message.size()), _message);
+        _message = QString("Long message omitted (%1 chars). <a href='request.expand://reserved/%2'> Click to view.</a>").arg(QString::number(size), _message);
     }
     // check level
     switch (type) {
@@ -156,12 +160,14 @@ void LogModule::logSave(const QUrl &fileUrl) {
     }
 }
 
-void LogModule::linkClick(const QUrl &customUrl) {
+void LogModule::linkClick(const QUrl &customUrl) const {
     // qDebug() << customUrl;
     const QString scheme = customUrl.scheme();
     if (scheme == "request.expand") {
         const QStringList arguments = customUrl.path().split('/');
         const auto data = QString::fromUtf8(QByteArray::fromBase64(arguments[1].toLatin1(), QByteArray::Base64UrlEncoding));
-        qDebug() << data;
+        m_textView->setProperty("position", QCursor::pos());
+        m_textView->setProperty("data", data);
+        QMetaObject::invokeMethod(m_textView, "open");
     }
 }
