@@ -11,6 +11,10 @@ function f.open(path, mode) end
 ---@param path string The relative path to the workspace.
 function f.close(path) end
 
+---Starts program prog in a separated process.
+---@param path string The relative path to the workspace.
+function f.popen(path) end
+
 ---Reads the file, according to the given formats, which specify what to read.
 ---@param path string The relative path to the workspace.
 ---@param ... readmode

@@ -22,6 +22,8 @@ public:
 
     void close(const std::string &path);
 
+    static void _popen(const std::string &path);
+
     [[nodiscard]] sol::object read(const std::string &path, const sol::variadic_args &args);
 
     void write(const std::string &path, const sol::variadic_args &args);

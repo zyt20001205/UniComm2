@@ -126,7 +126,20 @@ void TextPage::propertySet(const QVariantMap &objects) {
 }
 
 void TextPage::documentSave() {
-    // TODO: waiting for filewatcher
+    if (!m_editorWidget->modifyGet()) return;
+    // update status
+    m_editorWidget->savepointSet();
+    // save file
+    const QString documentPath = m_documentUrl.toLocalFile();
+    QFile file(documentPath);
+    if (!file.open(QIODevice::WriteOnly)) return;
+    QTextStream out(&file);
+    out << m_editorWidget->textGet();
+    file.close();
+    // logging
+    emit appendLog(LOG_INFO, QString("<a href='%1'>%2</a> saved").arg(m_documentUrl.toString(), m_documentUrl.toString()), "");
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
+    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_documentUrl.toString());
 }
 
 // private: slot

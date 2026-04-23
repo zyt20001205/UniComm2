@@ -1,6 +1,7 @@
 #include "api/file.h"
 
 #include <QDataStream>
+#include <QDesktopServices>
 
 #include "globals.h"
 #include "util/uniCast.h"
@@ -45,6 +46,12 @@ void File::close(const std::string &path) {
 
     m_handleHash[documentUrl]->file.close();
     m_handleHash.remove(documentUrl);
+}
+
+void File::_popen(const std::string &path) {
+    const LPath luaPath = QString::fromStdString(path);
+    const auto documentUrl = uni_cast<QUrl>(luaPath);
+    QDesktopServices::openUrl(documentUrl);
 }
 
 sol::object File::read(const std::string &path, const sol::variadic_args &args) {

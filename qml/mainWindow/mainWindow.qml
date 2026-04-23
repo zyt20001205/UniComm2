@@ -251,11 +251,12 @@ Item {
             }
 
             ScrollView {
-                Layout.minimumWidth: 400; Layout.maximumWidth: 800
+                Layout.minimumWidth: 600; Layout.maximumWidth: 1200
                 Layout.minimumHeight: 200; Layout.maximumHeight: 400
 
                 TextArea {
                     id: mainWindowTextViewTextArea
+                    readOnly: true
                     text: mainWindowTextView.data
                     textFormat: TextEdit.AutoText
                     verticalAlignment: TextEdit.AlignTop

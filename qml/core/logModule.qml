@@ -149,6 +149,7 @@ RowLayout {
 
         TextArea {
             id: textArea
+            readOnly: true
             textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
             wrapMode: wrapButton.checked ? TextEdit.Wrap : TextEdit.NoWrap
