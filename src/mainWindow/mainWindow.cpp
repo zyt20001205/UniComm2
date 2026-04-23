@@ -575,6 +575,13 @@ void MainWindow::overlayInit() {
         m_overlay->setScreen(screen);
         m_overlay->setGeometry(screen->geometry());
     });
+    connect(windowHandle(), &QWindow::visibilityChanged, m_overlay, [this](const QWindow::Visibility visible) {
+    if (visible == QWindow::Minimized || visible == QWindow::Hidden) {
+        m_overlay->hide();
+    } else {
+        m_overlay->show();
+    }
+});
 }
 
 void MainWindow::mainConfigSave() {
