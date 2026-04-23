@@ -304,7 +304,7 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         // header line
         if (header.contains(':')) {
             if (!key.isEmpty()) {
-                headerHash[key] = value;
+                headerHash[key] = value.toString().toHtmlEscaped();
                 key.clear();
                 value.clear();
             }
@@ -318,12 +318,13 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         }
     }
     if (!key.isEmpty()) {
-        headerHash[key] = value;
+        headerHash[key] = value.toString().toHtmlEscaped();
         key.clear();
         value.clear();
     }
     parsed["header"] = headerHash;
     // parse body
+    QVariantList bodyList{};
     QVariantHash bodyHash{};
     const auto bodies = rxData.mid(separator + 4);
     qsizetype pos = 0;
@@ -331,31 +332,42 @@ QVariantHash Imap::fetchParser(const QByteArray &rxData) {
         const auto current = bodies.indexOf("\r\n\r\n", pos);
         if (current == -1) break;
         auto body = bodies.mid(pos, current - pos);
-        // content
-        if (body.contains("Content-Type: ")) {
-            if (!key.isEmpty() && value.isValid()) {
-                bodyHash[key] = value;
+        // body header
+        if (body.contains("Content-Type")) {
+            body.replace("\r\n", "\n");
+            for (const auto &header: body.split('\n')) {
+                // header line
+                if (header.contains(':')) {
+                    if (!key.isEmpty()) {
+                        bodyHash[key] = value.toString().toHtmlEscaped();
+                        key.clear();
+                        value.clear();
+                    }
+                    const auto comma = header.indexOf(':');
+                    key = header.left(comma);
+                    value = header.mid(comma + 2);
+                }
+                // continuation line
+                else {
+                    value = value.toString() + " " + header.trimmed();
+                }
+            }
+            if (!key.isEmpty()) {
+                bodyHash[key] = value.toString().toHtmlEscaped();
                 key.clear();
                 value.clear();
             }
-            const auto keyStart = body.indexOf("Content-Type: ") + QByteArray("Content-Type: ").size();
-            const auto keyEnd = body.indexOf("\r\n", keyStart);
-            key = body.mid(keyStart, keyEnd - keyStart);
         }
         // TODO: boundary is not recorded
         else if (body.contains("--")) {
         }
-        // data
+        // body data
         else {
-            value = QByteArray::fromBase64(body);
+            bodyHash["Data"] = QByteArray::fromBase64(body);
+            if (bodyHash.contains("Content-Type")) bodyList.append(bodyHash);
         }
         pos = current + 4;
     }
-    if (!key.isEmpty() && value.isValid()) {
-        bodyHash[key] = value;
-        key.clear();
-        value.clear();
-    }
-    parsed["body"] = bodyHash;
+    parsed["body"] = bodyList;
     return parsed;
 }
