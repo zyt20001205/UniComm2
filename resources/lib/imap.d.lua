@@ -33,3 +33,11 @@ function imap.select(name, mailbox, timeout) end
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return table
 function imap.fetch(name, sequenceNumber, timeout) end
+
+---Wait for a new email (optionally from a specific sender) with IDLE and FETCH, then save it to a directory.
+---@param name portName Target port name.
+---@param from? string (default: "") Expected sender; when omitted accept any sender.
+---@param path? string (default: "") Relative path under the workspace; when omitted uses workspace root.
+---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+---@return nil
+function imap.receive(name, from, path, timeout) end

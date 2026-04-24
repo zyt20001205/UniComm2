@@ -16,7 +16,7 @@ function smtp.ehlo(name, timeout) end
 ---@return nil
 function smtp.authLogin(name, username, password, timeout) end
 
----Send a email with MAIL, RCPT and DATA commands.
+---Send an email with MAIL, RCPT and DATA commands.
 ---@param name portName Target port name.
 ---@param from string
 ---@param to string | table

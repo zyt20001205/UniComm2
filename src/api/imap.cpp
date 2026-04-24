@@ -1,5 +1,6 @@
 #include "api/imap.h"
 
+#include <QDir>
 #include <sol/error.hpp>
 
 #include "globals.h"
@@ -16,7 +17,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
     QString exception{};
-    int exists{};
+    int sequenceNumber{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const QByteArray txData =
             'A'
@@ -24,7 +25,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
             + ' '
             + "IDLE";
 
-    QMetaObject::invokeMethod(port, [&exception, &exists, this, &port, &txData, &timeout] {
+    QMetaObject::invokeMethod(port, [&exception, &sequenceNumber, this, &port, &txData, &timeout] {
         QByteArray rxData{};
         QVariantHash session{};
 
@@ -47,7 +48,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
             exception = session["exception"].toString();
         }
         if (exception == "end") {
-            exists = session["EXISTS"].toInt();
+            sequenceNumber = session["EXISTS"].toInt();
             exception = "";
         } else return;
 
@@ -64,7 +65,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
         if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
-    return exists;
+    return sequenceNumber;
 }
 
 void Imap::login(const std::string &portName, const std::string &username, const std::string &password, const int timeout) {
@@ -189,6 +190,150 @@ sol::object Imap::fetch(const sol::this_state ts, const std::string &portName, c
     return uni_cast<sol::object>(ts, parsed);
 }
 
+void Imap::receive(const std::string &portName, const std::string &from, const std::string &path, const int timeout) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+
+    QString exception{};
+    QVariantHash parsed{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+    const QByteArray txData1 =
+            'A'
+            + QByteArray::number(m_count).rightJustified(3, '0')
+            + ' '
+            + "IDLE";
+
+    QMetaObject::invokeMethod(port, [&exception, &parsed, this, &port, &txData1, &timeout] {
+        QByteArray rxData{};
+        QVariantHash session{};
+        int sequenceNumber{};
+        int size{};
+
+        // IDLE
+        if (!port->write(txData1, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("IDLE", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("IDLE", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") {
+            sequenceNumber = session["EXISTS"].toInt();
+            exception = "";
+        } else return;
+
+        if (!port->write("DONE", "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("IDLE", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        // FETCH
+        const QByteArray txData2 =
+                'A'
+                + QByteArray::number(m_count).rightJustified(3, '0')
+                + ' '
+                + "FETCH"
+                + ' '
+                + QByteArray::number(sequenceNumber)
+                + ' '
+                + "BODY.PEEK[]";
+
+        if (!port->write(txData2, "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("FETCH", rxData);
+            exception = session["exception"].toString();
+            size = session["size"].toInt();
+        }
+        if (exception == "end") exception = "";
+
+        rxData = port->read(size, timeout, "utf-8");
+        parsed = fetchParser(rxData);
+        // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
+        rxData = port->read(3, timeout, "utf-8");
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            session = parser("IDLE", rxData);
+            exception = session["exception"].toString();
+        }
+        if (exception == "end") exception = "";
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+    // check from
+    if (!from.empty()) {
+        const auto _from = QString::fromStdString(from);
+        const auto header = parsed["header"].toHash();
+        // receive again
+        if (!header["From"].toString().contains(_from)) receive(portName, from, path, timeout);
+    }
+    const LPath luaPath = QString::fromStdString(path);
+    const auto folderUrl = uni_cast<QUrl>(luaPath);
+    const QDir dir(folderUrl.toLocalFile());
+    if (!dir.exists()) {
+        if (!dir.mkpath(".")) throw sol::error("invalid path");
+    }
+    // save body
+    const auto bodyList = parsed["body"].toList();
+    for (const auto &value: bodyList) {
+        const auto body = value.toHash();
+        const auto type = body["Content-Type"].toString();
+        QString fileName{};
+        if (type.contains("text/plain")) {
+            fileName = "body.txt";
+        } else if (type.contains("text/html")) {
+            fileName = "body.html";
+        } else {
+            emit appendLog(LOG_WARNING, QString("contact author: unsupported body(content-type:%1)").arg(type), "");
+            continue;
+        }
+        QFile file(dir.filePath(fileName));
+        if (file.open(QIODevice::WriteOnly)) {
+            file.write(body["Data"].toByteArray());
+            file.close();
+        }
+    }
+    // save attachment
+    const auto attachmentList = parsed["attachment"].toList();
+    for (const auto &value: attachmentList) {
+        const auto attachment = value.toHash();
+        const auto disposition = attachment["Content-Disposition"].toByteArray();
+        // extract fileName
+        const auto quote1 = disposition.indexOf('"', disposition.indexOf("filename"));
+        if (quote1 == -1) continue;
+        const auto quote2 = disposition.indexOf('"', quote1 + 1);
+        if (quote2 == -1) continue;
+        const auto fileName = rfc2047Parser(disposition.mid(quote1 + 1, quote2 - quote1 - 1));
+        QFile file(dir.filePath(fileName));
+        if (file.open(QIODevice::WriteOnly)) {
+            file.write(attachment["Data"].toByteArray());
+            file.close();
+        }
+    }
+}
+
 // private
 QVariantHash Imap::parser(const QByteArray &command, const QByteArray &rxData) {
     QVariantHash session{};
@@ -292,115 +437,134 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
 }
 
 QVariantHash Imap::fetchParser(const QByteArray &rxData) {
-    if (true) {
-        QVariantHash parsed{};
-        QList<QByteArray> boundaries{{"\r\n\r\n"}};
-        QVariantList bodyList{};
-        QVariantList attachmentList{};
-        qsizetype pos = 0;
+    QVariantHash parsed{};
+    QList<QByteArray> boundaries{{"\r\n\r\n"}};
+    QVariantList bodyList{};
+    QVariantList attachmentList{};
+    qsizetype pos = 0;
 
-        while (true) {
-            qsizetype start{};
-            qsizetype end{};
-            QByteArray data = rxData;;
-            QVariantHash hash{};
-            QString key{};
-            QVariant value{};
+    while (true) {
+        qsizetype start{};
+        qsizetype end{};
+        QByteArray data = rxData;;
+        QVariantHash hash{};
+        QString key{};
+        QVariant value{};
 
-            bool isRoot = false;
-            // match boundary
-            if (boundaries.isEmpty()) break;
-            const auto boundary = boundaries.last();
-            // placeholder boundary
-            if (boundary == "\r\n\r\n") {
-                boundaries.pop_back();
-            }
-            // real boundary
-            else {
-                start = rxData.indexOf(boundary, pos);
-                if (start == -1) break;
-                end = rxData.indexOf("\r\n", start);
-                if (end == -1) break;
-                if (rxData.mid(start, end - start) == boundary + "--") {
-                    boundaries.pop_back();
-                    continue;
-                }
-                start = end + 2;
-                end = rxData.indexOf(boundary, start);
-                if (end == -1) break;
-                data = rxData.mid(start, end - start);
-            }
-            // split data
-            const auto separator = data.indexOf("\r\n\r\n");
-            const auto headers = data.left(separator + 4).replace("\r\n", "\n");
-            const auto body = data.mid(separator + 4);
-            // handle header
-            for (const auto &header: headers.split('\n')) {
-                // header line
-                if (header.contains(':')) {
-                    if (!key.isEmpty()) {
-                        // check isRoot
-                        if (value.toByteArray().contains("boundary")) {
-                            const auto _value = value.toByteArray();
-                            const auto quote1 = _value.indexOf('"', _value.indexOf("boundary"));
-                            if (quote1 == -1) continue;
-                            const auto quote2 = _value.indexOf('"', quote1 + 1);
-                            if (quote2 == -1) continue;
-                            const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
-                            boundaries.append("--" + _boundary);
-                            // mark as root
-                            isRoot = true;
-                        }
-                        // insert pair
-                        hash[key] = value.toString().toHtmlEscaped();
-                        key.clear();
-                        value.clear();
-                    }
-                    const auto comma = header.indexOf(':');
-                    key = header.left(comma);
-                    value = header.mid(comma + 2);
-                }
-                // continuation line
-                else {
-                    value = value.toString() + " " + header.trimmed();
-                }
-            }
-            if (!key.isEmpty()) {
-                // check isRoot
-                if (value.toByteArray().contains("boundary")) {
-                    const auto _value = value.toByteArray();
-                    const auto _start = _value.indexOf("boundary");
-                    const auto quote1 = _value.indexOf('"', _start);
-                    if (quote1 == -1) continue;
-                    const auto quote2 = _value.indexOf('"', quote1 + 1);
-                    if (quote2 == -1) continue;
-                    const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
-                    boundaries.append("--" + _boundary);
-                    // mark as root
-                    isRoot = true;
-                }
-                // insert pair
-                hash[key] = value.toString().toHtmlEscaped();
-                key.clear();
-                value.clear();
-            }
-            // handle body
-            if (!isRoot && !body.isEmpty()) {
-                hash["Data"] = QByteArray::fromBase64(body);
-            }
-            // insert hash
-            if (hash.contains("Subject")) {
-                parsed["header"] = hash;
-            } else if (hash.contains("Content-Disposition")) {
-                attachmentList.append(hash);
-            } else if (hash.contains("Data")) {
-                bodyList.append(hash);
-            }
-            pos = start;
+        bool isRoot = false;
+        // match boundary
+        if (boundaries.isEmpty()) break;
+        const auto boundary = boundaries.last();
+        // placeholder boundary
+        if (boundary == "\r\n\r\n") {
+            boundaries.pop_back();
         }
-
-        parsed["body"] = bodyList;
-        parsed["attachment"] = attachmentList;
-        return parsed;
+        // real boundary
+        else {
+            start = rxData.indexOf(boundary, pos);
+            if (start == -1) break;
+            end = rxData.indexOf("\r\n", start);
+            if (end == -1) break;
+            if (rxData.mid(start, end - start) == boundary + "--") {
+                boundaries.pop_back();
+                continue;
+            }
+            start = end + 2;
+            end = rxData.indexOf(boundary, start);
+            if (end == -1) break;
+            data = rxData.mid(start, end - start);
+        }
+        // split data
+        const auto separator = data.indexOf("\r\n\r\n");
+        const auto headers = data.left(separator + 4).replace("\r\n", "\n");
+        auto body = data.mid(separator + 4);
+        // handle header
+        for (const auto &header: headers.split('\n')) {
+            // header line
+            if (header.contains(':')) {
+                if (!key.isEmpty()) {
+                    // check isRoot
+                    if (value.toByteArray().contains("boundary")) {
+                        const auto _value = value.toByteArray();
+                        const auto quote1 = _value.indexOf('"', _value.indexOf("boundary"));
+                        if (quote1 == -1) continue;
+                        const auto quote2 = _value.indexOf('"', quote1 + 1);
+                        if (quote2 == -1) continue;
+                        const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
+                        boundaries.append("--" + _boundary);
+                        // mark as root
+                        isRoot = true;
+                    }
+                    // insert pair
+                    hash[key] = value.toString();
+                    key.clear();
+                    value.clear();
+                }
+                const auto comma = header.indexOf(':');
+                key = header.left(comma);
+                value = header.mid(comma + 2);
+            }
+            // continuation line
+            else {
+                value = value.toString() + " " + header.trimmed();
+            }
+        }
+        if (!key.isEmpty()) {
+            // check isRoot
+            if (value.toByteArray().contains("boundary")) {
+                const auto _value = value.toByteArray();
+                const auto _start = _value.indexOf("boundary");
+                const auto quote1 = _value.indexOf('"', _start);
+                if (quote1 == -1) continue;
+                const auto quote2 = _value.indexOf('"', quote1 + 1);
+                if (quote2 == -1) continue;
+                const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
+                boundaries.append("--" + _boundary);
+                // mark as root
+                isRoot = true;
+            }
+            // insert pair
+            hash[key] = value.toString();
+            key.clear();
+            value.clear();
+        }
+        // handle body
+        if (!isRoot && !body.isEmpty()) {
+            if (hash.value("Content-Transfer-Encoding").toByteArray().contains("base64")) {
+                body = QByteArray::fromBase64(body);
+            }
+            hash["Data"] = body;
+        }
+        // insert hash
+        if (hash.contains("Subject")) {
+            parsed["header"] = hash;
+        } else if (hash.contains("Content-Disposition")) {
+            attachmentList.append(hash);
+        } else if (hash.contains("Data")) {
+            bodyList.append(hash);
+        }
+        pos = start;
     }
+
+    parsed["body"] = bodyList;
+    parsed["attachment"] = attachmentList;
+    return parsed;
+}
+
+QByteArray Imap::rfc2047Parser(const QByteArray &text) {
+    // =?charset?B?...?=  or =?charset?Q?...?=
+    static const QRegularExpression re(R"(=\?([^?]+)\?([bBqQ])\?([^?]+)\?=)");
+    const auto m = re.match(text);
+    if (!m.hasMatch()) return text;
+
+    const QByteArray charset = m.captured(1).toLatin1();
+    const QByteArray encoding = m.captured(2).toLatin1().toUpper();
+    const QByteArray payload = m.captured(3).toLatin1();
+
+    if (encoding == 'B') {
+        return QByteArray::fromBase64(payload);
+    }
+    // TODO: Q case
+    emit appendLog(LOG_WARNING, QString("contact author: unsupported rfc2047 encoding(Q)"), "");
+    return {};
 }

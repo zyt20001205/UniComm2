@@ -20,6 +20,11 @@ public:
 
     [[nodiscard]] sol::object fetch(sol::this_state ts, const std::string &portName, int sequenceNumber, int timeout);
 
+    void receive(const std::string &portName, const std::string &from, const std::string &path, int timeout);
+
+signals:
+    void appendLog(int type, const QString &prefix, const QString &message);
+
 private:
     [[nodiscard]] QVariantHash parser(const QByteArray &command, const QByteArray &rxData);
 
@@ -30,6 +35,8 @@ private:
     [[nodiscard]] static QVariantHash untaggedParser(const QByteArray &command, const QByteArray &rxData);
 
     [[nodiscard]] static QVariantHash fetchParser(const QByteArray &rxData);
+
+    [[nodiscard]] QByteArray rfc2047Parser(const QByteArray &text);
 
     int m_count{};
 };

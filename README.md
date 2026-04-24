@@ -99,9 +99,9 @@ gantt
         modbusAscii(ascii string refractor): done, 04-01, 7d
         modbusRtu(hex string refractor): done, 04-01, 7d
         modbusTcp: done, 04-01, 7d
-        imap: active, 04-08, 8d
+        imap: done, 04-08, 8d
         file: done, 04-20, 2d
-        mqtt: 04-16, 15d
+        mqtt: active, 04-16, 15d
 
     section infra
         scintilla migration: done, 02-11, 30d
@@ -319,6 +319,10 @@ gantt
 |             |    STORE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |     COPY     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |     UID      |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+
+|     APIS     |   UniComm    |                               Status                                |                           
+|:------------:|:------------:|:-------------------------------------------------------------------:|
+| imap.receive | IDLE + FETCH | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 # Document Module
 

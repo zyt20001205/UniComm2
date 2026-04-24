@@ -84,7 +84,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         m_lua["http"] = http;
     }
     // Imap lib
-    {
+     {
         auto imap = m_lua.create_table();
         imap.set_function("idle", [this](const std::string &portName, const sol::optional<int> timeout) {
             return m_imap->idle(portName, timeout.value_or(600000));
@@ -98,7 +98,11 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         imap.set_function("fetch", [this](const sol::this_state ts, const std::string &portName, const int &sequenceNumber, const sol::optional<int> timeout) {
             return m_imap->fetch(ts, portName, sequenceNumber, timeout.value_or(1000));
         });
+        imap.set_function("receive", [this](const std::string &portName,  const sol::optional<std::string> &from,  const sol::optional<std::string> &path, const sol::optional<int> timeout) {
+            m_imap->receive(portName, from.value_or(""), path.value_or(""), timeout.value_or(600000));
+        });
         m_lua["imap"] = imap;
+        connect(m_imap, &Imap::appendLog, this, &LuaInterpreter::appendLog);
     }
     // IO lib
     {
