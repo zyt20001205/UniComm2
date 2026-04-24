@@ -5,6 +5,8 @@
 - Rewrite ModbusAscii APIS.
 - Rewrite ModbusRtu APIS.
 - Added ModbusTcp support.
+- Added IMAP support.
+- Added file operations.
 
 ## Infrastructure
 
