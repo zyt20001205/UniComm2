@@ -292,140 +292,115 @@ QVariantHash Imap::untaggedParser(const QByteArray &command, const QByteArray &r
 }
 
 QVariantHash Imap::fetchParser(const QByteArray &rxData) {
-    QVariantHash parsed{};
-    const auto separator = rxData.indexOf("\r\n\r\n");
-    const auto headers = rxData.left(separator + 4).replace("\r\n", "\n");
-    const auto bodies = rxData.mid(separator + 4);
-    // parse header
-    QVariantHash headerHash{};
-    QList<QByteArray> boundaries{};
-    QString key{};
-    QVariant value{};
-    for (const auto &header: headers.split('\n')) {
-        // header line
-        if (header.contains(':')) {
+    if (true) {
+        QVariantHash parsed{};
+        QList<QByteArray> boundaries{{"\r\n\r\n"}};
+        QVariantList bodyList{};
+        QVariantList attachmentList{};
+        qsizetype pos = 0;
+
+        while (true) {
+            qsizetype start{};
+            qsizetype end{};
+            QByteArray data = rxData;;
+            QVariantHash hash{};
+            QString key{};
+            QVariant value{};
+
+            bool isRoot = false;
+            // match boundary
+            if (boundaries.isEmpty()) break;
+            const auto boundary = boundaries.last();
+            // placeholder boundary
+            if (boundary == "\r\n\r\n") {
+                boundaries.pop_back();
+            }
+            // real boundary
+            else {
+                start = rxData.indexOf(boundary, pos);
+                if (start == -1) break;
+                end = rxData.indexOf("\r\n", start);
+                if (end == -1) break;
+                if (rxData.mid(start, end - start) == boundary + "--") {
+                    boundaries.pop_back();
+                    continue;
+                }
+                start = end + 2;
+                end = rxData.indexOf(boundary, start);
+                if (end == -1) break;
+                data = rxData.mid(start, end - start);
+            }
+            // split data
+            const auto separator = data.indexOf("\r\n\r\n");
+            const auto headers = data.left(separator + 4).replace("\r\n", "\n");
+            const auto body = data.mid(separator + 4);
+            // handle header
+            for (const auto &header: headers.split('\n')) {
+                // header line
+                if (header.contains(':')) {
+                    if (!key.isEmpty()) {
+                        // check isRoot
+                        if (value.toByteArray().contains("boundary")) {
+                            const auto _value = value.toByteArray();
+                            const auto quote1 = _value.indexOf('"', _value.indexOf("boundary"));
+                            if (quote1 == -1) continue;
+                            const auto quote2 = _value.indexOf('"', quote1 + 1);
+                            if (quote2 == -1) continue;
+                            const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
+                            boundaries.append("--" + _boundary);
+                            // mark as root
+                            isRoot = true;
+                        }
+                        // insert pair
+                        hash[key] = value.toString().toHtmlEscaped();
+                        key.clear();
+                        value.clear();
+                    }
+                    const auto comma = header.indexOf(':');
+                    key = header.left(comma);
+                    value = header.mid(comma + 2);
+                }
+                // continuation line
+                else {
+                    value = value.toString() + " " + header.trimmed();
+                }
+            }
             if (!key.isEmpty()) {
-                // extract boundary
+                // check isRoot
                 if (value.toByteArray().contains("boundary")) {
                     const auto _value = value.toByteArray();
-                    const auto start = _value.indexOf("boundary");
-                    const auto quote1 = _value.indexOf('"', start);
+                    const auto _start = _value.indexOf("boundary");
+                    const auto quote1 = _value.indexOf('"', _start);
                     if (quote1 == -1) continue;
                     const auto quote2 = _value.indexOf('"', quote1 + 1);
                     if (quote2 == -1) continue;
-                    const auto boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
-                    boundaries.append("--" + boundary);
+                    const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
+                    boundaries.append("--" + _boundary);
+                    // mark as root
+                    isRoot = true;
                 }
                 // insert pair
-                headerHash[key] = value.toString().toHtmlEscaped();
+                hash[key] = value.toString().toHtmlEscaped();
                 key.clear();
                 value.clear();
             }
-            const auto comma = header.indexOf(':');
-            key = header.left(comma);
-            value = header.mid(comma + 2);
+            // handle body
+            if (!isRoot && !body.isEmpty()) {
+                hash["Data"] = QByteArray::fromBase64(body);
+            }
+            // insert hash
+            if (hash.contains("Subject")) {
+                parsed["header"] = hash;
+            } else if (hash.contains("Content-Disposition")) {
+                attachmentList.append(hash);
+            } else if (hash.contains("Data")) {
+                bodyList.append(hash);
+            }
+            pos = start;
         }
-        // continuation line
-        else {
-            value = value.toString() + " " + header.trimmed();
-        }
+
+        parsed["body"] = bodyList;
+        parsed["attachment"] = attachmentList;
+        return parsed;
     }
-    if (!key.isEmpty()) {
-        // extract boundary
-        if (value.toByteArray().contains("boundary")) {
-            const auto _value = value.toByteArray();
-            const auto start = _value.indexOf("boundary");
-            const auto quote1 = _value.indexOf('"', start);
-            if (quote1 != -1) {
-                const auto quote2 = _value.indexOf('"', quote1 + 1);
-                if (quote2 != -1) {
-                    const auto boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
-                    boundaries.append("--" + boundary);
-                }
-            }
-        }
-        // insert pair
-        headerHash[key] = value.toString().toHtmlEscaped();
-        key.clear();
-        value.clear();
-    }
-    parsed["header"] = headerHash;
-    // parse body
-    QVariantList bodyList{};
-    QVariantHash bodyHash{};
-    qsizetype pos = 0;
-    while (true) {
-        // match boundary
-        if (boundaries.isEmpty()) break;
-        const auto boundary = boundaries.last();
-        auto start = bodies.indexOf(boundary, pos);
-        if (start == -1) break;
-        auto end = bodies.indexOf("\r\n", start);
-        if (end == -1) break;
-        if (bodies.mid(start, end - start) == boundary + "--") {
-            boundaries.pop_back();
-            continue;
-        }
-        //
-        start = end + 2;
-        end = bodies.indexOf(boundary, start);
-        if (end == -1) break;
-        const auto body = bodies.mid(start, end - start);
-        const auto _separator = body.indexOf("\r\n\r\n");
-        const auto _headers = body.left(_separator + 4).replace("\r\n", "\n");
-        const auto _body = body.mid(_separator + 4);
-        for (const auto &header: _headers.split('\n')) {
-            // header line
-            if (header.contains(':')) {
-                if (!key.isEmpty()) {
-                    // extract boundary
-                    if (value.toByteArray().contains("boundary")) {
-                        const auto _value = value.toByteArray();
-                        const auto _start = _value.indexOf("boundary");
-                        const auto quote1 = _value.indexOf('"', _start);
-                        if (quote1 == -1) continue;
-                        const auto quote2 = _value.indexOf('"', quote1 + 1);
-                        if (quote2 == -1) continue;
-                        const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
-                        boundaries.append("--" + _boundary);
-                    }
-                    // insert pair
-                    bodyHash[key] = value.toString().toHtmlEscaped();
-                    key.clear();
-                    value.clear();
-                }
-                const auto comma = header.indexOf(':');
-                key = header.left(comma);
-                value = header.mid(comma + 2);
-            }
-            // continuation line
-            else {
-                value = value.toString() + " " + header.trimmed();
-            }
-        }
-        if (!key.isEmpty()) {
-            // extract boundary
-            if (value.toByteArray().contains("boundary")) {
-                const auto _value = value.toByteArray();
-                const auto _start = _value.indexOf("boundary");
-                const auto quote1 = _value.indexOf('"', _start);
-                if (quote1 == -1) continue;
-                const auto quote2 = _value.indexOf('"', quote1 + 1);
-                if (quote2 == -1) continue;
-                const auto _boundary = _value.mid(quote1 + 1, quote2 - quote1 - 1);
-                boundaries.append("--" + _boundary);
-            }
-            // insert pair
-            bodyHash[key] = value.toString().toHtmlEscaped();
-            key.clear();
-            value.clear();
-        }
-        if (!_body.isEmpty()) {
-            bodyHash["Data"] = QByteArray::fromBase64(_body);
-            bodyList.append(bodyHash);
-        }
-        pos = start;
-    }
-    parsed["body"] = bodyList;
-    return parsed;
 }
