@@ -95,47 +95,108 @@ void Smtp::ehlo(const std::string &portName, const int timeout) {
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
-void Smtp::send(const std::string &portName, const std::string &from, const sol::object &to, const std::string &subject, const std::string &body, const std::string &attachment,
-                const int timeout) {
+void Smtp::send(const std::string &portName, const std::string &from, const sol::object &to, const sol::object &cc, const sol::object &bcc, const std::string &subject,
+                const std::string &body, const std::string &attachment, const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
     QString exception{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const auto txData1 = "MAIL FROM: <" + QByteArray::fromStdString(from) + ">";
     QByteArray txData2{};
-    // single recipient
-    if (to.get_type() == sol::type::string) {
-        const auto str = to.as<std::string>();
-        txData2 = "RCPT TO: <" + QByteArray::fromStdString(str) + ">";
-    }
-    // multiple recipient
-    else {
-        for (const auto  &[key, value] : to.as<sol::table>()) {
-            if (value.is<std::string>()) {
-                const auto str = value.as<std::string>();
-                txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+    // handle to
+    {
+        // single to
+        if (to.get_type() == sol::type::string) {
+            const auto str = to.as<std::string>();
+            txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+        }
+        // multiple to
+        else if (to.get_type() == sol::type::table) {
+            for (const auto &[key, value]: to.as<sol::table>()) {
+                if (value.is<std::string>()) {
+                    const auto str = value.as<std::string>();
+                    txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+                }
             }
         }
-        txData2.chop(2);
+    }
+    // handle cc
+    {
+        // single cc
+        if (cc.get_type() == sol::type::string) {
+            const auto str = cc.as<std::string>();
+            txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+        }
+        // multiple cc
+        else if (cc.get_type() == sol::type::table) {
+            for (const auto &[key, value]: cc.as<sol::table>()) {
+                if (value.is<std::string>()) {
+                    const auto str = value.as<std::string>();
+                    txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+                }
+            }
+        }
+    }
+    // handle bcc
+    {
+        // single bcc
+        if (bcc.get_type() == sol::type::string) {
+            const auto str = bcc.as<std::string>();
+            txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+        }
+        // multiple bcc
+        else if (bcc.get_type() == sol::type::table) {
+            for (const auto &[key, value]: bcc.as<sol::table>()) {
+                if (value.is<std::string>()) {
+                    const auto str = value.as<std::string>();
+                    txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+                }
+            }
+        }
+    }
+    txData2.chop(2);
+    QByteArray txData3 = "From: <" + QByteArray::fromStdString(from) + ">\r\n";
+    // handle to
+    {
+        txData3 += "To: ";
+        // single to
+        if (to.get_type() == sol::type::string) {
+            const auto str = to.as<std::string>();
+            txData3 += "<" + QByteArray::fromStdString(str) + ">";
+        }
+        // multiple to
+        else if (to.get_type() == sol::type::table) {
+            for (const auto &[key, value]: to.as<sol::table>()) {
+                if (value.is<std::string>()) {
+                    const auto str = value.as<std::string>();
+                    txData3 += "<" + QByteArray::fromStdString(str) + ">, ";
+                }
+            }
+            txData3.chop(2);
+        }
+        txData3 += "\r\n";
+    }
+    // handle cc
+    {
+        txData3 += "Cc: ";
+        // single to
+        if (cc.get_type() == sol::type::string) {
+            const auto str = cc.as<std::string>();
+            txData3 += "<" + QByteArray::fromStdString(str) + ">";
+        }
+        // multiple to
+        else if (cc.get_type() == sol::type::table) {
+            for (const auto &[key, value]: cc.as<sol::table>()) {
+                if (value.is<std::string>()) {
+                    const auto str = value.as<std::string>();
+                    txData3 += "<" + QByteArray::fromStdString(str) + ">, ";
+                }
+            }
+            txData3.chop(2);
+        }
+        txData3 += "\r\n";
     }
     const auto boundary = QString::number(QDateTime::currentMSecsSinceEpoch());
-    QByteArray txData3 = "From: " + QByteArray::fromStdString(from) + "\r\n" + "To: ";
-    // single recipient
-    if (to.get_type() == sol::type::string) {
-        const auto str = to.as<std::string>();
-        txData3 += "<" + QByteArray::fromStdString(str) + ">";
-    }
-    // multiple recipient
-    else {
-        for (const auto  &[key, value] : to.as<sol::table>()) {
-            if (value.is<std::string>()) {
-                const auto str = value.as<std::string>();
-                txData3 += "<" + QByteArray::fromStdString(str) + ">, ";
-            }
-        }
-        txData3.chop(2);
-    }
-    txData3 += "\r\n";
     txData3 += "Subject: " + QByteArray::fromStdString(subject) + "\r\n"
             + "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n"
             + "MIME-Version: 1.0\r\n"

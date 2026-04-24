@@ -16,8 +16,8 @@ public:
 
     static void ehlo(const std::string &portName, int timeout);
 
-    static void send(const std::string &portName, const std::string &from, const sol::object &to, const std::string &subject, const std::string &body,
-                     const std::string &attachment, int timeout);
+    static void send(const std::string &portName, const std::string &from, const sol::object &to, const sol::object &cc, const sol::object &bcc, const std::string &subject,
+                     const std::string &body, const std::string &attachment, int timeout);
 
     static void quit(const std::string &portName);
 

@@ -208,9 +208,9 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             Smtp::authLogin(portName, username, password, timeout.value_or(1000));
         });
         smtp.set_function("send",
-                          [](const std::string &portName, const std::string &from, const sol::object &to, const std::string &subject, const std::string &body,
-                             const sol::optional<std::string> &attachment, const sol::optional<int> timeout) {
-                              Smtp::send(portName, from, to, subject, body, attachment.value_or(""), timeout.value_or(1000));
+                          [](const std::string &portName, const std::string &from, const sol::object &to, const sol::object &cc, const sol::object &bcc, const std::string &subject,
+                             const std::string &body, const sol::optional<std::string> &attachment, const sol::optional<int> timeout) {
+                              Smtp::send(portName, from, to, cc, bcc, subject, body, attachment.value_or(""), timeout.value_or(1000));
                           });
         smtp.set_function("quit", [](const std::string &portName) { Smtp::quit(portName); });
         m_lua["smtp"] = smtp;

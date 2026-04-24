@@ -20,12 +20,14 @@ function smtp.authLogin(name, username, password, timeout) end
 ---@param name portName Target port name.
 ---@param from string
 ---@param to string | table
+---@param cc string | table | nil
+---@param bcc string | table | nil
 ---@param subject string
 ---@param body string
 ---@param attachment? string (default: "") Path to the attachment; when omitted, no attachment is sent.
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return nil
-function smtp.send(name, from, to, subject, body, attachment, timeout) end
+function smtp.send(name, from, to, cc, bcc, subject, body, attachment, timeout) end
 
 ---Send QUIT command to SMTP server to end communication.
 ---@param name portName Target port name.
