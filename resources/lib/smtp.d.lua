@@ -19,7 +19,7 @@ function smtp.authLogin(name, username, password, timeout) end
 ---Send a email with MAIL, RCPT and DATA commands.
 ---@param name portName Target port name.
 ---@param from string
----@param to string
+---@param to string | table
 ---@param subject string
 ---@param body string
 ---@param attachment? string (default: "") Path to the attachment; when omitted, no attachment is sent.

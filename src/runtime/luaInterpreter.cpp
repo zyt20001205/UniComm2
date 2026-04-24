@@ -70,7 +70,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         auto f = m_lua.create_table();
         f.set_function("close", [this](const std::string &path) { m_file->close(path); });
         f.set_function("open", [this](const std::string &path, const sol::optional<const std::string> &mode) { m_file->open(path, mode.value_or("r")); });
-        f.set_function("popen", [this](const std::string &path) { m_file->_popen(path); });
+        f.set_function("popen", [](const std::string &path) { File::_popen(path); });
         f.set_function("read", [this](const std::string &path, const sol::variadic_args &args) { return m_file->read(path, args); });
         f.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
         m_lua["f"] = f;
@@ -208,7 +208,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             Smtp::authLogin(portName, username, password, timeout.value_or(1000));
         });
         smtp.set_function("send",
-                          [](const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body,
+                          [](const std::string &portName, const std::string &from, const sol::object &to, const std::string &subject, const std::string &body,
                              const sol::optional<std::string> &attachment, const sol::optional<int> timeout) {
                               Smtp::send(portName, from, to, subject, body, attachment.value_or(""), timeout.value_or(1000));
                           });

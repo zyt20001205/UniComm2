@@ -4,6 +4,7 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <sol/error.hpp>
+#include <sol/table_core.hpp>
 
 #include "globals.h"
 #include "port/basePort.h"
@@ -13,36 +14,6 @@
 // public
 Smtp::Smtp(QObject *parent)
     : QObject(parent) {
-}
-
-void Smtp::ehlo(const std::string &portName, const int timeout) {
-    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
-
-    QString exception{};
-    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-
-    QMetaObject::invokeMethod(port, [&exception, &port, &timeout] {
-        QByteArray rxData{};
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parser(rxData);
-        }
-        if (exception == "end") exception = "";
-        else return;
-
-        if (!port->write("EHLO localhost", "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            exception = parser(rxData);
-        }
-        if (exception == "end") exception = "";
-    }, Qt::BlockingQueuedConnection);
-    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
 void Smtp::authLogin(const std::string &portName, const std::string &username, const std::string &password, const int timeout) {
@@ -94,19 +65,78 @@ void Smtp::authLogin(const std::string &portName, const std::string &username, c
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
 
-void Smtp::send(const std::string &portName, const std::string &from, const std::string &to, const std::string &subject, const std::string &body, const std::string &attachment,
+void Smtp::ehlo(const std::string &portName, const int timeout) {
+    if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
+
+    QString exception{};
+    auto *port = g_port->m_portHash[QString::fromStdString(portName)];
+
+    QMetaObject::invokeMethod(port, [&exception, &port, &timeout] {
+        QByteArray rxData{};
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            exception = parser(rxData);
+        }
+        if (exception == "end") exception = "";
+        else return;
+
+        if (!port->write("EHLO localhost", "utf-8", "crlf")) {
+            exception = "write failed";
+            return;
+        }
+
+        while (exception.isEmpty()) {
+            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            exception = parser(rxData);
+        }
+        if (exception == "end") exception = "";
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
+}
+
+void Smtp::send(const std::string &portName, const std::string &from, const sol::object &to, const std::string &subject, const std::string &body, const std::string &attachment,
                 const int timeout) {
     if (!g_port->m_portHash.contains(QString::fromStdString(portName))) throw sol::error(portName + " does not exist");
 
     QString exception{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const auto txData1 = "MAIL FROM: <" + QByteArray::fromStdString(from) + ">";
-    const auto txData2 = "RCPT TO: <" + QByteArray::fromStdString(to) + ">";
+    QByteArray txData2{};
+    // single recipient
+    if (to.get_type() == sol::type::string) {
+        const auto str = to.as<std::string>();
+        txData2 = "RCPT TO: <" + QByteArray::fromStdString(str) + ">";
+    }
+    // multiple recipient
+    else {
+        for (const auto  &[key, value] : to.as<sol::table>()) {
+            if (value.is<std::string>()) {
+                const auto str = value.as<std::string>();
+                txData2 += "RCPT TO: <" + QByteArray::fromStdString(str) + ">\r\n";
+            }
+        }
+        txData2.chop(2);
+    }
     const auto boundary = QString::number(QDateTime::currentMSecsSinceEpoch());
-    QByteArray txData3 =
-            "From: " + QByteArray::fromStdString(from) + "\r\n"
-            + "To: " + QByteArray::fromStdString(to) + "\r\n"
-            + "Subject: " + QByteArray::fromStdString(subject) + "\r\n"
+    QByteArray txData3 = "From: " + QByteArray::fromStdString(from) + "\r\n" + "To: ";
+    // single recipient
+    if (to.get_type() == sol::type::string) {
+        const auto str = to.as<std::string>();
+        txData3 += "<" + QByteArray::fromStdString(str) + ">";
+    }
+    // multiple recipient
+    else {
+        for (const auto  &[key, value] : to.as<sol::table>()) {
+            if (value.is<std::string>()) {
+                const auto str = value.as<std::string>();
+                txData3 += "<" + QByteArray::fromStdString(str) + ">, ";
+            }
+        }
+        txData3.chop(2);
+    }
+    txData3 += "\r\n";
+    txData3 += "Subject: " + QByteArray::fromStdString(subject) + "\r\n"
             + "Date: " + QDateTime::currentDateTime().toString(Qt::RFC2822Date).toUtf8() + "\r\n"
             + "MIME-Version: 1.0\r\n"
             + "Content-Type: multipart/mixed; boundary=\"" + boundary.toUtf8() + "\"\r\n"
@@ -140,7 +170,6 @@ void Smtp::send(const std::string &portName, const std::string &from, const std:
         }
     }
     txData3 += "--" + boundary.toUtf8() + "--\r\n.";
-
 
     QMetaObject::invokeMethod(port, [&exception, &port, &txData1, &txData2, &txData3, &timeout] {
         QByteArray rxData{};
