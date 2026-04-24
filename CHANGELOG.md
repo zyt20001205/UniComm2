@@ -2,9 +2,10 @@
 
 ## APIS
 
-- Rewrite ModbusAscii APIS.
-- Rewrite ModbusRtu APIS.
+- Rewrite ModbusAscii APIs.
+- Rewrite ModbusRtu APIs.
 - Added ModbusTcp support.
+- Upgrade SMTP APIs.
 - Added IMAP support.
 - Added file operations.
 
