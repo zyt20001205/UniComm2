@@ -15,7 +15,7 @@ IO::IO(QObject *parent)
 void IO::log(const sol::variadic_args &args) {
     std::function<void(const QString &, const QVariant &, int)> logging = [&](const QString &key, const QVariant &value, const int depth) {
         QString indent{};
-        if (depth > 0) indent = QString(" ").repeated(depth * 4);
+        if (depth > 0) indent = QString("&nbsp;").repeated(depth * 4);
 
         if (value.typeId() == QMetaType::QVariantMap) {
             if (key.isEmpty()) emit appendLog(LOG_INFO, indent, "{");
