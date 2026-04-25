@@ -5,18 +5,6 @@
   ],
   "datatableConfig": [
   ],
-  "logConfig": {
-    "fontFamily": "Segoe UI",
-    "fontSize": 9,
-    "height": 1000,
-    "timestamp": true,
-    "wrap": true
-  },
-  "mainConfig": {
-    "state": ""
-  },
-  "portConfig": [
-  ],
   "documentConfig": {
     "fontFamily": "Consolas",
     "fontSize": 12,
@@ -53,6 +41,18 @@
     "documentList": [
     ]
   },
+  "logConfig": {
+    "fontFamily": "Segoe UI",
+    "fontSize": 9,
+    "height": 1000,
+    "timestamp": true,
+    "wrap": true
+  },
+  "mainConfig": {
+    "state": ""
+  },
+  "portConfig": [
+  ],
   "sendConfig": [
   ],
   "shortcutConfig": {

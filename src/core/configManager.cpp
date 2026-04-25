@@ -70,14 +70,14 @@ void ConfigManager::workspaceInit() {
         if (!QFile::exists(dstConfigPath)) {
             QFile::copy(srcConfigPath, dstConfigPath);
             QFile::setPermissions(dstConfigPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                              | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                              | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+                                                 | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                                 | QFileDevice::ReadGroup | QFileDevice::ReadOther);
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] .config.json copied").arg(timestamp);
         }
         // validate
-        else {
+        {
             QFile config(dstConfigPath);
             if (!config.open(QIODevice::ReadOnly | QIODevice::Text)) return;
             const QByteArray jsonData = config.readAll();
@@ -136,8 +136,8 @@ void ConfigManager::workspaceInit() {
         // validate
         else if (fileHashCalc(srcLuarcPath) != fileHashCalc(dstLuarcPath)) {
             QFile::setPermissions(dstLuarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                             | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                             | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+                                                | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                                | QFileDevice::ReadGroup | QFileDevice::ReadOther);
             QFile::remove(dstLuarcPath);
             QFile::copy(srcLuarcPath, dstLuarcPath);
             // logging
@@ -164,8 +164,8 @@ void ConfigManager::workspaceInit() {
                 qDebug() << QString("[%1] %2 copied").arg(timestamp, fileName);
             } else if (fileHashCalc(srcLibFilePath) != fileHashCalc(dstLibFilePath)) {
                 QFile::setPermissions(dstLibFilePath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
-                                                | QFileDevice::ReadUser | QFileDevice::WriteUser
-                                                | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+                                                      | QFileDevice::ReadUser | QFileDevice::WriteUser
+                                                      | QFileDevice::ReadGroup | QFileDevice::ReadOther);
                 QFile::remove(dstLibFilePath);
                 QFile::copy(srcLibFilePath, dstLibFilePath);
                 // logging
