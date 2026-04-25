@@ -129,10 +129,7 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
     connect(port, &BasePort::refreshPort, this, &PortModule::portRefresh);
     m_portHash.insert(portName, port);
-    // logging
-    emit appendLog(LOG_INFO, QString("%1 initialized").arg(portName), "");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 initialized").arg(timestamp, portName);
+    emit appendLog(LOG_INFO, QString("[%1]").arg(portName), "initialized");
 }
 
 void PortModule::portRemove(const int index) {
@@ -142,10 +139,7 @@ void PortModule::portRemove(const int index) {
     const auto *port = m_portHash[portName];
     delete port;
     m_portHash.remove(portName);
-    // logging
-    emit appendLog(LOG_INFO, QString("%1 removed").arg(portName), "");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 removed").arg(timestamp, portName);
+    emit appendLog(LOG_INFO, QString("[%1]").arg(portName), "removed");
 }
 
 void PortModule::portSwap(const int src, const int dst) const {

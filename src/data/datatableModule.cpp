@@ -137,10 +137,7 @@ void DatatableModule::datatableExport(const QString &path) {
         out << rowData.join(",") << "\n";
     }
     file.close();
-    // logging
-    emit appendLog(LOG_INFO, QString("data exported to <a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()), "");
-    const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] data exported").arg(timestamp);
+    emit appendLog(LOG_INFO, "data export to", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
 }
 
 bool DatatableModule::datatableWrite(const QString &key, const QString &value) {

@@ -1,6 +1,7 @@
 #include "api/imap.h"
 
 #include <QDir>
+#include <QElapsedTimer>
 #include <sol/error.hpp>
 
 #include "globals.h"
@@ -35,7 +36,7 @@ int Imap::idle(const std::string &portName, const int timeout) {
         }
 
         while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
             session = parser("IDLE", rxData);
             exception = session["exception"].toString();
         }
@@ -58,11 +59,12 @@ int Imap::idle(const std::string &portName, const int timeout) {
         }
 
         while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
+            rxData = port->readUntil("\r\n", 1000, "utf-8");
             session = parser("IDLE", rxData);
             exception = session["exception"].toString();
         }
         if (exception == "end") exception = "";
+        else return;
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
     return sequenceNumber;
@@ -196,99 +198,108 @@ void Imap::receive(const std::string &portName, const std::string &from, const s
     QString exception{};
     QVariantHash parsed{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
-    const QByteArray txData1 =
-            'A'
-            + QByteArray::number(m_count).rightJustified(3, '0')
-            + ' '
-            + "IDLE";
 
-    QMetaObject::invokeMethod(port, [&exception, &parsed, this, &port, &txData1, &timeout] {
+    QMetaObject::invokeMethod(port, [&exception, &parsed, this, &port, &from, &timeout] {
+        QElapsedTimer timer{};
+        timer.start();
+
         QByteArray rxData{};
         QVariantHash session{};
         int sequenceNumber{};
         int size{};
 
-        // IDLE
-        if (!port->write(txData1, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
+        while (true) {
+            // IDLE
+            const QByteArray txData1 =
+                    'A'
+                    + QByteArray::number(m_count).rightJustified(3, '0')
+                    + ' '
+                    + "IDLE";
+
+            if (!port->write(txData1, "utf-8", "crlf")) {
+                exception = "write failed";
+                return;
+            }
+
+            while (exception.isEmpty()) {
+                rxData = port->readUntil("\r\n", 1000, "utf-8");
+                session = parser("IDLE", rxData);
+                exception = session["exception"].toString();
+            }
+            if (exception == "end") exception = "";
+            else return;
+
+            while (exception.isEmpty()) {
+                const int remaining = timeout - static_cast<int>(timer.elapsed());
+                qDebug() << "remaining" << remaining;
+                rxData = port->readUntil("\r\n", remaining, "utf-8");
+                session = parser("IDLE", rxData);
+                exception = session["exception"].toString();
+            }
+            if (exception == "end") {
+                sequenceNumber = session["EXISTS"].toInt();
+                exception = "";
+            } else return;
+
+            if (!port->write("DONE", "utf-8", "crlf")) {
+                exception = "write failed";
+                return;
+            }
+
+            while (exception.isEmpty()) {
+                rxData = port->readUntil("\r\n", 1000, "utf-8");
+                session = parser("IDLE", rxData);
+                exception = session["exception"].toString();
+            }
+            if (exception == "end") exception = "";
+            else return;
+
+            // FETCH
+            const QByteArray txData2 =
+                    'A'
+                    + QByteArray::number(m_count).rightJustified(3, '0')
+                    + ' '
+                    + "FETCH"
+                    + ' '
+                    + QByteArray::number(sequenceNumber)
+                    + ' '
+                    + "BODY.PEEK[]";
+
+            if (!port->write(txData2, "utf-8", "crlf")) {
+                exception = "write failed";
+                return;
+            }
+
+            while (exception.isEmpty()) {
+                rxData = port->readUntil("\r\n", 1000, "utf-8");
+                session = parser("FETCH", rxData);
+                exception = session["exception"].toString();
+                size = session["size"].toInt();
+            }
+            if (exception == "end") exception = "";
+            else return;
+
+            rxData = port->read(size, 1000, "utf-8");
+            parsed = fetchParser(rxData);
+            // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
+            rxData = port->read(3, 1000, "utf-8");
+
+            while (exception.isEmpty()) {
+                rxData = port->readUntil("\r\n", 1000, "utf-8");
+                session = parser("IDLE", rxData);
+                exception = session["exception"].toString();
+            }
+            if (exception == "end") exception = "";
+            else return;
+
+            // check sender
+            if (from.empty()) break;
+            const auto _from = QString::fromStdString(from);
+            const auto header = parsed["header"].toHash();
+            if (header["From"].toString().contains(_from)) break;
         }
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") {
-            sequenceNumber = session["EXISTS"].toInt();
-            exception = "";
-        } else return;
-
-        if (!port->write("DONE", "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
-        else return;
-
-        // FETCH
-        const QByteArray txData2 =
-                'A'
-                + QByteArray::number(m_count).rightJustified(3, '0')
-                + ' '
-                + "FETCH"
-                + ' '
-                + QByteArray::number(sequenceNumber)
-                + ' '
-                + "BODY.PEEK[]";
-
-        if (!port->write(txData2, "utf-8", "crlf")) {
-            exception = "write failed";
-            return;
-        }
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            session = parser("FETCH", rxData);
-            exception = session["exception"].toString();
-            size = session["size"].toInt();
-        }
-        if (exception == "end") exception = "";
-
-        rxData = port->read(size, timeout, "utf-8");
-        parsed = fetchParser(rxData);
-        // TODO: envelop () structure not supported!!! using read 3 to skip ")\r\n" for now
-        rxData = port->read(3, timeout, "utf-8");
-
-        while (exception.isEmpty()) {
-            rxData = port->readUntil("\r\n", timeout, "utf-8");
-            session = parser("IDLE", rxData);
-            exception = session["exception"].toString();
-        }
-        if (exception == "end") exception = "";
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
-    // check from
-    if (!from.empty()) {
-        const auto _from = QString::fromStdString(from);
-        const auto header = parsed["header"].toHash();
-        // receive again
-        if (!header["From"].toString().contains(_from)) receive(portName, from, path, timeout);
-    }
     const LPath luaPath = QString::fromStdString(path);
     const auto folderUrl = uni_cast<QUrl>(luaPath);
     const QDir dir(folderUrl.toLocalFile());
@@ -306,7 +317,7 @@ void Imap::receive(const std::string &portName, const std::string &from, const s
         } else if (type.contains("text/html")) {
             fileName = "body.html";
         } else {
-            emit appendLog(LOG_WARNING, QString("contact author: unsupported body(content-type:%1)").arg(type), "");
+            emit appendLog(LOG_WARNING, "contact author:", QString("unsupported body (content-type:%1)").arg(type));
             continue;
         }
         QFile file(dir.filePath(fileName));
@@ -565,6 +576,6 @@ QByteArray Imap::rfc2047Parser(const QByteArray &text) {
         return QByteArray::fromBase64(payload);
     }
     // TODO: Q case
-    emit appendLog(LOG_WARNING, QString("contact author: unsupported rfc2047 encoding(Q)"), "");
+    emit appendLog(LOG_WARNING, "contact author:", QString("unsupported rfc2047 encoding (Q)"));
     return {};
 }

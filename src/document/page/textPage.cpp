@@ -137,9 +137,7 @@ void TextPage::documentSave() {
     out << m_editorWidget->textGet();
     file.close();
     // logging
-    emit appendLog(LOG_INFO, QString("<a href='%1'>%2</a> saved").arg(m_documentUrl.toString(), m_documentUrl.toString()), "");
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 saved").arg(timestamp, m_documentUrl.toString());
+    emit appendLog(LOG_INFO, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
 // private: slot

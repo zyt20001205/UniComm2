@@ -79,23 +79,23 @@ void LogModule::logAppend(const int type, const QString &prefix, const QString &
     // check level
     switch (type) {
         case LOG_ERROR: {
-            _message = QString("<span style='color:red'>%1%2</span>").arg(prefix, _message);
+            _message = QString("<span style='color:red'>%1 %2</span>").arg(prefix.toHtmlEscaped(), _message);
         }
         break;
         case LOG_WARNING: {
-            _message = QString("<span style='color:orange'>%1%2</span>").arg(prefix, _message);
+            _message = QString("<span style='color:orange'>%1 %2</span>").arg(prefix.toHtmlEscaped(), _message);
         }
         break;
         case LOG_INFO: {
-            _message = QString("<span style='color:black'>%1%2</span>").arg(prefix, _message);
+            _message = QString("<span style='color:black'>%1 %2</span>").arg(prefix.toHtmlEscaped(), _message);
         }
         break;
         case LOG_TX: {
-            _message = QString("%1%2").arg(prefix, _message);
+            _message = QString("%1 %2").arg(prefix.toHtmlEscaped(), _message);
         }
         break;
         case LOG_RX: {
-            _message = QString("%1%2").arg(prefix, _message);
+            _message = QString("%1 %2").arg(prefix.toHtmlEscaped(), _message);
         }
         break;
         default: break;

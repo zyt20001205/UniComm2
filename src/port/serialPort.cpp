@@ -87,16 +87,10 @@ bool SerialPort::open() {
     // port open
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
         emit refreshPort(m_portConfig["portName"].toString(), true);
-        emit appendLog(LOG_INFO, QString("%1 opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
         return true;
     }
-    emit appendLog(LOG_ERROR, QString("%1 open failed").arg(m_portConfig["portName"].toString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portConfig["portName"].toString());
+    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_serialPort->errorString()));
     return false;
 }
 
@@ -106,10 +100,7 @@ void SerialPort::close() {
     m_serialPort->close();
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("%1 closed").arg(m_portConfig["portName"].toString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
+    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void SerialPort::clear() {
@@ -153,19 +144,13 @@ void SerialPort::handleError() {
         m_serialPort->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("%1 error: %2").arg(m_portConfig["portName"].toString(), m_serialPort->errorString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, m_portConfig["portName"].toString(), m_serialPort->errorString());
+    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_serialPort->errorString()));
 }
 
 bool SerialPort::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_serialPort->write(f_txData);
@@ -176,10 +161,7 @@ bool SerialPort::handleWrite(const QByteArray &f_txData) {
 QByteArray SerialPort::handleRead(const int length, const int timeout) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -193,10 +175,7 @@ QByteArray SerialPort::handleRead(const int length, const int timeout) {
 QByteArray SerialPort::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -221,7 +200,7 @@ void SerialPort::handleLog(const int type, const QByteArray &data) {
         else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        emit appendLog(type, QString("[%1] -&gt; ").arg(m_serialPort->portName()), txMessage);
+        emit appendLog(type, QString("[%1] ->").arg(m_serialPort->portName()), txMessage);
     } else {
         // rx message reformat
         QString rxMessage{};
@@ -235,6 +214,6 @@ void SerialPort::handleLog(const int type, const QByteArray &data) {
         else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        emit appendLog(type, QString("[%1] &lt;- ").arg(m_serialPort->portName()), rxMessage);
+        emit appendLog(type, QString("[%1] <-").arg(m_serialPort->portName()), rxMessage);
     }
 }

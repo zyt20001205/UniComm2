@@ -56,22 +56,19 @@ bool UdpSocket::open() {
     }
     // open port
     if (!m_udpSocket->bind(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
-        emit appendLog(LOG_ERROR, QString("%1 open failed: %2").arg(m_portConfig["portName"].toString(), m_udpSocket->errorString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 open failed: %3").arg(timestamp, m_portConfig["portName"].toString(), m_udpSocket->errorString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_udpSocket->errorString()));
         return false;
     }
     m_udpSocket->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(LOG_INFO, QString("%1 opened: %2:%3->%4:%5").arg(m_portConfig["portName"].toString(), m_portConfig["localHost"].toString(),
-                                                                    QString::number(m_portConfig["localPort"].toInt()), m_portConfig["remoteHost"].toString(),
-                                                                    QString::number(m_portConfig["remotePort"].toInt())), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 opened: %3:%4->%5:%6").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["localHost"].toString(),
-                                                            QString::number(m_portConfig["localPort"].toInt()), m_portConfig["remoteHost"].toString(),
-                                                            QString::number(m_portConfig["remotePort"].toInt()));
+    emit appendLog(LOG_INFO,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("opened: %2:%3->%4:%5")
+                   .arg(m_portConfig["portName"].toString(),
+                        m_portConfig["localHost"].toString(),
+                        QString::number(m_portConfig["localPort"].toInt()),
+                        m_portConfig["remoteHost"].toString(),
+                        QString::number(m_portConfig["remotePort"].toInt())));
     return true;
 }
 
@@ -82,10 +79,7 @@ void UdpSocket::close() {
     }
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("%1 closed").arg(m_portConfig["portName"].toString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
+    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void UdpSocket::clear() {
@@ -129,19 +123,13 @@ void UdpSocket::handleError() {
         m_udpSocket->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("%1 error: %2").arg(m_portConfig["portName"].toString(), m_udpSocket->errorString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, m_portConfig["portName"].toString(), m_udpSocket->errorString());
+    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_udpSocket->errorString()));
 }
 
 bool UdpSocket::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_udpSocket->write(f_txData);
@@ -152,10 +140,7 @@ bool UdpSocket::handleWrite(const QByteArray &f_txData) {
 QByteArray UdpSocket::handleRead(const int length, const int timeout) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -169,10 +154,7 @@ QByteArray UdpSocket::handleRead(const int length, const int timeout) {
 QByteArray UdpSocket::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -198,7 +180,7 @@ void UdpSocket::handleLog(const int type, const QByteArray &data) {
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
         emit appendLog(type,
-                       QString("[%1:%2 -&gt; %3:%4] ").
+                       QString("[%1:%2 -> %3:%4]").
                        arg(m_portConfig["localHost"].toString(),
                            QString::number(m_portConfig["localPort"].toInt()),
                            m_portConfig["remoteHost"].toString(),
@@ -218,7 +200,7 @@ void UdpSocket::handleLog(const int type, const QByteArray &data) {
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
         emit appendLog(type,
-                       QString("[%1:%2 &lt;- %3:%4] ").
+                       QString("[%1:%2 <- %3:%4] ").
                        arg(m_portConfig["localHost"].toString(),
                            QString::number(m_portConfig["localPort"].toInt()),
                            m_portConfig["remoteHost"].toString(),

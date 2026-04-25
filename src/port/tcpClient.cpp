@@ -84,12 +84,12 @@ bool TcpClient::open() {
         return false;
     }
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(LOG_INFO, QString("%1 connecting to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
-                                                                   QString::number(m_portConfig["remotePort"].toInt())), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 connecting to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
-                                                           QString::number(m_portConfig["remotePort"].toInt()));
+    emit appendLog(LOG_INFO,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("connecting to %1:%2").
+                   arg(m_portConfig["portName"].toString(),
+                       m_portConfig["remoteHost"].toString(),
+                       QString::number(m_portConfig["remotePort"].toInt())));
     return true;
 }
 
@@ -108,12 +108,8 @@ void TcpClient::close() {
         default:
             break;
     }
-    clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("%1 closed").arg(m_portConfig["portName"].toString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
+    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void TcpClient::clear() {
@@ -148,20 +144,22 @@ QByteArray TcpClient::readUntil(const QByteArray &text, const int timeout, const
 void TcpClient::handleConnected() {
     m_tcpClientLocalHost = m_tcpClient->localAddress().toString();
     m_tcpClientLocalPort = m_tcpClient->localPort();
-    emit appendLog(LOG_INFO, QString("%1 connected to %2:%3").arg(m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
-                                                                  QString::number(m_portConfig["remotePort"].toInt())), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 connected to %3:%4").arg(timestamp, m_portConfig["portName"].toString(), m_portConfig["remoteHost"].toString(),
-                                                          QString::number(m_portConfig["remotePort"].toInt()));
+    emit appendLog(LOG_INFO,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("connected to %1:%2").
+                   arg(m_portConfig["portName"].toString(),
+                       m_portConfig["remoteHost"].toString(),
+                       QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void TcpClient::handleDisconnected() {
-    emit appendLog(LOG_INFO, QString("%1 %2:%3").arg("tcp client disconnected from", m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())),
-                   "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 %3:%4").arg(timestamp, "tcp client disconnected from", m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt()));
+    clear();
+    emit appendLog(LOG_INFO,
+                   QString("[%1]").arg(m_portConfig["portName"].toString()),
+                   QString("disconnected from %1:%2").
+                   arg(m_portConfig["portName"].toString(),
+                       m_portConfig["remoteHost"].toString(),
+                       QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void TcpClient::handleReadyRead() {
@@ -176,19 +174,13 @@ void TcpClient::handleError() {
         m_tcpClient->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("%1 error: %2").arg(m_portConfig["portName"].toString(), m_tcpClient->errorString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 error: %3").arg(timestamp, m_portConfig["portName"].toString(), m_tcpClient->errorString());
+    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_tcpClient->errorString()));
 }
 
 bool TcpClient::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_tcpClient->write(f_txData);
@@ -199,10 +191,7 @@ bool TcpClient::handleWrite(const QByteArray &f_txData) {
 QByteArray TcpClient::handleRead(const int length, const int timeout) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -216,10 +205,7 @@ QByteArray TcpClient::handleRead(const int length, const int timeout) {
 QByteArray TcpClient::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -245,7 +231,7 @@ void TcpClient::handleLog(const int type, const QByteArray &data) {
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
         emit appendLog(type,
-                       QString("[%1:%2 -&gt; %3:%4] ").
+                       QString("[%1:%2 -> %3:%4]").
                        arg(m_tcpClientLocalHost,
                            QString::number(m_tcpClientLocalPort),
                            m_portConfig["remoteHost"].toString(),
@@ -265,7 +251,7 @@ void TcpClient::handleLog(const int type, const QByteArray &data) {
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
         emit appendLog(type,
-                       QString("[%1:%2 &lt;- %3:%4] ").
+                       QString("[%1:%2 <- %3:%4]").
                        arg(m_tcpClientLocalHost,
                            QString::number(m_tcpClientLocalPort),
                            m_portConfig["remoteHost"].toString(),

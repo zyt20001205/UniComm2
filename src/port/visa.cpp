@@ -34,16 +34,13 @@ bool Visa::open() {
     if (status == VI_SUCCESS) {
         status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
         emit refreshPort(m_portConfig["portName"].toString(), true);
-        emit appendLog(LOG_INFO, QString("%1 opened").arg(m_portConfig["portName"].toString()), "");
+        emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portConfig["portName"].toString());
         return true;
     }
-    emit appendLog(LOG_ERROR, QString("%1 open failed").arg(m_portConfig["portName"].toString()), "");
-    // logging
-    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] %2 open failed").arg(timestamp, m_portConfig["portName"].toString());
+    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "open failed");
     return false;
 }
 
@@ -51,10 +48,7 @@ void Visa::close() {
     if (m_visa != VI_NULL) {
         ViStatus status = viClose(m_visa);
         emit refreshPort(m_portConfig["portName"].toString(), false);
-        emit appendLog(LOG_INFO, QString("%1 closed").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 closed").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
     }
 }
 
@@ -89,10 +83,7 @@ QByteArray Visa::readUntil(const QByteArray &text, const int timeout, const QStr
 bool Visa::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_visa == VI_NULL) {
-        emit appendLog(LOG_ERROR, QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "");
-        // logging
-        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-        qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
+        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     ViUInt32 retCount;
@@ -108,9 +99,6 @@ QByteArray Visa::handleRead(const int length, const int timeout) {
     // // check port status
     // if (m_Visa == nullptr || !m_Visa->isOpen()) {
     //     emit appendLog(QString("%1 is not opened").arg(m_portConfig["portName"].toString()), "error");
-    //     // logging
-    //     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    //     qDebug() << QString("[%1] %2 is not opened").arg(timestamp, m_portConfig["portName"].toString());
     //     return {};
     // }
     // QElapsedTimer timer;
@@ -144,7 +132,7 @@ void Visa::handleLog(const int type, const QByteArray &data) {
         else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        emit appendLog(type, QString("[%1] -&gt; ").arg(m_portConfig["portName"].toString()), txMessage);
+        emit appendLog(type, QString("[%1] ->").arg(m_portConfig["portName"].toString()), txMessage);
     } else {
         // rx message reformat
         QString rxMessage{};
@@ -158,6 +146,6 @@ void Visa::handleLog(const int type, const QByteArray &data) {
         else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        emit appendLog(type, QString("[%1] &lt;- ").arg(m_portConfig["portName"].toString(), rxMessage), rxMessage);
+        emit appendLog(type, QString("[%1] <-").arg(m_portConfig["portName"].toString()), rxMessage);
     }
 }

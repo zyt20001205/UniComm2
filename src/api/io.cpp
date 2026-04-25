@@ -15,19 +15,19 @@ IO::IO(QObject *parent)
 void IO::log(const sol::variadic_args &args) {
     std::function<void(const QString &, const QVariant &, int)> logging = [&](const QString &key, const QVariant &value, const int depth) {
         QString indent{};
-        if (depth > 0) indent = QString("&nbsp;").repeated(depth * 4);
+        if (depth > 0) indent = QString(" ").repeated(depth * 4);
 
         if (value.typeId() == QMetaType::QVariantMap) {
-            if (key.isEmpty()) emit appendLog(LOG_INFO, QString("%1{").arg(indent), "");
-            else emit appendLog(LOG_INFO, QString("%1%2: {").arg(indent, key), "");
+            if (key.isEmpty()) emit appendLog(LOG_INFO, indent, "{");
+            else emit appendLog(LOG_INFO, QString("%1%2:").arg(indent, key), "{");
             QVariantMap map = value.toMap();
             for (auto it = map.begin(); it != map.end(); ++it) {
                 logging(it.key(), it.value(), depth + 1);
             }
-            emit appendLog(LOG_INFO, QString("%1}").arg(indent), "");
+            emit appendLog(LOG_INFO, indent, "}");
         } else {
             if (key.isEmpty()) emit appendLog(LOG_INFO, indent, value.toString());
-            else emit appendLog(LOG_INFO, QString("%1%2: ").arg(indent, key), value.toString());
+            else emit appendLog(LOG_INFO, QString("%1%2:").arg(indent, key), value.toString());
         }
     };
 

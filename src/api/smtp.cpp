@@ -91,6 +91,7 @@ void Smtp::ehlo(const std::string &portName, const int timeout) {
             exception = parser(rxData);
         }
         if (exception == "end") exception = "";
+        else return;
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }
@@ -281,6 +282,7 @@ void Smtp::send(const std::string &portName, const std::string &from, const sol:
             exception = parser(rxData);
         }
         if (exception == "end") exception = "";
+        else return;
     }, Qt::BlockingQueuedConnection);
     if (!exception.isEmpty()) throw sol::error(portName + ": " + exception.toStdString());
 }

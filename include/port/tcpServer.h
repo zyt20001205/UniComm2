@@ -63,7 +63,7 @@ private:
 
     void handleReadyRead(QTcpSocket *tcpServerPeer);
 
-    void handleError(QTcpSocket *tcpServerPeer);
+    void handleError(const QTcpSocket *tcpServerPeer);
 
     [[nodiscard]] bool handleWrite(const QByteArray &f_txData, const QString &peerIp = QString());
 
