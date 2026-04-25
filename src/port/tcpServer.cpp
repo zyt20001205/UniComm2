@@ -51,14 +51,15 @@ QVariantHash TcpServer::info() {
 }
 
 bool TcpServer::open() {
-    // port init
+    // status check
     if (m_tcpServer == nullptr) {
         m_tcpServer = new QTcpServer(this);
         connect(m_tcpServer, &QTcpServer::newConnection, this, &TcpServer::handleNewConnection);
         connect(m_tcpServer, &QTcpServer::acceptError, this, &TcpServer::handleServerError);
     }
-    // m_tcpServer->setMaxPendingConnections();
+    if (m_tcpServer->isListening()) return true;
     // open port
+    // m_tcpServer->setMaxPendingConnections();
     if (m_tcpServer->listen(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
         emit refreshPort(m_portConfig["portName"].toString(), true);
         emit appendLog(LOG_INFO,
@@ -71,7 +72,9 @@ bool TcpServer::open() {
 }
 
 void TcpServer::close() {
+    // status check
     if (m_tcpServer == nullptr) return;
+    // port close
     m_tcpServer->close();
     for (QTcpSocket *tcpServerPeer: m_peerHash) {
         if (tcpServerPeer) {

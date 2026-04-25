@@ -73,18 +73,19 @@ QVariantHash SerialPort::info() {
 }
 
 bool SerialPort::open() {
-    // port init
+    // status check
     if (m_serialPort == nullptr) {
         m_serialPort = new QSerialPort(this);
         connect(m_serialPort, &QSerialPort::readyRead, this, &SerialPort::handleReadyRead);
         connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPort::handleError);
     }
+    if (m_serialPort->isOpen()) return true;
+    // port open
     m_serialPort->setPortName(m_portConfig["portName"].toString());
     m_serialPort->setBaudRate(m_portConfig["baudRate"].toInt());
     m_serialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_portConfig["dataBits"].toInt()));
     m_serialPort->setParity(static_cast<QSerialPort::Parity>(m_portConfig["parity"].toInt()));
     m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_portConfig["stopBits"].toInt()));
-    // port open
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
         emit refreshPort(m_portConfig["portName"].toString(), true);
         emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
@@ -95,8 +96,9 @@ bool SerialPort::open() {
 }
 
 void SerialPort::close() {
-    // port close
+    // status check
     if (m_serialPort == nullptr) return;
+    // port close
     m_serialPort->close();
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);

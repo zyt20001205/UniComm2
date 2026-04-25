@@ -52,7 +52,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         const QString newPath = QString("%1;%2").arg(QString::fromStdString(currentPath), workspacePath);
         package["path"] = newPath.toStdString();
     }
-    // Data lib
+    // Data lib (static)
     {
         auto database = m_lua.create_table();
         database.set_function("list", [](const sol::this_state ts) { return Data::databaseList(ts); });
@@ -65,7 +65,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         datatable.set_function("export", [](const sol::optional<std::string> &fileName) { Data::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;
     }
-    // File lib
+    // File lib (static)
     {
         auto f = m_lua.create_table();
         f.set_function("close", [this](const std::string &path) { m_file->close(path); });
@@ -75,7 +75,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         f.set_function("write", [this](const std::string &path, const sol::variadic_args &args) { m_file->write(path, args); });
         m_lua["f"] = f;
     }
-    // Http lib
+    // Http lib (instance)
     {
         auto http = m_lua.create_table();
         http.set_function("get", [this](const std::string &portName, const sol::optional<sol::table> &headers, const sol::optional<int> timeout) {
@@ -83,28 +83,29 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         });
         m_lua["http"] = http;
     }
-    // Imap lib
-     {
+    // Imap lib (instance)
+    {
+        m_lua.new_usertype<Imap>(
+            "imap",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](Imap *) {
+            },
+            "idle", &Imap::idle,
+            "login", &Imap::login,
+            "select", &Imap::select,
+            "fetch", &Imap::fetch,
+            "receive", &Imap::receive
+        );
         auto imap = m_lua.create_table();
-        imap.set_function("idle", [this](const std::string &portName, const sol::optional<int> timeout) {
-            return m_imap->idle(portName, timeout.value_or(600000));
-        });
-        imap.set_function("login", [this](const std::string &portName, const std::string &username, const std::string &password, const sol::optional<int> timeout) {
-            m_imap->login(portName, username, password, timeout.value_or(1000));
-        });
-        imap.set_function("select", [this](const std::string &portName, const std::string &mailbox, const sol::optional<int> timeout) {
-            m_imap->select(portName, mailbox, timeout.value_or(1000));
-        });
-        imap.set_function("fetch", [this](const sol::this_state ts, const std::string &portName, const int &sequenceNumber, const sol::optional<int> timeout) {
-            return m_imap->fetch(ts, portName, sequenceNumber, timeout.value_or(1000));
-        });
-        imap.set_function("receive", [this](const std::string &portName,  const sol::optional<std::string> &from,  const sol::optional<std::string> &path, const sol::optional<int> timeout) {
-            m_imap->receive(portName, from.value_or(""), path.value_or(""), timeout.value_or(600000));
+        imap.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
+            auto *obj = new Imap(this);
+            obj->init(portName, timeout.value_or(1000));
+            connect(obj, &Imap::appendLog, this, &LuaInterpreter::appendLog);
+            return obj;
         });
         m_lua["imap"] = imap;
-        connect(m_imap, &Imap::appendLog, this, &LuaInterpreter::appendLog);
     }
-    // IO lib
+    // IO lib (static)
     {
         auto io = m_lua["io"].get_or_create<sol::table>();
         io.set_function("log", [this](const sol::variadic_args &args) { m_io->log(args); });
@@ -116,14 +117,14 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             emit newMessageDialog(eventloop, m_luaSession["threadId"].toString(), text);
         });
     }
-    // Key lib
+    // Key lib (static)
     {
         auto key = m_lua.create_table();
         key.set_function("tap", [this](const std::string &key) { m_key->tap(key); });
         key.set_function("type", [](const std::string &text) { Key::type(text); });
         m_lua["key"] = key;
     }
-    // LuaModbus lib
+    // LuaModbus lib (static)
     {
         auto modbusRtu = m_lua.create_table();
         modbusRtu.set_function("readHoldingRegisters",
@@ -173,7 +174,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                                });
         m_lua["modbusTcp"] = modbusTcp;
     }
-    // Mouse lib
+    // Mouse lib (static)
     {
         auto mouse = m_lua.create_table();
         mouse.set_function("click", [](const int x, const int y) { Mouse::click(x, y); });
@@ -181,7 +182,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         mouse.set_function("rightClick", [](const int x, const int y) { Mouse::rightClick(x, y); });
         m_lua["mouse"] = mouse;
     }
-    // Port lib
+    // Port lib (static)
     {
         auto port = m_lua.create_table();
         port.set_function("list", [](const sol::this_state ts) { return Port::list(ts); });
@@ -204,22 +205,27 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
                           });
         m_lua["port"] = port;
     }
-    // Smtp lib
+    // Smtp lib (instance)
     {
+        m_lua.new_usertype<Smtp>(
+            "smtp",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](Smtp *) {
+            },
+            "authLogin", &Smtp::authLogin,
+            "ehlo", &Smtp::ehlo,
+            "send", &Smtp::send,
+            "quit", &Smtp::quit
+        );
         auto smtp = m_lua.create_table();
-        smtp.set_function("ehlo", [](const std::string &portName, const sol::optional<int> timeout) { Smtp::ehlo(portName, timeout.value_or(1000)); });
-        smtp.set_function("authLogin", [](const std::string &portName, const std::string &username, const std::string &password, const sol::optional<int> timeout) {
-            Smtp::authLogin(portName, username, password, timeout.value_or(1000));
+        smtp.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
+            auto *obj = new Smtp(this);
+            obj->init(portName, timeout.value_or(1000));
+            return obj;
         });
-        smtp.set_function("send",
-                          [](const std::string &portName, const std::string &from, const sol::object &to, const sol::object &cc, const sol::object &bcc, const std::string &subject,
-                             const std::string &body, const sol::optional<std::string> &attachment, const sol::optional<int> timeout) {
-                              Smtp::send(portName, from, to, cc, bcc, subject, body, attachment.value_or(""), timeout.value_or(1000));
-                          });
-        smtp.set_function("quit", [](const std::string &portName) { Smtp::quit(portName); });
         m_lua["smtp"] = smtp;
     }
-    // String lib
+    // String lib (static)
     {
         auto string = m_lua["string"].get_or_create<sol::table>();
         string.set_function("toBase64", [](const std::string &str) { return String::toBase64(str); });
@@ -228,7 +234,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         string.set_function("fromHex", [](const std::string &str) { return String::fromHex(str); });
         m_lua["string"] = string;
     }
-    // Thread lib
+    // Thread lib (static)
     {
         sol::table thread = m_lua.create_table();
         thread.set_function("start", [this](const sol::this_state ts, const std::string &documentPath) { return m_thread->start(ts, documentPath); });

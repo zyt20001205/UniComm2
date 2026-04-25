@@ -48,12 +48,13 @@ QVariantHash UdpSocket::info() {
 }
 
 bool UdpSocket::open() {
-    // port init
+    // status check
     if (m_udpSocket == nullptr) {
         m_udpSocket = new QUdpSocket(this);
         connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpSocket::handleReadyRead);
         connect(m_udpSocket, &QUdpSocket::errorOccurred, this, &UdpSocket::handleError);
     }
+    if (m_udpSocket->state() != QAbstractSocket::UnconnectedState) return true;
     // open port
     if (!m_udpSocket->bind(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
         emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_udpSocket->errorString()));
@@ -73,10 +74,12 @@ bool UdpSocket::open() {
 }
 
 void UdpSocket::close() {
+    // status check
     if (m_udpSocket == nullptr) return;
     if (m_udpSocket->isOpen()) {
         m_udpSocket->close();
     }
+    // port close
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
     emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");

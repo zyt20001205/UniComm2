@@ -266,13 +266,13 @@ gantt
 
 |      APIS      |   RFC 4954    |                               Status                                |                           
 |:--------------:|:-------------:|:-------------------------------------------------------------------:|
-| smtp.authLogin |  AUTH LOGIN   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| smtp:authLogin |  AUTH LOGIN   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 |                |  AUTH PLAIN   |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
 |                | AUTH CRAM-MD5 |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
 
 |   APIS    |               RFC 5321                |                               Status                                |                           
 |:---------:|:-------------------------------------:|:-------------------------------------------------------------------:|
-| smtp.ehlo | Extended HELLO (EHLO) or HELLO (HELO) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
+| smtp:ehlo | Extended HELLO (EHLO) or HELLO (HELO) | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) | 
 |           |              MAIL (MAIL)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
 |           |           RECIPIENT (RCPT)            |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              DATA (DATA)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
@@ -281,11 +281,11 @@ gantt
 |           |             EXPAND (EXPN)             |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              HELP (HELP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |           |              NOOP (NOOP)              |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-| smtp.quit |              QUIT (QUIT)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| smtp:quit |              QUIT (QUIT)              | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 |   APIS    |      UniComm       |                               Status                                |                           
 |:---------:|:------------------:|:-------------------------------------------------------------------:|
-| smtp.send | MAIL + RCPT + DATA | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| smtp:send | MAIL + RCPT + DATA | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 ## IMAP APIS
 

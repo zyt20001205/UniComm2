@@ -4,6 +4,8 @@
 #include <QObject>
 #include <sol/object.hpp>
 
+class BasePort;
+
 class Imap final : public QObject {
     Q_OBJECT
 
@@ -12,15 +14,21 @@ public:
 
     ~Imap() override = default;
 
-    [[nodiscard]] int idle(const std::string &portName, int timeout);
+    void init(const std::string &portName, int timeout);
 
-    void login(const std::string &portName, const std::string &username, const std::string &password, int timeout);
+    [[nodiscard]] int _idle(int timeout);
 
-    void select(const std::string &portName, const std::string &mailbox, int timeout);
+    [[nodiscard]] int idle(sol::optional<int> timeout);
 
-    [[nodiscard]] sol::object fetch(sol::this_state ts, const std::string &portName, int sequenceNumber, int timeout);
+    void login(const std::string &username, const std::string &password);
 
-    void receive(const std::string &portName, const std::string &from, const std::string &path, int timeout);
+    void select(const std::string &mailbox);
+
+    [[nodiscard]] sol::object fetch(sol::this_state ts, int sequenceNumber);
+
+    void _receive(const std::string &from, const std::string &path, int timeout);
+
+    void receive(const sol::optional<std::string> &from, const sol::optional<std::string> &path, sol::optional<int> timeout);
 
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
@@ -38,6 +46,9 @@ private:
 
     [[nodiscard]] QByteArray rfc2047Parser(const QByteArray &text);
 
+    std::string m_portName{};
+    int m_timeout{};
+    BasePort *m_port{};
     int m_count{};
 };
 

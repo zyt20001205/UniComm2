@@ -67,7 +67,7 @@ QVariantHash TcpClient::info() {
 }
 
 bool TcpClient::open() {
-    // port init
+    // status check
     if (m_tcpClient == nullptr) {
         m_tcpClient = new QTcpSocket(this);
         connect(m_tcpClient, &QTcpSocket::connected, this, &TcpClient::handleConnected);
@@ -75,9 +75,10 @@ bool TcpClient::open() {
         connect(m_tcpClient, &QTcpSocket::readyRead, this, &TcpClient::handleReadyRead);
         connect(m_tcpClient, &QTcpSocket::errorOccurred, this, &TcpClient::handleError);
     }
+    if (m_tcpClient->state() != QAbstractSocket::UnconnectedState) return true;
+    // port open
     m_tcpClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     m_tcpClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
-    // open port
     m_tcpClient->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     if (!m_tcpClient->waitForConnected()) {
         handleError();
@@ -94,7 +95,9 @@ bool TcpClient::open() {
 }
 
 void TcpClient::close() {
+    // status check
     if (m_tcpClient == nullptr) return;
+    // port close
     switch (m_tcpClient->state()) {
         case QAbstractSocket::ConnectedState: {
             m_tcpClient->disconnectFromHost();

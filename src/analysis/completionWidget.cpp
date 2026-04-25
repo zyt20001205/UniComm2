@@ -171,7 +171,7 @@ void CompletionWidget::textReplace() {
     const int index = m_tableView->property("selectedRow").toInt();
     const int kind = m_completionModel->item(index, 0)->data(Qt::UserRole + 1).toInt();
     QString insertText = m_completionModel->item(index, 0)->text();
-    if (kind == COMPLETION_KIND_FUNCTION) {
+    if (kind == COMPLETION_KIND_METHOD || kind == COMPLETION_KIND_FUNCTION) {
         insertText += "()";
     } else if (kind == COMPLETION_KIND_FIELD) {
         insertText += ".";
@@ -195,7 +195,7 @@ void CompletionWidget::textReplace() {
         m_completionSession["endLine"].toInt(),
         m_completionSession["endCharacter"].toInt());
     int cursorPosition = 0;
-    if (kind == COMPLETION_KIND_FUNCTION) {
+    if (kind == COMPLETION_KIND_METHOD || kind == COMPLETION_KIND_FUNCTION) {
         cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size() - 1;
     } else {
         cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size();
@@ -204,7 +204,7 @@ void CompletionWidget::textReplace() {
         m_completionSession["documentUrl"].toUrl(),
         m_completionSession["startLine"].toInt(),
         cursorPosition);
-    if (kind == COMPLETION_KIND_FUNCTION) {
+    if (kind == COMPLETION_KIND_METHOD || kind == COMPLETION_KIND_FUNCTION) {
         emit addChar(m_completionSession["documentUrl"].toUrl(), '(');
     } else if (kind == COMPLETION_KIND_FIELD) {
         emit addChar(m_completionSession["documentUrl"].toUrl(), '.');

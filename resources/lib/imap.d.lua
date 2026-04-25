@@ -4,40 +4,41 @@
 ---| string
 ---| '"INBOX"'
 
+---@class imap
 imap = {}
 
+---Create an IMAP instance.
+---@param portName string
+---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+---@return imap
+function imap.new(portName, timeout) end
+
 ---Send IDLE command to the server when the client is ready to accept unsolicited mailbox update messages.
----@param name portName Target port name.
----@param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for data to arrive.
+---@param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for mail to arrive.
 ---@return integer sequenceNumber
-function imap.idle(name, timeout) end
+function imap:idle(timeout) end
 
 ---Send LOGIN command to authenticate with IMAP server.
----@param name portName Target port name.
 ---@param username string IMAP username/email address.
 ---@param password password IMAP password.
----@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return nil
-function imap.login(name, username, password, timeout) end
+function imap:login(username, password) end
 
 ---Send SELECT command to select a mailbox so that messages in the mailbox can be accessed.
----@param name portName Target port name.
 ---@param mailbox mailbox IMAP mailbox.
----@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return nil
-function imap.select(name, mailbox, timeout) end
+function imap:select(mailbox) end
 
 ---Send FETCH command to retrieve data associated with a message in the mailbox.
----@param name portName Target port name.
 ---@param sequenceNumber integer Mail sequence number.
----@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return table
-function imap.fetch(name, sequenceNumber, timeout) end
+function imap:fetch(sequenceNumber) end
 
 ---Wait for a new email (optionally from a specific sender) with IDLE and FETCH, then save it to a directory.
----@param name portName Target port name.
 ---@param from? string (default: "") Expected sender; when omitted accept any sender.
 ---@param path? string (default: "") Relative path under the workspace; when omitted uses workspace root.
----@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+---@param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for mail to arrive.
 ---@return nil
-function imap.receive(name, from, path, timeout) end
+function imap:receive(from, path, timeout) end
+
+return imap
