@@ -180,7 +180,7 @@ void UdpSocket::handleLog(const int type, const QByteArray &data) {
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
         emit appendLog(type,
-                       QString("[%1:%2 -> %3:%4]").
+                       QString("[%1:%2 -&gt; %3:%4]").
                        arg(m_portConfig["localHost"].toString(),
                            QString::number(m_portConfig["localPort"].toInt()),
                            m_portConfig["remoteHost"].toString(),
@@ -200,7 +200,7 @@ void UdpSocket::handleLog(const int type, const QByteArray &data) {
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
         emit appendLog(type,
-                       QString("[%1:%2 <- %3:%4] ").
+                       QString("[%1:%2 &lt;- %3:%4] ").
                        arg(m_portConfig["localHost"].toString(),
                            QString::number(m_portConfig["localPort"].toInt()),
                            m_portConfig["remoteHost"].toString(),

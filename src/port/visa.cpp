@@ -132,7 +132,7 @@ void Visa::handleLog(const int type, const QByteArray &data) {
         else if (m_portConfig["txFormat"].toString() == "ascii") txMessage = QString::fromLatin1(data);
         else /* m_portConfig["txFormat"].toString() == "utf-8" */ txMessage = QString::fromUtf8(data);
         // 2: add port info
-        emit appendLog(type, QString("[%1] ->").arg(m_portConfig["portName"].toString()), txMessage);
+        emit appendLog(type, QString("[%1] -&gt;").arg(m_portConfig["portName"].toString()), txMessage);
     } else {
         // rx message reformat
         QString rxMessage{};
@@ -146,6 +146,6 @@ void Visa::handleLog(const int type, const QByteArray &data) {
         else if (m_portConfig["rxFormat"].toString() == "ascii") rxMessage = QString::fromLatin1(data);
         else /* m_portConfig["rxFormat"].toString() == "utf-8" */ rxMessage = QString::fromUtf8(data);
         // 2: add port info
-        emit appendLog(type, QString("[%1] <-").arg(m_portConfig["portName"].toString()), rxMessage);
+        emit appendLog(type, QString("[%1] &lt;-").arg(m_portConfig["portName"].toString()), rxMessage);
     }
 }
