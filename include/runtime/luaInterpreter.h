@@ -18,6 +18,7 @@ class ModbusAscii;
 class ModbusRtu;
 class ModbusTcp;
 class Mouse;
+class Mqtt;
 class Port;
 class Smtp;
 class String;
@@ -77,6 +78,7 @@ private:
     ModbusRtu *m_modbusRtu{};
     ModbusTcp *m_modbusTcp{};
     Mouse *m_mouse{};
+    Mqtt *m_mqtt{};
     Port *m_port{};
     Smtp *m_smtp{};
     String *m_string{};

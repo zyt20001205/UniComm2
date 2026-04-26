@@ -107,17 +107,22 @@ QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) 
         case sol::type::table: {
             const auto table = s.as<sol::table>();
             QVariantMap map{};
-            for (const auto &[key, value]: table) {
-                QString key_str;
-                if (key.is<std::string>()) {
-                    key_str = QString::fromStdString(key.as<std::string>());
-                } else if (key.is<int>()) {
-                    key_str = QString::number(key.as<int>());
-                } else if (key.is<double>()) {
-                    key_str = QString::number(key.as<double>());
-                } else {
-                    continue;
-                }
+            sol::state_view lua(table.lua_state());
+            const auto pairs = lua["pairs"](table);
+            const auto next = pairs.get<sol::function>(0);
+            const auto data = pairs.get<sol::object>(1);
+            auto currentKey = pairs.get<sol::object>(2);
+            while (true) {
+                auto pair = next(data, currentKey);
+                auto key = pair.get<sol::object>(0);
+                if (key.get_type() == sol::type::nil) break;
+                auto value = pair.get<sol::object>(1);
+                currentKey = key;
+                QString key_str{};
+                if (key.is<std::string>()) key_str = QString::fromStdString(key.as<std::string>());
+                else if (key.is<int>()) key_str = QString::number(key.as<int>());
+                else if (key.is<double>()) key_str = QString::number(key.as<double>());
+                else continue;
                 map[key_str] = uni_cast<QVariant>(value, depth + 1);
             }
             return QVariant::fromValue(map);

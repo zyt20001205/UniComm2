@@ -17,6 +17,7 @@
 #include "api/modbusRtu.h"
 #include "api/modbusTcp.h"
 #include "api/mouse.h"
+#include "api/mqtt.h"
 #include "api/smtp.h"
 #include "api/string.h"
 #include "api/thread.h"
@@ -38,6 +39,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
       m_modbusRtu(new ModbusRtu(this)),
       m_modbusTcp(new ModbusTcp(this)),
       m_mouse(new Mouse(this)),
+      m_mqtt(new Mqtt(this)),
       m_port(new Port(this)),
       m_smtp(new Smtp(this)),
       m_string(new String(this)),
@@ -181,6 +183,23 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         mouse.set_function("doubleClick", [](const int x, const int y) { Mouse::doubleClick(x, y); });
         mouse.set_function("rightClick", [](const int x, const int y) { Mouse::rightClick(x, y); });
         m_lua["mouse"] = mouse;
+    }
+    // Mqtt lib (instance)
+    {
+        m_lua.new_usertype<Mqtt>(
+            "mqtt",
+            sol::no_constructor,
+            sol::meta_function::garbage_collect, [](Mqtt *) {
+            },
+            "options", sol::readonly_property(&Mqtt::optionsProxy)
+        );
+        auto mqtt = m_lua.create_table();
+        mqtt.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
+            auto *obj = new Mqtt(this);
+            // obj->init(portName, timeout.value_or(1000));
+            return obj;
+        });
+        m_lua["mqtt"] = mqtt;
     }
     // Port lib (static)
     {

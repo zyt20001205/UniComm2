@@ -53,6 +53,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/api/modbusRtu.h
         include/api/modbusTcp.h
         include/api/mouse.h
+        include/api/mqtt.h
         include/api/port.h
         include/api/smtp.h
         include/api/string.h
@@ -126,6 +127,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/api/modbusRtu.cpp
         src/api/modbusTcp.cpp
         src/api/mouse.cpp
+        src/api/mqtt.cpp
         src/api/port.cpp
         src/api/smtp.cpp
         src/api/string.cpp

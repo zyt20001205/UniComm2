@@ -3160,7 +3160,7 @@ Item {
                 }
 
                 Label {
-                    text: qsTr("Run ") + (menuModuleExecMenu.menuSession.text ? "Selected" : menuModuleExecMenu.menuSession.documentName)
+                    text: qsTr("Run ") + (menuModuleExecMenu.menuSession ? menuModuleExecMenu.menuSession.text ? "Selected" : menuModuleExecMenu.menuSession.documentName : "")
                 }
 
                 Item {
@@ -3203,7 +3203,7 @@ Item {
                 }
 
                 Label {
-                    text: qsTr("Debug ") + menuModuleExecMenu.menuSession.documentName
+                    text: qsTr("Debug ") + (menuModuleExecMenu.menuSession ? menuModuleExecMenu.menuSession.documentName : "")
                 }
 
                 Item {
