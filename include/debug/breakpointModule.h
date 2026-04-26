@@ -42,6 +42,8 @@ public:
 
     Q_INVOKABLE static void conditionSet(const QUrl &documentUrl, int line, const QString &condition);
 
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 signals:
     void openDocument(const QUrl &documentUrl);
 
@@ -49,13 +51,10 @@ signals:
 
     void deleteMarker(const QUrl &documentUrl, int type, int line);
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
-
 private:
-    QQuickWidget *m_breakpointWidget{};
-    QObject *m_breakpointTreeView{};
-    QStandardItemModel *m_breakpointStandardItemModel{};
+    QQuickWidget *m_widget{};
+    QObject *m_treeView{};
+    QStandardItemModel *m_standardItemModel{};
 };
 
 #endif //UNICOMM_BREAKPOINTMODULE_H

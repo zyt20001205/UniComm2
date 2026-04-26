@@ -40,10 +40,10 @@ signals:
 private:
     void documentSymbolPublish(const QJsonArray &result, QStandardItem *parentItem);
 
-    QUrl m_currentDocumentUrl{};
-    QQuickWidget *m_structureWidget{};
-    QObject *m_structureTreeView{};
-    QStandardItemModel *m_structureStandardItemModel{};
+    QUrl m_documentUrl{};
+    QQuickWidget *m_widget{};
+    QObject *m_treeView{};
+    QStandardItemModel *m_standardItemModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
 };
 

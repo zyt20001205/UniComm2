@@ -12,10 +12,10 @@
 // public
 StructureModule::StructureModule()
     : DockWidget("Structure"),
-      m_structureWidget(new QQuickWidget()),
-      m_structureStandardItemModel(new QStandardItemModel()) {
-    setWidget(m_structureWidget);
-    m_structureWidget->installEventFilter(this);
+      m_widget(new QQuickWidget()),
+      m_standardItemModel(new QStandardItemModel()) {
+    setWidget(m_widget);
+    m_widget->installEventFilter(this);
 }
 
 StructureModule::~StructureModule() {
@@ -24,52 +24,52 @@ StructureModule::~StructureModule() {
 }
 
 void StructureModule::propertySet(const QVariantMap &objects) {
-    m_structureWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
-    m_structureWidget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
-    m_structureWidget->rootContext()->setContextProperty("structureModule", this);
-    m_structureWidget->rootContext()->setContextProperty("standardItemModel", m_structureStandardItemModel);
-    m_structureWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_structureWidget->setSource(QUrl("qrc:/qml/analysis/structureModule.qml"));
+    m_widget->rootContext()->setContextProperty("structureModule", this);
+    m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/analysis/structureModule.qml"));
 }
 
 void StructureModule::propertyGet(const QVariantMap &objects) {
-    m_structureTreeView = qvariant_cast<QObject *>(objects["treeView"]);
+    m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
 }
 
 void StructureModule::documentSymbolResponse(const QUrl &documentUrl, const QJsonArray &result) {
     m_documentSymbolHash[documentUrl] = result;
-    if (documentUrl == m_currentDocumentUrl) {
-        m_structureStandardItemModel->clear();
+    if (documentUrl == m_documentUrl) {
+        m_standardItemModel->clear();
         documentSymbolPublish(result, nullptr);
     }
 }
 
 void StructureModule::documentFocus(const QUrl &documentUrl, const QVariantHash &session) {
-    if (documentUrl == m_currentDocumentUrl) return;
-    m_currentDocumentUrl = documentUrl;
-    m_structureStandardItemModel->clear();
+    if (documentUrl == m_documentUrl) return;
+    m_documentUrl = documentUrl;
+    m_standardItemModel->clear();
     if (m_documentSymbolHash.contains(documentUrl)) {
         documentSymbolPublish(m_documentSymbolHash[documentUrl], nullptr);
     }
 }
 
 void StructureModule::markerAdd(const QVariantHash &position) {
-    emit setFocus(m_currentDocumentUrl,
+    emit setFocus(m_documentUrl,
                   true);
-    emit setIndex(m_currentDocumentUrl,
+    emit setIndex(m_documentUrl,
                   position["startLine"].toInt(),
                   position["startCharacter"].toInt());
-    emit addMarker(m_currentDocumentUrl,
+    emit addMarker(m_documentUrl,
                    MARKER_HINT,
                    position["startLine"].toInt(),
                    1000);
 }
 
 bool StructureModule::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_structureWidget) {
+    if (watched == m_widget) {
         if (event->type() == QEvent::FocusOut) {
-            m_structureTreeView->setProperty("selectedRow", -1);
+            m_treeView->setProperty("selectedRow", -1);
         }
     }
     return DockWidget::eventFilter(watched, event);
@@ -145,7 +145,7 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         if (parentItem) {
             parentItem->appendRow(item);
         } else {
-            m_structureStandardItemModel->appendRow(item);
+            m_standardItemModel->appendRow(item);
         }
         if (symbol.contains("children")) {
             QJsonArray children = symbol["children"].toArray();

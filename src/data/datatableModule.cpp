@@ -15,8 +15,8 @@
 // public
 DatatableModule::DatatableModule()
     : DockWidget("Data Table"),
-      m_datatableWidget(new QQuickWidget()) {
-    setWidget(m_datatableWidget);
+      m_widget(new QQuickWidget()) {
+    setWidget(m_widget);
     g_datatableHeaderItemModel = new QStandardItemModel(this);
     g_datatableStandardItemModel = new QStandardItemModel(this);
     for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
@@ -31,16 +31,16 @@ DatatableModule::~DatatableModule() {
 }
 
 void DatatableModule::propertySet(const QVariantMap &objects) {
-    m_datatableWidget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
-    m_datatableWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
-    m_datatableWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
+    m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
 
-    m_datatableWidget->rootContext()->setContextProperty("datatableModule", this);
-    m_datatableWidget->rootContext()->setContextProperty("headerItemModel", g_datatableHeaderItemModel);
-    m_datatableWidget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
-    m_datatableWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_datatableWidget->setSource(QUrl("qrc:/qml/data/datatableModule.qml"));
-    m_rootItem = m_datatableWidget->rootObject();
+    m_widget->rootContext()->setContextProperty("datatableModule", this);
+    m_widget->rootContext()->setContextProperty("headerItemModel", g_datatableHeaderItemModel);
+    m_widget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/data/datatableModule.qml"));
+    m_item = m_widget->rootObject();
 }
 
 void DatatableModule::datatableConfigSave() {
@@ -98,7 +98,7 @@ void DatatableModule::datatableSwap(const int src, const int dst) {
     tmp = g_datatableStandardItemModel->takeColumn(src);
     g_datatableStandardItemModel->insertColumn(dst, tmp);
     datatableIndex();
-    QMetaObject::invokeMethod(m_rootItem, "reload");
+    QMetaObject::invokeMethod(m_item, "reload");
 }
 
 void DatatableModule::datatableClear() {

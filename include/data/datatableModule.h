@@ -46,8 +46,8 @@ signals:
 private:
     void datatableIndex();
 
-    QQuickWidget *m_datatableWidget{};
-    QQuickItem *m_rootItem{};
+    QQuickWidget *m_widget{};
+    QQuickItem *m_item{};
     QHash<QString, int> m_datatableHash{};
     QHash<QString, QVariantHash> m_datatableSession{};
 };

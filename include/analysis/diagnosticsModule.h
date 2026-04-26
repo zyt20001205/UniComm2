@@ -31,8 +31,8 @@ signals:
     void fillIndicator(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time);
 
 private:
-    QQuickWidget *m_diagnosticsWidget{};
-    QQuickItem *m_rootItem{};
+    QQuickWidget *m_widget{};
+    QQuickItem *m_root{};
     QHash<QUrl, QStandardItemModel *> m_diagnosticsModelHash{};
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 

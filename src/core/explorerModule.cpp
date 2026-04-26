@@ -9,10 +9,10 @@
 // public
 ExplorerModule::ExplorerModule()
     : DockWidget("Explorer"),
-      m_explorerWidget(new QQuickWidget()),
-      m_explorerFileSystemModel(new QFileSystemModel()) {
-    setWidget(m_explorerWidget);
-    m_explorerWidget->installEventFilter(this);
+      m_widget(new QQuickWidget()),
+      m_fileSystemModel(new QFileSystemModel()) {
+    setWidget(m_widget);
+    m_widget->installEventFilter(this);
 }
 
 ExplorerModule::~ExplorerModule() {
@@ -21,23 +21,23 @@ ExplorerModule::~ExplorerModule() {
 }
 
 void ExplorerModule::propertySet(const QVariantMap &objects) {
-    m_explorerWidget->rootContext()->setContextProperty("scriptMenu", qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]));
-    m_explorerWidget->rootContext()->setContextProperty("folderMenu", qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]));
-    m_explorerWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("scriptMenu", qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]));
+    m_widget->rootContext()->setContextProperty("folderMenu", qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
 
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
-    m_explorerFileSystemModel->setRootPath(modelRootPath);
-    const QModelIndex modelRootIndex = m_explorerFileSystemModel->index(modelRootPath);
-    m_explorerWidget->rootContext()->setContextProperty("explorerModule", this);
-    m_explorerWidget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
-    m_explorerWidget->rootContext()->setContextProperty("modelRootPath", modelRootPath);
-    m_explorerWidget->rootContext()->setContextProperty("fileSystemModel", m_explorerFileSystemModel);
-    m_explorerWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_explorerWidget->setSource(QUrl("qrc:/qml/core/explorerModule.qml"));
+    m_fileSystemModel->setRootPath(modelRootPath);
+    const QModelIndex modelRootIndex = m_fileSystemModel->index(modelRootPath);
+    m_widget->rootContext()->setContextProperty("explorerModule", this);
+    m_widget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
+    m_widget->rootContext()->setContextProperty("modelRootPath", modelRootPath);
+    m_widget->rootContext()->setContextProperty("fileSystemModel", m_fileSystemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/core/explorerModule.qml"));
 }
 
 void ExplorerModule::propertyGet(const QVariantMap &objects) {
-    m_explorerTreeView = qvariant_cast<QObject *>(objects["treeView"]);
+    m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
 }
 
 void ExplorerModule::scriptRun(const QString &documentPath) {
@@ -56,9 +56,9 @@ void ExplorerModule::documentOpen(const QString &documentPath) {
 }
 
 bool ExplorerModule::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_explorerWidget) {
+    if (watched == m_widget) {
         if (event->type() == QEvent::FocusOut) {
-            m_explorerTreeView->setProperty("selectedRow", -1);
+            m_treeView->setProperty("selectedRow", -1);
         }
     }
     return DockWidget::eventFilter(watched, event);

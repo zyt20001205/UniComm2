@@ -49,10 +49,10 @@ signals:
     void setState(const QString &threadId, int state);
 
 private:
-    QQuickWidget *m_debugWidget{};
+    QQuickWidget *m_widget{};
     QObject *m_errorDialog{};
     QObject *m_threadComboBox{};
-    QStringListModel *m_threadStringListModel{};
+    QStringListModel *m_stringListModel{};
     QHash<QString, QStandardItemModel *> m_callStackModelHash{};
 };
 

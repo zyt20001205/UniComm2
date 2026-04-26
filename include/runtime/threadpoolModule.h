@@ -59,11 +59,11 @@ private:
 
     void messageDialogNew(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 
-    QHash<QString, QThread *> m_threadHash{};
-    QHash<QString, LuaInterpreter *> m_interpreterHash{};
-    QQuickWidget *m_threadpoolWidget{};
+    QQuickWidget *m_widget{};
     QQuickItem *m_mainItem{};
     QObject* m_errorDialog{};
+    QHash<QString, QThread *> m_threadHash{};
+    QHash<QString, LuaInterpreter *> m_interpreterHash{};
     int m_run = 0;
     int m_debug = 0;
     QStandardItemModel *m_threadpoolStandardItemModel{};

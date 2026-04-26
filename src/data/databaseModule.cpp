@@ -10,8 +10,8 @@
 // public
 DatabaseModule::DatabaseModule()
     : DockWidget("Database"),
-      m_databaseWidget(new QQuickWidget()) {
-    setWidget(m_databaseWidget);
+      m_widget(new QQuickWidget()) {
+    setWidget(m_widget);
     g_databaseStandardItemModel = new QStandardItemModel(this);
     for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
         const QString key = value.toString();
@@ -25,15 +25,15 @@ DatabaseModule::~DatabaseModule() {
 }
 
 void DatabaseModule::propertySet(const QVariantMap &objects) {
-    m_databaseWidget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
-    m_databaseWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));
-    m_databaseWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["databaseModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
+    m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["databaseModuleRootMenu"]));
 
-    m_databaseWidget->rootContext()->setContextProperty("databaseModule", this);
-    m_databaseWidget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
-    m_databaseWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_databaseWidget->setSource(QUrl("qrc:/qml/data/databaseModule.qml"));
-    m_rootItem = m_databaseWidget->rootObject();
+    m_widget->rootContext()->setContextProperty("databaseModule", this);
+    m_widget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/data/databaseModule.qml"));
+    m_root = m_widget->rootObject();
 }
 
 void DatabaseModule::databaseConfigSave() {
@@ -76,7 +76,7 @@ void DatabaseModule::databaseSwap(const int src, const int dst) {
     const auto tmp = g_databaseStandardItemModel->takeRow(src);
     g_databaseStandardItemModel->insertRow(dst, tmp);
     databaseIndex();
-    QMetaObject::invokeMethod(m_rootItem, "reload");
+    QMetaObject::invokeMethod(m_root, "reload");
 }
 
 void DatabaseModule::databaseClear(const int index) {

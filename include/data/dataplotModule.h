@@ -18,7 +18,7 @@ public:
 signals:
 
 private:
-    QQuickWidget *m_dataplotWidget{};
+    QQuickWidget *m_widget{};
 };
 
 #endif //UNICOMM_DATAPLOT_H

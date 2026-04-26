@@ -40,8 +40,8 @@ signals:
 private:
     void databaseIndex();
 
-    QQuickWidget *m_databaseWidget{};
-    QQuickItem *m_rootItem{};
+    QQuickWidget *m_widget{};
+    QQuickItem *m_root{};
     QHash<QString, int> m_databaseHash{};
 };
 

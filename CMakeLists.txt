@@ -62,7 +62,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/core/crashHandler.h
         include/core/explorerModule.h
         include/core/fileModule.h
-        include/core/logModule.h
         include/core/undoModule.h
         include/data/databaseModule.h
         include/data/dataplotModule.h
@@ -97,6 +96,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/port/visa.h
         include/runtime/luaInterpreter.h
         include/runtime/threadpoolModule.h
+        include/terminal/logModule.h
         include/util/cmarkUtils.h
         include/util/cvUtils.h
         include/util/luaUtils.h
@@ -136,7 +136,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/core/crashHandler.cpp
         src/core/explorerModule.cpp
         src/core/fileModule.cpp
-        src/core/logModule.cpp
         src/core/undoModule.cpp
         src/data/databaseModule.cpp
         src/data/dataplotModule.cpp
@@ -171,6 +170,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/port/visa.cpp
         src/runtime/luaInterpreter.cpp
         src/runtime/threadpoolModule.cpp
+        src/terminal/logModule.cpp
         src/util/cmarkUtils.cpp
         src/util/cvUtils.cpp
         src/util/luaUtils.cpp
@@ -188,7 +188,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/analysis/structureModule.qml"
         "qml/analysis/symbolWidget.qml"
         "qml/core/explorerModule.qml"
-        "qml/core/logModule.qml"
+        "qml/terminal/logModule.qml"
         "qml/data/databaseModule.qml"
         "qml/data/dataplotModule.qml"
         "qml/data/datatableModule.qml"

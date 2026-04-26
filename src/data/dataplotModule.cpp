@@ -9,8 +9,8 @@
 // public
 DataplotModule::DataplotModule()
     : DockWidget("Dataplot"),
-      m_dataplotWidget(new QQuickWidget()) {
-    setWidget(m_dataplotWidget);
+      m_widget(new QQuickWidget()) {
+    setWidget(m_widget);
 }
 
 DataplotModule::~DataplotModule() {
@@ -19,14 +19,14 @@ DataplotModule::~DataplotModule() {
 }
 
 void DataplotModule::propertySet(const QVariantMap &objects) {
-    m_dataplotWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["dataplotModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["dataplotModuleRootMenu"]));
 
-    m_dataplotWidget->rootContext()->setContextProperty("dataplotModule", this);
-    m_dataplotWidget->rootContext()->setContextProperty("databaseStandardItemModel", g_databaseStandardItemModel);
-    m_dataplotWidget->rootContext()->setContextProperty("datatableHeaderItemModel", g_datatableHeaderItemModel);
-    m_dataplotWidget->rootContext()->setContextProperty("datatableStandardItemModel", g_datatableStandardItemModel);
-    m_dataplotWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_dataplotWidget->setSource(QUrl("qrc:/qml/data/dataplotModule.qml"));
+    m_widget->rootContext()->setContextProperty("dataplotModule", this);
+    m_widget->rootContext()->setContextProperty("databaseStandardItemModel", g_databaseStandardItemModel);
+    m_widget->rootContext()->setContextProperty("datatableHeaderItemModel", g_datatableHeaderItemModel);
+    m_widget->rootContext()->setContextProperty("datatableStandardItemModel", g_datatableStandardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/data/dataplotModule.qml"));
 }
 
 // private

@@ -1,7 +1,6 @@
 #include "runtime/threadpoolModule.h"
 
 #include <QDir>
-#include <QFile>
 #include <QHeaderView>
 #include <QQmlContext>
 #include <QQuickItem>
@@ -17,9 +16,9 @@
 // public
 ThreadpoolModule::ThreadpoolModule()
     : DockWidget("Threadpool"),
-      m_threadpoolWidget(new QQuickWidget()),
+      m_widget(new QQuickWidget()),
       m_threadpoolStandardItemModel(new QStandardItemModel(this)) {
-    setWidget(m_threadpoolWidget);
+    setWidget(m_widget);
 }
 
 ThreadpoolModule::~ThreadpoolModule() {
@@ -31,14 +30,14 @@ void ThreadpoolModule::propertySet(const QVariantMap &objects) {
     const auto mainObject = qvariant_cast<QObject *>(objects["mainItem"]);
     m_mainItem = qobject_cast<QQuickItem *>(mainObject);
     m_errorDialog = qvariant_cast<QObject *>(objects["threadpoolModuleErrorDialog"]);
-    m_threadpoolWidget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
+    m_widget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
 
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};
-    m_threadpoolWidget->rootContext()->setContextProperty("threadpoolModule", this);
-    m_threadpoolWidget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
-    m_threadpoolWidget->rootContext()->setContextProperty("standardItemModel", m_threadpoolStandardItemModel);
-    m_threadpoolWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_threadpoolWidget->setSource(QUrl("qrc:/qml/runtime/threadpoolModule.qml"));
+    m_widget->rootContext()->setContextProperty("threadpoolModule", this);
+    m_widget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
+    m_widget->rootContext()->setContextProperty("standardItemModel", m_threadpoolStandardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/runtime/threadpoolModule.qml"));
 }
 
 void ThreadpoolModule::quit() {

@@ -24,9 +24,9 @@
 // public
 PortModule::PortModule()
     : DockWidget("Port"),
-      m_portWidget(new QQuickWidget()),
+      m_widget(new QQuickWidget()),
       m_portSetting(new PortSetting(this)) {
-    setWidget(m_portWidget);
+    setWidget(m_widget);
     connect(m_portSetting, &PortSetting::insertPort, this, &PortModule::portInsert);
     connect(m_portSetting, &PortSetting::editPort, this, &PortModule::portEdit);
     g_portStandardItemModel = new QStandardItemModel(this);
@@ -45,14 +45,14 @@ PortModule::~PortModule() {
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
-    m_portWidget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["portModuleTableMenu"]));
-    m_portWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["portModuleTableMenu"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));
 
-    m_portWidget->rootContext()->setContextProperty("portModule", this);
-    m_portWidget->rootContext()->setContextProperty("standardItemModel", g_portStandardItemModel);
-    m_portWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_portWidget->setSource(QUrl("qrc:/qml/port/portModule.qml"));
-    m_rootItem = m_portWidget->rootObject();
+    m_widget->rootContext()->setContextProperty("portModule", this);
+    m_widget->rootContext()->setContextProperty("standardItemModel", g_portStandardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/port/portModule.qml"));
+    m_rootItem = m_widget->rootObject();
 }
 
 void PortModule::portConfigSave() {

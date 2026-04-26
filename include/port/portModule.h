@@ -46,7 +46,7 @@ signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
 private:
-    QQuickWidget *m_portWidget{};
+    QQuickWidget *m_widget{};
     QQuickItem *m_rootItem{};
     PortSetting *m_portSetting{};
 };

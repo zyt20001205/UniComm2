@@ -30,8 +30,8 @@ public:
 signals:
 
 private:
-    QQuickWidget *m_watchWidget{};
-    QQuickItem *m_rootItem{};
+    QQuickWidget *m_widget{};
+    QQuickItem *m_item{};
 };
 
 #endif //UNICOMM_WATCHMODULE_H

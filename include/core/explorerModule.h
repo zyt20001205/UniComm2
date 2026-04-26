@@ -34,9 +34,9 @@ signals:
     void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
-    QQuickWidget *m_explorerWidget{};
-    QFileSystemModel *m_explorerFileSystemModel{};
-    QObject *m_explorerTreeView{};
+    QQuickWidget *m_widget{};
+    QFileSystemModel *m_fileSystemModel{};
+    QObject *m_treeView{};
 };
 
 #endif //UNICOMM_EXPLORER_H

@@ -11,8 +11,8 @@
 // public
 WatchModule::WatchModule()
     : DockWidget("Watch"),
-      m_watchWidget(new QQuickWidget()) {
-    setWidget(m_watchWidget);
+      m_widget(new QQuickWidget()) {
+    setWidget(m_widget);
     g_watchStandardItemModel = new QStandardItemModel(this);
     auto watchConfig = g_workspaceConfig["watchConfig"].toArray();
     for (const auto &value : watchConfig) {
@@ -29,15 +29,15 @@ WatchModule::~WatchModule() {
 }
 
 void WatchModule::propertySet(const QVariantMap &objects) {
-    m_watchWidget->rootContext()->setContextProperty("expressionMenu", qvariant_cast<QObject *>(objects["watchModuleExpressionMenu"]));
-    m_watchWidget->rootContext()->setContextProperty("valueMenu", qvariant_cast<QObject *>(objects["watchModuleValueMenu"]));
-    m_watchWidget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["watchModuleRootMenu"]));
+    m_widget->rootContext()->setContextProperty("expressionMenu", qvariant_cast<QObject *>(objects["watchModuleExpressionMenu"]));
+    m_widget->rootContext()->setContextProperty("valueMenu", qvariant_cast<QObject *>(objects["watchModuleValueMenu"]));
+    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["watchModuleRootMenu"]));
 
-    m_watchWidget->rootContext()->setContextProperty("watchModule", this);
-    m_watchWidget->rootContext()->setContextProperty("standardItemModel", g_watchStandardItemModel);
-    m_watchWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_watchWidget->setSource(QUrl("qrc:/qml/debug/watchModule.qml"));
-    m_rootItem = m_watchWidget->rootObject();
+    m_widget->rootContext()->setContextProperty("watchModule", this);
+    m_widget->rootContext()->setContextProperty("standardItemModel", g_watchStandardItemModel);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/debug/watchModule.qml"));
+    m_item = m_widget->rootObject();
 }
 
 void WatchModule::watchConfigSave() const {
@@ -71,7 +71,7 @@ void WatchModule::watchRename(const int index, const QUrl &documentUrl, const QS
 void WatchModule::watchSwap(const int src, const int dst) {
     const auto tmp = g_watchStandardItemModel->takeRow(src);
     g_watchStandardItemModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_rootItem, "reload");
+    QMetaObject::invokeMethod(m_item, "reload");
 }
 
 void WatchModule::watchClear(const int index) {

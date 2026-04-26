@@ -26,7 +26,6 @@
 #include "core/configManager.h"
 #include "core/explorerModule.h"
 #include "core/fileModule.h"
-#include "core/logModule.h"
 #include "core/undoModule.h"
 #include "data/databaseModule.h"
 #include "data/dataplotModule.h"
@@ -41,6 +40,7 @@
 #include "port/sendModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
+#include "terminal/logModule.h"
 
 // public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)

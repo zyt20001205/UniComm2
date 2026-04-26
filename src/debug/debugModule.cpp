@@ -1,17 +1,12 @@
 #include "debug/debugModule.h"
 
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QInputDialog>
-#include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QStringListModel>
-#include <QThread>
 
 #include "globals.h"
 #include "runtime/luaInterpreter.h"
@@ -20,9 +15,9 @@
 // public
 DebugModule::DebugModule()
     : DockWidget("Debug"),
-      m_debugWidget(new QQuickWidget()),
-      m_threadStringListModel(new QStringListModel()) {
-    setWidget(m_debugWidget);
+      m_widget(new QQuickWidget()),
+      m_stringListModel(new QStringListModel()) {
+    setWidget(m_widget);
 }
 
 DebugModule::~DebugModule() {
@@ -33,11 +28,11 @@ DebugModule::~DebugModule() {
 void DebugModule::propertySet(const QVariantMap &objects) {
     m_errorDialog = qvariant_cast<QObject *>(objects["debugModuleErrorDialog"]);
 
-    m_debugWidget->rootContext()->setContextProperty("debugModule", this);
-    m_debugWidget->rootContext()->setContextProperty("stringListModel", m_threadStringListModel);
-    m_debugWidget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());
-    m_debugWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_debugWidget->setSource(QUrl("qrc:/qml/debug/debugModule.qml"));
+    m_widget->rootContext()->setContextProperty("debugModule", this);
+    m_widget->rootContext()->setContextProperty("stringListModel", m_stringListModel);
+    m_widget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/debug/debugModule.qml"));
 }
 
 void DebugModule::propertyGet(const QVariantMap &objects) {
@@ -45,16 +40,16 @@ void DebugModule::propertyGet(const QVariantMap &objects) {
 }
 
 void DebugModule::debugStart(const QString &threadId) const {
-    QStringList threads = m_threadStringListModel->stringList();
+    QStringList threads = m_stringListModel->stringList();
     threads.append(threadId);
-    m_threadStringListModel->setStringList(threads);
+    m_stringListModel->setStringList(threads);
 }
 
 void DebugModule::debugStop(const QString &threadId) {
     // string list model
-    QStringList threads = m_threadStringListModel->stringList();
+    QStringList threads = m_stringListModel->stringList();
     threads.removeOne(threadId);
-    m_threadStringListModel->setStringList(threads);
+    m_stringListModel->setStringList(threads);
     // standard item model
     m_callStackModelHash.remove(threadId);
 }
@@ -83,21 +78,21 @@ void DebugModule::callStackInsert(const QString &threadId, QStandardItemModel *c
         m_callStackModelHash.insert(threadId, callStackModel);
     } else {
         m_callStackModelHash[threadId] = callStackModel;
-        m_debugWidget->rootContext()->setContextProperty("standardItemModel", callStackModel);
+        m_widget->rootContext()->setContextProperty("standardItemModel", callStackModel);
     }
 }
 
 void DebugModule::callStackSwitch(const QString &threadId) const {
     if (threadId.isEmpty()) {
-        m_debugWidget->rootContext()->setContextProperty("standardItemModel", nullptr);
+        m_widget->rootContext()->setContextProperty("standardItemModel", nullptr);
         return;
     }
     auto *callStackModel = m_callStackModelHash.value(threadId, nullptr);
     if (!callStackModel) {
-        m_debugWidget->rootContext()->setContextProperty("standardItemModel", nullptr);
+        m_widget->rootContext()->setContextProperty("standardItemModel", nullptr);
         return;
     }
-    m_debugWidget->rootContext()->setContextProperty("standardItemModel", callStackModel);
+    m_widget->rootContext()->setContextProperty("standardItemModel", callStackModel);
 }
 
 void DebugModule::markerAdd(const QVariantHash &position) {

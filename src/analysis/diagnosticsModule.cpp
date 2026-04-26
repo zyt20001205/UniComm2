@@ -15,8 +15,8 @@
 // public
 DiagnosticsModule::DiagnosticsModule()
     : DockWidget("Diagnostics"),
-      m_diagnosticsWidget(new QQuickWidget()) {
-    setWidget(m_diagnosticsWidget);
+      m_widget(new QQuickWidget()) {
+    setWidget(m_widget);
 }
 
 DiagnosticsModule::~DiagnosticsModule() {
@@ -25,14 +25,14 @@ DiagnosticsModule::~DiagnosticsModule() {
 }
 
 void DiagnosticsModule::propertySet(const QVariantMap &objects) {
-    m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticMenu", qvariant_cast<QObject *>(objects["diagnosticsModuleDiagnosticMenu"]));
+    m_widget->rootContext()->setContextProperty("diagnosticMenu", qvariant_cast<QObject *>(objects["diagnosticsModuleDiagnosticMenu"]));
 
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
-    m_diagnosticsWidget->rootContext()->setContextProperty("diagnosticsModule", this);
-    m_diagnosticsWidget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
-    m_diagnosticsWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_diagnosticsWidget->setSource(QUrl("qrc:/qml/analysis/diagnosticsModule.qml"));
-    m_rootItem = m_diagnosticsWidget->rootObject();
+    m_widget->rootContext()->setContextProperty("diagnosticsModule", this);
+    m_widget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
+    m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_widget->setSource(QUrl("qrc:/qml/analysis/diagnosticsModule.qml"));
+    m_root = m_widget->rootObject();
 }
 
 void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
@@ -93,7 +93,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const Q
     }
     if (!m_diagnosticsModelHash.contains(documentUrl) && diagnosticsModel->rowCount() != 0) {
         m_diagnosticsModelHash.insert(documentUrl, diagnosticsModel);
-        QMetaObject::invokeMethod(m_rootItem, "append", Q_ARG(QVariant, documentUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
+        QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, documentUrl.fileName()), Q_ARG(QVariant, QVariant::fromValue(diagnosticsModel)));
     } else {
         m_diagnosticsModelHash[documentUrl] = diagnosticsModel;
     }
