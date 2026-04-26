@@ -1,13 +1,16 @@
 ---@meta
 
----@class smtp
-smtp = {}
+---@class Smtp
+Smtp = {}
 
 ---Create an SMTP instance.
 ---@param portName string
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return smtp
-function smtp.new(portName, timeout) end
+function Smtp.new(portName, timeout) end
+
+---@class smtp
+smtp = {}
 
 ---Send AUTH LOGIN command to authenticate with SMTP server.
 ---@param username string SMTP username/email address.
@@ -33,5 +36,3 @@ function smtp:send(from, to, cc, bcc, subject, body, attachment) end
 ---Send QUIT command to SMTP server to end communication.
 ---@return nil
 function smtp:quit() end
-
-return smtp

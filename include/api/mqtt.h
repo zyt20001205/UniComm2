@@ -5,6 +5,8 @@
 #include <QObject>
 #include <sol/object.hpp>
 
+class BasePort;
+
 class Mqtt final : public QObject {
     Q_OBJECT
 
@@ -21,13 +23,14 @@ public:
 
     [[nodiscard]] sol::table optionsProxy(sol::this_state ts) const;
 
-    // [[nodiscard]] static std::string readHoldingRegisters(const std::string &portName, int slaveAddr, int startAddr, int quantity, int timeout);
-    //
-    // static void writeSingleRegister(const std::string &portName, int slaveAddr, int regAddr, const std::string &data, int timeout);
-    //
-    // static void writeMultipleRegisters(const std::string &portName, int slaveAddr, int startAddr, const std::string &data, int timeout);
+    void init(const std::string &portName, int timeout);
 
     QVariantHash m_options{};
+
+private:
+    std::string m_portName{};
+    int m_timeout{};
+    BasePort *m_port{};
 };
 
 #endif //UNICOMM_MQTT_H

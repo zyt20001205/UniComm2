@@ -87,10 +87,7 @@ bool TcpClient::open() {
     emit refreshPort(m_portConfig["portName"].toString(), true);
     emit appendLog(LOG_INFO,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
-                   QString("connecting to %1:%2").
-                   arg(m_portConfig["portName"].toString(),
-                       m_portConfig["remoteHost"].toString(),
-                       QString::number(m_portConfig["remotePort"].toInt())));
+                   QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     return true;
 }
 
@@ -149,20 +146,14 @@ void TcpClient::handleConnected() {
     m_tcpClientLocalPort = m_tcpClient->localPort();
     emit appendLog(LOG_INFO,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
-                   QString("connected to %1:%2").
-                   arg(m_portConfig["portName"].toString(),
-                       m_portConfig["remoteHost"].toString(),
-                       QString::number(m_portConfig["remotePort"].toInt())));
+                   QString("connected to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void TcpClient::handleDisconnected() {
     clear();
     emit appendLog(LOG_INFO,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
-                   QString("disconnected from %1:%2").
-                   arg(m_portConfig["portName"].toString(),
-                       m_portConfig["remoteHost"].toString(),
-                       QString::number(m_portConfig["remotePort"].toInt())));
+                   QString("disconnected from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void TcpClient::handleReadyRead() {

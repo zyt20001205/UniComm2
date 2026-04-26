@@ -88,7 +88,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Imap lib (instance)
     {
         m_lua.new_usertype<Imap>(
-            "imap",
+            "Imap",
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](Imap *) {
             },
@@ -105,7 +105,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             connect(obj, &Imap::appendLog, this, &LuaInterpreter::appendLog);
             return obj;
         });
-        m_lua["imap"] = imap;
+        m_lua["Imap"] = imap;
     }
     // IO lib (static)
     {
@@ -187,7 +187,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Mqtt lib (instance)
     {
         m_lua.new_usertype<Mqtt>(
-            "mqtt",
+            "Mqtt",
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](Mqtt *) {
             },
@@ -196,10 +196,10 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
         auto mqtt = m_lua.create_table();
         mqtt.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
             auto *obj = new Mqtt(this);
-            // obj->init(portName, timeout.value_or(1000));
+            obj->init(portName, timeout.value_or(1000));
             return obj;
         });
-        m_lua["mqtt"] = mqtt;
+        m_lua["Mqtt"] = mqtt;
     }
     // Port lib (static)
     {
@@ -227,7 +227,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     // Smtp lib (instance)
     {
         m_lua.new_usertype<Smtp>(
-            "smtp",
+            "Smtp",
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](Smtp *) {
             },
@@ -242,7 +242,7 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             obj->init(portName, timeout.value_or(1000));
             return obj;
         });
-        m_lua["smtp"] = smtp;
+        m_lua["Smtp"] = smtp;
     }
     // String lib (static)
     {

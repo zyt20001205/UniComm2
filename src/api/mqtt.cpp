@@ -3,11 +3,21 @@
 #include <sol/state_view.hpp>
 #include <sol/table_core.hpp>
 
+#include "globals.h"
+#include "port/basePort.h"
+#include "port/portModule.h"
 #include "util/uniCast.h"
 
 Mqtt::Mqtt(QObject *parent)
     : QObject(parent) {
-    m_options["protocol"] = "MQTT 3.1";
+    m_options = {
+        {"protocol", "MQTT 3.1"},
+        {"clientId", "anything"},
+        {"cleanStart", true},
+        {"username", ""},
+        {"password", ""},
+        {"keepAlive", 60},
+    };
 }
 
 sol::object Mqtt::optionLog(const sol::this_state ts) const {
@@ -42,3 +52,23 @@ sol::table Mqtt::optionsProxy(const sol::this_state ts) const {
     table[sol::metatable_key] = metatable;
     return table;
 }
+
+void Mqtt::init(const std::string &portName, const int timeout) {
+    const auto _portName = QString::fromStdString(portName);
+    if (!g_port->m_portHash.contains(_portName)) throw sol::error(portName + " does not exist");
+    m_portName = portName;
+    m_timeout = timeout;
+    m_port = g_port->m_portHash[_portName];
+
+    QString exception{};
+
+    QMetaObject::invokeMethod(m_port, [&exception, this] {
+        if (!m_port->open()) {
+            exception = "open failed";
+            return;
+        }
+    }, Qt::BlockingQueuedConnection);
+    if (!exception.isEmpty()) throw sol::error(m_portName + ": " + exception.toStdString());
+}
+
+

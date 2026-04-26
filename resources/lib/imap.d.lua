@@ -1,17 +1,20 @@
 ---@meta
 
+---@class Imap
+Imap = {}
+
+---Create an IMAP instance.
+---@param portName string
+---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
+---@return imap
+function Imap.new(portName, timeout) end
+
 ---@alias mailbox
 ---| string
 ---| '"INBOX"'
 
 ---@class imap
 imap = {}
-
----Create an IMAP instance.
----@param portName string
----@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
----@return imap
-function imap.new(portName, timeout) end
 
 ---Send IDLE command to the server when the client is ready to accept unsolicited mailbox update messages.
 ---@param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for mail to arrive.
@@ -40,5 +43,3 @@ function imap:fetch(sequenceNumber) end
 ---@param timeout? integer (default: 600000) Maximum time in **milliseconds** to wait for mail to arrive.
 ---@return nil
 function imap:receive(from, path, timeout) end
-
-return imap
