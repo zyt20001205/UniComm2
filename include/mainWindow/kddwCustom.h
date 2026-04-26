@@ -2,7 +2,18 @@
 #define UNICOMM_KDDWCUSTOM_H
 
 #include <kddockwidgets/qtwidgets/Separator.h>
+#include <kddockwidgets/qtwidgets/Stack.h>
 #include <kddockwidgets/qtwidgets/ViewFactory.h>
+
+class MyStack final : public KDDockWidgets::QtWidgets::Stack {
+public:
+    explicit MyStack(KDDockWidgets::Core::Stack *controller, QWidget *parent);
+
+    ~MyStack() override = default;
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
+};
 
 class MySeparator final : public KDDockWidgets::QtWidgets::Separator {
 public:
@@ -18,7 +29,9 @@ class CustomWidgetFactory final : public KDDockWidgets::QtWidgets::ViewFactory {
     Q_OBJECT
 
 public:
-    KDDockWidgets::Core::View *createSeparator(KDDockWidgets::Core::Separator *, KDDockWidgets::Core::View *parent = nullptr) const override;
+    KDDockWidgets::Core::View *createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const override;
+
+    KDDockWidgets::Core::View *createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent = nullptr) const override;
 };
 
 #endif //UNICOMM_KDDWCUSTOM_H

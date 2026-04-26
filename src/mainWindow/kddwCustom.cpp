@@ -2,6 +2,15 @@
 
 #include <QPainter>
 
+MyStack::MyStack(KDDockWidgets::Core::Stack *controller, QWidget *parent)
+    : Stack(controller, parent) {
+}
+
+void MyStack::paintEvent(QPaintEvent *event) {
+    QPainter p(this);
+    p.fillRect(QWidget::rect(), "#ffffff");
+}
+
 MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent)
     : Separator(controller, parent) {
 }
@@ -9,6 +18,10 @@ MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidge
 void MySeparator::paintEvent(QPaintEvent *event) {
     QPainter p(this);
     p.fillRect(QWidget::rect(), "#ebebeb");
+}
+
+KDDockWidgets::Core::View * CustomWidgetFactory::createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const {
+    return new MyStack(controller, KDDockWidgets::QtCommon::View_qt::asQWidget(parent));
 }
 
 KDDockWidgets::Core::View *CustomWidgetFactory::createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent) const {

@@ -291,15 +291,15 @@ gantt
 
 |   APIS    | RFC 2177 |                               Status                                |                           
 |:---------:|:--------:|:-------------------------------------------------------------------:|
-| imap.idle |   IDLE   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| imap:idle |   IDLE   | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 |    APIS     |   RFC 3501   |                               Status                                |                           
 |:-----------:|:------------:|:-------------------------------------------------------------------:|
 |             |   STARTTLS   |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
 |             | AUTHENTICATE |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        | 
-| imap.login  |    LOGIN     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| imap:login  |    LOGIN     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 |             |              |                                                                     |
-| imap.select |    SELECT    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| imap:select |    SELECT    | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 |             |   EXAMINE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |    CREATE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |    DELETE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
@@ -315,14 +315,14 @@ gantt
 |             |    CLOSE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |   EXPUNGE    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |    SEARCH    |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
-| imap.fetch  |    FETCH     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
+| imap:fetch  |    FETCH     | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 |             |    STORE     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |     COPY     |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 |             |     UID      |       ![WIP](https://img.shields.io/badge/Status-WIP-yellow)        |
 
 |     APIS     |   UniComm    |                               Status                                |                           
 |:------------:|:------------:|:-------------------------------------------------------------------:|
-| imap.receive | IDLE + FETCH | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
+| imap:receive | IDLE + FETCH | ![Passing](https://img.shields.io/badge/Status-Passing-brightgreen) |
 
 # Document Module
 

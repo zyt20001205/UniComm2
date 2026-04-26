@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 
         QAbstractScrollArea::corner {
              background: #ffffff;
-         }
+        }
 
         QTabBar::tab {
             background: transparent;
