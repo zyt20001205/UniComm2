@@ -10,13 +10,13 @@ Mqtt = {}
 function Mqtt.new(name, timeout) end
 
 ---@class mqttOptions
----@field protocol "MQTT 3.1" | "MQTT 3.1.1" | "MQTT 5.0" (default: "MQTT 3.1")
+---@field protocol? "MQTT 3.1" | "MQTT 3.1.1" | "MQTT 5.0" (default: "MQTT 3.1")
 ---@field clientId string
 ---@field cleanStart? boolean (default: true) Whether the connection starts a new session or is a continuation of an existing session.
 ---@field willQoS nil WIP
 ---@field willRetain nil WIP
----@field username? string
----@field password? password
+---@field username? string (default: "")
+---@field password? password (default: "")
 ---@field keepAlive? int (default: 60) Maximum time in **seconds** between messages to keep the connection alive.
 ---@field properties nil WIP
 
@@ -24,5 +24,5 @@ function Mqtt.new(name, timeout) end
 ---@field options mqttOptions
 mqtt = {}
 
----@param options mqttOptions
-function mqtt:connect(options) end
+---Send a CONNECT packet to the server.
+function mqtt:connect() end

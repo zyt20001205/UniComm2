@@ -191,7 +191,8 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
             sol::no_constructor,
             sol::meta_function::garbage_collect, [](Mqtt *) {
             },
-            "options", sol::readonly_property(&Mqtt::optionsProxy)
+            "options", sol::readonly_property(&Mqtt::optionsProxy),
+            "connect", &Mqtt::connect
         );
         auto mqtt = m_lua.create_table();
         mqtt.set_function("new", [this](const std::string &portName, const sol::optional<int> timeout) {
