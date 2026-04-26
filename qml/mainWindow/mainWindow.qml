@@ -2893,6 +2893,15 @@ Item {
 
             onTriggered: watchModuleAction.toggle()
         }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Cmd")
+
+            onClicked: terminalModule.cmdOpen()
+        }
     }
 
     Menu {

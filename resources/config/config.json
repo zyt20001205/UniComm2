@@ -60,6 +60,10 @@
     "saveWorkspace": "Ctrl+S",
     "saveWorkspaceAs": "Ctrl+Shift+S"
   },
+  "terminalConfig": {
+    "fontFamily": "Consolas",
+    "fontSize": 12
+  },
   "watchConfig": [
   ]
 }

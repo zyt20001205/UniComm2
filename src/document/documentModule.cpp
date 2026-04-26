@@ -17,7 +17,7 @@
 // public
 DocumentModule::DocumentModule(QWidget *parent)
     : QObject(parent),
-      m_documentConfig(g_workspaceConfig["documentConfig"].toObject()),
+      m_config(g_workspaceConfig["documentConfig"].toObject()),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     m_navigationHistory = QVariantHash{
@@ -50,10 +50,10 @@ void DocumentModule::propertySet(const QVariantMap &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
 
-    for (const auto &value: m_documentConfig["documentList"].toArray()) {
+    for (const auto &value: m_config["documentList"].toArray()) {
         documentOpen(QUrl(value.toString()));
     }
-    const auto focusedUrl = QUrl(m_documentConfig["documentFocused"].toString());
+    const auto focusedUrl = QUrl(m_config["documentFocused"].toString());
     if (!focusedUrl.isEmpty() && m_pageHash.contains(focusedUrl)) {
         QTimer::singleShot(0, this, [this, focusedUrl] {
             m_pageHash[focusedUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
@@ -62,7 +62,7 @@ void DocumentModule::propertySet(const QVariantMap &objects) {
 
     m_welcomePage->propertySet(QVariantMap());
     m_codeAssistant->propertySet(objects);
-    m_codeAssistant->fontSet(m_documentConfig["fontFamily"].toString(), m_documentConfig["fontSize"].toInt());
+    m_codeAssistant->fontSet(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
 }
 
 void DocumentModule::documentConfigSave() {
@@ -74,13 +74,13 @@ void DocumentModule::documentConfigSave() {
         }
         documentList.append(url.toString());
     }
-    m_documentConfig["documentList"] = documentList;
+    m_config["documentList"] = documentList;
     if (m_focusedUrl.isEmpty()) {
-        m_documentConfig["documentFocused"] = "";
+        m_config["documentFocused"] = "";
     } else {
-        m_documentConfig["documentFocused"] = m_focusedUrl.toString();
+        m_config["documentFocused"] = m_focusedUrl.toString();
     }
-    g_workspaceConfig["documentConfig"] = m_documentConfig;
+    g_workspaceConfig["documentConfig"] = m_config;
 }
 
 void DocumentModule::scriptFontReload(const QJsonObject &fontConfigScript) const {
@@ -91,8 +91,8 @@ void DocumentModule::scriptFontReload(const QJsonObject &fontConfigScript) const
 }
 
 void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
-    m_documentConfig["fontFamily"] = fontConfigScript["fontFamily"].toString();
-    m_documentConfig["fontSize"] = fontConfigScript["fontSize"].toInt();
+    m_config["fontFamily"] = fontConfigScript["fontFamily"].toString();
+    m_config["fontSize"] = fontConfigScript["fontSize"].toInt();
 }
 
 void DocumentModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScript) const {
@@ -138,29 +138,29 @@ void DocumentModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScr
 
 void DocumentModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScript) {
     // diagnostic
-    m_documentConfig["indicatorErrorStyle"] = indicatorConfigScript["indicatorErrorStyle"].toInt();
-    m_documentConfig["indicatorErrorColor"] = indicatorConfigScript["indicatorErrorColor"].toString();
-    m_documentConfig["indicatorWarningStyle"] = indicatorConfigScript["indicatorWarningStyle"].toInt();
-    m_documentConfig["indicatorWarningColor"] = indicatorConfigScript["indicatorWarningColor"].toString();
-    m_documentConfig["indicatorInfoStyle"] = indicatorConfigScript["indicatorInfoStyle"].toInt();
-    m_documentConfig["indicatorInfoColor"] = indicatorConfigScript["indicatorInfoColor"].toString();
-    m_documentConfig["indicatorHintStyle"] = indicatorConfigScript["indicatorHintStyle"].toInt();
-    m_documentConfig["indicatorHintColor"] = indicatorConfigScript["indicatorHintColor"].toString();
+    m_config["indicatorErrorStyle"] = indicatorConfigScript["indicatorErrorStyle"].toInt();
+    m_config["indicatorErrorColor"] = indicatorConfigScript["indicatorErrorColor"].toString();
+    m_config["indicatorWarningStyle"] = indicatorConfigScript["indicatorWarningStyle"].toInt();
+    m_config["indicatorWarningColor"] = indicatorConfigScript["indicatorWarningColor"].toString();
+    m_config["indicatorInfoStyle"] = indicatorConfigScript["indicatorInfoStyle"].toInt();
+    m_config["indicatorInfoColor"] = indicatorConfigScript["indicatorInfoColor"].toString();
+    m_config["indicatorHintStyle"] = indicatorConfigScript["indicatorHintStyle"].toInt();
+    m_config["indicatorHintColor"] = indicatorConfigScript["indicatorHintColor"].toString();
     // highlight
-    m_documentConfig["indicatorHighlightStyle"] = indicatorConfigScript["indicatorHighlightStyle"].toInt();
-    m_documentConfig["indicatorHighlightColor"] = indicatorConfigScript["indicatorHighlightColor"].toString();
-    m_documentConfig["indicatorReadStyle"] = indicatorConfigScript["indicatorReadStyle"].toInt();
-    m_documentConfig["indicatorReadColor"] = indicatorConfigScript["indicatorReadColor"].toString();
-    m_documentConfig["indicatorWriteStyle"] = indicatorConfigScript["indicatorWriteStyle"].toInt();
-    m_documentConfig["indicatorWriteColor"] = indicatorConfigScript["indicatorWriteColor"].toString();
+    m_config["indicatorHighlightStyle"] = indicatorConfigScript["indicatorHighlightStyle"].toInt();
+    m_config["indicatorHighlightColor"] = indicatorConfigScript["indicatorHighlightColor"].toString();
+    m_config["indicatorReadStyle"] = indicatorConfigScript["indicatorReadStyle"].toInt();
+    m_config["indicatorReadColor"] = indicatorConfigScript["indicatorReadColor"].toString();
+    m_config["indicatorWriteStyle"] = indicatorConfigScript["indicatorWriteStyle"].toInt();
+    m_config["indicatorWriteColor"] = indicatorConfigScript["indicatorWriteColor"].toString();
     // search
-    m_documentConfig["indicatorSearchStyle"] = indicatorConfigScript["indicatorSearchStyle"].toInt();
-    m_documentConfig["indicatorSearchColor"] = indicatorConfigScript["indicatorSearchColor"].toString();
-    m_documentConfig["indicatorSelectionStyle"] = indicatorConfigScript["indicatorSelectionStyle"].toInt();
-    m_documentConfig["indicatorSelectionColor"] = indicatorConfigScript["indicatorSelectionColor"].toString();
+    m_config["indicatorSearchStyle"] = indicatorConfigScript["indicatorSearchStyle"].toInt();
+    m_config["indicatorSearchColor"] = indicatorConfigScript["indicatorSearchColor"].toString();
+    m_config["indicatorSelectionStyle"] = indicatorConfigScript["indicatorSelectionStyle"].toInt();
+    m_config["indicatorSelectionColor"] = indicatorConfigScript["indicatorSelectionColor"].toString();
     // hyperlink
-    m_documentConfig["indicatorHyperlinkStyle"] = indicatorConfigScript["indicatorHyperlinkStyle"].toInt();
-    m_documentConfig["indicatorHyperlinkColor"] = indicatorConfigScript["indicatorHyperlinkColor"].toString();
+    m_config["indicatorHyperlinkStyle"] = indicatorConfigScript["indicatorHyperlinkStyle"].toInt();
+    m_config["indicatorHyperlinkColor"] = indicatorConfigScript["indicatorHyperlinkColor"].toString();
 }
 
 void DocumentModule::scriptMarkerReload(const QJsonObject &markerConfigScript) const {
@@ -177,12 +177,12 @@ void DocumentModule::scriptMarkerReload(const QJsonObject &markerConfigScript) c
 }
 
 void DocumentModule::scriptMarkerSave(const QJsonObject &markerConfigScript) {
-    m_documentConfig["markerBreakpointStyle"] = markerConfigScript["markerBreakpointStyle"].toInt();
-    m_documentConfig["markerBreakpointBackground"] = markerConfigScript["markerBreakpointBackground"].toString();
-    m_documentConfig["markerBreakpointForeground"] = markerConfigScript["markerBreakpointForeground"].toString();
-    m_documentConfig["markerDebugStyle"] = markerConfigScript["markerDebugStyle"].toInt();
-    m_documentConfig["markerDebugBackground"] = markerConfigScript["markerDebugBackground"].toString();
-    m_documentConfig["markerDebugForeground"] = markerConfigScript["markerDebugForeground"].toString();
+    m_config["markerBreakpointStyle"] = markerConfigScript["markerBreakpointStyle"].toInt();
+    m_config["markerBreakpointBackground"] = markerConfigScript["markerBreakpointBackground"].toString();
+    m_config["markerBreakpointForeground"] = markerConfigScript["markerBreakpointForeground"].toString();
+    m_config["markerDebugStyle"] = markerConfigScript["markerDebugStyle"].toInt();
+    m_config["markerDebugBackground"] = markerConfigScript["markerDebugBackground"].toString();
+    m_config["markerDebugForeground"] = markerConfigScript["markerDebugForeground"].toString();
 }
 
 // public: file
@@ -195,12 +195,12 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         BasePage *newPage{};
         const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
         if (imageType.contains(suffix)) {
-            newPage = new ImagePage(m_documentConfig, documentUrl);
+            newPage = new ImagePage(m_config, documentUrl);
             auto *imagePage = qobject_cast<ImagePage *>(newPage);
             imagePage->propertySet(QVariantMap{
             });
         } else if (suffix == "lua") {
-            newPage = new LuaPage(m_documentConfig, documentUrl);
+            newPage = new LuaPage(m_config, documentUrl);
             auto *luaPage = qobject_cast<LuaPage *>(newPage);
             luaPage->propertySet(QVariantMap{
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
@@ -233,7 +233,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
             luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
         } else {
-            newPage = new TextPage(m_documentConfig, documentUrl);
+            newPage = new TextPage(m_config, documentUrl);
             auto *textPage = qobject_cast<TextPage *>(newPage);
             textPage->propertySet(QVariantMap{
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},

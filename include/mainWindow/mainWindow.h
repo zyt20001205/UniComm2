@@ -26,6 +26,7 @@ class DocumentModule;
 class SendModule;
 class StatusModule;
 class StructureModule;
+class TerminalModule;
 class ThreadpoolModule;
 class WatchModule;
 
@@ -100,6 +101,7 @@ private:
     SendModule *m_sendModule{};
     StatusModule *m_statusModule{};
     StructureModule *m_structureModule{};
+    TerminalModule *m_terminalModule{};
     ThreadpoolModule *m_threadpoolModule{};
     UndoModule *m_undoModule{};
     WatchModule *m_watchModule{};

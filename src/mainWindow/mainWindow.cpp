@@ -41,6 +41,7 @@
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
 #include "terminal/logModule.h"
+#include "terminal/terminalModule.h"
 
 // public
 MainWindow::MainWindow(QWidget *parent, const QString &uniqueName)
@@ -91,6 +92,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("documentModule", m_documentModule);
     // m_overlay->rootContext()->setContextProperty("sendModule", m_sendModule);
     m_overlay->rootContext()->setContextProperty("fileModule", m_fileModule);
+    m_overlay->rootContext()->setContextProperty("terminalModule", m_terminalModule);
     m_overlay->rootContext()->setContextProperty("threadpoolModule", m_threadpoolModule);
     m_overlay->rootContext()->setContextProperty("watchModule", m_watchModule);
 
@@ -232,6 +234,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_fileModule->propertySet(systemObjects);
 
+    const QVariantMap terminalObjects = {
+        //
+    };
+    m_terminalModule->propertySet(terminalObjects);
+
     const QVariantMap threadpoolObjects = {
         {"mainItem", objects["mainItem"]},
         {"threadpoolModuleErrorDialog", objects["threadpoolModuleErrorDialog"]},
@@ -362,7 +369,7 @@ void MainWindow::moduleInit() {
     m_datatableModule = new DatatableModule();
     m_debugModule = new DebugModule();
     m_diagnosticsModule = new DiagnosticsModule();
-    m_documentModule = new DocumentModule();
+    m_documentModule = new DocumentModule(this);
     m_explorerModule = new ExplorerModule();
     m_fileModule = new FileModule();
     m_logModule = new LogModule();
@@ -372,6 +379,7 @@ void MainWindow::moduleInit() {
     m_sendModule = new SendModule();
     m_statusModule = new StatusModule(this);
     m_structureModule = new StructureModule();
+    m_terminalModule = new TerminalModule(this);
     m_threadpoolModule = new ThreadpoolModule();
     m_undoModule = new UndoModule(this);
     m_watchModule = new WatchModule();
@@ -576,12 +584,12 @@ void MainWindow::overlayInit() {
         m_overlay->setGeometry(screen->geometry());
     });
     connect(windowHandle(), &QWindow::visibilityChanged, m_overlay, [this](const QWindow::Visibility visible) {
-    if (visible == QWindow::Minimized || visible == QWindow::Hidden) {
-        m_overlay->hide();
-    } else {
-        m_overlay->show();
-    }
-});
+        if (visible == QWindow::Minimized || visible == QWindow::Hidden) {
+            m_overlay->hide();
+        } else {
+            m_overlay->show();
+        }
+    });
 }
 
 void MainWindow::mainConfigSave() {

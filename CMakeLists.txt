@@ -96,7 +96,9 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/port/visa.h
         include/runtime/luaInterpreter.h
         include/runtime/threadpoolModule.h
+        include/terminal/cmdPage.h
         include/terminal/logModule.h
+        include/terminal/terminalModule.h
         include/util/cmarkUtils.h
         include/util/cvUtils.h
         include/util/luaUtils.h
@@ -170,7 +172,9 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/port/visa.cpp
         src/runtime/luaInterpreter.cpp
         src/runtime/threadpoolModule.cpp
+        src/terminal/cmdPage.cpp
         src/terminal/logModule.cpp
+        src/terminal/terminalModule.cpp
         src/util/cmarkUtils.cpp
         src/util/cvUtils.cpp
         src/util/luaUtils.cpp
@@ -188,7 +192,6 @@ qt_add_resources(UniComm "qml_resources"
         "qml/analysis/structureModule.qml"
         "qml/analysis/symbolWidget.qml"
         "qml/core/explorerModule.qml"
-        "qml/terminal/logModule.qml"
         "qml/data/databaseModule.qml"
         "qml/data/dataplotModule.qml"
         "qml/data/datatableModule.qml"
@@ -206,6 +209,8 @@ qt_add_resources(UniComm "qml_resources"
         "qml/port/portSetting.qml"
         "qml/port/sendModule.qml"
         "qml/runtime/threadpoolModule.qml"
+        "qml/terminal/cmdPage.qml"
+        "qml/terminal/logModule.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"
