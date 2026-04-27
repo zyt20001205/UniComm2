@@ -18,6 +18,7 @@ class DebugModule;
 class DiagnosticsModule;
 class ExplorerModule;
 class FileModule;
+class GitModule;
 class LogModule;
 class MenuModule;
 class NuspellModule;
@@ -93,6 +94,7 @@ private:
     DiagnosticsModule *m_diagnosticsModule{};
     ExplorerModule *m_explorerModule{};
     FileModule *m_fileModule{};
+    GitModule *m_gitModule{};
     LogModule *m_logModule{};
     MenuModule *m_menuModule{};
     NuspellModule *m_nuspellModule{};

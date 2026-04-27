@@ -13,6 +13,11 @@ public:
     explicit CmdPage(const QString &uniqueName, const QJsonObject &config);
 
     ~CmdPage() override = default;
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+    void processStart() override;
 };
 
 #endif //UNICOMM_CMDPAGE_H

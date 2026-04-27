@@ -40,6 +40,7 @@
 #include "port/sendModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
+#include "terminal/gitModule.h"
 #include "terminal/logModule.h"
 #include "terminal/terminalModule.h"
 
@@ -103,12 +104,13 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("debugModuleAction", QVariant::fromValue(m_debugModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("diagnosticsModuleAction", QVariant::fromValue(m_diagnosticsModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("explorerModuleAction", QVariant::fromValue(m_explorerModule->toggleAction()));
-    m_overlay->rootContext()->setContextProperty("logModuleAction", QVariant::fromValue(m_logModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("portModuleAction", QVariant::fromValue(m_portModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("sendModuleAction", QVariant::fromValue(m_sendModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("structureModuleAction", QVariant::fromValue(m_structureModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("threadpoolModuleAction", QVariant::fromValue(m_threadpoolModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("watchModuleAction", QVariant::fromValue(m_watchModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("logModuleAction", QVariant::fromValue(m_logModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("gitModuleAction", QVariant::fromValue(m_gitModule->toggleAction()));
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
@@ -186,6 +188,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}
     };
     m_explorerModule->propertySet(explorerObjects);
+
+    const QVariantMap gitObjects = {
+        //
+    };
+    m_gitModule->propertySet(gitObjects);
 
     const QVariantMap logObjects = {
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
@@ -372,6 +379,7 @@ void MainWindow::moduleInit() {
     m_documentModule = new DocumentModule(this);
     m_explorerModule = new ExplorerModule();
     m_fileModule = new FileModule();
+    m_gitModule = new GitModule();
     m_logModule = new LogModule();
     m_menuModule = new MenuModule(this);
     m_nuspellModule = new NuspellModule(this);
@@ -554,6 +562,7 @@ void MainWindow::layoutInit() {
     addDockWidget(m_watchModule, KDDockWidgets::Location_OnBottom, m_debugModule);
     // bottom
     addDockWidget(m_logModule, KDDockWidgets::Location_OnBottom, nullptr, KDDockWidgets::InitialOption(KDDockWidgets::Size(0, 200)));
+    m_logModule->addDockWidgetAsTab(m_gitModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
     m_logModule->addDockWidgetAsTab(m_diagnosticsModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);
     addDockWidget(m_databaseModule, KDDockWidgets::Location_OnRight, m_logModule, KDDockWidgets::InitialOption(KDDockWidgets::Size(600, 0)));
     m_databaseModule->addDockWidgetAsTab(m_datatableModule, KDDockWidgets::InitialVisibilityOption::PreserveCurrentTab);

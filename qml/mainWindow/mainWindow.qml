@@ -2790,14 +2790,6 @@ Item {
         }
 
         MenuItem {
-            text: qsTr("Log")
-            checkable: true
-            checked: logModuleAction ? logModuleAction.checked : false
-
-            onTriggered: logModuleAction.toggle()
-        }
-
-        MenuItem {
             text: qsTr("Port")
             checkable: true
             checked: portModuleAction ? portModuleAction.checked : false
@@ -2895,6 +2887,22 @@ Item {
         }
 
         MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Log")
+            checkable: true
+            checked: logModuleAction ? logModuleAction.checked : false
+
+            onTriggered: logModuleAction.toggle()
+        }
+
+        MenuItem {
+            text: qsTr("Git")
+            checkable: true
+            checked: gitModuleAction ? gitModuleAction.checked : false
+
+            onTriggered: gitModuleAction.toggle()
         }
 
         MenuItem {

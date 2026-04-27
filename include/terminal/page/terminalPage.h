@@ -20,25 +20,23 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void start();
-
     Q_INVOKABLE void terminalInput(const QString &command) const;
 
 protected:
-    void closeEvent(QCloseEvent *event) override;
+    virtual void processStart();
 
-    QString m_processName{};
-
-private:
     void terminalOutput() const;
 
+    QString m_processName{};
+    QProcess *m_process{};
+
+private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
     QObject *m_textField{};
     QTextDocument *m_textDocument{};
-    QProcess *m_process{};
 };
 
 #endif //UNICOMM_TERMINALPAGE_H

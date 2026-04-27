@@ -6,7 +6,6 @@
 #include <QTextDocument>
 
 #include "globals.h"
-#include "terminal/logModule.h"
 
 // public
 TerminalPage::TerminalPage(const QString &uniqueName, const QJsonObject &config)
@@ -33,29 +32,20 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     m_textArea->setProperty("font", font);
     m_textField = qvariant_cast<QObject *>(objects["textField"]);
+    processStart();
 }
 
-void TerminalPage::start() {
+// protected
+void TerminalPage::processStart() {
     m_process = new QProcess(this);
     m_process->setProcessChannelMode(QProcess::MergedChannels);
     connect(m_process, &QProcess::readyReadStandardOutput, this, &TerminalPage::terminalOutput);
     connect(m_process, &QProcess::finished, this, &TerminalPage::close);
     m_process->start(m_processName, QStringList());
-    g_log->addDockWidgetAsTab(this);
-    open();
 }
 
 void TerminalPage::terminalInput(const QString &command) const {
     m_process->write((command + '\n').toLocal8Bit());
-}
-
-void TerminalPage::closeEvent(QCloseEvent *event) {
-    if (m_process->state() == QProcess::Running) {
-        terminalInput("exit");
-        m_process->waitForFinished();
-    }
-    deleteLater();
-    event->accept();
 }
 
 // private

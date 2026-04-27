@@ -13,6 +13,11 @@ public:
     explicit PowershellPage(const QString &uniqueName, const QJsonObject &config);
 
     ~PowershellPage() override = default;
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+    void processStart() override;
 };
 
 #endif //UNICOMM_POWERSHELLPAGE_H
