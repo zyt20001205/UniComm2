@@ -30,15 +30,8 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git textfield removed">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="exit bug fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/terminal/page/terminalPage.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/page/terminalPage.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/page/cmdPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/cmdPage.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/page/powershellPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/powershellPage.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -167,7 +160,7 @@
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
       <workItem from="1777264897578" duration="9229000" />
-      <workItem from="1777282931643" duration="15962000" />
+      <workItem from="1777282931643" duration="16752000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -233,7 +226,23 @@
       <option name="project" value="LOCAL" />
       <updated>1777301273742</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="terminal is much better">
+      <option name="closed" value="true" />
+      <created>1777302202183</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1777302202183</updated>
+    </task>
+    <task id="LOCAL-00010" summary="exit bug fix">
+      <option name="closed" value="true" />
+      <created>1777302438090</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1777302438090</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -264,7 +273,9 @@
     <MESSAGE value="testing git module" />
     <MESSAGE value="git working properly" />
     <MESSAGE value="git textfield removed" />
-    <option name="LAST_COMMIT_MESSAGE" value="git textfield removed" />
+    <MESSAGE value="terminal is much better" />
+    <MESSAGE value="exit bug fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="exit bug fix" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -321,14 +332,26 @@
           <option name="totalLines" value="3372241" />
           <option name="info" value="git textfield removed" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777302202875" />
+          <option name="linesCode" value="660019" />
+          <option name="totalLines" value="3372027" />
+          <option name="info" value="terminal is much better" />
+        </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777302438760" />
+          <option name="linesCode" value="660019" />
+          <option name="totalLines" value="3372054" />
+          <option name="info" value="exit bug fix" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
       <list>
         <TimePoint>
-          <option name="timestamp" value="1777301274425" />
-          <option name="linesCode" value="660027" />
-          <option name="totalLines" value="3372241" />
+          <option name="timestamp" value="1777302438760" />
+          <option name="linesCode" value="660019" />
+          <option name="totalLines" value="3372054" />
           <option name="info" value="Apr 27, 2026" />
         </TimePoint>
       </list>
