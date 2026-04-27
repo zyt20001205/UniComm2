@@ -1,7 +1,7 @@
 #include "terminal/terminalModule.h"
 
 #include "globals.h"
-#include "terminal/cmdPage.h"
+#include "terminal/page/cmdPage.h"
 
 // public
 TerminalModule::TerminalModule(QWidget *parent)

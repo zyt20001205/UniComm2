@@ -24,7 +24,7 @@ Item {
             Layout.fillWidth: true
 
             onAccepted: {
-                cmdPage.terminalInput(textField.text)
+                terminalPage.terminalInput(textField.text)
                 textField.clear()
             }
         }
@@ -35,6 +35,6 @@ Item {
             "textArea": textArea,
             "textField": textField
         };
-        cmdPage.propertyGet(objects)
+        terminalPage.propertyGet(objects)
     }
 }

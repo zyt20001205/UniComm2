@@ -1,5 +1,5 @@
-#ifndef UNICOMM_CMDPAGE_H
-#define UNICOMM_CMDPAGE_H
+#ifndef UNICOMM_TERMINALPAGE_H
+#define UNICOMM_TERMINALPAGE_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
@@ -8,13 +8,13 @@
 class QTextDocument;
 class QQuickWidget;
 
-class CmdPage final : public KDDockWidgets::QtWidgets::DockWidget {
+class TerminalPage : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit CmdPage(const QString &uniqueName, const QJsonObject &config);
+    explicit TerminalPage(const QString &uniqueName, const QJsonObject &config);
 
-    ~CmdPage() override;
+    ~TerminalPage() override;
 
     void propertySet(const QVariantMap &objects);
 
@@ -23,6 +23,9 @@ public:
     void start();
 
     Q_INVOKABLE void terminalInput(const QString &command) const;
+
+protected:
+    QString m_processName{};
 
 private:
     void terminalOutput() const;
@@ -36,4 +39,4 @@ private:
     QProcess *m_process{};
 };
 
-#endif //UNICOMM_CMDPAGE_H
+#endif //UNICOMM_TERMINALPAGE_H
