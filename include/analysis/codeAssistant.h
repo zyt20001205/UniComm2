@@ -39,7 +39,7 @@ public:
 
     void signatureShow(const QVariantHash &signatureSession, const QJsonArray &signatures) const;
 
-    bool eventFilter(QObject *obj, QEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);

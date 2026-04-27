@@ -30,31 +30,16 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="testing git module">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git working properly">
+      <change afterPath="$PROJECT_DIR$/.idea/qmlSettings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/analysis/codeAssistant.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/analysis/codeAssistant.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/port/portSetting.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/port/portSetting.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/terminal/page/terminalPage.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/page/terminalPage.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/config/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/config/config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/analysis/diagnosticsModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/diagnosticsModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/analysis/structureModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/structureModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/databaseModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/databaseModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/dataplotModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/dataplotModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/datatableModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/datatableModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/debug/breakpointModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/breakpointModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/debug/debugModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/debugModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/debug/watchModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/watchModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/document/documentModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/documentModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/port/portModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/portModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/port/sendModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/sendModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runtime/threadpoolModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/runtime/threadpoolModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/codeAssistant.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/codeAssistant.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/portSetting.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/portSetting.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/logModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/logModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/page/cmdPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/cmdPage.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/page/powershellPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/powershellPage.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,6 +119,7 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "RunOnceActivity.west.config.association.type.startup.service": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
@@ -145,7 +131,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "language.qml",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -182,7 +168,7 @@
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
       <workItem from="1777264897578" duration="9229000" />
-      <workItem from="1777282931643" duration="9186000" />
+      <workItem from="1777282931643" duration="14952000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -224,7 +210,23 @@
       <option name="project" value="LOCAL" />
       <updated>1777280875886</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="git working properly">
+      <option name="closed" value="true" />
+      <created>1777295432963</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1777295432963</updated>
+    </task>
+    <task id="LOCAL-00007" summary="git working properly">
+      <option name="closed" value="true" />
+      <created>1777295441584</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1777295441584</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -253,7 +255,8 @@
     <MESSAGE value="cmd and powershell now deconstruct correctly" />
     <MESSAGE value="cmd and powershell now shown as a tab of logModule" />
     <MESSAGE value="testing git module" />
-    <option name="LAST_COMMIT_MESSAGE" value="testing git module" />
+    <MESSAGE value="git working properly" />
+    <option name="LAST_COMMIT_MESSAGE" value="git working properly" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -292,14 +295,26 @@
           <option name="totalLines" value="3371422" />
           <option name="info" value="testing git module" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777295433627" />
+          <option name="linesCode" value="660036" />
+          <option name="totalLines" value="3371292" />
+          <option name="info" value="git working properly" />
+        </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777295442022" />
+          <option name="linesCode" value="660036" />
+          <option name="totalLines" value="3371292" />
+          <option name="info" value="git working properly" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
       <list>
         <TimePoint>
-          <option name="timestamp" value="1777280876444" />
-          <option name="linesCode" value="659812" />
-          <option name="totalLines" value="3371422" />
+          <option name="timestamp" value="1777295442022" />
+          <option name="linesCode" value="660036" />
+          <option name="totalLines" value="3371292" />
           <option name="info" value="Apr 27, 2026" />
         </TimePoint>
       </list>

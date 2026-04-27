@@ -101,7 +101,7 @@ void CodeAssistant::signatureShow(const QVariantHash &signatureSession, const QJ
     m_signatureWidget->signatureShow(signatureSession, signatures);
 }
 
-bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
+bool CodeAssistant::eventFilter(QObject *watched, QEvent *event) {
     if (event->type() == QEvent::KeyPress) {
         auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
@@ -175,5 +175,5 @@ bool CodeAssistant::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     }
-    return QObject::eventFilter(obj, event);
+    return QObject::eventFilter(watched, event);
 }

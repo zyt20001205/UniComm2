@@ -20,7 +20,9 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void terminalInput(const QString &command) const;
+    Q_INVOKABLE void terminalInput(const QString &input) const;
+
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void processStart();
@@ -29,11 +31,12 @@ private:
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
+    QQuickItem *m_root{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
-    QObject *m_textField{};
     QTextDocument *m_textDocument{};
     QProcess *m_process{};
+    int m_pos = 4;
 };
 
 #endif //UNICOMM_GITMODULE_H

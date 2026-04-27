@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickWidget>
 #include <QSettings>
 #include <QTextDocument>
@@ -17,6 +18,7 @@ GitModule::GitModule()
       m_textDocument(new QTextDocument()),
       m_process(new QProcess(this)) {
     setWidget(m_widget);
+    m_widget->installEventFilter(this);
 }
 
 GitModule::~GitModule() {
@@ -28,19 +30,28 @@ void GitModule::propertySet(const QVariantMap &objects) {
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
+    m_root = m_widget->rootObject();
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     m_textArea->setProperty("font", font);
-    m_textField = qvariant_cast<QObject *>(objects["textField"]);
     processStart();
 }
 
-void GitModule::terminalInput(const QString &command) const {
-    QMetaObject::invokeMethod(m_textArea, "append", Q_ARG(QString, command));
-    m_process->write((command + '\n').toLocal8Bit());
+void GitModule::terminalInput(const QString &input) const {
+    m_process->write(input.toLocal8Bit());
+}
+
+bool GitModule::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_widget && event->type() == QEvent::KeyPress) {
+        const auto *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
+            return true;
+        }
+    }
+    return DockWidget::eventFilter(watched, event);
 }
 
 void GitModule::processStart() {
@@ -60,5 +71,5 @@ void GitModule::processStart() {
 
 void GitModule::terminalOutput() const {
     const auto text = QString::fromLocal8Bit(m_process->readAllStandardOutput());
-    QMetaObject::invokeMethod(m_textArea, "append", Q_ARG(QString, text));
+    QMetaObject::invokeMethod(m_root, "terminalOutput", Q_ARG(QVariant, QVariant::fromValue(text)));
 }

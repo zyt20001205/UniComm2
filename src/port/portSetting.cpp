@@ -58,7 +58,7 @@ void PortSetting::propertySet() {
     widget->rootContext()->setContextProperty("pipelineStandardItemModel", m_pipelineStandardItemModel);
     widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     widget->setSource(QUrl("qrc:/qml/port/portSetting.qml"));
-    m_rootItem = widget->rootObject();
+    m_root = widget->rootObject();
 }
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
@@ -111,7 +111,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
     videoStreamRefresh();
     processRefresh(portConfig);
     if (portConfig.isEmpty()) {
-        m_rootItem->setProperty("portType", 0);
+        m_root->setProperty("portType", 0);
         m_swipeView->setProperty("currentIndex", 0);
         m_oldPortName = "";
         // serial port
@@ -161,7 +161,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         m_swipeView->setProperty("currentIndex", 1);
         m_oldPortName = portConfig["portName"].toString();
         const int portType = portConfig["portType"].toInt();
-        m_rootItem->setProperty("portType", portType);
+        m_root->setProperty("portType", portType);
         switch (portType) {
             case SERIALPORT: {
                 m_serialPortNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
@@ -237,7 +237,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
 }
 
 void PortSetting::portSettingExport() {
-    const int portType = m_rootItem->property("portType").toInt();
+    const int portType = m_root->property("portType").toInt();
     QJsonObject portConfig{};
     switch (portType) {
         case SERIALPORT: {
@@ -431,19 +431,19 @@ void PortSetting::roiInsert(const QVariantList &roi) const {
     auto *item = new QStandardItem(text); // NOLINT
     m_roiStandardItemModel->appendRow(item);
     item->setData(roi, Qt::WhatsThisRole);
-    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
+    QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
 
 void PortSetting::roiRemove(const int index) const {
     m_roiStandardItemModel->removeRow(index);
-    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
+    QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
 
 void PortSetting::roiSwap(const int src, const int dst) const {
     const auto tmp = m_roiStandardItemModel->takeRow(src);
     m_roiStandardItemModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_rootItem, "roiReload");
-    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
+    QMetaObject::invokeMethod(m_root, "roiReload");
+    QMetaObject::invokeMethod(m_root, "indicatorReload");
 }
 
 void PortSetting::pipelineInsert(const QVariantHash &session) const {
@@ -472,7 +472,7 @@ void PortSetting::pipelineRemove(const int index) const {
 void PortSetting::pipelineSwap(const int src, const int dst) const {
     const auto tmp = m_pipelineStandardItemModel->takeRow(src);
     m_pipelineStandardItemModel->insertRow(dst, tmp);
-    QMetaObject::invokeMethod(m_rootItem, "pipelineReload");
+    QMetaObject::invokeMethod(m_root, "pipelineReload");
 }
 
 // private
@@ -561,7 +561,7 @@ void PortSetting::videoStreamRefresh() const {
 void PortSetting::processRefresh(const QJsonObject &portConfig) const {
     m_roiStandardItemModel->clear();
     m_pipelineStandardItemModel->clear();
-    QMetaObject::invokeMethod(m_rootItem, "indicatorReload");
+    QMetaObject::invokeMethod(m_root, "indicatorReload");
     m_whitelistSwitch->setProperty("checked", false);
     m_whitelistTextField->setProperty("text", "");
     if (!portConfig.isEmpty()) {
