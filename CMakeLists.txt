@@ -99,6 +99,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/terminal/logModule.h
         include/terminal/terminalModule.h
         include/terminal/page/cmdPage.h
+        include/terminal/page/powershellPage.h
         include/terminal/page/terminalPage.h
         include/util/cmarkUtils.h
         include/util/cvUtils.h
@@ -176,6 +177,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp
         src/terminal/page/cmdPage.cpp
+        src/terminal/page/powershellPage.cpp
         src/terminal/page/terminalPage.cpp
         src/util/cmarkUtils.cpp
         src/util/cvUtils.cpp

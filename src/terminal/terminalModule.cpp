@@ -2,6 +2,7 @@
 
 #include "globals.h"
 #include "terminal/page/cmdPage.h"
+#include "terminal/page/powershellPage.h"
 
 // public
 TerminalModule::TerminalModule(QWidget *parent)
@@ -26,4 +27,15 @@ void TerminalModule::cmdOpen() {
     cmdPage->propertySet(QVariantMap{});
     cmdPage->start();
     m_cmdHash.insert(index, cmdPage);
+}
+
+void TerminalModule::powershellOpen() {
+    int index = 0;
+    while (m_powershellHash.contains(index)) {
+        index++;
+    }
+    auto *powershellPage = new PowershellPage("Powershell " + QString::number(index), m_config);
+    powershellPage->propertySet(QVariantMap{});
+    powershellPage->start();
+    m_powershellHash.insert(index, powershellPage);
 }

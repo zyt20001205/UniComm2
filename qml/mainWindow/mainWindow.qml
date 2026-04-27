@@ -2902,6 +2902,12 @@ Item {
 
             onClicked: terminalModule.cmdOpen()
         }
+
+        MenuItem {
+            text: qsTr("Powershell")
+
+            onClicked: terminalModule.powershellOpen()
+        }
     }
 
     Menu {

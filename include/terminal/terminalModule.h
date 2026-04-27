@@ -4,6 +4,7 @@
 #include <QJsonObject>
 
 class CmdPage;
+class PowershellPage;
 
 class TerminalModule final : public QObject {
     Q_OBJECT
@@ -17,9 +18,12 @@ public:
 
     Q_INVOKABLE void cmdOpen();
 
+    Q_INVOKABLE void powershellOpen();
+
 private:
     QJsonObject m_config{};
     QHash<int, CmdPage *> m_cmdHash{};
+    QHash<int, PowershellPage *> m_powershellHash{};
 };
 
 #endif //UNICOMM_TERMINALMODULE_H
