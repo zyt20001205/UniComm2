@@ -72,6 +72,9 @@ void DocumentModule::documentConfigSave() {
         if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[url])) {
             luaPage->documentSave();
         }
+        else if (auto *textPage = qobject_cast<TextPage *>(m_pageHash[url])) {
+            textPage->documentSave();
+        }
         documentList.append(url.toString());
     }
     m_config["documentList"] = documentList;

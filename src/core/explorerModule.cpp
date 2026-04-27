@@ -17,7 +17,7 @@ ExplorerModule::ExplorerModule()
 
 ExplorerModule::~ExplorerModule() {
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] explorer module destructed").arg(timestamp);
+    qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
 void ExplorerModule::propertySet(const QVariantMap &objects) {

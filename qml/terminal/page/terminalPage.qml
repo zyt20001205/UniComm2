@@ -14,6 +14,7 @@ Item {
 
             TextArea {
                 id: textArea
+                readOnly: true
                 textFormat: TextEdit.PlainText
                 verticalAlignment: TextEdit.AlignTop
             }

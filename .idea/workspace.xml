@@ -6,6 +6,7 @@
   <component name="BackendCodeEditorMiscSettings">
     <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
     <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
   </component>
   <component name="CMakePresetLoader">{
   &quot;useNewFormat&quot;: true
@@ -29,19 +30,31 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="cmd and powershell now shown as a tab of logModule">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="testing git module">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mainWindow/mainWindow.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/mainWindow/mainWindow.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/page/cmdPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/page/cmdPage.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/page/powershellPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/page/powershellPage.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/terminal/page/terminalPage.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/page/terminalPage.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/config/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/config/config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/diagnosticsModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/diagnosticsModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/structureModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/structureModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/databaseModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/databaseModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/dataplotModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/dataplotModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/datatableModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/datatableModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/debug/breakpointModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/breakpointModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/debug/debugModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/debugModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/debug/watchModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/watchModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/document/documentModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/documentModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/portModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/portModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/sendModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/sendModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runtime/threadpoolModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/runtime/threadpoolModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/terminal/logModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/logModule.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/page/cmdPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/cmdPage.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/page/powershellPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/powershellPage.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/terminalModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/terminalModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,7 +79,7 @@
     </selectedModels>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="3868" />
+    <option name="cachedIndexableFilesCount" value="3872" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug-MinGW64" />
   <component name="Git.Settings">
@@ -102,9 +115,9 @@
   &quot;associatedIndex&quot;: 2
 }</component>
   <component name="ProjectId" id="3CvPOJGvqNLPWqjDATFlSt05FzT" />
-  <component name="ProjectStatusUIService"><![CDATA[{
-  "uiKindId": "Widget"
-}]]></component>
+  <component name="ProjectStatusUIService">{
+  &quot;uiKindId&quot;: &quot;Widget&quot;
+}</component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -132,7 +145,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -143,6 +156,11 @@
       </method>
     </configuration>
     <configuration name="UniComm_qmlimportscan" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="UniComm" TARGET_NAME="UniComm_qmlimportscan" CONFIG_NAME="Debug-MinGW64">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -163,7 +181,8 @@
       <workItem from="1777263118934" duration="838000" />
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
-      <workItem from="1777264897578" duration="7634000" />
+      <workItem from="1777264897578" duration="9229000" />
+      <workItem from="1777282931643" duration="9186000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -197,7 +216,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777277814728</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="testing git module">
+      <option name="closed" value="true" />
+      <created>1777280875886</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1777280875886</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -209,12 +236,24 @@
     <isAutomaticReloadCMake value="true" />
     <isAutomaticBootstrapAfterUpdate value="false" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="add terminal base class" />
     <MESSAGE value="add powershell page" />
     <MESSAGE value="cmd and powershell now deconstruct correctly" />
     <MESSAGE value="cmd and powershell now shown as a tab of logModule" />
-    <option name="LAST_COMMIT_MESSAGE" value="cmd and powershell now shown as a tab of logModule" />
+    <MESSAGE value="testing git module" />
+    <option name="LAST_COMMIT_MESSAGE" value="testing git module" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -247,14 +286,20 @@
           <option name="totalLines" value="3369840" />
           <option name="info" value="cmd and powershell now shown as a tab of logModule" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777280876444" />
+          <option name="linesCode" value="659812" />
+          <option name="totalLines" value="3371422" />
+          <option name="info" value="testing git module" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
       <list>
         <TimePoint>
-          <option name="timestamp" value="1777277815233" />
-          <option name="linesCode" value="659685" />
-          <option name="totalLines" value="3369840" />
+          <option name="timestamp" value="1777280876444" />
+          <option name="linesCode" value="659812" />
+          <option name="totalLines" value="3371422" />
           <option name="info" value="Apr 27, 2026" />
         </TimePoint>
       </list>

@@ -215,6 +215,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/port/portSetting.qml"
         "qml/port/sendModule.qml"
         "qml/runtime/threadpoolModule.qml"
+        "qml/terminal/gitModule.qml"
         "qml/terminal/logModule.qml"
         "qml/terminal/page/terminalPage.qml"
 )

@@ -27,7 +27,7 @@ BreakpointModule::BreakpointModule()
 
 BreakpointModule::~BreakpointModule() {
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] breakpoint module destructed").arg(timestamp);
+    qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
 void BreakpointModule::propertySet(const QVariantMap &objects) {

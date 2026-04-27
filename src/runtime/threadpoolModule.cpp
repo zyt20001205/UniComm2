@@ -23,7 +23,7 @@ ThreadpoolModule::ThreadpoolModule()
 
 ThreadpoolModule::~ThreadpoolModule() {
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] threadpool module destructed").arg(timestamp);
+    qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
 void ThreadpoolModule::propertySet(const QVariantMap &objects) {

@@ -15,7 +15,7 @@ DataplotModule::DataplotModule()
 
 DataplotModule::~DataplotModule() {
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] dataplot module destructed").arg(timestamp);
+    qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
 void DataplotModule::propertySet(const QVariantMap &objects) {

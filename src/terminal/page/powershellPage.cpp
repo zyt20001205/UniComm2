@@ -6,7 +6,7 @@
 // public
 PowershellPage::PowershellPage(const QString &uniqueName, const QJsonObject &config)
     : TerminalPage(uniqueName, config) {
-    m_processName = "powershell.exe";
+    m_name = "powershell.exe";
 }
 
 // protected
@@ -22,5 +22,4 @@ void PowershellPage::closeEvent(QCloseEvent *event) {
 void PowershellPage::processStart() {
     TerminalPage::processStart();
     g_log->addDockWidgetAsTab(this);
-    open();
 }

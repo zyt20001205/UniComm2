@@ -27,7 +27,7 @@ DatatableModule::DatatableModule()
 
 DatatableModule::~DatatableModule() {
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] datatable module destructed").arg(timestamp);
+    qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
 void DatatableModule::propertySet(const QVariantMap &objects) {

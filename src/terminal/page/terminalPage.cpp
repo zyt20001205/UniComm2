@@ -41,7 +41,7 @@ void TerminalPage::processStart() {
     m_process->setProcessChannelMode(QProcess::MergedChannels);
     connect(m_process, &QProcess::readyReadStandardOutput, this, &TerminalPage::terminalOutput);
     connect(m_process, &QProcess::finished, this, &TerminalPage::close);
-    m_process->start(m_processName, QStringList());
+    m_process->start(m_name, m_arguments);
 }
 
 void TerminalPage::terminalInput(const QString &command) const {

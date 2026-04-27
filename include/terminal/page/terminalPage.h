@@ -20,14 +20,15 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void terminalInput(const QString &command) const;
+    Q_INVOKABLE virtual void terminalInput(const QString &command) const;
 
 protected:
     virtual void processStart();
 
     void terminalOutput() const;
 
-    QString m_processName{};
+    QString m_name{};
+    QStringList m_arguments{};
     QProcess *m_process{};
 
 private:

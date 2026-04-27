@@ -41,7 +41,7 @@ PortModule::~PortModule() {
         delete port;
     }
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
-    qDebug() << QString("[%1] port module destructed").arg(timestamp);
+    qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {

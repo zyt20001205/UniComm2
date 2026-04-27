@@ -6,7 +6,7 @@
 // public
 CmdPage::CmdPage(const QString &uniqueName, const QJsonObject &config)
     : TerminalPage(uniqueName, config) {
-    m_processName = "cmd.exe";
+    m_name = "cmd.exe";
 }
 
 // protected
@@ -22,5 +22,4 @@ void CmdPage::closeEvent(QCloseEvent *event) {
 void CmdPage::processStart() {
     TerminalPage::processStart();
     g_log->addDockWidgetAsTab(this);
-    open();
 }
