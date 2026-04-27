@@ -22,6 +22,7 @@ extern MainWindow *g_mainWindow;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
+extern LogModule *g_log;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;
 extern DocumentModule *g_document;

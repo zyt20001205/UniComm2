@@ -6,6 +6,7 @@
 #include <QTextDocument>
 
 #include "globals.h"
+#include "terminal/logModule.h"
 
 // public
 TerminalPage::TerminalPage(const QString &uniqueName, const QJsonObject &config)
@@ -40,6 +41,7 @@ void TerminalPage::start() {
     connect(m_process, &QProcess::readyReadStandardOutput, this, &TerminalPage::terminalOutput);
     connect(m_process, &QProcess::finished, this, &TerminalPage::close);
     m_process->start(m_processName, QStringList());
+    g_log->addDockWidgetAsTab(this);
     open();
 }
 

@@ -29,11 +29,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="add powershell page">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="cmd and powershell now deconstruct correctly">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/page/terminalPage.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/globals.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/globals.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/globals.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/globals.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/page/terminalPage.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/terminalModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/terminalModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -152,7 +153,7 @@
       <workItem from="1777263118934" duration="838000" />
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
-      <workItem from="1777264897578" duration="4436000" />
+      <workItem from="1777264897578" duration="4797000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -170,7 +171,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777265515380</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="cmd and powershell now deconstruct correctly">
+      <option name="closed" value="true" />
+      <created>1777277465027</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1777277465027</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -185,7 +194,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="add terminal base class" />
     <MESSAGE value="add powershell page" />
-    <option name="LAST_COMMIT_MESSAGE" value="add powershell page" />
+    <MESSAGE value="cmd and powershell now deconstruct correctly" />
+    <option name="LAST_COMMIT_MESSAGE" value="cmd and powershell now deconstruct correctly" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -206,14 +216,20 @@
           <option name="totalLines" value="3369282" />
           <option name="info" value="add powershell page" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777277465789" />
+          <option name="linesCode" value="659681" />
+          <option name="totalLines" value="3369562" />
+          <option name="info" value="cmd and powershell now deconstruct correctly" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
       <list>
         <TimePoint>
-          <option name="timestamp" value="1777265516058" />
-          <option name="linesCode" value="659669" />
-          <option name="totalLines" value="3369282" />
+          <option name="timestamp" value="1777277465789" />
+          <option name="linesCode" value="659681" />
+          <option name="totalLines" value="3369562" />
           <option name="info" value="Apr 27, 2026" />
         </TimePoint>
       </list>

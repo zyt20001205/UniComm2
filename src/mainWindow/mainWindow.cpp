@@ -388,6 +388,7 @@ void MainWindow::moduleInit() {
     g_database = m_databaseModule;
     g_dataplot = m_dataplotModule;
     g_datatable = m_datatableModule;
+    g_log = m_logModule;
     g_nuspell = m_nuspellModule;
     g_port = m_portModule;
     g_document = m_documentModule;

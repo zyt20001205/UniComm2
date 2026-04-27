@@ -4,6 +4,7 @@ MainWindow *g_mainWindow = nullptr;
 DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;
+LogModule *g_log = nullptr;
 NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;
 DocumentModule *g_document = nullptr;
