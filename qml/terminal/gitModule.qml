@@ -26,7 +26,7 @@ Item {
                     case Qt.Key_Enter:
                     case Qt.Key_Return: {
                         if (!(event.modifiers & Qt.ShiftModifier)) {
-                            if (textArea.cursorPosition === textArea.basePosition) {
+                            if (textArea.cursorPosition <= textArea.basePosition) {
                                 event.accepted = true
                             }
                             const currentPos = textArea.cursorPosition
@@ -38,7 +38,7 @@ Item {
                     }
                         break;
                     case Qt.Key_Backspace: {
-                        if (textArea.cursorPosition === textArea.basePosition) {
+                        if (textArea.cursorPosition <= textArea.basePosition) {
                             event.accepted = true
                         }
                     }

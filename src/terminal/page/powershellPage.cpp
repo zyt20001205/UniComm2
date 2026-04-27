@@ -7,6 +7,7 @@
 PowershellPage::PowershellPage(const QString &uniqueName, const QJsonObject &config)
     : TerminalPage(uniqueName, config) {
     m_name = "powershell.exe";
+    m_arguments = {"-NoLogo"};
 }
 
 // protected

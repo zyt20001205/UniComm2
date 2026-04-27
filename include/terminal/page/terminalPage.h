@@ -20,7 +20,9 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE virtual void terminalInput(const QString &command) const;
+    Q_INVOKABLE virtual void terminalInput(const QString &input) const;
+
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 protected:
     virtual void processStart();
@@ -34,9 +36,9 @@ protected:
 private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
+    QQuickItem *m_root{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
-    QObject *m_textField{};
     QTextDocument *m_textDocument{};
 };
 

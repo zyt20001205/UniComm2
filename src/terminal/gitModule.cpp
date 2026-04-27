@@ -54,6 +54,7 @@ bool GitModule::eventFilter(QObject *watched, QEvent *event) {
     return DockWidget::eventFilter(watched, event);
 }
 
+// private
 void GitModule::processStart() {
     QString installPath{};
     // x64
