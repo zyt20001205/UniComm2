@@ -13,7 +13,7 @@ CmdPage::CmdPage(const QString &uniqueName, const QJsonObject &config)
 // protected
 void CmdPage::closeEvent(QCloseEvent *event) {
     if (m_process->state() == QProcess::Running) {
-        terminalInput("exit");
+        terminalInput("exit\n");
         m_process->waitForFinished();
     }
     deleteLater();

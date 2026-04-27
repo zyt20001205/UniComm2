@@ -13,7 +13,7 @@ PowershellPage::PowershellPage(const QString &uniqueName, const QJsonObject &con
 // protected
 void PowershellPage::closeEvent(QCloseEvent *event) {
     if (m_process->state() == QProcess::Running) {
-        terminalInput("exit");
+        terminalInput("exit\n");
         m_process->waitForFinished();
     }
     deleteLater();
