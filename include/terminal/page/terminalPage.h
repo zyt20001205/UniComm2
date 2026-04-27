@@ -25,6 +25,8 @@ public:
     Q_INVOKABLE void terminalInput(const QString &command) const;
 
 protected:
+    void closeEvent(QCloseEvent *event) override;
+
     QString m_processName{};
 
 private:

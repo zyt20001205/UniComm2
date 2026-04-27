@@ -27,6 +27,7 @@ void TerminalModule::cmdOpen() {
     cmdPage->propertySet(QVariantMap{});
     cmdPage->start();
     m_cmdHash.insert(index, cmdPage);
+    connect(cmdPage, &CmdPage::destroyed, this, [this, index] { m_cmdHash.remove(index); });
 }
 
 void TerminalModule::powershellOpen() {
@@ -38,4 +39,5 @@ void TerminalModule::powershellOpen() {
     powershellPage->propertySet(QVariantMap{});
     powershellPage->start();
     m_powershellHash.insert(index, powershellPage);
+    connect(powershellPage, &PowershellPage::destroyed, this, [this, index] { m_powershellHash.remove(index); });
 }
