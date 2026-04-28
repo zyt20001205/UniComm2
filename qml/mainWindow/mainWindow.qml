@@ -3274,11 +3274,11 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleGitMenuRemoveItem
+            id: menuModuleGitMenuCommitItem
             enabled: menuModuleGitMenu.status === true
-            text: qsTr("Remove")
+            text: qsTr("Commit")
 
-            onTriggered: gitModule.gitRemove()
+            onTriggered: gitModule.gitCommit()
         }
     }
 

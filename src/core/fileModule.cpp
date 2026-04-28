@@ -125,7 +125,7 @@ void FileModule::fileNew(const QUrl &fileUrl) {
             if (file.open(QIODevice::WriteOnly)) {
                 file.close();
                 emit openDocument(fileUrl);
-                emit appendLog(LOG_INFO, "file created at", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
+                emit appendLog(LogLevel::Info, "file created at", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
             }
         }
     } else {
@@ -136,7 +136,7 @@ void FileModule::fileNew(const QUrl &fileUrl) {
         } else {
             const QDir dir;
             if (dir.mkpath(filePath)) {
-                emit appendLog(LOG_INFO, "folder created at", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
+                emit appendLog(LogLevel::Info, "folder created at", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
             }
         }
     }
@@ -151,7 +151,7 @@ void FileModule::fileRename(const QUrl &fileUrl, const QString &name) {
         if (file.rename(newPath)) {
             const auto newUrl = QUrl::fromLocalFile(newPath);
             didRenameFilesNotification(fileUrl, newUrl);
-            emit appendLog(LOG_INFO, "file renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
+            emit appendLog(LogLevel::Info, "file renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
         }
     } else if (fileInfo.isDir()) {
         QFile file(filePath);
@@ -159,7 +159,7 @@ void FileModule::fileRename(const QUrl &fileUrl, const QString &name) {
         if (file.rename(newPath)) {
             const auto newUrl = QUrl::fromLocalFile(newPath);
             didRenameFilesNotification(fileUrl, newUrl);
-            emit appendLog(LOG_INFO, "folder renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
+            emit appendLog(LogLevel::Info, "folder renamed to", QString("<a href='%1'>%2</a>").arg(newUrl.toString(), newUrl.toString()));
         }
     }
 }
@@ -172,13 +172,13 @@ void FileModule::fileDelete(const QUrl &fileUrl) {
         if (QFile::moveToTrash(filePath, &trashPath)) {
             didDeleteFilesNotification(fileUrl);
             const auto trashUrl = QUrl::fromLocalFile(trashPath);
-            emit appendLog(LOG_INFO, "file deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
+            emit appendLog(LogLevel::Info, "file deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
         }
     } else if (fileInfo.isDir()) {
         if (QFile::moveToTrash(filePath, &trashPath)) {
             didDeleteFilesNotification(fileUrl);
             const auto trashUrl = QUrl::fromLocalFile(trashPath);
-            emit appendLog(LOG_INFO, "file deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
+            emit appendLog(LogLevel::Info, "file deleted", QString("<a href='%1'>%2</a>").arg(trashUrl.toString(), trashUrl.toString()));
         }
     }
 }

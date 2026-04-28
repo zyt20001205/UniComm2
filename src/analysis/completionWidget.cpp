@@ -49,13 +49,13 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
     m_tooltip->setProperty("typed", QVariant::fromValue(completionSession["typed"]));
     m_completionSession = completionSession;
     m_completionModel->clear();
-    int completionMode = COMPLETION_MODE_FULL;
+    int completionMode = Full;
     for (const auto &value: items) {
         QJsonObject item = value.toObject();
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
         if (insertText == "_ENV") {
-            completionMode = COMPLETION_MODE_SIMPLE;
+            completionMode = Simple;
             break;
         }
     }
@@ -63,7 +63,7 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
     for (const auto &value: items) {
         QJsonObject item = value.toObject();
         const int kind = item["kind"].toInt();
-        if (completionMode == COMPLETION_MODE_SIMPLE && kind != COMPLETION_KIND_ENUMMEMBER) continue;
+        if (completionMode == Simple && kind != EnumMember) continue;
         const QString label = item["label"].toString();
         const QString insertText = item["insertText"].toString(label);
         // placeholder check
@@ -77,50 +77,50 @@ void CompletionWidget::completionShow(const QVariantHash &completionSession, con
             auto *standardItem = new QStandardItem(insertText); // NOLINT
             QUrl iconSource{};
             switch (kind) {
-                case COMPLETION_KIND_TEXT: {
+                case Text: {
                     iconSource = "qrc:/icon/symbolString.svg";
                 }
                 break;
-                case COMPLETION_KIND_METHOD:
-                case COMPLETION_KIND_FUNCTION: {
+                case Method:
+                case Function: {
                     iconSource = "qrc:/icon/symbolMethod.svg";
                 }
                 break;
-                case COMPLETION_KIND_FIELD: {
+                case Field: {
                     iconSource = "qrc:/icon/symbolField.svg";
                 }
                 break;
-                case COMPLETION_KIND_VARIABLE: {
+                case Variable: {
                     iconSource = "qrc:/icon/symbolVariable.svg";
                 }
                 break;
-                case COMPLETION_KIND_ENUM: {
+                case Enum: {
                     iconSource = "qrc:/icon/symbolEnum.svg";
                 }
                 break;
-                case COMPLETION_KIND_KEYWORD: {
+                case Keyword: {
                     iconSource = "qrc:/icon/symbolKeyword.svg";
                 }
                 break;
-                case COMPLETION_KIND_SNIPPET: {
+                case Snippet: {
                     iconSource = "qrc:/icon/symbolSnippet.svg";
                 }
                 break;
-                case COMPLETION_KIND_FILE: {
+                case File: {
                     iconSource = "qrc:/icon/symbolFile.svg";
                 }
                 break;
-                case COMPLETION_KIND_ENUMMEMBER: {
+                case EnumMember: {
                     iconSource = "qrc:/icon/symbolEnumMember.svg";
                 }
                 break;
-                case COMPLETION_KIND_EVENT: {
+                case Event: {
                     iconSource = "qrc:/icon/symbolEvent.svg";
                 }
                 break;
                 default: {
                     iconSource = "qrc:/icon/symbolMisc.svg";
-                    emit appendLog(LOG_WARNING, "contact author:", QString("unsupported completion (kind:%1, text:%2)").arg(QString::number(kind), insertText));
+                    emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported completion (kind:%1, text:%2)").arg(QString::number(kind), insertText));
                 }
                 break;
             }
@@ -171,11 +171,11 @@ void CompletionWidget::textReplace() {
     const int index = m_tableView->property("selectedRow").toInt();
     const int kind = m_completionModel->item(index, 0)->data(Qt::UserRole + 1).toInt();
     QString insertText = m_completionModel->item(index, 0)->text();
-    if (kind == COMPLETION_KIND_METHOD || kind == COMPLETION_KIND_FUNCTION) {
+    if (kind == Method || kind == Function) {
         insertText += "()";
-    } else if (kind == COMPLETION_KIND_FIELD) {
+    } else if (kind == Field) {
         insertText += ".";
-    } else if (kind == COMPLETION_KIND_ENUMMEMBER) {
+    } else if (kind == EnumMember) {
         if (insertText == "\"Get Position\"") {
             const QVariantMap gotoSession = {
                 {"documentUrl", m_completionSession["documentUrl"].toUrl()},
@@ -195,7 +195,7 @@ void CompletionWidget::textReplace() {
         m_completionSession["endLine"].toInt(),
         m_completionSession["endCharacter"].toInt());
     int cursorPosition = 0;
-    if (kind == COMPLETION_KIND_METHOD || kind == COMPLETION_KIND_FUNCTION) {
+    if (kind == Method || kind == Function) {
         cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size() - 1;
     } else {
         cursorPosition = m_completionSession["startCharacter"].toInt() + insertText.size();
@@ -204,9 +204,9 @@ void CompletionWidget::textReplace() {
         m_completionSession["documentUrl"].toUrl(),
         m_completionSession["startLine"].toInt(),
         cursorPosition);
-    if (kind == COMPLETION_KIND_METHOD || kind == COMPLETION_KIND_FUNCTION) {
+    if (kind == Method || kind == Function) {
         emit addChar(m_completionSession["documentUrl"].toUrl(), '(');
-    } else if (kind == COMPLETION_KIND_FIELD) {
+    } else if (kind == Field) {
         emit addChar(m_completionSession["documentUrl"].toUrl(), '.');
     }
     completionHide();
@@ -219,7 +219,7 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
             auto *standardItem = new QStandardItem(insertText); // NOLINT
             standardItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
             standardItem->setData(insertText, Qt::WhatsThisRole);
-            standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
+            standardItem->setData(EnumMember, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         }
     } else if (placeholder == "\"__PLACEHOLDER__DATABASEKEY__\"") {
@@ -228,7 +228,7 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
             auto *standardItem = new QStandardItem(insertText); // NOLINT
             standardItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
             standardItem->setData(insertText, Qt::WhatsThisRole);
-            standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
+            standardItem->setData(EnumMember, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         }
     } else if (placeholder == "\"__PLACEHOLDER__DATATABLEKEY__\"") {
@@ -237,7 +237,7 @@ void CompletionWidget::placeholderExpand(const QString &placeholder) const {
             auto *standardItem = new QStandardItem(insertText); // NOLINT
             standardItem->setData("qrc:/icon/symbolEnumMember.svg", Qt::DecorationRole);
             standardItem->setData(insertText, Qt::WhatsThisRole);
-            standardItem->setData(COMPLETION_KIND_ENUMMEMBER, Qt::UserRole + 1);
+            standardItem->setData(EnumMember, Qt::UserRole + 1);
             m_completionModel->appendRow(standardItem);
         }
     } else if (placeholder == "\"__PLACEHOLDER__PASSWORD__\"") {

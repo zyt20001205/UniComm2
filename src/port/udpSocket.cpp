@@ -19,7 +19,7 @@ UdpSocket::~UdpSocket() {
 }
 
 int UdpSocket::type() {
-    return UDPSOCKET;
+    return PortType::UdpSocket;
 }
 
 QJsonObject UdpSocket::config() {
@@ -57,12 +57,12 @@ bool UdpSocket::open() {
     if (m_udpSocket->state() != QAbstractSocket::UnconnectedState) return true;
     // open port
     if (!m_udpSocket->bind(QHostAddress(m_portConfig["localHost"].toString()), m_portConfig["localPort"].toInt())) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_udpSocket->errorString()));
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_udpSocket->errorString()));
         return false;
     }
     m_udpSocket->connectToHost(m_portConfig["remoteHost"].toString(), m_portConfig["remotePort"].toInt());
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("opened: %2:%3->%4:%5")
                    .arg(m_portConfig["portName"].toString(),
@@ -82,7 +82,7 @@ void UdpSocket::close() {
     // port close
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void UdpSocket::clear() {
@@ -117,7 +117,7 @@ QByteArray UdpSocket::readUntil(const QByteArray &text, const int timeout, const
 void UdpSocket::handleReadyRead() {
     const auto rxData = m_udpSocket->readAll();
     m_buffer.write(rxData);
-    handleLog(LOG_RX, rxData);
+    handleLog(LogLevel::Receive, rxData);
 }
 
 void UdpSocket::handleError() {
@@ -126,24 +126,24 @@ void UdpSocket::handleError() {
         m_udpSocket->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_udpSocket->errorString()));
+    emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_udpSocket->errorString()));
 }
 
 bool UdpSocket::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_udpSocket->write(f_txData);
-    handleLog(LOG_TX, f_txData);
+    handleLog(LogLevel::Transmit, f_txData);
     return true;
 }
 
 QByteArray UdpSocket::handleRead(const int length, const int timeout) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -157,7 +157,7 @@ QByteArray UdpSocket::handleRead(const int length, const int timeout) {
 QByteArray UdpSocket::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_udpSocket == nullptr || !m_udpSocket->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -169,7 +169,7 @@ QByteArray UdpSocket::handleReadUntil(const QByteArray &text, const int timeout)
 }
 
 void UdpSocket::handleLog(const int type, const QByteArray &data) {
-    if (type == LOG_TX) {
+    if (type == LogLevel::Transmit) {
         // tx message reformat
         QString txMessage{};
         // 1: encode tx message according to tx format

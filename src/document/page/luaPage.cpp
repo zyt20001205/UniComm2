@@ -137,7 +137,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         // indicator
         {
             m_editorWidget->indicatorDefine(
-                INDICATOR_TYPO,
+                ScintillaIndicator::Typo,
                 QJsonObject{
                     {"style", 14},
                     {"fore", 0xabd180},
@@ -146,7 +146,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_HINT,
+                ScintillaIndicator::Hint,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0xf5f5f5},
@@ -155,7 +155,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_INFO,
+                ScintillaIndicator::Info,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0xfaf0e6},
@@ -164,7 +164,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_WARNING,
+                ScintillaIndicator::Warning,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0xe6f5ff},
@@ -173,7 +173,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_ERROR,
+                ScintillaIndicator::Error,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0xe6e6ff},
@@ -182,7 +182,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_PASSWORD,
+                ScintillaIndicator::Password,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0x000000},
@@ -199,7 +199,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             //             {"setUnder", true}
             // });
             m_editorWidget->indicatorDefine(
-                INDICATOR_HIGHLIGHT,
+                ScintillaIndicator::Highlight,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0xe0e0e0},
@@ -208,7 +208,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_READ,
+                ScintillaIndicator::Read,
                 QJsonObject{
                     {"style", 17},
                     {"fore", 0xb85f00},
@@ -217,7 +217,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_WRITE,
+                ScintillaIndicator::Write,
                 QJsonObject{
                     {"style", 17},
                     {"fore", 0x2828c6},
@@ -226,7 +226,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_SEARCH,
+                ScintillaIndicator::Search,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0x7ed4fc},
@@ -235,7 +235,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_SELECTION,
+                ScintillaIndicator::Selection,
                 QJsonObject{
                     {"style", 8},
                     {"fore", 0x3372c4},
@@ -244,7 +244,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"setUnder", true}
                 });
             m_editorWidget->indicatorDefine(
-                INDICATOR_HYPERLINK,
+                ScintillaIndicator::Hyperlink,
                 QJsonObject{
                     {"style", 17},
                     {"fore", 0xcc6d00},
@@ -288,49 +288,49 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         // marker
         {
             m_editorWidget->markerDefine(
-                MARKER_REGION,
+                ScintillaMarker::Region,
                 QJsonObject{
                     {"symbol", 2},
                     {"fore", 0x107c10},
                     {"back", 0x9fd89f}
                 });
             m_editorWidget->markerDefine(
-                MARKER_BREAKPOINT_ENABLED,
+                ScintillaMarker::BreakpointEnabled,
                 QJsonObject{
                     {"symbol", 0},
                     {"fore", 0x1f0fc5},
                     {"back", 0xb2acee}
                 });
             m_editorWidget->markerDefine(
-                MARKER_BREAKPOINT_DISABLED,
+                ScintillaMarker::BreakpointDisabled,
                 QJsonObject{
                     {"symbol", 0},
                     {"fore", 0x1f0fc5},
                     {"back", 0xffffff}
                 });
             m_editorWidget->markerDefine(
-                MARKER_NAVIGATION,
+                ScintillaMarker::Navigation,
                 QJsonObject{
                     {"symbol", 24},
                     {"fore", 0x000000},
                     {"back", 0x000000}
                 });
             m_editorWidget->markerDefine(
-                MARKER_DEBUG,
+                ScintillaMarker::Debug,
                 QJsonObject{
                     {"symbol", 2},
                     {"fore", 0x000000},
                     {"back", 0xa500ff}
                 });
             m_editorWidget->markerDefine(
-                MARKER_ERROR,
+                ScintillaMarker::Error,
                 QJsonObject{
                     {"symbol", 22},
                     {"fore", 0xffe6e6},
                     {"back", 0xffe6e6}
                 });
             m_editorWidget->markerDefine(
-                MARKER_HINT,
+                ScintillaMarker::Hint,
                 QJsonObject{
                     {"symbol", 22},
                     {"fore", 0xe0e0e0},
@@ -340,87 +340,87 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         // style
         {
             m_editorWidget->styleDefine(
-                LUA_TOKEN_NAMESPACE,
+                LuaTokenType::Namespace,
                 QJsonObject{
                     {"fore", 0x808000}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_CLASS,
+                LuaTokenType::Class,
                 QJsonObject{
                     {"fore", 0x808000}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_TYPE,
+                LuaTokenType::Type,
                 QJsonObject{
                     {"fore", 0xb33300}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_PARAMETER,
+                LuaTokenType::Parameter,
                 QJsonObject{
                     {"fore", 0x000000}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_VARIABLE,
+                LuaTokenType::Variable,
                 QJsonObject{
                     {"fore", 0x000000}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_PROPERTY,
+                LuaTokenType::Property,
                 QJsonObject{
                     {"fore", 0x7a0e66}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_ENUMMEMBAER,
+                LuaTokenType::EnumMember,
                 QJsonObject{
                     {"fore", 0x941087}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_FUNCTION_DECLARATION,
+                LuaTokenType::FunctionDeclaration,
                 QJsonObject{
                     {"fore", 0x7a6200}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_FUNCTION_CALL,
+                LuaTokenType::FunctionCall,
                 QJsonObject{
                     {"fore", 0x000000}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_METHOD,
+                LuaTokenType::Method,
                 QJsonObject{
                     {"fore", 0x000000}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_MACRO,
+                LuaTokenType::Macro,
                 QJsonObject{
                     {"fore", 0x2e541f}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_KEYWORD,
+                LuaTokenType::Keyword,
                 QJsonObject{
                     {"fore", 0xb33300}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_COMMENT,
+                LuaTokenType::Comment,
                 QJsonObject{
                     {"fore", 0x8c8c8c}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_STRING,
+                LuaTokenType::String,
                 QJsonObject{
                     {"fore", 0x177d06}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_NUMBER,
+                LuaTokenType::Number,
                 QJsonObject{
                     {"fore", 0xeb5017}
                 });
             m_editorWidget->styleDefine(
-                LUA_TOKEN_OPERATOR,
+                LuaTokenType::Operator,
                 QJsonObject{
                     {"fore", 0x000000}
                 });
             m_editorWidget->styleDefine(
-                STYLE_ANNOTATION,
+                CustomStyle::Annotation,
                 QJsonObject{
                     {"fore", 0x8c8c8c}
                 });
@@ -523,14 +523,14 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         // marker
         {
             m_assemblyWidget->markerDefine(
-                MARKER_NAVIGATION,
+                ScintillaMarker::Navigation,
                 QJsonObject{
                     {"symbol", 24},
                     {"fore", 0x00ffff},
                     {"back", 0x00ffff}
                 });
             m_assemblyWidget->markerDefine(
-                MARKER_HINT,
+                ScintillaMarker::Hint,
                 QJsonObject{
                     {"symbol", 22},
                     {"fore", 0xe0e0e0},
@@ -540,7 +540,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         // style
         {
             m_assemblyWidget->styleDefine(
-                STYLE_ANNOTATION,
+                CustomStyle::Annotation,
                 QJsonObject{
                     {"fore", 0x8c8c8c}
                 });
@@ -570,7 +570,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         didOpenNotification();
         contentChange();
         // logging
-        emit appendLog(LOG_INFO, "document opened", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+        emit appendLog(LogLevel::Info, "document opened", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
     });
 }
 
@@ -678,7 +678,7 @@ void LuaPage::documentSave() {
     out << m_editorWidget->textGet();
     file.close();
     // logging
-    emit appendLog(LOG_INFO, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+    emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
 void LuaPage::permissionGet() {
@@ -693,11 +693,11 @@ void LuaPage::diagnosticsNotification(const QJsonArray &diagnostics) {
     if (!m_documentUrl.toString().endsWith(".lua")) return;
     m_diagnostic = diagnostics;
     // clear
-    m_editorWidget->indicatorClear(INDICATOR_PASSWORD);
-    m_editorWidget->indicatorClear(INDICATOR_ERROR);
-    m_editorWidget->indicatorClear(INDICATOR_WARNING);
-    m_editorWidget->indicatorClear(INDICATOR_INFO);
-    m_editorWidget->indicatorClear(INDICATOR_HINT);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Password);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Error);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Warning);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Info);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Hint);
     // publish
     for (const auto &value: diagnostics) {
         const QJsonObject diagnostic = value.toObject();
@@ -718,23 +718,23 @@ void LuaPage::diagnosticsNotification(const QJsonArray &diagnostics) {
         int type{};
         switch (severity) {
             case 0: {
-                type = INDICATOR_PASSWORD;
+                type = ScintillaIndicator::Password;
             }
             break;
             case 1: {
-                type = INDICATOR_ERROR;
+                type = ScintillaIndicator::Error;
             }
             break;
             case 2: {
-                type = INDICATOR_WARNING;
+                type = ScintillaIndicator::Warning;
             }
             break;
             case 3: {
-                type = INDICATOR_INFO;
+                type = ScintillaIndicator::Info;
             }
             break;
             case 4: {
-                type = INDICATOR_HINT;
+                type = ScintillaIndicator::Hint;
             }
             break;
             default: break;
@@ -745,9 +745,9 @@ void LuaPage::diagnosticsNotification(const QJsonArray &diagnostics) {
 
 void LuaPage::documentHighlightResponse(const QJsonArray &result) const {
     // clear previous highlight
-    m_editorWidget->indicatorClear(INDICATOR_HIGHLIGHT);
-    m_editorWidget->indicatorClear(INDICATOR_READ);
-    m_editorWidget->indicatorClear(INDICATOR_WRITE);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Highlight);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Read);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Write);
     // highlight
     for (const auto &highlight: result) {
         const QJsonObject highlightObject = highlight.toObject();
@@ -759,9 +759,9 @@ void LuaPage::documentHighlightResponse(const QJsonArray &result) const {
         const int startCharacter = highlightStartPos["character"].toInt();
         const int endLine = highlightEndPos["line"].toInt();
         const int endCharacter = highlightEndPos["character"].toInt();
-        m_editorWidget->indicatorFill(INDICATOR_HIGHLIGHT, startLine, startCharacter, endLine, endCharacter);
-        if (kind == 2) m_editorWidget->indicatorFill(INDICATOR_READ, startLine, startCharacter, endLine, endCharacter);
-        else if (kind == 3) m_editorWidget->indicatorFill(INDICATOR_WRITE, startLine, startCharacter, endLine, endCharacter);
+        m_editorWidget->indicatorFill(ScintillaIndicator::Highlight, startLine, startCharacter, endLine, endCharacter);
+        if (kind == 2) m_editorWidget->indicatorFill(ScintillaIndicator::Read, startLine, startCharacter, endLine, endCharacter);
+        else if (kind == 3) m_editorWidget->indicatorFill(ScintillaIndicator::Write, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -811,7 +811,7 @@ void LuaPage::rangeFormattingResponse(const QString &newText) const {
 
 void LuaPage::semanticTokensResponse(const QJsonArray &data) {
     // clear
-    m_editorWidget->styleSet(LUA_TOKEN_UNUSED);
+    m_editorWidget->styleSet(LuaTokenType::Unused);
     // publish
     int line = 0;
     int character = 0;
@@ -825,54 +825,54 @@ void LuaPage::semanticTokensResponse(const QJsonArray &data) {
         character = deltaLine > 0 ? deltaCharacter : character + deltaCharacter;
         int type{};
         switch (tokenType) {
-            case TOKENTYPE_NAMESPACE:
-                type = LUA_TOKEN_NAMESPACE;
+            case LspTokenType::Namespace:
+                type = LuaTokenType::Namespace;
                 break;
-            case TOKENTYPE_CLASS:
-                type = LUA_TOKEN_CLASS;
+            case LspTokenType::Class:
+                type = LuaTokenType::Class;
                 break;
-            case TOKENTYPE_TYPE:
-                type = LUA_TOKEN_TYPE;
+            case LspTokenType::Type:
+                type = LuaTokenType::Type;
                 break;
-            case TOKENTYPE_PARAMETER:
-                type = LUA_TOKEN_PARAMETER;
+            case LspTokenType::Parameter:
+                type = LuaTokenType::Parameter;
                 break;
-            case TOKENTYPE_VARIABLE:
-                type = LUA_TOKEN_VARIABLE;
+            case LspTokenType::Variable:
+                type = LuaTokenType::Variable;
                 break;
-            case TOKENTYPE_PROPERTY:
-                type = LUA_TOKEN_PROPERTY;
+            case LspTokenType::Property:
+                type = LuaTokenType::Property;
                 break;
-            case TOKENTYPE_ENUMMEMBAER:
-                type = LUA_TOKEN_ENUMMEMBAER;
+            case LspTokenType::EnumMember:
+                type = LuaTokenType::EnumMember;
                 break;
-            case TOKENTYPE_FUNCTION:
-                if (tokenModifiers == TOKENMODIFIERS_DECLARATION || tokenModifiers == TOKENMODIFIERS_GLOBAL) type = LUA_TOKEN_FUNCTION_DECLARATION;
-                else type = LUA_TOKEN_FUNCTION_CALL;
+            case LspTokenType::Function:
+                if (tokenModifiers == LspTokenModifiers::Declaration || tokenModifiers == LspTokenModifiers::Global) type = LuaTokenType::FunctionDeclaration;
+                else type = LuaTokenType::FunctionCall;
                 break;
-            case TOKENTYPE_METHOD:
-                type = LUA_TOKEN_METHOD;
+            case LspTokenType::Method:
+                type = LuaTokenType::Method;
                 break;
-            case TOKENTYPE_MACRO:
-                type = LUA_TOKEN_MACRO;
+            case LspTokenType::Macro:
+                type = LuaTokenType::Macro;
                 break;
-            case TOKENTYPE_KEYWORD:
-                type = LUA_TOKEN_KEYWORD;
+            case LspTokenType::Keyword:
+                type = LuaTokenType::Keyword;
                 break;
-            case TOKENTYPE_COMMENT:
-                type = LUA_TOKEN_COMMENT;
+            case LspTokenType::Comment:
+                type = LuaTokenType::Comment;
                 break;
-            case TOKENTYPE_STRING:
-                type = LUA_TOKEN_STRING;
+            case LspTokenType::String:
+                type = LuaTokenType::String;
                 break;
-            case TOKENTYPE_NUMBER:
-                type = LUA_TOKEN_NUMBER;
+            case LspTokenType::Number:
+                type = LuaTokenType::Number;
                 break;
-            case TOKENTYPE_OPERATOR:
-                type = LUA_TOKEN_OPERATOR;
+            case LspTokenType::Operator:
+                type = LuaTokenType::Operator;
                 break;
             default:
-                emit appendLog(LOG_WARNING, "contact author:", QString("unsupported semantic (token type:%1)").arg(QString::number(tokenType)));
+                emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported semantic (token type:%1)").arg(QString::number(tokenType)));
                 break;
         }
         m_editorWidget->styleSet(type, line, character, length);
@@ -883,7 +883,7 @@ void LuaPage::semanticTokensResponse(const QJsonArray &data) {
 void LuaPage::spellCheckResponse(const QVariantList &typos) {
     m_typo = typos;
     // clear
-    m_editorWidget->indicatorClear(INDICATOR_TYPO);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Typo);
     // publish
     for (const auto &value: typos) {
         auto typo = value.toMap();
@@ -891,7 +891,7 @@ void LuaPage::spellCheckResponse(const QVariantList &typos) {
         const int endLine = typo["line"].toInt();
         const int startCharacter = typo["startCharacter"].toInt();
         const int endCharacter = typo["endCharacter"].toInt();
-        m_editorWidget->indicatorFill(INDICATOR_TYPO, startLine, startCharacter, endLine, endCharacter);
+        m_editorWidget->indicatorFill(ScintillaIndicator::Typo, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
@@ -929,7 +929,7 @@ void LuaPage::assemblyToggle(const bool status) {
             m_assemblyWidget->textSet(error);
         } else {
             m_editorWidget->annotationClear();
-            m_editorWidget->markerDelete(MARKER_NAVIGATION);
+            m_editorWidget->markerDelete(ScintillaMarker::Navigation);
             m_l2aHash.clear();
             m_assemblyWidget->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
@@ -957,7 +957,7 @@ void LuaPage::assemblyToggle(const bool status) {
                     // 1 based
                     if (startLine > 1) {
                         startLine--;
-                        m_editorWidget->markerAdd(MARKER_NAVIGATION, startLine);
+                        m_editorWidget->markerAdd(ScintillaMarker::Navigation, startLine);
                         m_l2aHash.insert(startLine, m_assemblyWidget->lineCountGet() - 2);
                     }
                     if (endLine > 1) endLine--;
@@ -982,7 +982,7 @@ void LuaPage::assemblyToggle(const bool status) {
         m_assemblyWidget->show();
     } else {
         m_editorWidget->annotationClear();
-        m_editorWidget->markerDelete(MARKER_NAVIGATION);
+        m_editorWidget->markerDelete(ScintillaMarker::Navigation);
         m_l2aHash.clear();
         m_assemblyWidget->textClear();
         m_assemblyWidget->hide();
@@ -1005,7 +1005,7 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
             if (mouseEvent->button() == Qt::LeftButton) {
                 if (modifiers == Qt::ControlModifier) {
                     m_editorWidget->positionSet(position);
-                    if (m_editorWidget->indicatorGet(position) & 1 << INDICATOR_HYPERLINK) {
+                    if (m_editorWidget->indicatorGet(position) & 1 << ScintillaIndicator::Hyperlink) {
                         emit requestDefinition(m_documentUrl, index["line"], index["character"]);
                         emit requestReferences(m_documentUrl, index["line"], index["character"]);
                     }
@@ -1071,33 +1071,33 @@ void LuaPage::marginClick(const Scintilla::Position position, const int mouseBut
     const int line = m_editorWidget->lineGet(position);
     if (margin == 1) {
         if (mouseButton == Qt::LeftButton) {
-            if (m_editorWidget->markerGet(line) & 1 << MARKER_REGION) {
+            if (m_editorWidget->markerGet(line) & 1 << ScintillaMarker::Region) {
                 for (int current = line; current < m_editorWidget->lineCountGet(); ++current) {
                     const QString text = m_editorWidget->textGet(current, 0, current, -1);
                     if (text.contains("--#endregion")) {
-                        emit startThread(m_documentUrl, THREAD_RUN, line + 1, 0, current - 1, -1);
+                        emit startThread(m_documentUrl, InterpreterMode::Run, line + 1, 0, current - 1, -1);
                         return;
                     }
                 }
                 qDebug() << "error: --#endregion not found";
-            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED) {
+            } else if (m_editorWidget->markerGet(line) & 1 << ScintillaMarker::BreakpointEnabled) {
                 emit removeBreakpoint(m_documentUrl, line + 1);
-                m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED, line);
-            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
+                m_editorWidget->markerDelete(ScintillaMarker::BreakpointEnabled, line);
+            } else if (m_editorWidget->markerGet(line) & 1 << ScintillaMarker::BreakpointDisabled) {
                 emit removeBreakpoint(m_documentUrl, line + 1);
-                m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED, line);
-            } else if (m_editorWidget->markerGet(line) & 1 << MARKER_NAVIGATION) {
-                m_assemblyWidget->markerAdd(MARKER_HINT, m_l2aHash[line], 1000);
+                m_editorWidget->markerDelete(ScintillaMarker::BreakpointDisabled, line);
+            } else if (m_editorWidget->markerGet(line) & 1 << ScintillaMarker::Navigation) {
+                m_assemblyWidget->markerAdd(ScintillaMarker::Hint, m_l2aHash[line], 1000);
             } else {
                 emit insertBreakpoint(m_documentUrl, line + 1, QVariantHash({
                                           {"condition", ""},
                                           {"enabled", true}
                                       }));
-                m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line);
+                m_editorWidget->markerAdd(ScintillaMarker::BreakpointEnabled, line);
                 if (modifiers == Scintilla::KeyMod::Ctrl) breakpointSet(line + 1);
             }
         } else if (mouseButton == Qt::RightButton) {
-            if (m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_ENABLED || m_editorWidget->markerGet(line) & 1 << MARKER_BREAKPOINT_DISABLED) {
+            if (m_editorWidget->markerGet(line) & 1 << ScintillaMarker::BreakpointEnabled || m_editorWidget->markerGet(line) & 1 << ScintillaMarker::BreakpointDisabled) {
                 breakpointSet(line + 1);
             }
         }
@@ -1150,12 +1150,12 @@ void LuaPage::permissionSet() const {
 }
 
 void LuaPage::breakpointGet() const {
-    m_editorWidget->markerDelete(MARKER_BREAKPOINT_ENABLED);
-    m_editorWidget->markerDelete(MARKER_BREAKPOINT_DISABLED);
+    m_editorWidget->markerDelete(ScintillaMarker::BreakpointEnabled);
+    m_editorWidget->markerDelete(ScintillaMarker::BreakpointDisabled);
     if (g_breakpoints.contains(m_documentUrl)) {
         for (const auto &line: g_breakpoints[m_documentUrl].keys()) {
-            if (g_breakpoints[m_documentUrl][line]["enabled"].toBool()) m_editorWidget->markerAdd(MARKER_BREAKPOINT_ENABLED, line - 1);
-            else m_editorWidget->markerAdd(MARKER_BREAKPOINT_DISABLED, line - 1);
+            if (g_breakpoints[m_documentUrl][line]["enabled"].toBool()) m_editorWidget->markerAdd(ScintillaMarker::BreakpointEnabled, line - 1);
+            else m_editorWidget->markerAdd(ScintillaMarker::BreakpointDisabled, line - 1);
         }
     }
 }
@@ -1167,11 +1167,11 @@ void LuaPage::breakpointSet(const int line) const {
 }
 
 void LuaPage::regionGet() const {
-    m_editorWidget->markerDelete(MARKER_REGION);
+    m_editorWidget->markerDelete(ScintillaMarker::Region);
     for (int line = 0; line < m_editorWidget->lineCountGet(); ++line) {
         const QString text = m_editorWidget->textGet(line, 0, line, -1);
         if (text.contains("--#region")) {
-            m_editorWidget->markerAdd(MARKER_REGION, line);
+            m_editorWidget->markerAdd(ScintillaMarker::Region, line);
         }
     }
 }
@@ -1412,22 +1412,22 @@ void LuaPage::commentToggle() {
 
 bool LuaPage::navigable(const Scintilla::Position position) const {
     const int type = m_editorWidget->styleGet(position);
-    if (type > 0 && type < LUA_TOKEN_MACRO) return true;
+    if (type > 0 && type < LuaTokenType::Macro) return true;
     return false;
 }
 
 void LuaPage::navigationToggle(const Scintilla::Position position) const {
     if (position == -1) {
-        m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
+        m_editorWidget->indicatorClear(ScintillaIndicator::Hyperlink);
         m_toolTip->setProperty("text", "");
     } else {
         if (navigable(position)) {
             const auto wordIndex = m_editorWidget->wordIndexGet(position);
-            m_editorWidget->indicatorFill(INDICATOR_HYPERLINK, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
+            m_editorWidget->indicatorFill(ScintillaIndicator::Hyperlink, wordIndex["startLine"], wordIndex["startCharacter"], wordIndex["endLine"], wordIndex["endCharacter"]);
             m_toolTip->setProperty("position", QCursor::pos());
             m_toolTip->setProperty("text", tr("Click to navigate"));
         } else {
-            m_editorWidget->indicatorClear(INDICATOR_HYPERLINK);
+            m_editorWidget->indicatorClear(ScintillaIndicator::Hyperlink);
             m_toolTip->setProperty("text", "");
         }
     }
@@ -1489,7 +1489,7 @@ void LuaPage::searchRequest(const QString &text) {
             const auto startIndex = m_editorWidget->indexGet(start);
             const auto endIndex = m_editorWidget->indexGet(end);
             m_editorWidget->indicatorFill(
-                INDICATOR_SEARCH,
+                ScintillaIndicator::Search,
                 startIndex["line"],
                 startIndex["character"],
                 endIndex["line"],
@@ -1531,7 +1531,7 @@ void LuaPage::searchResponse() {
         startIndex["character"]
     );
     m_editorWidget->indicatorFill(
-        INDICATOR_SELECTION,
+        ScintillaIndicator::Selection,
         startIndex["line"],
         startIndex["character"],
         endIndex["line"],
@@ -1540,7 +1540,7 @@ void LuaPage::searchResponse() {
 }
 
 void LuaPage::searchPrev() {
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Selection);
     const auto current = m_search["current"].toInt();
     const auto total = m_search["total"].toInt();
     if (current != 0) {
@@ -1552,7 +1552,7 @@ void LuaPage::searchPrev() {
 }
 
 void LuaPage::searchNext() {
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Selection);
     const auto current = m_search["current"].toInt();
     const auto total = m_search["total"].toInt();
     if (current != total - 1) {
@@ -1565,8 +1565,8 @@ void LuaPage::searchNext() {
 
 void LuaPage::searchClear() {
     m_search.clear();
-    m_editorWidget->indicatorClear(INDICATOR_SEARCH);
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Search);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Selection);
 }
 
 void LuaPage::textReplace(const QString &text) {

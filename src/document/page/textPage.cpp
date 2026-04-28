@@ -71,7 +71,7 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     // indicator
     {
         m_editorWidget->indicatorDefine(
-            INDICATOR_SEARCH,
+            ScintillaIndicator::Search,
             QJsonObject{
                 {"style", 8},
                 {"fore", 0x7ed4fc},
@@ -80,7 +80,7 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                 {"setUnder", true}
             });
         m_editorWidget->indicatorDefine(
-            INDICATOR_SELECTION,
+            ScintillaIndicator::Selection,
             QJsonObject{
                 {"style", 8},
                 {"fore", 0x3372c4},
@@ -137,7 +137,7 @@ void TextPage::documentSave() {
     out << m_editorWidget->textGet();
     file.close();
     // logging
-    emit appendLog(LOG_INFO, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+    emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
 // private: slot
@@ -202,7 +202,7 @@ void TextPage::searchRequest(const QString &text) {
             const auto startIndex = m_editorWidget->indexGet(start);
             const auto endIndex = m_editorWidget->indexGet(end);
             m_editorWidget->indicatorFill(
-                INDICATOR_SEARCH,
+                ScintillaIndicator::Search,
                 startIndex["line"],
                 startIndex["character"],
                 endIndex["line"],
@@ -244,7 +244,7 @@ void TextPage::searchResponse() {
         startIndex["character"]
     );
     m_editorWidget->indicatorFill(
-        INDICATOR_SELECTION,
+        ScintillaIndicator::Selection,
         startIndex["line"],
         startIndex["character"],
         endIndex["line"],
@@ -253,7 +253,7 @@ void TextPage::searchResponse() {
 }
 
 void TextPage::searchPrev() {
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Selection);
     const auto current = m_search["current"].toInt();
     const auto total = m_search["total"].toInt();
     if (current != 0) {
@@ -265,7 +265,7 @@ void TextPage::searchPrev() {
 }
 
 void TextPage::searchNext() {
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Selection);
     const auto current = m_search["current"].toInt();
     const auto total = m_search["total"].toInt();
     if (current != total - 1) {
@@ -278,8 +278,8 @@ void TextPage::searchNext() {
 
 void TextPage::searchClear() {
     m_search.clear();
-    m_editorWidget->indicatorClear(INDICATOR_SEARCH);
-    m_editorWidget->indicatorClear(INDICATOR_SELECTION);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Search);
+    m_editorWidget->indicatorClear(ScintillaIndicator::Selection);
 }
 
 void TextPage::textReplace(const QString &text) {

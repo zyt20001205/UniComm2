@@ -18,7 +18,7 @@ Visa::~Visa() {
 }
 
 int Visa::type() {
-    return VISA;
+    return PortType::Visa;
 }
 
 QJsonObject Visa::config() {
@@ -34,13 +34,13 @@ bool Visa::open() {
     if (status == VI_SUCCESS) {
         status = viSetAttribute(m_visa, VI_ATTR_TMO_VALUE, 5000);
         emit refreshPort(m_portConfig["portName"].toString(), true);
-        emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
+        emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
         // logging
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2 opened").arg(timestamp, m_portConfig["portName"].toString());
         return true;
     }
-    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "open failed");
+    emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "open failed");
     return false;
 }
 
@@ -48,7 +48,7 @@ void Visa::close() {
     if (m_visa != VI_NULL) {
         ViStatus status = viClose(m_visa);
         emit refreshPort(m_portConfig["portName"].toString(), false);
-        emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
+        emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
     }
 }
 
@@ -83,12 +83,12 @@ QByteArray Visa::readUntil(const QByteArray &text, const int timeout, const QStr
 bool Visa::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_visa == VI_NULL) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     ViUInt32 retCount;
     const ViStatus status = viWrite(m_visa, (ViBuf) f_txData.constData(), f_txData.size(), &retCount);
-    handleLog(LOG_TX, f_txData);
+    handleLog(LogLevel::Transmit, f_txData);
     if (status == VI_SUCCESS) {
         return true;
     }
@@ -119,7 +119,7 @@ QByteArray Visa::handleReadUntil(const QByteArray &text, const int timeout) {
 }
 
 void Visa::handleLog(const int type, const QByteArray &data) {
-    if (type == LOG_TX) {
+    if (type == LogLevel::Transmit) {
         // tx message reformat
         QString txMessage{};
         // 1: encode tx message according to tx format

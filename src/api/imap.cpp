@@ -327,7 +327,7 @@ void Imap::_receive(const std::string &from, const std::string &path, const int 
         } else if (type.contains("text/html")) {
             fileName = "body.html";
         } else {
-            emit appendLog(LOG_WARNING, "contact author:", QString("unsupported body (content-type:%1)").arg(type));
+            emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported body (content-type:%1)").arg(type));
             continue;
         }
         QFile file(dir.filePath(fileName));
@@ -590,6 +590,6 @@ QByteArray Imap::rfc2047Parser(const QByteArray &text) {
         return QByteArray::fromBase64(payload);
     }
     // TODO: Q case
-    emit appendLog(LOG_WARNING, "contact author:", QString("unsupported rfc2047 encoding (Q)"));
+    emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported rfc2047 encoding (Q)"));
     return {};
 }

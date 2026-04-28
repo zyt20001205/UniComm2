@@ -59,7 +59,7 @@ void ScintillaWidget::annotationClear() const {
 
 void ScintillaWidget::annotationSet(const int line, const QString &annotation) const {
     send(SCI_ANNOTATIONSETTEXT, line, reinterpret_cast<sptr_t>(annotation.toUtf8().constData()));
-    send(SCI_ANNOTATIONSETSTYLE, line, STYLE_ANNOTATION); // NOLINT
+    send(SCI_ANNOTATIONSETSTYLE, line, CustomStyle::Annotation); // NOLINT
 }
 
 void ScintillaWidget::eolAnnotationClear() const {

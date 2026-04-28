@@ -26,7 +26,7 @@ public:
 
     Q_INVOKABLE void gitInit();
 
-    Q_INVOKABLE void gitRemove();
+    Q_INVOKABLE void gitCommit();
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -53,7 +53,7 @@ private:
     enum GitCommand {
         Status,
         Init,
-        Remove
+        Commit
     };
 };
 

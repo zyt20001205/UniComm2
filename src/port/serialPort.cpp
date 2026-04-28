@@ -20,7 +20,7 @@ SerialPort::~SerialPort() {
 }
 
 int SerialPort::type() {
-    return SERIALPORT;
+    return PortType::SerialPort;
 }
 
 QJsonObject SerialPort::config() {
@@ -88,10 +88,10 @@ bool SerialPort::open() {
     m_serialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_portConfig["stopBits"].toInt()));
     if (m_serialPort->open(QSerialPort::ReadWrite)) {
         emit refreshPort(m_portConfig["portName"].toString(), true);
-        emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
+        emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
         return true;
     }
-    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_serialPort->errorString()));
+    emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("open failed: %1").arg(m_serialPort->errorString()));
     return false;
 }
 
@@ -102,7 +102,7 @@ void SerialPort::close() {
     m_serialPort->close();
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void SerialPort::clear() {
@@ -137,7 +137,7 @@ QByteArray SerialPort::readUntil(const QByteArray &text, const int timeout, cons
 void SerialPort::handleReadyRead() {
     const auto rxData = m_serialPort->readAll();
     m_buffer.write(rxData);
-    handleLog(LOG_RX, rxData);
+    handleLog(LogLevel::Receive, rxData);
 }
 
 void SerialPort::handleError() {
@@ -146,24 +146,24 @@ void SerialPort::handleError() {
         m_serialPort->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_serialPort->errorString()));
+    emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_serialPort->errorString()));
 }
 
 bool SerialPort::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_serialPort->write(f_txData);
-    handleLog(LOG_TX, f_txData);
+    handleLog(LogLevel::Transmit, f_txData);
     return true;
 }
 
 QByteArray SerialPort::handleRead(const int length, const int timeout) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -177,7 +177,7 @@ QByteArray SerialPort::handleRead(const int length, const int timeout) {
 QByteArray SerialPort::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_serialPort == nullptr || !m_serialPort->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -189,7 +189,7 @@ QByteArray SerialPort::handleReadUntil(const QByteArray &text, const int timeout
 }
 
 void SerialPort::handleLog(const int type, const QByteArray &data) {
-    if (type == LOG_TX) {
+    if (type == LogLevel::Transmit) {
         // tx message reformat
         QString txMessage{};
         // 1: encode tx message according to tx format

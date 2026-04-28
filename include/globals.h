@@ -39,151 +39,190 @@ extern ViSession g_rm;
 extern QVariantMap g_cursorPosition;
 
 extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
-extern QStandardItemModel* g_portStandardItemModel;
-extern QStandardItemModel* g_databaseStandardItemModel;
-extern QStandardItemModel* g_datatableHeaderItemModel;
-extern QStandardItemModel* g_datatableStandardItemModel;
-extern QStandardItemModel* g_watchStandardItemModel;
+extern QStandardItemModel *g_portStandardItemModel;
+extern QStandardItemModel *g_databaseStandardItemModel;
+extern QStandardItemModel *g_datatableHeaderItemModel;
+extern QStandardItemModel *g_datatableStandardItemModel;
+extern QStandardItemModel *g_watchStandardItemModel;
 
-enum {
-    LOG_ERROR,
-    LOG_WARNING,
-    LOG_INFO,
-    LOG_TX,
-    LOG_RX
-};
+namespace LogLevel {
+    enum {
+        Error,
+        Warning,
+        Info,
+        Transmit,
+        Receive
+    };
+}
 
-enum {
-    SERIALPORT,
-    VISA,
-    TCPCLIENT,
-    SSLCLIENT,
-    TCPSERVER,
-    UDPSOCKET,
-    VIDEOSTREAM
-};
+namespace PortType {
+    enum {
+        SerialPort,
+        Visa,
+        TcpClient,
+        SslClient,
+        TcpServer,
+        UdpSocket,
+        VideoStream
+    };
+}
 
-enum {
-    THREAD_RUN,
-    THREAD_DEBUG
-};
+namespace ImagePipeline {
+    enum {
+        Scale,
+        Threshold
+    };
+}
 
-enum {
-    DEBUG_TERMINATE,
-    DEBUG_RESUME,
-    DEBUG_PAUSE,
-    DEBUG_STEPOVER,
-    DEBUG_STEPINTO,
-    DEBUG_STEPOUT,
-    DEBUG_RUNTOCURSOR
-};
+namespace InterpreterMode {
+    enum {
+        Run,
+        Debug
+    };
+}
 
-enum {
-    INDICATOR_TYPO,
-    INDICATOR_HINT,
-    INDICATOR_INFO,
-    INDICATOR_WARNING,
-    INDICATOR_ERROR,
-    INDICATOR_PASSWORD,
-    INDICATOR_HIGHLIGHT,
-    INDICATOR_READ,
-    INDICATOR_WRITE,
-    INDICATOR_SEARCH,
-    INDICATOR_SELECTION,
-    INDICATOR_HYPERLINK
-};
+namespace Debug {
+    enum {
+        Terminate,
+        Resume,
+        Pause,
+        StepOver,
+        StepInto,
+        StepOut,
+        RunToCursor
+    };
+}
 
-enum {
-    MARKER_REGION,
-    MARKER_BREAKPOINT_ENABLED,
-    MARKER_BREAKPOINT_DISABLED,
-    MARKER_NAVIGATION,
-    MARKER_DEBUG,
-    MARKER_ERROR,
-    MARKER_HINT
-};
+namespace ScintillaIndicator {
+    enum {
+        Typo,
+        Hint,
+        Info,
+        Warning,
+        Error,
+        Password,
+        Highlight,
+        Read,
+        Write,
+        Search,
+        Selection,
+        Hyperlink
+    };
+}
 
-enum {
-    LUA_TOKEN_UNUSED,
-    LUA_TOKEN_NAMESPACE,
-    LUA_TOKEN_CLASS,
-    LUA_TOKEN_TYPE,
-    LUA_TOKEN_PARAMETER,
-    LUA_TOKEN_VARIABLE,
-    LUA_TOKEN_PROPERTY,
-    LUA_TOKEN_ENUMMEMBAER,
-    LUA_TOKEN_FUNCTION_DECLARATION,
-    LUA_TOKEN_FUNCTION_CALL,
-    LUA_TOKEN_METHOD,
-    LUA_TOKEN_MACRO,
-    LUA_TOKEN_KEYWORD,
-    LUA_TOKEN_COMMENT,
-    LUA_TOKEN_STRING,
-    LUA_TOKEN_NUMBER,
-    LUA_TOKEN_OPERATOR,
-    STYLE_ANNOTATION = 40
-};
+namespace ScintillaMarker {
+    enum {
+        Region,
+        BreakpointEnabled,
+        BreakpointDisabled,
+        Navigation,
+        Debug,
+        Error,
+        Hint
+    };
+}
 
-enum {
-    COMPLETION_KIND_TEXT = 1,
-    COMPLETION_KIND_METHOD,
-    COMPLETION_KIND_FUNCTION,
-    COMPLETION_KIND_CONSTRUCTOR,
-    COMPLETION_KIND_FIELD,
-    COMPLETION_KIND_VARIABLE,
-    COMPLETION_KIND_CLASS,
-    COMPLETION_KIND_INTERFACE,
-    COMPLETION_KIND_MODULE,
-    COMPLETION_KIND_PROPERTY,
-    COMPLETION_KIND_UNIT,
-    COMPLETION_KIND_VALUE,
-    COMPLETION_KIND_ENUM,
-    COMPLETION_KIND_KEYWORD,
-    COMPLETION_KIND_SNIPPET,
-    COMPLETION_KIND_COLOR,
-    COMPLETION_KIND_FILE,
-    COMPLETION_KIND_REFERENCE,
-    COMPLETION_KIND_FOLDER,
-    COMPLETION_KIND_ENUMMEMBER,
-    COMPLETION_KIND_CONSTANT,
-    COMPLETION_KIND_STRUCT,
-    COMPLETION_KIND_EVENT,
-    COMPLETION_KIND_OPERATOR,
-    COMPLETION_KIND_TYPEPARAMETER,
-};
+namespace LuaTokenType {
+    enum {
+        Unused,
+        Namespace,
+        Class,
+        Type,
+        Parameter,
+        Variable,
+        Property,
+        EnumMember,
+        FunctionDeclaration,
+        FunctionCall,
+        Method,
+        Macro,
+        Keyword,
+        Comment,
+        String,
+        Number,
+        Operator
+    };
+}
 
-enum {
-    SYMBOL_KIND_FILE = 1,
-    SYMBOL_KIND_MODULE,
-    SYMBOL_KIND_NAMESPACE,
-    SYMBOL_KIND_PACKAGE,
-    SYMBOL_KIND_CLASS,
-    SYMBOL_KIND_METHOD,
-    SYMBOL_KIND_PROPERTY,
-    SYMBOL_KIND_FIELD,
-    SYMBOL_KIND_CONSTRUCTOR,
-    SYMBOL_KIND_ENUM,
-    SYMBOL_KIND_INTERFACE,
-    SYMBOL_KIND_FUNCTION,
-    SYMBOL_KIND_VARIABLE,
-    SYMBOL_KIND_CONSTANT,
-    SYMBOL_KIND_STRING,
-    SYMBOL_KIND_NUMBER,
-    SYMBOL_KIND_BOOLEAN,
-    SYMBOL_KIND_ARRAY,
-    SYMBOL_KIND_OBJECT,
-    SYMBOL_KIND_KEY,
-    SYMBOL_KIND_NULL,
-    SYMBOL_KIND_ENUMMEMBER,
-    SYMBOL_KIND_STRUCT,
-    SYMBOL_KIND_EVENT,
-    SYMBOL_KIND_OPERATOR,
-    SYMBOL_KIND_TYPEPARAMETER
-};
+namespace CustomStyle {
+    enum {
+        Annotation = 40
+    };
+}
 
-enum {
-    SCALE,
-    THRESHOLD,
-};
+namespace LspSymbolKind {
+    enum {
+        File = 1,
+        Module,
+        Namespace,
+        Package,
+        Class,
+        Method,
+        Property,
+        Field,
+        Constructor,
+        Enum,
+        Interface,
+        Function,
+        Variable,
+        Constant,
+        String,
+        Number,
+        Boolean,
+        Array,
+        Object,
+        Key,
+        Null,
+        EnumMember,
+        Struct,
+        Event,
+        Operator,
+        TypeParameter
+    };
+}
+
+namespace LspTokenType {
+    enum {
+        Namespace,
+        Type,
+        Class,
+        Enum,
+        Interface,
+        Struct,
+        TypeParameter,
+        Parameter,
+        Variable,
+        Property,
+        EnumMember,
+        Event,
+        Function,
+        Method,
+        Macro,
+        Keyword,
+        Modifier,
+        Comment,
+        String,
+        Number,
+        RegExp,
+        Operator,
+        Decorator
+    };
+}
+
+namespace LspTokenModifiers {
+    enum {
+        Declaration = 1 << 0,
+        Definition = 1 << 1,
+        Readonly = 1 << 2,
+        Static = 1 << 3,
+        Deprecated = 1 << 4,
+        Abstract = 1 << 5,
+        Async = 1 << 6,
+        Modification = 1 << 7,
+        Documentation = 1 << 8,
+        DefaultLibrary = 1 << 9,
+        Global = 1 << 10,
+    };
+}
 
 #endif //UNICOMM_GLOBALS_H

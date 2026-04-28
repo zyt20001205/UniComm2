@@ -137,7 +137,7 @@ void DatatableModule::datatableExport(const QString &path) {
         out << rowData.join(",") << "\n";
     }
     file.close();
-    emit appendLog(LOG_INFO, "data export to", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
+    emit appendLog(LogLevel::Info, "data export to", QString("<a href='%1'>%2</a>").arg(documentUrl.toString(), documentUrl.toString()));
 }
 
 bool DatatableModule::datatableWrite(const QString &key, const QString &value) {

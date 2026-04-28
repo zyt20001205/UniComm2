@@ -151,7 +151,7 @@ void ConfigManager::workspaceInit() {
         const auto dstLibDirPath = QDir(workspacePath).filePath("lib");
         // mkdir if not found
         if (QDir().mkdir(dstLibDirPath)) {
-            emit appendLog(LOG_INFO, "lib dir created", "");
+            emit appendLog(LogLevel::Info, "lib dir created", "");
         }
 
         for (const auto &fileName: QDir(srcLibDirPath).entryList(QDir::Files | QDir::NoDotAndDotDot)) {
@@ -189,9 +189,9 @@ void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
         const QJsonDocument doc(g_workspaceConfig);
         workspaceConfig.write(doc.toJson(QJsonDocument::Indented));
         workspaceConfig.close();
-        emit appendLog(LOG_INFO, "workspace saved to", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
+        emit appendLog(LogLevel::Info, "workspace saved to", QString("<a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()));
     } else {
-        emit appendLog(LOG_INFO, "workspace save failed", "");
+        emit appendLog(LogLevel::Info, "workspace save failed", "");
     }
 }
 

@@ -111,7 +111,7 @@ void DiagnosticsModule::indicatorFill(const QVariantHash &position) {
         position["startCharacter"].toInt());
     emit fillIndicator(
         position["documentUrl"].toUrl(),
-        INDICATOR_SELECTION,
+        ScintillaIndicator::Selection,
         position["startLine"].toInt(),
         position["startCharacter"].toInt(),
         position["endLine"].toInt(),

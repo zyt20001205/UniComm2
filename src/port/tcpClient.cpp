@@ -19,7 +19,7 @@ TcpClient::~TcpClient() {
 }
 
 int TcpClient::type() {
-    return TCPCLIENT;
+    return PortType::TcpClient;
 }
 
 QJsonObject TcpClient::config() {
@@ -85,7 +85,7 @@ bool TcpClient::open() {
         return false;
     }
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     return true;
@@ -109,7 +109,7 @@ void TcpClient::close() {
             break;
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void TcpClient::clear() {
@@ -144,14 +144,14 @@ QByteArray TcpClient::readUntil(const QByteArray &text, const int timeout, const
 void TcpClient::handleConnected() {
     m_tcpClientLocalHost = m_tcpClient->localAddress().toString();
     m_tcpClientLocalPort = m_tcpClient->localPort();
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connected to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void TcpClient::handleDisconnected() {
     clear();
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("disconnected from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
@@ -159,7 +159,7 @@ void TcpClient::handleDisconnected() {
 void TcpClient::handleReadyRead() {
     const auto rxData = m_tcpClient->readAll();
     m_buffer.write(rxData);
-    handleLog(LOG_RX, rxData);
+    handleLog(LogLevel::Receive, rxData);
 }
 
 void TcpClient::handleError() {
@@ -168,24 +168,24 @@ void TcpClient::handleError() {
         m_tcpClient->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_tcpClient->errorString()));
+    emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_tcpClient->errorString()));
 }
 
 bool TcpClient::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_tcpClient->write(f_txData);
-    handleLog(LOG_TX, f_txData);
+    handleLog(LogLevel::Transmit, f_txData);
     return true;
 }
 
 QByteArray TcpClient::handleRead(const int length, const int timeout) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -199,7 +199,7 @@ QByteArray TcpClient::handleRead(const int length, const int timeout) {
 QByteArray TcpClient::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_tcpClient == nullptr || !m_tcpClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -211,7 +211,7 @@ QByteArray TcpClient::handleReadUntil(const QByteArray &text, const int timeout)
 }
 
 void TcpClient::handleLog(const int type, const QByteArray &data) {
-    if (type == LOG_TX) {
+    if (type == LogLevel::Transmit) {
         // tx message reformat
         QString txMessage{};
         // 1: encode tx message according to tx format

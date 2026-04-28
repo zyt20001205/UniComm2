@@ -78,23 +78,23 @@ void LogModule::logAppend(const int type, const QString &prefix, const QString &
     }
     // check level
     switch (type) {
-        case LOG_ERROR: {
+        case LogLevel::Error: {
             _message = QString("<span style='color:red'>%1 %2</span>").arg(prefix, _message);
         }
         break;
-        case LOG_WARNING: {
+        case LogLevel::Warning: {
             _message = QString("<span style='color:orange'>%1 %2</span>").arg(prefix, _message);
         }
         break;
-        case LOG_INFO: {
+        case LogLevel::Info: {
             _message = QString("<span style='color:black'>%1 %2</span>").arg(prefix, _message);
         }
         break;
-        case LOG_TX: {
+        case LogLevel::Transmit: {
             _message = QString("%1 %2").arg(prefix, _message);
         }
         break;
-        case LOG_RX: {
+        case LogLevel::Receive: {
             _message = QString("%1 %2").arg(prefix, _message);
         }
         break;
@@ -147,12 +147,12 @@ void LogModule::logSave(const QUrl &fileUrl) {
             QTextStream stream(&file);
             stream << document.toPlainText();
             file.close();
-            logAppend(LOG_INFO, QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "");
+            logAppend(LogLevel::Info, QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
         } else {
-            logAppend(LOG_ERROR, "log save failed", "");
+            logAppend(LogLevel::Error, "log save failed", "");
             // logging
             const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log save failed").arg(timestamp);

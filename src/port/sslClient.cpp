@@ -19,7 +19,7 @@ SslClient::~SslClient() {
 }
 
 int SslClient::type() {
-    return SSLCLIENT;
+    return PortType::SslClient;
 }
 
 QJsonObject SslClient::config() {
@@ -87,7 +87,7 @@ bool SslClient::open() {
         return false;
     }
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connecting to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
     return true;
@@ -110,7 +110,7 @@ void SslClient::close() {
         default: break;
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void SslClient::clear() {
@@ -145,14 +145,14 @@ QByteArray SslClient::readUntil(const QByteArray &text, const int timeout, const
 void SslClient::handleConnected() {
     m_sslClientLocalHost = m_sslClient->localAddress().toString();
     m_sslClientLocalPort = m_sslClient->localPort();
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("connected to %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
 
 void SslClient::handleDisconnected() {
     clear();
-    emit appendLog(LOG_INFO,
+    emit appendLog(LogLevel::Info,
                    QString("[%1]").arg(m_portConfig["portName"].toString()),
                    QString("disconnected from %1:%2").arg(m_portConfig["remoteHost"].toString(), QString::number(m_portConfig["remotePort"].toInt())));
 }
@@ -160,7 +160,7 @@ void SslClient::handleDisconnected() {
 void SslClient::handleReadyRead() {
     const auto rxData = m_sslClient->readAll();
     m_buffer.write(rxData);
-    handleLog(LOG_RX, rxData);
+    handleLog(LogLevel::Receive, rxData);
 }
 
 void SslClient::handleError() {
@@ -169,24 +169,24 @@ void SslClient::handleError() {
         m_sslClient->close();
     }
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_sslClient->errorString()));
+    emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), QString("%1").arg(m_sslClient->errorString()));
 }
 
 bool SslClient::handleWrite(const QByteArray &f_txData) {
     // check port status
     if (m_sslClient == nullptr || !m_sslClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return false;
     }
     m_sslClient->write(f_txData);
-    handleLog(LOG_TX, f_txData);
+    handleLog(LogLevel::Transmit, f_txData);
     return true;
 }
 
 QByteArray SslClient::handleRead(const int length, const int timeout) {
     // check port status
     if (m_sslClient == nullptr || !m_sslClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -200,7 +200,7 @@ QByteArray SslClient::handleRead(const int length, const int timeout) {
 QByteArray SslClient::handleReadUntil(const QByteArray &text, const int timeout) {
     // check port status
     if (m_sslClient == nullptr || !m_sslClient->isOpen()) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const QDeadlineTimer deadline(timeout);
@@ -212,7 +212,7 @@ QByteArray SslClient::handleReadUntil(const QByteArray &text, const int timeout)
 }
 
 void SslClient::handleLog(const int type, const QByteArray &data) {
-    if (type == LOG_TX) {
+    if (type == LogLevel::Transmit) {
         // tx message reformat
         QString txMessage{};
         // 1: encode tx message according to tx format

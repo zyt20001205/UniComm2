@@ -72,7 +72,7 @@ void Port::write(const std::string &portName, const std::string &data, const std
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const QByteArray txData(data.data(), static_cast<qsizetype>(data.size()));
 
-    if (port->type() == TCPSERVER) {
+    if (port->type() == PortType::TcpServer) {
         QMetaObject::invokeMethod(port, [&status, &port, &txData, &peerIp] {
             status = port->write(txData, QString::fromStdString(peerIp), "", "");
         }, Qt::BlockingQueuedConnection);
@@ -91,13 +91,13 @@ sol::object Port::read(const sol::this_state ts, const std::string &portName, co
     QByteArray rxData{};
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
 
-    if (port->type() == TCPSERVER) {
+    if (port->type() == PortType::TcpServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout, &peerIp] {
             rxData = port->read(length, timeout, "", QString::fromStdString(peerIp));
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
-    if (port->type() == VIDEOSTREAM) {
+    if (port->type() == PortType::VideoStream) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &length, &timeout] {
             rxData = port->read(length, timeout, "");
         }, Qt::BlockingQueuedConnection);
@@ -125,13 +125,13 @@ sol::object Port::readUntil(const sol::this_state ts, const std::string &portNam
     auto *port = g_port->m_portHash[QString::fromStdString(portName)];
     const QByteArray textData(text.data(), static_cast<qsizetype>(text.size()));
 
-    if (port->type() == TCPSERVER) {
+    if (port->type() == PortType::TcpServer) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout, &peerIp] {
             rxData = port->readUntil(textData, timeout, "", QString::fromStdString(peerIp));
         }, Qt::BlockingQueuedConnection);
         return sol::make_object(lua, std::string(rxData.constData(), static_cast<std::string::size_type>(rxData.size())));
     }
-    if (port->type() == VIDEOSTREAM) {
+    if (port->type() == PortType::VideoStream) {
         QMetaObject::invokeMethod(port, [&rxData, &port, &textData, &timeout] {
             rxData = port->readUntil(textData, timeout, "");
         }, Qt::BlockingQueuedConnection);

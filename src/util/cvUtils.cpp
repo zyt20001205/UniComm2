@@ -15,7 +15,7 @@ QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline) {
         const auto &session = value.toObject();
         const int type = session["type"].toInt();
         switch (type) {
-            case SCALE: {
+            case ImagePipeline::Scale: {
                 const int ratio = session["ratio"].toInt();
                 float f_ratio = 1;
                 switch (ratio) {
@@ -69,7 +69,7 @@ QPixmap pipelineProcess(const QPixmap &pixmap, const QJsonArray &pipeline) {
                 frame = scale(frame, f_ratio, interpolation);
             }
             break;
-            case THRESHOLD: {
+            case ImagePipeline::Threshold: {
                 const int thresh = session["thresh"].toInt();
                 const int mode = session["mode"].toInt();
                 frame = threshold(frame, thresh, mode);

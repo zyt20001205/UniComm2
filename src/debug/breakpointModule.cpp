@@ -114,12 +114,12 @@ void BreakpointModule::documentOpen(const QUrl &documentUrl) {
 }
 
 void BreakpointModule::markerAdd(const QUrl &documentUrl, const int line) {
-    emit addMarker(documentUrl, MARKER_HINT, line - 1, 1000);
+    emit addMarker(documentUrl, ScintillaMarker::Hint, line - 1, 1000);
 }
 
 void BreakpointModule::breakpointDelete(const QUrl &documentUrl, const int line) {
     breakpointRemove(documentUrl, line);
-    emit deleteMarker(documentUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+    emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
 }
 
 void BreakpointModule::breakpointsDelete(const QUrl &documentUrl) {
@@ -152,11 +152,11 @@ bool BreakpointModule::enabledGet(const QUrl &documentUrl, const int line) {
 void BreakpointModule::enabledSet(const QUrl &documentUrl, const int line, const bool status) {
     g_breakpoints[documentUrl][line]["enabled"] = status;
     if (status) {
-        emit addMarker(documentUrl, MARKER_BREAKPOINT_ENABLED, line - 1, -1);
-        emit deleteMarker(documentUrl, MARKER_BREAKPOINT_DISABLED, line - 1);
+        emit addMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1, -1);
+        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1);
     } else {
-        emit addMarker(documentUrl, MARKER_BREAKPOINT_DISABLED, line - 1, -1);
-        emit deleteMarker(documentUrl, MARKER_BREAKPOINT_ENABLED, line - 1);
+        emit addMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1, -1);
+        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
     }
 }
 

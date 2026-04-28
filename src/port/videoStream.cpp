@@ -29,7 +29,7 @@ VideoStream::~VideoStream() {
 }
 
 int VideoStream::type() {
-    return VIDEOSTREAM;
+    return PortType::VideoStream;
 }
 
 QJsonObject VideoStream::config() {
@@ -76,11 +76,11 @@ bool VideoStream::open() {
     else if (m_cameraCapture) m_cameraCapture->start();
     else {
         emit refreshPort(m_portConfig["portName"].toString(), false);
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "open failed");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "open failed");
         return false;
     }
     emit refreshPort(m_portConfig["portName"].toString(), true);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "opened");
     return true;
 }
 
@@ -90,7 +90,7 @@ void VideoStream::close() {
     else if (m_cameraCapture) m_cameraCapture->stop();
     clear();
     emit refreshPort(m_portConfig["portName"].toString(), false);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(m_portConfig["portName"].toString()), "closed");
 }
 
 void VideoStream::clear() {
@@ -107,7 +107,7 @@ bool VideoStream::write(const QByteArray &txData, const QString &txFormat, const
     else if (m_cameraCapture) status = m_cameraCapture->isActive();
     // check port status
     if (!status) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const auto rawFrame = m_videoSink->videoFrame();
@@ -131,7 +131,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
     else if (m_cameraCapture) status = m_cameraCapture->isActive();
     // check port status
     if (!status) {
-        emit appendLog(LOG_ERROR, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
+        emit appendLog(LogLevel::Error, QString("[%1]").arg(m_portConfig["portName"].toString()), "not opened");
         return {};
     }
     const auto rawFrame = m_videoSink->videoFrame();
@@ -184,7 +184,7 @@ QByteArray VideoStream::read(const int length, const int timeout, const QString 
         //     label->show();
         // });
 
-        const QImage image = processed.toImage().convertToFormat(QImage::QImage::Format_Grayscale8);
+        const QImage image = processed.toImage().convertToFormat(QImage::Format_Grayscale8);
         m_ocrEngine->SetImage(image.bits(), image.width(), image.height(), 1, image.bytesPerLine());
         char *result = m_ocrEngine->GetUTF8Text();
         QString text = QString::fromUtf8(result);

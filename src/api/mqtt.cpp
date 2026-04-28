@@ -163,28 +163,28 @@ QString Mqtt::parser(const int controlPacket, const int reasonCode) {
     switch (controlPacket) {
         case CONNECT: {
             switch (reasonCode) {
-                case SUCCESS: return "";
-                case UNSPECIFIED_ERROR: return "The Server does not wish to reveal the reason for the failure, or none of the other Reason Codes apply.";
-                case MALFORMED_PACKET: return "Data within the CONNECT packet could not be correctly parsed.";
-                case PROTOCOL_ERROR: return "Data in the CONNECT packet does not conform to this specification.";
-                case IMPLEMENTATION_SPECIFIC_ERROR: return "The CONNECT is valid but is not accepted by this Server";
-                case UNSUPPORTED_PROTOCOL_VERSION: return "The Server does not support the version of the MQTT protocol requested by the Client.";
-                case CLIENT_IDENTIFIER_NOT_VALID: return "The Client Identifier is a valid string but is not allowed by the Server.";
-                case BAD_USER_NAME_OR_PASSWORD: return "The Server does not accept the User Name or Password specified by the Client.";
-                case NOT_AUTHORIZED: return "The Client is not authorized to connect.";
-                case SERVICE_UNAVAILABLE: return "The MQTT Server is not available.";
-                case SERVER_BUSY: return "The Server is busy. Try again later.";
-                case BANNED: return "This Client has been banned by administrative action. Contact the server administrator.";
-                case BAD_AUTHENTICATION_METHOD: return "The authentication method is not supported or does not match the authentication method currently in use.";
-                case TOPIC_NAME_INVALID: return "The Will Topic Name is not malformed, but is not accepted by this Server.";
-                case PACKET_TOO_LARGE: return "The CONNECT packet exceeded the maximum permissible size.";
-                case QUOTA_EXCEEDED: return "An implementation or administrative imposed limit has been exceeded.";
-                case PAYLOAD_FORMAT_INVALID: return "The Will Payload does not match the specified Payload Format Indicator.";
-                case RETAIN_NOT_SUPPORTED: return "The Server does not support retained messages, and Will Retain was set to 1.";
-                case QOS_NOT_SUPPORTED: return "The Server does not support the QoS set in Will QoS.";
-                case USE_ANOTHER_SERVER: return "The Client should temporarily use another server.";
-                case SERVER_METHOD: return "The Client should permanently use another server.";
-                case CONNECTION_RATE_EXCEEDED: return "The connection rate limit has been exceeded.";
+                case Success: return "";
+                case UnspecifiedError: return "The Server does not wish to reveal the reason for the failure, or none of the other Reason Codes apply.";
+                case MalformedPacket: return "Data within the CONNECT packet could not be correctly parsed.";
+                case ProtocolError: return "Data in the CONNECT packet does not conform to this specification.";
+                case ImplementationSpecificError: return "The CONNECT is valid but is not accepted by this Server";
+                case UnsupportedProtolVersion: return "The Server does not support the version of the MQTT protocol requested by the Client.";
+                case ClientIdentifierNotValid: return "The Client Identifier is a valid string but is not allowed by the Server.";
+                case BadUserNameOrPassword: return "The Server does not accept the User Name or Password specified by the Client.";
+                case NotAuthorized: return "The Client is not authorized to connect.";
+                case ServiceUnavailable: return "The MQTT Server is not available.";
+                case ServerBusy: return "The Server is busy. Try again later.";
+                case Banned: return "This Client has been banned by administrative action. Contact the server administrator.";
+                case BadAuthenticationMethod: return "The authentication method is not supported or does not match the authentication method currently in use.";
+                case TopicNameInvalid: return "The Will Topic Name is not malformed, but is not accepted by this Server.";
+                case PacketTooLarge: return "The CONNECT packet exceeded the maximum permissible size.";
+                case QuotaExceeded: return "An implementation or administrative imposed limit has been exceeded.";
+                case PayloadFormatInvalid: return "The Will Payload does not match the specified Payload Format ScintillaIndicator.";
+                case RetainNotSupported: return "The Server does not support retained messages, and Will Retain was set to 1.";
+                case QosNotSupported: return "The Server does not support the QoS set in Will QoS.";
+                case UseAnotherServer: return "The Client should temporarily use another server.";
+                case ServerMethod: return "The Client should permanently use another server.";
+                case ConnectionRateExceeded: return "The connection rate limit has been exceeded.";
                 default: return "mqtt connect reason code unknown";
             }
         }

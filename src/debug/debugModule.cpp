@@ -64,7 +64,7 @@ void DebugModule::stateSet(const QString &threadId, const int state) {
         QMetaObject::invokeMethod(m_errorDialog, "open");
         return;
     }
-    if (state == DEBUG_RUNTOCURSOR) {
+    if (state == Debug::RunToCursor) {
         emit getIndex();
         const QString &currentThreadId = currenThread;
         emit setState(currentThreadId, state);
@@ -98,7 +98,7 @@ void DebugModule::callStackSwitch(const QString &threadId) const {
 void DebugModule::markerAdd(const QVariantHash &position) {
     emit addMarker(
         position["documentUrl"].toUrl(),
-        MARKER_HINT,
+        ScintillaMarker::Hint,
         position["line"].toInt() - 1,
         1000);
 }

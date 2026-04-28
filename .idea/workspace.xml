@@ -30,16 +30,48 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="ConPTY pending... terminal is a semifinished product, not ready.">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="init &amp; remove finished">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/analysis/completionWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/analysis/completionWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/api/mqtt.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/api/mqtt.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/document/page/luaPage.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/document/page/luaPage.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/globals.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/globals.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/lib/mqtt.d.lua" beforeDir="false" afterPath="$PROJECT_DIR$/resources/lib/mqtt.d.lua" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mainWindow/menuModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/menuModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/completionWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/completionWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/diagnosticsModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/diagnosticsModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/navigationWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/navigationWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/structureModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/structureModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analysis/symbolWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/analysis/symbolWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/imap.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/imap.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/io.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/io.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/mqtt.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/mqtt.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/port.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/port.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/configManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/configManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/fileModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/fileModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/datatableModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/datatableModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/debug/breakpointModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/breakpointModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/debug/debugModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/debug/debugModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/document/documentModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/documentModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/document/module/scintillaWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/module/scintillaWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/document/page/basePage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/page/basePage.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/document/page/luaPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/page/luaPage.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/document/page/textPage.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/document/page/textPage.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/portModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/portModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/portSetting.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/portSetting.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/serialPort.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/serialPort.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/sslClient.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/sslClient.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/tcpClient.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/tcpClient.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/tcpServer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/tcpServer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/udpSocket.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/udpSocket.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/videoStream.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/videoStream.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/port/visa.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/port/visa.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runtime/luaInterpreter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/runtime/luaInterpreter.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runtime/threadpoolModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/runtime/threadpoolModule.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/terminal/logModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/logModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/cvUtils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/cvUtils.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -168,7 +200,7 @@
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
       <workItem from="1777264897578" duration="9229000" />
-      <workItem from="1777282931643" duration="27161000" />
+      <workItem from="1777282931643" duration="34650000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -258,7 +290,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777303095302</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="init &amp; remove finished">
+      <option name="closed" value="true" />
+      <created>1777357297179</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1777357297179</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -292,7 +332,8 @@
     <MESSAGE value="terminal is much better" />
     <MESSAGE value="exit bug fix" />
     <MESSAGE value="ConPTY pending... terminal is a semifinished product, not ready." />
-    <option name="LAST_COMMIT_MESSAGE" value="ConPTY pending... terminal is a semifinished product, not ready." />
+    <MESSAGE value="init &amp; remove finished" />
+    <option name="LAST_COMMIT_MESSAGE" value="init &amp; remove finished" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -367,6 +408,12 @@
           <option name="totalLines" value="3372077" />
           <option name="info" value="ConPTY pending... terminal is a semifinished produ" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777357297960" />
+          <option name="linesCode" value="660089" />
+          <option name="totalLines" value="3372927" />
+          <option name="info" value="init &amp; remove finished" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -376,6 +423,12 @@
           <option name="linesCode" value="660019" />
           <option name="totalLines" value="3372077" />
           <option name="info" value="Apr 27, 2026" />
+        </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777357297960" />
+          <option name="linesCode" value="660089" />
+          <option name="totalLines" value="3372927" />
+          <option name="info" value="Apr 28, 2026" />
         </TimePoint>
       </list>
     </option>

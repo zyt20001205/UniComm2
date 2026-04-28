@@ -56,9 +56,9 @@ void GitModule::gitInit() {
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git init"));
 }
 
-void GitModule::gitRemove() {
-    m_command = Remove;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "rm -rf .git"));
+void GitModule::gitCommit() {
+    m_command = Commit;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git commit"));
 }
 
 bool GitModule::eventFilter(QObject *watched, QEvent *event) {
@@ -90,13 +90,13 @@ void GitModule::processStart() {
 void GitModule::terminalStdout() const {
     parser(true);
     const auto output = QString::fromLocal8Bit(m_process->readAllStandardOutput());
-    QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, QVariant::fromValue(output)));
+    QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, output));
 }
 
 void GitModule::terminalStderr() const {
     parser(false);
     const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
-    QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, QVariant::fromValue(error)));
+    QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, error));
 }
 
 void GitModule::parser(const bool status) const {
@@ -104,10 +104,6 @@ void GitModule::parser(const bool status) const {
         case Status:
         case Init: {
             m_menu->setProperty("status", status);
-        }
-        break;
-        case Remove: {
-            m_menu->setProperty("status", false);
         }
         break;
         default: break;

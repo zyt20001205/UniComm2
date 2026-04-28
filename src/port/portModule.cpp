@@ -93,31 +93,31 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     g_portStandardItemModel->insertRow(index, item);
     BasePort *port{};
     switch (portConfig["portType"].toInt()) {
-        case SERIALPORT: {
+        case PortType::SerialPort: {
             port = new SerialPort(portConfig);
             break;
         }
-        case VISA: {
+        case PortType::Visa: {
             port = new Visa(portConfig);
             break;
         }
-        case TCPCLIENT: {
+        case PortType::TcpClient: {
             port = new TcpClient(portConfig);
             break;
         }
-        case SSLCLIENT: {
+        case PortType::SslClient: {
             port = new SslClient(portConfig);
             break;
         }
-        case TCPSERVER: {
+        case PortType::TcpServer: {
             port = new TcpServer(portConfig);
             break;
         }
-        case UDPSOCKET: {
+        case PortType::UdpSocket: {
             port = new UdpSocket(portConfig);
             break;
         }
-        case VIDEOSTREAM: {
+        case PortType::VideoStream: {
             port = new VideoStream(portConfig);
             break;
         }
@@ -129,7 +129,7 @@ void PortModule::portInsert(int index, const QJsonObject &portConfig) {
     connect(port, &BasePort::appendLog, this, &PortModule::appendLog);
     connect(port, &BasePort::refreshPort, this, &PortModule::portRefresh);
     m_portHash.insert(portName, port);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(portName), "initialized");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "initialized");
 }
 
 void PortModule::portRemove(const int index) {
@@ -139,7 +139,7 @@ void PortModule::portRemove(const int index) {
     const auto *port = m_portHash[portName];
     delete port;
     m_portHash.remove(portName);
-    emit appendLog(LOG_INFO, QString("[%1]").arg(portName), "removed");
+    emit appendLog(LogLevel::Info, QString("[%1]").arg(portName), "removed");
 }
 
 void PortModule::portSwap(const int src, const int dst) const {

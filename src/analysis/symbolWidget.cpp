@@ -32,7 +32,7 @@ void SymbolWidget::indicatorFill(const QVariantHash &position) {
         position["startLine"].toInt(),
         position["startCharacter"].toInt());
     emit fillIndicator(
-        INDICATOR_SELECTION,
+        ScintillaIndicator::Selection,
         position["startLine"].toInt(),
         position["startCharacter"].toInt(),
         position["endLine"].toInt(),
@@ -61,46 +61,46 @@ QVariantList SymbolWidget::symbolParse(const QJsonArray &result, const int line,
         };
         QUrl source{};
         switch (kind) {
-            case SYMBOL_KIND_PACKAGE: {
+            case LspSymbolKind::Package: {
                 source = "qrc:/icon/symbolPackage.svg";
             }
             break;
-            case SYMBOL_KIND_METHOD:
-            case SYMBOL_KIND_FUNCTION: {
+            case LspSymbolKind::Method:
+            case LspSymbolKind::Function: {
                 source = "qrc:/icon/symbolMethod.svg";
             }
             break;
-            case SYMBOL_KIND_VARIABLE: {
+            case LspSymbolKind::Variable: {
                 source = "qrc:/icon/symbolVariable.svg";
             }
             break;
-            case SYMBOL_KIND_CONSTANT: {
+            case LspSymbolKind::Constant: {
                 source = "qrc:/icon/symbolConstant.svg";
             }
             break;
-            case SYMBOL_KIND_STRING: {
+            case LspSymbolKind::String: {
                 source = "qrc:/icon/symbolString.svg";
             }
             break;
-            case SYMBOL_KIND_NUMBER: {
+            case LspSymbolKind::Number: {
                 source = "qrc:/icon/symbolNumeric.svg";
             }
             break;
-            case SYMBOL_KIND_BOOLEAN: {
+            case LspSymbolKind::Boolean: {
                 source = "qrc:/icon/symbolBoolean.svg";
             }
             break;
-            case SYMBOL_KIND_ARRAY: {
+            case LspSymbolKind::Array: {
                 source = "qrc:/icon/symbolArray.svg";
             }
             break;
-            case SYMBOL_KIND_OBJECT: {
+            case LspSymbolKind::Object: {
                 source = "qrc:/icon/symbolMisc.svg";
             }
             break;
             default: {
                 source = "qrc:/icon/symbolMisc.svg";
-                emit appendLog(LOG_WARNING, "contact author:", QString("unsupported symbol (kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail));
+                emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported symbol (kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail));
             }
             break;
         }

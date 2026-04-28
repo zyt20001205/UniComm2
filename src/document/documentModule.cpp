@@ -101,39 +101,39 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 void DocumentModule::scriptIndicatorReload(const QJsonObject &indicatorConfigScript) const {
     // for (const auto &luaPage: m_pageHash) {
     //     // diagnostic
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorErrorStyle"].toInt()), INDICATOR_ERROR);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorErrorColor"].toString()), INDICATOR_ERROR);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_ERROR);
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWarningStyle"].toInt()), INDICATOR_WARNING);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWarningColor"].toString()), INDICATOR_WARNING);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WARNING);
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorInfoStyle"].toInt()), INDICATOR_INFO);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorInfoColor"].toString()), INDICATOR_INFO);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_INFO);
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHintStyle"].toInt()), INDICATOR_HINT);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHintColor"].toString()), INDICATOR_HINT);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HINT);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorErrorStyle"].toInt()), ScintillaIndicator::Error);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorErrorColor"].toString()), ScintillaIndicator::Error);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Error);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWarningStyle"].toInt()), ScintillaIndicator::Warning);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWarningColor"].toString()), ScintillaIndicator::Warning);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Warning);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorInfoStyle"].toInt()), ScintillaIndicator::Info);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorInfoColor"].toString()), ScintillaIndicator::Info);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Info);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHintStyle"].toInt()), ScintillaIndicator::Hint);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHintColor"].toString()), ScintillaIndicator::Hint);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Hint);
     //     // highlight
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHighlightStyle"].toInt()), INDICATOR_HIGHLIGHT);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHighlightColor"].toString()), INDICATOR_HIGHLIGHT);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HIGHLIGHT);
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorReadStyle"].toInt()), INDICATOR_READ);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorReadColor"].toString()), INDICATOR_READ);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_READ);
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWriteStyle"].toInt()), INDICATOR_WRITE);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWriteColor"].toString()), INDICATOR_WRITE);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_WRITE);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHighlightStyle"].toInt()), ScintillaIndicator::Highlight);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHighlightColor"].toString()), ScintillaIndicator::Highlight);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Highlight);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorReadStyle"].toInt()), ScintillaIndicator::Read);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorReadColor"].toString()), ScintillaIndicator::Read);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Read);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorWriteStyle"].toInt()), ScintillaIndicator::Write);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorWriteColor"].toString()), ScintillaIndicator::Write);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Write);
     //     // search
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()), INDICATOR_SEARCH);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchColor"].toString()), INDICATOR_SEARCH);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SEARCH);
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSelectionStyle"].toInt()), INDICATOR_SELECTION);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSelectionColor"].toString()), INDICATOR_SELECTION);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_SELECTION);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSearchStyle"].toInt()), ScintillaIndicator::Search);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSearchColor"].toString()), ScintillaIndicator::Search);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Search);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorSelectionStyle"].toInt()), ScintillaIndicator::Selection);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorSelectionColor"].toString()), ScintillaIndicator::Selection);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Selection);
     //     // hyperlink
-    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHyperlinkStyle"].toInt()), INDICATOR_HYPERLINK);
-    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHyperlinkColor"].toString()), INDICATOR_HYPERLINK);
-    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, INDICATOR_HYPERLINK);
+    //     luaPage->m_editorWidget->indicatorDefine(static_cast<QsciScintilla::IndicatorStyle>(indicatorConfigScript["indicatorHyperlinkStyle"].toInt()), ScintillaIndicator::Hyperlink);
+    //     luaPage->m_editorWidget->setIndicatorForegroundColor(QColor(indicatorConfigScript["indicatorHyperlinkColor"].toString()), ScintillaIndicator::Hyperlink);
+    //     luaPage->m_editorWidget->setIndicatorDrawUnder(true, ScintillaIndicator::Hyperlink);
     //     // recolor
     //     luaPage->m_editorWidget->recolor();
     // }
@@ -168,12 +168,12 @@ void DocumentModule::scriptIndicatorSave(const QJsonObject &indicatorConfigScrip
 
 void DocumentModule::scriptMarkerReload(const QJsonObject &markerConfigScript) const {
     // for (const auto &luaPage: m_pageHash) {
-    //     luaPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerBreakpointStyle"].toInt()), MARKER_BREAKPOINT_ENABLED);
-    //     luaPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointBackground"].toString()), MARKER_BREAKPOINT_ENABLED);
-    //     luaPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerBreakpointForeground"].toString()), MARKER_BREAKPOINT_ENABLED);
-    //     luaPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerDebugStyle"].toInt()), MARKER_DEBUG);
-    //     luaPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugBackground"].toString()), MARKER_DEBUG);
-    //     luaPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerDebugForeground"].toString()), MARKER_DEBUG);
+    //     luaPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerBreakpointStyle"].toInt()), ScintillaMarker::BreakpointEnabled);
+    //     luaPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerBreakpointBackground"].toString()), ScintillaMarker::BreakpointEnabled);
+    //     luaPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerBreakpointForeground"].toString()), ScintillaMarker::BreakpointEnabled);
+    //     luaPage->m_editorWidget->markerDefine(static_cast<QsciScintilla::MarkerSymbol>(markerConfigScript["markerDebugStyle"].toInt()), ScintillaMarker::Debug);
+    //     luaPage->m_editorWidget->setMarkerBackgroundColor(QColor(markerConfigScript["markerDebugBackground"].toString()), ScintillaMarker::Debug);
+    //     luaPage->m_editorWidget->setMarkerForegroundColor(QColor(markerConfigScript["markerDebugForeground"].toString()), ScintillaMarker::Debug);
     //     // recolor
     //     luaPage->m_editorWidget->recolor();
     // }
@@ -979,9 +979,9 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
             emit focusDocument(m_focusedUrl, session);
         }
     } else if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
-        luaPage->m_editorWidget->indicatorClear(INDICATOR_HIGHLIGHT);
-        luaPage->m_editorWidget->indicatorClear(INDICATOR_READ);
-        luaPage->m_editorWidget->indicatorClear(INDICATOR_WRITE);
+        luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Highlight);
+        luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Read);
+        luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Write);
     }
 }
 

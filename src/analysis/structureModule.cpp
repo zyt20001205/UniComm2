@@ -61,7 +61,7 @@ void StructureModule::markerAdd(const QVariantHash &position) {
                   position["startLine"].toInt(),
                   position["startCharacter"].toInt());
     emit addMarker(m_documentUrl,
-                   MARKER_HINT,
+                   ScintillaMarker::Hint,
                    position["startLine"].toInt(),
                    1000);
 }
@@ -99,46 +99,46 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
                           },
                       }, Qt::WhatsThisRole);
         switch (kind) {
-            case SYMBOL_KIND_PACKAGE: {
+            case LspSymbolKind::Package: {
                 item->setData(QUrl("qrc:/icon/symbolPackage.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_METHOD:
-            case SYMBOL_KIND_FUNCTION: {
+            case LspSymbolKind::Method:
+            case LspSymbolKind::Function: {
                 item->setData(QUrl("qrc:/icon/symbolMethod.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_VARIABLE: {
+            case LspSymbolKind::Variable: {
                 item->setData(QUrl("qrc:/icon/symbolVariable.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_CONSTANT: {
+            case LspSymbolKind::Constant: {
                 item->setData(QUrl("qrc:/icon/symbolConstant.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_STRING: {
+            case LspSymbolKind::String: {
                 item->setData(QUrl("qrc:/icon/symbolString.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_NUMBER: {
+            case LspSymbolKind::Number: {
                 item->setData(QUrl("qrc:/icon/symbolNumeric.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_BOOLEAN: {
+            case LspSymbolKind::Boolean: {
                 item->setData(QUrl("qrc:/icon/symbolBoolean.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_ARRAY: {
+            case LspSymbolKind::Array: {
                 item->setData(QUrl("qrc:/icon/symbolArray.svg"), Qt::DecorationRole);
             }
             break;
-            case SYMBOL_KIND_OBJECT: {
+            case LspSymbolKind::Object: {
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
             }
             break;
             default: {
                 item->setData(QUrl("qrc:/icon/symbolMisc.svg"), Qt::DecorationRole);
-                emit appendLog(LOG_WARNING, "contact author:", QString("unsupported symbol (kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail));
+                emit appendLog(LogLevel::Warning, "contact author:", QString("unsupported symbol (kind:%1, name:%2, detail:%3)").arg(QString::number(kind), name, detail));
             }
             break;
         }

@@ -163,7 +163,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
         const int portType = portConfig["portType"].toInt();
         m_root->setProperty("portType", portType);
         switch (portType) {
-            case SERIALPORT: {
+            case PortType::SerialPort: {
                 m_serialPortNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
                 m_serialPortBaudRateSpinBox->setProperty("value", portConfig["baudRate"].toInt());
                 m_serialPortDataBitsComboBox->setProperty("currentValue", portConfig["dataBits"].toInt());
@@ -175,7 +175,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case VISA: {
+            case PortType::Visa: {
                 m_visaNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
                 m_txFormatComboBox->setProperty("currentValue", portConfig["txFormat"].toString());
                 m_txSuffixComboBox->setProperty("currentValue", portConfig["txSuffix"].toString());
@@ -183,7 +183,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case TCPCLIENT: {
+            case PortType::TcpClient: {
                 m_tcpClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_tcpClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
                 m_tcpClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
@@ -193,7 +193,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case SSLCLIENT: {
+            case PortType::SslClient: {
                 m_sslClientNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_sslClientRemoteHostTextField->setProperty("text", portConfig["remoteHost"].toString());
                 m_sslClientRemotePortSpinBox->setProperty("value", portConfig["remotePort"].toInt());
@@ -203,7 +203,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case TCPSERVER: {
+            case PortType::TcpServer: {
                 m_tcpServerNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_tcpServerLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
                 m_tcpServerLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
@@ -213,7 +213,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case UDPSOCKET: {
+            case PortType::UdpSocket: {
                 m_udpSocketNameTextField->setProperty("text", portConfig["portName"].toString());
                 m_udpSocketLocalHostComboBox->setProperty("currentValue", portConfig["localHost"].toString());
                 m_udpSocketLocalPortSpinBox->setProperty("value", portConfig["localPort"].toInt());
@@ -225,7 +225,7 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
                 m_bufferSizeSpinBox->setProperty("value", portConfig["bufferSize"].toInt());
             }
             break;
-            case VIDEOSTREAM: {
+            case PortType::VideoStream: {
                 m_videoStreamNameComboBox->setProperty("currentValue", portConfig["portName"].toString());
             }
             break;
@@ -240,7 +240,7 @@ void PortSetting::portSettingExport() {
     const int portType = m_root->property("portType").toInt();
     QJsonObject portConfig{};
     switch (portType) {
-        case SERIALPORT: {
+        case PortType::SerialPort: {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_serialPortNameComboBox->property("currentValue").toString()},
@@ -255,7 +255,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case VISA: {
+        case PortType::Visa: {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_visaNameComboBox->property("currentValue").toString()},
@@ -266,7 +266,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case TCPCLIENT: {
+        case PortType::TcpClient: {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_tcpClientNameTextField->property("text").toString()},
@@ -279,7 +279,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case SSLCLIENT: {
+        case PortType::SslClient: {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_sslClientNameTextField->property("text").toString()},
@@ -292,7 +292,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case TCPSERVER: {
+        case PortType::TcpServer: {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_tcpServerNameTextField->property("text").toString()},
@@ -305,7 +305,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case UDPSOCKET: {
+        case PortType::UdpSocket: {
             portConfig = {
                 {"portType", portType},
                 {"portName", m_udpSocketNameTextField->property("text").toString()},
@@ -320,7 +320,7 @@ void PortSetting::portSettingExport() {
             };
         }
         break;
-        case VIDEOSTREAM: {
+        case PortType::VideoStream: {
             if (m_screenCapture) {
                 m_mediaCaptureSession->setScreenCapture(nullptr);
                 m_screenCapture->stop();
@@ -449,14 +449,14 @@ void PortSetting::roiSwap(const int src, const int dst) const {
 void PortSetting::pipelineInsert(const QVariantHash &session) const {
     const int type = session["type"].toInt();
     switch (type) {
-        case SCALE: {
-            auto *item = new QStandardItem(tr("Scale")); // NOLINT
+        case ImagePipeline::Scale: {
+            auto *item = new QStandardItem(tr("ImagePipeline::Scale")); // NOLINT
             m_pipelineStandardItemModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }
         break;
-        case THRESHOLD: {
-            auto *item = new QStandardItem(tr("Threshold")); // NOLINT
+        case ImagePipeline::Threshold: {
+            auto *item = new QStandardItem(tr("ImagePipeline::Threshold")); // NOLINT
             m_pipelineStandardItemModel->appendRow(item);
             item->setData(session, Qt::WhatsThisRole);
         }

@@ -271,7 +271,7 @@ void LuaInterpreter::start(const QString &script) {
     // load session
     m_lua["session"] = &m_luaSession;
     // set hook
-    if (m_luaSession["mode"] == THREAD_RUN) {
+    if (m_luaSession["mode"] == InterpreterMode::Run) {
         // set run hook
         lua_sethook(L, &luaRunHook, LUA_MASKCOUNT, 100);
     } else {
@@ -280,8 +280,8 @@ void LuaInterpreter::start(const QString &script) {
         lua_sethook(L, &luaDebugHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
     }
     // frontend
-    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_DEBUG, -1);
-    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_ERROR, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Debug, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Error, -1);
 
     const QString filePath = "@" + m_luaSession["documentUrl"].toUrl().toLocalFile();
     const sol::protected_function_result result = m_lua.safe_script(
@@ -291,21 +291,21 @@ void LuaInterpreter::start(const QString &script) {
     );
     if (!result.valid()) {
         const sol::error err = result;
-        emit appendLog(LOG_ERROR, QString::fromStdString(err.what()), "");
+        emit appendLog(LogLevel::Error, QString::fromStdString(err.what()), "");
     }
     // frontend
-    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_DEBUG, -1);
-    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), MARKER_ERROR, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Debug, -1);
+    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Error, -1);
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
 }
 
 void LuaInterpreter::stateSet(const int state) {
     m_luaSession["state"] = state;
-    if (state == DEBUG_STEPOVER || state == DEBUG_STEPOUT) {
+    if (state == Debug::StepOver || state == Debug::StepOut) {
         m_luaSession["baseDepth"] = m_luaSession["currentDepth"].toInt();
     }
-    if (state != DEBUG_PAUSE) emit quitLoop();
+    if (state != Debug::Pause) emit quitLoop();
 }
 
 void LuaInterpreter::stackSet(lua_State *L, lua_Debug *ar) {
@@ -407,7 +407,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
     sol::state_view lua(L);
     QVariantMap &session = *lua["session"].get<QVariantMap *>();
     auto *This = qvariant_cast<LuaInterpreter *>(session["this"]);
-    emit This->deleteMarker(session["currentUrl"].toUrl(), MARKER_DEBUG, -1);
+    emit This->deleteMarker(session["currentUrl"].toUrl(), ScintillaMarker::Debug, -1);
     if (ar->event == LUA_HOOKCALL) {
         session["currentDepth"] = session["currentDepth"].toInt() + 1;
     } else if (ar->event == LUA_HOOKRET) {
@@ -421,7 +421,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         }
         const int currentLine = ar->currentline;
         // debug state machine
-        if (session["state"].toInt() == DEBUG_RESUME && g_breakpoints.contains(currentUrl.toString())) {
+        if (session["state"].toInt() == Debug::Resume && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(currentLine)) {
                 // enabled check
                 if (!g_breakpoints[currentUrl][currentLine]["enabled"].toBool()) return;
@@ -429,7 +429,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                 {
                     QString condition = g_breakpoints[currentUrl][currentLine]["condition"].toString();
                     if (condition.isEmpty()) {
-                        session["state"] = DEBUG_PAUSE;
+                        session["state"] = Debug::Pause;
                     } else {
                         const int base = lua_gettop(L);
                         if (!condition.trimmed().startsWith("return ")) condition = "return " + condition;
@@ -465,27 +465,27 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         );
                         if (condition_result.valid()) {
                             const sol::object result = condition_result;
-                            if (result.as<bool>()) session["state"] = DEBUG_PAUSE;
+                            if (result.as<bool>()) session["state"] = Debug::Pause;
                         } else {
                             const sol::error err = condition_result;
-                            emit This->appendLog(LOG_ERROR, QString::fromStdString(err.what()), "");
+                            emit This->appendLog(LogLevel::Error, QString::fromStdString(err.what()), "");
                         }
                         lua_settop(L, base);
                     }
                 }
                 // TODO: log/count
             }
-        } else if (session["state"].toInt() == DEBUG_STEPOVER && session["currentDepth"].toInt() == session["baseDepth"].toInt()) session["state"] = DEBUG_PAUSE;
-        else if (session["state"].toInt() == DEBUG_STEPOUT && session["currentDepth"].toInt() < session["baseDepth"].toInt()) session["state"] = DEBUG_PAUSE;
-        else if (session["state"].toInt() == DEBUG_STEPINTO) session["state"] = DEBUG_PAUSE;
-        else if (session["state"].toInt() == DEBUG_RUNTOCURSOR && g_cursorPosition["url"].toUrl() == currentUrl && g_cursorPosition["line"].toInt() == currentLine)
-            session["state"] = DEBUG_PAUSE;
-        if (session["state"].toInt() == DEBUG_PAUSE) {
+        } else if (session["state"].toInt() == Debug::StepOver && session["currentDepth"].toInt() == session["baseDepth"].toInt()) session["state"] = Debug::Pause;
+        else if (session["state"].toInt() == Debug::StepOut && session["currentDepth"].toInt() < session["baseDepth"].toInt()) session["state"] = Debug::Pause;
+        else if (session["state"].toInt() == Debug::StepInto) session["state"] = Debug::Pause;
+        else if (session["state"].toInt() == Debug::RunToCursor && g_cursorPosition["url"].toUrl() == currentUrl && g_cursorPosition["line"].toInt() == currentLine)
+            session["state"] = Debug::Pause;
+        if (session["state"].toInt() == Debug::Pause) {
             // url handle
             emit This->openDocument(currentUrl);
             if (currentUrl != session["currentUrl"].toUrl()) session["currentUrl"] = currentUrl;
             // line handle
-            emit This->addMarker(currentUrl, MARKER_DEBUG, currentLine - 1, -1);
+            emit This->addMarker(currentUrl, ScintillaMarker::Debug, currentLine - 1, -1);
             // call stack handle
             stackSet(L, ar);
             // watch handle
@@ -497,7 +497,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                     [This, L, ar, currentUrl](const QString &documentUrl, const QString &expression, const QString &value, const QString &type) {
                         disconnect(This, &LuaInterpreter::setValue, This, nullptr);
                         if (currentUrl != documentUrl) {
-                            emit This->appendLog(LOG_ERROR, QString("Hot update failed: Not in the current file scope"), "");
+                            emit This->appendLog(LogLevel::Error, QString("Hot update failed: Not in the current file scope"), "");
                             return;
                         }
                         bool updated = false;
@@ -510,7 +510,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                                 lua_setlocal(L, ar, local_i);
                                 lua_pop(L, 1);
                                 updated = true;
-                                emit This->appendLog(LOG_INFO, QString("Hot update executed: local %1 = %2").arg(expression, value), "");
+                                emit This->appendLog(LogLevel::Info, QString("Hot update executed: local %1 = %2").arg(expression, value), "");
                                 break;
                             }
                             lua_pop(L, 1);
@@ -527,7 +527,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                                         lua_setupvalue(L, -3, upvalue_i);
                                         lua_pop(L, 1);
                                         updated = true;
-                                        emit This->appendLog(LOG_INFO, QString("Hot update executed: upvalue %1 = %2").arg(expression, value), "");
+                                        emit This->appendLog(LogLevel::Info, QString("Hot update executed: upvalue %1 = %2").arg(expression, value), "");
                                         break;
                                     }
                                     lua_pop(L, 1);
@@ -538,7 +538,7 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
                         }
                         // value not found
                         if (!updated) {
-                            emit This->appendLog(LOG_ERROR, QString("Hot update failed: variable '%1' not found").arg(expression), "");
+                            emit This->appendLog(LogLevel::Error, QString("Hot update failed: variable '%1' not found").arg(expression), "");
                         } else {
                             // watch handle
                             watchSet(L, ar);
