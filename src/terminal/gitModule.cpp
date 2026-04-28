@@ -27,6 +27,8 @@ GitModule::~GitModule() {
 }
 
 void GitModule::propertySet(const QVariantMap &objects) {
+    m_menu = qvariant_cast<QObject *>(objects["menuModuleGitMenu"]);
+
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
@@ -40,8 +42,23 @@ void GitModule::propertyGet(const QVariantMap &objects) {
     processStart();
 }
 
-void GitModule::terminalInput(const QString &input) const {
+void GitModule::terminalStdin(const QString &input) const {
     m_process->write(input.toLocal8Bit());
+}
+
+void GitModule::gitStatus() {
+    m_command = Status;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git status"));
+}
+
+void GitModule::gitInit() {
+    m_command = Init;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git init"));
+}
+
+void GitModule::gitRemove() {
+    m_command = Remove;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "rm -rf .git"));
 }
 
 bool GitModule::eventFilter(QObject *watched, QEvent *event) {
@@ -64,13 +81,35 @@ void GitModule::processStart() {
     } else {
         installPath += "\\bin\\bash.exe";
     }
-    m_process->setProcessChannelMode(QProcess::MergedChannels);
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
-    connect(m_process, &QProcess::readyRead, this, &GitModule::terminalOutput);
+    connect(m_process, &QProcess::readyReadStandardOutput, this, &GitModule::terminalStdout);
+    connect(m_process, &QProcess::readyReadStandardError, this, &GitModule::terminalStderr);
     m_process->start(installPath, {"--login"});
 }
 
-void GitModule::terminalOutput() const {
-    const auto text = QString::fromLocal8Bit(m_process->readAllStandardOutput());
-    QMetaObject::invokeMethod(m_root, "terminalOutput", Q_ARG(QVariant, QVariant::fromValue(text)));
+void GitModule::terminalStdout() const {
+    parser(true);
+    const auto output = QString::fromLocal8Bit(m_process->readAllStandardOutput());
+    QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, QVariant::fromValue(output)));
+}
+
+void GitModule::terminalStderr() const {
+    parser(false);
+    const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
+    QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, QVariant::fromValue(error)));
+}
+
+void GitModule::parser(const bool status) const {
+    switch (m_command) {
+        case Status:
+        case Init: {
+            m_menu->setProperty("status", status);
+        }
+        break;
+        case Remove: {
+            m_menu->setProperty("status", false);
+        }
+        break;
+        default: break;
+    }
 }

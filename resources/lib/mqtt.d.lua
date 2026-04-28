@@ -17,7 +17,7 @@ function Mqtt.new(name, timeout) end
 ---@field willRetain nil WIP
 ---@field username? string (default: "")
 ---@field password? password (default: "")
----@field keepAlive? int (default: 60) Maximum time in **seconds** between messages to keep the connection alive.
+---@field keepAlive? integer (default: 60) Maximum time in **seconds** between messages to keep the connection alive.
 ---@field properties nil WIP
 
 ---@class mqtt

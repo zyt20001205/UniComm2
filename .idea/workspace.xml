@@ -30,8 +30,16 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="exit bug fix">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="ConPTY pending... terminal is a semifinished product, not ready.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/lib/mqtt.d.lua" beforeDir="false" afterPath="$PROJECT_DIR$/resources/lib/mqtt.d.lua" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mainWindow/menuModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/menuModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +168,7 @@
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
       <workItem from="1777264897578" duration="9229000" />
-      <workItem from="1777282931643" duration="16752000" />
+      <workItem from="1777282931643" duration="27161000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -242,7 +250,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777302438090</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="ConPTY pending... terminal is a semifinished product, not ready.">
+      <option name="closed" value="true" />
+      <created>1777303095302</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1777303095302</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -275,7 +291,8 @@
     <MESSAGE value="git textfield removed" />
     <MESSAGE value="terminal is much better" />
     <MESSAGE value="exit bug fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="exit bug fix" />
+    <MESSAGE value="ConPTY pending... terminal is a semifinished product, not ready." />
+    <option name="LAST_COMMIT_MESSAGE" value="ConPTY pending... terminal is a semifinished product, not ready." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -344,14 +361,20 @@
           <option name="totalLines" value="3372054" />
           <option name="info" value="exit bug fix" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777303095885" />
+          <option name="linesCode" value="660019" />
+          <option name="totalLines" value="3372077" />
+          <option name="info" value="ConPTY pending... terminal is a semifinished produ" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
       <list>
         <TimePoint>
-          <option name="timestamp" value="1777302438760" />
+          <option name="timestamp" value="1777303095885" />
           <option name="linesCode" value="660019" />
-          <option name="totalLines" value="3372054" />
+          <option name="totalLines" value="3372077" />
           <option name="info" value="Apr 27, 2026" />
         </TimePoint>
       </list>

@@ -93,6 +93,20 @@ Item {
             }
         }
 
+        Button {
+            id: gitMenuButton
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
+            flat: true
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+            text: "Git"
+
+            onClicked: {
+                const globalPos = gitMenuButton.mapToGlobal(0, gitMenuButton.height);
+                const localPos = gitMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                gitMenu.popup(localPos.x, localPos.y)
+            }
+        }
+
         Item {
             Layout.fillWidth: true; Layout.preferredHeight: 24
         }

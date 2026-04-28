@@ -85,6 +85,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("debugModule", m_debugModule);
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
+    m_overlay->rootContext()->setContextProperty("gitModule", m_gitModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     m_overlay->rootContext()->setContextProperty("menuModule", m_menuModule);
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
@@ -190,7 +191,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_explorerModule->propertySet(explorerObjects);
 
     const QVariantMap gitObjects = {
-        //
+        {"menuModuleGitMenu", objects["menuModuleGitMenu"]}
     };
     m_gitModule->propertySet(gitObjects);
 
@@ -209,7 +210,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"menuModuleViewMenu", objects["menuModuleViewMenu"]},
         {"menuModuleNavMenu", objects["menuModuleNavMenu"]},
         {"menuModuleCodeMenu", objects["menuModuleCodeMenu"]},
-        {"menuModuleExecMenu", objects["menuModuleExecMenu"]}
+        {"menuModuleExecMenu", objects["menuModuleExecMenu"]},
+        {"menuModuleGitMenu", objects["menuModuleGitMenu"]}
     };
     m_menuModule->propertySet(menuObjects);
 

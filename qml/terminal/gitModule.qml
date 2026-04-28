@@ -31,8 +31,8 @@ Item {
                             }
                             const currentPos = textArea.cursorPosition
                             const input = textArea.getText(textArea.basePosition, currentPos)
-                            gitModule.terminalInput(input + '\n')
                             textArea.basePosition = currentPos
+                            gitModule.terminalStdin(input + '\n')
                             event.accepted = true
                         }
                     }
@@ -50,8 +50,20 @@ Item {
         }
     }
 
-    function terminalOutput(output) {
+    function terminalStdin(input) {
+        textArea.cursorPosition = textArea.basePosition
+        textArea.insert(textArea.basePosition, input)
+        gitModule.terminalStdin(input + '\n')
+    }
+
+    function terminalStdout(output) {
         textArea.append(output)
+        textArea.insert(textArea.cursorPosition, ">>> ")
+        textArea.basePosition = textArea.cursorPosition
+    }
+
+    function terminalStderr(error) {
+        textArea.append(error)
         textArea.insert(textArea.cursorPosition, ">>> ")
         textArea.basePosition = textArea.cursorPosition
     }

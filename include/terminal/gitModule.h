@@ -20,23 +20,41 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void terminalInput(const QString &input) const;
+    Q_INVOKABLE void terminalStdin(const QString &input) const;
+
+    Q_INVOKABLE void gitStatus();
+
+    Q_INVOKABLE void gitInit();
+
+    Q_INVOKABLE void gitRemove();
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void processStart();
 
-    void terminalOutput() const;
+    void terminalStdout() const;
+
+    void terminalStderr() const;
+
+    void parser(bool status) const;
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QQuickItem *m_root{};
+    QObject *m_menu{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
     QTextDocument *m_textDocument{};
     QProcess *m_process{};
-    int m_pos = 4;
+
+    int m_command{};
+
+    enum GitCommand {
+        Status,
+        Init,
+        Remove
+    };
 };
 
 #endif //UNICOMM_GITMODULE_H

@@ -3250,6 +3250,38 @@ Item {
         }
     }
 
+    Menu {
+        id: menuModuleGitMenu
+        property var status: null
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            if (menuModuleGitMenu.status === null) {
+                menuModuleGitMenu.status = gitModule.gitStatus()
+            }
+        }
+
+        MenuItem {
+            id: menuModuleGitMenuInitItem
+            enabled: menuModuleGitMenu.status !== true
+            text: qsTr("Init")
+
+            onTriggered: gitModule.gitInit()
+        }
+
+        MenuItem {
+            id: menuModuleGitMenuRemoveItem
+            enabled: menuModuleGitMenu.status === true
+            text: qsTr("Remove")
+
+            onTriggered: gitModule.gitRemove()
+        }
+    }
+
     // port module
     Menu {
         id: portModuleTableMenu
@@ -3770,6 +3802,7 @@ Item {
             "menuModuleNavMenu": menuModuleNavMenu,
             "menuModuleCodeMenu": menuModuleCodeMenu,
             "menuModuleExecMenu": menuModuleExecMenu,
+            "menuModuleGitMenu": menuModuleGitMenu,
 
             "portModuleTableMenu": portModuleTableMenu,
             "portModuleRootMenu": portModuleRootMenu,

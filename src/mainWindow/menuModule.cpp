@@ -22,6 +22,7 @@ void MenuModule::propertySet(const QVariantMap &objects) {
     rootContext()->setContextProperty("navMenu", qvariant_cast<QObject *>(objects["menuModuleNavMenu"]));
     rootContext()->setContextProperty("codeMenu", qvariant_cast<QObject *>(objects["menuModuleCodeMenu"]));
     rootContext()->setContextProperty("execMenu", qvariant_cast<QObject *>(objects["menuModuleExecMenu"]));
+    rootContext()->setContextProperty("gitMenu", qvariant_cast<QObject *>(objects["menuModuleGitMenu"]));
 
     rootContext()->setContextProperty("menuModule", this);
     setSource(QUrl("qrc:/qml/mainWindow/menuModule.qml"));
