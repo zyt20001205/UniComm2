@@ -5,16 +5,17 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property bool gitEnabled: false
 
     RowLayout {
         anchors.fill: parent
 
         Button {
             id: fileMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "File"
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = fileMenuButton.mapToGlobal(0, fileMenuButton.height);
@@ -25,10 +26,10 @@ Item {
 
         Button {
             id: editMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Edit"
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = editMenuButton.mapToGlobal(0, editMenuButton.height);
@@ -39,10 +40,10 @@ Item {
         
         Button {
             id: viewMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "View"
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = viewMenuButton.mapToGlobal(0, viewMenuButton.height);
@@ -53,10 +54,10 @@ Item {
 
         Button {
             id: navMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Nav"
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = navMenuButton.mapToGlobal(0, navMenuButton.height);
@@ -67,10 +68,10 @@ Item {
 
         Button {
             id: codeMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Code"
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = codeMenuButton.mapToGlobal(0, codeMenuButton.height);
@@ -81,10 +82,10 @@ Item {
 
         Button {
             id: execMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Exec"
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = execMenuButton.mapToGlobal(0, execMenuButton.height);
@@ -95,10 +96,11 @@ Item {
 
         Button {
             id: gitMenuButton
-            Layout.preferredWidth: 48; Layout.preferredHeight: 24
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Git"
+            visible: rootItem.gitEnabled
+            Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
                 const globalPos = gitMenuButton.mapToGlobal(0, gitMenuButton.height);

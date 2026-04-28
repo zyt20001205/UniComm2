@@ -23,7 +23,7 @@ int ConfigManager::mainConfigLoad() {
         qDebug() << QString("[%1] %2").arg(timestamp, "main config not found");
     }
     QFile mainConfig(QDir::current().filePath("config.json"));
-    mainConfig.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return 1;
     const QByteArray jsonData = mainConfig.readAll();
     mainConfig.close();
     const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
@@ -48,11 +48,29 @@ int ConfigManager::mainConfigLoad() {
         {"workspace", workspaceUrl.toString()},
     };
     const QJsonDocument doc(json);
-    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return 1;
     mainConfig.write(doc.toJson(QJsonDocument::Indented));
     mainConfig.close();
 
     g_workspaceUrl = workspaceUrl;
+
+    // validate git config
+    {
+        QJsonObject gitConfig = jsonObject["gitConfig"].toObject();
+        // check if git is installed
+        QProcess process{};
+        process.start("git", {"--version"});
+        process.waitForFinished();
+        if (process.exitCode() == 0) {
+            process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
+            process.start("git", {"status"});
+            process.waitForFinished();
+            if (process.exitCode() == 0) {
+                g_gitEnabled = true;
+            }
+        }
+    }
+
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main config loaded");
@@ -76,7 +94,7 @@ void ConfigManager::workspaceInit() {
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] .config.json copied").arg(timestamp);
         }
-        // validate
+        // validation
         {
             QFile config(dstConfigPath);
             if (!config.open(QIODevice::ReadOnly | QIODevice::Text)) return;
@@ -85,10 +103,10 @@ void ConfigManager::workspaceInit() {
             const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
             if (!jsonDoc.isObject()) return;
             const QJsonObject jsonObject = jsonDoc.object();
-            // validate document config
+            // validation document config
             {
                 QJsonObject documentConfig = jsonObject["documentConfig"].toObject();
-                // clear invalid document url in document list
+                // remove invalid document url in document list
                 QJsonArray validDocumentList;
                 for (const auto &value: documentConfig["documentList"].toArray()) {
                     if (const auto documentUrl = QUrl(value.toString()); QFileInfo::exists(documentUrl.toLocalFile())) {
@@ -98,7 +116,7 @@ void ConfigManager::workspaceInit() {
                     }
                 }
                 documentConfig["documentList"] = validDocumentList;
-                // clear invalid document url in breakpoint hash
+                // remove invalid document url in breakpoint hash
                 QJsonObject breakpointHash = documentConfig["breakpointHash"].toObject();
                 QJsonObject validBreakpointHash;
                 for (auto it = breakpointHash.begin(); it != breakpointHash.end(); ++it) {
@@ -109,7 +127,7 @@ void ConfigManager::workspaceInit() {
                     }
                 }
                 documentConfig["breakpointHash"] = validBreakpointHash;
-                // write valid document config back
+                // write back
                 jsonObject["documentConfig"] = documentConfig;
             }
             g_workspaceConfig = jsonObject;
@@ -133,7 +151,7 @@ void ConfigManager::workspaceInit() {
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] .luarc.json copied").arg(timestamp);
         }
-        // validate
+        // validation
         else if (fileHashCalc(srcLuarcPath) != fileHashCalc(dstLuarcPath)) {
             QFile::setPermissions(dstLuarcPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner
                                                 | QFileDevice::ReadUser | QFileDevice::WriteUser

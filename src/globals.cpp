@@ -12,6 +12,7 @@ UndoModule *g_undo = nullptr;
 
 bool g_terminating = false;
 QUrl g_workspaceUrl = {};
+bool g_gitEnabled = false;
 QJsonObject g_workspaceConfig = {};
 
 QHash<QString, QString> g_color = {

@@ -3252,30 +3252,15 @@ Item {
 
     Menu {
         id: menuModuleGitMenu
-        property var status: null
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: {
-            if (menuModuleGitMenu.status === null) {
-                menuModuleGitMenu.status = gitModule.gitStatus()
-            }
-        }
-
-        MenuItem {
-            id: menuModuleGitMenuInitItem
-            enabled: menuModuleGitMenu.status !== true
-            text: qsTr("Init")
-
-            onTriggered: gitModule.gitInit()
-        }
 
         MenuItem {
             id: menuModuleGitMenuCommitItem
-            enabled: menuModuleGitMenu.status === true
             text: qsTr("Commit")
 
             onTriggered: gitModule.gitCommit()

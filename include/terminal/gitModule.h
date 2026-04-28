@@ -22,27 +22,27 @@ public:
 
     Q_INVOKABLE void terminalStdin(const QString &input) const;
 
-    Q_INVOKABLE void gitStatus();
-
     Q_INVOKABLE void gitInit();
 
     Q_INVOKABLE void gitCommit();
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
+signals:
+    void initGit(bool status);
+
 private:
     void processStart();
 
-    void terminalStdout() const;
+    void terminalStdout();
 
-    void terminalStderr() const;
+    void terminalStderr();
 
-    void parser(bool status) const;
+    void parser(bool status);
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QQuickItem *m_root{};
-    QObject *m_menu{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
     QTextDocument *m_textDocument{};
@@ -51,7 +51,6 @@ private:
     int m_command{};
 
     enum GitCommand {
-        Status,
         Init,
         Commit
     };

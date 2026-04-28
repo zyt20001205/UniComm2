@@ -12,6 +12,11 @@ public:
     ~MenuModule() override;
 
     void propertySet(const QVariantMap &objects);
+
+    void gitInit(bool status) const;
+
+private:
+    QObject *m_root{};
 };
 
 #endif //UNICOMM_MENUMODULE_H

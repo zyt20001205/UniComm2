@@ -27,12 +27,11 @@ GitModule::~GitModule() {
 }
 
 void GitModule::propertySet(const QVariantMap &objects) {
-    m_menu = qvariant_cast<QObject *>(objects["menuModuleGitMenu"]);
-
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
     m_root = m_widget->rootObject();
+    m_root->setProperty("gitEnabled", g_gitEnabled);
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
@@ -44,11 +43,6 @@ void GitModule::propertyGet(const QVariantMap &objects) {
 
 void GitModule::terminalStdin(const QString &input) const {
     m_process->write(input.toLocal8Bit());
-}
-
-void GitModule::gitStatus() {
-    m_command = Status;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git status"));
 }
 
 void GitModule::gitInit() {
@@ -87,23 +81,23 @@ void GitModule::processStart() {
     m_process->start(installPath, {"--login"});
 }
 
-void GitModule::terminalStdout() const {
+void GitModule::terminalStdout() {
     parser(true);
     const auto output = QString::fromLocal8Bit(m_process->readAllStandardOutput());
     QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, output));
 }
 
-void GitModule::terminalStderr() const {
+void GitModule::terminalStderr() {
     parser(false);
     const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
     QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, error));
 }
 
-void GitModule::parser(const bool status) const {
+void GitModule::parser(const bool status) {
     switch (m_command) {
-        case Status:
         case Init: {
-            m_menu->setProperty("status", status);
+            m_root->setProperty("gitEnabled", status);
+            if (status) emit initGit(status);
         }
         break;
         default: break;

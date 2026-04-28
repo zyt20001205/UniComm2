@@ -191,7 +191,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_explorerModule->propertySet(explorerObjects);
 
     const QVariantMap gitObjects = {
-        {"menuModuleGitMenu", objects["menuModuleGitMenu"]}
+        //
     };
     m_gitModule->propertySet(gitObjects);
 
@@ -464,6 +464,8 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
+
+    connect(m_gitModule, &GitModule::initGit, m_menuModule, &MenuModule::gitInit);
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_documentModule, &DocumentModule::spellCheckResponse);
 

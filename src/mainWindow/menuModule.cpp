@@ -1,6 +1,9 @@
 #include "mainWindow/menuModule.h"
 
 #include <QQmlContext>
+#include <QQuickItem>
+
+#include "globals.h"
 
 // public
 MenuModule::MenuModule(QWidget *parent)
@@ -26,5 +29,11 @@ void MenuModule::propertySet(const QVariantMap &objects) {
 
     rootContext()->setContextProperty("menuModule", this);
     setSource(QUrl("qrc:/qml/mainWindow/menuModule.qml"));
+    m_root = rootObject();
+    m_root->setProperty("gitEnabled", g_gitEnabled);
     setVisible(true);
+}
+
+void MenuModule::gitInit(const bool status) const {
+    m_root->setProperty("gitEnabled", status);
 }

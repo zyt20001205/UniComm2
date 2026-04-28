@@ -5,9 +5,34 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property bool gitEnabled: false
+
+    Item {
+        anchors.fill: parent
+        visible: !gitEnabled
+
+        RowLayout {
+            anchors.centerIn: parent
+
+            Button {
+                flat: true
+                text: qsTr("Click to create git repository.")
+                font.pixelSize: 16
+                Layout.alignment: Qt.AlignVCenter
+
+                onClicked: gitModule.gitInit()
+            }
+
+            Image {
+                source: "qrc:/icon/github.svg"
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+    }
 
     ScrollView {
         anchors.fill: parent
+        visible: gitEnabled
 
         TextArea {
             id: textArea

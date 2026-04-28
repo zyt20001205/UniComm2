@@ -30,6 +30,7 @@ extern UndoModule *g_undo;
 
 extern bool g_terminating;
 extern QUrl g_workspaceUrl;
+extern bool g_gitEnabled;
 extern QJsonObject g_workspaceConfig;
 
 extern QHash<QString, QString> g_color;
