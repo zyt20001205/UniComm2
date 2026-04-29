@@ -2,9 +2,16 @@
 #define UNICOMM_EXPLORER_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QSortFilterProxyModel>
 
+class QAbstractProxyModel;
 class QFileSystemModel;
+class QFileSystemWatcher;
+class QProcess;
 class QQuickWidget;
+class QStandardItemModel;
+
+class SortFilterProxyModel;
 
 class ExplorerModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -18,11 +25,15 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void scriptRun(const QString &scriptPath);
+    void gitInit(bool status) const;
 
-    Q_INVOKABLE void scriptDebug(const QString &scriptPath);
+    void gitUpdate() const;
 
-    Q_INVOKABLE void documentOpen(const QString &scriptPath);
+    Q_INVOKABLE void scriptRun(const QString &documentPath);
+
+    Q_INVOKABLE void scriptDebug(const QString &documentPath);
+
+    Q_INVOKABLE void documentOpen(const QString &documentPath);
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -36,7 +47,27 @@ signals:
 private:
     QQuickWidget *m_widget{};
     QFileSystemModel *m_fileSystemModel{};
+    SortFilterProxyModel *m_sortFilterProxyModel{};
+    QObject *m_fileMenu{};
     QObject *m_treeView{};
+    QProcess *m_process{};
+    QFileSystemWatcher *m_fileWatcher{};
+    QHash<QUrl, QVariant> m_documentStatus{};
+    QHash<QChar, int> m_gitStatus{};
+};
+
+class SortFilterProxyModel final : public QSortFilterProxyModel {
+    Q_OBJECT
+
+public:
+    explicit SortFilterProxyModel(const QHash<QUrl, QVariant> *documentStatus, QObject *parent = nullptr);
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+
+private:
+    const QHash<QUrl, QVariant> *m_documentStatus{};
 };
 
 #endif //UNICOMM_EXPLORER_H

@@ -30,18 +30,20 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="enum rename">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git menu visibility now follows gitEnabled">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/globals.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/globals.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/mainWindow/menuModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/mainWindow/menuModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/core/explorerModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/core/explorerModule.qml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/configManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/configManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/icon/arrowClockwise.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/globals.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/globals.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mainWindow/menuModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/menuModule.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,7 +69,7 @@
     </selectedModels>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="3872" />
+    <option name="cachedIndexableFilesCount" value="3874" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug-MinGW64" />
   <component name="Git.Settings">
@@ -113,6 +115,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "CMake Application.UniComm.executor": "Run",
+    "Git.Working.Tree.Tab.closed.by.user": "closed",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.RadMigrateCodeStyle": "true",
@@ -134,7 +137,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "language.qml",
+    "settings.editor.selected.configurable": "ml.llm.LLMThirdPartyAiProvidersConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -171,7 +174,12 @@
       <workItem from="1777263965561" duration="511000" />
       <workItem from="1777264622619" duration="269000" />
       <workItem from="1777264897578" duration="9229000" />
-      <workItem from="1777282931643" duration="39869000" />
+      <workItem from="1777282931643" duration="46434000" />
+      <workItem from="1777392928701" duration="192000" />
+      <workItem from="1777393140313" duration="13490000" />
+      <workItem from="1777434747285" duration="388000" />
+      <workItem from="1777435145159" duration="10383000" />
+      <workItem from="1777459995120" duration="8669000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -277,7 +285,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777381033160</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="git menu visibility now follows gitEnabled">
+      <option name="closed" value="true" />
+      <created>1777386644496</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1777386644496</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -294,7 +310,13 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -313,7 +335,8 @@
     <MESSAGE value="ConPTY pending... terminal is a semifinished product, not ready." />
     <MESSAGE value="init &amp; remove finished" />
     <MESSAGE value="enum rename" />
-    <option name="LAST_COMMIT_MESSAGE" value="enum rename" />
+    <MESSAGE value="git menu visibility now follows gitEnabled" />
+    <option name="LAST_COMMIT_MESSAGE" value="git menu visibility now follows gitEnabled" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -400,6 +423,12 @@
           <option name="totalLines" value="3373752" />
           <option name="info" value="enum rename" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777386645264" />
+          <option name="linesCode" value="660149" />
+          <option name="totalLines" value="3374663" />
+          <option name="info" value="git menu visibility now follows gitEnabled" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -411,9 +440,9 @@
           <option name="info" value="Apr 27, 2026" />
         </TimePoint>
         <TimePoint>
-          <option name="timestamp" value="1777381033901" />
-          <option name="linesCode" value="660111" />
-          <option name="totalLines" value="3373752" />
+          <option name="timestamp" value="1777386645264" />
+          <option name="linesCode" value="660149" />
+          <option name="totalLines" value="3374663" />
           <option name="info" value="Apr 28, 2026" />
         </TimePoint>
       </list>

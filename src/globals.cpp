@@ -22,8 +22,10 @@ QHash<QString, QString> g_color = {
     {"selectedBack", "#ebebeb"},
     {"brandFore", "#115ea3"},
     {"successBack", "#107c10"},
-    {"warningBack", "#c50f1f"},
-    {"dangerBack", "#f7630c"},
+    {"warningBack", "#f7630c"},
+    {"warningFore", "#bc4b09"},
+    {"dangerBack", "#c50f1f"},
+    {"dangerFore", "#c50f1f"},
 };
 
 ViSession g_rm = VI_NULL;

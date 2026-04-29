@@ -10,7 +10,7 @@ Item {
         id: treeView
         anchors.fill: parent
         clip: true
-        model: fileSystemModel
+        model: sortFilterProxyModel
         rootIndex: modelRootIndex
         columnWidthProvider: function (col) {
             return col === 0 ? treeView.width : 0
@@ -29,7 +29,6 @@ Item {
             required property bool hasChildren
             required property int depth
             required property int row
-            required property int column
 
             Rectangle {
                 anchors.fill: parent
@@ -73,43 +72,19 @@ Item {
 
                     Image {
                         anchors.centerIn: parent
-                        width: 20; height: 20
-                        source: getIcon()
-
-                        function getIcon() {
-                            if (isTreeNode && hasChildren) {
-                                return "qrc:/icon/folder.svg"
-                            } else {
-                                const suffix = model.fileName.split('.').pop()
-                                switch (suffix) {
-                                    case "csv":
-                                        return "qrc:/icon/fileTypeCsv.svg"
-                                    case "bmp":
-                                    case "gif":
-                                    case "ico":
-                                    case "jpeg":
-                                    case "jpg":
-                                    case "png":
-                                    case "svg":
-                                    case "tif":
-                                    case "tiff":
-                                    case "webp":
-                                        return "qrc:/icon/fileTypeImage.svg"
-                                    case "json":
-                                        return "qrc:/icon/fileTypeJson.svg"
-                                    case "lua":
-                                        return "qrc:/icon/fileTypeLua.svg"
-                                    default:
-                                        return "qrc:/icon/document.svg"
-                                }
-                            }
-                        }
+                        width: 16; height: 16
+                        source: model.source
                     }
                 }
 
                 Label {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    text: model.fileName
+                    color: model.git ? model.git.indexStatus === 0 ? "#c50f1f" :
+                                model.git.workingTreeStatus === 2 ? "#000000" :
+                                model.git.workingTreeStatus === 3 ? "#115ea3" :
+                                "#000000" :
+                        "#000000"
+                    text: model.display
                     elide: Text.ElideRight
                     Layout.fillWidth: true; Layout.preferredHeight: 24
                 }
@@ -117,6 +92,24 @@ Item {
 
             HoverHandler {
                 id: hoverHandler
+
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainToolTip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    mainToolTip.position = parent.mapToGlobal(point.position)
+                    if (model.git) {
+                        if (model.git.indexStatus === 0) {
+                            mainToolTip.text = "Untracked"
+                        } else if (model.git.workingTreeStatus === 2) {
+                            mainToolTip.text = "Unmodified"
+                        } else if (model.git.workingTreeStatus === 3) {
+                            mainToolTip.text = "Modified"
+                        }
+                    }
+                }
             }
 
             TapHandler {
@@ -143,14 +136,10 @@ Item {
                 onTapped: {
                     if (isTreeNode && hasChildren) {
                         folderMenu.filePath = model.filePath
-                        folderMenu.fileName = model.fileName
-                        folderMenu.treeView = treeView
                         folderMenu.popup()
                     } else {
-                        scriptMenu.filePath = model.filePath
-                        scriptMenu.fileName = model.fileName
-                        scriptMenu.treeView = treeView
-                        scriptMenu.popup()
+                        fileMenu.documentUrl = model.documentUrl
+                        fileMenu.popup()
                     }
                 }
             }

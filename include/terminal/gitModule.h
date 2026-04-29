@@ -20,23 +20,29 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void terminalStdin(const QString &input) const;
-
     Q_INVOKABLE void gitInit();
 
-    Q_INVOKABLE void gitCommit();
+    Q_INVOKABLE void gitStatus() const;
 
-    bool eventFilter(QObject *watched, QEvent *event) override;
+    Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
+
+    Q_INVOKABLE void gitReset(const QUrl &documentUrl);
+
+    Q_INVOKABLE void gitCommit();
 
 signals:
     void initGit(bool status);
 
+    void undateGit();
+
 private:
-    void processStart();
+    void terminalStdin(const QStringList &arguments) const;
 
     void terminalStdout();
 
     void terminalStderr();
+
+    void processFinished(int exitcode);
 
     void parser(bool status);
 
@@ -51,7 +57,10 @@ private:
     int m_command{};
 
     enum GitCommand {
+        Null,
         Init,
+        Add,
+        Reset,
         Commit
     };
 };

@@ -1876,9 +1876,8 @@ Item {
 
     Menu {
         id: explorerModuleFileMenu
-        property string filePath
-        property string fileName
-        property var treeView
+        property string documentUrl
+        property bool gitEnabled
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -1915,7 +1914,7 @@ Item {
                 icon.source: "qrc:/icon/folder.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleFileMenu.filePath)
+                onTriggered: fileModule.fileOpenInExplorer(explorerModuleFileMenu.documentUrl)
             }
 
             MenuItem {
@@ -1923,7 +1922,7 @@ Item {
                 icon.source: "qrc:/icon/apps.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: fileModule.fileOpenInApplication("file:///" + explorerModuleFileMenu.filePath)
+                onTriggered: fileModule.fileOpenInApplication(explorerModuleFileMenu.documentUrl)
             }
         }
 
@@ -1954,6 +1953,34 @@ Item {
                     progress = 0
                     explorerModuleFileMenu.close()
                 }
+            }
+        }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Git")
+            enabled: explorerModuleFileMenu.gitEnabled
+            icon.source: "qrc:/icon/github.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Add")
+                icon.source: "qrc:/icon/add.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    gitModule.gitAdd(explorerModuleFileMenu.documentUrl)
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Reset")
+                icon.source: "qrc:/icon/reset.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: gitModule.gitReset(explorerModuleFileMenu.documentUrl)
             }
         }
 
@@ -3258,6 +3285,13 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
+
+        MenuItem {
+            id: menuModuleGitMenuStatusItem
+            text: qsTr("Status")
+
+            onTriggered: gitModule.gitStatus()
+        }
 
         MenuItem {
             id: menuModuleGitMenuCommitItem

@@ -226,4 +226,19 @@ namespace LspTokenModifiers {
     };
 }
 
+namespace GitStatus {
+    enum {
+        /* '?' */Untracked,
+        /* '!' */Ignored,
+        /* ' ' */Unmodified,
+        /* 'M' */Modified,
+        /* 'T' */FileTypeChanged,
+        /* 'A' */Added,
+        /* 'D' */Deleted,
+        /* 'R' */Renamed,
+        /* 'C' */Copied,
+        /* 'U' */UpdatedButUnmerged
+    };
+}
+
 #endif //UNICOMM_GLOBALS_H

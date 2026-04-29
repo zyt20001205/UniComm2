@@ -184,6 +184,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_documentModule->propertySet(documentObjects);
 
     const QVariantMap explorerObjects = {
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"explorerModuleFileMenu", objects["explorerModuleFileMenu"]},
         {"explorerModuleFolderMenu", objects["explorerModuleFolderMenu"]},
         {"explorerModuleRootMenu", objects["explorerModuleRootMenu"]}
@@ -336,16 +337,18 @@ void MainWindow::workspaceOpen() {
 }
 
 void MainWindow::workspaceSave(const QUrl &configUrl) {
-    m_documentModule->documentConfigSave();
     BreakpointModule::breakpointConfigSave();
     DatabaseModule::databaseConfigSave();
     DatatableModule::datatableConfigSave();
+    m_documentModule->documentConfigSave();
     m_logModule->logConfigSave();
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
     m_watchModule->watchConfigSave();
     mainConfigSave();
     m_configManager->workspaceConfigSave(configUrl);
+
+    m_explorerModule->gitUpdate();
 }
 
 void MainWindow::quitTrack(const float secondaryProgress, const QString &secondaryLog) const {
@@ -465,7 +468,9 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
+    connect(m_gitModule, &GitModule::initGit, m_explorerModule, &ExplorerModule::gitInit);
     connect(m_gitModule, &GitModule::initGit, m_menuModule, &MenuModule::gitInit);
+    connect(m_gitModule, &GitModule::undateGit, m_explorerModule, &ExplorerModule::gitUpdate);
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_documentModule, &DocumentModule::spellCheckResponse);
 
@@ -607,7 +612,7 @@ void MainWindow::overlayInit() {
 }
 
 void MainWindow::mainConfigSave() {
-    const KDDockWidgets::LayoutSaver layoutSaver;
+    const KDDockWidgets::LayoutSaver layoutSaver{};
     const QByteArray layoutData = layoutSaver.serializeLayout();
     m_mainConfig["state"] = QString(layoutData.toBase64());
     g_workspaceConfig["mainConfig"] = m_mainConfig;

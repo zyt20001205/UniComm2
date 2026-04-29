@@ -96,10 +96,10 @@ Item {
 
         Button {
             id: gitMenuButton
+            enabled: rootItem.gitEnabled
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Git"
-            visible: rootItem.gitEnabled
             Layout.preferredWidth: 48; Layout.preferredHeight: 24
 
             onClicked: {
