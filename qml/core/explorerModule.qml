@@ -135,10 +135,12 @@ Item {
 
                 onTapped: {
                     if (isTreeNode && hasChildren) {
-                        folderMenu.filePath = model.filePath
+                        folderMenu.documentUrl = model.documentUrl
+                        folderMenu.treeView = treeView
                         folderMenu.popup()
                     } else {
                         fileMenu.documentUrl = model.documentUrl
+                        fileMenu.treeView = treeView
                         fileMenu.popup()
                     }
                 }
@@ -155,7 +157,7 @@ Item {
             acceptedButtons: Qt.RightButton
 
             onTapped: {
-                rootMenu.rootPath = modelRootPath
+                rootMenu.documentUrl = modelRootUrl
                 rootMenu.treeView = treeView
                 rootMenu.popup()
             }

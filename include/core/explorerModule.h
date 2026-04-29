@@ -29,11 +29,11 @@ public:
 
     void gitUpdate() const;
 
-    Q_INVOKABLE void scriptRun(const QString &documentPath);
+    Q_INVOKABLE void scriptRun(const QUrl &documentUrl);
 
-    Q_INVOKABLE void scriptDebug(const QString &documentPath);
+    Q_INVOKABLE void scriptDebug(const QUrl &documentUrl);
 
-    Q_INVOKABLE void documentOpen(const QString &documentPath);
+    Q_INVOKABLE void documentOpen(const QUrl &documentUrl);
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 

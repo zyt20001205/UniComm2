@@ -30,21 +30,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git menu visibility now follows gitEnabled">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git infra finished">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/globals.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/globals.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/core/explorerModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/core/explorerModule.qml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/menuModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/icon/arrowClockwise.svg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/globals.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/globals.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/mainWindow/mainWindow.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,7 +170,7 @@
       <workItem from="1777393140313" duration="13490000" />
       <workItem from="1777434747285" duration="388000" />
       <workItem from="1777435145159" duration="10383000" />
-      <workItem from="1777459995120" duration="8669000" />
+      <workItem from="1777459995120" duration="9822000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -293,7 +284,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777386644496</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="git infra finished">
+      <option name="closed" value="true" />
+      <created>1777470473678</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1777470473678</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -336,7 +335,8 @@
     <MESSAGE value="init &amp; remove finished" />
     <MESSAGE value="enum rename" />
     <MESSAGE value="git menu visibility now follows gitEnabled" />
-    <option name="LAST_COMMIT_MESSAGE" value="git menu visibility now follows gitEnabled" />
+    <MESSAGE value="git infra finished" />
+    <option name="LAST_COMMIT_MESSAGE" value="git infra finished" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -429,6 +429,12 @@
           <option name="totalLines" value="3374663" />
           <option name="info" value="git menu visibility now follows gitEnabled" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777470474434" />
+          <option name="linesCode" value="660382" />
+          <option name="totalLines" value="3372351" />
+          <option name="info" value="git infra finished" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -444,6 +450,12 @@
           <option name="linesCode" value="660149" />
           <option name="totalLines" value="3374663" />
           <option name="info" value="Apr 28, 2026" />
+        </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777470474434" />
+          <option name="linesCode" value="660382" />
+          <option name="totalLines" value="3372351" />
+          <option name="info" value="Apr 29, 2026" />
         </TimePoint>
       </list>
     </option>

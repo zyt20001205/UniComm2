@@ -1147,7 +1147,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                fileModulePropertyDialog.fileUrl = documentModuleEditorMenu.menuSession.documentUrl
+                fileModulePropertyDialog.documentUrl = documentModuleEditorMenu.menuSession.documentUrl
                 fileModulePropertyDialog.open()
             }
         }
@@ -1819,7 +1819,7 @@ Item {
         modal: true
         title: qsTr("New File")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string filePath
+        property string documentUrl
 
 
         onOpened: {
@@ -1831,7 +1831,7 @@ Item {
             explorerModuleFileNameTextField.clear()
             explorerModuleFileNameTextField.forceActiveFocus()
         }
-        onAccepted: fileModule.fileNew("file:///" + explorerModuleFileNewDialog.filePath + "/" + explorerModuleFileNameTextField.text)
+        onAccepted: fileModule.fileNew(explorerModuleFileNewDialog.documentUrl + "/" + explorerModuleFileNameTextField.text)
 
         TextField {
             id: explorerModuleFileNameTextField
@@ -1851,7 +1851,7 @@ Item {
         modal: true
         title: qsTr("New Folder")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string filePath
+        property string documentUrl
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -1862,7 +1862,7 @@ Item {
             explorerModuleFolderNameTextField.clear()
             explorerModuleFolderNameTextField.forceActiveFocus()
         }
-        onAccepted: fileModule.fileNew("file:///" + explorerModuleFolderNewDialog.filePath + "/" + explorerModuleFolderNameTextField.text)
+        onAccepted: fileModule.fileNew(explorerModuleFolderNewDialog.documentUrl + "/" + explorerModuleFolderNameTextField.text)
 
         TextField {
             id: explorerModuleFolderNameTextField
@@ -1876,8 +1876,9 @@ Item {
 
     Menu {
         id: explorerModuleFileMenu
-        property string documentUrl
         property bool gitEnabled
+        property string documentUrl
+        property var treeView
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -1890,7 +1891,7 @@ Item {
             icon.source: "qrc:/icon/play.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: explorerModule.scriptRun(explorerModuleFileMenu.filePath)
+            onTriggered: explorerModule.scriptRun(explorerModuleFileMenu.documentUrl)
         }
 
         MenuItem {
@@ -1898,7 +1899,7 @@ Item {
             icon.source: "qrc:/icon/bug.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: explorerModule.scriptDebug(explorerModuleFileMenu.filePath)
+            onTriggered: explorerModule.scriptDebug(explorerModuleFileMenu.documentUrl)
         }
 
         MenuSeparator {
@@ -1932,7 +1933,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleFileMenu.filePath
+                fileModulePropertyDialog.documentUrl = documentUrl
                 fileModulePropertyDialog.open()
                 fileModulePropertyNameTextField.forceActiveFocus()
                 fileModulePropertyNameTextField.selectAll()
@@ -1949,7 +1950,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    fileModule.fileDelete("file:///" + explorerModuleFileMenu.filePath)
+                    fileModule.fileDelete(explorerModuleFileMenu.documentUrl)
                     progress = 0
                     explorerModuleFileMenu.close()
                 }
@@ -2020,8 +2021,7 @@ Item {
 
     Menu {
         id: explorerModuleFolderMenu
-        property string filePath
-        property string fileName
+        property string documentUrl
         property var treeView
 
         onOpened: {
@@ -2035,7 +2035,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleFolderMenu.filePath)
+            onTriggered: fileModule.fileOpenInExplorer(explorerModuleFolderMenu.documentUrl)
         }
 
         Menu {
@@ -2049,7 +2049,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleFileNewDialog.filePath = explorerModuleFolderMenu.filePath
+                    explorerModuleFileNewDialog.documentUrl = explorerModuleFolderMenu.documentUrl
                     explorerModuleFileNewDialog.open()
                 }
             }
@@ -2060,7 +2060,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleFolderNewDialog.filePath = explorerModuleFolderMenu.filePath
+                    explorerModuleFolderNewDialog.documentUrl = explorerModuleFolderMenu.documentUrl
                     explorerModuleFolderNewDialog.open()
                 }
             }
@@ -2072,7 +2072,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                fileModulePropertyDialog.fileUrl = "file:///" + explorerModuleFolderMenu.filePath
+                fileModulePropertyDialog.documentUrl = explorerModuleFolderMenu.documentUrl
                 fileModulePropertyDialog.open()
                 fileModulePropertyNameTextField.forceActiveFocus()
                 fileModulePropertyNameTextField.selectAll()
@@ -2089,7 +2089,7 @@ Item {
                 text: qsTr("Confirm")
 
                 onActivated: {
-                    fileModule.fileDelete("file:///" + explorerModuleFolderMenu.filePath)
+                    fileModule.fileDelete(explorerModuleFolderMenu.documentUrl)
                     progress = 0
                     explorerModuleFolderMenu.close()
                 }
@@ -2132,7 +2132,7 @@ Item {
 
     Menu {
         id: explorerModuleRootMenu
-        property string rootPath
+        property string documentUrl
         property var treeView
 
         onOpened: {
@@ -2146,7 +2146,7 @@ Item {
             icon.source: "qrc:/icon/open.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: fileModule.fileOpenInExplorer("file:///" + explorerModuleRootMenu.rootPath)
+            onTriggered: fileModule.fileOpenInExplorer(explorerModuleRootMenu.documentUrl)
         }
 
         Menu {
@@ -2160,7 +2160,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleFileNewDialog.filePath = explorerModuleRootMenu.rootPath
+                    explorerModuleFileNewDialog.documentUrl = explorerModuleRootMenu.documentUrl
                     explorerModuleFileNewDialog.open()
                 }
             }
@@ -2171,7 +2171,7 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    explorerModuleFolderNewDialog.filePath = explorerModuleRootMenu.rootPath
+                    explorerModuleFolderNewDialog.documentUrl = explorerModuleRootMenu.documentUrl
                     explorerModuleFolderNewDialog.open()
                 }
             }
@@ -2220,7 +2220,7 @@ Item {
         modal: true
         title: qsTr("File Property")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property string fileUrl
+        property string documentUrl
         property var infoSession
 
         onOpened: {
@@ -2229,7 +2229,7 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            fileModulePropertyDialog.infoSession = fileModule.fileInfo(fileModulePropertyDialog.fileUrl)
+            fileModulePropertyDialog.infoSession = fileModule.fileInfo(fileModulePropertyDialog.documentUrl)
             fileModulePropertyImage.source = fileModulePropertyDialog.infoSession.source
             fileModulePropertyNameTextField.text = fileModulePropertyDialog.infoSession.baseName
             fileModulePropertySizeLabel.text = fileModulePropertyDialog.infoSession.size
@@ -2244,10 +2244,10 @@ Item {
 
         onAccepted: {
             if (fileModulePropertyNameTextField.text !== fileModulePropertyDialog.infoSession.baseName) {
-                fileModule.fileRename(fileModulePropertyDialog.fileUrl, fileModulePropertyNameTextField.text)
+                fileModule.fileRename(fileModulePropertyDialog.documentUrl, fileModulePropertyNameTextField.text)
             }
             if (fileModulePropertyWritableCheckBox.checked !== fileModulePropertyDialog.infoSession.writable) {
-                fileModule.fileWritable(fileModulePropertyDialog.fileUrl, fileModulePropertyWritableCheckBox.checked)
+                fileModule.fileWritable(fileModulePropertyDialog.documentUrl, fileModulePropertyWritableCheckBox.checked)
             }
         }
 

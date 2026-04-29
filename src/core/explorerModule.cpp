@@ -65,11 +65,12 @@ void ExplorerModule::propertySet(const QVariantMap &objects) {
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
     m_fileSystemModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
     m_fileSystemModel->setRootPath(modelRootPath);
-    m_widget->rootContext()->setContextProperty("explorerModule", this);
     m_sortFilterProxyModel->setSourceModel(m_fileSystemModel);
     const QModelIndex modelRootIndex = m_sortFilterProxyModel->mapFromSource(m_fileSystemModel->index(modelRootPath));
+    m_widget->rootContext()->setContextProperty("explorerModule", this);
     m_widget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
     m_widget->rootContext()->setContextProperty("modelRootPath", modelRootPath);
+    m_widget->rootContext()->setContextProperty("modelRootUrl", g_workspaceUrl);
     m_widget->rootContext()->setContextProperty("sortFilterProxyModel", m_sortFilterProxyModel);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/core/explorerModule.qml"));
@@ -87,18 +88,15 @@ void ExplorerModule::gitUpdate() const {
     m_process->start("git", {"status", "--porcelain"});
 }
 
-void ExplorerModule::scriptRun(const QString &documentPath) {
-    const QUrl documentUrl = QUrl::fromLocalFile(documentPath);
+void ExplorerModule::scriptRun(const QUrl &documentUrl) {
     emit startThread(documentUrl, InterpreterMode::Run, -1, -1, -1, -1);
 }
 
-void ExplorerModule::scriptDebug(const QString &documentPath) {
-    const QUrl documentUrl = QUrl::fromLocalFile(documentPath);
+void ExplorerModule::scriptDebug(const QUrl &documentUrl) {
     emit startThread(documentUrl, InterpreterMode::Debug, -1, -1, -1, -1);
 }
 
-void ExplorerModule::documentOpen(const QString &documentPath) {
-    const QUrl documentUrl = QUrl::fromLocalFile(documentPath).toString();
+void ExplorerModule::documentOpen(const QUrl &documentUrl) {
     emit openDocument(documentUrl);
 }
 
