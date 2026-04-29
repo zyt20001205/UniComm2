@@ -77,6 +77,8 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
         source = "qrc:/icon/fileTypeImage.svg";
     } else if (suffix == "csv") {
         source = "qrc:/icon/fileTypeCsv.svg";
+    } else if (suffix == "gitignore") {
+        source = "qrc:/icon/fileTypeGit.svg";
     } else if (suffix == "json") {
         source = "qrc:/icon/fileTypeJson.svg";
     } else if (suffix == "lua") {

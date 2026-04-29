@@ -24,7 +24,7 @@ Item {
             }
 
             Image {
-                source: "qrc:/icon/github.svg"
+                source: "qrc:/icon/fileTypeGit.svg"
                 Layout.alignment: Qt.AlignVCenter
             }
         }

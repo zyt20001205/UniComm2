@@ -30,12 +30,16 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git infra finished">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="explorer module fixed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/core/explorerModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/core/explorerModule.qml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/terminal/gitModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/gitModule.qml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/fileModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/fileModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,7 +174,7 @@
       <workItem from="1777393140313" duration="13490000" />
       <workItem from="1777434747285" duration="388000" />
       <workItem from="1777435145159" duration="10383000" />
-      <workItem from="1777459995120" duration="9822000" />
+      <workItem from="1777459995120" duration="14943000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -292,7 +296,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777470473678</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="explorer module fixed">
+      <option name="closed" value="true" />
+      <created>1777471445417</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1777471445417</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -336,7 +348,8 @@
     <MESSAGE value="enum rename" />
     <MESSAGE value="git menu visibility now follows gitEnabled" />
     <MESSAGE value="git infra finished" />
-    <option name="LAST_COMMIT_MESSAGE" value="git infra finished" />
+    <MESSAGE value="explorer module fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="explorer module fixed" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -435,6 +448,12 @@
           <option name="totalLines" value="3372351" />
           <option name="info" value="git infra finished" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777471446194" />
+          <option name="linesCode" value="660378" />
+          <option name="totalLines" value="3372412" />
+          <option name="info" value="explorer module fixed" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -452,9 +471,9 @@
           <option name="info" value="Apr 28, 2026" />
         </TimePoint>
         <TimePoint>
-          <option name="timestamp" value="1777470474434" />
-          <option name="linesCode" value="660382" />
-          <option name="totalLines" value="3372351" />
+          <option name="timestamp" value="1777471446194" />
+          <option name="linesCode" value="660378" />
+          <option name="totalLines" value="3372412" />
           <option name="info" value="Apr 29, 2026" />
         </TimePoint>
       </list>

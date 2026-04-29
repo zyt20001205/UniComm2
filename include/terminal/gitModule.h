@@ -28,6 +28,8 @@ public:
 
     Q_INVOKABLE void gitReset(const QUrl &documentUrl);
 
+    Q_INVOKABLE void gitIgnore(const QUrl &documentUrl, bool status);
+
     Q_INVOKABLE void gitCommit();
 
 signals:

@@ -33,6 +33,12 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
+                color: model.git ? model.git.indexStatus === 1 ? "#f7630c" : "transparent" : "transparent"
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
                 color: "#ebebeb"
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
@@ -80,6 +86,7 @@ Item {
                 Label {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                     color: model.git ? model.git.indexStatus === 0 ? "#c50f1f" :
+                                model.git.indexStatus === 1 ? "#000000" :
                                 model.git.workingTreeStatus === 2 ? "#000000" :
                                 model.git.workingTreeStatus === 3 ? "#115ea3" :
                                 "#000000" :
@@ -103,6 +110,8 @@ Item {
                     if (model.git) {
                         if (model.git.indexStatus === 0) {
                             mainToolTip.text = "Untracked"
+                        } else if (model.git.indexStatus === 1) {
+                            mainToolTip.text = "Ignored"
                         } else if (model.git.workingTreeStatus === 2) {
                             mainToolTip.text = "Unmodified"
                         } else if (model.git.workingTreeStatus === 3) {
@@ -124,7 +133,7 @@ Item {
                 }
                 onDoubleTapped: {
                     if (!(isTreeNode && hasChildren)) {
-                        explorerModule.documentOpen(model.filePath)
+                        explorerModule.documentOpen(model.documentUrl)
                     }
                 }
             }
@@ -139,6 +148,8 @@ Item {
                         folderMenu.treeView = treeView
                         folderMenu.popup()
                     } else {
+                        fileMenu.gitUntracked = model.git ? model.git.indexStatus === 0 : false
+                        fileMenu.gitIgnored = model.git ? model.git.indexStatus === 1 : false
                         fileMenu.documentUrl = model.documentUrl
                         fileMenu.treeView = treeView
                         fileMenu.popup()

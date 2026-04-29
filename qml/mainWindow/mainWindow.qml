@@ -1877,6 +1877,8 @@ Item {
     Menu {
         id: explorerModuleFileMenu
         property bool gitEnabled
+        property bool gitUntracked
+        property bool gitIgnored
         property string documentUrl
         property var treeView
 
@@ -1933,7 +1935,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             onTriggered: {
-                fileModulePropertyDialog.documentUrl = documentUrl
+                fileModulePropertyDialog.documentUrl = explorerModuleFileMenu.documentUrl
                 fileModulePropertyDialog.open()
                 fileModulePropertyNameTextField.forceActiveFocus()
                 fileModulePropertyNameTextField.selectAll()
@@ -1963,7 +1965,7 @@ Item {
         Menu {
             title: qsTr("Git")
             enabled: explorerModuleFileMenu.gitEnabled
-            icon.source: "qrc:/icon/github.svg"
+            icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
             MenuItem {
@@ -1982,6 +1984,14 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onTriggered: gitModule.gitReset(explorerModuleFileMenu.documentUrl)
+            }
+
+            MenuItem {
+                text: explorerModuleFileMenu.gitIgnored ? qsTr("Unignore") : qsTr("Ignore")
+                icon.source: "qrc:/icon/prohibited.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: gitModule.gitIgnore(explorerModuleFileMenu.documentUrl, !explorerModuleFileMenu.gitIgnored)
             }
         }
 

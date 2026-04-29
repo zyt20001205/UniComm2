@@ -63,7 +63,7 @@ void ExplorerModule::propertySet(const QVariantMap &objects) {
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
 
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
-    m_fileSystemModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
+    // m_fileSystemModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
     m_fileSystemModel->setRootPath(modelRootPath);
     m_sortFilterProxyModel->setSourceModel(m_fileSystemModel);
     const QModelIndex modelRootIndex = m_sortFilterProxyModel->mapFromSource(m_fileSystemModel->index(modelRootPath));
@@ -78,6 +78,8 @@ void ExplorerModule::propertySet(const QVariantMap &objects) {
 
 void ExplorerModule::propertyGet(const QVariantMap &objects) {
     m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
+
+    if (g_gitEnabled) gitUpdate();
 }
 
 void ExplorerModule::gitInit(const bool status) const {
@@ -85,7 +87,7 @@ void ExplorerModule::gitInit(const bool status) const {
 }
 
 void ExplorerModule::gitUpdate() const {
-    m_process->start("git", {"status", "--porcelain"});
+    m_process->start("git", {"status", "--porcelain", "-uall", "--ignored"});
 }
 
 void ExplorerModule::scriptRun(const QUrl &documentUrl) {
@@ -135,6 +137,8 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
             source = "qrc:/icon/fileTypeImage.svg";
         } else if (suffix == "csv") {
             source = "qrc:/icon/fileTypeCsv.svg";
+        } else if (suffix == "gitignore") {
+            source = "qrc:/icon/fileTypeGit.svg";
         } else if (suffix == "json") {
             source = "qrc:/icon/fileTypeJson.svg";
         } else if (suffix == "lua") {
