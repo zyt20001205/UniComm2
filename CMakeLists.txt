@@ -371,7 +371,7 @@ qt_add_resources(UniComm "lib_resources"
 
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
-set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt-6.10.1")
+set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt-6.11.0")
 set(QT_BIN "${QT_DIR}/bin")
 set(QT_PLUGINS
         "generic"
@@ -517,7 +517,7 @@ target_compile_options(UniComm PRIVATE
 #        COMMAND Qt6::windeployqt
 #        --qmldir "${CMAKE_SOURCE_DIR}/qml"
 #        "$<TARGET_FILE:UniComm>")
-#qt-6.10.1
+#qt-6.11.0
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${QT_BIN}"
