@@ -1171,6 +1171,7 @@ Item {
             completionWidget.completionHide()
         }
         onAboutToShow: {
+            position = Overlay.overlay.mapFromGlobal(position)
             x = position.x - 30
             y = position.y
             documentModuleCompletionDetailToolTip.open()
@@ -1399,6 +1400,7 @@ Item {
             dwellWidget.dwellHide()
         }
         onAboutToShow: {
+            position = Overlay.overlay.mapFromGlobal(position)
             x = position.x + 10
             y = position.y + 10
         }
@@ -1591,6 +1593,7 @@ Item {
             navigationWidget.navigationHide()
         }
         onAboutToShow: {
+            position = Overlay.overlay.mapFromGlobal(position)
             x = position.x - 30
             y = position.y
             documentModuleNavigationDetailToolTip.open()
@@ -1800,6 +1803,7 @@ Item {
             signatureWidget.signatureHide()
         }
         onAboutToShow: {
+            position = Overlay.overlay.mapFromGlobal(position)
             x = position.x - 6
             y = position.y - documentModuleSignatureToolTip.implicitHeight
         }

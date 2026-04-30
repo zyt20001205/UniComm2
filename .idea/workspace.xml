@@ -30,10 +30,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="qt 6.10.1 -&gt; 6.11.0">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="explorer isDir property added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/core/explorerModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/core/explorerModule.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -172,7 +171,7 @@
       <workItem from="1777459995120" duration="14943000" />
       <workItem from="1777530671754" duration="146000" />
       <workItem from="1777530851737" duration="642000" />
-      <workItem from="1777531507058" duration="3211000" />
+      <workItem from="1777531507058" duration="5986000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -310,7 +309,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777533684775</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="explorer isDir property added">
+      <option name="closed" value="true" />
+      <created>1777534983970</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1777534983970</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -356,7 +363,8 @@
     <MESSAGE value="git infra finished" />
     <MESSAGE value="explorer module fixed" />
     <MESSAGE value="qt 6.10.1 -&gt; 6.11.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="qt 6.10.1 -&gt; 6.11.0" />
+    <MESSAGE value="explorer isDir property added" />
+    <option name="LAST_COMMIT_MESSAGE" value="explorer isDir property added" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
