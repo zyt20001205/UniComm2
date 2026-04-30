@@ -29,6 +29,8 @@ public:
 
     void gitUpdate() const;
 
+    Q_INVOKABLE void toggleHidden() const;
+
     Q_INVOKABLE void scriptRun(const QUrl &documentUrl);
 
     Q_INVOKABLE void scriptDebug(const QUrl &documentUrl);
@@ -49,6 +51,7 @@ private:
     QFileSystemModel *m_fileSystemModel{};
     SortFilterProxyModel *m_sortFilterProxyModel{};
     QObject *m_fileMenu{};
+    QObject *m_folderMenu{};
     QObject *m_treeView{};
     QProcess *m_process{};
     QFileSystemWatcher *m_fileWatcher{};

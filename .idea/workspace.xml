@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="6" type="long" />
     <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
     <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/OptionsDialog/SelectedPageId/@EntryValue" value="CppFormatterOtherPage" type="string" />
     <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
   </component>
   <component name="CMakePresetLoader">{
@@ -30,9 +32,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="explorer isDir property added">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="analysis tooltips position bug fixed">
+      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,6 +120,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "RunOnceActivity.west.config.association.type.startup.service": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "cf.advertisement.text.overridden": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
@@ -126,7 +133,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "language.qml",
+    "settings.editor.selected.configurable": "preferences.sourceCode.C++",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -171,7 +178,7 @@
       <workItem from="1777459995120" duration="14943000" />
       <workItem from="1777530671754" duration="146000" />
       <workItem from="1777530851737" duration="642000" />
-      <workItem from="1777531507058" duration="5986000" />
+      <workItem from="1777531507058" duration="8690000" />
     </task>
     <task id="LOCAL-00001" summary="add terminal base class">
       <option name="closed" value="true" />
@@ -317,7 +324,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777534983970</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="analysis tooltips position bug fixed">
+      <option name="closed" value="true" />
+      <created>1777538767401</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1777538767401</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -364,7 +379,8 @@
     <MESSAGE value="explorer module fixed" />
     <MESSAGE value="qt 6.10.1 -&gt; 6.11.0" />
     <MESSAGE value="explorer isDir property added" />
-    <option name="LAST_COMMIT_MESSAGE" value="explorer isDir property added" />
+    <MESSAGE value="analysis tooltips position bug fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="analysis tooltips position bug fixed" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

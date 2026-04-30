@@ -269,10 +269,15 @@ Item {
     ToolTip {
         id: mainWindowToolTip
         parent: Overlay.overlay
-        x: position.x + 10; y: position.y + 10
         closePolicy: Popup.NoAutoClose
         visible: text
         property point position
+
+        onPositionChanged: {
+            let p = Overlay.overlay.mapFromGlobal(position)
+            x = p.x + 10
+            y = p.y + 10
+        }
 
         Behavior on x {
             enabled: mainWindowToolTip.visible
@@ -1974,6 +1979,7 @@ Item {
 
             MenuItem {
                 text: qsTr("Add")
+                enabled: explorerModuleFileMenu.gitUntracked
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
 
@@ -1984,6 +1990,7 @@ Item {
 
             MenuItem {
                 text: qsTr("Reset")
+                enabled: !explorerModuleFileMenu.gitUntracked && !explorerModuleFileMenu.gitIgnored
                 icon.source: "qrc:/icon/reset.svg"
                 icon.width: 16; icon.height: 16
 
@@ -2000,6 +2007,14 @@ Item {
         }
 
         MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Toggle hidden")
+            icon.source: "qrc:/icon/hide.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: explorerModule.toggleHidden()
         }
 
         Menu {
@@ -2035,6 +2050,7 @@ Item {
 
     Menu {
         id: explorerModuleFolderMenu
+        property bool gitEnabled
         property string documentUrl
         property var treeView
 
@@ -2111,6 +2127,50 @@ Item {
         }
 
         MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Git")
+            enabled: explorerModuleFolderMenu.gitEnabled
+            icon.source: "qrc:/icon/fileTypeGit.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Add")
+                icon.source: "qrc:/icon/add.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    gitModule.gitAdd(explorerModuleFolderMenu.documentUrl)
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Reset")
+                icon.source: "qrc:/icon/reset.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: gitModule.gitReset(explorerModuleFolderMenu.documentUrl)
+            }
+
+            MenuItem {
+                text: qsTr("Ignore")
+                icon.source: "qrc:/icon/prohibited.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: gitModule.gitIgnore(explorerModuleFolderMenu.documentUrl, true)
+            }
+        }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Toggle hidden")
+            icon.source: "qrc:/icon/hide.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: explorerModule.toggleHidden()
         }
 
         Menu {
@@ -2192,6 +2252,14 @@ Item {
         }
 
         MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Toggle hidden")
+            icon.source: "qrc:/icon/hide.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: explorerModule.toggleHidden()
         }
 
         Menu {

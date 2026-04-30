@@ -59,11 +59,12 @@ void ExplorerModule::propertySet(const QVariantMap &objects) {
     m_fileMenu = qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]);
     m_fileMenu->setProperty("gitEnabled", g_gitEnabled);
     m_widget->rootContext()->setContextProperty("fileMenu", m_fileMenu);
-    m_widget->rootContext()->setContextProperty("folderMenu", qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]));
+    m_folderMenu = qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]);
+    m_folderMenu->setProperty("gitEnabled", g_gitEnabled);
+    m_widget->rootContext()->setContextProperty("folderMenu", m_folderMenu);
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
 
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
-    // m_fileSystemModel->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
     m_fileSystemModel->setRootPath(modelRootPath);
     m_sortFilterProxyModel->setSourceModel(m_fileSystemModel);
     const QModelIndex modelRootIndex = m_sortFilterProxyModel->mapFromSource(m_fileSystemModel->index(modelRootPath));
@@ -84,10 +85,18 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 
 void ExplorerModule::gitInit(const bool status) const {
     m_fileMenu->setProperty("gitEnabled", status);
+    m_folderMenu->setProperty("gitEnabled", status);
 }
 
 void ExplorerModule::gitUpdate() const {
     m_process->start("git", {"status", "--porcelain", "-uall", "--ignored"});
+}
+
+void ExplorerModule::toggleHidden() const {
+    auto filters = m_fileSystemModel->filter();
+    if (filters.testFlag(QDir::Hidden)) filters &= ~QDir::Hidden;
+    else filters |= QDir::Hidden;
+    m_fileSystemModel->setFilter(filters);
 }
 
 void ExplorerModule::scriptRun(const QUrl &documentUrl) {
