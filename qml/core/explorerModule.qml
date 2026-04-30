@@ -24,9 +24,7 @@ Item {
         delegate: Item {
             implicitWidth: treeView.width; implicitHeight: 24
             required property TreeView treeView
-            required property bool isTreeNode
             required property bool expanded
-            required property bool hasChildren
             required property int depth
             required property int row
 
@@ -69,7 +67,7 @@ Item {
                         anchors.centerIn: parent
                         width: 16; height: 16
                         source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
-                        visible: isTreeNode && hasChildren
+                        visible: model.isDir
                     }
                 }
 
@@ -127,12 +125,12 @@ Item {
 
                 onTapped: {
                     treeView.selectedRow = row
-                    if (isTreeNode && hasChildren) {
+                    if (model.isDir) {
                         treeView.toggleExpanded(row)
                     }
                 }
                 onDoubleTapped: {
-                    if (!(isTreeNode && hasChildren)) {
+                    if (!model.isDir) {
                         explorerModule.documentOpen(model.documentUrl)
                     }
                 }
@@ -143,7 +141,7 @@ Item {
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                 onTapped: {
-                    if (isTreeNode && hasChildren) {
+                    if (model.isDir) {
                         folderMenu.documentUrl = model.documentUrl
                         folderMenu.treeView = treeView
                         folderMenu.popup()

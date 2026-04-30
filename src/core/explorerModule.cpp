@@ -119,8 +119,9 @@ SortFilterProxyModel::SortFilterProxyModel(const QHash<QUrl, QVariant> *document
 QHash<int, QByteArray> SortFilterProxyModel::roleNames() const {
     auto roles = QSortFilterProxyModel::roleNames();
     roles[Qt::UserRole + 4] = "source";
-    roles[Qt::UserRole + 5] = "documentUrl";
-    roles[Qt::UserRole + 6] = "git";
+    roles[Qt::UserRole + 5] = "isDir";
+    roles[Qt::UserRole + 6] = "documentUrl";
+    roles[Qt::UserRole + 7] = "git";
     return roles;
 }
 
@@ -151,9 +152,12 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
         return source;
     }
     if (role == Qt::UserRole + 5) {
-        return documentUrl;
+        return fileInfo.isDir();
     }
     if (role == Qt::UserRole + 6) {
+        return documentUrl;
+    }
+    if (role == Qt::UserRole + 7) {
         if (!g_gitEnabled) {
             return {};
         }
