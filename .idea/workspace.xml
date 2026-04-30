@@ -32,13 +32,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git ignore now jumps same url">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="add git add. and reset">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/terminal/logModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/logModule.qml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,7 +129,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "CMakeSettings",
+    "settings.editor.selected.configurable": "CPPToolchains",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -348,7 +344,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777545646677</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="add git add. and reset">
+      <option name="closed" value="true" />
+      <created>1777546362215</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1777546362215</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -398,7 +402,8 @@
     <MESSAGE value="analysis tooltips position bug fixed" />
     <MESSAGE value="home sync" />
     <MESSAGE value="git ignore now jumps same url" />
-    <option name="LAST_COMMIT_MESSAGE" value="git ignore now jumps same url" />
+    <MESSAGE value="add git add. and reset" />
+    <option name="LAST_COMMIT_MESSAGE" value="add git add. and reset" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -515,6 +520,12 @@
           <option name="totalLines" value="3555334" />
           <option name="info" value="git ignore now jumps same url" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777546362948" />
+          <option name="linesCode" value="665672" />
+          <option name="totalLines" value="3539694" />
+          <option name="info" value="add git add. and reset" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -538,9 +549,9 @@
           <option name="info" value="Apr 29, 2026" />
         </TimePoint>
         <TimePoint>
-          <option name="timestamp" value="1777545647366" />
-          <option name="linesCode" value="667368" />
-          <option name="totalLines" value="3555334" />
+          <option name="timestamp" value="1777546362948" />
+          <option name="linesCode" value="665672" />
+          <option name="totalLines" value="3539694" />
           <option name="info" value="Apr 30, 2026" />
         </TimePoint>
       </list>

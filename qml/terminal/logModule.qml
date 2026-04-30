@@ -157,6 +157,7 @@ Item {
                 textFormat: TextEdit.RichText
                 verticalAlignment: TextEdit.AlignTop
                 wrapMode: wrapButton.checked ? TextEdit.Wrap : TextEdit.NoWrap
+                ContextMenu.menu: null
 
                 HoverHandler {
                     id: hoverHandler
@@ -208,4 +209,3 @@ Item {
         }
     }
 }
-

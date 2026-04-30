@@ -40,6 +40,7 @@ Item {
             text: ">>> "
             textFormat: TextEdit.PlainText
             verticalAlignment: TextEdit.AlignTop
+            ContextMenu.menu: null
         }
     }
 
