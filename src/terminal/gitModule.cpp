@@ -99,6 +99,7 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
         bool inserted = false;
         for (int i = 0; i < gitignoreList.size(); ++i) {
             if (gitignoreList[i].startsWith('#') || gitignoreList[i].trimmed().isEmpty()) continue;
+            if (relativePath == gitignoreList[i]) break;
             if (relativePath < gitignoreList[i]) {
                 gitignoreList.insert(i, relativePath);
                 inserted = true;
