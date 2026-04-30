@@ -62,7 +62,9 @@ void ExplorerModule::propertySet(const QVariantMap &objects) {
     m_folderMenu = qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]);
     m_folderMenu->setProperty("gitEnabled", g_gitEnabled);
     m_widget->rootContext()->setContextProperty("folderMenu", m_folderMenu);
-    m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]));
+    m_rootMenu = qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]);
+    m_rootMenu->setProperty("gitEnabled", g_gitEnabled);
+    m_widget->rootContext()->setContextProperty("rootMenu", m_rootMenu);
 
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
     m_fileSystemModel->setRootPath(modelRootPath);
@@ -86,6 +88,7 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 void ExplorerModule::gitInit(const bool status) const {
     m_fileMenu->setProperty("gitEnabled", status);
     m_folderMenu->setProperty("gitEnabled", status);
+    m_rootMenu->setProperty("gitEnabled", status);
 }
 
 void ExplorerModule::gitUpdate() const {
@@ -167,16 +170,8 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
         return documentUrl;
     }
     if (role == Qt::UserRole + 7) {
-        if (!g_gitEnabled) {
+        if (!g_gitEnabled || !m_documentStatus->contains(documentUrl)) {
             return {};
-        }
-        if (!m_documentStatus->contains(documentUrl)) {
-            constexpr auto indexStatus = GitStatus::Untracked;
-            constexpr auto workingTreeStatus = GitStatus::Untracked;
-            return QVariantHash{
-                {"indexStatus", indexStatus},
-                {"workingTreeStatus", workingTreeStatus}
-            };
         }
         const auto gitStatus = m_documentStatus->value(documentUrl).toHash();
         const auto indexStatus = gitStatus["indexStatus"].toInt();

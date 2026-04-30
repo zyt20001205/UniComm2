@@ -65,6 +65,12 @@ void GitModule::gitAdd(const QUrl &documentUrl) {
     terminalStdin(QStringList{"add", documentPath});
 }
 
+void GitModule::gitAddAll() {
+    m_command = Add;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git add ."));
+    terminalStdin(QStringList{"add", "."});
+}
+
 void GitModule::gitReset(const QUrl &documentUrl) {
     m_command = Reset;
     const auto documentPath = documentUrl.toLocalFile();
@@ -72,6 +78,12 @@ void GitModule::gitReset(const QUrl &documentUrl) {
     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git reset " + relativePath));
     terminalStdin(QStringList{"reset", documentPath});
+}
+
+void GitModule::gitResetAll() {
+    m_command = Reset;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git reset"));
+    terminalStdin(QStringList{"reset"});
 }
 
 void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {

@@ -26,7 +26,11 @@ public:
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
+    Q_INVOKABLE void gitAddAll();
+
     Q_INVOKABLE void gitReset(const QUrl &documentUrl);
+
+    Q_INVOKABLE void gitResetAll();
 
     Q_INVOKABLE void gitIgnore(const QUrl &documentUrl, bool status);
 

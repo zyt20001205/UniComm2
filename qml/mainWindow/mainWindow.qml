@@ -2206,6 +2206,7 @@ Item {
 
     Menu {
         id: explorerModuleRootMenu
+        property bool gitEnabled
         property string documentUrl
         property var treeView
 
@@ -2248,6 +2249,34 @@ Item {
                     explorerModuleFolderNewDialog.documentUrl = explorerModuleRootMenu.documentUrl
                     explorerModuleFolderNewDialog.open()
                 }
+            }
+        }
+
+        MenuSeparator {
+        }
+
+        Menu {
+            title: qsTr("Git")
+            enabled: explorerModuleFolderMenu.gitEnabled
+            icon.source: "qrc:/icon/fileTypeGit.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Add all")
+                icon.source: "qrc:/icon/add.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: {
+                    gitModule.gitAddAll()
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Reset all")
+                icon.source: "qrc:/icon/reset.svg"
+                icon.width: 16; icon.height: 16
+
+                onTriggered: gitModule.gitResetAll()
             }
         }
 

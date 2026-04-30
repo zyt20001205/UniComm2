@@ -52,6 +52,7 @@ private:
     SortFilterProxyModel *m_sortFilterProxyModel{};
     QObject *m_fileMenu{};
     QObject *m_folderMenu{};
+    QObject *m_rootMenu{};
     QObject *m_treeView{};
     QProcess *m_process{};
     QFileSystemWatcher *m_fileWatcher{};

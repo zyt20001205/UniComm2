@@ -32,10 +32,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="analysis tooltips position bug fixed">
-      <change beforePath="$PROJECT_DIR$/.idea/QtSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/QtSettings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="git ignore now jumps same url">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/terminal/gitModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/terminal/gitModule.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/terminal/gitModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/terminal/gitModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -329,7 +332,23 @@
       <option name="project" value="LOCAL" />
       <updated>1777538767401</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="home sync">
+      <option name="closed" value="true" />
+      <created>1777545469177</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1777545469177</updated>
+    </task>
+    <task id="LOCAL-00021" summary="git ignore now jumps same url">
+      <option name="closed" value="true" />
+      <created>1777545646677</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1777545646677</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -377,7 +396,9 @@
     <MESSAGE value="qt 6.10.1 -&gt; 6.11.0" />
     <MESSAGE value="explorer isDir property added" />
     <MESSAGE value="analysis tooltips position bug fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="analysis tooltips position bug fixed" />
+    <MESSAGE value="home sync" />
+    <MESSAGE value="git ignore now jumps same url" />
+    <option name="LAST_COMMIT_MESSAGE" value="git ignore now jumps same url" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -482,6 +503,18 @@
           <option name="totalLines" value="3372412" />
           <option name="info" value="explorer module fixed" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777545470095" />
+          <option name="linesCode" value="667206" />
+          <option name="totalLines" value="3415802" />
+          <option name="info" value="home sync" />
+        </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777545647366" />
+          <option name="linesCode" value="667368" />
+          <option name="totalLines" value="3555334" />
+          <option name="info" value="git ignore now jumps same url" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -503,6 +536,12 @@
           <option name="linesCode" value="660378" />
           <option name="totalLines" value="3372412" />
           <option name="info" value="Apr 29, 2026" />
+        </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777545647366" />
+          <option name="linesCode" value="667368" />
+          <option name="totalLines" value="3555334" />
+          <option name="info" value="Apr 30, 2026" />
         </TimePoint>
       </list>
     </option>
