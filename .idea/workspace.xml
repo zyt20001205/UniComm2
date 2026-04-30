@@ -27,18 +27,15 @@
   </component>
   <component name="CMakeSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug-MinGW64" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="MinGW64" GENERATION_OPTIONS="-G Ninja -DCMAKE_PREFIX_PATH=&quot;C:\MyFileAudit\software\Qt\6.11.0\mingw_64&quot;" />
-      <configuration PROFILE_NAME="Release-MinGW64" ENABLED="true" CONFIG_NAME="Release" TOOLCHAIN_NAME="MinGW64" GENERATION_OPTIONS="-G Ninja -DCMAKE_PREFIX_PATH=&quot;C:\MyFileAudit\software\Qt\6.11.0\mingw_64&quot; -DCMAKE_CXX_FLAGS=&quot;-DQT_NO_DEBUG_OUTPUT&quot;" />
+      <configuration PROFILE_NAME="Debug-MinGW64" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="MinGW64" GENERATION_OPTIONS="-G Ninja -DCMAKE_PREFIX_PATH=&quot;D:\Workspace\Qt\6.11.0\mingw_64&quot;" />
+      <configuration PROFILE_NAME="Release-MinGW64" ENABLED="true" CONFIG_NAME="Release" TOOLCHAIN_NAME="MinGW64" GENERATION_OPTIONS="-G Ninja -DCMAKE_PREFIX_PATH=&quot;D:\Workspace\Qt\6.11.0\mingw_64&quot; -DCMAKE_CXX_FLAGS=&quot;-DQT_NO_DEBUG_OUTPUT&quot;" />
     </configurations>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="analysis tooltips position bug fixed">
+      <change beforePath="$PROJECT_DIR$/.idea/QtSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/QtSettings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/core/explorerModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/core/explorerModule.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/explorerModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/explorerModule.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,22 +130,22 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "preferences.sourceCode.C++",
+    "settings.editor.selected.configurable": "CMakeSettings",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RunManager" selected="CMake Application.UniComm">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="UniComm" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="UniComm" TARGET_NAME="UniComm" CONFIG_NAME="Debug-MinGW64" RUN_TARGET_PROJECT_NAME="UniComm" RUN_TARGET_NAME="UniComm">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="UniComm_qmlimportscan" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="UniComm" TARGET_NAME="UniComm_qmlimportscan" CONFIG_NAME="Debug-MinGW64">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
