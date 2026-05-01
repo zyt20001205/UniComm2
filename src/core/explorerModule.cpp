@@ -121,7 +121,6 @@ bool ExplorerModule::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     return DockWidget::eventFilter(watched, event);
-
 }
 
 SortFilterProxyModel::SortFilterProxyModel(const QHash<QUrl, QVariant> *documentStatus, QObject *parent)
