@@ -1,6 +1,8 @@
 import QtCore
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Controls.FluentWinUI3.impl
 import QtQuick.Dialogs
 import QtQuick.Layouts
 
@@ -3398,15 +3400,45 @@ Item {
         onClosed: widgetCount -= 1
 
         MenuItem {
-            id: menuModuleGitMenuStatusItem
-            text: qsTr("Status")
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Item {
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                }
+
+                Label {
+                    text: qsTr("Status")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
 
             onTriggered: gitModule.gitStatus()
         }
 
         MenuItem {
-            id: menuModuleGitMenuCommitItem
-            text: qsTr("Commit")
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Image {
+                    source: "qrc:/icon/commit.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                }
+
+                Label {
+                    text: qsTr("Commit")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
 
             onTriggered: gitModule.gitCommit()
         }

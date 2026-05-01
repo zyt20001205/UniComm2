@@ -32,9 +32,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="add git add. and reset">
+    <list default="true" id="2f1c853f-ea79-466f-895b-1e485496fe7f" name="Changes" comment="log context menu removed">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/terminal/logModule.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/terminal/logModule.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/CHANGELOG.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/mainWindow/mainWindow.qml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,6 +113,7 @@
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.RadMigrateCodeStyle": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
@@ -129,7 +133,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.first.attach.projects": "true",
-    "settings.editor.selected.configurable": "CPPToolchains",
+    "settings.editor.selected.configurable": "terminal",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -352,7 +356,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777546362215</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="log context menu removed">
+      <option name="closed" value="true" />
+      <created>1777547139070</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1777547139070</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -403,7 +415,8 @@
     <MESSAGE value="home sync" />
     <MESSAGE value="git ignore now jumps same url" />
     <MESSAGE value="add git add. and reset" />
-    <option name="LAST_COMMIT_MESSAGE" value="add git add. and reset" />
+    <MESSAGE value="log context menu removed" />
+    <option name="LAST_COMMIT_MESSAGE" value="log context menu removed" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -526,6 +539,12 @@
           <option name="totalLines" value="3539694" />
           <option name="info" value="add git add. and reset" />
         </TimePoint>
+        <TimePoint>
+          <option name="timestamp" value="1777547139805" />
+          <option name="linesCode" value="667659" />
+          <option name="totalLines" value="3541448" />
+          <option name="info" value="log context menu removed" />
+        </TimePoint>
       </list>
     </option>
     <option name="genericTimePoints">
@@ -549,9 +568,9 @@
           <option name="info" value="Apr 29, 2026" />
         </TimePoint>
         <TimePoint>
-          <option name="timestamp" value="1777546362948" />
-          <option name="linesCode" value="665672" />
-          <option name="totalLines" value="3539694" />
+          <option name="timestamp" value="1777547139805" />
+          <option name="linesCode" value="667659" />
+          <option name="totalLines" value="3541448" />
           <option name="info" value="Apr 30, 2026" />
         </TimePoint>
       </list>

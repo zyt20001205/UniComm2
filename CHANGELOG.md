@@ -1,5 +1,9 @@
 # v0.2.0-alpha2
 
+## Dependency
+
+- Qt: 6.10.1 -> 6.11.0
+
 ## APIS
 
 - Rewrite ModbusAscii APIs.

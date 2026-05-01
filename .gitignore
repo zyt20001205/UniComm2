@@ -1,2 +1,3 @@
-/cmake-build-debug-mingw64/
-/cmake-build-release-mingw64/
+/.idea
+/cmake-build-debug-mingw64
+/cmake-build-release-mingw64
