@@ -111,7 +111,7 @@ Item {
                         } else if (model.git.indexStatus === 1) {
                             mainToolTip.text = "Ignored"
                         } else if (model.git.workingTreeStatus === 2) {
-                            mainToolTip.text = "Unmodified"
+                            // mainToolTip.text = "Unmodified"
                         } else if (model.git.workingTreeStatus === 3) {
                             mainToolTip.text = "Modified"
                         }
