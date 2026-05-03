@@ -59,7 +59,7 @@ GlobalManager::GlobalManager(QWidget *parent)
           {"darkDangerFore2", "#eeacb2"},
           {"lightDangerBack2", "#eeacb2"},
           {"darkDangerBack2", "#6e0811"},
-          {"lightDangerFore3", "#6e0811"},
+          {"lightDangerFore3", "#c50f1f"},
           {"darkDangerFore3", "#eeacb2"},
           {"lightDangerBack3", "#c50f1f"},
           {"darkDangerBack3", "#c50f1f"},

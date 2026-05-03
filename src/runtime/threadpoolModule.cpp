@@ -64,7 +64,8 @@ void ThreadpoolModule::quit() {
     }
 }
 
-void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine,
+                                   const int endCharacter) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
     // preload thread with lua session
@@ -84,7 +85,8 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
     connect(interpreter, &LuaInterpreter::addMarker, this, &ThreadpoolModule::addMarker);
     connect(interpreter, &LuaInterpreter::deleteMarker, this, &ThreadpoolModule::deleteMarker);
     connect(interpreter, &LuaInterpreter::insertCallStack, this, &ThreadpoolModule::insertCallStack);
-    connect(interpreter, &LuaInterpreter::startThread, this, qOverload<const QUrl &, const int, QString &, const int, const int, const int, const int>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
+    connect(interpreter, &LuaInterpreter::startThread, this,
+            qOverload<const QUrl &, const int, QString &, const int, const int, const int, const int>(&ThreadpoolModule::threadStart), Qt::BlockingQueuedConnection);
     connect(interpreter, &LuaInterpreter::stopThread, this, &ThreadpoolModule::threadStop);
     connect(interpreter, &LuaInterpreter::appendLog, this, &ThreadpoolModule::appendLog);
     connect(interpreter, &LuaInterpreter::newMessageDialog, this, &ThreadpoolModule::messageDialogNew);
@@ -123,8 +125,13 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
         }
         for (int row = 0; row < m_standardItemModel->rowCount(); ++row) {
             if (m_standardItemModel->item(row, THREADID_COL)->text() == threadId) {
-                const auto iconItem = m_standardItemModel->item(row, THREADID_COL);
+                const auto iconItem = m_standardItemModel->item(row, ICON_COL);
                 iconItem->setData(InterpreterMode::Terminate, Qt::UserRole + 2);
+                emit m_standardItemModel->dataChanged(
+                    m_standardItemModel->index(row, 0),
+                    m_standardItemModel->index(row, m_standardItemModel->columnCount() - 1),
+                    {Qt::UserRole + 2}
+                );
                 if (iconItem->data(Qt::UserRole + 1).toInt() == InterpreterMode::Debug) {
                     stateSet(threadId, Debug::Terminate);
                 }
@@ -164,6 +171,7 @@ void ThreadpoolModule::threadAppend(const int mode, const QString &name, const Q
     auto *iconItem = new QStandardItem(); // NOLINT
     iconItem->setData(mode, Qt::UserRole + 1);
     iconItem->setData(mode, Qt::UserRole + 2);
+    iconItem->setData(threadId, Qt::UserRole + 3);
     auto *nameItem = new QStandardItem(name); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
     auto *threadIdItem = new QStandardItem(threadId); // NOLINT
@@ -197,11 +205,12 @@ void ThreadpoolModule::messageDialogNew(const QEventLoop *eventloop, const QStri
 QHash<int, QByteArray> ThreadpoolModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 2] = "status";
+    roles[Qt::UserRole + 3] = "threadId";
     return roles;
 }
 
 QVariant ThreadpoolModel::data(const QModelIndex &index, const int role) const {
-    if (role == Qt::UserRole + 2) {
+    if (role == Qt::UserRole + 2 || role == Qt::UserRole + 3) {
         return QStandardItemModel::data(this->index(index.row(), 0), role);
     }
     return QStandardItemModel::data(index, role);

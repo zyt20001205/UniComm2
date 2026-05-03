@@ -31,6 +31,7 @@ else ()
 endif ()
 
 qt_add_executable(UniComm ${GUI_TYPE}
+        resources/icon/app.rc
         include/globals.h
         include/analysis/codeAssistant.h
         include/analysis/completionWidget.h
@@ -518,7 +519,8 @@ target_compile_definitions(UniComm PRIVATE
 )
 
 target_compile_options(UniComm PRIVATE
-        -g
+        $<$<CONFIG:Debug>:-g>
+        $<$<CONFIG:Release>:-g1>
 )
 
 #auto deploy(do not use)

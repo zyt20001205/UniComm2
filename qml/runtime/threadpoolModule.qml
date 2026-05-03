@@ -100,8 +100,8 @@ Item {
 
             Rectangle {
                 implicitWidth: 24; implicitHeight: 24
-                color: model.status == 0 ? global.successFore2 :
-                        model.status == 1 ? global.warningFore2 : global.dangerFore2
+                color: model.status == 0 ? global.successBack2 :
+                        model.status == 1 ? global.warningBack2 : global.dangerBack2
 
                 BusyIndicator {
                     anchors.centerIn: parent
@@ -116,8 +116,8 @@ Item {
             id: textCellDelegate
 
             Rectangle {
-                color: model.status == 0 ? global.successFore2 :
-                        model.status == 1 ? global.warningFore2 : global.dangerFore2
+                color: model.status == 0 ? global.successBack2 :
+                        model.status == 1 ? global.warningBack2 : global.dangerBack2
                 implicitWidth: {
                     if (column === tableView.columns - 1) {
                         let usedWidth = 0
@@ -166,10 +166,11 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.RightButton
                     onTapped: {
-                        console.log(model.display)
-                        const index = tableView.index(tableView.selectedRow, 3);
-                        threadMenu.threadId = tableView.model.data(index, Qt.DisplayRole)
+                        threadMenu.threadId = model.threadId
                         threadMenu.popup()
+                        // const index = tableView.index(tableView.selectedRow, 3);
+                        // threadMenu.threadId = tableView.model.data(index, Qt.DisplayRole)
+                        // threadMenu.popup()
                     }
                 }
             }

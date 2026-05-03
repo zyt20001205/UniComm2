@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
     CrashHandler::init();
     // application style init
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/icon/icon.ico"));
     QApplication::setStyle(QStyleFactory::create("Fusion"));
     QQuickStyle::setStyle("FluentWinUI3");
     // kddw init
