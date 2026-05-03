@@ -921,7 +921,7 @@ Item {
             icon.source: "qrc:/icon/copy.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: diagnosticsModule.diagnosticCopy(diagnosticsModuleDiagnosticMenu.diagnostic)
+            onTriggered: fileModule.copyToClipboard(diagnosticsModuleDiagnosticMenu.diagnostic)
         }
 
         MenuItem {

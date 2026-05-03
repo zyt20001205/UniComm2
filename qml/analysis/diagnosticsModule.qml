@@ -1,10 +1,15 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
-import Qt.labs.qmlmodels
 
 Item {
     anchors.fill: parent
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -19,8 +24,9 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/checkmarkCircle.svg"
+                color: global.successBack3
                 Layout.alignment: Qt.AlignVCenter
             }
         }
@@ -47,6 +53,7 @@ Item {
 
         TabButton {
             id: tabButton
+            icon.color: global.fore
             width: contentItem.implicitWidth + 24; height: 24
             property var diagnosticsModel: null
 
@@ -88,8 +95,7 @@ Item {
             HorizontalHeaderView {
                 id: horizontalHeaderView
                 anchors.top: parent.top
-                width: parent.width
-                height: 32
+                width: parent.width; height: 32
                 syncView: tableView
                 clip: true
                 interactive: false
@@ -105,9 +111,10 @@ Item {
 
                     contentItem: Label {
                         anchors.fill: parent
+                        elide: Text.ElideRight
+                        leftPadding: 6
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                         text: horizontalHeader[horizontalDelegate.index]
-                        elide: Text.ElideRight
                     }
                 }
             }
@@ -123,10 +130,17 @@ Item {
                 model: pageItem.diagnosticsModel
                 contentWidth: width
 
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
+                }
+
                 Rectangle {
                     anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                    color: global.stroke
                 }
 
                 delegate: DelegateChooser {
@@ -143,13 +157,12 @@ Item {
                     id: iconCellDelegate
 
                     Rectangle {
-                        implicitWidth: 24
-                        implicitHeight: 24
-                        color: "white"
+                        implicitWidth: 24; implicitHeight: 24
+                        color: global.back
 
                         Image {
-                            width: 16; height: 16
                             anchors.centerIn: parent
+                            width: 16; height: 16
                             source: model.decoration
                         }
                     }
@@ -159,8 +172,7 @@ Item {
                     id: textCellDelegate
 
                     Rectangle {
-                        id: textCell
-                        color: "white"
+                        color: global.back
                         implicitWidth: {
                             if (column === tableView.columns - 1) {
                                 let usedWidth = 0
@@ -173,15 +185,16 @@ Item {
                         }
                         implicitHeight: 24
                         required property int column
-                        required property int row
 
                         Rectangle {
                             anchors.fill: parent
                             radius: 6
-                            color: "#ebebeb"
+                            color: global.backHover
                             opacity: hoverHandler.hovered ? 1 : 0
                             Behavior on opacity {
-                                NumberAnimation { duration: 150 }
+                                NumberAnimation {
+                                    duration: 150
+                                }
                             }
                         }
 
@@ -198,30 +211,24 @@ Item {
                             horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                             text: model.display
                             elide: Text.ElideRight
-
-                            ToolTip.visible: hoverHandler.hovered
-                            ToolTip.delay: 500
-                            ToolTip.text: model.display
                         }
 
                         HoverHandler {
                             id: hoverHandler
                         }
 
+
                         TapHandler {
                             acceptedButtons: Qt.LeftButton
                             onTapped: {
-                                const index = tableView.index(row, 0);
-                                diagnosticsModule.indicatorFill(tableView.model.data(index, Qt.WhatsThisRole))
+                                diagnosticsModule.indicatorFill(model.position)
                             }
                         }
 
                         TapHandler {
                             acceptedButtons: Qt.RightButton
                             onTapped: {
-                                diagnosticMenu.diagnostic = model.display
-                                const index = tableView.index(row, 0);
-                                diagnosticMenu.position = tableView.model.data(index, Qt.WhatsThisRole)
+                                diagnosticMenu.position = model.position
                                 diagnosticMenu.popup()
                             }
                         }

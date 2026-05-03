@@ -33,6 +33,8 @@ GitModule::~GitModule() {
 
 void GitModule::propertySet(const QVariantMap &objects) {
     m_widget->rootContext()->setContextProperty("gitModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
     m_root = m_widget->rootObject();

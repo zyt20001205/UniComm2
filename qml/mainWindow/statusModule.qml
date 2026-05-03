@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
@@ -36,7 +37,8 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     property string text
 
-                    Image {
+                    IconImage {
+                        color: global.fore
                         source: "qrc:/icon/arrowCollapse.svg"
                         sourceSize.width: 16
                         sourceSize.height: 16

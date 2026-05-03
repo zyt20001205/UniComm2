@@ -8,6 +8,7 @@
 #include <QStandardPaths>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 LogModule::LogModule()
@@ -28,11 +29,13 @@ void LogModule::propertySet(const QVariantMap &objects) {
     m_textView = qvariant_cast<QObject *>(objects["mainWindowTextView"]);
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     m_textView->setProperty("font", font);
+
+    m_widget->rootContext()->setContextProperty("logModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_widget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
     m_widget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
 
-    m_widget->rootContext()->setContextProperty("logModule", this);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/logModule.qml"));
 }
@@ -79,15 +82,15 @@ void LogModule::logAppend(const int type, const QString &prefix, const QString &
     // check level
     switch (type) {
         case LogLevel::Error: {
-            _message = QString("<span style='color:red'>%1 %2</span>").arg(prefix, _message);
+            _message = QString("<span style='color:%1'>%2 %3</span>").arg(g_global->dangerFore3Get(), _message);
         }
         break;
         case LogLevel::Warning: {
-            _message = QString("<span style='color:orange'>%1 %2</span>").arg(prefix, _message);
+            _message = QString("<span style='color:%1'>%2 %3</span>").arg(g_global->warningFore3Get(), _message);
         }
         break;
         case LogLevel::Info: {
-            _message = QString("<span style='color:black'>%1 %2</span>").arg(prefix, _message);
+            _message = QString("<span style='color:%1'>%2 %3</span>").arg(g_global->foreGet(), prefix, _message);
         }
         break;
         case LogLevel::Transmit: {

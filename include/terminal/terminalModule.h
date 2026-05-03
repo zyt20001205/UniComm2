@@ -22,6 +22,7 @@ public:
 
 private:
     QJsonObject m_config{};
+    QObject *m_global{};
     QHash<int, CmdPage *> m_cmdHash{};
     QHash<int, PowershellPage *> m_powershellHash{};
 };

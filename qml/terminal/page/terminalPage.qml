@@ -6,8 +6,37 @@ Item {
     id: rootItem
     anchors.fill: parent
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     ScrollView {
         anchors.fill: parent
+
+        ScrollBar.vertical: ScrollBar {
+            x: parent.mirrored ? 0 : parent.width - width
+            y: parent.topPadding
+            height: parent.availableHeight
+            active: parent.ScrollBar.horizontal.active
+            policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
+        }
+
+        ScrollBar.horizontal: ScrollBar {
+            x: parent.leftPadding
+            y: parent.height - height
+            width: parent.availableWidth
+            active: parent.ScrollBar.vertical.active
+            policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
+        }
 
         TextArea {
             id: textArea

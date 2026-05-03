@@ -5,7 +5,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QStandardItemModel>
 #include <QThread>
 #include <QTimer>
 
@@ -17,7 +16,7 @@
 ThreadpoolModule::ThreadpoolModule()
     : DockWidget("Threadpool"),
       m_widget(new QQuickWidget()),
-      m_threadpoolStandardItemModel(new QStandardItemModel(this)) {
+      m_standardItemModel(new ThreadpoolModel()) {
     setWidget(m_widget);
 }
 
@@ -27,15 +26,16 @@ ThreadpoolModule::~ThreadpoolModule() {
 }
 
 void ThreadpoolModule::propertySet(const QVariantMap &objects) {
-    const auto mainObject = qvariant_cast<QObject *>(objects["mainItem"]);
-    m_mainItem = qobject_cast<QQuickItem *>(mainObject);
+    m_mainItem = qvariant_cast<QObject *>(objects["mainItem"]);
     m_errorDialog = qvariant_cast<QObject *>(objects["threadpoolModuleErrorDialog"]);
-    m_widget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
-
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};
+
     m_widget->rootContext()->setContextProperty("threadpoolModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
     m_widget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
-    m_widget->rootContext()->setContextProperty("standardItemModel", m_threadpoolStandardItemModel);
+    m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/runtime/threadpoolModule.qml"));
 }
@@ -121,9 +121,11 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
             QMetaObject::invokeMethod(m_errorDialog, "open");
             return;
         }
-        for (int row = 0; row < m_threadpoolStandardItemModel->rowCount(); ++row) {
-            if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->text() == threadId) {
-                if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt() == InterpreterMode::Debug) {
+        for (int row = 0; row < m_standardItemModel->rowCount(); ++row) {
+            if (m_standardItemModel->item(row, THREADID_COL)->text() == threadId) {
+                const auto iconItem = m_standardItemModel->item(row, THREADID_COL);
+                iconItem->setData(InterpreterMode::Terminate, Qt::UserRole + 2);
+                if (iconItem->data(Qt::UserRole + 1).toInt() == InterpreterMode::Debug) {
                     stateSet(threadId, Debug::Terminate);
                 }
                 break;
@@ -135,15 +137,6 @@ void ThreadpoolModule::threadStop(const QString &threadId) {
 
 bool ThreadpoolModule::debugging() const {
     return m_debug != 0;
-}
-
-QString ThreadpoolModule::lifetimeCalc(const int row) const {
-    const auto item = m_threadpoolStandardItemModel->item(row, SPAWN_COL);
-    if (!item) return {};
-    const auto baseTime = item->data(Qt::UserRole + 1).toDateTime();
-    const qint64 elapsedMs = baseTime.msecsTo(QDateTime::currentDateTime());
-    const QTime elapsedTime = QTime::fromMSecsSinceStartOfDay(elapsedMs);
-    return "Lifetime: " + elapsedTime.toString("HH:mm:ss");
 }
 
 void ThreadpoolModule::stateSet(const QString &threadId, const int state) {
@@ -169,13 +162,12 @@ void ThreadpoolModule::valueSet(const QString &threadId, const QString &document
 void ThreadpoolModule::threadAppend(const int mode, const QString &name, const QString &threadId) {
     const auto currentTime = QDateTime::currentDateTime();
     auto *iconItem = new QStandardItem(); // NOLINT
-    const QString text = mode == InterpreterMode::Run ? tr(" (Run)") : tr(" (Debug)");
-    auto *nameItem = new QStandardItem(name + text); // NOLINT
+    iconItem->setData(mode, Qt::UserRole + 1);
+    iconItem->setData(mode, Qt::UserRole + 2);
+    auto *nameItem = new QStandardItem(name); // NOLINT
     auto *spawnItem = new QStandardItem(currentTime.toString("yyyy-MM-dd HH:mm:ss.zzz")); // NOLINT
-    spawnItem->setData(QVariant::fromValue(currentTime), Qt::UserRole + 1);
     auto *threadIdItem = new QStandardItem(threadId); // NOLINT
-    threadIdItem->setData(mode, Qt::UserRole + 1);
-    m_threadpoolStandardItemModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
+    m_standardItemModel->appendRow({iconItem, nameItem, spawnItem, threadIdItem});
     // refresh status bar
     if (mode == InterpreterMode::Run) m_run++;
     else m_debug++;
@@ -183,10 +175,10 @@ void ThreadpoolModule::threadAppend(const int mode, const QString &name, const Q
 
     const auto *worker = m_threadHash[threadId];
     connect(worker, &QThread::finished, this, [this, threadId] {
-        for (int row = 0; row < m_threadpoolStandardItemModel->rowCount(); ++row) {
-            if (m_threadpoolStandardItemModel->item(row, THREADID_COL)->text() == threadId) {
-                const int mode = m_threadpoolStandardItemModel->item(row, THREADID_COL)->data(Qt::UserRole + 1).toInt();
-                m_threadpoolStandardItemModel->removeRow(row);
+        for (int row = 0; row < m_standardItemModel->rowCount(); ++row) {
+            if (m_standardItemModel->item(row, THREADID_COL)->text() == threadId) {
+                const int mode = m_standardItemModel->item(row, ICON_COL)->data(Qt::UserRole + 1).toInt();
+                m_standardItemModel->removeRow(row);
                 // refresh status bar
                 if (mode == InterpreterMode::Run) m_run--;
                 else m_debug--;
@@ -199,4 +191,18 @@ void ThreadpoolModule::threadAppend(const int mode, const QString &name, const Q
 
 void ThreadpoolModule::messageDialogNew(const QEventLoop *eventloop, const QString &threadId, const QString &text) const {
     QMetaObject::invokeMethod(m_mainItem, "messageDialogNew", Q_ARG(QVariant, QVariant::fromValue(eventloop)), Q_ARG(QVariant, threadId), Q_ARG(QVariant, text));
+}
+
+// public
+QHash<int, QByteArray> ThreadpoolModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 2] = "status";
+    return roles;
+}
+
+QVariant ThreadpoolModel::data(const QModelIndex &index, const int role) const {
+    if (role == Qt::UserRole + 2) {
+        return QStandardItemModel::data(this->index(index.row(), 0), role);
+    }
+    return QStandardItemModel::data(index, role);
 }

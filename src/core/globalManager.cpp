@@ -27,23 +27,42 @@ GlobalManager::GlobalManager(QWidget *parent)
           {"lightBackSelected", "#ebebeb"},
           {"darkBackSelected", "#383838"},
 
+          {"lightStroke", "#d1d1d1"},
+          {"darkStroke", "#666666"},
+          {"lightStrokePressed", "#b3b3b3"},
+          {"darkStrokePressed", "#6b6b6b"},
+
+          {"lightBrandFore", "#ffffff"},
           {"lightBrandBack", "#0f6cbd"},
+          {"darkBrandFore", "#ffffff"},
           {"darkBrandBack", "#115ea3"},
 
-          {"lightSuccessFore", "#107c10"},
-          {"darkSuccessFore", "#9fd89f"},
-          {"lightSuccessBack", "#107c10"},
-          {"darkSuccessBack", "#107c10"},
+          {"lightSuccessFore2", "#094509"},
+          {"darkSuccessFore2", "#9fd89f"},
+          {"lightSuccessBack2", "#9fd89f"},
+          {"darkSuccessBack2", "#094509"},
+          {"lightSuccessFore3", "#107c10"},
+          {"darkSuccessFore3", "#9fd89f"},
+          {"lightSuccessBack3", "#107c10"},
+          {"darkSuccessBack3", "#107c10"},
 
-          {"lightWarningFore", "#bc4b09"},
-          {"darkWarningFore", "#f98845"},
-          {"lightWarningBack", "#f7630c"},
-          {"darkWarningBack", "#f7630c"},
+          {"lightWarningFore2", "#8a3707"},
+          {"darkWarningFore2", "#fdcfb4"},
+          {"lightWarningBack2", "#fdcfb4"},
+          {"darkWarningBack2", "#8a3707"},
+          {"lightWarningFore3", "#bc4b09"},
+          {"darkWarningFore3", "#f98845"},
+          {"lightWarningBack3", "#f7630c"},
+          {"darkWarningBack3", "#f7630c"},
 
-          {"lightDangerFore", "#c50f1f"},
-          {"darkDangerFore", "#eeacb2"},
-          {"lightDangerBack", "#c50f1f"},
-          {"darkDangerBack", "#c50f1f"},
+          {"lightDangerFore2", "#6e0811"},
+          {"darkDangerFore2", "#eeacb2"},
+          {"lightDangerBack2", "#eeacb2"},
+          {"darkDangerBack2", "#6e0811"},
+          {"lightDangerFore3", "#6e0811"},
+          {"darkDangerFore3", "#eeacb2"},
+          {"lightDangerBack3", "#c50f1f"},
+          {"darkDangerBack3", "#c50f1f"},
       }),
       m_styleSheet({
           // Light
@@ -56,7 +75,7 @@ GlobalManager::GlobalManager(QWidget *parent)
           + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["lightBackPressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["lightBack"] + "; }"
 
-          + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["lightBrandFore"] +
+          + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["lightFore"] +
           "; font-family: 'Segoe UI'; font-size: 14px; margin: 10px 10px 6px 10px; padding: 0px 0px 4px 16px;}"
           + "QTabBar::tab:hover { border-bottom: 3px solid " + m_palette["lightBackHover"] + " }"
           + "QTabBar::tab:selected { border-bottom: 3px solid " + m_palette["lightBrandBack"] + "; font-weight: 600; }"
@@ -76,7 +95,7 @@ GlobalManager::GlobalManager(QWidget *parent)
           + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["darkBackPressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["darkBack"] + "; }"
 
-          + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["darkBrandFore"] +
+          + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["darkFore"] +
           "; font-family: 'Segoe UI'; font-size: 14px; margin: 10px 10px 6px 10px; padding: 0px 0px 4px 16px;}"
           + "QTabBar::tab:hover { border-bottom: 3px solid " + m_palette["darkBackHover"] + " }"
           + "QTabBar::tab:selected { border-bottom: 3px solid " + m_palette["darkBrandBack"] + "; font-weight: 600; }"

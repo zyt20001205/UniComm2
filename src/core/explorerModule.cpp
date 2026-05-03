@@ -55,27 +55,28 @@ ExplorerModule::~ExplorerModule() {
 }
 
 void ExplorerModule::propertySet(const QVariantMap &objects) {
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
-    m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_fileMenu = qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]);
     m_fileMenu->setProperty("gitEnabled", g_gitEnabled);
-    m_widget->rootContext()->setContextProperty("fileMenu", m_fileMenu);
     m_folderMenu = qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]);
     m_folderMenu->setProperty("gitEnabled", g_gitEnabled);
-    m_widget->rootContext()->setContextProperty("folderMenu", m_folderMenu);
     m_rootMenu = qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]);
     m_rootMenu->setProperty("gitEnabled", g_gitEnabled);
-    m_widget->rootContext()->setContextProperty("rootMenu", m_rootMenu);
-
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
     m_fileSystemModel->setRootPath(modelRootPath);
     m_sortFilterProxyModel->setSourceModel(m_fileSystemModel);
     const QModelIndex modelRootIndex = m_sortFilterProxyModel->mapFromSource(m_fileSystemModel->index(modelRootPath));
+
     m_widget->rootContext()->setContextProperty("explorerModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
+    m_widget->rootContext()->setContextProperty("fileMenu", m_fileMenu);
+    m_widget->rootContext()->setContextProperty("folderMenu", m_folderMenu);
+    m_widget->rootContext()->setContextProperty("rootMenu", m_rootMenu);
     m_widget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
     m_widget->rootContext()->setContextProperty("modelRootPath", modelRootPath);
     m_widget->rootContext()->setContextProperty("modelRootUrl", g_workspaceUrl);
     m_widget->rootContext()->setContextProperty("sortFilterProxyModel", m_sortFilterProxyModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/core/explorerModule.qml"));
 }

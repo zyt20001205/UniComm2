@@ -6,7 +6,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QStandardItemModel>
 #include <QTimer>
 
 #include "globals.h"
@@ -25,20 +24,22 @@ DiagnosticsModule::~DiagnosticsModule() {
 }
 
 void DiagnosticsModule::propertySet(const QVariantMap &objects) {
-    m_widget->rootContext()->setContextProperty("diagnosticMenu", qvariant_cast<QObject *>(objects["diagnosticsModuleDiagnosticMenu"]));
-
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
+
     m_widget->rootContext()->setContextProperty("diagnosticsModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("diagnosticMenu", qvariant_cast<QObject *>(objects["diagnosticsModuleDiagnosticMenu"]));
     m_widget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/analysis/diagnosticsModule.qml"));
     m_root = m_widget->rootObject();
 }
 
 void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
-    QStandardItemModel *diagnosticsModel{};
+    DiagnosticsModel *diagnosticsModel{};
     if (!m_diagnosticsModelHash.contains(documentUrl)) {
-        diagnosticsModel = new QStandardItemModel(this); // NOLINT
+        diagnosticsModel = new DiagnosticsModel(); // NOLINT
     } else {
         diagnosticsModel = m_diagnosticsModelHash[documentUrl];
         diagnosticsModel->clear();
@@ -84,7 +85,7 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const Q
             break;
             default: break;
         }
-        severityItem->setData(position, Qt::WhatsThisRole);
+        severityItem->setData(position, Qt::UserRole + 1);
         auto *sourceItem = new QStandardItem(source); // NOLINT
         auto *codeItem = new QStandardItem(code); // NOLINT
         auto *dataItem = new QStandardItem(data); // NOLINT
@@ -97,11 +98,6 @@ void DiagnosticsModule::diagnosticsNotification(const QUrl &documentUrl, const Q
     } else {
         m_diagnosticsModelHash[documentUrl] = diagnosticsModel;
     }
-}
-
-void DiagnosticsModule::diagnosticCopy(const QString &diagnostic) {
-    QClipboard *clipboard = QGuiApplication::clipboard();
-    clipboard->setText(diagnostic);
 }
 
 void DiagnosticsModule::indicatorFill(const QVariantHash &position) {
@@ -117,4 +113,18 @@ void DiagnosticsModule::indicatorFill(const QVariantHash &position) {
         position["endLine"].toInt(),
         position["endCharacter"].toInt(),
         1000);
+}
+
+// public
+QHash<int, QByteArray> DiagnosticsModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "position";
+    return roles;
+}
+
+QVariant DiagnosticsModel::data(const QModelIndex &index, const int role) const {
+    if (role == Qt::UserRole + 1) {
+        return QStandardItemModel::data(this->index(index.row(), 0), role);
+    }
+    return QStandardItemModel::data(index, role);
 }

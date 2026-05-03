@@ -84,7 +84,8 @@ namespace ImagePipeline {
 namespace InterpreterMode {
     enum {
         Run,
-        Debug
+        Debug,
+        Terminate
     };
 }
 

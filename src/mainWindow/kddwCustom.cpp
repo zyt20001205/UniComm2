@@ -32,6 +32,6 @@ MySeparator::MySeparator(KDDockWidgets::Core::Separator *controller, KDDockWidge
 
 void MySeparator::paintEvent(QPaintEvent *event) {
     QPainter p(this);
-    if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#f5f5f5");
-    else p.fillRect(QWidget::rect(), "#3d3d3d");
+    if (f_theme == Theme::Light) p.fillRect(QWidget::rect(), "#d1d1d1");
+    else p.fillRect(QWidget::rect(), "#666666");
 }

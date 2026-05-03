@@ -1,10 +1,16 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     anchors.fill: parent
     property bool modelVisible: standardItemModel ? standardItemModel.rowCount() > 0 : false
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -19,8 +25,9 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/snooze.svg"
+                color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
         }
@@ -43,11 +50,10 @@ Item {
                 border.width: 0
             }
 
-            contentItem: Text {
+            contentItem: Label {
                 anchors.fill: parent
-                clip: true
-                font.family: "Segoe UI"
-                font.pointSize: 10
+                elide: Text.ElideRight
+                leftPadding: 6
                 horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                 text: horizontalHeader[horizontalHeaderViewDelegate.index]
             }
@@ -65,12 +71,18 @@ Item {
         model: standardItemModel
         visible: modelVisible
         contentWidth: width
-        property string lifetime: ""
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
+        }
 
         Rectangle {
             anchors.fill: parent
-            color: "#e0e0e0"
-            z: -1
+            color: global.stroke
         }
 
         delegate: DelegateChooser {
@@ -87,9 +99,9 @@ Item {
             id: iconCellDelegate
 
             Rectangle {
-                implicitWidth: 24
-                implicitHeight: 24
-                color: "white"
+                implicitWidth: 24; implicitHeight: 24
+                color: model.status == 0 ? global.successFore2 :
+                        model.status == 1 ? global.warningFore2 : global.dangerFore2
 
                 BusyIndicator {
                     anchors.centerIn: parent
@@ -104,12 +116,10 @@ Item {
             id: textCellDelegate
 
             Rectangle {
-                id: textCell
-                required property int column
-                required property int row
-
+                color: model.status == 0 ? global.successFore2 :
+                        model.status == 1 ? global.warningFore2 : global.dangerFore2
                 implicitWidth: {
-                    if (textCell.column === tableView.columns - 1) {
+                    if (column === tableView.columns - 1) {
                         let usedWidth = 0
                         for (let i = 0; i < tableView.columns - 1; i++) {
                             usedWidth += tableView.columnWidth(i)
@@ -119,34 +129,13 @@ Item {
                     return Math.max(textMetrics.width + 16, 60)
                 }
                 implicitHeight: 24
-                color: "white"
-
-                TextMetrics {
-                    id: textMetrics
-                    font.family: "Segoe UI"
-                    font.pointSize: 10
-                    text: model.display || ""
-                }
-
-                Text {
-                    anchors.fill: parent
-                    z: 2
-                    font.family: "Segoe UI"
-                    font.pointSize: 10
-                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    text: model.display
-                    elide: Text.ElideRight
-
-                    ToolTip.visible: hoverHandler.hovered
-                    ToolTip.text: tableView.lifetime
-                }
+                required property int column
 
                 Rectangle {
                     id: highlightRect
                     anchors.fill: parent
-                    z: 1
-                    radius: 2
-                    color: "#ebebeb"
+                    radius: 6
+                    color: global.backHover
                     opacity: hoverHandler.hovered ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
@@ -155,35 +144,29 @@ Item {
                     }
                 }
 
-                HoverHandler {
-                    id: hoverHandler
-
-                    onHoveredChanged: {
-                        if (hovered) {
-                            lifetimeCalc()
-                            hoverTimer.start()
-                        } else {
-                            hoverTimer.stop()
-                        }
-                    }
-
-                    function lifetimeCalc() {
-                        tableView.lifetime = threadpoolModule.lifetimeCalc(textCell.row)
-                    }
+                TextMetrics {
+                    id: textMetrics
+                    font: label.font
+                    text: model.display || ""
                 }
 
-                Timer {
-                    id: hoverTimer
-                    interval: 1000
-                    repeat: true
-                    onTriggered: {
-                        hoverHandler.lifetimeCalc()
-                    }
+                Label {
+                    id: label
+                    anchors.fill: parent
+                    leftPadding: 6
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.display
+                    elide: Text.ElideRight
+                }
+
+                HoverHandler {
+                    id: hoverHandler
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
                     onTapped: {
+                        console.log(model.display)
                         const index = tableView.index(tableView.selectedRow, 3);
                         threadMenu.threadId = tableView.model.data(index, Qt.DisplayRole)
                         threadMenu.popup()

@@ -1,10 +1,16 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     TreeView {
         id: treeView
@@ -15,6 +21,10 @@ Item {
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
         }
 
         delegate: Item {
@@ -29,7 +39,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: "#ebebeb"
+                color: global.backSelected
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
@@ -41,7 +51,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
+                color: treeView.selectedRow === row ? global.backHover : "transparent"
             }
 
             RowLayout {
@@ -55,10 +65,11 @@ Item {
                 Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    Image {
+                    IconImage {
                         anchors.centerIn: parent
                         width: 16; height: 16
                         source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                        color: global.fore
                         visible: isTreeNode && hasChildren
                     }
                 }
@@ -66,10 +77,11 @@ Item {
                 Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    Image {
+                    IconImage {
                         anchors.centerIn: parent
-                        width: 16; height: 16
+                        width: 20; height: 20
                         source: model.decoration
+                        color: global.fore
                     }
                 }
 
@@ -90,7 +102,7 @@ Item {
                 }
                 onPointChanged: {
                     mainToolTip.position = parent.mapToGlobal(point.position)
-                    mainToolTip.text = treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole).detail
+                    mainToolTip.text = treeView.model.data(treeView.index(row, 0), Qt.UserRole + 1)
                 }
             }
 
@@ -100,7 +112,7 @@ Item {
 
                 onTapped: {
                     treeView.selectedRow = row
-                    structureModule.markerAdd(treeView.model.data(treeView.index(row, 0), Qt.WhatsThisRole).position)
+                    structureModule.markerAdd(treeView.model.data(treeView.index(row, 0), Qt.UserRole + 2))
                     if (isTreeNode && hasChildren) {
                         treeView.toggleExpanded(row)
                     }

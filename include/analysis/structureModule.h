@@ -2,11 +2,13 @@
 #define UNICOMM_STRUCTUREMODULE_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QStandardItemModel>
 
 class QQuickWidget;
 class QStandardItem;
-class QStandardItemModel;
 class QTreeView;
+
+class StructureModel;
 
 class StructureModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -43,8 +45,15 @@ private:
     QUrl m_documentUrl{};
     QQuickWidget *m_widget{};
     QObject *m_treeView{};
-    QStandardItemModel *m_standardItemModel{};
+    StructureModel *m_standardItemModel{};
     QHash<QUrl, QJsonArray> m_documentSymbolHash{};
+};
+
+class StructureModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
 #endif //UNICOMM_STRUCTUREMODULE_H

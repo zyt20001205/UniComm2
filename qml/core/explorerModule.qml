@@ -26,8 +26,8 @@ Item {
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
             palette {
-                mid: global.backHover
-                dark: global.backPressed
+                mid: global.stroke
+                dark: global.strokePressed
             }
         }
 
@@ -41,7 +41,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: model.git ? model.git.indexStatus === 1 ? global.warningBack : "transparent" : "transparent"
+                color: model.git ? model.git.indexStatus === 1 ? global.warningBack2 : "transparent" : "transparent"
             }
 
             Rectangle {
@@ -80,7 +80,6 @@ Item {
                         color: global.fore
                         visible: model.isDir
                     }
-
                 }
 
                 Item {
@@ -88,18 +87,18 @@ Item {
 
                     Image {
                         anchors.centerIn: parent
-                        width: 16; height: 16
+                        width: 20; height: 20
                         source: model.source
                     }
                 }
 
                 Label {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    color: model.git ? model.git.indexStatus === 0 ? global.dangerFore :
+                    color: model.git ? model.git.indexStatus === 0 ? global.dangerFore3 :
                                 model.git.indexStatus === 1 ? global.fore :
-                                model.git.workingTreeStatus === 2 ? global.fore :
-                                model.git.workingTreeStatus === 3 ? global.brandBack :
-                                global.fore :
+                                    model.git.workingTreeStatus === 2 ? global.fore :
+                                        model.git.workingTreeStatus === 3 ? global.brandBack :
+                                        global.fore :
                         global.fore
                     text: model.display
                     elide: Text.ElideRight

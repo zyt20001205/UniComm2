@@ -156,6 +156,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_debugModule->propertySet(debugObjects);
 
     const QVariantMap diagnosticsObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"diagnosticsModuleDiagnosticMenu", objects["diagnosticsModuleDiagnosticMenu"]}
     };
     m_diagnosticsModule->propertySet(diagnosticsObjects);
@@ -194,11 +195,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_explorerModule->propertySet(explorerObjects);
 
     const QVariantMap gitObjects = {
-        //
+        {"global", QVariant::fromValue(m_globalManager)},
     };
     m_gitModule->propertySet(gitObjects);
 
     const QVariantMap logObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowTextView", objects["mainWindowTextView"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
@@ -237,6 +239,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_statusModule->propertySet(statusObjects);
 
     const QVariantMap structureObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"structureModuleRootMenu", objects["structureModuleRootMenu"]}
     };
@@ -249,11 +252,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_fileModule->propertySet(systemObjects);
 
     const QVariantMap terminalObjects = {
-        //
+        {"global", QVariant::fromValue(m_globalManager)}
     };
     m_terminalModule->propertySet(terminalObjects);
 
     const QVariantMap threadpoolObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"mainItem", objects["mainItem"]},
         {"threadpoolModuleErrorDialog", objects["threadpoolModuleErrorDialog"]},
         {"threadpoolModuleThreadMenu", objects["threadpoolModuleThreadMenu"]}

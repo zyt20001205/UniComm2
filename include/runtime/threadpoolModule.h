@@ -2,12 +2,13 @@
 #define UNICOMM_THREADPOOL_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QStandardItemModel>
 
-class QStandardItemModel;
 class QTableWidget;
 class QQuickWidget;
 
 class LuaInterpreter;
+class ThreadpoolModel;
 
 class ThreadpoolModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -28,8 +29,6 @@ public:
     Q_INVOKABLE void threadStop(const QString &threadId);
 
     Q_INVOKABLE [[nodiscard]] bool debugging() const;
-
-    Q_INVOKABLE [[nodiscard]] QString lifetimeCalc(int row) const;
 
     void stateSet(const QString &threadId, int state);
 
@@ -60,13 +59,13 @@ private:
     void messageDialogNew(const QEventLoop *eventloop, const QString &threadId, const QString &text) const;
 
     QQuickWidget *m_widget{};
-    QQuickItem *m_mainItem{};
+    QObject *m_mainItem{};
     QObject* m_errorDialog{};
     QHash<QString, QThread *> m_threadHash{};
     QHash<QString, LuaInterpreter *> m_interpreterHash{};
     int m_run = 0;
     int m_debug = 0;
-    QStandardItemModel *m_threadpoolStandardItemModel{};
+    ThreadpoolModel *m_standardItemModel{};
     QString m_lifetime{};
 
     enum {
@@ -75,6 +74,15 @@ private:
         SPAWN_COL,
         THREADID_COL
     };
+};
+
+class ThreadpoolModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 };
 
 #endif //UNICOMM_THREADPOOL_H

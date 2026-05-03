@@ -1,11 +1,17 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
     property bool gitEnabled: false
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -23,8 +29,9 @@ Item {
                 onClicked: gitModule.gitInit()
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/fileTypeGit.svg"
+                color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
         }

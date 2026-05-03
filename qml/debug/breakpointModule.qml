@@ -37,6 +37,10 @@ Item {
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
         }
 
         delegate: Item {

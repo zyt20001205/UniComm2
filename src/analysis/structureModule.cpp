@@ -13,7 +13,7 @@
 StructureModule::StructureModule()
     : DockWidget("Structure"),
       m_widget(new QQuickWidget()),
-      m_standardItemModel(new QStandardItemModel()) {
+      m_standardItemModel(new StructureModel()) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 }
@@ -24,11 +24,12 @@ StructureModule::~StructureModule() {
 }
 
 void StructureModule::propertySet(const QVariantMap &objects) {
+    m_widget->rootContext()->setContextProperty("structureModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
-
-    m_widget->rootContext()->setContextProperty("structureModule", this);
     m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/analysis/structureModule.qml"));
 }
@@ -87,17 +88,13 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
         const auto start = range["start"].toObject();
         const auto end = range["end"].toObject();
         item->setData(name, Qt::DisplayRole);
+        item->setData(detail, Qt::UserRole + 1);
         item->setData(QVariantHash{
-                          {"detail", detail},
-                          {
-                              "position", QVariantHash{
-                                  {"startLine", start["line"].toInt()},
-                                  {"startCharacter", start["character"].toInt()},
-                                  {"endLine", end["line"].toInt()},
-                                  {"endCharacter", end["character"].toInt()}
-                              }
-                          },
-                      }, Qt::WhatsThisRole);
+                          {"startLine", start["line"].toInt()},
+                          {"startCharacter", start["character"].toInt()},
+                          {"endLine", end["line"].toInt()},
+                          {"endCharacter", end["character"].toInt()}
+                      }, Qt::UserRole + 2);
         switch (kind) {
             case LspSymbolKind::Package: {
                 item->setData(QUrl("qrc:/icon/symbolPackage.svg"), Qt::DecorationRole);
@@ -152,4 +149,12 @@ void StructureModule::documentSymbolPublish(const QJsonArray &result, QStandardI
             documentSymbolPublish(children, item);
         }
     }
+}
+
+// public
+QHash<int, QByteArray> StructureModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "detail";
+    roles[Qt::UserRole + 2] = "position";
+    return roles;
 }

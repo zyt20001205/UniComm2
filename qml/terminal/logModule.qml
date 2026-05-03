@@ -9,6 +9,11 @@ Item {
     id: rootItem
     anchors.fill: parent
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -119,18 +124,23 @@ Item {
                 }
             }
 
-            DelayButton {
+            Button {
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                leftPadding: 4; rightPadding: 4; topPadding: 4; bottomPadding: 4
-                contentItem: Image {
-                    source: "qrc:/icon/delete.svg"
-                    width: 16; height: 16
-                }
-                delay: 1000
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                checkable: true
+                icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
+                icon.width: 16; icon.height: 16
 
-                onActivated: {
-                    progress = 0
-                    textArea.clear()
+                onToggled: {
+                    if (!checked) {
+                        textArea.clear()
+                    }
+                }
+
+                Timer {
+                    interval: 1000
+                    running: parent.checked
+                    onTriggered: parent.checked = false
                 }
 
                 HoverHandler {
@@ -141,15 +151,40 @@ Item {
                     }
                     onPointChanged: {
                         mainToolTip.position = parent.mapToGlobal(point.position)
-                        mainToolTip.text = qsTr("Clear")
+                        mainToolTip.text = parent.checked ? qsTr("Confirm") : qsTr("Clear")
                     }
                 }
             }
         }
 
         ScrollView {
+            id: scrollView
             Layout.fillWidth: true; Layout.fillHeight: true
             Layout.topMargin: 4; Layout.rightMargin: 4; Layout.bottomMargin: 4
+
+            ScrollBar.vertical: ScrollBar {
+                x: parent.mirrored ? 0 : parent.width - width
+                y: parent.topPadding
+                height: parent.availableHeight
+                active: parent.ScrollBar.horizontal.active
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
+            }
+
+            ScrollBar.horizontal: ScrollBar {
+                x: parent.leftPadding
+                y: parent.height - height
+                width: parent.availableWidth
+                active: parent.ScrollBar.vertical.active
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
+            }
 
             TextArea {
                 id: textArea

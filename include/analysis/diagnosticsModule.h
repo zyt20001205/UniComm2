@@ -1,11 +1,12 @@
 #ifndef UNICOMM_DIAGNOSTICS_H
 #define UNICOMM_DIAGNOSTICS_H
 
-#include <QJsonObject>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QJsonObject>
+#include <QStandardItemModel>
 
 class QQuickWidget;
-class QStandardItemModel;
+class DiagnosticsModel;
 class QTableWidget;
 class QTabWidget;
 
@@ -21,8 +22,6 @@ public:
 
     void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
-    Q_INVOKABLE static void diagnosticCopy(const QString &diagnostic);
-
     Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 
 signals:
@@ -33,7 +32,7 @@ signals:
 private:
     QQuickWidget *m_widget{};
     QQuickItem *m_root{};
-    QHash<QUrl, QStandardItemModel *> m_diagnosticsModelHash{};
+    QHash<QUrl, DiagnosticsModel *> m_diagnosticsModelHash{};
     QHash<QUrl, QTableWidget *> m_diagnosticsTableHash{};
 
     enum {
@@ -42,6 +41,15 @@ private:
         LEVEL_INFO,
         LEVEL_HINT
     };
+};
+
+class DiagnosticsModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 };
 
 #endif //UNICOMM_DIAGNOSTICS_H
