@@ -19,6 +19,7 @@ MenuModule::~MenuModule() {
 }
 
 void MenuModule::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("global", objects["global"]);
     rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["menuModuleFileMenu"]));
     rootContext()->setContextProperty("editMenu", qvariant_cast<QObject *>(objects["menuModuleEditMenu"]));
     rootContext()->setContextProperty("viewMenu", qvariant_cast<QObject *>(objects["menuModuleViewMenu"]));

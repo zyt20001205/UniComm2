@@ -55,6 +55,7 @@ ExplorerModule::~ExplorerModule() {
 }
 
 void ExplorerModule::propertySet(const QVariantMap &objects) {
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_fileMenu = qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]);
     m_fileMenu->setProperty("gitEnabled", g_gitEnabled);
@@ -156,10 +157,10 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
             source = "qrc:/icon/fileTypeJson.svg";
         } else if (suffix == "lua") {
             source = "qrc:/icon/fileTypeLua.svg";
-        } else if (fileInfo.isFile()) {
-            source = "qrc:/icon/document.svg";
         } else if (fileInfo.isDir()) {
-            source = "qrc:/icon/folder.svg";
+            source = "qrc:/icon/fileTypeFolder.svg";
+        } else {
+            source = "qrc:/icon/fileTypeDefault.svg";
         }
         return source;
     }

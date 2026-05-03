@@ -5,6 +5,19 @@
 #include <kddockwidgets/qtwidgets/Stack.h>
 #include <kddockwidgets/qtwidgets/ViewFactory.h>
 
+static int f_theme{};
+
+class CustomWidgetFactory final : public KDDockWidgets::QtWidgets::ViewFactory {
+    Q_OBJECT
+
+public:
+    explicit CustomWidgetFactory(int theme);
+
+    KDDockWidgets::Core::View *createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const override;
+
+    KDDockWidgets::Core::View *createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent = nullptr) const override;
+};
+
 class MyStack final : public KDDockWidgets::QtWidgets::Stack {
 public:
     explicit MyStack(KDDockWidgets::Core::Stack *controller, QWidget *parent);
@@ -23,15 +36,6 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
-};
-
-class CustomWidgetFactory final : public KDDockWidgets::QtWidgets::ViewFactory {
-    Q_OBJECT
-
-public:
-    KDDockWidgets::Core::View *createStack(KDDockWidgets::Core::Stack *controller, KDDockWidgets::Core::View *parent) const override;
-
-    KDDockWidgets::Core::View *createSeparator(KDDockWidgets::Core::Separator *controller, KDDockWidgets::Core::View *parent = nullptr) const override;
 };
 
 #endif //UNICOMM_KDDWCUSTOM_H

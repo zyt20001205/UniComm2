@@ -19,6 +19,7 @@ class ThreadpoolModule;
 class UndoModule;
 
 extern MainWindow *g_mainWindow;
+extern GlobalManager *g_global;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
@@ -33,8 +34,6 @@ extern QUrl g_workspaceUrl;
 extern bool g_gitEnabled;
 extern QJsonObject g_workspaceConfig;
 
-extern QHash<QString, QString> g_color;
-
 extern ViSession g_rm;
 
 extern QVariantMap g_cursorPosition;
@@ -45,6 +44,13 @@ extern QStandardItemModel *g_databaseStandardItemModel;
 extern QStandardItemModel *g_datatableHeaderItemModel;
 extern QStandardItemModel *g_datatableStandardItemModel;
 extern QStandardItemModel *g_watchStandardItemModel;
+
+namespace Theme {
+    enum {
+        Light,
+        Dark,
+    };
+}
 
 namespace LogLevel {
     enum {

@@ -18,6 +18,8 @@ StatusModule::~StatusModule() {
 }
 
 void StatusModule::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("global", objects["global"]);
+
     rootContext()->setContextProperty("statusModule", this);
     rootContext()->setContextProperty("workspaceName", g_workspaceUrl.fileName());
     rootContext()->setContextProperty("eolModeMenu", qvariant_cast<QObject *>(objects["statusModuleEolModeMenu"]));

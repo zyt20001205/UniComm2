@@ -7,6 +7,11 @@ Item {
     anchors.fill: parent
     property bool gitEnabled: false
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     RowLayout {
         anchors.fill: parent
 
@@ -111,6 +116,16 @@ Item {
 
         Item {
             Layout.fillWidth: true; Layout.preferredHeight: 24
+        }
+
+        Button {
+            checkable: true
+            checked: true
+            flat: true
+            text: "theme switch"
+            Layout.preferredHeight: 24
+
+            onToggled: global.theme = checked ? 0 : 1
         }
     }
 }

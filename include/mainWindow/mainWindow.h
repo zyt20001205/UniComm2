@@ -8,6 +8,7 @@ class QQuickView;
 class QShortcut;
 
 class ConfigManager;
+class GlobalManager;
 class LuaLanguageServer;
 
 class BreakpointModule;
@@ -84,6 +85,7 @@ private:
     QObject *m_quitDialog{};
 
     ConfigManager *m_configManager{};
+    GlobalManager *m_globalManager{};
     LuaLanguageServer *m_luals{};
 
     BreakpointModule *m_breakpointModule{};

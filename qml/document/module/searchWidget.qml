@@ -28,7 +28,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     flat: true
-                    icon.source: "qrc:/icon/close.svg"
+                    icon.source: "qrc:/icon/dismiss.svg"
                     icon.width: 12; icon.height: 12
 
                     onClicked: searchTextField.clear()

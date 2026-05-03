@@ -62,6 +62,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/core/crashHandler.h
         include/core/explorerModule.h
         include/core/fileModule.h
+        include/core/globalManager.h
         include/core/undoModule.h
         include/data/databaseModule.h
         include/data/dataplotModule.h
@@ -141,6 +142,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/core/crashHandler.cpp
         src/core/explorerModule.cpp
         src/core/fileModule.cpp
+        src/core/globalManager.cpp
         src/core/undoModule.cpp
         src/data/databaseModule.cpp
         src/data/dataplotModule.cpp
@@ -242,7 +244,6 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/bug.svg"
         "resources/icon/checkmarkCircle.svg"
         "resources/icon/clock.svg"
-        "resources/icon/close.svg"
         "resources/icon/collapse.svg"
         "resources/icon/commit.svg"
         "resources/icon/contrast.svg"
@@ -256,6 +257,8 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/debugStepOver.svg"
         "resources/icon/definition.svg"
         "resources/icon/delete.svg"
+        "resources/icon/dismissDark.svg"
+        "resources/icon/dismissLight.svg"
         "resources/icon/document.svg"
         "resources/icon/documentRange.svg"
         "resources/icon/drag.svg"
@@ -265,6 +268,8 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/expand.svg"
         "resources/icon/eye.svg"
         "resources/icon/fileTypeCsv.svg"
+        "resources/icon/fileTypeDefault.svg"
+        "resources/icon/fileTypeFolder.svg"
         "resources/icon/fileTypeGit.svg"
         "resources/icon/fileTypeImage.svg"
         "resources/icon/fileTypeJson.svg"

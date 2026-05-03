@@ -6,6 +6,11 @@ Item {
     id: rootItem
     height: 24
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     RowLayout {
         anchors.fill: parent
 

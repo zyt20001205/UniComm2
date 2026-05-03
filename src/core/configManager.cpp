@@ -54,20 +54,16 @@ int ConfigManager::mainConfigLoad() {
 
     g_workspaceUrl = workspaceUrl;
 
-    // validate git config
-    {
-        QJsonObject gitConfig = jsonObject["gitConfig"].toObject();
-        // check if git is installed
-        QProcess process{};
-        process.start("git", {"--version"});
+    // check if git is installed
+    QProcess process{};
+    process.start("git", {"--version"});
+    process.waitForFinished();
+    if (process.exitCode() == 0) {
+        process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
+        process.start("git", {"status"});
         process.waitForFinished();
         if (process.exitCode() == 0) {
-            process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
-            process.start("git", {"status"});
-            process.waitForFinished();
-            if (process.exitCode() == 0) {
-                g_gitEnabled = true;
-            }
+            g_gitEnabled = true;
         }
     }
 

@@ -26,6 +26,7 @@
 #include "core/configManager.h"
 #include "core/explorerModule.h"
 #include "core/fileModule.h"
+#include "core/globalManager.h"
 #include "core/undoModule.h"
 #include "data/databaseModule.h"
 #include "data/dataplotModule.h"
@@ -184,6 +185,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_documentModule->propertySet(documentObjects);
 
     const QVariantMap explorerObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"explorerModuleFileMenu", objects["explorerModuleFileMenu"]},
         {"explorerModuleFolderMenu", objects["explorerModuleFolderMenu"]},
@@ -206,6 +208,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_logModule->propertySet(logObjects);
 
     const QVariantMap menuObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"menuModuleFileMenu", objects["menuModuleFileMenu"]},
         {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
         {"menuModuleViewMenu", objects["menuModuleViewMenu"]},
@@ -228,6 +231,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_sendModule->propertySet(sendObjects);
 
     const QVariantMap statusObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"statusModuleEolModeMenu", objects["statusModuleEolModeMenu"]}
     };
     m_statusModule->propertySet(statusObjects);
@@ -373,6 +377,7 @@ void MainWindow::moduleInit() {
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
     m_configManager = new ConfigManager(this);
+    m_globalManager = new GlobalManager(this);
     m_luals = new LuaLanguageServer(this);
 
     m_breakpointModule = new BreakpointModule();
@@ -398,6 +403,7 @@ void MainWindow::moduleInit() {
     m_watchModule = new WatchModule();
 
     m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
+    g_global = m_globalManager;
     g_database = m_databaseModule;
     g_dataplot = m_dataplotModule;
     g_datatable = m_datatableModule;

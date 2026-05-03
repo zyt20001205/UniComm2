@@ -83,10 +83,10 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
         source = "qrc:/icon/fileTypeJson.svg";
     } else if (suffix == "lua") {
         source = "qrc:/icon/fileTypeLua.svg";
-    } else if (fileInfo.isFile()) {
-        source = "qrc:/icon/document.svg";
     } else if (fileInfo.isDir()) {
-        source = "qrc:/icon/folder.svg";
+        source = "qrc:/icon/fileTypeFolder.svg";
+    } else {
+        source = "qrc:/icon/fileTypeDefault.svg";
     }
     const QLocale locale{QLocale::C};
     QVariantHash infoSession = {
@@ -108,7 +108,7 @@ void FileModule::fileWritable(const QUrl &fileUrl, const bool status) {
     const auto filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
     auto permissions = fileInfo.permissions();
-    if (status) permissions|= QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther;
+    if (status) permissions |= QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther;
     else permissions &= ~(QFileDevice::WriteOwner | QFileDevice::WriteUser | QFileDevice::WriteGroup | QFileDevice::WriteOther);
     QFile::setPermissions(filePath, permissions);
     emit setPermission(fileUrl);
