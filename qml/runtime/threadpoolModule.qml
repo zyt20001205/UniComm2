@@ -98,16 +98,19 @@ Item {
         Component {
             id: iconCellDelegate
 
-            Rectangle {
+            Item {
                 implicitWidth: 24; implicitHeight: 24
-                color: model.status == 0 ? global.successBack2 :
-                        model.status == 1 ? global.warningBack2 : global.dangerBack2
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: model.status == 0 ? global.successBack2 :
+                            model.status == 1 ? global.warningBack2 : global.dangerBack2
+                }
 
                 BusyIndicator {
                     anchors.centerIn: parent
                     running: true
-                    width: 20
-                    height: 20
+                    width: 20; height: 20
                 }
             }
         }
@@ -115,9 +118,7 @@ Item {
         Component {
             id: textCellDelegate
 
-            Rectangle {
-                color: model.status == 0 ? global.successBack2 :
-                        model.status == 1 ? global.warningBack2 : global.dangerBack2
+            Item {
                 implicitWidth: {
                     if (column === tableView.columns - 1) {
                         let usedWidth = 0
@@ -132,7 +133,12 @@ Item {
                 required property int column
 
                 Rectangle {
-                    id: highlightRect
+                    anchors.fill: parent
+                    color: model.status == 0 ? global.successBack2 :
+                            model.status == 1 ? global.warningBack2 : global.dangerBack2
+                }
+
+                Rectangle {
                     anchors.fill: parent
                     radius: 6
                     color: global.backHover
@@ -168,9 +174,6 @@ Item {
                     onTapped: {
                         threadMenu.threadId = model.threadId
                         threadMenu.popup()
-                        // const index = tableView.index(tableView.selectedRow, 3);
-                        // threadMenu.threadId = tableView.model.data(index, Qt.DisplayRole)
-                        // threadMenu.popup()
                     }
                 }
             }

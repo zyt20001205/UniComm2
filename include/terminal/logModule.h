@@ -20,6 +20,8 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
+    void themeChange();
+
     void logConfigSave() const;
 
     void logFontReload(const QJsonObject &fontConfigLog) const;
@@ -49,6 +51,9 @@ private:
     QObject *m_textView{};
     QObject *m_textArea{};
     QTextDocument *m_textDocument{};
+    QString m_errorFore{};
+    QString m_warningFore{};
+    QString m_infoFore{};
 };
 
 #endif //UNICOMM_LOG_H

@@ -57,6 +57,12 @@ void LogModule::propertyGet(const QVariantMap &objects) {
     m_textDocument->setMaximumBlockCount(m_config["height"].toInt());
 }
 
+void LogModule::themeChange() {
+    m_errorFore = g_global->dangerFore3Get();
+    m_warningFore = g_global->warningFore3Get();
+    m_infoFore = g_global->foreGet();
+}
+
 void LogModule::logConfigSave() const {
     g_workspaceConfig["logConfig"] = m_config;
 }
@@ -82,15 +88,15 @@ void LogModule::logAppend(const int type, const QString &prefix, const QString &
     // check level
     switch (type) {
         case LogLevel::Error: {
-            _message = QString("<span style='color:%1'>%2 %3</span>").arg(g_global->dangerFore3Get(), _message);
+            _message = QString("<span style='color:%1'>%2 %3</span>").arg(m_errorFore, prefix, _message);
         }
         break;
         case LogLevel::Warning: {
-            _message = QString("<span style='color:%1'>%2 %3</span>").arg(g_global->warningFore3Get(), _message);
+            _message = QString("<span style='color:%1'>%2 %3</span>").arg(m_warningFore, prefix, _message);
         }
         break;
         case LogLevel::Info: {
-            _message = QString("<span style='color:%1'>%2 %3</span>").arg(g_global->foreGet(), prefix, _message);
+            _message = QString("<span style='color:%1'>%2 %3</span>").arg(m_infoFore, prefix, _message);
         }
         break;
         case LogLevel::Transmit: {

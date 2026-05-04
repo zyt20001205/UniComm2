@@ -8,37 +8,37 @@
 
 class GlobalManager final : public QObject {
     Q_OBJECT
-    Q_PROPERTY(int theme READ themeGet WRITE themeSet NOTIFY themeChanged)
-    Q_PROPERTY(QString fore READ foreGet NOTIFY themeChanged)
-    Q_PROPERTY(QString foreHover READ foreHoverGet NOTIFY themeChanged)
-    Q_PROPERTY(QString forePressed READ forePressedGet NOTIFY themeChanged)
-    Q_PROPERTY(QString foreSelected READ foreSelectedGet NOTIFY themeChanged)
+    Q_PROPERTY(int theme READ themeGet WRITE themeSet NOTIFY changeTheme)
+    Q_PROPERTY(QString fore READ foreGet NOTIFY changeTheme)
+    Q_PROPERTY(QString foreHover READ foreHoverGet NOTIFY changeTheme)
+    Q_PROPERTY(QString forePressed READ forePressedGet NOTIFY changeTheme)
+    Q_PROPERTY(QString foreSelected READ foreSelectedGet NOTIFY changeTheme)
 
-    Q_PROPERTY(QString back READ backGet NOTIFY themeChanged)
-    Q_PROPERTY(QString backHover READ backHoverGet NOTIFY themeChanged)
-    Q_PROPERTY(QString backPressed READ backPressedGet NOTIFY themeChanged)
-    Q_PROPERTY(QString backSelected READ backSelectedGet NOTIFY themeChanged)
+    Q_PROPERTY(QString back READ backGet NOTIFY changeTheme)
+    Q_PROPERTY(QString backHover READ backHoverGet NOTIFY changeTheme)
+    Q_PROPERTY(QString backPressed READ backPressedGet NOTIFY changeTheme)
+    Q_PROPERTY(QString backSelected READ backSelectedGet NOTIFY changeTheme)
 
-    Q_PROPERTY(QString stroke READ strokeGet NOTIFY themeChanged)
-    Q_PROPERTY(QString strokePressed READ strokePressedGet NOTIFY themeChanged)
+    Q_PROPERTY(QString stroke READ strokeGet NOTIFY changeTheme)
+    Q_PROPERTY(QString strokePressed READ strokePressedGet NOTIFY changeTheme)
 
-    Q_PROPERTY(QString brandFore READ brandForeGet NOTIFY themeChanged)
-    Q_PROPERTY(QString brandBack READ brandBackGet NOTIFY themeChanged)
+    Q_PROPERTY(QString brandFore READ brandForeGet NOTIFY changeTheme)
+    Q_PROPERTY(QString brandBack READ brandBackGet NOTIFY changeTheme)
 
-    Q_PROPERTY(QString successFore2 READ successFore2Get NOTIFY themeChanged)
-    Q_PROPERTY(QString successBack2 READ successBack2Get NOTIFY themeChanged)
-    Q_PROPERTY(QString successFore3 READ successFore3Get NOTIFY themeChanged)
-    Q_PROPERTY(QString successBack3 READ successBack3Get NOTIFY themeChanged)
+    Q_PROPERTY(QString successFore2 READ successFore2Get NOTIFY changeTheme)
+    Q_PROPERTY(QString successBack2 READ successBack2Get NOTIFY changeTheme)
+    Q_PROPERTY(QString successFore3 READ successFore3Get NOTIFY changeTheme)
+    Q_PROPERTY(QString successBack3 READ successBack3Get NOTIFY changeTheme)
 
-    Q_PROPERTY(QString warningFore2 READ warningFore2Get NOTIFY themeChanged)
-    Q_PROPERTY(QString warningBack2 READ warningBack2Get NOTIFY themeChanged)
-    Q_PROPERTY(QString warningFore3 READ warningFore3Get NOTIFY themeChanged)
-    Q_PROPERTY(QString warningBack3 READ warningBack3Get NOTIFY themeChanged)
+    Q_PROPERTY(QString warningFore2 READ warningFore2Get NOTIFY changeTheme)
+    Q_PROPERTY(QString warningBack2 READ warningBack2Get NOTIFY changeTheme)
+    Q_PROPERTY(QString warningFore3 READ warningFore3Get NOTIFY changeTheme)
+    Q_PROPERTY(QString warningBack3 READ warningBack3Get NOTIFY changeTheme)
 
-    Q_PROPERTY(QString dangerFore2 READ dangerFore2Get NOTIFY themeChanged)
-    Q_PROPERTY(QString dangerBack2 READ dangerBack2Get NOTIFY themeChanged)
-    Q_PROPERTY(QString dangerFore3 READ dangerFore3Get NOTIFY themeChanged)
-    Q_PROPERTY(QString dangerBack3 READ dangerBack3Get NOTIFY themeChanged)
+    Q_PROPERTY(QString dangerFore2 READ dangerFore2Get NOTIFY changeTheme)
+    Q_PROPERTY(QString dangerBack2 READ dangerBack2Get NOTIFY changeTheme)
+    Q_PROPERTY(QString dangerFore3 READ dangerFore3Get NOTIFY changeTheme)
+    Q_PROPERTY(QString dangerBack3 READ dangerBack3Get NOTIFY changeTheme)
 
 public:
     explicit GlobalManager(QWidget *parent = nullptr);
@@ -146,7 +146,7 @@ public:
     }
 
 signals:
-    void themeChanged();
+    void changeTheme();
 
 private:
     int m_theme = Theme::Light;

@@ -12,7 +12,7 @@ DatabaseModule::DatabaseModule()
     : DockWidget("Database"),
       m_widget(new QQuickWidget()) {
     setWidget(m_widget);
-    g_databaseStandardItemModel = new QStandardItemModel(this);
+    g_databaseStandardItemModel = new DatabaseModel();
     for (const auto &value: g_workspaceConfig["databaseConfig"].toArray()) {
         const QString key = value.toString();
         databaseInsert(-1, key);
@@ -25,12 +25,13 @@ DatabaseModule::~DatabaseModule() {
 }
 
 void DatabaseModule::propertySet(const QVariantMap &objects) {
+    m_widget->rootContext()->setContextProperty("databaseModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["databaseModuleRootMenu"]));
-
-    m_widget->rootContext()->setContextProperty("databaseModule", this);
     m_widget->rootContext()->setContextProperty("standardItemModel", g_databaseStandardItemModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/data/databaseModule.qml"));
     m_root = m_widget->rootObject();
@@ -56,7 +57,7 @@ QSet<QString> DatabaseModule::databaseList() const {
 void DatabaseModule::databaseInsert(int index, const QString &key) {
     if (index == -1) index = g_databaseStandardItemModel->rowCount();
     auto *keyItem = new QStandardItem(key); // NOLINT
-    keyItem->setData(false, Qt::WhatsThisRole);
+    keyItem->setData(key, Qt::UserRole + 1);
     auto *valueItem = new QStandardItem(); // NOLINT
     g_databaseStandardItemModel->insertRow(index, {keyItem, valueItem});
     databaseIndex();
@@ -103,4 +104,17 @@ void DatabaseModule::databaseIndex() {
         const QString key = g_databaseStandardItemModel->item(i, 0)->text();
         m_databaseHash.insert(key, i);
     }
+}
+
+QHash<int, QByteArray> DatabaseModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "key";
+    return roles;
+}
+
+QVariant DatabaseModel::data(const QModelIndex &index, const int role) const {
+    if (role == Qt::UserRole + 1) {
+        return QStandardItemModel::data(this->index(index.row(), 0), role);
+    }
+    return QStandardItemModel::data(index, role);
 }

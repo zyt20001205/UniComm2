@@ -1,11 +1,17 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
     property bool modelVisible: headerItemModel.rowCount() > 0
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -26,8 +32,9 @@ Item {
                 }
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/table.svg"
+                color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
         }
@@ -43,7 +50,7 @@ Item {
             HorizontalHeaderView {
                 id: horizontalHeaderView
                 anchors.left: verticalHeaderView.right; anchors.top: parent.top
-                width: parent.width; height: 32
+                width: parent.width; height: 24
                 model: headerItemModel
                 syncView: tableView
                 clip: true
@@ -51,20 +58,19 @@ Item {
                 movableColumns: true
                 delegate: HorizontalHeaderViewDelegate {
                     id: horizontalHeaderViewDelegate
-                    implicitWidth: 120; implicitHeight: 32
+                    implicitWidth: 80; implicitHeight: 24
                     padding: 0
 
                     contentItem: Rectangle {
-                        width: 120; height: 32
-                        color: "white"
+                        width: 80; height: 24
+                        color: global.back
 
-                        Text {
+                        Label {
                             anchors.fill: parent
-                            clip: true
-                            font.family: "Segoe UI"
-                            font.pointSize: 12
+                            leftPadding: 6
                             horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                             text: model.display
+                            elide: Text.ElideRight
                         }
                     }
 
@@ -88,8 +94,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                    color: global.stroke
                 }
 
                 Timer {
@@ -127,53 +132,71 @@ Item {
                 clip: true
                 interactive: false
                 delegate: VerticalHeaderViewDelegate {
-                    implicitWidth: 40; implicitHeight: 32
+                    implicitWidth: 40; implicitHeight: 24
                     padding: 0
                     contentItem: Rectangle {
-                        width: 40; height: 32
-                        color: "white"
+                        width: 40; height: 24
+                        color: global.back
 
-                        Text {
+                        Label {
                             anchors.fill: parent
-                            clip: true
-                            font.family: "Segoe UI"
-                            font.pointSize: 12
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            leftPadding: 6
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                             text: row + 1
+                            elide: Text.ElideRight
                         }
                     }
                 }
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                    color: global.stroke
                 }
             }
 
             TableView {
                 id: tableView
-                anchors.left: verticalHeaderView.right
+                anchors.left: verticalHeaderView.right; anchors.right: parent.right
                 anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
-                width: parent.width
                 alternatingRows: false
                 clip: true
                 rowSpacing: 1; columnSpacing: 1
                 resizableColumns: true
                 model: standardItemModel
-                delegate: ItemDelegate {
-                    implicitWidth: 120; implicitHeight: 32
-                    text: model.display
-                    font.pixelSize: 16
-                    background: Rectangle {
-                        color: "white"
+
+                ScrollBar.horizontal: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
+                }
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.stroke
+                }
+
+                delegate: Item {
+                    implicitWidth: 80; implicitHeight: 24
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: global.back
                     }
 
                     Rectangle {
-                        id: highlightRect
                         anchors.fill: parent
-                        radius: 2
-                        color: "#ebebeb"
+                        radius: 6
+                        color: global.backHover
                         opacity: hoverHandler.hovered ? 1 : 0
                         Behavior on opacity {
                             NumberAnimation {
@@ -182,15 +205,18 @@ Item {
                         }
                     }
 
+                    Label {
+                        id: label
+                        anchors.fill: parent
+                        leftPadding: 6
+                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                        text: model.display || ""
+                        elide: Text.ElideRight
+                    }
+
                     HoverHandler {
                         id: hoverHandler
                     }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
                 }
 
                 TapHandler {

@@ -132,6 +132,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_breakpointModule->propertySet(breakpointObjects);
 
     const QVariantMap databaseObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"databaseModuleEditDialog", objects["databaseModuleEditDialog"]},
         {"databaseModuleTableMenu", objects["databaseModuleTableMenu"]},
         {"databaseModuleRootMenu", objects["databaseModuleRootMenu"]}
@@ -144,6 +145,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_dataplotModule->propertySet(dataplotObjects);
 
     const QVariantMap datatableObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"datatableModuleEditDialog", objects["datatableModuleEditDialog"]},
         {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
         {"datatableModuleRootMenu", objects["datatableModuleRootMenu"]}
@@ -420,6 +422,8 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
+
+    connect(m_globalManager, &GlobalManager::changeTheme, m_logModule, &LogModule::themeChange);
 
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_documentModule, &DocumentModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);

@@ -156,9 +156,13 @@ Item {
                 Component {
                     id: iconCellDelegate
 
-                    Rectangle {
+                    Item {
                         implicitWidth: 24; implicitHeight: 24
-                        color: global.back
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: global.back
+                        }
 
                         Image {
                             anchors.centerIn: parent
@@ -171,8 +175,7 @@ Item {
                 Component {
                     id: textCellDelegate
 
-                    Rectangle {
-                        color: global.back
+                    Item {
                         implicitWidth: {
                             if (column === tableView.columns - 1) {
                                 let usedWidth = 0
@@ -185,6 +188,11 @@ Item {
                         }
                         implicitHeight: 24
                         required property int column
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: global.back
+                        }
 
                         Rectangle {
                             anchors.fill: parent

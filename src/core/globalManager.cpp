@@ -109,7 +109,6 @@ GlobalManager::GlobalManager(QWidget *parent)
     else QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
     qApp->setStyleSheet(m_styleSheet[m_theme]);
     KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(m_theme));
-    emit themeChanged();
 }
 
 int GlobalManager::themeGet() const {
@@ -123,6 +122,6 @@ void GlobalManager::themeSet(const int status) {
         else QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
         qApp->setStyleSheet(m_styleSheet[status]);
         KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(status));
-        emit themeChanged();
+        emit changeTheme();
     }
 }

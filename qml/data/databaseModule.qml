@@ -1,11 +1,17 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
     property bool modelVisible: standardItemModel.rowCount() > 0
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -27,8 +33,9 @@ Item {
                 }
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/database.svg"
+                color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
         }
@@ -56,11 +63,12 @@ Item {
 
                     contentItem: Rectangle {
                         width: 24; height: 24
-                        color: "white"
+                        color: global.back
 
-                        Image {
-                            width: 16; height: 16
+                        IconImage {
                             anchors.centerIn: parent
+                            width: 16; height: 16
+                            color: global.fore
                             source: "qrc:/icon/drag.svg"
                         }
                     }
@@ -73,8 +81,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                    color: global.stroke
                 }
 
                 Timer {
@@ -115,14 +122,20 @@ Item {
                 model: standardItemModel
                 contentWidth: width
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
                 }
 
-                delegate: Rectangle {
-                    color: "white"
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.stroke
+                }
+
+                delegate: Item {
                     implicitWidth: {
                         if (column === tableView.columns - 1) {
                             let usedWidth = 0
@@ -140,8 +153,13 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
+                        color: global.back
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
                         radius: 6
-                        color: "#ebebeb"
+                        color: global.backHover
                         opacity: {
                             if (column === 0 && hoverHandler.hovered) {
                                 return 1
@@ -152,7 +170,9 @@ Item {
                             }
                         }
                         Behavior on opacity {
-                            NumberAnimation { duration: 150 }
+                            NumberAnimation {
+                                duration: 150
+                            }
                         }
                     }
 
@@ -195,8 +215,7 @@ Item {
 
                         onSingleTapped: {
                             tableMenu.databaseIndex = model.row
-                            const index = tableView.index(row, 0);
-                            tableMenu.databaseKey = tableView.model.data(index, Qt.DisplayRole)
+                            tableMenu.databaseKey = model.display
                             tableMenu.popup()
                         }
                     }
@@ -232,6 +251,7 @@ Item {
             modelVisible = false
         }
     }
+
     function reload() {
         tableLoader.active = false
         tableLoader.active = true

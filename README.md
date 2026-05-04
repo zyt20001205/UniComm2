@@ -86,9 +86,9 @@ gantt
     section version
         v0.1.0: done, 02-10, 1d
         v0.2.0(Infrastructure Construction): active, 02-11, 140d
-        v0.2.0-alpha1: active, 02-11, 49d
-        v0.2.0-alpha2: 04-01, 30d
-        v0.2.0-alpha3: 05-01, 31d
+        v0.2.0-alpha1: done, 02-11, 49d
+        v0.2.0-alpha2: active, 04-01, 45d
+        v0.2.0-alpha3: 05-16, 46d
         v0.3.0(Interface Optimization): 07-01, 62d
         v0.3.0-alpha1: 07-01, 31d
         v0.3.0-alpha2: 08-01, 31d
@@ -101,7 +101,7 @@ gantt
         modbusTcp: done, 04-01, 7d
         imap: done, 04-08, 8d
         file: done, 04-20, 2d
-        mqtt: active, 04-16, 15d
+        mqtt: crit, 04-16, 15d
 
     section infra
         scintilla migration: done, 02-11, 30d
@@ -115,16 +115,16 @@ gantt
         signatureHelp(overload): done, 03-24, 1d
         documentSymbol bar: done, 03-25, 2d
         search & replace: done, 03-30, 4d
-        rename: 04-11, 20d
+        rename: crit, 04-11, 20d
 
     section ui
         status bar: done, 03-10, 3d
         file property dialog: done, 04-10, 3d
+        dark theme: 05-01, 7d
         port session monitor: 05-01, 7d
         git integration: 05-08, 12d
         cli integration: 05-20, 12d
-        customize settings: 07-01, 31d
-        dark theme: 07-01, 31d
+        custom settings: 07-01, 31d
         i18n: 08-01, 31d
 ```
 

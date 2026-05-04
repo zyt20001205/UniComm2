@@ -31,13 +31,14 @@ DatatableModule::~DatatableModule() {
 }
 
 void DatatableModule::propertySet(const QVariantMap &objects) {
+    m_widget->rootContext()->setContextProperty("datatableModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
-
-    m_widget->rootContext()->setContextProperty("datatableModule", this);
     m_widget->rootContext()->setContextProperty("headerItemModel", g_datatableHeaderItemModel);
     m_widget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/data/datatableModule.qml"));
     m_item = m_widget->rootObject();

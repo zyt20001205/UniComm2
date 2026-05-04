@@ -1,10 +1,11 @@
 #ifndef UNICOMM_DATABASE_H
 #define UNICOMM_DATABASE_H
 
-#include <QJsonArray>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QJsonArray>
+#include <QStandardItemModel>
 
-class QStandardItemModel;
+class DatabaseModel;
 class QQuickWidget;
 class QTableWidget;
 
@@ -43,6 +44,15 @@ private:
     QQuickWidget *m_widget{};
     QQuickItem *m_root{};
     QHash<QString, int> m_databaseHash{};
+};
+
+class DatabaseModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
 };
 
 #endif //UNICOMM_DATABASE_H
