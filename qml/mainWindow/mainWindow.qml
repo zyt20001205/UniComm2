@@ -1054,32 +1054,24 @@ Item {
 
             MenuItem {
                 text: qsTr("Definition(s)")
-                icon.source: "qrc:/icon/definition.svg"
-                icon.width: 8; icon.height: 8
 
                 onTriggered: documentModule.definitionRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
                 text: qsTr("References(s)")
-                icon.source: "qrc:/icon/reference.svg"
-                icon.width: 8; icon.height: 8
 
                 onTriggered: documentModule.referencesRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
                 text: qsTr("Implementation(s)")
-                icon.source: "qrc:/icon/implementation.svg"
-                icon.width: 8; icon.height: 8
 
                 onTriggered: documentModule.implementationRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }
 
             MenuItem {
                 text: qsTr("Type Definition(s)")
-                icon.source: "qrc:/icon/typeDefinition.svg"
-                icon.width: 8; icon.height: 8
 
                 onTriggered: documentModule.typeDefinitionRequest(documentModuleEditorMenu.menuSession.documentUrl, documentModuleEditorMenu.menuSession.line, documentModuleEditorMenu.menuSession.character)
             }

@@ -194,7 +194,7 @@ bool BreakpointModule::eventFilter(QObject *watched, QEvent *event) {
 QHash<int, QByteArray> BreakpointModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "documentUrl";
-    roles[Qt::UserRole + 2] = "enable1";
+    roles[Qt::UserRole + 2] = "enable";
     roles[Qt::UserRole + 3] = "condition";
     return roles;
 }

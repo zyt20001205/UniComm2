@@ -62,12 +62,6 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: model.enable1 ? "transparent" : global.warningBack2
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 6
                 color: global.backSelected
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
@@ -103,15 +97,19 @@ Item {
                     }
                 }
 
-                // Item {
-                //     Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                //
-                //     Image {
-                //         anchors.centerIn: parent
-                //         width: 16; height: 16
-                //         source: model.decoration
-                //     }
-                // }
+                Item {
+                    visible: !(isTreeNode && hasChildren)
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    IconImage {
+                        anchors.centerIn: parent
+                        width: 16; height: 16
+                        source: !model.enable ? "qrc:/icon/breakpointDisabled.svg" :
+                            model.condition ? "qrc:/icon/breakpointConditional.svg" :
+                                "qrc:/icon/breakpoint.svg"
+                        color: global.fore
+                    }
+                }
 
                 Label {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
