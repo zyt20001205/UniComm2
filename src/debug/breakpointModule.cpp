@@ -97,11 +97,8 @@ void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line,
 
 void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line) {
     // update scintilla
-    if (g_breakpoints[documentUrl][line]["enabled"].toBool()) {
-        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
-    } else {
-        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1);
-    }
+    emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
+    emit deleteMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1);
     // update g_breakpoints
     g_breakpoints[documentUrl].remove(line);
     if (g_breakpoints[documentUrl].isEmpty()) g_breakpoints.remove(documentUrl);
