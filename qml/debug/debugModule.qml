@@ -1,8 +1,10 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
+    id: rootItem
     anchors.fill: parent
 
     ColumnLayout {

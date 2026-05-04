@@ -1093,7 +1093,6 @@ void LuaPage::marginClick(const Scintilla::Position position, const int mouseBut
                                           {"condition", ""},
                                           {"enabled", true}
                                       }));
-                m_editorWidget->markerAdd(ScintillaMarker::BreakpointEnabled, line);
                 if (modifiers == Scintilla::KeyMod::Ctrl) breakpointSet(line + 1);
             }
         } else if (mouseButton == Qt::RightButton) {

@@ -1,11 +1,17 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
     property bool modelVisible: standardItemModel.rowCount() > 0
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -20,8 +26,9 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/activateBreakpoints.svg"
+                color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
         }
@@ -55,7 +62,13 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: "#ebebeb"
+                color: model.enable1 ? "transparent" : global.warningBack2
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: global.backSelected
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
@@ -67,7 +80,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: treeView.selectedRow === row ? "#e0e0e0" : "transparent"
+                color: treeView.selectedRow === row ? global.backHover : "transparent"
             }
 
             RowLayout {
@@ -81,10 +94,11 @@ Item {
                 Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    Image {
+                    IconImage {
                         anchors.centerIn: parent
                         width: 16; height: 16
                         source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                        color: global.fore
                         visible: isTreeNode && hasChildren
                     }
                 }
@@ -119,9 +133,9 @@ Item {
                     treeView.selectedRow = row
                     if (isTreeNode && hasChildren) {
                         treeView.toggleExpanded(row)
-                        breakpointModule.documentOpen(model.whatsThis)
+                        breakpointModule.documentOpen(model.documentUrl)
                     } else {
-                        breakpointModule.markerAdd(model.whatsThis, model.display)
+                        breakpointModule.markerAdd(model.documentUrl, model.display)
                     }
                 }
             }
@@ -132,11 +146,11 @@ Item {
 
                 onTapped: {
                     if (isTreeNode && hasChildren) {
-                        fileMenu.documentUrl = model.whatsThis
+                        fileMenu.documentUrl = model.documentUrl
                         fileMenu.treeView = treeView
                         fileMenu.popup()
                     } else {
-                        lineMenu.documentUrl = model.whatsThis
+                        lineMenu.documentUrl = model.documentUrl
                         lineMenu.line = model.display
                         lineMenu.treeView = treeView
                         lineMenu.popup()

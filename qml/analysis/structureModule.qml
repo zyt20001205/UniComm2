@@ -102,7 +102,7 @@ Item {
                 }
                 onPointChanged: {
                     mainToolTip.position = parent.mapToGlobal(point.position)
-                    mainToolTip.text = treeView.model.data(treeView.index(row, 0), Qt.UserRole + 1)
+                    mainToolTip.text = model.detail
                 }
             }
 
@@ -112,7 +112,7 @@ Item {
 
                 onTapped: {
                     treeView.selectedRow = row
-                    structureModule.markerAdd(treeView.model.data(treeView.index(row, 0), Qt.UserRole + 2))
+                    structureModule.markerAdd(model.position)
                     if (isTreeNode && hasChildren) {
                         treeView.toggleExpanded(row)
                     }

@@ -10,7 +10,7 @@
 BreakpointModule::BreakpointModule()
     : DockWidget("Breakpoint"),
       m_widget(new QQuickWidget()),
-      m_standardItemModel(new QStandardItemModel()) {
+      m_standardItemModel(new BreakpointModel()) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
     auto breakpointConfig = g_workspaceConfig["breakpointConfig"].toObject();
@@ -31,12 +31,13 @@ BreakpointModule::~BreakpointModule() {
 }
 
 void BreakpointModule::propertySet(const QVariantMap &objects) {
+    m_widget->rootContext()->setContextProperty("breakpointModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
     m_widget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));
-
-    m_widget->rootContext()->setContextProperty("breakpointModule", this);
     m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/debug/breakpointModule.qml"));
 }
@@ -59,16 +60,24 @@ void BreakpointModule::breakpointConfigSave() {
     g_workspaceConfig["breakpointConfig"] = breakpointHash;
 }
 
-void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line, const QVariantHash &session) const {
+void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line, const QVariantHash &session) {
     // update g_breakpoints
     g_breakpoints[documentUrl][line] = session;
+    // update scintilla
+    if (g_breakpoints[documentUrl][line]["enabled"].toBool()) {
+        emit addMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1, -1);
+    } else {
+        emit addMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1, -1);
+    }
     // update model
     auto *lineItem = new QStandardItem(QString::number(line)); // NOLINT
-    lineItem->setData(documentUrl, Qt::WhatsThisRole);
+    lineItem->setData(documentUrl, Qt::UserRole + 1);
+    lineItem->setData(session["enabled"].toBool(), Qt::UserRole + 2);
+    lineItem->setData(session["condition"].toString(), Qt::UserRole + 3);
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::WhatsThisRole).toUrl() == documentUrl) {
+        if (indent1->data(Qt::UserRole + 1).toUrl() == documentUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
                 if (line < indent2->text().toInt()) {
@@ -81,12 +90,18 @@ void BreakpointModule::breakpointInsert(const QUrl &documentUrl, const int line,
         }
     }
     auto *urlItem = new QStandardItem(documentUrl.fileName()); // NOLINT
-    urlItem->setData(documentUrl, Qt::WhatsThisRole);
+    urlItem->setData(documentUrl, Qt::UserRole + 1);
     urlItem->appendRow(lineItem);
     m_standardItemModel->appendRow(urlItem);
 }
 
-void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line) const {
+void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line) {
+    // update scintilla
+    if (g_breakpoints[documentUrl][line]["enabled"].toBool()) {
+        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
+    } else {
+        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1);
+    }
     // update g_breakpoints
     g_breakpoints[documentUrl].remove(line);
     if (g_breakpoints[documentUrl].isEmpty()) g_breakpoints.remove(documentUrl);
@@ -94,7 +109,7 @@ void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line)
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::WhatsThisRole).toUrl() == documentUrl) {
+        if (indent1->data(Qt::UserRole + 1).toUrl() == documentUrl) {
             for (int j = 0; j < indent1->rowCount(); ++j) {
                 const auto *indent2 = indent1->child(j);
                 if (line == indent2->text().toInt()) {
@@ -109,6 +124,12 @@ void BreakpointModule::breakpointRemove(const QUrl &documentUrl, const int line)
     }
 }
 
+void BreakpointModule::breakpointReload(const QUrl &documentUrl, const int line) {
+    const auto session = g_breakpoints[documentUrl][line];
+    breakpointRemove(documentUrl, line);
+    breakpointInsert(documentUrl, line, session);
+}
+
 void BreakpointModule::documentOpen(const QUrl &documentUrl) {
     emit openDocument(documentUrl);
 }
@@ -119,7 +140,6 @@ void BreakpointModule::markerAdd(const QUrl &documentUrl, const int line) {
 
 void BreakpointModule::breakpointDelete(const QUrl &documentUrl, const int line) {
     breakpointRemove(documentUrl, line);
-    emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
 }
 
 void BreakpointModule::breakpointsDelete(const QUrl &documentUrl) {
@@ -151,13 +171,6 @@ bool BreakpointModule::enabledGet(const QUrl &documentUrl, const int line) {
 
 void BreakpointModule::enabledSet(const QUrl &documentUrl, const int line, const bool status) {
     g_breakpoints[documentUrl][line]["enabled"] = status;
-    if (status) {
-        emit addMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1, -1);
-        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1);
-    } else {
-        emit addMarker(documentUrl, ScintillaMarker::BreakpointDisabled, line - 1, -1);
-        emit deleteMarker(documentUrl, ScintillaMarker::BreakpointEnabled, line - 1);
-    }
 }
 
 QString BreakpointModule::conditionGet(const QUrl &documentUrl, const int line) {
@@ -175,4 +188,13 @@ bool BreakpointModule::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     return DockWidget::eventFilter(watched, event);
+}
+
+// public
+QHash<int, QByteArray> BreakpointModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "documentUrl";
+    roles[Qt::UserRole + 2] = "enable1";
+    roles[Qt::UserRole + 3] = "condition";
+    return roles;
 }

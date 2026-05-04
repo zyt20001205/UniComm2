@@ -364,6 +364,7 @@ Item {
         onAccepted: {
             breakpointModule.enabledSet(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line, breakpointModuleEnabledCheckBox.checked)
             breakpointModule.conditionSet(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line, breakpointModuleConditionTextField.text)
+            breakpointModule.breakpointReload(breakpointModuleEditDialog.documentUrl, breakpointModuleEditDialog.line)
         }
 
         ColumnLayout {

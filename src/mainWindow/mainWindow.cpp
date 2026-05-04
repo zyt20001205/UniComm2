@@ -125,6 +125,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_luals->propertySet(lualsObjects);
 
     const QVariantMap breakpointObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
         {"breakpointModuleFileMenu", objects["breakpointModuleFileMenu"]},
         {"breakpointModuleRootMenu", objects["breakpointModuleRootMenu"]}

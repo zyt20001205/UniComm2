@@ -2,9 +2,11 @@
 #define UNICOMM_BREAKPOINTMODULE_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QStandardItemModel>
 
 class QQuickWidget;
-class QStandardItemModel;
+
+class BreakpointModel;
 
 class BreakpointModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -20,9 +22,11 @@ public:
 
     static void breakpointConfigSave();
 
-    void breakpointInsert(const QUrl &documentUrl, int line, const QVariantHash &session) const;
+    void breakpointInsert(const QUrl &documentUrl, int line, const QVariantHash &session);
 
-    void breakpointRemove(const QUrl &documentUrl, int line) const;
+    void breakpointRemove(const QUrl &documentUrl, int line);
+
+    Q_INVOKABLE void breakpointReload(const QUrl &documentUrl, int line);
 
     Q_INVOKABLE void documentOpen(const QUrl &documentUrl);
 
@@ -36,7 +40,7 @@ public:
 
     Q_INVOKABLE [[nodiscard]] static bool enabledGet(const QUrl &documentUrl, int line);
 
-    Q_INVOKABLE void enabledSet(const QUrl &documentUrl, int line, bool status);
+    Q_INVOKABLE static void enabledSet(const QUrl &documentUrl, int line, bool status);
 
     Q_INVOKABLE [[nodiscard]] static QString conditionGet(const QUrl &documentUrl, int line);
 
@@ -54,7 +58,14 @@ signals:
 private:
     QQuickWidget *m_widget{};
     QObject *m_treeView{};
-    QStandardItemModel *m_standardItemModel{};
+    BreakpointModel *m_standardItemModel{};
+};
+
+class BreakpointModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
 #endif //UNICOMM_BREAKPOINTMODULE_H
