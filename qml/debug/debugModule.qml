@@ -1,16 +1,20 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 5
-        spacing: 5
+        anchors.margins: 4
+        spacing: 4
 
         RowLayout {
 
@@ -19,9 +23,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/stop.svg"
                 icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Terminate")
-                ToolTip.visible: hovered
+
                 onClicked: debugModule.stateSet(threadComboBox.currentText, 0)
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Terminate")
+                    }
+                }
             }
 
             Button {
@@ -29,9 +44,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/play.svg"
                 icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Resume")
-                ToolTip.visible: hovered
+
                 onClicked: debugModule.stateSet(threadComboBox.currentText, 1)
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Resume")
+                    }
+                }
             }
 
             Button {
@@ -39,9 +65,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/pause.svg"
                 icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Pause")
-                ToolTip.visible: hovered
+
                 onClicked: debugModule.stateSet(threadComboBox.currentText, 2)
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Pause")
+                    }
+                }
             }
 
             Button {
@@ -49,9 +86,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/debugStepOver.svg"
                 icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Step Over")
-                ToolTip.visible: hovered
+
                 onClicked: debugModule.stateSet(threadComboBox.currentText, 3)
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Step Over")
+                    }
+                }
             }
 
             Button {
@@ -59,9 +107,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/debugStepInto.svg"
                 icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Step Into")
-                ToolTip.visible: hovered
+
                 onClicked: debugModule.stateSet(threadComboBox.currentText, 4)
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Step Into")
+                    }
+                }
             }
 
             Button {
@@ -69,9 +128,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 icon.source: "qrc:/icon/debugStepOut.svg"
                 icon.width: 16; icon.height: 16
-                ToolTip.text: qsTr("Step Out")
-                ToolTip.visible: hovered
+
                 onClicked: debugModule.stateSet(threadComboBox.currentText, 5)
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Step Out")
+                    }
+                }
             }
         }
 

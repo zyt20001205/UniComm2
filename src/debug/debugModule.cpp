@@ -29,8 +29,11 @@ void DebugModule::propertySet(const QVariantMap &objects) {
     m_errorDialog = qvariant_cast<QObject *>(objects["debugModuleErrorDialog"]);
 
     m_widget->rootContext()->setContextProperty("debugModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_widget->rootContext()->setContextProperty("stringListModel", m_stringListModel);
     m_widget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/debug/debugModule.qml"));
 }
