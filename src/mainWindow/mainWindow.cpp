@@ -426,7 +426,6 @@ void MainWindow::moduleInit() {
 
     connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
 
-    connect(m_globalManager, &GlobalManager::changeTheme, this, &MainWindow::themeChange);
     connect(m_globalManager, &GlobalManager::changeTheme, m_logModule, &LogModule::themeChange);
 
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_documentModule, &DocumentModule::diagnosticsNotification);
