@@ -8,46 +8,46 @@
 
 class GlobalManager final : public QObject {
     Q_OBJECT
-    Q_PROPERTY(int theme READ themeGet WRITE themeSet NOTIFY changeTheme)
-    Q_PROPERTY(QString fore READ foreGet NOTIFY changeTheme)
-    Q_PROPERTY(QString foreHover READ foreHoverGet NOTIFY changeTheme)
-    Q_PROPERTY(QString forePressed READ forePressedGet NOTIFY changeTheme)
-    Q_PROPERTY(QString foreSelected READ foreSelectedGet NOTIFY changeTheme)
+    Q_PROPERTY(int theme READ themeGet CONSTANT)
+    Q_PROPERTY(QString fore READ foreGet CONSTANT)
+    Q_PROPERTY(QString foreHover READ foreHoverGet CONSTANT)
+    Q_PROPERTY(QString forePressed READ forePressedGet CONSTANT)
+    Q_PROPERTY(QString foreSelected READ foreSelectedGet CONSTANT)
 
-    Q_PROPERTY(QString back READ backGet NOTIFY changeTheme)
-    Q_PROPERTY(QString backHover READ backHoverGet NOTIFY changeTheme)
-    Q_PROPERTY(QString backPressed READ backPressedGet NOTIFY changeTheme)
-    Q_PROPERTY(QString backSelected READ backSelectedGet NOTIFY changeTheme)
+    Q_PROPERTY(QString back READ backGet CONSTANT)
+    Q_PROPERTY(QString backHover READ backHoverGet CONSTANT)
+    Q_PROPERTY(QString backPressed READ backPressedGet CONSTANT)
+    Q_PROPERTY(QString backSelected READ backSelectedGet CONSTANT)
 
-    Q_PROPERTY(QString stroke READ strokeGet NOTIFY changeTheme)
-    Q_PROPERTY(QString strokePressed READ strokePressedGet NOTIFY changeTheme)
+    Q_PROPERTY(QString stroke READ strokeGet CONSTANT)
+    Q_PROPERTY(QString strokePressed READ strokePressedGet CONSTANT)
 
-    Q_PROPERTY(QString brandFore READ brandForeGet NOTIFY changeTheme)
-    Q_PROPERTY(QString brandBack READ brandBackGet NOTIFY changeTheme)
+    Q_PROPERTY(QString brandFore READ brandForeGet CONSTANT)
+    Q_PROPERTY(QString brandBack READ brandBackGet CONSTANT)
 
-    Q_PROPERTY(QString successFore2 READ successFore2Get NOTIFY changeTheme)
-    Q_PROPERTY(QString successBack2 READ successBack2Get NOTIFY changeTheme)
-    Q_PROPERTY(QString successFore3 READ successFore3Get NOTIFY changeTheme)
-    Q_PROPERTY(QString successBack3 READ successBack3Get NOTIFY changeTheme)
+    Q_PROPERTY(QString successFore2 READ successFore2Get CONSTANT)
+    Q_PROPERTY(QString successBack2 READ successBack2Get CONSTANT)
+    Q_PROPERTY(QString successFore3 READ successFore3Get CONSTANT)
+    Q_PROPERTY(QString successBack3 READ successBack3Get CONSTANT)
 
-    Q_PROPERTY(QString warningFore2 READ warningFore2Get NOTIFY changeTheme)
-    Q_PROPERTY(QString warningBack2 READ warningBack2Get NOTIFY changeTheme)
-    Q_PROPERTY(QString warningFore3 READ warningFore3Get NOTIFY changeTheme)
-    Q_PROPERTY(QString warningBack3 READ warningBack3Get NOTIFY changeTheme)
+    Q_PROPERTY(QString warningFore2 READ warningFore2Get CONSTANT)
+    Q_PROPERTY(QString warningBack2 READ warningBack2Get CONSTANT)
+    Q_PROPERTY(QString warningFore3 READ warningFore3Get CONSTANT)
+    Q_PROPERTY(QString warningBack3 READ warningBack3Get CONSTANT)
 
-    Q_PROPERTY(QString dangerFore2 READ dangerFore2Get NOTIFY changeTheme)
-    Q_PROPERTY(QString dangerBack2 READ dangerBack2Get NOTIFY changeTheme)
-    Q_PROPERTY(QString dangerFore3 READ dangerFore3Get NOTIFY changeTheme)
-    Q_PROPERTY(QString dangerBack3 READ dangerBack3Get NOTIFY changeTheme)
+    Q_PROPERTY(QString dangerFore2 READ dangerFore2Get CONSTANT)
+    Q_PROPERTY(QString dangerBack2 READ dangerBack2Get CONSTANT)
+    Q_PROPERTY(QString dangerFore3 READ dangerFore3Get CONSTANT)
+    Q_PROPERTY(QString dangerBack3 READ dangerBack3Get CONSTANT)
 
 public:
     explicit GlobalManager(QWidget *parent = nullptr);
 
     ~GlobalManager() override = default;
 
-    [[nodiscard]] int themeGet() const;
-
-    void themeSet(int status);
+    [[nodiscard]] int themeGet() const {
+        return m_theme;
+    }
 
     [[nodiscard]] QString foreGet() const {
         return m_theme == Theme::Light ? m_palette["lightFore"] : m_palette["darkFore"];
@@ -145,11 +145,8 @@ public:
         return m_theme == Theme::Light ? m_palette["lightDangerBack3"] : m_palette["darkDangerBack3"];
     }
 
-signals:
-    void changeTheme();
-
 private:
-    int m_theme = Theme::Light;
+    int m_theme{};
     QHash<QString, QString> m_palette{};
     QStringList m_styleSheet{};
 };

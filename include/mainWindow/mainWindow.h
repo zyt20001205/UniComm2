@@ -52,6 +52,8 @@ public:
 
     Q_INVOKABLE void terminate();
 
+    Q_INVOKABLE static void themeSet(int theme);
+
     Q_INVOKABLE void workspaceOpen();
 
     Q_INVOKABLE void workspaceSave(const QUrl &configUrl = QUrl());

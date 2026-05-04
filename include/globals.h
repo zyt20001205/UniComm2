@@ -30,6 +30,7 @@ extern DocumentModule *g_document;
 extern UndoModule *g_undo;
 
 extern bool g_terminating;
+extern int g_theme;
 extern QUrl g_workspaceUrl;
 extern bool g_gitEnabled;
 extern QJsonObject g_workspaceConfig;

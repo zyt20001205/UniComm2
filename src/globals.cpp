@@ -12,6 +12,7 @@ DocumentModule *g_document = nullptr;
 UndoModule *g_undo = nullptr;
 
 bool g_terminating = false;
+int g_theme = {};
 QUrl g_workspaceUrl = {};
 bool g_gitEnabled = false;
 QJsonObject g_workspaceConfig = {};

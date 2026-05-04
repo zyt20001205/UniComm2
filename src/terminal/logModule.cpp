@@ -15,7 +15,10 @@ LogModule::LogModule()
     : DockWidget("Log"),
       m_config(g_workspaceConfig["logConfig"].toObject()),
       m_widget(new QQuickWidget()),
-      m_textDocument(new QTextDocument()) {
+      m_textDocument(new QTextDocument()),
+      m_errorFore(g_global->dangerFore3Get()),
+      m_warningFore(g_global->warningFore3Get()),
+      m_infoFore(g_global->foreGet()) {
     setWidget(m_widget);
 }
 
@@ -33,7 +36,8 @@ void LogModule::propertySet(const QVariantMap &objects) {
     m_widget->rootContext()->setContextProperty("logModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
-    m_widget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
+    m_widget->rootContext()->setContextProperty("heightDialog",
+                                                qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
     m_widget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -57,12 +61,6 @@ void LogModule::propertyGet(const QVariantMap &objects) {
     m_textDocument->setMaximumBlockCount(m_config["height"].toInt());
 }
 
-void LogModule::themeChange() {
-    m_errorFore = g_global->dangerFore3Get();
-    m_warningFore = g_global->warningFore3Get();
-    m_infoFore = g_global->foreGet();
-}
-
 void LogModule::logConfigSave() const {
     g_workspaceConfig["logConfig"] = m_config;
 }
@@ -82,8 +80,10 @@ void LogModule::logAppend(const int type, const QString &prefix, const QString &
     // check size
     const auto size = _message.size();
     if (size >= 200) {
-        _message = QString::fromLatin1(_message.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
-        _message = QString("[<a href='request.expand://reserved/%1'>%2 chars collapsed</a>]").arg(_message, QString::number(size));
+        _message = QString::fromLatin1(
+            _message.toUtf8().toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
+        _message = QString("[<a href='request.expand://reserved/%1'>%2 chars collapsed</a>]").arg(
+            _message, QString::number(size));
     }
     // check level
     switch (type) {
@@ -156,7 +156,8 @@ void LogModule::logSave(const QUrl &fileUrl) {
             QTextStream stream(&file);
             stream << document.toPlainText();
             file.close();
-            logAppend(LogLevel::Info, QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "");
+            logAppend(LogLevel::Info,
+                      QString("log saved to <a href='%1'>%2</a>").arg(fileUrl.toString(), fileUrl.toString()), "");
             // logging
             QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
             qDebug() << QString("[%1] log saved to %2").arg(timestamp, filePath);
@@ -174,7 +175,8 @@ void LogModule::linkClick(const QUrl &customUrl) const {
     const QString scheme = customUrl.scheme();
     if (scheme == "request.expand") {
         const QStringList arguments = customUrl.path().split('/');
-        const auto data = QString::fromUtf8(QByteArray::fromBase64(arguments[1].toLatin1(), QByteArray::Base64UrlEncoding));
+        const auto data = QString::fromUtf8(
+            QByteArray::fromBase64(arguments[1].toLatin1(), QByteArray::Base64UrlEncoding));
         m_textView->setProperty("position", QCursor::pos());
         m_textView->setProperty("data", data);
         QMetaObject::invokeMethod(m_textView, "open");

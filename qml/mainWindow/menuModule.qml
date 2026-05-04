@@ -119,13 +119,19 @@ Item {
         }
 
         Button {
+            id: themeButton
             checkable: true
-            checked: true
             flat: true
             text: "theme switch"
             Layout.preferredHeight: 24
 
-            onToggled: global.theme = checked ? 0 : 1
+            Component.onCompleted: {
+                themeButton.checked = global.theme !== 0;
+            }
+
+            onToggled: {
+                menuModule.themeSet(themeButton.checked ? 1 : 0)
+            }
         }
     }
 }

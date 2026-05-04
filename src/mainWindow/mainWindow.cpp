@@ -79,6 +79,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("mainWindow", this);
+    m_overlay->rootContext()->setContextProperty("global", m_globalManager);
     m_overlay->rootContext()->setContextProperty("breakpointModule", m_breakpointModule);
     m_overlay->rootContext()->setContextProperty("databaseModule", m_databaseModule);
     // m_overlay->rootContext()->setContextProperty("dataplotModule", m_dataplotModule);
@@ -319,7 +320,27 @@ void MainWindow::terminate() {
     close();
 }
 
+void MainWindow::themeSet(const int theme) {
+    auto mainConfig = QFile(QDir::current().filePath("config.json"));
+    if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+    auto jsonData = mainConfig.readAll();
+    mainConfig.close();
+    auto jsonDoc = QJsonDocument::fromJson(jsonData);
+    auto jsonObject = jsonDoc.object();
+    jsonObject["theme"] = theme;
+    jsonDoc = QJsonDocument(jsonObject);
+    if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
+    jsonData = jsonDoc.toJson(QJsonDocument::Indented);
+    mainConfig.write(jsonData);
+    mainConfig.close();
+    // restart main process
+    QProcess::startDetached(QCoreApplication::applicationFilePath());
+    g_terminating = true;
+    QApplication::quit();
+}
+
 void MainWindow::workspaceOpen() {
+    // ask for new workspace location
     const QString workspaceDir = QFileDialog::getExistingDirectory(
         g_mainWindow,
         tr("Open Workspace"),
@@ -334,14 +355,17 @@ void MainWindow::workspaceOpen() {
     workspaceSave();
     g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     // write to main config
-    const QJsonObject json{
-        {"version", "1.0.0"},
-        {"workspace", g_workspaceUrl.toString()},
-    };
-    const QJsonDocument doc(json);
-    QFile mainConfig(QDir::current().filePath("config.json"));
-    mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-    mainConfig.write(doc.toJson(QJsonDocument::Indented));
+    auto mainConfig = QFile(QDir::current().filePath("config.json"));
+    if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+    auto jsonData = mainConfig.readAll();
+    mainConfig.close();
+    auto jsonDoc = QJsonDocument::fromJson(jsonData);
+    auto jsonObject = jsonDoc.object();
+    jsonObject["workspace"] = g_workspaceUrl.toString();
+    jsonDoc = QJsonDocument(jsonObject);
+    if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
+    jsonData = jsonDoc.toJson(QJsonDocument::Indented);
+    mainConfig.write(jsonData);
     mainConfig.close();
     // restart main process
     QProcess::startDetached(QCoreApplication::applicationFilePath());
@@ -388,6 +412,7 @@ void MainWindow::moduleInit() {
     m_configManager = new ConfigManager(this);
     m_globalManager = new GlobalManager(this);
     m_luals = new LuaLanguageServer(this);
+    g_global = m_globalManager;
 
     m_breakpointModule = new BreakpointModule();
     m_databaseModule = new DatabaseModule();
@@ -412,7 +437,6 @@ void MainWindow::moduleInit() {
     m_watchModule = new WatchModule();
 
     m_mainConfig = g_workspaceConfig["mainConfig"].toObject();
-    g_global = m_globalManager;
     g_database = m_databaseModule;
     g_dataplot = m_dataplotModule;
     g_datatable = m_datatableModule;
@@ -425,8 +449,6 @@ void MainWindow::moduleInit() {
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
 
     connect(m_configManager, &ConfigManager::appendLog, m_logModule, &LogModule::logAppend);
-
-    connect(m_globalManager, &GlobalManager::changeTheme, m_logModule, &LogModule::themeChange);
 
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_documentModule, &DocumentModule::diagnosticsNotification);
     connect(m_luals, &LuaLanguageServer::notificationPublishDiagnostics, m_diagnosticsModule, &DiagnosticsModule::diagnosticsNotification);
@@ -488,6 +510,8 @@ void MainWindow::moduleInit() {
     connect(m_gitModule, &GitModule::initGit, m_explorerModule, &ExplorerModule::gitInit);
     connect(m_gitModule, &GitModule::initGit, m_menuModule, &MenuModule::gitInit);
     connect(m_gitModule, &GitModule::undateGit, m_explorerModule, &ExplorerModule::gitUpdate);
+
+    connect(m_menuModule, &MenuModule::setTheme, this, &MainWindow::themeSet);
 
     connect(m_nuspellModule, &NuspellModule::responseSpellCheck, m_documentModule, &DocumentModule::spellCheckResponse);
 

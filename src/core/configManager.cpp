@@ -22,13 +22,12 @@ int ConfigManager::mainConfigLoad() {
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "main config not found");
     }
-    QFile mainConfig(QDir::current().filePath("config.json"));
+    auto mainConfig = QFile(QDir::current().filePath("config.json"));
     if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return 1;
-    const QByteArray jsonData = mainConfig.readAll();
+    auto jsonData = mainConfig.readAll();
     mainConfig.close();
-    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-    if (!jsonDoc.isObject()) return 1;
-    const QJsonObject jsonObject = jsonDoc.object();
+    auto jsonDoc = QJsonDocument::fromJson(jsonData);
+    auto jsonObject = jsonDoc.object();
     auto workspaceUrlStr = jsonObject.value("workspace").toString();
     auto workspaceUrl = QUrl(workspaceUrlStr);
     if (workspaceUrlStr.isEmpty() || !QFileInfo::exists(workspaceUrl.toLocalFile())) {
@@ -43,15 +42,14 @@ int ConfigManager::mainConfigLoad() {
         }
         workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     }
-    const QJsonObject json{
-        {"version", "1.0.0"},
-        {"workspace", workspaceUrl.toString()},
-    };
-    const QJsonDocument doc(json);
+    jsonObject["workspace"] = workspaceUrl.toString();
+    jsonDoc = QJsonDocument(jsonObject);
     if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return 1;
-    mainConfig.write(doc.toJson(QJsonDocument::Indented));
+    jsonData = jsonDoc.toJson(QJsonDocument::Indented);
+    mainConfig.write(jsonData);
     mainConfig.close();
 
+    g_theme = jsonObject["theme"].toInt();
     g_workspaceUrl = workspaceUrl;
 
     // check if git is installed
@@ -213,6 +211,7 @@ void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {
 void ConfigManager::mainConfigGenerate() {
     if (QFile mainConfig(QDir::current().filePath("config.json")); mainConfig.open(QIODevice::WriteOnly | QIODevice::Text)) {
         const QJsonObject json{
+            {"theme", 0},
             {"version", "1.0.0"},
             {"workspace", ""}
         };

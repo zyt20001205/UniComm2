@@ -26,8 +26,14 @@ Item {
             border.width: 3
         }
 
-        RowLayout {
+        ColumnLayout {
             anchors.centerIn: parent
+
+            Label {
+                text: Application.styleHints.colorScheme === Qt.Light ? "Light" : "Dark"
+                color: "#c50f1f"
+                font.pointSize: 16
+            }
 
             Label {
                 id: debugWidgetCount
@@ -709,7 +715,6 @@ Item {
         property int datatableIndex
         property string datatableKey
 
-
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
             widgetCount += 1
@@ -942,7 +947,6 @@ Item {
         width: 600
         modal: true
         title: qsTr("Save and Exit")
-
         standardButtons: Dialog.Yes | Dialog.No
         property string documentUrl
         property string documentName
@@ -1824,7 +1828,6 @@ Item {
         title: qsTr("New File")
         standardButtons: Dialog.Ok | Dialog.Cancel
         property string documentUrl
-
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)

@@ -20,8 +20,6 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void themeChange();
-
     void logConfigSave() const;
 
     void logFontReload(const QJsonObject &fontConfigLog) const;

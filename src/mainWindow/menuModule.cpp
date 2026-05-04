@@ -19,6 +19,7 @@ MenuModule::~MenuModule() {
 }
 
 void MenuModule::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("menuModule", this);
     rootContext()->setContextProperty("global", objects["global"]);
     rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["menuModuleFileMenu"]));
     rootContext()->setContextProperty("editMenu", qvariant_cast<QObject *>(objects["menuModuleEditMenu"]));
@@ -28,7 +29,6 @@ void MenuModule::propertySet(const QVariantMap &objects) {
     rootContext()->setContextProperty("execMenu", qvariant_cast<QObject *>(objects["menuModuleExecMenu"]));
     rootContext()->setContextProperty("gitMenu", qvariant_cast<QObject *>(objects["menuModuleGitMenu"]));
 
-    rootContext()->setContextProperty("menuModule", this);
     setSource(QUrl("qrc:/qml/mainWindow/menuModule.qml"));
     m_root = rootObject();
     m_root->setProperty("gitEnabled", g_gitEnabled);
@@ -37,4 +37,8 @@ void MenuModule::propertySet(const QVariantMap &objects) {
 
 void MenuModule::gitInit(const bool status) const {
     m_root->setProperty("gitEnabled", status);
+}
+
+void MenuModule::themeSet(const int theme) {
+    emit setTheme(theme);
 }

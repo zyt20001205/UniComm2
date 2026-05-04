@@ -8,6 +8,7 @@
 // public
 GlobalManager::GlobalManager(QWidget *parent)
     : QObject(parent),
+      m_theme(g_theme),
       m_palette({
           {"lightFore", "#242424"},
           {"darkFore", "#ffffff"},
@@ -69,10 +70,13 @@ GlobalManager::GlobalManager(QWidget *parent)
           "QMainWindow { background-color: " + m_palette["lightBack"] + "; }"
           + "QScrollBar:horizontal { background-color: transparent; height: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; background: none; }"
-          + "QScrollBar:vertical { background-color: " + m_palette["lightBackHover"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar:vertical { background-color: " + m_palette["lightBackHover"] +
+          "; border-radius: 3px; margin: 2px; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
-          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette["lightBackHover"] + "; border-radius: 3px; margin: 2px; }"
-          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["lightBackPressed"] + "; }"
+          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette[
+              "lightBackHover"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " +
+          m_palette["lightBackPressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["lightBack"] + "; }"
 
           + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["lightFore"] +
@@ -89,10 +93,13 @@ GlobalManager::GlobalManager(QWidget *parent)
           "QMainWindow { background-color: " + m_palette["darkBack"] + "; }"
           + "QScrollBar:horizontal { background-color: transparent; height: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; background: none; }"
-          + "QScrollBar:vertical { background-color: " + m_palette["darkBackHover"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar:vertical { background-color: " + m_palette["darkBackHover"] +
+          "; border-radius: 3px; margin: 2px; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
-          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette["darkBackHover"] + "; border-radius: 3px; margin: 2px; }"
-          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["darkBackPressed"] + "; }"
+          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette[
+              "darkBackHover"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " +
+          m_palette["darkBackPressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["darkBack"] + "; }"
 
           + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["darkFore"] +
@@ -109,19 +116,4 @@ GlobalManager::GlobalManager(QWidget *parent)
     else QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
     qApp->setStyleSheet(m_styleSheet[m_theme]);
     KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(m_theme));
-}
-
-int GlobalManager::themeGet() const {
-    return m_theme;
-}
-
-void GlobalManager::themeSet(const int status) {
-    if (m_theme != status) {
-        m_theme = status;
-        if (status == Theme::Light) QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
-        else QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
-        qApp->setStyleSheet(m_styleSheet[status]);
-        KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(status));
-        emit changeTheme();
-    }
 }
