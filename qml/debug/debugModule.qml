@@ -164,19 +164,22 @@ Item {
             model: standardItemModel
             contentWidth: width
 
-            Rectangle {
-                anchors.fill: parent
-                color: "#e0e0e0"
-                z: -1
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
             }
 
-            delegate: Rectangle {
-                id: textCell
-                required property int column
-                required property int row
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
 
+            delegate: Item {
                 implicitWidth: {
-                    if (textCell.column === tableView.columns - 1) {
+                    if (column === tableView.columns - 1) {
                         let usedWidth = 0
                         for (let i = 0; i < tableView.columns - 1; i++) {
                             usedWidth += tableView.columnWidth(i)
@@ -186,36 +189,18 @@ Item {
                     return Math.max(textMetrics.width + 16, 60)
                 }
                 implicitHeight: 24
-                color: "white"
+                required property int column
+                required property int row
 
-                TextMetrics {
-                    id: textMetrics
-                    font.family: "Segoe UI"
-                    font.pointSize: 10
-                    text: model.display || ""
-                }
-
-                Text {
+                Rectangle {
                     anchors.fill: parent
-                    z: 2
-                    font.family: "Segoe UI"
-                    font.pointSize: 10
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
-                    text: model.display
-                    elide: Text.ElideRight
-
-                    ToolTip.visible: hoverHandler.hovered
-                    ToolTip.delay: 500
-                    ToolTip.text: qsTr("Click to view")
+                    color: global.back
                 }
 
                 Rectangle {
-                    id: highlightRect
                     anchors.fill: parent
-                    z: 1
-                    radius: 2
-                    color: "#ebebeb"
+                    radius: 6
+                    color: global.backHover
                     opacity: hoverHandler.hovered ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
@@ -224,13 +209,28 @@ Item {
                     }
                 }
 
+                TextMetrics {
+                    id: textMetrics
+                    font: label.font
+                    text: model.display || ""
+                }
+
+                Label {
+                    id: label
+                    anchors.fill: parent
+                    leftPadding: 6
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.display
+                    elide: Text.ElideRight
+                }
+
                 HoverHandler {
                     id: hoverHandler
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    onTapped: tableView.markerAdd(textCell.row)
+                    onTapped: tableView.markerAdd(row)
                 }
             }
 
