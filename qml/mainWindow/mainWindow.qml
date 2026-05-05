@@ -2774,10 +2774,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/cut.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2803,10 +2804,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/copy.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2832,10 +2834,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/paste.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2862,10 +2865,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/search.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2889,10 +2893,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/replace.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -3078,10 +3083,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/arrowLeft.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -3113,10 +3119,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/arrowRight.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -3146,7 +3153,23 @@ Item {
         MenuItem {
             id: menuModuleNavMenuNavigateDefinitionItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
-            text: qsTr("Definition(s)")
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Item {
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                }
+
+                Label {
+                    text: qsTr("Definition(s)")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
 
             onTriggered: documentModule.definitionRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
         }
@@ -3154,7 +3177,23 @@ Item {
         MenuItem {
             id: menuModuleNavMenuNavigateReferenceItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
-            text: qsTr("Reference(s)")
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Item {
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                }
+
+                Label {
+                    text: qsTr("Reference(s)")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
 
             onTriggered: documentModule.referencesRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
         }
@@ -3162,7 +3201,23 @@ Item {
         MenuItem {
             id: menuModuleNavMenuNavigateImplementationItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
-            text: qsTr("Implementation(s)")
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Item {
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                }
+
+                Label {
+                    text: qsTr("Implementation(s)")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
 
             onTriggered: documentModule.implementationRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
         }
@@ -3170,7 +3225,23 @@ Item {
         MenuItem {
             id: menuModuleNavMenuNavigateTypeDefinitionItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
-            text: qsTr("Type Definition(s)")
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                Item {
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                }
+
+                Label {
+                    text: qsTr("Type Definition(s)")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
 
             onTriggered: documentModule.typeDefinitionRequest(menuModuleNavMenu.menuSession.documentUrl, menuModuleNavMenu.menuSession.line, menuModuleNavMenu.menuSession.character)
         }
@@ -3195,8 +3266,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Item {
-                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
+                IconImage {
+                    source: "qrc:/icon/completion.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -3230,10 +3304,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/brush.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -3316,10 +3391,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/play.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.successFore3
                 }
 
                 Label {
@@ -3359,10 +3435,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/bug.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.successFore3
                 }
 
                 Label {
@@ -3425,10 +3502,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/commit.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
