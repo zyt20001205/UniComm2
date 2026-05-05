@@ -21,6 +21,7 @@
 #include "api/smtp.h"
 #include "api/string.h"
 #include "api/thread.h"
+#include "core/globalManager.h"
 #include "document/documentModule.h"
 #include "util/luaUtils.h"
 #include "util/uniCast.h"
@@ -420,6 +421,11 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
             currentUrl = QUrl::fromLocalFile(QString::fromUtf8(ar->source + 1));
         }
         const int currentLine = ar->currentline;
+        // watch refresh
+        if (g_global->refreshGet()) {
+            watchSet(L, ar);
+            g_global->refreshSet(false);
+        }
         // debug state machine
         if (session["state"].toInt() == Debug::Resume && g_breakpoints.contains(currentUrl.toString())) {
             if (g_breakpoints[currentUrl].contains(currentLine)) {

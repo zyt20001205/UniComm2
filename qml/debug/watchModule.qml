@@ -1,11 +1,25 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
     property bool modelVisible: standardItemModel.rowCount() > 0
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
+    Timer {
+        id: refreshTimer
+        interval: 1000
+        repeat: true
+
+        onTriggered: global.refresh = true
+    }
 
     Item {
         anchors.fill: parent
@@ -20,10 +34,54 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            Image {
+            IconImage {
                 source: "qrc:/icon/eye.svg"
+                color: global.fore
                 Layout.alignment: Qt.AlignVCenter
             }
+        }
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 4
+
+        RowLayout {
+
+            Button {
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                checkable: true
+                icon.source: "qrc:/icon/arrowRepeat.svg"
+                icon.width: 16; icon.height: 16
+
+                onToggled: {
+                    console.log(checked)
+                    if (checked) {
+                        refreshTimer.start()
+                    } else {
+                        refreshTimer.stop()
+                    }
+                }
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = parent.checked ? qsTr("Disable Refresh") : qsTr("Enable Refresh")
+                    }
+                }
+            }
+        }
+
+        Loader {
+            id: tableLoader
+            Layout.fillWidth: true; Layout.fillHeight: true
+            sourceComponent: tableComponent
         }
     }
 
@@ -49,11 +107,12 @@ Item {
 
                     contentItem: Rectangle {
                         width: 24; height: 24
-                        color: "white"
+                        color: global.back
 
-                        Image {
-                            width: 16; height: 16
+                        IconImage {
                             anchors.centerIn: parent
+                            width: 16; height: 16
+                            color: global.fore
                             source: "qrc:/icon/drag.svg"
                         }
                     }
@@ -66,8 +125,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                    color: global.stroke
                 }
 
                 Timer {
@@ -108,14 +166,20 @@ Item {
                 model: standardItemModel
                 contentWidth: width
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
                 }
 
-                delegate: Rectangle {
-                    color: "white"
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.stroke
+                }
+
+                delegate: Item {
                     implicitWidth: {
                         if (column === tableView.columns - 1) {
                             let usedWidth = 0
@@ -133,8 +197,13 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
+                        color: global.back
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
                         radius: 6
-                        color: "#ebebeb"
+                        color: global.backHover
                         opacity: {
                             if (column === 0 && hoverHandler.hovered) {
                                 return 1
@@ -165,10 +234,6 @@ Item {
                         text: model.display
                         elide: Text.ElideRight
 
-                        ToolTip.visible: hoverHandler.hovered
-                        ToolTip.delay: 500
-                        ToolTip.text: model.whatsThis
-
                         onTextChanged: {
                             if (column === 1) {
                                 valueChanged = true
@@ -194,18 +259,15 @@ Item {
 
                         onTapped: {
                             if (column === 0) {
-                                expressionMenu.watchIndex = row
-                                const index = tableView.index(row, 0);
-                                expressionMenu.watchUrl = tableView.model.data(index, Qt.WhatsThisRole)
-                                expressionMenu.watchExpression = tableView.model.data(index, Qt.DisplayRole)
+                                expressionMenu.watchUrl = model.whatsThis
+                                expressionMenu.watchExpression = model.display
                                 expressionMenu.popup()
                             } else if (column === 1) {
                                 const expressionIndex = tableView.index(row, 0);
                                 valueMenu.watchUrl = tableView.model.data(expressionIndex, Qt.WhatsThisRole)
                                 valueMenu.watchExpression = tableView.model.data(expressionIndex, Qt.DisplayRole)
-                                const valueIndex = tableView.index(row, 1);
-                                valueMenu.currentValue = tableView.model.data(valueIndex, Qt.DisplayRole)
-                                valueMenu.currentType = tableView.model.data(valueIndex, Qt.WhatsThisRole)
+                                valueMenu.currentValue = model.display
+                                valueMenu.currentType = model.whatsThis
                                 valueMenu.popup()
                             }
                         }
@@ -219,12 +281,6 @@ Item {
                 }
             }
         }
-    }
-
-    Loader {
-        id: tableLoader
-        anchors.fill: parent
-        sourceComponent: tableComponent
     }
 
     Connections {

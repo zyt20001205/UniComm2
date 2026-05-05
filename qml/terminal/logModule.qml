@@ -31,7 +31,7 @@ Item {
                 icon.source: "qrc:/icon/clock.svg"
                 icon.width: 16; icon.height: 16
 
-                onClicked: logModule.timestampToggle(checked)
+                onToggled: logModule.timestampToggle(checked)
 
                 HoverHandler {
                     onHoveredChanged: {
@@ -54,7 +54,7 @@ Item {
                 icon.source: "qrc:/icon/wrap.svg"
                 icon.width: 16; icon.height: 16
 
-                onClicked: logModule.wrapToggle(checked)
+                onToggled: logModule.wrapToggle(checked)
 
                 HoverHandler {
                     onHoveredChanged: {

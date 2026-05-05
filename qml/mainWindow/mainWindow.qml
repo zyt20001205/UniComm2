@@ -2577,7 +2577,6 @@ Item {
         }
         onClosed: widgetCount -= 1
 
-
         MenuItem {
             id: menuModuleFileMenuOpenWorkspaceItem
 
@@ -2585,10 +2584,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/open.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2619,10 +2619,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/save.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2653,10 +2654,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
-                    source: "qrc:/icon/save.svg"
+                IconImage {
+                    source: "qrc:/icon/saveAs.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2709,10 +2711,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/undo.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {
@@ -2738,10 +2741,11 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Image {
+                IconImage {
                     source: "qrc:/icon/redo.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
+                    color: global.fore
                 }
 
                 Label {

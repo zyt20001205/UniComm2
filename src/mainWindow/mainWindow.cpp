@@ -271,6 +271,8 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_threadpoolModule->propertySet(threadpoolObjects);
 
     const QVariantMap watchObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"watchModuleExpressionMenu", objects["watchModuleExpressionMenu"]},
         {"watchModuleValueMenu", objects["watchModuleValueMenu"]},
         {"watchModuleRootMenu", objects["watchModuleRootMenu"]}

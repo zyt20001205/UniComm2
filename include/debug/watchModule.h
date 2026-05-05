@@ -15,19 +15,17 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void watchConfigSave() const;
+    static void watchConfigSave() ;
 
-    Q_INVOKABLE void watchInsert(int index, const QUrl &documentUrl, const QString &expression);
+    Q_INVOKABLE static void watchInsert(int index, const QUrl &documentUrl, const QString &expression);
 
-    Q_INVOKABLE void watchRemove(int index);
+    Q_INVOKABLE static void watchRemove(int index);
 
-    Q_INVOKABLE void watchRename(int index, const QUrl &documentUrl, const QString &expression);
+    Q_INVOKABLE static void watchRename(int index, const QUrl &documentUrl, const QString &expression);
 
-    Q_INVOKABLE void watchSwap(int src, int dst);
+    Q_INVOKABLE void watchSwap(int src, int dst) const;
 
-    Q_INVOKABLE void watchClear(int index);
-
-signals:
+    Q_INVOKABLE static void watchClear(int index);
 
 private:
     QQuickWidget *m_widget{};

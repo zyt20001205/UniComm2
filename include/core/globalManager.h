@@ -40,6 +40,9 @@ class GlobalManager final : public QObject {
     Q_PROPERTY(QString dangerFore3 READ dangerFore3Get CONSTANT)
     Q_PROPERTY(QString dangerBack3 READ dangerBack3Get CONSTANT)
 
+    // watch module
+    Q_PROPERTY(bool refresh READ refreshGet WRITE refreshSet)
+
 public:
     explicit GlobalManager(QWidget *parent = nullptr);
 
@@ -145,10 +148,19 @@ public:
         return m_theme == Theme::Light ? m_palette["lightDangerBack3"] : m_palette["darkDangerBack3"];
     }
 
+    [[nodiscard]] bool refreshGet() const {
+        return m_refresh;
+    }
+
+    void refreshSet(const bool refresh) {
+        m_refresh = refresh;
+    }
+
 private:
     int m_theme{};
     QHash<QString, QString> m_palette{};
     QStringList m_styleSheet{};
+    bool m_refresh{};
 };
 
 #endif //UNICOMM_GLOBALMANAGER_H
