@@ -8,7 +8,7 @@
 // public
 GlobalManager::GlobalManager(QWidget *parent)
     : QObject(parent),
-      m_theme(g_theme),
+      m_theme(g_mainConfig["theme"].toInt()),
       m_palette({
           {"lightFore", "#242424"},
           {"darkFore", "#ffffff"},

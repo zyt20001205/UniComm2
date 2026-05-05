@@ -30,9 +30,9 @@ extern DocumentModule *g_document;
 extern UndoModule *g_undo;
 
 extern bool g_terminating;
-extern int g_theme;
 extern QUrl g_workspaceUrl;
 extern bool g_gitEnabled;
+extern QJsonObject g_mainConfig;
 extern QJsonObject g_workspaceConfig;
 
 extern ViSession g_rm;
@@ -155,6 +155,15 @@ namespace LuaTokenType {
 
 namespace CustomStyle {
     enum {
+        Default = 32,
+        LineNumber,
+        BraceLight,
+        BraceBad,
+        ControlChar,
+        IndentGuide,
+        CallTip,
+        FoldDisplayText,
+        LastPredefined,
         Annotation = 40
     };
 }

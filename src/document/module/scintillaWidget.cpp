@@ -52,6 +52,12 @@ void ScintillaWidget::savepointSet() const {
     send(SCI_SETSAVEPOINT); // NOLINT
 }
 
+// color
+int ScintillaWidget::colorGet(const QString &color) {
+    const auto _color = QColor(color);
+    return _color.red() | _color.green() << 8 | _color.blue() << 16;
+}
+
 // public: annotation
 void ScintillaWidget::annotationClear() const {
     send(SCI_ANNOTATIONCLEARALL); // NOLINT
@@ -201,7 +207,7 @@ void ScintillaWidget::marginDefine(const int type, const QJsonObject &config) co
     if (config.contains("mask")) send(SCI_SETMARGINMASKN, type, config["mask"].toInt()); // NOLINT
     if (config.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, type, config["sensitive"].toBool()); // NOLINT
     // if (config.contains("cursor")) send(SCI_SETMARGINCURSORN, type, config["cursor"].toInt()); // NOLINT
-    // if (config.contains("back")) send(SCI_SETMARGINBACKN, type, config["back"].toInt()); // NOLINT
+    if (config.contains("back")) send(SCI_SETMARGINBACKN, type, config["back"].toInt()); // NOLINT
     // if (config.contains("left")) send(SCI_SETMARGINLEFT, type, config["left"].toInt()); // NOLINT
     // if (config.contains("right")) send(SCI_SETMARGINRIGHT, type, config["right"].toInt()); // NOLINT
     // if (config.contains("text")) send(SCI_MARGINSETTEXT, type, reinterpret_cast<sptr_t>(config["text"].toString().toUtf8().constData())); // NOLINT
@@ -363,7 +369,7 @@ void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) con
     // if (config.contains("italic")) send(SCI_STYLESETITALIC, type, config["italic"].toBool()); // NOLINT
     // if (config.contains("underline")) send(SCI_STYLESETUNDERLINE, type, config["underline"].toBool()); // NOLINT
     if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT    if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT
-    // if (config.contains("back")) send(SCI_STYLESETBACK, type, config["back"].toInt()); // NOLINT
+    if (config.contains("back")) send(SCI_STYLESETBACK, type, config["back"].toInt()); // NOLINT
     // if (config.contains("eolFilled")) send(SCI_STYLESETEOLFILLED, type, config["eolFilled"].toBool()); // NOLINT
     // if (config.contains("characterSet")) send(SCI_STYLESETCHARACTERSET, type, config["characterSet"].toInt()); // NOLINT
     // if (config.contains("case")) send(SCI_STYLESETCASE, type, config["case"].toInt()); // NOLINT

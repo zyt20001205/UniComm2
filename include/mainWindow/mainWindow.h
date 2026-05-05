@@ -52,7 +52,7 @@ public:
 
     Q_INVOKABLE void terminate();
 
-    Q_INVOKABLE static void themeSet(int theme);
+    Q_INVOKABLE void themeSet(int theme);
 
     Q_INVOKABLE void workspaceOpen();
 

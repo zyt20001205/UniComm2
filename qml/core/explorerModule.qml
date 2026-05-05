@@ -47,7 +47,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: global.backSelected
+                color: global.backHover
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
@@ -59,7 +59,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: treeView.selectedRow === row ? global.backHover : "transparent"
+                color: treeView.selectedRow === row ? global.backSelected : "transparent"
             }
 
             RowLayout {

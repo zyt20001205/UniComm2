@@ -49,7 +49,7 @@ int ConfigManager::mainConfigLoad() {
     mainConfig.write(jsonData);
     mainConfig.close();
 
-    g_theme = jsonObject["theme"].toInt();
+    g_mainConfig = jsonObject;
     g_workspaceUrl = workspaceUrl;
 
     // check if git is installed

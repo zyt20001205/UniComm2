@@ -15,6 +15,7 @@ bool g_terminating = false;
 int g_theme = {};
 QUrl g_workspaceUrl = {};
 bool g_gitEnabled = false;
+QJsonObject g_mainConfig = {};
 QJsonObject g_workspaceConfig = {};
 
 ViSession g_rm = VI_NULL;

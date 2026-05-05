@@ -228,6 +228,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_menuModule->propertySet(menuObjects);
 
     const QVariantMap portObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"portModuleTableMenu", objects["portModuleTableMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
@@ -323,16 +324,13 @@ void MainWindow::terminate() {
 }
 
 void MainWindow::themeSet(const int theme) {
+    workspaceSave();
+    // write to main config
+    g_mainConfig["theme"] = theme;
+    const auto jsonDoc = QJsonDocument(g_mainConfig);
     auto mainConfig = QFile(QDir::current().filePath("config.json"));
-    if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return;
-    auto jsonData = mainConfig.readAll();
-    mainConfig.close();
-    auto jsonDoc = QJsonDocument::fromJson(jsonData);
-    auto jsonObject = jsonDoc.object();
-    jsonObject["theme"] = theme;
-    jsonDoc = QJsonDocument(jsonObject);
     if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
-    jsonData = jsonDoc.toJson(QJsonDocument::Indented);
+    const auto jsonData = jsonDoc.toJson(QJsonDocument::Indented);
     mainConfig.write(jsonData);
     mainConfig.close();
     // restart main process
@@ -343,30 +341,25 @@ void MainWindow::themeSet(const int theme) {
 
 void MainWindow::workspaceOpen() {
     // ask for new workspace location
-    const QString workspaceDir = QFileDialog::getExistingDirectory(
+    const auto workspaceDir = QFileDialog::getExistingDirectory(
         g_mainWindow,
         tr("Open Workspace"),
         QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
     if (workspaceDir.isEmpty()) return;
-    if (g_workspaceUrl == QUrl::fromLocalFile(workspaceDir)) {
+    const auto workspaceUrl = QUrl::fromLocalFile(workspaceDir);
+    if (g_workspaceUrl == workspaceUrl) {
         qDebug() << "same as prev workspace";
         return;
     }
     workspaceSave();
-    g_workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     // write to main config
+    g_mainConfig["workspace"] = workspaceUrl.toString();
+    const auto jsonDoc = QJsonDocument(g_mainConfig);
     auto mainConfig = QFile(QDir::current().filePath("config.json"));
-    if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return;
-    auto jsonData = mainConfig.readAll();
-    mainConfig.close();
-    auto jsonDoc = QJsonDocument::fromJson(jsonData);
-    auto jsonObject = jsonDoc.object();
-    jsonObject["workspace"] = g_workspaceUrl.toString();
-    jsonDoc = QJsonDocument(jsonObject);
     if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return;
-    jsonData = jsonDoc.toJson(QJsonDocument::Indented);
+    const auto jsonData = jsonDoc.toJson(QJsonDocument::Indented);
     mainConfig.write(jsonData);
     mainConfig.close();
     // restart main process

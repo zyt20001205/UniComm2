@@ -45,11 +45,12 @@ PortModule::~PortModule() {
 }
 
 void PortModule::propertySet(const QVariantMap &objects) {
+    m_widget->rootContext()->setContextProperty("portModule", this);
+    m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["portModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["portModuleRootMenu"]));
-
-    m_widget->rootContext()->setContextProperty("portModule", this);
     m_widget->rootContext()->setContextProperty("standardItemModel", g_portStandardItemModel);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/port/portModule.qml"));
     m_rootItem = m_widget->rootObject();

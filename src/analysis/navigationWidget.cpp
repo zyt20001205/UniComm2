@@ -45,17 +45,6 @@ void NavigationWidget::navigationShow(const QVariantHash &navigationSession, con
         const QJsonObject end = range["end"].toObject();
         auto *standardItem = new QStandardItem(documentUrl.fileName()); // NOLINT
         const QString type = navigationSession["type"].toString();
-        QUrl iconSource{};
-        if (type == "definition") {
-            iconSource = "qrc:/icon/definition.svg";
-        } else if (type == "implementation") {
-            iconSource = "qrc:/icon/implementation.svg";
-        } else if (type == "reference") {
-            iconSource = "qrc:/icon/reference.svg";
-        } else if (type == "typeDefinition") {
-            iconSource = "qrc:/icon/typeDefinition.svg";
-        }
-        standardItem->setData(iconSource, Qt::DecorationRole);
         standardItem->setData(QVariantHash({
                                   {"documentUrl", documentUrl},
                                   {"startLine", start["line"].toInt()},

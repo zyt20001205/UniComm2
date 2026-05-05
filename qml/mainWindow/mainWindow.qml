@@ -22,7 +22,7 @@ Item {
         Rectangle {
             anchors.fill: parent
             color: "transparent"
-            border.color: "#c50f1f"
+            border.color: global.dangerFore3
             border.width: 3
         }
 
@@ -31,13 +31,13 @@ Item {
 
             Label {
                 text: Application.styleHints.colorScheme === Qt.Light ? "Light" : "Dark"
-                color: "#c50f1f"
+                color: global.dangerFore3
                 font.pointSize: 16
             }
 
             Label {
                 id: debugWidgetCount
-                color: "#c50f1f"
+                color: global.dangerFore3
                 font.pointSize: 16
             }
         }
@@ -1197,6 +1197,10 @@ Item {
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
             }
 
             delegate: Item {
@@ -1206,7 +1210,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
-                    color: "#ebebeb"
+                    color: global.backHover
                     opacity: hoverHandler.hovered ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
@@ -1218,7 +1222,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
-                    color: documentModuleCompletionTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                    color: documentModuleCompletionTableView.selectedRow === row ? global.backSelected : "transparent"
                 }
 
                 TextMetrics {
@@ -1234,17 +1238,18 @@ Item {
                     Item {
                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                        Image {
+                        IconImage {
                             anchors.centerIn: parent
                             width: 16; height: 16
                             source: model.decoration
+                            color: global.fore
                         }
                     }
 
                     Label {
                         font: documentModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display ? "<span style='color: #115ea3;'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed) : ""
+                        text: model.display ? "<span style='color: " + global.brandFore + ";'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed) : ""
                         textFormat: Text.RichText
                         elide: Text.ElideRight
                         Layout.fillWidth: true; Layout.preferredHeight: 24
@@ -1628,7 +1633,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
-                    color: "#ebebeb"
+                    color: global.backHover
                     opacity: hoverHandler.hovered ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
@@ -1640,7 +1645,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
-                    color: documentModuleNavigationTableView.selectedRow === row ? "#e0e0e0" : "transparent"
+                    color: documentModuleNavigationTableView.selectedRow === row ? global.backSelected : "transparent"
                 }
 
                 TextMetrics {
@@ -1652,16 +1657,6 @@ Item {
                 RowLayout {
                     anchors.fill: parent
                     spacing: 0
-
-                    Item {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                        Image {
-                            anchors.centerIn: parent
-                            width: 8; height: 8
-                            source: model.decoration
-                        }
-                    }
 
                     Label {
                         font: documentModuleNavigationToolTip.font
@@ -2386,7 +2381,7 @@ Item {
             }
 
             Rectangle {
-                color: "#333333"
+                color: global.stroke
                 Layout.fillWidth: true; Layout.preferredHeight: 1
             }
 
@@ -2417,7 +2412,7 @@ Item {
             }
 
             Rectangle {
-                color: "#333333"
+                color: global.stroke
                 Layout.fillWidth: true; Layout.preferredHeight: 1
             }
 
@@ -2461,7 +2456,7 @@ Item {
             }
 
             Rectangle {
-                color: "#333333"
+                color: global.stroke
                 Layout.fillWidth: true; Layout.preferredHeight: 1
             }
 

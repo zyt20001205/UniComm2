@@ -31,6 +31,8 @@ public:
 
     void savepointSet() const;
 
+    [[nodiscard]] static int colorGet(const QString &color);
+
     void annotationClear() const;
 
     void annotationSet(int line, const QString &annotation) const;

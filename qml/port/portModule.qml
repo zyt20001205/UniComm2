@@ -1,11 +1,17 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
     property bool modelVisible: standardItemModel.rowCount() > 0
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     Item {
         anchors.fill: parent
@@ -47,11 +53,12 @@ Item {
 
                     contentItem: Rectangle {
                         width: 32; height: 32
-                        color: "white"
+                        color: global.back
 
-                        Image {
+                        IconImage {
                             width: 16; height: 16
                             anchors.centerIn: parent
+                            color: global.fore
                             source: "qrc:/icon/drag.svg"
                         }
                     }
@@ -64,8 +71,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
+                    color: global.stroke
                 }
 
                 Timer {
@@ -105,12 +111,27 @@ Item {
                 rowSpacing: 1
                 model: standardItemModel
                 contentWidth: width
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.stroke
+                }
+
                 delegate: SwitchDelegate {
                     implicitWidth: tableView.width
                     checked: model.whatsThis
                     text: model.display
                     background: Rectangle {
-                        color: "white"
+                        anchors.fill: parent
+                        color: global.back
                     }
 
                     onClicked: portModule.portToggle(model.row)
@@ -128,12 +149,6 @@ Item {
                             tableMenu.popup()
                         }
                     }
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: "#e0e0e0"
-                    z: -1
                 }
 
                 TapHandler {

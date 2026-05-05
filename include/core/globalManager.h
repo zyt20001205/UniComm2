@@ -1,9 +1,6 @@
 #ifndef UNICOMM_GLOBALMANAGER_H
 #define UNICOMM_GLOBALMANAGER_H
 
-#include <QHash>
-#include <QObject>
-
 #include "globals.h"
 
 class GlobalManager final : public QObject {

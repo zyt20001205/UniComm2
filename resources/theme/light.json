@@ -1,0 +1,92 @@
+{
+  "marker": {
+
+  },
+  "indicator": {
+    "typo": {
+      "style": 14,
+      "fore": "0xabd180",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "hint": {
+      "style": 8,
+      "fore": "0xf5f5f5",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "info": {
+      "style": 8,
+      "fore": "0xfaf0e6",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "warning": {
+      "style": 8,
+      "fore": "0xe6f5ff",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "error": {
+      "style": 8,
+      "fore": "0xe6e6ff",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "password": {
+      "style": 8,
+      "fore": "0x000000",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true,
+      "hoverStyle": 5
+    },
+    "highlight": {
+      "style": 8,
+      "fore": "0xe0e0e0",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "read": {
+      "style": 17,
+      "fore": "0xb85f00",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "write": {
+      "style": 17,
+      "fore": "0x2828c6",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "search": {
+      "style": 8,
+      "fore": "0x7ed4fc",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "selection": {
+      "style": 8,
+      "fore": "0x3372c4",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": true
+    },
+    "hyperlink": {
+      "style": 17,
+      "fore": "0xcc6d00",
+      "alpha": 255,
+      "outlineAlpha": 255,
+      "setUnder": false
+    }
+  }
+}
