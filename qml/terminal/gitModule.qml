@@ -41,6 +41,30 @@ Item {
         anchors.fill: parent
         visible: gitEnabled
 
+        ScrollBar.vertical: ScrollBar {
+            x: parent.mirrored ? 0 : parent.width - width
+            y: parent.topPadding
+            height: parent.availableHeight
+            active: parent.ScrollBar.horizontal.active
+            policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
+        }
+
+        ScrollBar.horizontal: ScrollBar {
+            x: parent.leftPadding
+            y: parent.height - height
+            width: parent.availableWidth
+            active: parent.ScrollBar.vertical.active
+            policy: ScrollBar.AsNeeded
+            palette {
+                mid: global.stroke
+                dark: global.strokePressed
+            }
+        }
+
         TextArea {
             id: textArea
             readOnly: true

@@ -143,7 +143,7 @@ void BreakpointModule::breakpointsDelete(const QUrl &documentUrl) {
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = 0; i < indent0->rowCount(); ++i) {
         auto *indent1 = indent0->child(i);
-        if (indent1->data(Qt::WhatsThisRole).toUrl() == documentUrl) {
+        if (indent1->data(Qt::UserRole + 1).toUrl() == documentUrl) {
             for (int j = indent1->rowCount() - 1; j >= 0; --j) {
                 const auto *indent2 = indent1->child(j);
                 const auto line = indent2->text().toInt();
@@ -157,7 +157,7 @@ void BreakpointModule::allDelete() {
     const auto *indent0 = m_standardItemModel->invisibleRootItem();
     for (int i = indent0->rowCount() - 1; i >= 0; --i) {
         const auto *indent1 = indent0->child(i);
-        const auto documentUrl = indent1->data(Qt::WhatsThisRole).toUrl();
+        const auto documentUrl = indent1->data(Qt::UserRole + 1).toUrl();
         breakpointsDelete(documentUrl);
     }
 }

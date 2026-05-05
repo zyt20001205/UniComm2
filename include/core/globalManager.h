@@ -21,6 +21,7 @@ class GlobalManager final : public QObject {
 
     Q_PROPERTY(QString brandFore READ brandForeGet CONSTANT)
     Q_PROPERTY(QString brandBack READ brandBackGet CONSTANT)
+    Q_PROPERTY(QString brandLink READ brandLinkGet CONSTANT)
 
     Q_PROPERTY(QString successFore2 READ successFore2Get CONSTANT)
     Q_PROPERTY(QString successBack2 READ successBack2Get CONSTANT)
@@ -95,6 +96,10 @@ public:
 
     [[nodiscard]] QString brandBackGet() const {
         return m_theme == Theme::Light ? m_palette["lightBrandBack"] : m_palette["darkBrandBack"];
+    }
+    
+    [[nodiscard]] QString brandLinkGet() const {
+        return m_theme == Theme::Light ? m_palette["lightBrandLink"] : m_palette["darkBrandLink"];
     }
     
     [[nodiscard]] QString successFore2Get() const {

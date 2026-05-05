@@ -34,9 +34,11 @@ GlobalManager::GlobalManager(QWidget *parent)
           {"darkStrokePressed", "#6b6b6b"},
 
           {"lightBrandFore", "#ffffff"},
-          {"lightBrandBack", "#0f6cbd"},
           {"darkBrandFore", "#ffffff"},
+          {"lightBrandBack", "#0f6cbd"},
           {"darkBrandBack", "#115ea3"},
+          {"lightBrandLink", "#115ea3"},
+          {"darkBrandLink", "#479ef5"},
 
           {"lightSuccessFore2", "#094509"},
           {"darkSuccessFore2", "#9fd89f"},
