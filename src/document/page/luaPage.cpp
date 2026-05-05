@@ -380,7 +380,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         m_editorWidget->installEventFilter(this);
         m_editorWidget->viewport()->installEventFilter(this);
     }
-    themeLoad(g_mainConfig["theme"].toString());
+    themeLoad(g_mainConfig["theme"].toInt());
     // assembly init
     {
         m_assemblyWidget->hide();
@@ -530,102 +530,108 @@ void LuaPage::propertySet(const QVariantMap &objects) {
     });
 }
 
-void LuaPage::themeLoad(const QString &theme) {
-
+void LuaPage::themeLoad(const int theme) {
+    auto themeFile = QFile(QDir::current().filePath(QString("theme/%1.json").arg(QString::number(theme))));
+    if (!themeFile.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+    const auto themeData = themeFile.readAll();
+    themeFile.close();
+    const auto themeDoc = QJsonDocument::fromJson(themeData);
+    const auto themeConfig = themeDoc.object();
+    const auto styleConfig = themeConfig["style"].toObject();
     m_editorWidget->styleDefine(
         LuaTokenType::Namespace,
         QJsonObject{
-            {"fore", 0x808000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["namespace"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Class,
         QJsonObject{
-            {"fore", 0x808000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["class"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Type,
         QJsonObject{
-            {"fore", 0xb33300},
+            {"fore", ScintillaWidget::colorGet(styleConfig["type"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Parameter,
         QJsonObject{
-            {"fore", 0x000000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["parameter"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Variable,
         QJsonObject{
-            {"fore", 0x000000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["variable"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Property,
         QJsonObject{
-            {"fore", 0x7a0e66},
+            {"fore", ScintillaWidget::colorGet(styleConfig["property"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::EnumMember,
         QJsonObject{
-            {"fore", 0x941087},
-            {"back", ScintillaWidget::colorGet(g_global->backGet())}
-        });
-    m_editorWidget->styleDefine(
-        LuaTokenType::FunctionDeclaration,
-        QJsonObject{
-            {"fore", 0x7a6200},
+            {"fore", ScintillaWidget::colorGet(styleConfig["enumMember"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::FunctionCall,
         QJsonObject{
-            {"fore", 0x000000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["functionCall"].toObject()["fore"].toString())},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::FunctionDeclaration,
+        QJsonObject{
+            {"fore", ScintillaWidget::colorGet(styleConfig["functionDeclaration"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Method,
         QJsonObject{
-            {"fore", 0x000000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["method"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Macro,
         QJsonObject{
-            {"fore", 0x2e541f},
+            {"fore", ScintillaWidget::colorGet(styleConfig["macro"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Keyword,
         QJsonObject{
-            {"fore", 0xb33300},
+            {"fore", ScintillaWidget::colorGet(styleConfig["keyword"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Comment,
         QJsonObject{
-            {"fore", 0x8c8c8c},
+            {"fore", ScintillaWidget::colorGet(styleConfig["comment"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::String,
         QJsonObject{
-            {"fore", 0x177d06},
+            {"fore", ScintillaWidget::colorGet(styleConfig["string"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Number,
         QJsonObject{
-            {"fore", 0xeb5017},
+            {"fore", ScintillaWidget::colorGet(styleConfig["number"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
     m_editorWidget->styleDefine(
         LuaTokenType::Operator,
         QJsonObject{
-            {"fore", 0x000000},
+            {"fore", ScintillaWidget::colorGet(styleConfig["operator"].toObject()["fore"].toString())},
             {"back", ScintillaWidget::colorGet(g_global->backGet())}
         });
 }

@@ -22,13 +22,13 @@ int ConfigManager::mainConfigLoad() {
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
         qDebug() << QString("[%1] %2").arg(timestamp, "main config not found");
     }
-    auto mainConfig = QFile(QDir::current().filePath("config.json"));
-    if (!mainConfig.open(QIODevice::ReadOnly | QIODevice::Text)) return 1;
-    auto jsonData = mainConfig.readAll();
-    mainConfig.close();
-    auto jsonDoc = QJsonDocument::fromJson(jsonData);
-    auto jsonObject = jsonDoc.object();
-    auto workspaceUrlStr = jsonObject.value("workspace").toString();
+    auto mainFile = QFile(QDir::current().filePath("config.json"));
+    if (!mainFile.open(QIODevice::ReadOnly | QIODevice::Text)) return 1;
+    auto mainData = mainFile.readAll();
+    mainFile.close();
+    auto mainDoc = QJsonDocument::fromJson(mainData);
+    auto mainConfig = mainDoc.object();
+    auto workspaceUrlStr = mainConfig.value("workspace").toString();
     auto workspaceUrl = QUrl(workspaceUrlStr);
     if (workspaceUrlStr.isEmpty() || !QFileInfo::exists(workspaceUrl.toLocalFile())) {
         QString workspaceDir = QFileDialog::getExistingDirectory(
@@ -42,14 +42,14 @@ int ConfigManager::mainConfigLoad() {
         }
         workspaceUrl = QUrl::fromLocalFile(workspaceDir);
     }
-    jsonObject["workspace"] = workspaceUrl.toString();
-    jsonDoc = QJsonDocument(jsonObject);
-    if (!mainConfig.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return 1;
-    jsonData = jsonDoc.toJson(QJsonDocument::Indented);
-    mainConfig.write(jsonData);
-    mainConfig.close();
+    mainConfig["workspace"] = workspaceUrl.toString();
+    mainDoc = QJsonDocument(mainConfig);
+    if (!mainFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return 1;
+    mainData = mainDoc.toJson(QJsonDocument::Indented);
+    mainFile.write(mainData);
+    mainFile.close();
 
-    g_mainConfig = jsonObject;
+    g_mainConfig = mainConfig;
     g_workspaceUrl = workspaceUrl;
 
     // check if git is installed

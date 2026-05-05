@@ -1,0 +1,52 @@
+{
+  "style": {
+    "namespace": {
+      "fore": "#008080"
+    },
+    "class": {
+      "fore": "#008080"
+    },
+    "type": {
+      "fore": "#0033b3"
+    },
+    "parameter": {
+      "fore": "#000000"
+    },
+    "variable": {
+      "fore": "#000000"
+    },
+    "property": {
+      "fore": "#660e7a"
+    },
+    "enumMember": {
+      "fore": "#871094"
+    },
+    "functionCall": {
+      "fore": "#000000"
+    },
+    "functionDeclaration": {
+      "fore": "#00627a"
+    },
+    "method": {
+      "fore": "#000000"
+    },
+    "macro": {
+      "fore": "#1f542e"
+    },
+    "keyword": {
+      "fore": "#0033b3"
+    },
+    "comment": {
+      "fore": "#8c8c8c"
+    },
+    "string": {
+      "fore": "#067d17"
+    },
+    "number": {
+      "fore": "#1750eb"
+    },
+    "operator": {
+      "fore": "#000000"
+    }
+  }
+}
