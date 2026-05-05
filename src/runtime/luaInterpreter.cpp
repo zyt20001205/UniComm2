@@ -282,7 +282,6 @@ void LuaInterpreter::start(const QString &script) {
     }
     // frontend
     emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Debug, -1);
-    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Error, -1);
 
     const QString filePath = "@" + m_luaSession["documentUrl"].toUrl().toLocalFile();
     const sol::protected_function_result result = m_lua.safe_script(
@@ -296,7 +295,6 @@ void LuaInterpreter::start(const QString &script) {
     }
     // frontend
     emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Debug, -1);
-    emit deleteMarker(m_luaSession["documentUrl"].toUrl(), ScintillaMarker::Error, -1);
     // remove terminate hook
     lua_sethook(L, nullptr, 0, 0);
 }

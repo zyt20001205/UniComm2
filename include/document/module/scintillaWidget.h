@@ -33,6 +33,8 @@ public:
 
     [[nodiscard]] static int colorGet(const QString &color);
 
+    [[nodiscard]] static int colorGet(const QString &color, int alpha);
+
     void annotationClear() const;
 
     void annotationSet(int line, const QString &annotation) const;

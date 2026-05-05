@@ -91,11 +91,11 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
             m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
             for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
-                m_editorWidget->send(SCI_MARKERSETFORE, i, m_editorWidget->colorGet(g_global->backGet())); // NOLINT
-                m_editorWidget->send(SCI_MARKERSETBACK, i, m_editorWidget->colorGet(g_global->foreGet())); // NOLINT
+                m_editorWidget->send(SCI_MARKERSETFORE, i, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
+                m_editorWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->foreGet())); // NOLINT
             }
-            m_editorWidget->send(SCI_SETFOLDMARGINCOLOUR, true, m_editorWidget->colorGet(g_global->backGet())); // NOLINT
-            m_editorWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, m_editorWidget->colorGet(g_global->backGet())); // NOLINT
+            m_editorWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
+            m_editorWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
             m_editorWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
             m_editorWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
             // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
@@ -110,9 +110,9 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
             m_editorWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
 
-            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
+            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_global->brandBackGet(), 128)); // NOLINT
             m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
+            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
             m_editorWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             // load
             const QUrl &url(documentUrl);
@@ -251,7 +251,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                 QJsonObject{
                     {"type", SC_MARGIN_NUMBER},
                     {"width", 32},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_editorWidget->marginDefine(
                 1,
@@ -260,7 +260,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"width", 16},
                     {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
                     {"sensitive", true},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_editorWidget->marginDefine(
                 2,
@@ -269,7 +269,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"width", 16},
                     {"mask", static_cast<int>(SC_MASK_FOLDERS)},
                     {"sensitive", true},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_editorWidget->marginDefine(
                 3,
@@ -277,7 +277,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"type", SC_MARGIN_SYMBOL},
                     {"width", 4},
                     {"mask", SC_MASK_HISTORY},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
         }
         // marker
@@ -286,50 +286,41 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                 ScintillaMarker::Region,
                 QJsonObject{
                     {"symbol", 2},
-                    {"fore", 0x107c10},
-                    {"back", 0x9fd89f}
+                    {"fore", ScintillaWidget::colorGet(g_global->successFore2Get())},
+                    {"back", ScintillaWidget::colorGet(g_global->successBack2Get())}
                 });
             m_editorWidget->markerDefine(
                 ScintillaMarker::BreakpointEnabled,
                 QJsonObject{
                     {"symbol", 0},
-                    {"fore", 0x1f0fc5},
-                    {"back", 0xb2acee}
+                    {"fore", ScintillaWidget::colorGet(g_global->dangerFore2Get())},
+                    {"back", ScintillaWidget::colorGet(g_global->dangerBack2Get())}
                 });
             m_editorWidget->markerDefine(
                 ScintillaMarker::BreakpointDisabled,
                 QJsonObject{
                     {"symbol", 0},
-                    {"fore", 0x1f0fc5},
-                    {"back", 0xffffff}
+                    {"fore", ScintillaWidget::colorGet(g_global->dangerFore2Get())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_editorWidget->markerDefine(
                 ScintillaMarker::Navigation,
                 QJsonObject{
                     {"symbol", 24},
-                    {"fore", 0x000000},
-                    {"back", 0x000000}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())}
                 });
             m_editorWidget->markerDefine(
                 ScintillaMarker::Debug,
                 QJsonObject{
                     {"symbol", 2},
-                    {"fore", 0x000000},
-                    {"back", 0xa500ff}
-                });
-            m_editorWidget->markerDefine(
-                ScintillaMarker::Error,
-                QJsonObject{
-                    {"symbol", 22},
-                    {"fore", 0xffe6e6},
-                    {"back", 0xffe6e6}
+                    {"fore", ScintillaWidget::colorGet(g_global->warningFore2Get())},
+                    {"back", ScintillaWidget::colorGet(g_global->warningFore2Get())}
                 });
             m_editorWidget->markerDefine(
                 ScintillaMarker::Hint,
                 QJsonObject{
                     {"symbol", 22},
-                    {"fore", 0xe0e0e0},
-                    {"back", 0xe0e0e0}
+                    {"back", ScintillaWidget::colorGet(g_global->backSelectedGet())}
                 });
         }
         // style
@@ -337,123 +328,27 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->styleDefine(
                 CustomStyle::Default,
                 QJsonObject{
-                    {"fore", m_editorWidget->colorGet(g_global->foreGet())},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
-            m_editorWidget->send(SCI_STYLECLEARALL);
+            m_editorWidget->styleClearAll();
             m_editorWidget->styleDefine(
                 CustomStyle::LineNumber,
                 QJsonObject{
-                    {"fore", m_editorWidget->colorGet(g_global->foreGet())},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_editorWidget->styleDefine(
                 CustomStyle::FoldDisplayText,
                 QJsonObject{
-                    {"fore", m_editorWidget->colorGet(g_global->foreGet())},
-                    {"back", m_editorWidget->colorGet(g_global->backSelectedGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Namespace,
-                QJsonObject{
-                    {"fore", 0x808000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Class,
-                QJsonObject{
-                    {"fore", 0x808000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Type,
-                QJsonObject{
-                    {"fore", 0xb33300},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Parameter,
-                QJsonObject{
-                    {"fore", 0x000000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Variable,
-                QJsonObject{
-                    {"fore", 0x000000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Property,
-                QJsonObject{
-                    {"fore", 0x7a0e66},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::EnumMember,
-                QJsonObject{
-                    {"fore", 0x941087},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::FunctionDeclaration,
-                QJsonObject{
-                    {"fore", 0x7a6200},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::FunctionCall,
-                QJsonObject{
-                    {"fore", 0x000000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Method,
-                QJsonObject{
-                    {"fore", 0x000000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Macro,
-                QJsonObject{
-                    {"fore", 0x2e541f},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Keyword,
-                QJsonObject{
-                    {"fore", 0xb33300},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Comment,
-                QJsonObject{
-                    {"fore", 0x8c8c8c},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::String,
-                QJsonObject{
-                    {"fore", 0x177d06},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Number,
-                QJsonObject{
-                    {"fore", 0xeb5017},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
-                });
-            m_editorWidget->styleDefine(
-                LuaTokenType::Operator,
-                QJsonObject{
-                    {"fore", 0x000000},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backSelectedGet())}
                 });
             m_editorWidget->styleDefine(
                 CustomStyle::Annotation,
                 QJsonObject{
-                    {"fore", 0x8c8c8c},
-                    {"back", m_editorWidget->colorGet(g_global->backGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
         }
         // signals
@@ -485,6 +380,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         m_editorWidget->installEventFilter(this);
         m_editorWidget->viewport()->installEventFilter(this);
     }
+    themeLoad(g_mainConfig["theme"].toString());
     // assembly init
     {
         m_assemblyWidget->hide();
@@ -503,11 +399,11 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
             m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
             for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
-                m_assemblyWidget->send(SCI_MARKERSETFORE, i, m_assemblyWidget->colorGet(g_global->backGet())); // NOLINT
-                m_assemblyWidget->send(SCI_MARKERSETBACK, i, m_assemblyWidget->colorGet(g_global->foreGet())); // NOLINT
+                m_assemblyWidget->send(SCI_MARKERSETFORE, i, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
+                m_assemblyWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->foreGet())); // NOLINT
             }
-            m_assemblyWidget->send(SCI_SETFOLDMARGINCOLOUR, true, m_assemblyWidget->colorGet(g_global->backGet())); // NOLINT
-            m_assemblyWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, m_assemblyWidget->colorGet(g_global->backGet())); // NOLINT
+            m_assemblyWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
+            m_assemblyWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
             m_assemblyWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
             m_assemblyWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
             // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
@@ -516,9 +412,9 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
             m_assemblyWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
 
-            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, 0x80ffd2a6); // NOLINT
+            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_global->brandBackGet(), 128)); // NOLINT
             m_assemblyWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, 0x80fef8f5); // NOLINT
+            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
             m_assemblyWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
         }
         // font
@@ -529,7 +425,8 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                 0,
                 QJsonObject{
                     {"type", SC_MARGIN_TEXT},
-                    {"width", 32}
+                    {"width", 32},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_assemblyWidget->marginDefine(
                 1,
@@ -537,7 +434,8 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"type", SC_MARGIN_SYMBOL},
                     {"width", 16},
                     {"mask", static_cast<int>(~SC_MASK_FOLDERS)},
-                    {"sensitive", true}
+                    {"sensitive", true},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_assemblyWidget->marginDefine(
                 2,
@@ -545,24 +443,17 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                     {"type", SC_MARGIN_SYMBOL},
                     {"width", 16},
                     {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-                    {"sensitive", true}
+                    {"sensitive", true},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
         }
         // marker
         {
             m_assemblyWidget->markerDefine(
-                ScintillaMarker::Navigation,
-                QJsonObject{
-                    {"symbol", 24},
-                    {"fore", 0x00ffff},
-                    {"back", 0x00ffff}
-                });
-            m_assemblyWidget->markerDefine(
                 ScintillaMarker::Hint,
                 QJsonObject{
                     {"symbol", 22},
-                    {"fore", 0xe0e0e0},
-                    {"back", 0xe0e0e0}
+                    {"back", ScintillaWidget::colorGet(g_global->backSelectedGet())}
                 });
         }
         // style
@@ -570,25 +461,27 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->styleDefine(
                 CustomStyle::Default,
                 QJsonObject{
-                    {"fore", m_assemblyWidget->colorGet(g_global->foreGet())},
-                    {"back", m_assemblyWidget->colorGet(g_global->backGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
+            m_assemblyWidget->styleClearAll();
             m_assemblyWidget->styleDefine(
                 CustomStyle::LineNumber,
                 QJsonObject{
-                    {"fore", m_assemblyWidget->colorGet(g_global->foreGet())},
-                    {"back", m_assemblyWidget->colorGet(g_global->backGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_assemblyWidget->styleDefine(
                 CustomStyle::FoldDisplayText,
                 QJsonObject{
-                    {"fore", m_assemblyWidget->colorGet(g_global->foreGet())},
-                    {"back", m_assemblyWidget->colorGet(g_global->backSelectedGet())}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backSelectedGet())}
                 });
             m_assemblyWidget->styleDefine(
                 CustomStyle::Annotation,
                 QJsonObject{
-                    {"fore", 0x8c8c8c}
+                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
         }
     }
@@ -635,6 +528,106 @@ void LuaPage::propertySet(const QVariantMap &objects) {
     m_replaceWidget->propertySet(QVariantMap{
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
+}
+
+void LuaPage::themeLoad(const QString &theme) {
+
+    m_editorWidget->styleDefine(
+        LuaTokenType::Namespace,
+        QJsonObject{
+            {"fore", 0x808000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Class,
+        QJsonObject{
+            {"fore", 0x808000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Type,
+        QJsonObject{
+            {"fore", 0xb33300},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Parameter,
+        QJsonObject{
+            {"fore", 0x000000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Variable,
+        QJsonObject{
+            {"fore", 0x000000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Property,
+        QJsonObject{
+            {"fore", 0x7a0e66},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::EnumMember,
+        QJsonObject{
+            {"fore", 0x941087},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::FunctionDeclaration,
+        QJsonObject{
+            {"fore", 0x7a6200},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::FunctionCall,
+        QJsonObject{
+            {"fore", 0x000000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Method,
+        QJsonObject{
+            {"fore", 0x000000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Macro,
+        QJsonObject{
+            {"fore", 0x2e541f},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Keyword,
+        QJsonObject{
+            {"fore", 0xb33300},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Comment,
+        QJsonObject{
+            {"fore", 0x8c8c8c},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::String,
+        QJsonObject{
+            {"fore", 0x177d06},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Number,
+        QJsonObject{
+            {"fore", 0xeb5017},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_editorWidget->styleDefine(
+        LuaTokenType::Operator,
+        QJsonObject{
+            {"fore", 0x000000},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
 }
 
 QVariantHash LuaPage::menuGet(const QString &name) const {

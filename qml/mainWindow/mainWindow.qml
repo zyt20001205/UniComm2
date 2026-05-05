@@ -1249,7 +1249,7 @@ Item {
                     Label {
                         font: documentModuleCompletionToolTip.font
                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display ? "<span style='color: " + global.brandFore + ";'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed) : ""
+                        text: model.display ? "<span style='color: " + global.brandBack + ";'>" + model.display.substring(0, documentModuleCompletionToolTip.typed) + "</span>" + model.display.substring(documentModuleCompletionToolTip.typed) : ""
                         textFormat: Text.RichText
                         elide: Text.ElideRight
                         Layout.fillWidth: true; Layout.preferredHeight: 24

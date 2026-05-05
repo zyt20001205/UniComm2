@@ -520,6 +520,14 @@ target_compile_options(UniComm PRIVATE
         $<$<CONFIG:Release>:-g1>
 )
 
+#theme
+set(THEME_DIR "${CMAKE_SOURCE_DIR}/resources/theme")
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${THEME_DIR}"
+        "${CMAKE_BINARY_DIR}/theme"
+        COMMENT "THEME DIR COPIED")
+
 #auto deploy(do not use)
 #add_custom_command(TARGET UniComm POST_BUILD
 #        COMMAND Qt6::windeployqt

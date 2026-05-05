@@ -126,7 +126,6 @@ namespace ScintillaMarker {
         BreakpointDisabled,
         Navigation,
         Debug,
-        Error,
         Hint
     };
 }

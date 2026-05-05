@@ -58,6 +58,11 @@ int ScintillaWidget::colorGet(const QString &color) {
     return _color.red() | _color.green() << 8 | _color.blue() << 16;
 }
 
+int ScintillaWidget::colorGet(const QString &color, const int alpha) {
+    const auto _color = QColor(color);
+    return _color.red() | _color.green() << 8 | _color.blue() << 16 | alpha << 24;
+}
+
 // public: annotation
 void ScintillaWidget::annotationClear() const {
     send(SCI_ANNOTATIONCLEARALL); // NOLINT

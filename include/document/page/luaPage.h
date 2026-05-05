@@ -25,6 +25,8 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
+    void themeLoad(const QString &theme);
+
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
     void menuRequest(const QString &request);
