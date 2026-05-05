@@ -43,6 +43,7 @@ DocumentModule::~DocumentModule() {
 }
 
 void DocumentModule::propertySet(const QVariantMap &objects) {
+    m_global = qvariant_cast<QObject *>(objects["global"]);
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
@@ -206,6 +207,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             newPage = new LuaPage(m_config, documentUrl);
             auto *luaPage = qobject_cast<LuaPage *>(newPage);
             luaPage->propertySet(QVariantMap{
+                {"global", QVariant::fromValue(m_global)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},

@@ -22,8 +22,6 @@ Item {
             icon.width: 16; icon.height: 16
             text: workspaceName
             Layout.preferredHeight: 20
-
-            // onClicked:
         }
 
         RowLayout {
@@ -51,8 +49,6 @@ Item {
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         text: breadcrumbItem.text
                         Layout.preferredWidth: breadcrumbButtonTextMetrics.width + 8; Layout.preferredHeight: 20
-
-                        // onClicked:
 
                         TextMetrics {
                             id: breadcrumbButtonTextMetrics

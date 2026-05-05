@@ -168,6 +168,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_diagnosticsModule->propertySet(diagnosticsObjects);
 
     const QVariantMap documentObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},

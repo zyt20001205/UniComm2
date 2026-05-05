@@ -1,9 +1,15 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
+
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -30,7 +36,8 @@ Item {
                     property string detail
                     property var position
 
-                    Image {
+                    IconImage {
+                        color: global.fore
                         source: "qrc:/icon/arrowCollapse.svg"
                         sourceSize.width: 16
                         sourceSize.height: 16

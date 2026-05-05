@@ -25,7 +25,7 @@ public:
 
     void propertySet(const QVariantMap &objects);
 
-    void themeLoad(int theme);
+    void themeLoad(int theme) const;
 
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
@@ -203,6 +203,7 @@ private:
     QTimer *m_contentTimer{};
     QTimer *m_dwellTimer{};
 
+    QObject *m_global{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};

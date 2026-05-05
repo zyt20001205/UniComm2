@@ -193,7 +193,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
                 ScintillaIndicator::Highlight,
                 QJsonObject{
                     {"style", 8},
-                    {"fore", 0xe0e0e0},
+                    {"fore", ScintillaWidget::colorGet(g_global->backSelectedGet())},
                     {"alpha", 255},
                     {"outlineAlpha", 255},
                     {"setUnder", true}
@@ -514,12 +514,14 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 }
 
 void LuaPage::propertySet(const QVariantMap &objects) {
+    m_global = qvariant_cast<QObject *>(objects["global"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     m_symbolWidget->propertySet(QVariantMap{
+        {"global", QVariant::fromValue(m_global)},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
     m_searchWidget->propertySet(QVariantMap{
@@ -530,7 +532,7 @@ void LuaPage::propertySet(const QVariantMap &objects) {
     });
 }
 
-void LuaPage::themeLoad(const int theme) {
+void LuaPage::themeLoad(const int theme) const {
     auto themeFile = QFile(QDir::current().filePath(QString("theme/%1.json").arg(QString::number(theme))));
     if (!themeFile.open(QIODevice::ReadOnly | QIODevice::Text)) return;
     const auto themeData = themeFile.readAll();

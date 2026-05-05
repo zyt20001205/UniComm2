@@ -13,9 +13,10 @@ SymbolWidget::SymbolWidget(QWidget *parent)
 }
 
 void SymbolWidget::propertySet(const QVariantMap &objects) {
+    rootContext()->setContextProperty("symbolWidget", this);
+    rootContext()->setContextProperty("global", objects["global"]);
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
-    rootContext()->setContextProperty("symbolWidget", this);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/analysis/symbolWidget.qml"));
     m_rootItem = rootObject();

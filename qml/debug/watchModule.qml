@@ -56,7 +56,6 @@ Item {
                 icon.width: 16; icon.height: 16
 
                 onToggled: {
-                    console.log(checked)
                     if (checked) {
                         refreshTimer.start()
                     } else {
