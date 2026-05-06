@@ -336,7 +336,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->styleDefine(
                 CustomStyle::LineNumber,
                 QJsonObject{
-                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
                     {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_editorWidget->styleDefine(
@@ -348,7 +348,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->styleDefine(
                 CustomStyle::Annotation,
                 QJsonObject{
-                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
                     {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
         }
@@ -469,7 +469,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->styleDefine(
                 CustomStyle::LineNumber,
                 QJsonObject{
-                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
                     {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
             m_assemblyWidget->styleDefine(
@@ -481,7 +481,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->styleDefine(
                 CustomStyle::Annotation,
                 QJsonObject{
-                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
                     {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
         }
