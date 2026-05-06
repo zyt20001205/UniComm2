@@ -129,7 +129,7 @@ Item {
 
             onToggled: {
                 if (!checked) {
-                    menuModule.themeSet(themeButton.checked ? 1 : 0)
+                    menuModule.themeSet(global.theme === 0 ? 1 : 0)
                 }
             }
 
