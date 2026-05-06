@@ -120,17 +120,23 @@ Item {
 
         Button {
             id: themeButton
+            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             checkable: true
-            flat: true
-            text: "theme switch"
-            Layout.preferredHeight: 24
-
-            Component.onCompleted: {
-                themeButton.checked = global.theme !== 0;
-            }
+            icon.source: checked ? "qrc:/icon/checkmark.svg" :
+                global.theme === 0 ? "qrc:/icon/themeDark.svg" : "qrc:/icon/themeLight.svg"
+            icon.width: 16; icon.height: 16
 
             onToggled: {
-                menuModule.themeSet(themeButton.checked ? 1 : 0)
+                if (!checked) {
+                    menuModule.themeSet(themeButton.checked ? 1 : 0)
+                }
+            }
+
+            Timer {
+                interval: 1000
+                running: parent.checked
+                onTriggered: parent.checked = false
             }
         }
     }
