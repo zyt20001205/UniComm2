@@ -228,11 +228,12 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->indicatorDefine(
                 ScintillaIndicator::Selection,
                 QJsonObject{
-                    {"style", 8},
-                    {"fore", ScintillaWidget::colorGet(g_global->brandBackGet())},
+                    {"style", 6},
+                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
+                    {"strokeWidth", 200},
                     {"alpha", 255},
                     {"outlineAlpha", 255},
-                    {"setUnder", true}
+                    {"setUnder", false}
                 });
             m_editorWidget->indicatorDefine(
                 ScintillaIndicator::Hyperlink,

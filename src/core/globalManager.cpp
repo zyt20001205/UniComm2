@@ -72,8 +72,7 @@ GlobalManager::GlobalManager(QWidget *parent)
           "QMainWindow { background-color: " + m_palette["lightBack"] + "; }"
           + "QScrollBar:horizontal { background-color: transparent; height: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; background: none; }"
-          + "QScrollBar:vertical { background-color: " + m_palette["lightBackHover"] +
-          "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar:vertical { background-color: transparent; width: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
           + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette[
               "lightBackHover"] + "; border-radius: 3px; margin: 2px; }"
@@ -95,8 +94,7 @@ GlobalManager::GlobalManager(QWidget *parent)
           "QMainWindow { background-color: " + m_palette["darkBack"] + "; }"
           + "QScrollBar:horizontal { background-color: transparent; height: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; background: none; }"
-          + "QScrollBar:vertical { background-color: " + m_palette["darkBackHover"] +
-          "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar:vertical { background-color: transparent; width: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
           + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette[
               "darkBackHover"] + "; border-radius: 3px; margin: 2px; }"
