@@ -28,10 +28,10 @@ int ConfigManager::mainConfigLoad() {
     mainFile.close();
     auto mainDoc = QJsonDocument::fromJson(mainData);
     auto mainConfig = mainDoc.object();
-    auto workspaceUrlStr = mainConfig.value("workspace").toString();
+    const auto workspaceUrlStr = mainConfig["workspace"].toString();
     auto workspaceUrl = QUrl(workspaceUrlStr);
     if (workspaceUrlStr.isEmpty() || !QFileInfo::exists(workspaceUrl.toLocalFile())) {
-        QString workspaceDir = QFileDialog::getExistingDirectory(
+        const auto workspaceDir = QFileDialog::getExistingDirectory(
             nullptr,
             tr("Open Workspace"),
             QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
