@@ -10,6 +10,7 @@ class GlobalManager final : public QObject {
     Q_PROPERTY(QString foreHover READ foreHoverGet CONSTANT)
     Q_PROPERTY(QString forePressed READ forePressedGet CONSTANT)
     Q_PROPERTY(QString foreSelected READ foreSelectedGet CONSTANT)
+    Q_PROPERTY(QString foreDisabled READ foreDisabledGet CONSTANT)
 
     Q_PROPERTY(QString back READ backGet CONSTANT)
     Q_PROPERTY(QString backHover READ backHoverGet CONSTANT)
@@ -64,6 +65,10 @@ public:
 
     [[nodiscard]] QString foreSelectedGet() const {
         return m_theme == Theme::Light ? m_palette["lightForeSelected"] : m_palette["darkForeSelected"];
+    }
+    
+    [[nodiscard]] QString foreDisabledGet() const {
+        return m_theme == Theme::Light ? m_palette["lightForeDisabled"] : m_palette["darkForeDisabled"];
     }
 
     [[nodiscard]] QString backGet() const {

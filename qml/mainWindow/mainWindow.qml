@@ -2700,6 +2700,7 @@ Item {
         onAboutToShow: menuModuleEditMenu.menuSession = documentModule.menuGet("edit")
 
         MenuItem {
+            id: menuModuleEditUndoItem
             enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.undoable : false
 
             contentItem: RowLayout {
@@ -2710,7 +2711,7 @@ Item {
                     source: "qrc:/icon/undo.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleEditUndoItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -2730,6 +2731,7 @@ Item {
         }
 
         MenuItem {
+            id: menuModuleEditRedoItem
             enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.redoable : false
 
             contentItem: RowLayout {
@@ -2740,7 +2742,7 @@ Item {
                     source: "qrc:/icon/redo.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleEditRedoItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -2763,6 +2765,7 @@ Item {
         }
 
         MenuItem {
+            id: menuModuleEditCutItem
             enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
 
             contentItem: RowLayout {
@@ -2774,6 +2777,7 @@ Item {
                     sourceSize.width: 16
                     sourceSize.height: 16
                     color: global.fore
+                    color: menuModuleEditCutItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -2793,6 +2797,7 @@ Item {
         }
 
         MenuItem {
+            id: menuModuleEditCopyItem
             enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.copiable : false
 
             contentItem: RowLayout {
@@ -2803,7 +2808,7 @@ Item {
                     source: "qrc:/icon/copy.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleEditCopyItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -2823,6 +2828,7 @@ Item {
         }
 
         MenuItem {
+            id: menuModuleEditPasteItem
             enabled: menuModuleEditMenu.menuSession ? menuModuleEditMenu.menuSession.pastable : false
 
             contentItem: RowLayout {
@@ -2833,7 +2839,7 @@ Item {
                     source: "qrc:/icon/paste.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleEditPasteItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -3071,7 +3077,7 @@ Item {
         onAboutToShow: menuModuleNavMenu.menuSession = documentModule.menuGet("nav")
 
         MenuItem {
-            id: menuModuleNavMenuNavigatePrevItem
+            id: menuModuleNavPrevItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.prev : false
 
             contentItem: RowLayout {
@@ -3082,7 +3088,7 @@ Item {
                     source: "qrc:/icon/arrowLeft.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleNavPrevItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -3100,14 +3106,14 @@ Item {
 
             Shortcut {
                 sequence: "Alt+Left"
-                onActivated: menuModuleNavMenuNavigatePrevItem.triggered()
+                onActivated: menuModuleNavPrevItem.triggered()
             }
 
             onTriggered: documentModule.navigationPrev()
         }
 
         MenuItem {
-            id: menuModuleNavMenuNavigateNextItem
+            id: menuModuleNavNextItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.next : false
 
             contentItem: RowLayout {
@@ -3118,7 +3124,7 @@ Item {
                     source: "qrc:/icon/arrowRight.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
+                    color: menuModuleNavNextItem.enabled ? global.fore : global.foreDisabled
                 }
 
                 Label {
@@ -3136,7 +3142,7 @@ Item {
 
             Shortcut {
                 sequence: "Alt+Right"
-                onActivated: menuModuleNavMenuNavigateNextItem.triggered()
+                onActivated: menuModuleNavNextItem.triggered()
             }
 
             onTriggered: documentModule.navigationNext()
@@ -3146,7 +3152,6 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleNavMenuNavigateDefinitionItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
 
             contentItem: RowLayout {
@@ -3170,7 +3175,6 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleNavMenuNavigateReferenceItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
 
             contentItem: RowLayout {
@@ -3194,7 +3198,6 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleNavMenuNavigateImplementationItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
 
             contentItem: RowLayout {
@@ -3218,7 +3221,6 @@ Item {
         }
 
         MenuItem {
-            id: menuModuleNavMenuNavigateTypeDefinitionItem
             enabled: menuModuleNavMenu.menuSession ? menuModuleNavMenu.menuSession.navigation : false
 
             contentItem: RowLayout {

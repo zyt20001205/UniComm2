@@ -18,6 +18,8 @@ GlobalManager::GlobalManager(QWidget *parent)
           {"darkForePressed", "#ffffff"},
           {"lightForeSelected", "#242424"},
           {"darkForeSelected", "#ffffff"},
+          {"lightForeDisabled", "#bdbdbd"},
+          {"darkForeDisabled", "#5c5c5c"},
 
           {"lightBack", "#ffffff"},
           {"darkBack", "#292929"},
