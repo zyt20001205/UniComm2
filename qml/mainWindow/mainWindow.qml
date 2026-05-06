@@ -2776,7 +2776,6 @@ Item {
                     source: "qrc:/icon/cut.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
-                    color: global.fore
                     color: menuModuleEditCutItem.enabled ? global.fore : global.foreDisabled
                 }
 
