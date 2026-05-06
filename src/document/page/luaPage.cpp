@@ -90,7 +90,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
             for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
                 m_editorWidget->send(SCI_MARKERSETFORE, i, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
-                m_editorWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->foreGet())); // NOLINT
+                m_editorWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->strokeGet())); // NOLINT
             }
             m_editorWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
             m_editorWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
@@ -110,6 +110,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_global->brandBackGet(), 128)); // NOLINT
             m_editorWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+            m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET, ScintillaWidget::colorGet(g_global->foreGet(), 255)); // NOLINT
             m_editorWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
             m_editorWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
             // load
@@ -401,7 +402,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
             for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
                 m_assemblyWidget->send(SCI_MARKERSETFORE, i, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
-                m_assemblyWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->foreGet())); // NOLINT
+                m_assemblyWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->strokeGet())); // NOLINT
             }
             m_assemblyWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
             m_assemblyWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
@@ -415,6 +416,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_global->brandBackGet(), 128)); // NOLINT
             m_assemblyWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
+            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET, ScintillaWidget::colorGet(g_global->foreGet(), 255)); // NOLINT
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
             m_assemblyWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
         }
