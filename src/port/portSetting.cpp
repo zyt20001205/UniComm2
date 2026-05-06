@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickView>
 #include <QQuickWidget>
 #include <QScreenCapture>
 #include <QSerialPortInfo>
@@ -24,8 +25,8 @@
 
 // public
 PortSetting::PortSetting(QWidget *parent)
-    : QWidget(parent),
-      m_portSettingDialog(new QDialog(this)),
+    : QObject(parent),
+      m_window(new QQuickView()),
       m_serialPortStandardItemModel(new QStandardItemModel(this)),
       m_visaStandardItemModel(new QStandardItemModel(this)),
       m_localHostStandardItemModel(new QStandardItemModel(this)),
@@ -34,31 +35,29 @@ PortSetting::PortSetting(QWidget *parent)
       m_roiStandardItemModel(new QStandardItemModel(this)),
       m_pipelineStandardItemModel(new QStandardItemModel(this)),
       m_imageProvider(new ImageProvider()) {
-    propertySet();
 }
 
 PortSetting::~PortSetting() {
     // delete m_imageProvider;
 }
 
-void PortSetting::propertySet() {
-    m_portSettingDialog->setWindowTitle(tr("Port Setting"));
-    auto *layout = new QVBoxLayout(m_portSettingDialog); // NOLINT
-    auto *widget = new QQuickWidget(); // NOLINT
-    layout->addWidget(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    QQmlEngine *engine = widget->engine();
-    engine->addImageProvider("capture", m_imageProvider);
-    widget->rootContext()->setContextProperty("portSetting", this);
-    widget->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
-    widget->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
-    widget->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
-    widget->rootContext()->setContextProperty("videoStreamStandardItemModel", m_videoStreamStandardItemModel);
-    widget->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
-    widget->rootContext()->setContextProperty("pipelineStandardItemModel", m_pipelineStandardItemModel);
-    widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    widget->setSource(QUrl("qrc:/qml/port/portSetting.qml"));
-    m_root = widget->rootObject();
+void PortSetting::propertySet(const QVariantMap &objects) {
+    m_window->setTitle(tr("Port Setting"));
+    m_window->setTransientParent(g_mainWindow->windowHandle());
+    m_window->engine()->addImageProvider("capture", m_imageProvider);
+
+    m_window->rootContext()->setContextProperty("portSetting", this);
+    m_window->rootContext()->setContextProperty("global", objects["global"]);
+    m_window->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
+    m_window->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
+    m_window->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);
+    m_window->rootContext()->setContextProperty("videoStreamStandardItemModel", m_videoStreamStandardItemModel);
+    m_window->rootContext()->setContextProperty("roiStandardItemModel", m_roiStandardItemModel);
+    m_window->rootContext()->setContextProperty("pipelineStandardItemModel", m_pipelineStandardItemModel);
+
+    m_window->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_window->setSource(QUrl("qrc:/qml/port/portSetting.qml"));
+    m_root = m_window->rootObject();
 }
 
 void PortSetting::propertyGet(const QVariantMap &objects) {
@@ -232,8 +231,8 @@ void PortSetting::portSettingImport(const QJsonObject &portConfig) {
             default: break;
         }
     }
-    m_portSettingDialog->resize(600, 500);
-    m_portSettingDialog->show();
+    m_window->resize(600, 500);
+    m_window->show();
 }
 
 void PortSetting::portSettingExport() {
@@ -358,15 +357,15 @@ void PortSetting::portSettingExport() {
     } else {
         emit editPort(m_oldPortName, portConfig);
     }
-    m_portSettingDialog->hide();
+    m_window->hide();
 }
 
 void PortSetting::dialogResize(const int width, const int height) const {
-    m_portSettingDialog->resize(width, height);
+    m_window->resize(width, height);
 }
 
 void PortSetting::videoCapture() {
-    m_portSettingDialog->resize(1600, 900);
+    m_window->resize(1600, 900);
     if (m_screenCapture) {
         m_mediaCaptureSession->setScreenCapture(nullptr);
         m_screenCapture->stop();
@@ -480,7 +479,7 @@ void PortSetting::serialPortRefresh() const {
     m_serialPortStandardItemModel->clear();
     for (QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts(); const QSerialPortInfo &port: ports) {
         const QString portName = port.portName();
-        auto *item = new QStandardItem(portName + " " + port.description());
+        auto *item = new QStandardItem(portName + " " + port.description()); // NOLINT
         item->setData(portName, Qt::WhatsThisRole);
         m_serialPortStandardItemModel->appendRow(item);
     }
@@ -528,14 +527,14 @@ void PortSetting::localHostRefresh() const {
     for (const QHostAddress &address: QHostInfo::fromName(QHostInfo::localHostName()).addresses()) {
         if (address.protocol() == QAbstractSocket::IPv4Protocol) {
             const QString portName = address.toString();
-            auto *item = new QStandardItem(portName);
+            auto *item = new QStandardItem(portName); // NOLINT
             item->setData(portName, Qt::WhatsThisRole);
             m_localHostStandardItemModel->appendRow(item);
         } else if (address.protocol() == QAbstractSocket::IPv6Protocol) {
             auto portName = address.toString();
             // const QString scopeId = address.scopeId();
             // if (!scopeId.isEmpty()) portName.remove("%"+scopeId);
-            auto *item = new QStandardItem(portName);
+            auto *item = new QStandardItem(portName); // NOLINT
             item->setData(portName, Qt::WhatsThisRole);
             m_localHostStandardItemModel->appendRow(item);
         }

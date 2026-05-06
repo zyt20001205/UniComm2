@@ -1,10 +1,11 @@
 #ifndef UNICOMM_PORTSETTING_H
 #define UNICOMM_PORTSETTING_H
 
-#include <QDialog>
 #include <QJsonObject>
 #include <QQuickImageProvider>
+#include "kddockwidgets/qtwidgets/views/DockWidget.h"
 
+class QQuickView;
 class QCamera;
 class QMediaCaptureSession;
 class QQuickItem;
@@ -14,7 +15,7 @@ class QVideoSink;
 
 class ImageProvider;
 
-class PortSetting final : public QWidget {
+class PortSetting final : public QObject {
     Q_OBJECT
 
 public:
@@ -22,7 +23,7 @@ public:
 
     ~PortSetting() override;
 
-    void propertySet();
+    void propertySet(const QVariantMap &objects);
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
@@ -64,7 +65,7 @@ private:
 
     void processRefresh(const QJsonObject &portConfig) const;
 
-    QDialog *m_portSettingDialog{};
+    QQuickView *m_window{};
     QStandardItemModel *m_serialPortStandardItemModel{};
     QStandardItemModel *m_visaStandardItemModel{};
     QStandardItemModel *m_localHostStandardItemModel{};

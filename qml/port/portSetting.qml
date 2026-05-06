@@ -1,6 +1,7 @@
 import QtMultimedia
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 import QtQuick.Shapes
 
@@ -14,15 +15,9 @@ Item {
     property bool roiModelVisible: roiStandardItemModel ? roiStandardItemModel.rowCount() > 0 : false
     property bool pipelineModelVisible: pipelineStandardItemModel ? pipelineStandardItemModel.rowCount() > 0 : false
 
-    Component {
-        id: delegateComponent
-
-        Label {
-            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            opacity: 1.0 - Math.abs(Tumbler.displacement) / (Tumbler.tumbler.visibleItemCount / 2)
-            text: modelData
-            font.pointSize: 16
-        }
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
     }
 
     ColumnLayout {
@@ -36,6 +31,7 @@ Item {
             Layout.fillWidth: true; Layout.fillHeight: true
             Layout.margins: 20
 
+            // port type selection
             ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -54,145 +50,55 @@ Item {
                     }
                 }
 
-                StackLayout {
-                    currentIndex: rootItem.portType
+                ColumnLayout {
                     Layout.fillWidth: true; Layout.fillHeight: false
 
-                    // serial port
-                    ColumnLayout {
+                    IconImage {
+                        visible: source !== ""
+                        source: sourceGet()
+                        sourceSize: Qt.size(80, 80)
+                        color: global.fore
+                        Layout.preferredWidth: 80; Layout.preferredHeight: 80
+                        Layout.alignment: Qt.AlignHCenter
 
-                        Image {
-                            source: "qrc:/icon/serialPort.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("A serial communication interface through which information transfers in or out sequentially one bit at a time.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
-                        }
-                    }
-
-                    // visa
-                    ColumnLayout {
-
-                        Image {
-                            // source: "qrc:/icon/serialPort.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("A widely used application programming interface (API) in the test and measurement (T&M) industry for communicating with instruments from a computer.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
+                        function sourceGet() {
+                            switch (rootItem.portType) {
+                                case 0: return "qrc:/icon/serialPort.svg"
+                                case 1: return ""
+                                case 2: return "qrc:/icon/tcpClient.svg"
+                                case 3: return ""
+                                case 4: return "qrc:/icon/tcpServer.svg"
+                                case 5: return "qrc:/icon/udpSocket.svg"
+                                case 6: return "qrc:/icon/video.svg"
+                                default: return ""
+                            }
                         }
                     }
 
-                    // tcp client
-                    ColumnLayout {
+                    Label {
+                        horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                        text: textGet()
+                        wrapMode: Text.WordWrap
+                        font.pointSize: 12
+                        Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
 
-                        Image {
-                            source: "qrc:/icon/tcpClient.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("A device that initiates a connection with a TCP server to send and receive reliable, ordered data over a network.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
-                        }
-                    }
-
-                    // ssl client
-                    ColumnLayout {
-
-                        Image {
-                            // source: "qrc:/icon/tcpClient.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
-                        }
-                    }
-
-                    // tcp server
-                    ColumnLayout {
-
-                        Image {
-                            source: "qrc:/icon/tcpServer.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("A device that listens on a network port, accepts incoming connections from TCP clients, and manages reliable, ordered data exchange.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
-                        }
-                    }
-
-                    // udp socket
-                    ColumnLayout {
-
-                        Image {
-                            source: "qrc:/icon/udpSocket.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
-                        }
-                    }
-
-                    // video stream
-                    ColumnLayout {
-
-                        Image {
-                            source: "qrc:/icon/video.svg"
-                            sourceSize: Qt.size(80, 80)
-                            Layout.preferredWidth: 80; Layout.preferredHeight: 80
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        Label {
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                            text: qsTr("Video stream for image processing and OCR text recognition.")
-                            wrapMode: Text.WordWrap
-                            font.pointSize: 12
-                            Layout.alignment: Qt.AlignHCenter; Layout.fillWidth: true
+                        function textGet() {
+                            switch (rootItem.portType) {
+                                case 0: return qsTr("A serial communication interface through which information transfers in or out sequentially one bit at a time.")
+                                case 1: return qsTr("A widely used application programming interface (API) in the test and measurement (T&M) industry for communicating with instruments from a computer.")
+                                case 2: return qsTr("A device that initiates a connection with a TCP server to send and receive reliable, ordered data over a network.")
+                                case 3: return qsTr("A secure client that establishes encrypted connections with SSL/TLS servers to ensure data confidentiality and integrity during transmission.")
+                                case 4: return qsTr("A device that listens on a network port, accepts incoming connections from TCP clients, and manages reliable, ordered data exchange.")
+                                case 5: return qsTr("A device that uses the User Datagram Protocol to send independent, connectionless messages (datagrams) over an IP network.")
+                                case 6: return qsTr("Video stream for image processing and OCR text recognition.")
+                                default: return ""
+                            }
                         }
                     }
                 }
             }
 
+            // port setting
             ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -596,6 +502,7 @@ Item {
                 }
             }
 
+            // port format
             StackLayout {
                 currentIndex: {
                     if (rootItem.portType in [0, 1, 2, 3, 4, 5]) {
@@ -728,7 +635,7 @@ Item {
                             Rectangle {
                                 id: roiSelection
                                 anchors.fill: videoOutput
-                                color: "white"
+                                color: global.stroke
                                 opacity: 0.5
                                 visible: false
                                 property int step: 0
@@ -906,23 +813,24 @@ Item {
                                 VerticalHeaderView {
                                     id: roiVerticalHeaderView
                                     anchors.left: parent.left
-                                    width: 32; height: parent.height
+                                    width: 24; height: parent.height
                                     syncView: roiTableView
                                     clip: true
                                     interactive: false
                                     movableRows: true
                                     delegate: VerticalHeaderViewDelegate {
                                         id: roiVerticalHeaderViewDelegate
-                                        implicitWidth: roiVerticalHeaderView.width; implicitHeight: 32
+                                        implicitWidth: roiVerticalHeaderView.width; implicitHeight: 24
                                         padding: 0
 
                                         contentItem: Rectangle {
-                                            width: 32; height: 32
-                                            color: "white"
+                                            width: 24; height: 24
+                                            color: global.back
 
-                                            Image {
-                                                width: 16; height: 16
+                                            IconImage {
                                                 anchors.centerIn: parent
+                                                width: 16; height: 16
+                                                color: global.fore
                                                 source: "qrc:/icon/drag.svg"
                                             }
                                         }
@@ -935,8 +843,7 @@ Item {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        color: "#e0e0e0"
-                                        z: -1
+                                        color: global.stroke
                                     }
 
                                     Timer {
@@ -976,25 +883,51 @@ Item {
                                     rowSpacing: 1
                                     model: roiStandardItemModel
                                     contentWidth: width
-                                    delegate: ItemDelegate {
-                                        implicitWidth: parent.width; implicitHeight: 32
-                                        text: model.display
-                                        font.pixelSize: 16
-                                        background: Rectangle {
-                                            color: "white"
+
+                                    ScrollBar.vertical: ScrollBar {
+                                        policy: ScrollBar.AsNeeded
+                                        palette {
+                                            mid: global.stroke
+                                            dark: global.strokePressed
+                                        }
+                                    }
+
+                                    delegate: Item {
+                                        implicitWidth: parent.width; implicitHeight: 24
+                                        required property int row
+
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            color: global.back
                                         }
 
                                         Rectangle {
-                                            id: highlightRect
                                             anchors.fill: parent
-                                            radius: 2
-                                            color: "#ebebeb"
-                                            opacity: hoverHandler.hovered ? 1 : 0
+                                            radius: 6
+                                            color: global.backHover
+                                            opacity: {
+                                                if (column === 0 && hoverHandler.hovered) {
+                                                    return 1
+                                                } else if (column === 1 && valueChanged) {
+                                                    return 1
+                                                } else {
+                                                    return 0
+                                                }
+                                            }
                                             Behavior on opacity {
                                                 NumberAnimation {
                                                     duration: 150
                                                 }
                                             }
+                                        }
+
+                                        Label {
+                                            id: label
+                                            anchors.fill: parent
+                                            leftPadding: 6
+                                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                                            text: model.display || ""
+                                            elide: Text.ElideRight
                                         }
 
                                         HoverHandler {
@@ -1010,12 +943,6 @@ Item {
                                                 roiMenu.popup()
                                             }
                                         }
-                                    }
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        color: "#e0e0e0"
-                                        z: -1
                                     }
                                 }
 
@@ -1050,8 +977,9 @@ Item {
                                         Layout.alignment: Qt.AlignVCenter
                                     }
 
-                                    Image {
+                                    IconImage {
                                         source: "qrc:/icon/rectangle.svg"
+                                        color: global.fore
                                         Layout.alignment: Qt.AlignVCenter
                                     }
                                 }
@@ -1095,23 +1023,24 @@ Item {
                                 VerticalHeaderView {
                                     id: pipelineVerticalHeaderView
                                     anchors.left: parent.left
-                                    width: 32; height: parent.height
+                                    width: 24; height: parent.height
                                     syncView: pipelineTableView
                                     clip: true
                                     interactive: false
                                     movableRows: true
                                     delegate: VerticalHeaderViewDelegate {
                                         id: pipelineVerticalHeaderViewDelegate
-                                        implicitWidth: pipelineVerticalHeaderView.width; implicitHeight: 32
+                                        implicitWidth: pipelineVerticalHeaderView.width; implicitHeight: 24
                                         padding: 0
 
                                         contentItem: Rectangle {
-                                            width: 32; height: 32
-                                            color: "white"
+                                            width: 24; height: 24
+                                            color: global.back
 
-                                            Image {
-                                                width: 16; height: 16
+                                            IconImage {
                                                 anchors.centerIn: parent
+                                                width: 16; height: 16
+                                                color: global.fore
                                                 source: "qrc:/icon/drag.svg"
                                             }
                                         }
@@ -1124,8 +1053,7 @@ Item {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        color: "#e0e0e0"
-                                        z: -1
+                                        color: global.stroke
                                     }
 
                                     Timer {
@@ -1610,6 +1538,17 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    Component {
+        id: delegateComponent
+
+        Label {
+            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            opacity: 1.0 - Math.abs(Tumbler.displacement) / (Tumbler.tumbler.visibleItemCount / 2)
+            text: modelData
+            font.pointSize: 16
         }
     }
 
