@@ -11,7 +11,6 @@ class QLineEdit;
 class QPushButton;
 
 class SearchWidget;
-class ReplaceWidget;
 class ScintillaWidget;
 class SymbolWidget;
 
@@ -195,7 +194,6 @@ private:
     void allReplace(const QString &text);
 
     SearchWidget *m_searchWidget{};
-    ReplaceWidget *m_replaceWidget{};
     SymbolWidget * m_symbolWidget{};
     ScintillaWidget *m_assemblyWidget{};
 

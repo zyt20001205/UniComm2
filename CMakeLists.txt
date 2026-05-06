@@ -72,7 +72,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/debug/debugModule.h
         include/debug/watchModule.h
         include/document/documentModule.h
-        include/document/module/replaceWidget.h
         include/document/module/scintillaWidget.h
         include/document/module/searchWidget.h
         include/document/page/basePage.h
@@ -152,7 +151,6 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/debug/debugModule.cpp
         src/debug/watchModule.cpp
         src/document/documentModule.cpp
-        src/document/module/replaceWidget.cpp
         src/document/module/scintillaWidget.cpp
         src/document/module/searchWidget.cpp
         src/document/page/basePage.cpp
@@ -208,7 +206,6 @@ qt_add_resources(UniComm "qml_resources"
         "qml/debug/debugModule.qml"
         "qml/debug/watchModule.qml"
         "qml/document/module/imageWidget.qml"
-        "qml/document/module/replaceWidget.qml"
         "qml/document/module/searchWidget.qml"
         "qml/document/page/welcomePage.qml"
         "qml/mainWindow/mainWindow.qml"

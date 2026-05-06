@@ -13,6 +13,8 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
+    void searchToggle() const;
+
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
     Q_INVOKABLE void searchRequest();
@@ -27,6 +29,14 @@ public:
 
     void searchEnable(bool status) const;
 
+    void replaceToggle() const;
+
+    Q_INVOKABLE void textReplace();
+
+    Q_INVOKABLE void allReplace();
+
+    void replaceEnable(bool status) const;
+
 signals:
     void setSearchFlags(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
@@ -36,16 +46,25 @@ signals:
 
     void nextSearch();
 
+    void replaceText(const QString &text);
+
+    void replaceAll(const QString &text);
+
 protected:
     void showEvent(QShowEvent *event) override;
 
     void hideEvent(QHideEvent *event) override;
 
 private:
-    QObject *m_textField{};
-    QObject *m_prevButton{};
-    QObject *m_nextButton{};
-    QObject *m_label{};
+    QObject *m_searchBar{};
+    QObject *m_searchTextField{};
+    QObject *m_searchPrevButton{};
+    QObject *m_searchNextButton{};
+    QObject *m_searchStatLabel{};
+    QObject *m_replaceBar{};
+    QObject *m_replaceTextField{};
+    QObject *m_replaceTextButton{};
+    QObject *m_replaceAllButton{};
 };
 
 #endif //UNICOMM_SEARCHWIDGET_H

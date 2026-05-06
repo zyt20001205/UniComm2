@@ -12,6 +12,8 @@ WelcomePage::WelcomePage()
 
 void WelcomePage::propertySet(const QVariantMap &objects) {
     m_welcomeWidget->rootContext()->setContextProperty("welcomePage", this);
+    m_welcomeWidget->rootContext()->setContextProperty("global", objects["global"]);
+
     m_welcomeWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_welcomeWidget->setSource(QUrl("qrc:/qml/document/page/welcomePage.qml"));
 }

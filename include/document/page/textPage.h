@@ -4,7 +4,6 @@
 #include "basePage.h"
 
 class SearchWidget;
-class ReplaceWidget;
 class ScintillaWidget;
 
 class TextPage final : public BasePage {
@@ -53,10 +52,10 @@ private:
     void allReplace(const QString &text);
 
     SearchWidget *m_searchWidget{};
-    ReplaceWidget *m_replaceWidget{};
 
     QTimer *m_selectionTimer{};
 
+    QObject *m_global{};
     QObject *m_toolTip{};
     QObject *m_systemPropertyDialog{};
 

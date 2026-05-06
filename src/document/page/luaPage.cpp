@@ -14,7 +14,6 @@
 #include "globals.h"
 #include "analysis/symbolWidget.h"
 #include "core/globalManager.h"
-#include "document/module/replaceWidget.h"
 #include "document/module/scintillaWidget.h"
 #include "document/module/searchWidget.h"
 #include "util/cmarkUtils.h"
@@ -24,7 +23,6 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
       m_editorWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
-      m_replaceWidget(new ReplaceWidget(this)),
       m_symbolWidget(new SymbolWidget(this)),
       m_assemblyWidget(new ScintillaWidget(this)),
       m_selectionTimer(new QTimer(this)),
@@ -489,15 +487,14 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     }
 
     layout->addWidget(m_searchWidget);
-    layout->addWidget(m_replaceWidget);
     layout->addWidget(codingwidget);
     layout->addWidget(m_symbolWidget);
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_editorWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &LuaPage::searchRequest);
     connect(m_searchWidget, &SearchWidget::prevSearch, this, &LuaPage::searchPrev);
     connect(m_searchWidget, &SearchWidget::nextSearch, this, &LuaPage::searchNext);
-    connect(m_replaceWidget, &ReplaceWidget::replaceText, this, &LuaPage::textReplace);
-    connect(m_replaceWidget, &ReplaceWidget::replaceAll, this, &LuaPage::allReplace);
+    connect(m_searchWidget, &SearchWidget::replaceText, this, &LuaPage::textReplace);
+    connect(m_searchWidget, &SearchWidget::replaceAll, this, &LuaPage::allReplace);
     connect(m_symbolWidget, &SymbolWidget::appendLog, this, &LuaPage::appendLog);
     connect(m_symbolWidget, &SymbolWidget::setFocus, m_editorWidget, &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, m_editorWidget, &ScintillaWidget::indexSet);
@@ -527,9 +524,7 @@ void LuaPage::propertySet(const QVariantMap &objects) {
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
     m_searchWidget->propertySet(QVariantMap{
-        {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
-    });
-    m_replaceWidget->propertySet(QVariantMap{
+        {"global", QVariant::fromValue(m_global)},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
 }
@@ -1499,22 +1494,18 @@ void LuaPage::symbolPair(const QChar character) {
 void LuaPage::searchToggle() {
     if (m_selection["characters"] != 0) {
         m_searchWidget->show();
-        m_replaceWidget->hide();
         m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
     } else {
         m_searchWidget->setVisible(!m_searchWidget->isVisible());
-        m_replaceWidget->hide();
     }
 }
 
 void LuaPage::replaceToggle() {
     if (m_selection["characters"] != 0) {
         m_searchWidget->show();
-        m_replaceWidget->show();
         m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
     } else {
-        m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
-        m_searchWidget->setVisible(m_replaceWidget->isVisible());
+        m_searchWidget->setVisible(!m_searchWidget->isVisible());
     }
 }
 
@@ -1561,12 +1552,12 @@ void LuaPage::searchRequest(const QString &text) {
 void LuaPage::searchResponse() {
     if (m_search["total"].toInt() == 0) {
         m_searchWidget->searchEnable(false);
-        m_replaceWidget->replaceEnable(false);
+        m_searchWidget->replaceEnable(false);
         m_searchWidget->searchResponse("0/0");
         return;
     }
     m_searchWidget->searchEnable(true);
-    m_replaceWidget->replaceEnable(true);
+    m_searchWidget->replaceEnable(true);
     const auto total = m_search["total"].toInt();
     const auto current = m_search["current"].toInt();
     m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current + 1), QString::number(total)));

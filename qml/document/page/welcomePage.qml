@@ -6,6 +6,11 @@ Item {
     id: rootItem
     anchors.fill: parent
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     ColumnLayout {
         anchors.centerIn: parent
 

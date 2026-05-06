@@ -5,211 +5,305 @@ import QtQuick.Layouts
 Item {
     id: rootItem
 
-    RowLayout {
+    Rectangle {
         anchors.fill: parent
-        anchors.leftMargin: 6; anchors.rightMargin: 6; anchors.bottomMargin: 6
+        color: global.back
+    }
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 6
 
-        Item {
-            Layout.preferredWidth: 600; Layout.preferredHeight: 24
+        RowLayout {
+            id: searchBar
 
-            TextField {
-                id: searchTextField
-                anchors.fill: parent
-                rightPadding: 120
+            Item {
+                Layout.preferredWidth: 600; Layout.preferredHeight: 24
 
-                onTextChanged: searchWidget.searchRequest()
+                TextField {
+                    id: searchTextField
+                    anchors.fill: parent
+                    rightPadding: 120
+
+                    onTextChanged: searchWidget.searchRequest()
+                }
+
+                RowLayout {
+                    anchors.right: parent.right
+                    spacing: 0
+
+                    Button {
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        flat: true
+                        icon.source: "qrc:/icon/dismiss.svg"
+                        icon.width: 12; icon.height: 12
+
+                        onClicked: searchTextField.clear()
+                    }
+
+                    Button {
+                        id: matchCaseButton
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        checkable: true
+                        flat: true
+                        icon.source: "qrc:/icon/matchCase.svg"
+                        icon.width: 16; icon.height: 16
+
+                        onClicked: {
+                            searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                            searchWidget.searchRequest()
+                        }
+
+                        HoverHandler {
+                            onHoveredChanged: {
+                                if (!hovered) {
+                                    mainToolTip.text = ""
+                                }
+                            }
+                            onPointChanged: {
+                                mainToolTip.position = parent.mapToGlobal(point.position)
+                                mainToolTip.text = parent.checked ? qsTr("Disable Match Case") : qsTr("Enable Match Case")
+                            }
+                        }
+                    }
+
+                    Button {
+                        id: wholeWordButton
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        checkable: true
+                        flat: true
+                        icon.source: "qrc:/icon/wholeWord.svg"
+                        icon.width: 16; icon.height: 16
+
+                        onClicked: {
+                            searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                            searchWidget.searchRequest()
+                        }
+
+                        HoverHandler {
+                            onHoveredChanged: {
+                                if (!hovered) {
+                                    mainToolTip.text = ""
+                                }
+                            }
+                            onPointChanged: {
+                                mainToolTip.position = parent.mapToGlobal(point.position)
+                                mainToolTip.text = parent.checked ? qsTr("Disable Whole Word") : qsTr("Enable Whole Word")
+                            }
+                        }
+                    }
+
+                    Button {
+                        id: wordStartButton
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        checkable: true
+                        flat: true
+                        icon.source: "qrc:/icon/wordStart.svg"
+                        icon.width: 16; icon.height: 16
+
+                        onClicked: {
+                            searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                            searchWidget.searchRequest()
+                        }
+
+                        HoverHandler {
+                            onHoveredChanged: {
+                                if (!hovered) {
+                                    mainToolTip.text = ""
+                                }
+                            }
+                            onPointChanged: {
+                                mainToolTip.position = parent.mapToGlobal(point.position)
+                                mainToolTip.text = parent.checked ? qsTr("Disable Word Start") : qsTr("Enable Word Start")
+                            }
+                        }
+                    }
+
+                    Button {
+                        id: regExpButton
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        checkable: true
+                        flat: true
+                        icon.source: "qrc:/icon/regExp.svg"
+                        icon.width: 16; icon.height: 16
+
+                        onClicked: {
+                            searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
+                            searchWidget.searchRequest()
+                        }
+
+                        HoverHandler {
+                            onHoveredChanged: {
+                                if (!hovered) {
+                                    mainToolTip.text = ""
+                                }
+                            }
+                            onPointChanged: {
+                                mainToolTip.position = parent.mapToGlobal(point.position)
+                                mainToolTip.text = parent.checked ? qsTr("Disable Regular Expression") : qsTr("Enable Regular Expression")
+                            }
+                        }
+                    }
+                }
             }
 
-            RowLayout {
-                anchors.right: parent.right
-                spacing: 0
+            Button {
+                id: searchPrevButton
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: false
+                flat: true
+                icon.source: "qrc:/icon/arrowUp.svg"
+                icon.width: 16; icon.height: 16
 
-                Button {
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    flat: true
-                    icon.source: "qrc:/icon/dismiss.svg"
-                    icon.width: 12; icon.height: 12
+                onClicked: searchWidget.searchPrev()
 
-                    onClicked: searchTextField.clear()
-                }
-
-                Button {
-                    id: matchCaseButton
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    checkable: true
-                    flat: true
-                    icon.source: "qrc:/icon/matchCase.svg"
-                    icon.width: 16; icon.height: 16
-
-                    onClicked: {
-                        searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest()
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
                     }
-
-                    HoverHandler {
-                        onHoveredChanged: {
-                            if (!hovered) {
-                                mainToolTip.text = ""
-                            }
-                        }
-                        onPointChanged: {
-                            mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = parent.checked ? qsTr("Disable Match Case") : qsTr("Enable Match Case")
-                        }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Search Previous")
                     }
                 }
+            }
 
-                Button {
-                    id: wholeWordButton
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    checkable: true
-                    flat: true
-                    icon.source: "qrc:/icon/wholeWord.svg"
-                    icon.width: 16; icon.height: 16
+            Button {
+                id: searchNextButton
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: false
+                flat: true
+                icon.source: "qrc:/icon/arrowDown.svg"
+                icon.width: 16; icon.height: 16
 
-                    onClicked: {
-                        searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest()
+                onClicked: searchWidget.searchNext()
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
                     }
-
-                    HoverHandler {
-                        onHoveredChanged: {
-                            if (!hovered) {
-                                mainToolTip.text = ""
-                            }
-                        }
-                        onPointChanged: {
-                            mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = parent.checked ? qsTr("Disable Whole Word") : qsTr("Enable Whole Word")
-                        }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Search Next")
                     }
                 }
+            }
 
-                Button {
-                    id: wordStartButton
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    checkable: true
-                    flat: true
-                    icon.source: "qrc:/icon/wordStart.svg"
-                    icon.width: 16; icon.height: 16
+            Label {
+                id: searchStatLabel
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                text: "0/0"
+                Layout.preferredWidth: 80; Layout.preferredHeight: 24
+            }
 
-                    onClicked: {
-                        searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest()
-                    }
-
-                    HoverHandler {
-                        onHoveredChanged: {
-                            if (!hovered) {
-                                mainToolTip.text = ""
-                            }
-                        }
-                        onPointChanged: {
-                            mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = parent.checked ? qsTr("Disable Word Start") : qsTr("Enable Word Start")
-                        }
-                    }
-                }
-
-                Button {
-                    id: regExpButton
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-                    checkable: true
-                    flat: true
-                    icon.source: "qrc:/icon/regExp.svg"
-                    icon.width: 16; icon.height: 16
-
-                    onClicked: {
-                        searchWidget.searchFlagsSet(matchCaseButton.checked, wholeWordButton.checked, wordStartButton.checked, regExpButton.checked)
-                        searchWidget.searchRequest()
-                    }
-
-                    HoverHandler {
-                        onHoveredChanged: {
-                            if (!hovered) {
-                                mainToolTip.text = ""
-                            }
-                        }
-                        onPointChanged: {
-                            mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = parent.checked ? qsTr("Disable Regular Expression") : qsTr("Enable Regular Expression")
-                        }
-                    }
-                }
+            Item {
+                Layout.fillWidth: true
             }
         }
 
-        Button {
-            id: prevButton
-            Layout.preferredWidth: 24; Layout.preferredHeight: 24
-            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-            enabled: false
-            flat: true
-            icon.source: "qrc:/icon/arrowUp.svg"
-            icon.width: 16; icon.height: 16
+        RowLayout {
+            id: replaceBar
 
-            onClicked: searchWidget.searchPrev()
+            Item {
+                Layout.preferredWidth: 600; Layout.preferredHeight: 24
 
-            HoverHandler {
-                onHoveredChanged: {
-                    if (!hovered) {
-                        mainToolTip.text = ""
+                TextField {
+                    id: replaceTextField
+                    anchors.fill: parent
+                    rightPadding: 24
+                }
+
+                RowLayout {
+                    anchors.right: parent.right
+                    spacing: 0
+
+                    Button {
+                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                        leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                        flat: true
+                        icon.source: "qrc:/icon/dismiss.svg"
+                        icon.width: 12; icon.height: 12
+
+                        onClicked: replaceTextField.clear()
                     }
                 }
-                onPointChanged: {
-                    mainToolTip.position = parent.mapToGlobal(point.position)
-                    mainToolTip.text = qsTr("Search Previous")
-                }
             }
-        }
 
-        Button {
-            id: nextButton
-            Layout.preferredWidth: 24; Layout.preferredHeight: 24
-            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-            enabled: false
-            flat: true
-            icon.source: "qrc:/icon/arrowDown.svg"
-            icon.width: 16; icon.height: 16
+            Button {
+                id: replaceTextButton
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: false
+                flat: true
+                icon.source: "qrc:/icon/replace.svg"
+                icon.width: 16; icon.height: 16
 
-            onClicked: searchWidget.searchNext()
+                onClicked: replaceWidget.textReplace()
 
-            HoverHandler {
-                onHoveredChanged: {
-                    if (!hovered) {
-                        mainToolTip.text = ""
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Replace")
                     }
                 }
-                onPointChanged: {
-                    mainToolTip.position = parent.mapToGlobal(point.position)
-                    mainToolTip.text = qsTr("Search Next")
+            }
+
+            Button {
+                id: replaceAllButton
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: false
+                flat: true
+                icon.source: "qrc:/icon/replaceAll.svg"
+                icon.width: 16; icon.height: 16
+
+                onClicked: replaceWidget.allReplace()
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = qsTr("Replace All")
+                    }
                 }
             }
-        }
 
-        Label {
-            id: searchLabel
-            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            text: "0/0"
-            Layout.preferredWidth: 80; Layout.preferredHeight: 24
-        }
-
-        Item {
-            Layout.fillWidth: true
+            Item {
+                Layout.fillWidth: true
+            }
         }
     }
 
     Component.onCompleted: {
         const objects = {
+            "searchBar": searchBar,
             "searchTextField": searchTextField,
-            "prevButton": prevButton,
-            "nextButton": nextButton,
-            "searchLabel": searchLabel
+            "searchPrevButton": searchPrevButton,
+            "searchNextButton": searchNextButton,
+            "searchStatLabel": searchStatLabel,
+            "replaceBar": replaceBar,
+            "replaceTextField": replaceTextField,
+            "replaceTextButton": replaceTextButton,
+            "replaceAllButton": replaceAllButton
         };
         searchWidget.propertyGet(objects)
     }

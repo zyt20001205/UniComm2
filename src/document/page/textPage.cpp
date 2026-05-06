@@ -7,7 +7,6 @@
 #include <QVBoxLayout>
 
 #include "globals.h"
-#include "document/module/replaceWidget.h"
 #include "document/module/scintillaWidget.h"
 #include "document/module/searchWidget.h"
 
@@ -16,7 +15,6 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
       m_editorWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
-      m_replaceWidget(new ReplaceWidget(this)),
       m_selectionTimer(new QTimer(this)) {
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, this, &TextPage::searchToggle);
@@ -110,17 +108,15 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     connect(m_editorWidget, &ScintillaEdit::savePointChanged, this, &TextPage::savepointChange);
 
     layout->addWidget(m_searchWidget);
-    layout->addWidget(m_replaceWidget);
     layout->addWidget(m_editorWidget);
 }
 
 void TextPage::propertySet(const QVariantMap &objects) {
+    m_global = qvariant_cast<QObject *>(objects["global"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_searchWidget->propertySet(QVariantMap{
-        {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
-    });
-    m_replaceWidget->propertySet(QVariantMap{
+        {"global", QVariant::fromValue(m_global)},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
 }
@@ -164,22 +160,18 @@ void TextPage::permissionSet() const {
 void TextPage::searchToggle() {
     if (m_selection["characters"] != 0) {
         m_searchWidget->show();
-        m_replaceWidget->hide();
         m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
     } else {
         m_searchWidget->setVisible(!m_searchWidget->isVisible());
-        m_replaceWidget->hide();
     }
 }
 
 void TextPage::replaceToggle() {
     if (m_selection["characters"] != 0) {
         m_searchWidget->show();
-        m_replaceWidget->show();
         m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
     } else {
-        m_replaceWidget->setVisible(!m_replaceWidget->isVisible());
-        m_searchWidget->setVisible(m_replaceWidget->isVisible());
+        m_searchWidget->setVisible(!m_searchWidget->isVisible());
     }
 }
 
@@ -226,12 +218,12 @@ void TextPage::searchRequest(const QString &text) {
 void TextPage::searchResponse() {
     if (m_search["total"].toInt() == 0) {
         m_searchWidget->searchEnable(false);
-        m_replaceWidget->replaceEnable(false);
+        m_searchWidget->replaceEnable(false);
         m_searchWidget->searchResponse("0/0");
         return;
     }
     m_searchWidget->searchEnable(true);
-    m_replaceWidget->replaceEnable(true);
+    m_searchWidget->replaceEnable(true);
     const auto total = m_search["total"].toInt();
     const auto current = m_search["current"].toInt();
     m_searchWidget->searchResponse(QString("%1/%2").arg(QString::number(current + 1), QString::number(total)));

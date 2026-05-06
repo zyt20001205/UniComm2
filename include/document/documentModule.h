@@ -37,14 +37,6 @@ public:
 
     void scriptFontSave(const QJsonObject &fontConfigScript);
 
-    void scriptIndicatorReload(const QJsonObject &indicatorConfigScript) const;
-
-    void scriptIndicatorSave(const QJsonObject &indicatorConfigScript);
-
-    void scriptMarkerReload(const QJsonObject &markerConfigScript) const;
-
-    void scriptMarkerSave(const QJsonObject &markerConfigScript);
-
     void documentOpen(const QUrl &documentUrl);
 
     void permissionSet(const QUrl &documentUrl);
