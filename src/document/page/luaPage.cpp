@@ -96,8 +96,6 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
             m_editorWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
             m_editorWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
-            // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
-            // m_editorWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
 
             m_editorWidget->send(SCI_SETUSETABS, false); // NOLINT
             m_editorWidget->send(SCI_SETINDENT, 4); // NOLINT
@@ -408,8 +406,6 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
             m_assemblyWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
             m_assemblyWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
-            // TODO: hotspot is not working for STYLE_FOLDDISPLAYTEXT
-            // m_assemblyWidget->send(SCI_STYLESETHOTSPOT, STYLE_FOLDDISPLAYTEXT, true); // NOLINT
 
             m_assemblyWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
             m_assemblyWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
@@ -1105,13 +1101,18 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
     return DockWidget::eventFilter(watched, event);
 }
 
-// void LuaPage::documentClose() {
-//     if () {
-//     m_saveDialog->setProperty("documentUrl", m_documentUrl);
-//     m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
-//     QMetaObject::invokeMethod(m_saveDialog, "open");
-//     }
-// }
+// protected
+void LuaPage::documentClose() {
+    if (m_editorWidget->modifyGet()) {
+        m_saveDialog->setProperty("documentUrl", m_documentUrl);
+        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
+        QMetaObject::invokeMethod(m_saveDialog, "open");
+        const auto eventloop = new QEventLoop();
+        connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
+        eventloop->exec();
+    }
+    BasePage::documentClose();
+}
 
 // private: slot
 void LuaPage::marginClick(const Scintilla::Position position, const int mouseButton, const Scintilla::KeyMod modifiers, const int margin) {

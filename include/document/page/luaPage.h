@@ -105,7 +105,7 @@ signals:
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
 protected:
-    // void documentClose() override;
+    void documentClose() override;
 
 private:
     void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
