@@ -33,7 +33,7 @@ void SymbolWidget::indicatorFill(const QVariantHash &position) {
         position["startLine"].toInt(),
         position["startCharacter"].toInt());
     emit fillIndicator(
-        ScintillaIndicator::Selection,
+        ScintillaIndicator::Current,
         position["startLine"].toInt(),
         position["startCharacter"].toInt(),
         position["endLine"].toInt(),

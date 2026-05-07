@@ -107,7 +107,7 @@ void NavigationWidget::indicatorInsert() {
         position["startCharacter"].toInt());
     emit insertIndicator(
         position["documentUrl"].toUrl(),
-        ScintillaIndicator::Selection,
+        ScintillaIndicator::Current,
         position["startLine"].toInt(),
         position["startCharacter"].toInt(),
         position["endLine"].toInt(),

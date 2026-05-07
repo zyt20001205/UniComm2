@@ -113,9 +113,9 @@ namespace ScintillaIndicator {
         Highlight,
         Read,
         Write,
-        Search,
-        Selection,
-        Hyperlink
+        Hyperlink,
+        Result,
+        Current
     };
 }
 

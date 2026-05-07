@@ -142,16 +142,16 @@ void ScintillaWidget::indexSet(const int line, const int character) const {
 }
 
 // public: indicator
-void ScintillaWidget::indicatorDefine(const int type, const QJsonObject &config) const {
-    if (config.contains("style")) send(SCI_INDICSETSTYLE, type, config["style"].toInt()); // NOLINT
-    if (config.contains("fore")) send(SCI_INDICSETFORE, type, config["fore"].toInt()); // NOLINT
-    if (config.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
-    if (config.contains("alpha")) send(SCI_INDICSETALPHA, type, config["alpha"].toInt()); // NOLINT
-    if (config.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, type, config["outlineAlpha"].toInt()); // NOLINT
-    if (config.contains("setUnder")) send(SCI_INDICSETUNDER, type, config["setUnder"].toBool()); // NOLINT
-    if (config.contains("hoverStyle")) send(SCI_INDICSETHOVERSTYLE, type, config["hoverStyle"].toInt()); // NOLINT
-    // if (config.contains("hoverFore")) send(SCI_INDICSETHOVERFORE, type, config["hoverFore"].toInt()); // NOLINT
-    // if (config.contains("flags")) send(SCI_INDICSETFLAGS, type, config["flags"].toInt()); // NOLINT
+void ScintillaWidget::indicatorDefine(const int type, const QVariantHash &session) const {
+    if (session.contains("style")) send(SCI_INDICSETSTYLE, type, session["style"].toInt()); // NOLINT
+    if (session.contains("fore")) send(SCI_INDICSETFORE, type, session["fore"].toInt()); // NOLINT
+    if (session.contains("strokeWidth")) send(SCI_INDICSETSTROKEWIDTH, type, session["strokeWidth"].toInt()); // NOLINT
+    if (session.contains("alpha")) send(SCI_INDICSETALPHA, type, session["alpha"].toInt()); // NOLINT
+    if (session.contains("outlineAlpha")) send(SCI_INDICSETOUTLINEALPHA, type, session["outlineAlpha"].toInt()); // NOLINT
+    if (session.contains("setUnder")) send(SCI_INDICSETUNDER, type, session["setUnder"].toBool()); // NOLINT
+    if (session.contains("hoverStyle")) send(SCI_INDICSETHOVERSTYLE, type, session["hoverStyle"].toInt()); // NOLINT
+    // if (session.contains("hoverFore")) send(SCI_INDICSETHOVERFORE, type, session["hoverFore"].toInt()); // NOLINT
+    // if (session.contains("flags")) send(SCI_INDICSETFLAGS, type, session["flags"].toInt()); // NOLINT
 }
 
 void ScintillaWidget::indicatorFill(const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter, const int time) const {
@@ -200,19 +200,19 @@ int ScintillaWidget::lineGet(const Position position) const {
 }
 
 // public: margin
-void ScintillaWidget::marginDefine(const int type, const QJsonObject &config) const {
-    if (config.contains("type")) send(SCI_SETMARGINTYPEN, type, config["type"].toInt()); // NOLINT
-    if (config.contains("width")) send(SCI_SETMARGINWIDTHN, type, config["width"].toInt()); // NOLINT
-    if (config.contains("mask")) send(SCI_SETMARGINMASKN, type, config["mask"].toInt()); // NOLINT
-    if (config.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, type, config["sensitive"].toBool()); // NOLINT
-    // if (config.contains("cursor")) send(SCI_SETMARGINCURSORN, type, config["cursor"].toInt()); // NOLINT
-    if (config.contains("back")) send(SCI_SETMARGINBACKN, type, config["back"].toInt()); // NOLINT
-    // if (config.contains("left")) send(SCI_SETMARGINLEFT, type, config["left"].toInt()); // NOLINT
-    // if (config.contains("right")) send(SCI_SETMARGINRIGHT, type, config["right"].toInt()); // NOLINT
-    // if (config.contains("text")) send(SCI_MARGINSETTEXT, type, reinterpret_cast<sptr_t>(config["text"].toString().toUtf8().constData())); // NOLINT
-    // if (config.contains("style")) send(SCI_MARGINSETSTYLE, type, config["style"].toInt()); // NOLINT
-    // if (config.contains("styleOffset")) send(SCI_MARGINSETSTYLEOFFSET, type); // NOLINT
-    // if (config.contains("options")) send(SCI_SETMARGINOPTIONS, type, config["options"].toInt()); // NOLINT
+void ScintillaWidget::marginDefine(const int type, const QVariantHash &session) const {
+    if (session.contains("type")) send(SCI_SETMARGINTYPEN, type, session["type"].toInt()); // NOLINT
+    if (session.contains("width")) send(SCI_SETMARGINWIDTHN, type, session["width"].toInt()); // NOLINT
+    if (session.contains("mask")) send(SCI_SETMARGINMASKN, type, session["mask"].toInt()); // NOLINT
+    if (session.contains("sensitive")) send(SCI_SETMARGINSENSITIVEN, type, session["sensitive"].toBool()); // NOLINT
+    // if (session.contains("cursor")) send(SCI_SETMARGINCURSORN, type, session["cursor"].toInt()); // NOLINT
+    if (session.contains("back")) send(SCI_SETMARGINBACKN, type, session["back"].toInt()); // NOLINT
+    // if (session.contains("left")) send(SCI_SETMARGINLEFT, type, session["left"].toInt()); // NOLINT
+    // if (session.contains("right")) send(SCI_SETMARGINRIGHT, type, session["right"].toInt()); // NOLINT
+    // if (session.contains("text")) send(SCI_MARGINSETTEXT, type, reinterpret_cast<sptr_t>(session["text"].toString().toUtf8().constData())); // NOLINT
+    // if (session.contains("style")) send(SCI_MARGINSETSTYLE, type, session["style"].toInt()); // NOLINT
+    // if (session.contains("styleOffset")) send(SCI_MARGINSETSTYLEOFFSET, type); // NOLINT
+    // if (session.contains("options")) send(SCI_SETMARGINOPTIONS, type, session["options"].toInt()); // NOLINT
 }
 
 void ScintillaWidget::marginTextSet(const int line, const QString &text) const {
@@ -235,18 +235,18 @@ int ScintillaWidget::marginWidthGet(const int col) const {
 }
 
 // public: marker
-void ScintillaWidget::markerDefine(const int type, const QJsonObject &config) const {
-    if (config.contains("symbol")) send(SCI_MARKERDEFINE, type, config["symbol"].toInt()); // NOLINT
-    if (config.contains("fore")) send(SCI_MARKERSETFORE, type, config["fore"].toInt()); // NOLINT
-    // if (config.contains("foreTranslucent")) send(SCI_MARKERSETFORETRANSLUCENT, type, config["foreTranslucent"].toInt()); // NOLINT
-    if (config.contains("back")) send(SCI_MARKERSETBACK, type, config["back"].toInt()); // NOLINT
-    // if (config.contains("backTranslucent")) send(SCI_MARKERSETBACKTRANSLUCENT, type, config["backTranslucent"].toInt()); // NOLINT
-    // if (config.contains("backSelected")) send(SCI_MARKERSETBACKSELECTED, type, config["backSelected"].toInt()); // NOLINT
-    // if (config.contains("backSelectedTranslucent")) send(SCI_MARKERSETBACKSELECTEDTRANSLUCENT, type, config["backSelectedTranslucent"].toInt()); // NOLINT
-    // if (config.contains("strokeWidth")) send(SCI_MARKERSETSTROKEWIDTH, type, config["strokeWidth"].toInt()); // NOLINT
-    // if (config.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, type, config["enableHighlight"].toBool()); // NOLINT
-    // if (config.contains("layer")) send(SCI_MARKERSETLAYER, type, config["layer"].toInt()); // NOLINT
-    // if (config.contains("alpha")) send(SCI_MARKERSETALPHA, type, config["alpha"].toInt()); // NOLINT
+void ScintillaWidget::markerDefine(const int type, const QVariantHash &session) const {
+    if (session.contains("symbol")) send(SCI_MARKERDEFINE, type, session["symbol"].toInt()); // NOLINT
+    if (session.contains("fore")) send(SCI_MARKERSETFORE, type, session["fore"].toInt()); // NOLINT
+    // if (session.contains("foreTranslucent")) send(SCI_MARKERSETFORETRANSLUCENT, type, session["foreTranslucent"].toInt()); // NOLINT
+    if (session.contains("back")) send(SCI_MARKERSETBACK, type, session["back"].toInt()); // NOLINT
+    // if (session.contains("backTranslucent")) send(SCI_MARKERSETBACKTRANSLUCENT, type, session["backTranslucent"].toInt()); // NOLINT
+    // if (session.contains("backSelected")) send(SCI_MARKERSETBACKSELECTED, type, session["backSelected"].toInt()); // NOLINT
+    // if (session.contains("backSelectedTranslucent")) send(SCI_MARKERSETBACKSELECTEDTRANSLUCENT, type, session["backSelectedTranslucent"].toInt()); // NOLINT
+    // if (session.contains("strokeWidth")) send(SCI_MARKERSETSTROKEWIDTH, type, session["strokeWidth"].toInt()); // NOLINT
+    // if (session.contains("enableHighlight")) send(SCI_MARKERENABLEHIGHLIGHT, type, session["enableHighlight"].toBool()); // NOLINT
+    // if (session.contains("layer")) send(SCI_MARKERSETLAYER, type, session["layer"].toInt()); // NOLINT
+    // if (session.contains("alpha")) send(SCI_MARKERSETALPHA, type, session["alpha"].toInt()); // NOLINT
 }
 
 void ScintillaWidget::markerAdd(const int type, const int line, const int time) const {
@@ -361,25 +361,25 @@ void ScintillaWidget::selectionSet(const int startLine, const int startCharacter
 }
 
 // public: style
-void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) const {
-    if (config.contains("font")) send(SCI_STYLESETFONT, type, reinterpret_cast<sptr_t>(config["font"].toString().toUtf8().constData())); // NOLINT
-    if (config.contains("size")) send(SCI_STYLESETSIZE, type, config["size"].toInt()); // NOLINT
-    // if (config.contains("bold")) send(SCI_STYLESETBOLD, type, config["bold"].toBool()); // NOLINT
-    // if (config.contains("weight")) send(SCI_STYLESETWEIGHT, type, config["weight"].toInt()); // NOLINT
-    // if (config.contains("stretch")) send(SCI_STYLESETSTRETCH, type, config["stretch"].toInt()); // NOLINT
-    // if (config.contains("italic")) send(SCI_STYLESETITALIC, type, config["italic"].toBool()); // NOLINT
-    // if (config.contains("underline")) send(SCI_STYLESETUNDERLINE, type, config["underline"].toBool()); // NOLINT
-    if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT    if (config.contains("fore")) send(SCI_STYLESETFORE, type, config["fore"].toInt()); // NOLINT
-    if (config.contains("back")) send(SCI_STYLESETBACK, type, config["back"].toInt()); // NOLINT
-    // if (config.contains("eolFilled")) send(SCI_STYLESETEOLFILLED, type, config["eolFilled"].toBool()); // NOLINT
-    // if (config.contains("characterSet")) send(SCI_STYLESETCHARACTERSET, type, config["characterSet"].toInt()); // NOLINT
-    // if (config.contains("case")) send(SCI_STYLESETCASE, type, config["case"].toInt()); // NOLINT
-    // if (config.contains("visible")) send(SCI_STYLESETVISIBLE, type, config["visible"].toBool()); // NOLINT
-    // if (config.contains("changeable")) send(SCI_STYLESETCHANGEABLE, type, config["changeable"].toBool()); // NOLINT
-    // if (config.contains("hotspot")) send(SCI_STYLESETHOTSPOT, type, config["hotspot"].toBool()); // NOLINT
-    // if (config.contains("checkMonospaced")) send(SCI_STYLESETCHECKMONOSPACED, type, config["checkMonospaced"].toBool()); // NOLINT
-    // if (config.contains("representation")) send(SCI_STYLESETINVISIBLEREPRESENTATION, type, reinterpret_cast<sptr_t>(config["bold"].toString().toUtf8().constData())); // NOLINT
-    // if (config.contains("locale")) send(SCI_SETFONTLOCALE, type, reinterpret_cast<sptr_t>(config["locale"].toString().toUtf8().constData())); // NOLINT
+void ScintillaWidget::styleDefine(const int type, const QVariantHash &session) const {
+    if (session.contains("font")) send(SCI_STYLESETFONT, type, reinterpret_cast<sptr_t>(session["font"].toString().toUtf8().constData())); // NOLINT
+    if (session.contains("size")) send(SCI_STYLESETSIZE, type, session["size"].toInt()); // NOLINT
+    // if (session.contains("bold")) send(SCI_STYLESETBOLD, type, session["bold"].toBool()); // NOLINT
+    // if (session.contains("weight")) send(SCI_STYLESETWEIGHT, type, session["weight"].toInt()); // NOLINT
+    // if (session.contains("stretch")) send(SCI_STYLESETSTRETCH, type, session["stretch"].toInt()); // NOLINT
+    // if (session.contains("italic")) send(SCI_STYLESETITALIC, type, session["italic"].toBool()); // NOLINT
+    // if (session.contains("underline")) send(SCI_STYLESETUNDERLINE, type, session["underline"].toBool()); // NOLINT
+    if (session.contains("fore")) send(SCI_STYLESETFORE, type, session["fore"].toInt()); // NOLINT    if (session.contains("fore")) send(SCI_STYLESETFORE, type, session["fore"].toInt()); // NOLINT
+    if (session.contains("back")) send(SCI_STYLESETBACK, type, session["back"].toInt()); // NOLINT
+    // if (session.contains("eolFilled")) send(SCI_STYLESETEOLFILLED, type, session["eolFilled"].toBool()); // NOLINT
+    // if (session.contains("characterSet")) send(SCI_STYLESETCHARACTERSET, type, session["characterSet"].toInt()); // NOLINT
+    // if (session.contains("case")) send(SCI_STYLESETCASE, type, session["case"].toInt()); // NOLINT
+    // if (session.contains("visible")) send(SCI_STYLESETVISIBLE, type, session["visible"].toBool()); // NOLINT
+    // if (session.contains("changeable")) send(SCI_STYLESETCHANGEABLE, type, session["changeable"].toBool()); // NOLINT
+    // if (session.contains("hotspot")) send(SCI_STYLESETHOTSPOT, type, session["hotspot"].toBool()); // NOLINT
+    // if (session.contains("checkMonospaced")) send(SCI_STYLESETCHECKMONOSPACED, type, session["checkMonospaced"].toBool()); // NOLINT
+    // if (session.contains("representation")) send(SCI_STYLESETINVISIBLEREPRESENTATION, type, reinterpret_cast<sptr_t>(session["bold"].toString().toUtf8().constData())); // NOLINT
+    // if (session.contains("locale")) send(SCI_SETFONTLOCALE, type, reinterpret_cast<sptr_t>(session["locale"].toString().toUtf8().constData())); // NOLINT
 }
 
 int ScintillaWidget::styleGet(const Position position) const {

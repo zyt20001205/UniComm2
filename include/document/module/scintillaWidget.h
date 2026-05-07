@@ -63,7 +63,7 @@ public:
 
     void indexSet(int line, int character) const;
 
-    void indicatorDefine(int type, const QJsonObject &config) const;
+    void indicatorDefine(int type, const QVariantHash &session) const;
 
     void indicatorFill(int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1) const;
 
@@ -79,7 +79,7 @@ public:
 
     [[nodiscard]] int lineGet(Scintilla::Position position) const;
 
-    void marginDefine(int type, const QJsonObject &config) const;
+    void marginDefine(int type, const QVariantHash &session) const;
 
     void marginTextSet(int line, const QString &text) const;
 
@@ -87,7 +87,7 @@ public:
 
     [[nodiscard]] int marginWidthGet(int col = -1) const;
 
-    void markerDefine(int type, const QJsonObject &config) const;
+    void markerDefine(int type, const QVariantHash &session) const;
 
     void markerAdd(int type, int line, int time = -1) const;
 
@@ -123,7 +123,7 @@ public:
 
     void selectionSet(int startLine, int startCharacter, int endLine, int endCharacter) const;
 
-    void styleDefine(int type, const QJsonObject &config) const;
+    void styleDefine(int type, const QVariantHash &session) const;
 
     [[nodiscard]] int styleGet(Scintilla::Position position) const;
 

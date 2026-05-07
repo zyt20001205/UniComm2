@@ -1,6 +1,7 @@
 #ifndef UNICOMM_EDITORWIDGET_H
 #define UNICOMM_EDITORWIDGET_H
 
+#include <QJsonObject>
 #include <QWidget>
 
 class ScintillaWidget;
@@ -10,24 +11,70 @@ class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit EditorWidget(const QVariantHash &session, QWidget *parent = nullptr);
+    explicit EditorWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent = nullptr);
 
     ~EditorWidget() override = default;
 
-    void propertySet(const QVariantHash &objects) const;
+    void propertySet(const QVariantHash &objects);
 
-    [[nodiscard]] ScintillaWidget* handle() const { return m_scintillaWidget; }
+    [[nodiscard]] ScintillaWidget *handle() const { return m_scintillaWidget; }
+
+    void documentSave();
+
+signals:
+    void appendLog(int type, const QString &prefix, const QString &message);
+
+    void changeSavepoint(bool status);
+
+    void changeSelection(const QHash<QString, int> &selection);
 
 protected:
+
     void miscInit() const;
 
-    void textInit();
+    void indicatorInit() const;
+
+    void marginInit() const;
+
+    void markerInit() const;
+
+    void styleInit() const;
 
 private:
-    QVariantHash m_session{};
+    void documentOpen();
 
+    void permissionSet() const;
+
+    void selectionChange();
+
+    // private: search
+    void searchToggle();
+
+    void replaceToggle();
+
+    void searchRequest(const QString &text);
+
+    void searchResponse();
+
+    void searchPrev();
+
+    void searchNext();
+
+    void searchClear();
+
+    void textReplace(const QString &text);
+
+    void allReplace(const QString &text);
+
+    QJsonObject m_config{};
+    QUrl m_documentUrl{};
+    QObject *m_propertyDialog{};
     ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
+
+    QTimer *m_selectionTimer{};
+    QHash<QString, int> m_selection{};
+    QVariantHash m_search{};
 };
 
 #endif //UNICOMM_EDITORWIDGET_H

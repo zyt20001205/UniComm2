@@ -3,8 +3,7 @@
 
 #include "basePage.h"
 
-class SearchWidget;
-class ScintillaWidget;
+class EditorWidget;
 
 class TextPage final : public BasePage {
     Q_OBJECT
@@ -14,53 +13,17 @@ public:
 
     ~TextPage() override = default;
 
-    void propertySet(const QVariantHash &objects);
+    void propertySet(const QVariantHash &objects) const;
 
-    // public: file
-    void documentSave();
-
-    ScintillaWidget *m_editorWidget{};
+    void documentSave() const;
 
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 
 private:
-    void selectionChange();
-
     void savepointChange(bool status);
 
-    // private: file
-    void permissionSet() const;
-
-    // private: search
-    void searchToggle();
-
-    void replaceToggle();
-
-    void searchRequest(const QString &text);
-
-    void searchResponse();
-
-    void searchPrev();
-
-    void searchNext();
-
-    void searchClear();
-
-    void textReplace(const QString &text);
-
-    void allReplace(const QString &text);
-
-    SearchWidget *m_searchWidget{};
-
-    QTimer *m_selectionTimer{};
-
-    QObject *m_global{};
-    QObject *m_toolTip{};
-    QObject *m_systemPropertyDialog{};
-
-    QHash<QString, int> m_selection{};
-    QVariantHash m_search{};
+    EditorWidget *m_editorWidget{};
 };
 
 #endif //UNICOMM_TEXTPAGE_H
