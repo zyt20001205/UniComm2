@@ -9,7 +9,7 @@ class SymbolWidget final : public QQuickWidget {
 public:
     explicit SymbolWidget(QWidget *parent = nullptr);
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     void symbolLoad(const QJsonArray &result, int line, int character);
 

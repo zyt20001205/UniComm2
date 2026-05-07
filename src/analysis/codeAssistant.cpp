@@ -32,28 +32,28 @@ CodeAssistant::CodeAssistant(QWidget *parent)
     connect(m_signatureWidget, &SignatureWidget::setTextSelected, this, &CodeAssistant::setTextSelected);
 }
 
-void CodeAssistant::propertySet(const QVariantMap &objects) const {
-    m_completionWidget->propertySet(QVariantMap{
+void CodeAssistant::propertySet(const QVariantHash &objects) const {
+    m_completionWidget->propertySet(QVariantHash{
         {"documentModuleCompletionToolTip", objects["documentModuleCompletionToolTip"]},
         {"documentModuleCompletionTableView", objects["documentModuleCompletionTableView"]},
         {"documentModuleCompletionDetailTableView", objects["documentModuleCompletionDetailTableView"]}
     });
-    m_dwellWidget->propertySet(QVariantMap{
+    m_dwellWidget->propertySet(QVariantHash{
         {"documentModuleDwellToolTip", objects["documentModuleDwellToolTip"]},
         {"documentModuleDwellDiagnosticTextArea", objects["documentModuleDwellDiagnosticTextArea"]},
         {"documentModuleDwellHoverTextArea", objects["documentModuleDwellHoverTextArea"]},
         {"documentModuleDwellCodeActionMenu", objects["documentModuleDwellCodeActionMenu"]},
         {"documentModuleDwellSuggestionMenu", objects["documentModuleDwellSuggestionMenu"]}
     });
-    m_navigationWidget->propertySet(QVariantMap{
+    m_navigationWidget->propertySet(QVariantHash{
         {"documentModuleNavigationToolTip", objects["documentModuleNavigationToolTip"]},
         {"documentModuleNavigationTableView", objects["documentModuleNavigationTableView"]},
         {"documentModuleNavigationDetailLabel", objects["documentModuleNavigationDetailLabel"]}
     });
-    m_positionWidget->propertySet(QVariantMap{
+    m_positionWidget->propertySet(QVariantHash{
         {"documentModulePositionTooltip", objects["documentModulePositionTooltip"]}
     });
-    m_signatureWidget->propertySet(QVariantMap{
+    m_signatureWidget->propertySet(QVariantHash{
         {"documentModuleSignatureToolTip", objects["documentModuleSignatureToolTip"]},
         {"documentModuleSignatureLabel", objects["documentModuleSignatureLabel"]}
     });

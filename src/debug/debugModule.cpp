@@ -25,7 +25,7 @@ DebugModule::~DebugModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void DebugModule::propertySet(const QVariantMap &objects) {
+void DebugModule::propertySet(const QVariantHash &objects) {
     m_errorDialog = qvariant_cast<QObject *>(objects["debugModuleErrorDialog"]);
 
     m_widget->rootContext()->setContextProperty("debugModule", this);

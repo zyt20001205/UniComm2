@@ -18,7 +18,7 @@ DataplotModule::~DataplotModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void DataplotModule::propertySet(const QVariantMap &objects) {
+void DataplotModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["dataplotModuleRootMenu"]));
 
     m_widget->rootContext()->setContextProperty("dataplotModule", this);

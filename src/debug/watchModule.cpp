@@ -29,7 +29,7 @@ WatchModule::~WatchModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void WatchModule::propertySet(const QVariantMap &objects) {
+void WatchModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("watchModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));

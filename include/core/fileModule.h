@@ -13,7 +13,7 @@ public:
 
     ~FileModule() override = default;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     Q_INVOKABLE void processTerminate() const;
 

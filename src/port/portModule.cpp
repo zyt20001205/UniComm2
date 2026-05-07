@@ -44,7 +44,7 @@ PortModule::~PortModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void PortModule::propertySet(const QVariantMap &objects) {
+void PortModule::propertySet(const QVariantHash &objects) {
     m_global = qvariant_cast<QObject *>(objects["global"]);
 
     m_widget->rootContext()->setContextProperty("portModule", this);
@@ -57,7 +57,7 @@ void PortModule::propertySet(const QVariantMap &objects) {
     m_widget->setSource(QUrl("qrc:/qml/port/portModule.qml"));
     m_rootItem = m_widget->rootObject();
 
-    m_portSetting->propertySet(QVariantMap{
+    m_portSetting->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)}
     });
 }

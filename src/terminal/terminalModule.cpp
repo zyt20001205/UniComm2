@@ -15,7 +15,7 @@ TerminalModule::~TerminalModule() {
     qDebug() << QString("[%1] terminal module destructed").arg(timestamp);
 }
 
-void TerminalModule::propertySet(const QVariantMap &objects) {
+void TerminalModule::propertySet(const QVariantHash &objects) {
     m_global = qvariant_cast<QObject *>(objects["global"]);
 }
 
@@ -25,7 +25,7 @@ void TerminalModule::cmdOpen() {
         index++;
     }
     auto *cmdPage = new CmdPage("Cmd " + QString::number(index), m_config);
-    cmdPage->propertySet(QVariantMap{
+    cmdPage->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)}
     });
     m_cmdHash.insert(index, cmdPage);
@@ -38,7 +38,7 @@ void TerminalModule::powershellOpen() {
         index++;
     }
     auto *powershellPage = new PowershellPage("Powershell " + QString::number(index), m_config);
-    powershellPage->propertySet(QVariantMap{
+    powershellPage->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)}
     });
     m_powershellHash.insert(index, powershellPage);

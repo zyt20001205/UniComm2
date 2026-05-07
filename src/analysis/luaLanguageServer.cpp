@@ -22,7 +22,7 @@ LuaLanguageServer::~LuaLanguageServer() {
     qDebug() << QString("[%1] luals module destructed").arg(timestamp);
 }
 
-void LuaLanguageServer::propertySet(const QVariantMap &objects) {
+void LuaLanguageServer::propertySet(const QVariantHash &objects) {
     m_progressDialog = qvariant_cast<QObject *>(objects["lualsProgressDialog"]);
 }
 

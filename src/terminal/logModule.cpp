@@ -27,7 +27,7 @@ LogModule::~LogModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void LogModule::propertySet(const QVariantMap &objects) {
+void LogModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_textView = qvariant_cast<QObject *>(objects["mainWindowTextView"]);
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());

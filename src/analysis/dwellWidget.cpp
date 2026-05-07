@@ -11,7 +11,7 @@ DwellWidget::DwellWidget(QWidget *parent)
     : QObject(parent) {
 }
 
-void DwellWidget::propertySet(const QVariantMap &objects) {
+void DwellWidget::propertySet(const QVariantHash &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["documentModuleDwellToolTip"]);
     m_tooltip->setProperty("dwellWidget", QVariant::fromValue(this));
     m_diagnosticTextArea = qvariant_cast<QObject *>(objects["documentModuleDwellDiagnosticTextArea"]);

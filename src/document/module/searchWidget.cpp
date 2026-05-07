@@ -9,7 +9,7 @@ SearchWidget::SearchWidget(QWidget *parent)
     hide();
 }
 
-void SearchWidget::propertySet(const QVariantMap &objects) {
+void SearchWidget::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("searchWidget", this);
     rootContext()->setContextProperty("global", objects["global"]);
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));

@@ -18,7 +18,7 @@ PositionWidget::PositionWidget(QWidget *parent)
     });
 }
 
-void PositionWidget::propertySet(const QVariantMap &objects) {
+void PositionWidget::propertySet(const QVariantHash &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["documentModulePositionTooltip"]);
 }
 

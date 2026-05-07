@@ -10,7 +10,7 @@ ImagePage::ImagePage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     setWidget(m_imageWidget);
 }
 
-void ImagePage::propertySet(const QVariantMap &objects) {
+void ImagePage::propertySet(const QVariantHash &objects) {
     m_imageWidget->rootContext()->setContextProperty("imagePage", this);
     m_imageWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_imageWidget->setSource(QUrl("qrc:/qml/document/module/imageWidget.qml"));

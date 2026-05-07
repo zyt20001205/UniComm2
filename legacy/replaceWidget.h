@@ -9,7 +9,7 @@ class ReplaceWidget final : public QQuickWidget {
 public:
     explicit ReplaceWidget(QWidget *parent = nullptr);
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 

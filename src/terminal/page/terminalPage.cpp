@@ -23,7 +23,7 @@ TerminalPage::~TerminalPage() {
     qDebug() << QString("[%1] %2 destructed").arg(timestamp, uniqueName());
 }
 
-void TerminalPage::propertySet(const QVariantMap &objects) {
+void TerminalPage::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("terminalPage", this);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);

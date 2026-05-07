@@ -16,7 +16,7 @@ public:
 
     ~NavigationWidget() override = default;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     void fontSet(const QString &family, int pointSize) const;
 

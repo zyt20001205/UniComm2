@@ -30,7 +30,7 @@ DatatableModule::~DatatableModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void DatatableModule::propertySet(const QVariantMap &objects) {
+void DatatableModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("datatableModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));

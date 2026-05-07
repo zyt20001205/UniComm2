@@ -23,7 +23,7 @@ DiagnosticsModule::~DiagnosticsModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void DiagnosticsModule::propertySet(const QVariantMap &objects) {
+void DiagnosticsModule::propertySet(const QVariantHash &objects) {
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
 
     m_widget->rootContext()->setContextProperty("diagnosticsModule", this);

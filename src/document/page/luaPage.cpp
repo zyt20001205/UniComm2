@@ -509,18 +509,18 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     });
 }
 
-void LuaPage::propertySet(const QVariantMap &objects) {
+void LuaPage::propertySet(const QVariantHash &objects) {
     m_global = qvariant_cast<QObject *>(objects["global"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
-    m_symbolWidget->propertySet(QVariantMap{
+    m_symbolWidget->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
-    m_searchWidget->propertySet(QVariantMap{
+    m_searchWidget->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });

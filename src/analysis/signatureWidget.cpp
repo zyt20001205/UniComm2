@@ -11,7 +11,7 @@ SignatureWidget::SignatureWidget(QWidget *parent)
     : QObject(parent) {
 }
 
-void SignatureWidget::propertySet(const QVariantMap &objects) {
+void SignatureWidget::propertySet(const QVariantHash &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["documentModuleSignatureToolTip"]);
     m_tooltip->setProperty("signatureWidget", QVariant::fromValue(this));
     m_label = qvariant_cast<QObject *>(objects["documentModuleSignatureLabel"]);

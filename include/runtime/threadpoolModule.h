@@ -18,7 +18,7 @@ public:
 
     ~ThreadpoolModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     void quit();
 

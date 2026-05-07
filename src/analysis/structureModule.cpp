@@ -23,7 +23,7 @@ StructureModule::~StructureModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void StructureModule::propertySet(const QVariantMap &objects) {
+void StructureModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("structureModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));

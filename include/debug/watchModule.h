@@ -13,7 +13,7 @@ public:
 
     ~WatchModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     static void watchConfigSave() ;
 

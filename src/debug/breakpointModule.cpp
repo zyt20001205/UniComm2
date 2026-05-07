@@ -30,7 +30,7 @@ BreakpointModule::~BreakpointModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void BreakpointModule::propertySet(const QVariantMap &objects) {
+void BreakpointModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("breakpointModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));

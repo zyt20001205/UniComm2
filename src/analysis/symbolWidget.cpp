@@ -12,7 +12,7 @@ SymbolWidget::SymbolWidget(QWidget *parent)
     setFixedHeight(24);
 }
 
-void SymbolWidget::propertySet(const QVariantMap &objects) {
+void SymbolWidget::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("symbolWidget", this);
     rootContext()->setContextProperty("global", objects["global"]);
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));

@@ -15,7 +15,7 @@ FileModule::FileModule(QObject *parent)
       m_process(new QProcess(this)) {
 }
 
-void FileModule::propertySet(const QVariantMap &objects) {
+void FileModule::propertySet(const QVariantHash &objects) {
     m_busyDialog = qvariant_cast<QObject *>(objects["mainWindowBusyDialog"]);
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
 }

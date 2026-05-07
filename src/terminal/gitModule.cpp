@@ -31,7 +31,7 @@ GitModule::~GitModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void GitModule::propertySet(const QVariantMap &objects) {
+void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
 

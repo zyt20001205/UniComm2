@@ -54,7 +54,7 @@ ExplorerModule::~ExplorerModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void ExplorerModule::propertySet(const QVariantMap &objects) {
+void ExplorerModule::propertySet(const QVariantHash &objects) {
     m_fileMenu = qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]);
     m_fileMenu->setProperty("gitEnabled", g_gitEnabled);
     m_folderMenu = qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]);

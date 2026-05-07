@@ -17,7 +17,7 @@ public:
 
     ~DatabaseModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     static void databaseConfigSave();
 

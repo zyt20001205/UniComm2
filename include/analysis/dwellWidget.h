@@ -14,7 +14,7 @@ public:
 
     ~DwellWidget() override = default;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     void diagnosticShow(const QVariantHash &diagnosticSession, const QString &message);
 

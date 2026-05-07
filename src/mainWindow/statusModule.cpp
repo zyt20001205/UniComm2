@@ -17,7 +17,7 @@ StatusModule::~StatusModule() {
     qDebug() << QString("[%1] status module destructed").arg(timestamp);
 }
 
-void StatusModule::propertySet(const QVariantMap &objects) {
+void StatusModule::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("global", objects["global"]);
 
     rootContext()->setContextProperty("statusModule", this);

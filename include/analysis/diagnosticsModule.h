@@ -18,7 +18,7 @@ public:
 
     ~DiagnosticsModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 

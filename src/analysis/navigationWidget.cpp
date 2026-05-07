@@ -13,7 +13,7 @@ NavigationWidget::NavigationWidget(QWidget *parent)
       m_navigationModel(new QStandardItemModel(this)) {
 }
 
-void NavigationWidget::propertySet(const QVariantMap &objects) {
+void NavigationWidget::propertySet(const QVariantHash &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["documentModuleNavigationToolTip"]);
     m_tooltip->setProperty("navigationWidget", QVariant::fromValue(this));
     m_tableView = qvariant_cast<QObject *>(objects["documentModuleNavigationTableView"]);

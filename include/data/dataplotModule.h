@@ -13,7 +13,7 @@ public:
 
     ~DataplotModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
 signals:
 

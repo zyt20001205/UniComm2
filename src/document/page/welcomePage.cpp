@@ -10,7 +10,7 @@ WelcomePage::WelcomePage()
     setWidget(m_welcomeWidget);
 }
 
-void WelcomePage::propertySet(const QVariantMap &objects) {
+void WelcomePage::propertySet(const QVariantHash &objects) {
     m_welcomeWidget->rootContext()->setContextProperty("welcomePage", this);
     m_welcomeWidget->rootContext()->setContextProperty("global", objects["global"]);
 

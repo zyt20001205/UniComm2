@@ -18,7 +18,7 @@ public:
 
     ~StructureModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 

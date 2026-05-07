@@ -14,7 +14,7 @@ public:
 
     ~PositionWidget() override = default;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     [[nodiscard]] bool isVisible() const;
 

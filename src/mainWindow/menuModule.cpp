@@ -18,7 +18,7 @@ MenuModule::~MenuModule() {
     qDebug() << QString("[%1] menu module destructed").arg(timestamp);
 }
 
-void MenuModule::propertySet(const QVariantMap &objects) {
+void MenuModule::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("menuModule", this);
     rootContext()->setContextProperty("global", objects["global"]);
     rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["menuModuleFileMenu"]));

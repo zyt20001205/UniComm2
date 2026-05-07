@@ -14,7 +14,7 @@ public:
 
     ~TextPage() override = default;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     // public: file
     void documentSave();

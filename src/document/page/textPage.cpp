@@ -109,11 +109,11 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     layout->addWidget(m_editorWidget);
 }
 
-void TextPage::propertySet(const QVariantMap &objects) {
+void TextPage::propertySet(const QVariantHash &objects) {
     m_global = qvariant_cast<QObject *>(objects["global"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
-    m_searchWidget->propertySet(QVariantMap{
+    m_searchWidget->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });

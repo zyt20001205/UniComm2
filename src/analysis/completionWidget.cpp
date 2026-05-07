@@ -23,7 +23,7 @@ CompletionWidget::CompletionWidget(QWidget *parent)
       m_detailModel(new QStandardItemModel(this)) {
 }
 
-void CompletionWidget::propertySet(const QVariantMap &objects) {
+void CompletionWidget::propertySet(const QVariantHash &objects) {
     m_tooltip = qvariant_cast<QObject *>(objects["documentModuleCompletionToolTip"]);
     m_tooltip->setProperty("completionWidget", QVariant::fromValue(this));
     m_tableView = qvariant_cast<QObject *>(objects["documentModuleCompletionTableView"]);

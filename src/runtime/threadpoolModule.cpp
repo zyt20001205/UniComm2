@@ -25,7 +25,7 @@ ThreadpoolModule::~ThreadpoolModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void ThreadpoolModule::propertySet(const QVariantMap &objects) {
+void ThreadpoolModule::propertySet(const QVariantHash &objects) {
     m_mainItem = qvariant_cast<QObject *>(objects["mainItem"]);
     m_errorDialog = qvariant_cast<QObject *>(objects["threadpoolModuleErrorDialog"]);
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};

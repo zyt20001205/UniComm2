@@ -42,7 +42,7 @@ DocumentModule::~DocumentModule() {
     qDebug() << QString("[%1] document module destructed").arg(timestamp);
 }
 
-void DocumentModule::propertySet(const QVariantMap &objects) {
+void DocumentModule::propertySet(const QVariantHash &objects) {
     m_global = qvariant_cast<QObject *>(objects["global"]);
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
@@ -61,7 +61,7 @@ void DocumentModule::propertySet(const QVariantMap &objects) {
         });
     }
 
-    m_welcomePage->propertySet(QVariantMap{
+    m_welcomePage->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)}
         });
     m_codeAssistant->propertySet(objects);
@@ -113,12 +113,12 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         if (imageType.contains(suffix)) {
             newPage = new ImagePage(m_config, documentUrl);
             auto *imagePage = qobject_cast<ImagePage *>(newPage);
-            imagePage->propertySet(QVariantMap{
+            imagePage->propertySet(QVariantHash{
             });
         } else if (suffix == "lua") {
             newPage = new LuaPage(m_config, documentUrl);
             auto *luaPage = qobject_cast<LuaPage *>(newPage);
-            luaPage->propertySet(QVariantMap{
+            luaPage->propertySet(QVariantHash{
                 {"global", QVariant::fromValue(m_global)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
@@ -152,7 +152,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         } else {
             newPage = new TextPage(m_config, documentUrl);
             auto *textPage = qobject_cast<TextPage *>(newPage);
-            textPage->propertySet(QVariantMap{
+            textPage->propertySet(QVariantHash{
                 {"global", QVariant::fromValue(m_global)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)}

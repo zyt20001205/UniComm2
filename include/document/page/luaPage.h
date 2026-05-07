@@ -22,7 +22,7 @@ public:
 
     ~LuaPage() override = default;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     void themeLoad(int theme) const;
 

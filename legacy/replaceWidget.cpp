@@ -8,7 +8,7 @@ ReplaceWidget::ReplaceWidget(QWidget *parent)
     setFixedHeight(30);
 }
 
-void ReplaceWidget::propertySet(const QVariantMap &objects) {
+void ReplaceWidget::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     rootContext()->setContextProperty("replaceWidget", this);

@@ -120,12 +120,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_closeDialog = qvariant_cast<QObject *>(objects["mainWindowCloseDialog"]);
     m_quitDialog = qvariant_cast<QObject *>(objects["mainWindowQuitDialog"]);
 
-    const QVariantMap lualsObjects = {
+    const QVariantHash lualsObjects = {
         {"lualsProgressDialog", objects["lualsProgressDialog"]}
     };
     m_luals->propertySet(lualsObjects);
 
-    const QVariantMap breakpointObjects = {
+    const QVariantHash breakpointObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"breakpointModuleLineMenu", objects["breakpointModuleLineMenu"]},
         {"breakpointModuleFileMenu", objects["breakpointModuleFileMenu"]},
@@ -133,7 +133,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_breakpointModule->propertySet(breakpointObjects);
 
-    const QVariantMap databaseObjects = {
+    const QVariantHash databaseObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"databaseModuleEditDialog", objects["databaseModuleEditDialog"]},
         {"databaseModuleTableMenu", objects["databaseModuleTableMenu"]},
@@ -141,12 +141,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_databaseModule->propertySet(databaseObjects);
 
-    const QVariantMap dataplotObjects = {
+    const QVariantHash dataplotObjects = {
         {"dataplotModuleRootMenu", objects["dataplotModuleRootMenu"]}
     };
     m_dataplotModule->propertySet(dataplotObjects);
 
-    const QVariantMap datatableObjects = {
+    const QVariantHash datatableObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"datatableModuleEditDialog", objects["datatableModuleEditDialog"]},
         {"datatableModuleTableMenu", objects["datatableModuleTableMenu"]},
@@ -154,20 +154,20 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_datatableModule->propertySet(datatableObjects);
 
-    const QVariantMap debugObjects = {
+    const QVariantHash debugObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"debugModuleErrorDialog", objects["debugModuleErrorDialog"]}
     };
     m_debugModule->propertySet(debugObjects);
 
-    const QVariantMap diagnosticsObjects = {
+    const QVariantHash diagnosticsObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"diagnosticsModuleDiagnosticMenu", objects["diagnosticsModuleDiagnosticMenu"]}
     };
     m_diagnosticsModule->propertySet(diagnosticsObjects);
 
-    const QVariantMap documentObjects = {
+    const QVariantHash documentObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
@@ -192,7 +192,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_documentModule->propertySet(documentObjects);
 
-    const QVariantMap explorerObjects = {
+    const QVariantHash explorerObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"explorerModuleFileMenu", objects["explorerModuleFileMenu"]},
@@ -201,12 +201,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_explorerModule->propertySet(explorerObjects);
 
-    const QVariantMap gitObjects = {
+    const QVariantHash gitObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
     };
     m_gitModule->propertySet(gitObjects);
 
-    const QVariantMap logObjects = {
+    const QVariantHash logObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"mainWindowTextView", objects["mainWindowTextView"]},
@@ -216,7 +216,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_logModule->propertySet(logObjects);
 
-    const QVariantMap menuObjects = {
+    const QVariantHash menuObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"menuModuleFileMenu", objects["menuModuleFileMenu"]},
         {"menuModuleEditMenu", objects["menuModuleEditMenu"]},
@@ -228,43 +228,43 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_menuModule->propertySet(menuObjects);
 
-    const QVariantMap portObjects = {
+    const QVariantHash portObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"portModuleTableMenu", objects["portModuleTableMenu"]},
         {"portModuleRootMenu", objects["portModuleRootMenu"]}
     };
     m_portModule->propertySet(portObjects);
 
-    const QVariantMap sendObjects = {
+    const QVariantHash sendObjects = {
         //
     };
     m_sendModule->propertySet(sendObjects);
 
-    const QVariantMap statusObjects = {
+    const QVariantHash statusObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"statusModuleEolModeMenu", objects["statusModuleEolModeMenu"]}
     };
     m_statusModule->propertySet(statusObjects);
 
-    const QVariantMap structureObjects = {
+    const QVariantHash structureObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"structureModuleRootMenu", objects["structureModuleRootMenu"]}
     };
     m_structureModule->propertySet(structureObjects);
 
-    const QVariantMap systemObjects = {
+    const QVariantHash systemObjects = {
         {"mainWindowBusyDialog", objects["mainWindowBusyDialog"]},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]}
     };
     m_fileModule->propertySet(systemObjects);
 
-    const QVariantMap terminalObjects = {
+    const QVariantHash terminalObjects = {
         {"global", QVariant::fromValue(m_globalManager)}
     };
     m_terminalModule->propertySet(terminalObjects);
 
-    const QVariantMap threadpoolObjects = {
+    const QVariantHash threadpoolObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainItem", objects["mainItem"]},
         {"threadpoolModuleErrorDialog", objects["threadpoolModuleErrorDialog"]},
@@ -272,7 +272,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_threadpoolModule->propertySet(threadpoolObjects);
 
-    const QVariantMap watchObjects = {
+    const QVariantHash watchObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"watchModuleExpressionMenu", objects["watchModuleExpressionMenu"]},

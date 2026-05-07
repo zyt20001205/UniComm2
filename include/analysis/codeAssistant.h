@@ -17,7 +17,7 @@ public:
 
     ~CodeAssistant() override = default;
 
-    void propertySet(const QVariantMap &objects) const;
+    void propertySet(const QVariantHash &objects) const;
 
     void fontSet(const QString &family, int pointSize) const;
 

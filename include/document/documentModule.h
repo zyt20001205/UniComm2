@@ -25,7 +25,7 @@ public:
 
     ~DocumentModule() override;
 
-    void propertySet(const QVariantMap &objects);
+    void propertySet(const QVariantHash &objects);
 
     [[nodiscard]] KDDockWidgets::QtWidgets::DockWidget *welcomePage() const {
         return m_welcomePage;

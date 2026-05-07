@@ -24,7 +24,7 @@ DatabaseModule::~DatabaseModule() {
     qDebug() << QString("[%1] %2 module destructed").arg(timestamp, uniqueName());
 }
 
-void DatabaseModule::propertySet(const QVariantMap &objects) {
+void DatabaseModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("databaseModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
