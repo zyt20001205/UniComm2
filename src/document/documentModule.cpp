@@ -63,7 +63,7 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
 
     m_welcomePage->propertySet(QVariantHash{
         {"global", QVariant::fromValue(m_global)}
-        });
+    });
     m_codeAssistant->propertySet(objects);
     m_codeAssistant->fontSet(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
 }
@@ -74,8 +74,7 @@ void DocumentModule::documentConfigSave() {
     for (const auto &url: m_pageHash.keys()) {
         if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[url])) {
             luaPage->documentSave();
-        }
-        else if (auto *textPage = qobject_cast<TextPage *>(m_pageHash[url])) {
+        } else if (auto *textPage = qobject_cast<TextPage *>(m_pageHash[url])) {
             textPage->documentSave();
         }
         documentList.append(url.toString());
@@ -155,8 +154,12 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             textPage->propertySet(QVariantHash{
                 {"global", QVariant::fromValue(m_global)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)}
+                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
             });
+            connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
+            connect(textPage, &TextPage::appendLog, this, &DocumentModule::appendLog);
+            connect(textPage, &TextPage::changeSelection, this, &DocumentModule::changeSelection);
         }
         // path disambiguation
         bool conflict = false;
@@ -194,9 +197,10 @@ void DocumentModule::permissionSet(const QUrl &documentUrl) {
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) {
-    // TODO: text page
     if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->documentSave();
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->documentSave();
     }
 }
 

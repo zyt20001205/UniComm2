@@ -35,12 +35,15 @@ void BasePage::permissionGet() {
 
 // protected
 void BasePage::closeEvent(QCloseEvent *event) {
-    documentClose();
+    if (!documentClose()) {
+        event->ignore();
+        return;
+    }
+    deleteLater();
+    emit appendLog(LogLevel::Info, "document closed", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
     event->accept();
 }
 
-void BasePage::documentClose() {
-    deleteLater();
-    // logging
-    emit appendLog(LogLevel::Info, "document closed", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+bool BasePage::documentClose() {
+    return true;
 }

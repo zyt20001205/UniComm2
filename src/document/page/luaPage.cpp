@@ -1096,7 +1096,7 @@ bool LuaPage::eventFilter(QObject *watched, QEvent *event) {
 }
 
 // protected
-void LuaPage::documentClose() {
+bool LuaPage::documentClose() {
     if (m_editorWidget->modifyGet()) {
         m_saveDialog->setProperty("documentUrl", m_documentUrl);
         m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
@@ -1105,7 +1105,7 @@ void LuaPage::documentClose() {
         connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
         eventloop->exec();
     }
-    BasePage::documentClose();
+    return true;
 }
 
 // private: slot

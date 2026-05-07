@@ -6,6 +6,7 @@
 
 #include "globals.h"
 #include "document/module/editorWidget.h"
+#include "document/module/scintillaWidget.h"
 
 // public
 TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
@@ -16,7 +17,8 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     connect(m_editorWidget, &EditorWidget::changeSelection, this, &TextPage::changeSelection);
 }
 
-void TextPage::propertySet(const QVariantHash &objects) const {
+void TextPage::propertySet(const QVariantHash &objects) {
+    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorWidget->propertySet(QVariantHash{
             {"global", objects["global"]},
             {"mainWindowToolTip", objects["mainWindowToolTip"]},
@@ -26,6 +28,22 @@ void TextPage::propertySet(const QVariantHash &objects) const {
 
 void TextPage::documentSave() const {
     m_editorWidget->documentSave();
+}
+
+bool TextPage::documentClose() {
+    bool status = true;
+    if (m_editorWidget->handle()->modifyGet()) {
+        m_saveDialog->setProperty("documentUrl", m_documentUrl);
+        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
+        QMetaObject::invokeMethod(m_saveDialog, "open");
+        const auto eventloop = new QEventLoop(this);
+        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
+        eventloop->exec();
+        disconnect(conn);
+        delete eventloop;
+        status = m_saveDialog->property("status").toBool();
+    }
+    return status;
 }
 
 // private

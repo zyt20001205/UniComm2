@@ -94,10 +94,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAccepted: {
-            mainWindowCloseDialog.close()
-            mainWindow.quit()
-        }
+        onAccepted: mainWindow.quit()
     }
 
     Dialog {
@@ -947,22 +944,27 @@ Item {
         width: 600
         modal: true
         title: qsTr("Save and Exit")
-        standardButtons: Dialog.Yes | Dialog.No
+        standardButtons: Dialog.Yes | Dialog.No | Dialog.Cancel
+        property bool status
         property string documentUrl
         property string documentName
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
             widgetCount += 1
+            documentModuleSaveDialog.status = true
         }
         onClosed: widgetCount -= 1
-        onAccepted: {
-            documentModuleSaveDialog.close()
-            documentModule.documentSave(documentUrl)
-        }
+        onAccepted: documentModule.documentSave(documentUrl)
 
         Label {
             text: qsTr("Do you want to save changes to " + documentModuleSaveDialog.documentName + "?")
+        }
+
+        Component.onCompleted: {
+            documentModuleSaveDialog.standardButton(Dialog.Cancel).clicked.connect(function() {
+                documentModuleSaveDialog.status = false
+            })
         }
     }
 
@@ -3801,9 +3803,7 @@ Item {
             watchModuleValueTextField.selectAll()
             watchModuleValueComboBox.currentValue = watchModuleValueDialog.currentType
         }
-        onAccepted: {
-            threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text, watchModuleValueComboBox.currentValue)
-        }
+        onAccepted: threadpoolModule.valueSet(watchModuleValueDialog.currentThread, watchModuleValueDialog.watchUrl, watchModuleValueDialog.watchExpression, watchModuleValueTextField.text, watchModuleValueComboBox.currentValue)
 
         ColumnLayout {
             width: parent.width

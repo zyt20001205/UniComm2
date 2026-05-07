@@ -27,7 +27,7 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-    virtual void documentClose();
+    virtual bool documentClose();
 
     QUrl m_documentUrl{};
 };
