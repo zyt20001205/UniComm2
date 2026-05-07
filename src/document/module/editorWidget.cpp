@@ -21,11 +21,11 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    layout->addWidget(m_scintillaWidget);
     layout->addWidget(m_searchWidget);
+    layout->addWidget(m_scintillaWidget);
 
-    auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
-    connect(shortcutLineDuplicate, &QShortcut::activated, m_scintillaWidget, &ScintillaWidget::lineDuplicate);
+    auto shortcutDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
+    connect(shortcutDuplicate, &QShortcut::activated, m_scintillaWidget, &ScintillaWidget::lineDuplicate);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchToggle);
     shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
@@ -53,6 +53,12 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     styleInit();
     connect(m_scintillaWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &EditorWidget::permissionSet);
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &EditorWidget::changeSavepoint);
+    connect(m_searchWidget, &SearchWidget::setSearchFlags, m_scintillaWidget, &ScintillaWidget::searchFlagsSet);
+    connect(m_searchWidget, &SearchWidget::requestSearch, this, &EditorWidget::searchRequest);
+    connect(m_searchWidget, &SearchWidget::prevSearch, this, &EditorWidget::searchPrev);
+    connect(m_searchWidget, &SearchWidget::nextSearch, this, &EditorWidget::searchNext);
+    connect(m_searchWidget, &SearchWidget::replaceText, this, &EditorWidget::textReplace);
+    connect(m_searchWidget, &SearchWidget::replaceAll, this, &EditorWidget::allReplace);
 }
 
 void EditorWidget::documentSave() {

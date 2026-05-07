@@ -248,7 +248,7 @@ Item {
                 icon.source: "qrc:/icon/replace.svg"
                 icon.width: 16; icon.height: 16
 
-                onClicked: replaceWidget.textReplace()
+                onClicked: searchWidget.textReplace()
 
                 HoverHandler {
                     onHoveredChanged: {
@@ -272,7 +272,7 @@ Item {
                 icon.source: "qrc:/icon/replaceAll.svg"
                 icon.width: 16; icon.height: 16
 
-                onClicked: replaceWidget.allReplace()
+                onClicked: searchWidget.allReplace()
 
                 HoverHandler {
                     onHoveredChanged: {
