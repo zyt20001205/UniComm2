@@ -64,8 +64,6 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
         m_editorWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
         m_editorWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
     }
-    // font
-    m_editorWidget->fontSet(QFont(documentConfig["fontFamily"].toString(), documentConfig["fontSize"].toInt()));
     // indicator
     {
         m_editorWidget->indicatorDefine(

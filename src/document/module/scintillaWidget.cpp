@@ -102,12 +102,6 @@ void ScintillaWidget::foldExpandRecursively() const {
     send(SCI_FOLDALL, SC_FOLDACTION_EXPAND); // NOLINT
 }
 
-// public: font
-void ScintillaWidget::fontSet(const QFont &font) {
-    styleSetFont(STYLE_DEFAULT, font.family().toUtf8().constData());
-    styleSetSize(STYLE_DEFAULT, font.pointSize());
-}
-
 // public: height
 int ScintillaWidget::heightGet() const {
     return static_cast<int>(send(SCI_TEXTHEIGHT, 0));
@@ -368,6 +362,8 @@ void ScintillaWidget::selectionSet(const int startLine, const int startCharacter
 
 // public: style
 void ScintillaWidget::styleDefine(const int type, const QJsonObject &config) const {
+    if (config.contains("font")) send(SCI_STYLESETFONT, type, reinterpret_cast<sptr_t>(config["font"].toString().toUtf8().constData())); // NOLINT
+    if (config.contains("size")) send(SCI_STYLESETSIZE, type, config["size"].toInt()); // NOLINT
     // if (config.contains("bold")) send(SCI_STYLESETBOLD, type, config["bold"].toBool()); // NOLINT
     // if (config.contains("weight")) send(SCI_STYLESETWEIGHT, type, config["weight"].toInt()); // NOLINT
     // if (config.contains("stretch")) send(SCI_STYLESETSTRETCH, type, config["stretch"].toInt()); // NOLINT

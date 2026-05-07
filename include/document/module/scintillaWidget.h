@@ -53,8 +53,6 @@ public:
 
     void foldExpandRecursively() const;
 
-    void fontSet(const QFont &font);
-
     [[nodiscard]] int heightGet() const;
 
     [[nodiscard]] QHash<QString, int> indexGet(Scintilla::Position position = -1) const;

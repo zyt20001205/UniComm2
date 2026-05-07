@@ -127,8 +127,6 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
             m_editorWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
         }
-        // font
-        m_editorWidget->fontSet(QFont(documentConfig["fontFamily"].toString(), documentConfig["fontSize"].toInt()));
         // indicator
         {
             m_editorWidget->indicatorDefine(
@@ -328,6 +326,8 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_editorWidget->styleDefine(
                 CustomStyle::Default,
                 QJsonObject{
+                    {"font", documentConfig["fontFamily"].toString()},
+                    {"size", documentConfig["fontSize"].toInt()},
                     {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
                     {"back", ScintillaWidget::colorGet(g_global->backGet())}
                 });
@@ -416,8 +416,6 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
             m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
             m_assemblyWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
         }
-        // font
-        m_assemblyWidget->fontSet(QFont(documentConfig["fontFamily"].toString(), documentConfig["fontSize"].toInt()));
         // margin
         {
             m_assemblyWidget->marginDefine(
