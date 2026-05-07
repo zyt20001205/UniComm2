@@ -17,7 +17,14 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
       m_documentUrl(documentUrl),
       m_scintillaWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
-      m_selectionTimer(new QTimer(this)) {
+      m_selectionTimer(new QTimer(this)),
+      m_pair{
+          {'"', '"'},
+          {'\'', '\''},
+          {'(', ')'},
+          {'[', ']'},
+          {'{', '}'}
+      } {
     auto *layout = new QVBoxLayout(this); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
@@ -53,12 +60,17 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     styleInit();
     connect(m_scintillaWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &EditorWidget::permissionSet);
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &EditorWidget::changeSavepoint);
+    connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
+        if (static_cast<int>(updated) & static_cast<int>(Scintilla::Update::Selection | Scintilla::Update::Content)) m_selectionTimer->start();
+    });
+    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, [this](const int character) { emit addChar(QChar(character)); });
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_scintillaWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &EditorWidget::searchRequest);
     connect(m_searchWidget, &SearchWidget::prevSearch, this, &EditorWidget::searchPrev);
     connect(m_searchWidget, &SearchWidget::nextSearch, this, &EditorWidget::searchNext);
     connect(m_searchWidget, &SearchWidget::replaceText, this, &EditorWidget::textReplace);
     connect(m_searchWidget, &SearchWidget::replaceAll, this, &EditorWidget::allReplace);
+    m_scintillaWidget->installEventFilter(this);
 }
 
 void EditorWidget::documentSave() {
@@ -74,6 +86,37 @@ void EditorWidget::documentSave() {
     documentFile.close();
     // logging
     emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+}
+
+bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_scintillaWidget && event->type() == QEvent::KeyPress) {
+        const auto *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            case Qt::Key_QuoteDbl:
+                symbolPair('"');
+                return true;
+            case Qt::Key_Apostrophe:
+                symbolPair('\'');
+                return true;
+            case Qt::Key_ParenLeft:
+                symbolPair('(');
+                return true;
+            case Qt::Key_BracketLeft:
+                symbolPair('[');
+                return true;
+            case Qt::Key_BraceLeft:
+                symbolPair('{');
+                return true;
+            case Qt::Key_Backspace:
+                if (m_scintillaWidget->selectionEmpty()) {
+                    symbolPair('\b');
+                    return true;
+                }
+                return false;
+            default: return false;
+        }
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 // protected
@@ -253,6 +296,32 @@ void EditorWidget::permissionSet() const {
 void EditorWidget::selectionChange() {
     m_selection = m_scintillaWidget->selectionGet();
     emit changeSelection(m_selection);
+}
+
+void EditorWidget::symbolPair(const QChar ch) {
+    // handle backspace
+    if (ch == '\b') {
+        const auto line = m_selection["line"];
+        const auto character = m_selection["character"];
+        if (character > 0) {
+            const auto prevChar = m_scintillaWidget->textGet(line, character - 1, line, character)[0];
+            const auto nextChar = m_scintillaWidget->textGet(line, character, line, character + 1);
+            if (m_pair.contains(prevChar) && !nextChar.isEmpty() && m_pair[prevChar] == nextChar) {
+                m_scintillaWidget->textSet("", line, character - 1, line, character + 1);
+            }
+        }
+    }
+    // handle pair
+    else if (m_scintillaWidget->selectionEmpty()) {
+        m_scintillaWidget->textSetSelected(QString(ch) + m_pair[ch]);
+        const auto position = m_scintillaWidget->positionGet();
+        m_scintillaWidget->positionSet(position - 1);
+    }
+    // handle surround
+    else {
+        m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
+    }
+    emit addChar(ch);
 }
 
 // private: search

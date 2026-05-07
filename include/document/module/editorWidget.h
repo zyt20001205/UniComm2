@@ -21,6 +21,8 @@ public:
 
     void documentSave();
 
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
@@ -28,8 +30,9 @@ signals:
 
     void changeSelection(const QHash<QString, int> &selection);
 
-protected:
+    void addChar(QChar ch);
 
+protected:
     void miscInit() const;
 
     void indicatorInit() const;
@@ -46,6 +49,8 @@ private:
     void permissionSet() const;
 
     void selectionChange();
+
+    void symbolPair(QChar ch);
 
     // private: search
     void searchToggle();
@@ -74,6 +79,9 @@ private:
 
     QTimer *m_selectionTimer{};
     QHash<QString, int> m_selection{};
+
+    QHash<QChar, QChar> m_pair{};
+
     QVariantHash m_search{};
 };
 
