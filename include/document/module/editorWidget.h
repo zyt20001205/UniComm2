@@ -6,7 +6,7 @@
 class ScintillaWidget;
 class SearchWidget;
 
-class EditorWidget final : public QWidget {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
@@ -14,9 +14,18 @@ public:
 
     ~EditorWidget() override = default;
 
+    void propertySet(const QVariantHash &objects) const;
+
     [[nodiscard]] ScintillaWidget* handle() const { return m_scintillaWidget; }
 
+protected:
+    void miscInit() const;
+
+    void textInit();
+
 private:
+    QVariantHash m_session{};
+
     ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
 };
