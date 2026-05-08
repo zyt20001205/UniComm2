@@ -16,7 +16,7 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    [[nodiscard]] ScintillaWidget* handler() const { return m_editorWidget->handle();}
+    [[nodiscard]] ScintillaWidget* handler() const { return m_editorWidget->handler();}
 
     void documentGoto(int line) const;
 

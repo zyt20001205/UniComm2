@@ -187,18 +187,15 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->focusSet(true);
-    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
-        textPage->handler()->focusSet(true);
-    }
 }
 
 void DocumentModule::documentGoto(const QUrl& documentUrl, const int line) {
+    if (!m_pageHash.contains(documentUrl)) return;
+    documentFocus(m_pageHash[documentUrl], true);
     if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         // luaPage->documentGoto(line);
     } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
-        textPage->documentGoto(line);
+        textPage->handler()->indexSet(line, 0);
     }
 }
 
@@ -900,19 +897,30 @@ void DocumentModule::spellCheckResponse(const QUrl &documentUrl, const QVariantL
 
 // private
 void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
-    if (status) {
-        m_focusedUrl = basePage->documentUrl();
-        if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
+    if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
+        if (status) {
+            luaPage->m_editorWidget->focusSet(true);
+            m_focusedUrl = basePage->documentUrl();
             const QVariantHash session = {
                 {"codePage", luaPage->m_editorWidget->codePageGet()},
                 {"eolMode", luaPage->m_editorWidget->eolModeGet()}
             };
             emit focusDocument(m_focusedUrl, session);
+        } else {
+            luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Highlight);
+            luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Read);
+            luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Write);
         }
-    } else if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
-        luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Highlight);
-        luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Read);
-        luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Write);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(basePage)) {
+        if (status) {
+            textPage->handler()->focusSet(true);
+            m_focusedUrl = basePage->documentUrl();
+            const QVariantHash session = {
+                {"codePage", textPage->handler()->codePageGet()},
+                {"eolMode", textPage->handler()->eolModeGet()}
+            };
+            emit focusDocument(m_focusedUrl, session);
+        }
     }
 }
 

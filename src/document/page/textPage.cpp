@@ -29,7 +29,7 @@ void TextPage::propertySet(const QVariantHash &objects) {
 }
 
 void TextPage::documentGoto(const int line) const {
-    m_editorWidget->handle()->indexSet(line, 0);
+    m_editorWidget->handler()->indexSet(line, 0);
 }
 
 void TextPage::documentSave() const {
@@ -38,7 +38,7 @@ void TextPage::documentSave() const {
 
 bool TextPage::documentClose() {
     bool status = true;
-    if (m_editorWidget->handle()->modifyGet()) {
+    if (m_editorWidget->handler()->modifyGet()) {
         m_saveDialog->setProperty("documentUrl", m_documentUrl);
         m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
         QMetaObject::invokeMethod(m_saveDialog, "open");

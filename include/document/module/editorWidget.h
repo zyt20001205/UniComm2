@@ -17,7 +17,7 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    [[nodiscard]] ScintillaWidget *handle() const { return m_scintillaWidget; }
+    [[nodiscard]] ScintillaWidget *handler() const { return m_scintillaWidget; }
 
     void documentSave();
 

@@ -968,6 +968,7 @@ Item {
             editable : true
             from: 1
 
+            Keys.priority: Keys.BeforeItem
             Keys.onReturnPressed: documentModuleGotoDialog.accept()
             Keys.onEnterPressed: documentModuleGotoDialog.accept()
             Keys.onEscapePressed: documentModuleGotoDialog.reject()
