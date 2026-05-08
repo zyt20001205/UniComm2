@@ -39,8 +39,6 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
-    Q_INVOKABLE void documentGoto(const QUrl &documentUrl, int line);
-
     Q_INVOKABLE void documentSave(const QUrl &documentUrl);
 
     void permissionSet(const QUrl &documentUrl);
@@ -71,7 +69,7 @@ public:
 
     void focusSet(const QUrl &documentUrl, bool status);
 
-    void indexSet(const QUrl &documentUrl, int line, int character);
+    Q_INVOKABLE void indexSet(const QUrl &documentUrl, int line, int character);
 
     void indexGet() const;
 

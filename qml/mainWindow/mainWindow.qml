@@ -943,11 +943,11 @@ Item {
         anchors.centerIn: parent
         width: 600
         modal: true
-        title: qsTr("Goto Line")
+        title: qsTr("Goto Line[:Character]")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        property int total
-        property int current
         property string documentUrl
+        property int line
+        property int character
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -955,22 +955,22 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            documentModuleGotoSpinBox.to = documentModuleGotoDialog.total
-            documentModuleGotoSpinBox.value = documentModuleGotoDialog.current + 1
-            documentModuleGotoSpinBox.forceActiveFocus()
-            documentModuleGotoSpinBox.contentItem.selectAll()
+            documentModuleGotoTextField.text = (documentModuleGotoDialog.line + 1) + ":" + documentModuleGotoDialog.character
+            documentModuleGotoTextField.forceActiveFocus()
+            documentModuleGotoTextField.selectAll()
         }
-        onAccepted: documentModule.documentGoto(documentModuleGotoDialog.documentUrl, documentModuleGotoSpinBox.value - 1)
+        onAccepted: {
+            const parts = documentModuleGotoTextField.text.split(":")
+            const line = parseInt(parts[0]) - 1
+            const character = parts.length > 1 ? parseInt(parts[1]) : 0
+            documentModule.indexSet(documentModuleGotoDialog.documentUrl, line, character)
+        }
 
-        SpinBox {
-            id: documentModuleGotoSpinBox
+        TextField {
+            id: documentModuleGotoTextField
             width: parent.width
-            editable : true
-            from: 1
 
-            Keys.priority: Keys.BeforeItem
-            Keys.onReturnPressed: documentModuleGotoDialog.accept()
-            Keys.onEnterPressed: documentModuleGotoDialog.accept()
+            onAccepted: documentModuleGotoDialog.accept()
             Keys.onEscapePressed: documentModuleGotoDialog.reject()
         }
     }
@@ -1000,7 +1000,7 @@ Item {
         }
 
         Component.onCompleted: {
-            documentModuleSaveDialog.standardButton(Dialog.Cancel).clicked.connect(function() {
+            documentModuleSaveDialog.standardButton(Dialog.Cancel).clicked.connect(function () {
                 documentModuleSaveDialog.status = false
             })
         }
@@ -2550,7 +2550,7 @@ Item {
         SpinBox {
             id: logModuleHeightSpinBox
             width: parent.width
-            editable : true
+            editable: true
             from: 1000
             to: 10000
             stepSize: 1000

@@ -18,8 +18,6 @@ public:
 
     [[nodiscard]] ScintillaWidget* handler() const { return m_editorWidget->handler();}
 
-    void documentGoto(int line) const;
-
     void documentSave() const;
 
 signals:

@@ -189,16 +189,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
-void DocumentModule::documentGoto(const QUrl& documentUrl, const int line) {
-    if (!m_pageHash.contains(documentUrl)) return;
-    documentFocus(m_pageHash[documentUrl], true);
-    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        // luaPage->documentGoto(line);
-    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
-        textPage->handler()->indexSet(line, 0);
-    }
-}
-
 void DocumentModule::documentSave(const QUrl &documentUrl) {
     if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->documentSave();
@@ -322,6 +312,8 @@ void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int
     if (documentUrl != m_focusedUrl) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->m_editorWidget->indexSet(line, character);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->handler()->indexSet(line, character);
     }
 }
 

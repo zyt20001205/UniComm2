@@ -28,10 +28,6 @@ void TextPage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void TextPage::documentGoto(const int line) const {
-    m_editorWidget->handler()->indexSet(line, 0);
-}
-
 void TextPage::documentSave() const {
     m_editorWidget->documentSave();
 }
