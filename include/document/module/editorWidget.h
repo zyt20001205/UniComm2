@@ -46,6 +46,8 @@ protected:
 private:
     void documentOpen();
 
+    void documentGoto();
+
     void permissionSet() const;
 
     void selectionChange();
@@ -74,6 +76,7 @@ private:
     QJsonObject m_config{};
     QUrl m_documentUrl{};
     QObject *m_propertyDialog{};
+    QObject *m_gotoDialog{};
     ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
 

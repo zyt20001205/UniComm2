@@ -48,6 +48,7 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
+    m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
 
@@ -155,6 +156,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 {"global", QVariant::fromValue(m_global)},
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
                 {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
             });
             connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
@@ -190,9 +192,11 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
 }
 
-void DocumentModule::permissionSet(const QUrl &documentUrl) {
-    if (m_pageHash.contains(documentUrl)) {
-        m_pageHash[documentUrl]->permissionGet();
+void DocumentModule::documentGoto(const QUrl& documentUrl, const int line) {
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        // luaPage->documentGoto(line);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->documentGoto(line);
     }
 }
 
@@ -201,6 +205,12 @@ void DocumentModule::documentSave(const QUrl &documentUrl) {
         luaPage->documentSave();
     } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
         textPage->documentSave();
+    }
+}
+
+void DocumentModule::permissionSet(const QUrl &documentUrl) {
+    if (m_pageHash.contains(documentUrl)) {
+        m_pageHash[documentUrl]->permissionGet();
     }
 }
 

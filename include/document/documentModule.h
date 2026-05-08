@@ -39,9 +39,11 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
-    void permissionSet(const QUrl &documentUrl);
+    Q_INVOKABLE void documentGoto(const QUrl &documentUrl, int line);
 
     Q_INVOKABLE void documentSave(const QUrl &documentUrl);
+
+    void permissionSet(const QUrl &documentUrl);
 
     Q_INVOKABLE [[nodiscard]] QVariantHash menuGet(const QString &name);
 
@@ -189,6 +191,7 @@ private:
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};
+    QObject *m_gotoDialog{};
     QObject *m_saveDialog{};
     QObject *m_editorMenu{};
     QUrl m_focusedUrl{};

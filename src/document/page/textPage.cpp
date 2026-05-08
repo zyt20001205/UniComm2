@@ -23,8 +23,13 @@ void TextPage::propertySet(const QVariantHash &objects) {
     m_editorWidget->propertySet(QVariantHash{
             {"global", objects["global"]},
             {"mainWindowToolTip", objects["mainWindowToolTip"]},
-            {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]}
+            {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
+            {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]},
     });
+}
+
+void TextPage::documentGoto(const int line) const {
+    m_editorWidget->handle()->indexSet(line, 0);
 }
 
 void TextPage::documentSave() const {

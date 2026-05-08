@@ -33,12 +33,12 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
 
     auto shortcutDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
     connect(shortcutDuplicate, &QShortcut::activated, m_scintillaWidget, &ScintillaWidget::lineDuplicate);
+    auto shortcutGoto = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this); // NOLINT
+    connect(shortcutGoto, &QShortcut::activated, this, &EditorWidget::documentGoto);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
     connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchToggle);
-    shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
     auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
     connect(shortcutReplace, &QShortcut::activated, this, &EditorWidget::replaceToggle);
-    shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
 
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
@@ -48,6 +48,7 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
 
 void EditorWidget::propertySet(const QVariantHash &objects) {
     m_propertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
+    m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
     m_searchWidget->propertySet(QVariantHash{
         {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
@@ -286,6 +287,13 @@ void EditorWidget::documentOpen() {
     m_scintillaWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
     // logging
     emit appendLog(LogLevel::Info, "document opened", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
+}
+
+void EditorWidget::documentGoto() {
+    m_gotoDialog->setProperty("total", m_scintillaWidget->lineCountGet());
+    m_gotoDialog->setProperty("current", m_selection["line"]);
+    m_gotoDialog->setProperty("ducumentUrl", m_documentUrl);
+    QMetaObject::invokeMethod(m_gotoDialog, "open");
 }
 
 void EditorWidget::permissionSet() const {

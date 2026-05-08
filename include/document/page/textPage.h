@@ -15,6 +15,8 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
+    void documentGoto(int line) const;
+
     void documentSave() const;
 
 signals:

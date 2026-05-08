@@ -938,6 +938,43 @@ Item {
 
     // document module
     Dialog {
+        id: documentModuleGotoDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Goto Line")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property int total
+        property int current
+        property string documentUrl
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            documentModuleGotoSpinBox.to = documentModuleGotoDialog.total
+            documentModuleGotoSpinBox.value = documentModuleGotoDialog.current + 1
+            documentModuleGotoSpinBox.forceActiveFocus()
+            documentModuleGotoSpinBox.contentItem.selectAll()
+        }
+        onAccepted: documentModule.documentGoto(documentModuleGotoDialog.documentUrl, documentModuleGotoSpinBox.value - 1)
+
+        SpinBox {
+            id: documentModuleGotoSpinBox
+            width: parent.width
+            editable : true
+            from: 1
+
+            Keys.onReturnPressed: documentModuleGotoDialog.accept()
+            Keys.onEnterPressed: documentModuleGotoDialog.accept()
+            Keys.onEscapePressed: documentModuleGotoDialog.reject()
+        }
+    }
+
+    Dialog {
         id: documentModuleSaveDialog
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -2512,6 +2549,7 @@ Item {
         SpinBox {
             id: logModuleHeightSpinBox
             width: parent.width
+            editable : true
             from: 1000
             to: 10000
             stepSize: 1000
@@ -4006,6 +4044,7 @@ Item {
 
             "diagnosticsModuleDiagnosticMenu": diagnosticsModuleDiagnosticMenu,
 
+            "documentModuleGotoDialog": documentModuleGotoDialog,
             "documentModuleSaveDialog": documentModuleSaveDialog,
             "documentModuleEditorMenu": documentModuleEditorMenu,
             "documentModuleCompletionToolTip": documentModuleCompletionToolTip,
