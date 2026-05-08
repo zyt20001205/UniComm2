@@ -292,7 +292,7 @@ void EditorWidget::documentOpen() {
 void EditorWidget::documentGoto() {
     m_gotoDialog->setProperty("total", m_scintillaWidget->lineCountGet());
     m_gotoDialog->setProperty("current", m_selection["line"]);
-    m_gotoDialog->setProperty("ducumentUrl", m_documentUrl);
+    m_gotoDialog->setProperty("documentUrl", m_documentUrl);
     QMetaObject::invokeMethod(m_gotoDialog, "open");
 }
 

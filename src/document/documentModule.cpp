@@ -189,6 +189,8 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
         luaPage->m_editorWidget->focusSet(true);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->handler()->focusSet(true);
     }
 }
 

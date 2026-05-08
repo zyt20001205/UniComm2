@@ -2,6 +2,7 @@
 #define UNICOMM_TEXTPAGE_H
 
 #include "basePage.h"
+#include "document/module/editorWidget.h"
 
 class EditorWidget;
 
@@ -14,6 +15,8 @@ public:
     ~TextPage() override = default;
 
     void propertySet(const QVariantHash &objects);
+
+    [[nodiscard]] ScintillaWidget* handler() const { return m_editorWidget->handle();}
 
     void documentGoto(int line) const;
 
