@@ -152,7 +152,7 @@ void EditorWidget::indicatorInit() const {
     m_scintillaWidget->indicatorDefine(
         ScintillaIndicator::Result,
         QVariantHash{
-            {"style", 8},
+            {"style", INDIC_STRAIGHTBOX},
             {"fore", ScintillaWidget::colorGet(g_global->brandBackGet())},
             {"alpha", 128},
             {"outlineAlpha", 128},
@@ -161,10 +161,10 @@ void EditorWidget::indicatorInit() const {
     m_scintillaWidget->indicatorDefine(
         ScintillaIndicator::Current,
         QVariantHash{
-            {"style", 6},
-            {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
+            {"style", INDIC_STRAIGHTBOX},
+            {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
             {"strokeWidth", 200},
-            {"alpha", 255},
+            {"alpha", 0},
             {"outlineAlpha", 255},
             {"setUnder", false}
         });
