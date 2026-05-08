@@ -276,6 +276,12 @@ QHash<QString, int> ScintillaWidget::pointGet(const int line, const int characte
     };
 }
 
+bool ScintillaWidget::atLineEnd() const {
+    const auto position = positionGet();
+    const auto lineEndPosition = send(SCI_GETLINEENDPOSITION, lineGet(position));
+    return position == lineEndPosition;
+}
+
 // public: position
 Position ScintillaWidget::positionGet(const int line, const int character) const {
     if (line == -1) {
@@ -424,6 +430,7 @@ QString ScintillaWidget::textGet(const int startLine, const int startCharacter, 
         endPosition = positionGet(endLine, endCharacter);
         length = endPosition - startPosition;
     }
+    if (length < 0 || length > static_cast<int>(lengthGet())) return {};
     QByteArray buffer(static_cast<int>(length + 1), '\0');
     Sci_TextRange tr = {{static_cast<int>(startPosition), static_cast<int>(endPosition)}, buffer.data()};
     send(SCI_GETTEXTRANGE, 0, reinterpret_cast<sptr_t>(&tr));

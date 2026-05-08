@@ -108,7 +108,7 @@ bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
                 symbolPair('{');
                 return true;
             case Qt::Key_Backspace:
-                if (m_scintillaWidget->selectionEmpty()) {
+                if (m_scintillaWidget->selectionEmpty() && !m_scintillaWidget->atLineEnd()) {
                     symbolPair('\b');
                     return true;
                 }
