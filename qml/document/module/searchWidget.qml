@@ -36,6 +36,7 @@ Item {
                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         flat: true
+                        focusPolicy: Qt.NoFocus
                         icon.source: "qrc:/icon/dismiss.svg"
                         icon.width: 12; icon.height: 12
 
@@ -222,6 +223,8 @@ Item {
                     id: replaceTextField
                     anchors.fill: parent
                     rightPadding: 24
+                    
+                    KeyNavigation.tab: matchCaseButton
                 }
 
                 RowLayout {
@@ -232,6 +235,7 @@ Item {
                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
                         leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                         flat: true
+                        // focusPolicy: Qt.NoFocus
                         icon.source: "qrc:/icon/dismiss.svg"
                         icon.width: 12; icon.height: 12
 

@@ -1492,7 +1492,7 @@ void LuaPage::symbolPair(const QChar character) {
 void LuaPage::searchToggle() {
     if (m_selection["characters"] != 0) {
         m_searchWidget->show();
-        m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
+        // m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
     } else {
         m_searchWidget->setVisible(!m_searchWidget->isVisible());
     }
@@ -1501,7 +1501,7 @@ void LuaPage::searchToggle() {
 void LuaPage::replaceToggle() {
     if (m_selection["characters"] != 0) {
         m_searchWidget->show();
-        m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
+        // m_searchWidget->searchRequest(m_editorWidget->textGetSelected());
     } else {
         m_searchWidget->setVisible(!m_searchWidget->isVisible());
     }

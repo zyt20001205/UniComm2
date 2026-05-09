@@ -30,10 +30,17 @@ void SearchWidget::propertyGet(const QVariantMap &objects) {
     m_replaceAllButton = qvariant_cast<QObject *>(objects["replaceAllButton"]);
 }
 
-void SearchWidget::searchShow() {
+void SearchWidget::searchShow(const QString &text) {
+    m_searchTextField->setProperty("text", text);
+    if (text.isEmpty()) {
+        QMetaObject::invokeMethod(m_searchTextField, "forceActiveFocus");
+    } else {
+        QMetaObject::invokeMethod(m_searchTextField, "selectAll");
+    }
     m_searchBar->setProperty("visible", true);
     m_replaceBar->setProperty("visible", false);
     setFixedHeight(36);
+    searchRequest();
 }
 
 void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) {
@@ -43,12 +50,6 @@ void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, co
 void SearchWidget::searchRequest() {
     const auto text = m_searchTextField->property("text").toString();
     emit requestSearch(text);
-}
-
-void SearchWidget::searchRequest(const QString &text) {
-    m_searchTextField->setProperty("text", text);
-    QMetaObject::invokeMethod(m_searchTextField, "selectAll");
-    searchRequest();
 }
 
 void SearchWidget::searchResponse(const QString &text) const {
@@ -68,10 +69,17 @@ void SearchWidget::searchEnable(const bool status) const {
     m_searchNextButton->setProperty("enabled", status);
 }
 
-void SearchWidget::replaceShow() {
+void SearchWidget::replaceShow(const QString &text) {
+    m_searchTextField->setProperty("text", text);
+    if (text.isEmpty()) {
+        QMetaObject::invokeMethod(m_searchTextField, "forceActiveFocus");
+    } else {
+        QMetaObject::invokeMethod(m_replaceTextField, "forceActiveFocus");
+    }
     m_searchBar->setProperty("visible", true);
     m_replaceBar->setProperty("visible", true);
     setFixedHeight(64);
+    searchRequest();
 }
 
 void SearchWidget::textReplace() {
@@ -103,13 +111,7 @@ bool SearchWidget::eventFilter(QObject* watched, QEvent* event) {
 }
 
 // protected
-void SearchWidget::showEvent(QShowEvent *event) {
-    QQuickWidget::showEvent(event);
-    setFocus();
-    QMetaObject::invokeMethod(m_searchTextField, "forceActiveFocus");
-}
-
 void SearchWidget::hideEvent(QHideEvent *event) {
-    if (m_searchTextField) searchRequest(QString());
+    if (m_searchTextField) searchShow(QString());
     QQuickWidget::hideEvent(event);
 }

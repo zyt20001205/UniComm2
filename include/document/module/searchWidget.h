@@ -13,13 +13,11 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void searchShow();
+    void searchShow(const QString &text);
 
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
     Q_INVOKABLE void searchRequest();
-
-    void searchRequest(const QString &text);
 
     void searchResponse(const QString &text) const;
 
@@ -29,7 +27,7 @@ public:
 
     void searchEnable(bool status) const;
 
-    void replaceShow();
+    void replaceShow(const QString &text);
 
     Q_INVOKABLE void textReplace();
 
@@ -53,8 +51,6 @@ signals:
     void replaceAll(const QString &text);
 
 protected:
-    void showEvent(QShowEvent *event) override;
-
     void hideEvent(QHideEvent *event) override;
 
 private:

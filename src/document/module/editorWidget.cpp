@@ -336,15 +336,13 @@ void EditorWidget::symbolPair(const QChar ch) {
 }
 
 // private: search
-void EditorWidget::searchShow() {
-    if (m_selection["characters"] != 0) m_searchWidget->searchRequest(m_scintillaWidget->textGetSelected());
-    m_searchWidget->searchShow();
+void EditorWidget::searchShow() const {
+    m_searchWidget->searchShow(m_scintillaWidget->textGetSelected());
     m_searchWidget->show();
 }
 
-void EditorWidget::replaceShow() {
-    if (m_selection["characters"] != 0) m_searchWidget->searchRequest(m_scintillaWidget->textGetSelected());
-    m_searchWidget->replaceShow();
+void EditorWidget::replaceShow() const {
+    m_searchWidget->replaceShow(m_scintillaWidget->textGetSelected());
     m_searchWidget->show();
 }
 
