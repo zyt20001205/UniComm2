@@ -23,6 +23,7 @@ Item {
                     id: searchTextField
                     anchors.fill: parent
                     rightPadding: 120
+                    KeyNavigation.tab: replaceTextField
 
                     onTextChanged: searchWidget.searchRequest()
                 }

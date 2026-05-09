@@ -5,8 +5,8 @@
 // public
 SearchWidget::SearchWidget(QWidget *parent)
     : QQuickWidget(parent) {
-    setFixedHeight(60);
     hide();
+    installEventFilter(this);
 }
 
 void SearchWidget::propertySet(const QVariantHash &objects) {
@@ -30,7 +30,10 @@ void SearchWidget::propertyGet(const QVariantMap &objects) {
     m_replaceAllButton = qvariant_cast<QObject *>(objects["replaceAllButton"]);
 }
 
-void SearchWidget::searchToggle() const {
+void SearchWidget::searchShow() {
+    m_searchBar->setProperty("visible", true);
+    m_replaceBar->setProperty("visible", false);
+    setFixedHeight(36);
 }
 
 void SearchWidget::searchFlagsSet(const bool matchCase, const bool wholeWord, const bool wordStart, const bool regExp) {
@@ -44,6 +47,7 @@ void SearchWidget::searchRequest() {
 
 void SearchWidget::searchRequest(const QString &text) {
     m_searchTextField->setProperty("text", text);
+    QMetaObject::invokeMethod(m_searchTextField, "selectAll");
     searchRequest();
 }
 
@@ -64,7 +68,10 @@ void SearchWidget::searchEnable(const bool status) const {
     m_searchNextButton->setProperty("enabled", status);
 }
 
-void SearchWidget::replaceToggle() const {
+void SearchWidget::replaceShow() {
+    m_searchBar->setProperty("visible", true);
+    m_replaceBar->setProperty("visible", true);
+    setFixedHeight(64);
 }
 
 void SearchWidget::textReplace() {
@@ -80,6 +87,19 @@ void SearchWidget::allReplace() {
 void SearchWidget::replaceEnable(const bool status) const {
     m_replaceTextButton->setProperty("enabled", status);
     m_replaceAllButton->setProperty("enabled", status);
+}
+
+bool SearchWidget::eventFilter(QObject* watched, QEvent* event) {
+    if (event->type() == QEvent::KeyPress) {
+        const auto *keyEvent = static_cast<QKeyEvent *>(event);
+        switch (keyEvent->key()) {
+            case Qt::Key_Escape:
+                if (isVisible()) hide();
+                return false;
+        default: return false;
+        }
+    }
+    return QQuickWidget::eventFilter(watched, event);
 }
 
 // protected

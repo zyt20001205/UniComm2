@@ -36,9 +36,9 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     auto shortcutGoto = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this); // NOLINT
     connect(shortcutGoto, &QShortcut::activated, this, &EditorWidget::documentGoto);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
-    connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchToggle);
+    connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchShow);
     auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
-    connect(shortcutReplace, &QShortcut::activated, this, &EditorWidget::replaceToggle);
+    connect(shortcutReplace, &QShortcut::activated, this, &EditorWidget::replaceShow);
 
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
@@ -108,6 +108,9 @@ bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
             case Qt::Key_BraceLeft:
                 symbolPair('{');
                 return true;
+            case Qt::Key_Escape:
+                if (m_searchWidget->isVisible()) m_searchWidget->hide();
+                return false;
             case Qt::Key_Backspace:
                 if (m_scintillaWidget->selectionEmpty() && !m_scintillaWidget->atLineEnd()) {
                     symbolPair('\b');
@@ -333,22 +336,16 @@ void EditorWidget::symbolPair(const QChar ch) {
 }
 
 // private: search
-void EditorWidget::searchToggle() {
-    if (m_selection["characters"] != 0) {
-        m_searchWidget->show();
-        m_searchWidget->searchRequest(m_scintillaWidget->textGetSelected());
-    } else {
-        m_searchWidget->setVisible(!m_searchWidget->isVisible());
-    }
+void EditorWidget::searchShow() {
+    if (m_selection["characters"] != 0) m_searchWidget->searchRequest(m_scintillaWidget->textGetSelected());
+    m_searchWidget->searchShow();
+    m_searchWidget->show();
 }
 
-void EditorWidget::replaceToggle() {
-    if (m_selection["characters"] != 0) {
-        m_searchWidget->show();
-        m_searchWidget->searchRequest(m_scintillaWidget->textGetSelected());
-    } else {
-        m_searchWidget->setVisible(!m_searchWidget->isVisible());
-    }
+void EditorWidget::replaceShow() {
+    if (m_selection["characters"] != 0) m_searchWidget->searchRequest(m_scintillaWidget->textGetSelected());
+    m_searchWidget->replaceShow();
+    m_searchWidget->show();
 }
 
 void EditorWidget::searchRequest(const QString &text) {

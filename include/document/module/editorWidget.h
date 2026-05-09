@@ -55,9 +55,9 @@ private:
     void symbolPair(QChar ch);
 
     // private: search
-    void searchToggle();
+    void searchShow();
 
-    void replaceToggle();
+    void replaceShow();
 
     void searchRequest(const QString &text);
 

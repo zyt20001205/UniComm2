@@ -13,7 +13,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void searchToggle() const;
+    void searchShow();
 
     Q_INVOKABLE void searchFlagsSet(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
 
@@ -29,13 +29,15 @@ public:
 
     void searchEnable(bool status) const;
 
-    void replaceToggle() const;
+    void replaceShow();
 
     Q_INVOKABLE void textReplace();
 
     Q_INVOKABLE void allReplace();
 
     void replaceEnable(bool status) const;
+
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 signals:
     void setSearchFlags(bool matchCase, bool wholeWord, bool wordStart, bool regExp);
