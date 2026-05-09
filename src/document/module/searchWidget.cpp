@@ -32,11 +32,8 @@ void SearchWidget::propertyGet(const QVariantMap &objects) {
 
 void SearchWidget::searchShow(const QString &text) {
     m_searchTextField->setProperty("text", text);
-    if (text.isEmpty()) {
-        QMetaObject::invokeMethod(m_searchTextField, "forceActiveFocus");
-    } else {
-        QMetaObject::invokeMethod(m_searchTextField, "selectAll");
-    }
+    QMetaObject::invokeMethod(m_searchTextField, "forceActiveFocus");
+    if (!text.isEmpty()) QMetaObject::invokeMethod(m_searchTextField, "selectAll");
     m_searchBar->setProperty("visible", true);
     m_replaceBar->setProperty("visible", false);
     setFixedHeight(36);
@@ -111,6 +108,11 @@ bool SearchWidget::eventFilter(QObject* watched, QEvent* event) {
 }
 
 // protected
+void SearchWidget::showEvent(QShowEvent *event) {
+    setFocus();
+    QQuickWidget::showEvent(event);
+}
+
 void SearchWidget::hideEvent(QHideEvent *event) {
     if (m_searchTextField) searchShow(QString());
     QQuickWidget::hideEvent(event);

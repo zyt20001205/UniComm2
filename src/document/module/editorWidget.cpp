@@ -89,6 +89,11 @@ void EditorWidget::documentSave() {
     emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
+void EditorWidget::selectionChange() {
+    m_selection = m_scintillaWidget->selectionGet();
+    emit changeSelection(m_selection);
+}
+
 bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scintillaWidget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
@@ -302,11 +307,6 @@ void EditorWidget::documentGoto() {
 void EditorWidget::permissionSet() const {
     m_propertyDialog->setProperty("fileUrl", m_documentUrl);
     QMetaObject::invokeMethod(m_propertyDialog, "open");
-}
-
-void EditorWidget::selectionChange() {
-    m_selection = m_scintillaWidget->selectionGet();
-    emit changeSelection(m_selection);
 }
 
 void EditorWidget::symbolPair(const QChar ch) {

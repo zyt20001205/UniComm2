@@ -21,6 +21,8 @@ public:
 
     void documentSave();
 
+    void selectionChange();
+
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
@@ -49,8 +51,6 @@ private:
     void documentGoto();
 
     void permissionSet() const;
-
-    void selectionChange();
 
     void symbolPair(QChar ch);
 
