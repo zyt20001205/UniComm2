@@ -34,18 +34,18 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
       m_onTypeFormattingSet{'\n'},
       m_pairHash{{'"', '"'}, {'\'', '\''}, {'(', ')'}, {'[', ']'}, {'{', '}'}} {
     setTitle(documentUrl.fileName());
-    auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
-    connect(shortcutSearch, &QShortcut::activated, this, &LuaPage::searchToggle);
-    shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
-    auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
-    connect(shortcutReplace, &QShortcut::activated, this, &LuaPage::replaceToggle);
-    shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
-    auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
-    connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
-    shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
-    auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
-    connect(shortcutComment, &QShortcut::activated, this, &LuaPage::commentToggle);
-    shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
+    // auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
+    // connect(shortcutSearch, &QShortcut::activated, this, &LuaPage::searchToggle);
+    // shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
+    // auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
+    // connect(shortcutReplace, &QShortcut::activated, this, &LuaPage::replaceToggle);
+    // shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
+    // auto shortcutLineDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
+    // connect(shortcutLineDuplicate, &QShortcut::activated, m_editorWidget, &ScintillaWidget::lineDuplicate);
+    // shortcutLineDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
+    // auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
+    // connect(shortcutComment, &QShortcut::activated, this, &LuaPage::commentToggle);
+    // shortcutComment->setContext(Qt::WidgetWithChildrenShortcut);
 
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);

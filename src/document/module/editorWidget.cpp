@@ -32,12 +32,16 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     layout->addWidget(m_scintillaWidget);
 
     auto shortcutDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
+    shortcutDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutDuplicate, &QShortcut::activated, m_scintillaWidget, &ScintillaWidget::lineDuplicate);
     auto shortcutGoto = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this); // NOLINT
+    shortcutGoto->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutGoto, &QShortcut::activated, this, &EditorWidget::documentGoto);
     auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
+    shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchShow);
     auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
+    shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
     connect(shortcutReplace, &QShortcut::activated, this, &EditorWidget::replaceShow);
 
     // 100ms debounce for selection change
