@@ -5,7 +5,7 @@
 
 class QQuickWidget;
 
-class ImagePage final : public BasePage {
+class ImagePage final: public BasePage {
     Q_OBJECT
 
 public:
@@ -16,6 +16,8 @@ public:
     void propertySet(const QVariantHash &objects);
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
+    void documentSave() override;
 
 private:
     QQuickWidget *m_imageWidget{};

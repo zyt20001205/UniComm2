@@ -73,11 +73,7 @@ void DocumentModule::documentConfigSave() {
     // save config
     auto documentList = QJsonArray();
     for (const auto &url: m_pageHash.keys()) {
-        if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[url])) {
-            luaPage->documentSave();
-        } else if (auto *textPage = qobject_cast<TextPage *>(m_pageHash[url])) {
-            textPage->documentSave();
-        }
+        documentSave(url);
         documentList.append(url.toString());
     }
     m_config["documentList"] = documentList;
@@ -190,11 +186,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) {
-    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->documentSave();
-    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
-        textPage->documentSave();
-    }
+    m_pageHash[documentUrl]->documentSave();
 }
 
 void DocumentModule::permissionSet(const QUrl &documentUrl) {
@@ -226,32 +218,38 @@ void DocumentModule::menuRequest(const QString &request) {
 }
 
 int DocumentModule::eolModeGet(const QUrl &documentUrl) const {
-    // TODO: text page
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        return luaPage->m_editorWidget->eolModeGet();
+        return luaPage->handler()->eolModeGet();
+    }
+    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        return textPage->handler()->eolModeGet();
     }
     return {};
 }
 
 void DocumentModule::eolModeSet(const QUrl &documentUrl, const int eolMode) const {
-    // TODO: text page
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->eolModeSet(eolMode);
+        luaPage->handler()->eolModeSet(eolMode);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->handler()->eolModeSet(eolMode);
     }
 }
 
 bool DocumentModule::eolViewGet(const QUrl &documentUrl) {
-    // TODO: text page
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        return luaPage->m_editorWidget->eolViewGet();
+        return luaPage->handler()->eolViewGet();
+    }
+    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        return textPage->handler()->eolViewGet();
     }
     return {};
 }
 
 void DocumentModule::eolViewSet(const QUrl &documentUrl, const bool status) const {
-    // TODO: text page
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->eolViewSet(status);
+        luaPage->handler()->eolViewSet(status);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->handler()->eolViewSet(status);
     }
 }
 
@@ -259,21 +257,21 @@ void DocumentModule::eolViewSet(const QUrl &documentUrl, const bool status) cons
 void DocumentModule::foldContractTop(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->foldContractTop();
+        luaPage->handler()->foldContractTop();
     }
 }
 
 void DocumentModule::foldContractRecursively(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->foldContractRecursively();
+        luaPage->handler()->foldContractRecursively();
     }
 }
 
 void DocumentModule::foldExpandRecursively(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->foldExpandRecursively();
+        luaPage->handler()->foldExpandRecursively();
     }
 }
 
@@ -295,33 +293,32 @@ void DocumentModule::navigationNext() {
 
 void DocumentModule::assemblyToggle(const QUrl &documentUrl, const bool status) {
     if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->assemblyToggle(status);
+        // luaPage->assemblyToggle(status);
     }
 }
 
 void DocumentModule::focusSet(const QUrl &documentUrl, const bool status) {
-    // TODO: text page
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->focusSet(status);
+        luaPage->handler()->focusSet(status);
+    } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
+        textPage->handler()->focusSet(status);
     }
 }
 
 void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int character) {
-    // TODO: text page
     if (documentUrl != m_focusedUrl) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->indexSet(line, character);
+        luaPage->handler()->indexSet(line, character);
     } else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash[documentUrl])) {
         textPage->handler()->indexSet(line, character);
     }
 }
 
 void DocumentModule::indexGet() const {
-    // TODO: text page
     QHash<QString, int> index{};
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])) {
-        index = luaPage->m_editorWidget->indexGet();
+        index = luaPage->handler()->indexGet();
         g_cursorPosition = {
             {"url", m_focusedUrl},
             {"line", index["line"]},
@@ -331,10 +328,9 @@ void DocumentModule::indexGet() const {
 }
 
 QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
-    // TODO: text page
     if (m_pageHash.contains(documentUrl)) {
         if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-            return luaPage->m_editorWidget->textGet(startLine, startCharacter, endLine, endCharacter);
+            return luaPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
         }
     }
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
@@ -344,28 +340,28 @@ void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, cons
                                    const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
+        luaPage->handler()->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
     }
 }
 
 void DocumentModule::indicatorClear(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_pageHash.contains(documentUrl)) return;
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
+        luaPage->handler()->indicatorClear(type, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
 void DocumentModule::markerAdd(const QUrl &documentUrl, const int type, const int line, const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->markerAdd(type, line, time);
+        luaPage->handler()->markerAdd(type, line, time);
     }
 }
 
 void DocumentModule::markerDelete(const QUrl &documentUrl, const int type, const int line) {
     if (!m_pageHash.contains(documentUrl)) return;
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->markerDelete(type, line);
+        luaPage->handler()->markerDelete(type, line);
     }
 }
 
@@ -444,7 +440,7 @@ void DocumentModule::completionRequest(const QUrl &documentUrl, int line, int ch
 
 void DocumentModule::completionResponse(const QUrl &documentUrl, const QJsonArray &items) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -490,7 +486,7 @@ void DocumentModule::definitionRequest(const QUrl &documentUrl, const int line, 
 
 void DocumentModule::definitionResponse(const QUrl &documentUrl, const QJsonArray &definitions) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -645,7 +641,7 @@ void DocumentModule::implementationRequest(const QUrl &documentUrl, const int li
 
 void DocumentModule::implementationResponse(const QUrl &documentUrl, const QJsonArray &implementations) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -766,7 +762,7 @@ void DocumentModule::referencesRequest(const QUrl &documentUrl, int line, int ch
 
 void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -823,7 +819,7 @@ void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int
 
 void DocumentModule::signatureHelpResponse(const QUrl &documentUrl, const QJsonArray &signatures) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -860,7 +856,7 @@ void DocumentModule::typeDefinitionRequest(const QUrl &documentUrl, const int li
 
 void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJsonArray &typeDefinitions) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->m_editorWidget);
+        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -891,17 +887,17 @@ void DocumentModule::spellCheckResponse(const QUrl &documentUrl, const QVariantL
 void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
     if (const auto *luaPage = qobject_cast<LuaPage *>(basePage)) {
         if (status) {
-            luaPage->m_editorWidget->focusSet(true);
+            luaPage->handler()->focusSet(true);
             m_focusedUrl = basePage->documentUrl();
             const QVariantHash session = {
-                {"codePage", luaPage->m_editorWidget->codePageGet()},
-                {"eolMode", luaPage->m_editorWidget->eolModeGet()}
+                {"codePage", luaPage->handler()->codePageGet()},
+                {"eolMode", luaPage->handler()->eolModeGet()}
             };
             emit focusDocument(m_focusedUrl, session);
         } else {
-            luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Highlight);
-            luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Read);
-            luaPage->m_editorWidget->indicatorClear(ScintillaIndicator::Write);
+            luaPage->handler()->indicatorClear(ScintillaIndicator::Highlight);
+            luaPage->handler()->indicatorClear(ScintillaIndicator::Read);
+            luaPage->handler()->indicatorClear(ScintillaIndicator::Write);
         }
     } else if (const auto *textPage = qobject_cast<TextPage *>(basePage)) {
         if (status) {
@@ -929,22 +925,22 @@ void DocumentModule::documentClose(const QUrl &documentUrl) {
 }
 
 void DocumentModule::charAdd(const QUrl &documentUrl, const QChar character) const {
-    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->charAdd(character.toLatin1());
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        emit luaPage->handler()->charAdded(character.toLatin1());
     }
 }
 
 void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->textSet(text, startLine, startCharacter, endLine, endCharacter);
+        luaPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
 void DocumentModule::textSetSelected(const QUrl &documentUrl, const QString &text) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        luaPage->m_editorWidget->textSetSelected(text);
+        luaPage->handler()->textSetSelected(text);
     }
 }
 
@@ -958,7 +954,7 @@ void DocumentModule::navigationRecord(const QUrl &documentUrl, const int line, c
     m_navigationHistory["index"] = m_navigationHistory["index"].toInt() + 1;
     // src index
     if (documentUrl.isEmpty()) {
-        const auto index = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])->m_editorWidget->indexGet();
+        const auto index = qobject_cast<LuaPage *>(m_pageHash[m_focusedUrl])->handler()->indexGet();
         const auto navigationSession = QVariantHash{
             {"documentUrl", m_focusedUrl},
             {"line", index["line"]},

@@ -33,7 +33,19 @@ void CodeWidget::propertySet(const QVariantHash &objects) {
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     EditorWidget::propertySet(objects);
+    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
     themeLoad(g_mainConfig["theme"].toInt());
+    // state
+    breakpointGet();
+    regionGet();
+    // lsp
+    didOpenNotification();
+    contentChange();
+}
+
+void CodeWidget::documentSave() {
+    EditorWidget::documentSave();
+    didSaveNotification();
 }
 
 void CodeWidget::themeLoad(const int theme) const {
@@ -453,7 +465,7 @@ bool CodeWidget::eventFilter(QObject *watched, QEvent *event) {
     return EditorWidget::eventFilter(watched, event);
 }
 
-// private
+// protected
 void CodeWidget::shortcutInit() {
     EditorWidget::shortcutInit();
     auto shortcutComment = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this); // NOLINT
@@ -467,6 +479,28 @@ void CodeWidget::selectionChange() {
         documentHighlightRequest();
         // TODO: symbol interaction
         // m_symbolWidget->symbolLoad(m_symbol, m_selection["line"], m_selection["character"]);
+    }
+}
+
+void CodeWidget::symbolPair(const QChar ch) {
+    EditorWidget::symbolPair(ch);
+    charAdd(ch.toLatin1());
+}
+
+// private
+void CodeWidget::charAdd(const int ch) {
+    m_contentTimer->start();
+    const QChar character(ch);
+    if (character.isLetter() || m_completionSet.contains(character)) {
+        didChangeNotification();
+        completionRequest();
+    } else if (m_signatureHelpSet.contains(character)) {
+        didChangeNotification();
+        completionRequest();
+        signatureHelpRequest();
+    } else if (m_onTypeFormattingSet.contains(character)) {
+        didChangeNotification();
+        onTypeFormattingRequest();
     }
 }
 

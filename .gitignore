@@ -1,3 +1,4 @@
 /.idea
 /cmake-build-debug-mingw64
 /cmake-build-release-mingw64
+/legacy/

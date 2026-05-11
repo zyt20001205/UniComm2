@@ -20,3 +20,6 @@ void ImagePage::propertyGet(const QVariantMap &objects) {
     m_image = qvariant_cast<QObject *>(objects["image"]);
     m_image->setProperty("source", m_documentUrl);
 }
+
+void ImagePage::documentSave() {
+}

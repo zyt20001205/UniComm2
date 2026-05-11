@@ -4,8 +4,6 @@
 #include "basePage.h"
 #include "document/module/editorWidget.h"
 
-class EditorWidget;
-
 class TextPage final : public BasePage {
     Q_OBJECT
 
@@ -16,9 +14,9 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    [[nodiscard]] ScintillaWidget* handler() const { return m_editorWidget->handler();}
+    [[nodiscard]] ScintillaWidget *handler() const { return m_editorWidget->handler(); }
 
-    void documentSave() const;
+    void documentSave() override;
 
 signals:
     void changeSelection(const QHash<QString, int> &selection);

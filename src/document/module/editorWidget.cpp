@@ -58,7 +58,6 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     connect(m_scintillaWidget, &ScintillaEdit::focusChanged, this, [this](const bool focused) {
         if (focused) m_selectionTimer->start();
     });
-    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, [this](const int character) { emit addChar(QChar(character)); });
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_scintillaWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &EditorWidget::searchRequest);
     connect(m_searchWidget, &SearchWidget::prevSearch, this, &EditorWidget::searchPrev);
@@ -117,6 +116,7 @@ bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
     return QWidget::eventFilter(watched, event);
 }
 
+// protected
 void EditorWidget::shortcutInit() {
     auto shortcutDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
     shortcutDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
@@ -137,7 +137,31 @@ void EditorWidget::selectionChange() {
     emit changeSelection(m_selection);
 }
 
-// protected
+void EditorWidget::symbolPair(const QChar ch) {
+    // handle backspace
+    if (ch == '\b') {
+        const auto line = m_selection["line"];
+        const auto character = m_selection["character"];
+        if (character > 0) {
+            const auto prevChar = m_scintillaWidget->textGet(line, character - 1, line, character)[0];
+            const auto nextChar = m_scintillaWidget->textGet(line, character, line, character + 1);
+            if (m_pair.contains(prevChar) && !nextChar.isEmpty() && m_pair[prevChar] == nextChar) {
+                m_scintillaWidget->textSet("", line, character - 1, line, character + 1);
+            }
+        }
+    }
+    // handle pair
+    else if (m_scintillaWidget->selectionEmpty()) {
+        m_scintillaWidget->textSetSelected(QString(ch) + m_pair[ch]);
+        const auto position = m_scintillaWidget->positionGet();
+        m_scintillaWidget->positionSet(position - 1);
+    }
+    // handle surround
+    else {
+        m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
+    }
+}
+
 void EditorWidget::miscInit() const {
     // annotation
     m_scintillaWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
@@ -326,32 +350,6 @@ void EditorWidget::documentGoto() {
 void EditorWidget::permissionSet() const {
     m_propertyDialog->setProperty("fileUrl", m_documentUrl);
     QMetaObject::invokeMethod(m_propertyDialog, "open");
-}
-
-void EditorWidget::symbolPair(const QChar ch) {
-    // handle backspace
-    if (ch == '\b') {
-        const auto line = m_selection["line"];
-        const auto character = m_selection["character"];
-        if (character > 0) {
-            const auto prevChar = m_scintillaWidget->textGet(line, character - 1, line, character)[0];
-            const auto nextChar = m_scintillaWidget->textGet(line, character, line, character + 1);
-            if (m_pair.contains(prevChar) && !nextChar.isEmpty() && m_pair[prevChar] == nextChar) {
-                m_scintillaWidget->textSet("", line, character - 1, line, character + 1);
-            }
-        }
-    }
-    // handle pair
-    else if (m_scintillaWidget->selectionEmpty()) {
-        m_scintillaWidget->textSetSelected(QString(ch) + m_pair[ch]);
-        const auto position = m_scintillaWidget->positionGet();
-        m_scintillaWidget->positionSet(position - 1);
-    }
-    // handle surround
-    else {
-        m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
-    }
-    emit addChar(ch);
 }
 
 // private: search

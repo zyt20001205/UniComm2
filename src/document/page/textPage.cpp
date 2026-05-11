@@ -28,13 +28,14 @@ void TextPage::propertySet(const QVariantHash &objects) {
     });
 }
 
-void TextPage::documentSave() const {
+void TextPage::documentSave() {
     m_editorWidget->documentSave();
 }
 
+// protected
 bool TextPage::documentClose() {
     bool status = true;
-    if (m_editorWidget->handler()->modifyGet()) {
+    if (handler()->modifyGet()) {
         m_saveDialog->setProperty("documentUrl", m_documentUrl);
         m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
         QMetaObject::invokeMethod(m_saveDialog, "open");

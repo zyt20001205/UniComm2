@@ -18,6 +18,8 @@ public:
 
     void propertySet(const QVariantHash &objects) override;
 
+    void documentSave() override;
+
     void themeLoad(int theme) const;
 
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
@@ -83,10 +85,15 @@ signals:
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
-private:
+protected:
     void shortcutInit() override;
 
     void selectionChange() override;
+
+    void symbolPair(QChar ch) override;
+
+private:
+    void charAdd(int ch);
 
     void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
 

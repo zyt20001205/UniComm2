@@ -1,19 +1,10 @@
 #ifndef UNICOMM_LUAPAGE_H
 #define UNICOMM_LUAPAGE_H
 
-#include <QJsonArray>
-#include <ScintillaTypes.h>
-
 #include "basePage.h"
+#include "document/module/codeWidget.h"
 
-class QLabel;
-class QLineEdit;
-class QPushButton;
-
-class SearchWidget;
-class ScintillaWidget;
 class SymbolWidget;
-class EditorWidget;
 
 class LuaPage final : public BasePage {
     Q_OBJECT
@@ -25,19 +16,16 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    void themeLoad(int theme) const;
+    [[nodiscard]] ScintillaWidget *handler() const { return m_codeWidget->handler(); }
+
+    void documentSave() override;
 
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
-    void menuRequest(const QString &request);
-
-    // public: file
-    void documentSave();
-
-    void permissionGet() override;
+    void menuRequest(const QString &request) const;
 
     // public: lsp
-    void diagnosticsNotification(const QJsonArray &diagnostics);
+    void diagnosticsNotification(const QJsonArray &diagnostics) const;
 
     void documentHighlightResponse(const QJsonArray &result) const;
 
@@ -51,18 +39,10 @@ public:
 
     void rangeFormattingResponse(const QString &newText) const;
 
-    void semanticTokensResponse(const QJsonArray &data);
+    void semanticTokensResponse(const QJsonArray &data) const;
 
     // public: typo
-    void spellCheckResponse(const QVariantList &typos);
-
-    void charAdd(int ch);
-
-    void assemblyToggle(bool status);
-
-    bool eventFilter(QObject *watched, QEvent *event) override;
-
-    ScintillaWidget *m_editorWidget{};
+    void spellCheckResponse(const QVariantList &typos) const;
 
 signals:
     void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
@@ -109,117 +89,13 @@ protected:
     bool documentClose() override;
 
 private:
-    void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
-
-    void selectionChange();
-
-    void contentChange();
-
-    void dwellChange();
-
     void savepointChange(bool status);
 
-    // private: file
-    void permissionSet() const;
-
-    void breakpointGet() const;
-
-    void breakpointSet(int line) const;
-
-    void regionGet() const;
-
-    // private: lsp
-    void didOpenNotification();
-
-    void didChangeNotification();
-
-    void didSaveNotification();
-
-    void didCloseNotification();
-
-    void completionRequest();
-
-    void definitionRequest();
-
-    void documentHighlightRequest();
-
-    void documentSymbolRequest();
-
-    void foldingRangeRequest();
-
-    void formattingRequest();
-
-    void hoverRequest();
-
-    void implementationRequest();
-
-    void referencesRequest();
-
-    void onTypeFormattingRequest();
-
-    void semanticTokensRequest();
-
-    void signatureHelpRequest();
-
-    void typeDefinitionRequest();
-
-    // private: typo
-    void spellCheckRequest();
-
-    // private: misc
-    void commentToggle();
-
-    [[nodiscard]] bool navigable(Scintilla::Position position) const;
-
-    void navigationToggle(Scintilla::Position position = -1) const;
-
-    void symbolPair(QChar character);
-
-    // private: search
-    void searchToggle();
-
-    void replaceToggle();
-
-    void searchRequest(const QString &text);
-
-    void searchResponse();
-
-    void searchPrev();
-
-    void searchNext();
-
-    void searchClear();
-
-    void textReplace(const QString &text);
-
-    void allReplace(const QString &text);
-
-    SearchWidget *m_searchWidget{};
-    SymbolWidget * m_symbolWidget{};
-    EditorWidget *m_assemblyWidget{};
-
-    QTimer *m_selectionTimer{};
-    QTimer *m_contentTimer{};
-    QTimer *m_dwellTimer{};
-
-    QObject *m_toolTip{};
-    QObject *m_breakpointEditDialog{};
-    QObject *m_systemPropertyDialog{};
+    CodeWidget *m_codeWidget{};
+    SymbolWidget *m_symbolWidget{};
     QObject *m_saveDialog{};
-    QObject *m_editorMenu{};
 
-    QSet<QChar> m_completionSet{};
-    QSet<QChar> m_signatureHelpSet{};
-    QSet<QChar> m_onTypeFormattingSet{};
-    QHash<QChar, QChar> m_pairHash{};
-
-    int m_version = 1;
-    QJsonArray m_diagnostic{};
     QJsonArray m_symbol{};
-    QVariantList m_typo{};
-    QHash<QString, int> m_selection{};
-    QVariantHash m_search{};
-    QHash<int, int> m_l2aHash{};
 };
 
 #endif //UNICOMM_LUAPAGE_H

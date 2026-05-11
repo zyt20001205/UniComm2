@@ -15,6 +15,8 @@ public:
     // public: file
     void pathDisambiguation();
 
+    virtual void documentSave() = 0;
+
     void documentReload();
 
     [[nodiscard]] QUrl documentUrl();

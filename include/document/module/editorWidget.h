@@ -19,7 +19,7 @@ public:
 
     [[nodiscard]] ScintillaWidget *handler() const { return m_scintillaWidget; }
 
-    void documentSave();
+    virtual void documentSave();
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -30,12 +30,12 @@ signals:
 
     void changeSelection(const QHash<QString, int> &selection);
 
-    void addChar(QChar ch);
-
 protected:
     virtual void shortcutInit();
 
     virtual void selectionChange();
+
+    virtual void symbolPair(QChar ch);
 
     void miscInit() const;
 
@@ -61,8 +61,6 @@ private:
     void documentGoto();
 
     void permissionSet() const;
-
-    void symbolPair(QChar ch);
 
     // private: search
     void searchRequest(const QString &text);
