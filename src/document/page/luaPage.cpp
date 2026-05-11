@@ -14,6 +14,7 @@
 #include "globals.h"
 #include "analysis/symbolWidget.h"
 #include "core/globalManager.h"
+#include "document/module/editorWidget.h"
 #include "document/module/scintillaWidget.h"
 #include "document/module/searchWidget.h"
 #include "util/cmarkUtils.h"
@@ -24,7 +25,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
       m_editorWidget(new ScintillaWidget(this)),
       m_searchWidget(new SearchWidget(this)),
       m_symbolWidget(new SymbolWidget(this)),
-      m_assemblyWidget(new ScintillaWidget(this)),
+      m_assemblyWidget(new EditorWidget(documentConfig, documentUrl, this)),
       m_selectionTimer(new QTimer(this)),
       m_contentTimer(new QTimer(this)),
       m_dwellTimer(new QTimer(this)),
@@ -378,106 +379,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     }
     themeLoad(g_mainConfig["theme"].toInt());
     // assembly init
-    {
-        m_assemblyWidget->hide();
-        // misc
-        {
-            m_assemblyWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
-            m_assemblyWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
-
-            m_assemblyWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
-            m_assemblyWidget->send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS); // NOLINT
-            m_assemblyWidget->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS); // NOLINT
-            for (int i = SC_MARKNUM_FOLDEREND; i <= SC_MARKNUM_FOLDEROPEN; ++i) {
-                m_assemblyWidget->send(SCI_MARKERSETFORE, i, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
-                m_assemblyWidget->send(SCI_MARKERSETBACK, i, ScintillaWidget::colorGet(g_global->strokeGet())); // NOLINT
-            }
-            m_assemblyWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
-            m_assemblyWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
-            m_assemblyWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
-            m_assemblyWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
-
-            m_assemblyWidget->send(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
-            m_assemblyWidget->send(SCI_EOLANNOTATIONSETVISIBLE, ANNOTATION_STANDARD); // NOLINT
-
-            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_global->brandBackGet(), 128)); // NOLINT
-            m_assemblyWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET, ScintillaWidget::colorGet(g_global->foreGet(), 255)); // NOLINT
-            m_assemblyWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
-            m_assemblyWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-        }
-        // margin
-        {
-            m_assemblyWidget->marginDefine(
-                0,
-                QVariantHash{
-                    {"type", SC_MARGIN_TEXT},
-                    {"width", 32},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
-            m_assemblyWidget->marginDefine(
-                1,
-                QVariantHash{
-                    {"type", SC_MARGIN_SYMBOL},
-                    {"width", 16},
-                    {"mask", static_cast<int>(~SC_MASK_FOLDERS)},
-                    {"sensitive", true},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
-            m_assemblyWidget->marginDefine(
-                2,
-                QVariantHash{
-                    {"type", SC_MARGIN_SYMBOL},
-                    {"width", 16},
-                    {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-                    {"sensitive", true},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
-        }
-        // marker
-        {
-            m_assemblyWidget->markerDefine(
-                ScintillaMarker::Hint,
-                QVariantHash{
-                    {"symbol", 22},
-                    {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
-                });
-        }
-        // style
-        {
-            m_assemblyWidget->styleDefine(
-                CustomStyle::Default,
-                QVariantHash{
-                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
-            m_assemblyWidget->styleClearAll();
-            m_assemblyWidget->styleDefine(
-                CustomStyle::LineNumber,
-                QVariantHash{
-                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
-            m_assemblyWidget->styleDefine(
-                CustomStyle::FoldDisplayText,
-                QVariantHash{
-                    {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
-                    {"back", ScintillaWidget::colorGet(g_global->backSelectedGet())}
-                });
-            m_assemblyWidget->styleDefine(
-                CustomStyle::Annotation,
-                QVariantHash{
-                    {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
-        }
-    }
+    m_assemblyWidget->hide();
 
     layout->addWidget(m_searchWidget);
     layout->addWidget(codingwidget);
@@ -506,19 +408,22 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 }
 
 void LuaPage::propertySet(const QVariantHash &objects) {
-    m_global = qvariant_cast<QObject *>(objects["global"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_systemPropertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     m_symbolWidget->propertySet(QVariantHash{
-        {"global", QVariant::fromValue(m_global)},
+        {"global", objects["global"]},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
     });
     m_searchWidget->propertySet(QVariantHash{
-        {"global", QVariant::fromValue(m_global)},
+        {"global", objects["global"]},
         {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
+    });
+    m_assemblyWidget->propertySet(QVariantHash{
+        {"global", objects["global"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
 }
 
@@ -961,14 +866,14 @@ void LuaPage::assemblyToggle(const bool status) {
         // process.start("luac", QStringList() << "-l" << "-l" << tempFile.fileName());
         if (!process.waitForFinished(1000)) return;
         const auto error = QString::fromUtf8(process.readAllStandardError());
-        m_assemblyWidget->readonlySet(false);
+        m_assemblyWidget->handler()->readonlySet(false);
         if (!error.isEmpty()) {
-            m_assemblyWidget->textSet(error);
+            m_assemblyWidget->handler()->textSet(error);
         } else {
             m_editorWidget->annotationClear();
             m_editorWidget->markerDelete(ScintillaMarker::Navigation);
             m_l2aHash.clear();
-            m_assemblyWidget->textClear();
+            m_assemblyWidget->handler()->textClear();
             // m_assemblyWidget->textSet(process.readAllStandardOutput());
             const auto output = QString::fromUtf8(process.readAllStandardOutput()).split("\r\n");
             QString type{};
@@ -976,8 +881,8 @@ void LuaPage::assemblyToggle(const bool status) {
             int endLine{};
             for (const auto &text: output) {
                 if (text.isEmpty()) {
-                    if (m_assemblyWidget->lineCountGet() == 1) continue;
-                    m_assemblyWidget->textAppend("\r\n");
+                    if (m_assemblyWidget->handler()->lineCountGet() == 1) continue;
+                    m_assemblyWidget->handler()->textAppend("\r\n");
                 } else if (text.contains('<') && text.contains('>')) {
                     // parse type from space
                     const auto tmp0 = text.indexOf(' ');
@@ -988,14 +893,14 @@ void LuaPage::assemblyToggle(const bool status) {
                     const auto tmp3 = text.lastIndexOf('>');
                     startLine = text.mid(tmp1 + 1, tmp2 - tmp1 - 1).toInt();
                     endLine = text.mid(tmp2 + 1, tmp3 - tmp2 - 1).toInt();
-                    m_assemblyWidget->textAppend(QString("%1 %2-%3\r\n").arg(type, QString::number(startLine), QString::number(endLine)));
-                    m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 3, SC_FOLDLEVELBASE);
-                    m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 2, SC_FOLDLEVELBASE + SC_FOLDLEVELHEADERFLAG);
+                    m_assemblyWidget->handler()->textAppend(QString("%1 %2-%3\r\n").arg(type, QString::number(startLine), QString::number(endLine)));
+                    m_assemblyWidget->handler()->foldLevelSet(m_assemblyWidget->handler()->lineCountGet() - 3, SC_FOLDLEVELBASE);
+                    m_assemblyWidget->handler()->foldLevelSet(m_assemblyWidget->handler()->lineCountGet() - 2, SC_FOLDLEVELBASE + SC_FOLDLEVELHEADERFLAG);
                     // 1 based
                     if (startLine > 1) {
                         startLine--;
                         m_editorWidget->markerAdd(ScintillaMarker::Navigation, startLine);
-                        m_l2aHash.insert(startLine, m_assemblyWidget->lineCountGet() - 2);
+                        m_l2aHash.insert(startLine, m_assemblyWidget->handler()->lineCountGet() - 2);
                     }
                     if (endLine > 1) endLine--;
                 } else if (text.contains("param")
@@ -1008,20 +913,20 @@ void LuaPage::assemblyToggle(const bool status) {
                     m_editorWidget->annotationSet(startLine, text);
                 } else {
                     const auto detail = text.split('\t');
-                    if (detail.size() == 6) m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + '\t' + detail.at(5) + "\r\n");
-                    else m_assemblyWidget->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
-                    m_assemblyWidget->marginTextSet(m_assemblyWidget->lineCountGet() - 2, detail.at(1));
-                    m_assemblyWidget->foldLevelSet(m_assemblyWidget->lineCountGet() - 2, SC_FOLDLEVELBASE + 1);
+                    if (detail.size() == 6) m_assemblyWidget->handler()->textAppend(detail.at(3) + '\t' + detail.at(4) + '\t' + detail.at(5) + "\r\n");
+                    else m_assemblyWidget->handler()->textAppend(detail.at(3) + '\t' + detail.at(4) + "\r\n");
+                    m_assemblyWidget->handler()->marginTextSet(m_assemblyWidget->handler()->lineCountGet() - 2, detail.at(1));
+                    m_assemblyWidget->handler()->foldLevelSet(m_assemblyWidget->handler()->lineCountGet() - 2, SC_FOLDLEVELBASE + 1);
                 }
             }
         }
-        m_assemblyWidget->readonlySet(true);
+        m_assemblyWidget->handler()->readonlySet(true);
         m_assemblyWidget->show();
     } else {
         m_editorWidget->annotationClear();
         m_editorWidget->markerDelete(ScintillaMarker::Navigation);
         m_l2aHash.clear();
-        m_assemblyWidget->textClear();
+        m_assemblyWidget->handler()->textClear();
         m_assemblyWidget->hide();
     }
 }
@@ -1129,7 +1034,7 @@ void LuaPage::marginClick(const Scintilla::Position position, const int mouseBut
                 emit removeBreakpoint(m_documentUrl, line + 1);
                 m_editorWidget->markerDelete(ScintillaMarker::BreakpointDisabled, line);
             } else if (m_editorWidget->markerGet(line) & 1 << ScintillaMarker::Navigation) {
-                m_assemblyWidget->markerAdd(ScintillaMarker::Hint, m_l2aHash[line], 1000);
+                m_assemblyWidget->handler()->markerAdd(ScintillaMarker::Hint, m_l2aHash[line], 1000);
             } else {
                 emit insertBreakpoint(m_documentUrl, line + 1, QVariantHash({
                                           {"condition", ""},

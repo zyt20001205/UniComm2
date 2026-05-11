@@ -13,6 +13,7 @@ class QPushButton;
 class SearchWidget;
 class ScintillaWidget;
 class SymbolWidget;
+class EditorWidget;
 
 class LuaPage final : public BasePage {
     Q_OBJECT
@@ -195,13 +196,12 @@ private:
 
     SearchWidget *m_searchWidget{};
     SymbolWidget * m_symbolWidget{};
-    ScintillaWidget *m_assemblyWidget{};
+    EditorWidget *m_assemblyWidget{};
 
     QTimer *m_selectionTimer{};
     QTimer *m_contentTimer{};
     QTimer *m_dwellTimer{};
 
-    QObject *m_global{};
     QObject *m_toolTip{};
     QObject *m_breakpointEditDialog{};
     QObject *m_systemPropertyDialog{};
