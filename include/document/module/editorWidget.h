@@ -15,13 +15,11 @@ public:
 
     ~EditorWidget() override = default;
 
-    void propertySet(const QVariantHash &objects);
+    virtual void propertySet(const QVariantHash &objects);
 
     [[nodiscard]] ScintillaWidget *handler() const { return m_scintillaWidget; }
 
     void documentSave();
-
-    void selectionChange();
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -35,6 +33,10 @@ signals:
     void addChar(QChar ch);
 
 protected:
+    virtual void shortcutInit();
+
+    virtual void selectionChange();
+
     void miscInit() const;
 
     void indicatorInit() const;
@@ -44,6 +46,14 @@ protected:
     void markerInit() const;
 
     void styleInit() const;
+
+    void searchShow() const;
+
+    void replaceShow() const;
+
+    QUrl m_documentUrl{};
+    ScintillaWidget *m_scintillaWidget{};
+    QHash<QString, int> m_selection{};
 
 private:
     void documentOpen();
@@ -55,10 +65,6 @@ private:
     void symbolPair(QChar ch);
 
     // private: search
-    void searchShow() const;
-
-    void replaceShow() const;
-
     void searchRequest(const QString &text);
 
     void searchResponse();
@@ -74,17 +80,13 @@ private:
     void allReplace(const QString &text);
 
     QJsonObject m_config{};
-    QUrl m_documentUrl{};
     QObject *m_propertyDialog{};
     QObject *m_gotoDialog{};
-    ScintillaWidget *m_scintillaWidget{};
     SearchWidget *m_searchWidget{};
 
     QTimer *m_selectionTimer{};
-    QHash<QString, int> m_selection{};
 
     QHash<QChar, QChar> m_pair{};
-
     QVariantHash m_search{};
 };
 

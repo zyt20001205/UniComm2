@@ -32,10 +32,6 @@ void TextPage::documentSave() const {
     m_editorWidget->documentSave();
 }
 
-void TextPage::selectionChange() const {
-    m_editorWidget->selectionChange();
-}
-
 bool TextPage::documentClose() {
     bool status = true;
     if (m_editorWidget->handler()->modifyGet()) {

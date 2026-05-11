@@ -20,8 +20,6 @@ public:
 
     void documentSave() const;
 
-    void selectionChange() const;
-
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 

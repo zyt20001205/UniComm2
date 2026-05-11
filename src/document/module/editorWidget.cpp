@@ -13,9 +13,9 @@
 // public
 EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &documentUrl, QWidget *parent)
     : QWidget(parent),
-      m_config(documentConfig),
       m_documentUrl(documentUrl),
       m_scintillaWidget(new ScintillaWidget(this)),
+      m_config(documentConfig),
       m_searchWidget(new SearchWidget(this)),
       m_selectionTimer(new QTimer(this)),
       m_pair{
@@ -30,19 +30,6 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     layout->setSpacing(0);
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_scintillaWidget);
-
-    auto shortcutDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
-    shortcutDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(shortcutDuplicate, &QShortcut::activated, m_scintillaWidget, &ScintillaWidget::lineDuplicate);
-    auto shortcutGoto = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this); // NOLINT
-    shortcutGoto->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(shortcutGoto, &QShortcut::activated, this, &EditorWidget::documentGoto);
-    auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
-    shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchShow);
-    auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
-    shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(shortcutReplace, &QShortcut::activated, this, &EditorWidget::replaceShow);
 
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
@@ -68,6 +55,9 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
         if (static_cast<int>(updated) & static_cast<int>(Scintilla::Update::Selection | Scintilla::Update::Content)) m_selectionTimer->start();
     });
+    connect(m_scintillaWidget, &ScintillaEdit::focusChanged, this, [this](const bool focused) {
+        if (focused) m_selectionTimer->start();
+    });
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, [this](const int character) { emit addChar(QChar(character)); });
     connect(m_searchWidget, &SearchWidget::setSearchFlags, m_scintillaWidget, &ScintillaWidget::searchFlagsSet);
     connect(m_searchWidget, &SearchWidget::requestSearch, this, &EditorWidget::searchRequest);
@@ -91,11 +81,6 @@ void EditorWidget::documentSave() {
     documentFile.close();
     // logging
     emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
-}
-
-void EditorWidget::selectionChange() {
-    m_selection = m_scintillaWidget->selectionGet();
-    emit changeSelection(m_selection);
 }
 
 bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
@@ -130,6 +115,26 @@ bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     return QWidget::eventFilter(watched, event);
+}
+
+void EditorWidget::shortcutInit() {
+    auto shortcutDuplicate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this); // NOLINT
+    shortcutDuplicate->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(shortcutDuplicate, &QShortcut::activated, m_scintillaWidget, &ScintillaWidget::lineDuplicate);
+    auto shortcutGoto = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this); // NOLINT
+    shortcutGoto->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(shortcutGoto, &QShortcut::activated, this, &EditorWidget::documentGoto);
+    auto shortcutSearch = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_F), this); // NOLINT
+    shortcutSearch->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(shortcutSearch, &QShortcut::activated, this, &EditorWidget::searchShow);
+    auto shortcutReplace = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_R), this); // NOLINT
+    shortcutReplace->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(shortcutReplace, &QShortcut::activated, this, &EditorWidget::replaceShow);
+}
+
+void EditorWidget::selectionChange() {
+    m_selection = m_scintillaWidget->selectionGet();
+    emit changeSelection(m_selection);
 }
 
 // protected
@@ -281,6 +286,16 @@ void EditorWidget::styleInit() const {
         });
 }
 
+void EditorWidget::searchShow() const {
+    m_searchWidget->searchShow(m_scintillaWidget->textGetSelected());
+    m_searchWidget->show();
+}
+
+void EditorWidget::replaceShow() const {
+    m_searchWidget->replaceShow(m_scintillaWidget->textGetSelected());
+    m_searchWidget->show();
+}
+
 // private
 void EditorWidget::documentOpen() {
     // text get
@@ -340,16 +355,6 @@ void EditorWidget::symbolPair(const QChar ch) {
 }
 
 // private: search
-void EditorWidget::searchShow() const {
-    m_searchWidget->searchShow(m_scintillaWidget->textGetSelected());
-    m_searchWidget->show();
-}
-
-void EditorWidget::replaceShow() const {
-    m_searchWidget->replaceShow(m_scintillaWidget->textGetSelected());
-    m_searchWidget->show();
-}
-
 void EditorWidget::searchRequest(const QString &text) {
     searchClear();
     m_search["text"] = text;

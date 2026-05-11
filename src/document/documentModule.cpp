@@ -906,7 +906,6 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
     } else if (const auto *textPage = qobject_cast<TextPage *>(basePage)) {
         if (status) {
             textPage->handler()->focusSet(true);
-            textPage->selectionChange();
             m_focusedUrl = basePage->documentUrl();
             const QVariantHash session = {
                 {"codePage", textPage->handler()->codePageGet()},
