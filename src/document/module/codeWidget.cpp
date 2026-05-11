@@ -487,6 +487,202 @@ void CodeWidget::symbolPair(const QChar ch) {
     charAdd(ch.toLatin1());
 }
 
+void CodeWidget::indicatorInit() const {
+    EditorWidget::indicatorInit();
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Typo,
+        QVariantHash{
+            {"style", 1},
+            {"fore", ScintillaWidget::colorGet(g_global->successFore3Get())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Hint,
+        QVariantHash{
+            {"style", 1},
+            {"fore", ScintillaWidget::colorGet(g_global->brandBackGet())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Info,
+        QVariantHash{
+            {"style", 1},
+            {"fore", ScintillaWidget::colorGet(g_global->warningFore3Get())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Warning,
+        QVariantHash{
+            {"style", 1},
+            {"fore", ScintillaWidget::colorGet(g_global->warningFore3Get())},
+            {"strokeWidth", 200},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Error,
+        QVariantHash{
+            {"style", 1},
+            {"fore", ScintillaWidget::colorGet(g_global->dangerFore3Get())},
+            {"strokeWidth", 200},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Password,
+        QVariantHash{
+            {"style", 8},
+            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false},
+            {"hoverStyle", 5}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Highlight,
+        QVariantHash{
+            {"style", 8},
+            {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", true}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Read,
+        QVariantHash{
+            {"style", 18},
+            {"fore", ScintillaWidget::colorGet(g_global->successFore3Get())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Write,
+        QVariantHash{
+            {"style", 22},
+            {"fore", ScintillaWidget::colorGet(g_global->warningFore3Get())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Result,
+        QVariantHash{
+            {"style", 8},
+            {"fore", ScintillaWidget::colorGet(g_global->brandBackGet())},
+            {"alpha", 128},
+            {"outlineAlpha", 128},
+            {"setUnder", true}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Current,
+        QVariantHash{
+            {"style", 6},
+            {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
+            {"strokeWidth", 200},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+    m_scintillaWidget->indicatorDefine(
+        ScintillaIndicator::Hyperlink,
+        QVariantHash{
+            {"style", 17},
+            {"fore", ScintillaWidget::colorGet(g_global->brandLinkGet())},
+            {"alpha", 255},
+            {"outlineAlpha", 255},
+            {"setUnder", false}
+        });
+}
+
+void CodeWidget::marginInit() const {
+    m_scintillaWidget->marginDefine(
+                0,
+                QVariantHash{
+                    {"type", SC_MARGIN_NUMBER},
+                    {"width", 32},
+                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
+                });
+    m_scintillaWidget->marginDefine(
+        1,
+        QVariantHash{
+            {"type", SC_MARGIN_SYMBOL},
+            {"width", 16},
+            {"mask", static_cast<int>(~SC_MASK_FOLDERS & ~SC_MASK_HISTORY)},
+            {"sensitive", true},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_scintillaWidget->marginDefine(
+        2,
+        QVariantHash{
+            {"type", SC_MARGIN_SYMBOL},
+            {"width", 16},
+            {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+            {"sensitive", true},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_scintillaWidget->marginDefine(
+        3,
+        QVariantHash{
+            {"type", SC_MARGIN_SYMBOL},
+            {"width", 4},
+            {"mask", SC_MASK_HISTORY},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+}
+
+void CodeWidget::markerInit() const {
+    EditorWidget::markerInit();
+    m_scintillaWidget->markerDefine(
+                ScintillaMarker::Region,
+                QVariantHash{
+                    {"symbol", 2},
+                    {"fore", ScintillaWidget::colorGet(g_global->successFore2Get())},
+                    {"back", ScintillaWidget::colorGet(g_global->successBack2Get())}
+                });
+    m_scintillaWidget->markerDefine(
+        ScintillaMarker::BreakpointEnabled,
+        QVariantHash{
+            {"symbol", 0},
+            {"fore", ScintillaWidget::colorGet(g_global->dangerFore2Get())},
+            {"back", ScintillaWidget::colorGet(g_global->dangerBack2Get())}
+        });
+    m_scintillaWidget->markerDefine(
+        ScintillaMarker::BreakpointDisabled,
+        QVariantHash{
+            {"symbol", 0},
+            {"fore", ScintillaWidget::colorGet(g_global->dangerFore2Get())},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
+    m_scintillaWidget->markerDefine(
+        ScintillaMarker::Navigation,
+        QVariantHash{
+            {"symbol", 24},
+            {"fore", ScintillaWidget::colorGet(g_global->foreGet())}
+        });
+    m_scintillaWidget->markerDefine(
+        ScintillaMarker::Debug,
+        QVariantHash{
+            {"symbol", 2},
+            {"fore", ScintillaWidget::colorGet(g_global->warningFore2Get())},
+            {"back", ScintillaWidget::colorGet(g_global->warningFore2Get())}
+        });
+    m_scintillaWidget->markerDefine(
+        ScintillaMarker::Hint,
+        QVariantHash{
+            {"symbol", 22},
+            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+        });
+}
+
 // private
 void CodeWidget::charAdd(const int ch) {
     m_contentTimer->start();

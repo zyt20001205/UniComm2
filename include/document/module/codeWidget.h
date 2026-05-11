@@ -92,6 +92,12 @@ protected:
 
     void symbolPair(QChar ch) override;
 
+    void indicatorInit() const override;
+
+    void marginInit() const override;
+
+    void markerInit() const override;
+
 private:
     void charAdd(int ch);
 

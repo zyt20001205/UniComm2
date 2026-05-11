@@ -39,11 +39,11 @@ protected:
 
     void miscInit() const;
 
-    void indicatorInit() const;
+    virtual void indicatorInit() const;
 
-    void marginInit() const;
+    virtual void marginInit() const;
 
-    void markerInit() const;
+    virtual void markerInit() const;
 
     void styleInit() const;
 
