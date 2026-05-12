@@ -24,7 +24,7 @@ void TextPage::propertySet(const QVariantHash &objects) {
         {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
-        {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]},
+        {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]}
     });
 }
 

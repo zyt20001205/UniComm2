@@ -119,6 +119,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                 {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                 {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
                 {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
                 {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
             });
@@ -306,7 +307,8 @@ QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, co
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
                                    const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->handler()->indicatorFill(type, startLine, startCharacter, endLine, endCharacter, time);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->handler()->indicatorFill(
+        type, startLine, startCharacter, endLine, endCharacter, time);
 }
 
 void DocumentModule::indicatorClear(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
