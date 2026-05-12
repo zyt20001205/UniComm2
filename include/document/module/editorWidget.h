@@ -56,7 +56,7 @@ protected:
     QHash<QString, int> m_selection{};
 
 private:
-    void documentOpen();
+    void documentOpen() const;
 
     void documentGoto();
 

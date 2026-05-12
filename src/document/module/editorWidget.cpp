@@ -322,7 +322,7 @@ void EditorWidget::replaceShow() const {
 }
 
 // private
-void EditorWidget::documentOpen() {
+void EditorWidget::documentOpen() const {
     // text get
     const auto documentPath = m_documentUrl.toLocalFile();
     auto documentFile = QFile(documentPath);
