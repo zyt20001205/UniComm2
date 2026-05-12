@@ -11,7 +11,7 @@
 // public
 TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
-      m_editorWidget(new EditorWidget(documentConfig, documentUrl, this)){
+      m_editorWidget(new EditorWidget(documentConfig, documentUrl, this)) {
     setWidget(m_editorWidget);
     connect(m_editorWidget, &EditorWidget::appendLog, this, &TextPage::appendLog);
     connect(m_editorWidget, &EditorWidget::changeSavepoint, this, &TextPage::savepointChange);
@@ -21,10 +21,10 @@ TextPage::TextPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 void TextPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_editorWidget->propertySet(QVariantHash{
-            {"global", objects["global"]},
-            {"mainWindowToolTip", objects["mainWindowToolTip"]},
-            {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
-            {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]},
+        {"global", objects["global"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
+        {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
+        {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]},
     });
 }
 

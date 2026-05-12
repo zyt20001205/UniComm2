@@ -31,24 +31,12 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     layout->addWidget(m_searchWidget);
     layout->addWidget(m_scintillaWidget);
 
-    // 100ms debounce for selection change
-    m_selectionTimer->setSingleShot(true);
-    m_selectionTimer->setInterval(100);
-    connect(m_selectionTimer, &QTimer::timeout, this, &EditorWidget::selectionChange);
-}
-
-void EditorWidget::propertySet(const QVariantHash &objects) {
-    m_propertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
-    m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
-    m_searchWidget->propertySet(QVariantHash{
-        {"global", objects["global"]},
-        {"mainWindowToolTip", objects["mainWindowToolTip"]}
-    });
     documentOpen();
+    EditorWidget::shortcutInit();
     miscInit();
-    indicatorInit();
-    marginInit();
-    markerInit();
+    EditorWidget::indicatorInit();
+    EditorWidget::marginInit();
+    EditorWidget::markerInit();
     styleInit();
     connect(m_scintillaWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &EditorWidget::permissionSet);
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &EditorWidget::changeSavepoint);
@@ -64,6 +52,19 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     connect(m_searchWidget, &SearchWidget::nextSearch, this, &EditorWidget::searchNext);
     connect(m_searchWidget, &SearchWidget::replaceText, this, &EditorWidget::textReplace);
     connect(m_searchWidget, &SearchWidget::replaceAll, this, &EditorWidget::allReplace);
+    // 100ms debounce for selection change
+    m_selectionTimer->setSingleShot(true);
+    m_selectionTimer->setInterval(100);
+    connect(m_selectionTimer, &QTimer::timeout, this, &EditorWidget::selectionChange);
+}
+
+void EditorWidget::propertySet(const QVariantHash &objects) {
+    m_propertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
+    m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
+    m_searchWidget->propertySet(QVariantHash{
+        {"global", objects["global"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
+    });
     m_scintillaWidget->installEventFilter(this);
 }
 

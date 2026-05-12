@@ -18,6 +18,8 @@ CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUr
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'} {
+    themeLoad(g_mainConfig["theme"].toInt());
+    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
     // 500ms debounce for content change
     m_contentTimer->setSingleShot(true);
     m_contentTimer->setInterval(500);
@@ -26,6 +28,11 @@ CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUr
     m_dwellTimer->setSingleShot(true);
     m_dwellTimer->setInterval(1000);
     connect(m_dwellTimer, &QTimer::timeout, this, &CodeWidget::dwellChange);
+
+    QTimer::singleShot(0, [this] {
+        didOpenNotification();
+        contentChange();
+    });
 }
 
 void CodeWidget::propertySet(const QVariantHash &objects) {
@@ -33,14 +40,6 @@ void CodeWidget::propertySet(const QVariantHash &objects) {
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     EditorWidget::propertySet(objects);
-    connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
-    themeLoad(g_mainConfig["theme"].toInt());
-    // state
-    breakpointGet();
-    regionGet();
-    // lsp
-    didOpenNotification();
-    contentChange();
 }
 
 void CodeWidget::documentSave() {
@@ -685,7 +684,7 @@ void CodeWidget::markerInit() const {
 
 // private
 void CodeWidget::charAdd(const int ch) {
-    m_contentTimer->start();
+    selectionChange();
     const QChar character(ch);
     if (character.isLetter() || m_completionSet.contains(character)) {
         didChangeNotification();
@@ -698,6 +697,7 @@ void CodeWidget::charAdd(const int ch) {
         didChangeNotification();
         onTypeFormattingRequest();
     }
+    m_contentTimer->start();
 }
 
 // private: slot
@@ -739,7 +739,6 @@ void CodeWidget::marginClick(const Scintilla::Position position, const int mouse
 }
 
 void CodeWidget::contentChange() {
-    m_selection = m_scintillaWidget->selectionGet();
     // status refresh
     breakpointGet();
     regionGet();

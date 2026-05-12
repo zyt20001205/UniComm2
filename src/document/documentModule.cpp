@@ -128,6 +128,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             connect(luaPage, &LuaPage::changeSelection, this, &DocumentModule::changeSelection);
             connect(luaPage, &LuaPage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
             connect(luaPage, &LuaPage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
+            connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
             connect(luaPage, &LuaPage::requestCompletion, this, &DocumentModule::completionRequest);
             connect(luaPage, &LuaPage::requestDefinition, this, &DocumentModule::definitionRequest);
             connect(luaPage, &LuaPage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
@@ -142,7 +143,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             connect(luaPage, &LuaPage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
             connect(luaPage, &LuaPage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
             connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
-            connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
             connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
             luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
         } else {
@@ -369,7 +369,7 @@ void DocumentModule::markerDelete(const QUrl &documentUrl, const int type, const
 void DocumentModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(documentUrl, diagnostics);
     if (m_pageHash.contains(documentUrl)) {
-        if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
+        if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
             luaPage->diagnosticsNotification(diagnostics);
         }
     }
@@ -440,7 +440,7 @@ void DocumentModule::completionRequest(const QUrl &documentUrl, int line, int ch
 
 void DocumentModule::completionResponse(const QUrl &documentUrl, const QJsonArray &items) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
+        const auto *scintilla = luaPage->handler();
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -486,7 +486,7 @@ void DocumentModule::definitionRequest(const QUrl &documentUrl, const int line, 
 
 void DocumentModule::definitionResponse(const QUrl &documentUrl, const QJsonArray &definitions) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
+        const auto *scintilla = luaPage->handler();
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -641,7 +641,7 @@ void DocumentModule::implementationRequest(const QUrl &documentUrl, const int li
 
 void DocumentModule::implementationResponse(const QUrl &documentUrl, const QJsonArray &implementations) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
+        const auto *scintilla = luaPage->handler();
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -762,7 +762,7 @@ void DocumentModule::referencesRequest(const QUrl &documentUrl, int line, int ch
 
 void DocumentModule::referencesResponse(const QUrl &documentUrl, const QJsonArray &references) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
+        const auto *scintilla = luaPage->handler();
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -819,7 +819,7 @@ void DocumentModule::signatureHelpRequest(const QUrl &documentUrl, int line, int
 
 void DocumentModule::signatureHelpResponse(const QUrl &documentUrl, const QJsonArray &signatures) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
+        const auto *scintilla = luaPage->handler();
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];
@@ -856,7 +856,7 @@ void DocumentModule::typeDefinitionRequest(const QUrl &documentUrl, const int li
 
 void DocumentModule::typeDefinitionResponse(const QUrl &documentUrl, const QJsonArray &typeDefinitions) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash[documentUrl])) {
-        const auto *scintilla = static_cast<ScintillaWidget *>(luaPage->handler());
+        const auto *scintilla = luaPage->handler();
         const auto wordIndex = scintilla->wordIndexGet();
         const auto startLine = wordIndex["startLine"];
         const auto startCharacter = wordIndex["startCharacter"];

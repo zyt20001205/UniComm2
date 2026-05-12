@@ -11,30 +11,14 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
       m_codeWidget(new CodeWidget(documentConfig, documentUrl, this)),
       m_symbolWidget(new SymbolWidget(this)) {
-    setTitle(documentUrl.fileName());
-
     auto *widget = new QWidget(); // NOLINT
     setWidget(widget);
     auto *layout = new QVBoxLayout(widget); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-
     layout->addWidget(m_codeWidget);
     layout->addWidget(m_symbolWidget);
-}
 
-void LuaPage::propertySet(const QVariantHash &objects) {
-    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
-    m_codeWidget->propertySet(QVariantHash{
-    {"global", objects["global"]},
-    {"mainWindowToolTip", objects["mainWindowToolTip"]},
-    {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
-    {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]}
-});
-    m_symbolWidget->propertySet(QVariantHash{
-        {"global", objects["global"]},
-        {"mainWindowToolTip", objects["mainWindowToolTip"]}
-    });
     connect(m_codeWidget, &EditorWidget::appendLog, this, &LuaPage::appendLog);
     connect(m_codeWidget, &EditorWidget::changeSavepoint, this, &LuaPage::savepointChange);
     connect(m_codeWidget, &EditorWidget::changeSelection, this, &LuaPage::changeSelection);
@@ -60,6 +44,20 @@ void LuaPage::propertySet(const QVariantHash &objects) {
     connect(m_symbolWidget, &SymbolWidget::setFocus, handler(), &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, handler(), &ScintillaWidget::indexSet);
     connect(m_symbolWidget, &SymbolWidget::fillIndicator, handler(), &ScintillaWidget::indicatorFill);
+}
+
+void LuaPage::propertySet(const QVariantHash &objects) {
+    m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
+    m_codeWidget->propertySet(QVariantHash{
+        {"global", objects["global"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]},
+        {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
+        {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]}
+    });
+    m_symbolWidget->propertySet(QVariantHash{
+        {"global", objects["global"]},
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
+    });
 }
 
 void LuaPage::documentSave() {
