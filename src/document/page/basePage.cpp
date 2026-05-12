@@ -3,6 +3,7 @@
 #include <QDir>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 BasePage::BasePage(const QUrl &documentUrl)
@@ -29,7 +30,9 @@ QUrl BasePage::documentUrl() {
 void BasePage::permissionGet() {
     const QString documentPath = m_documentUrl.toLocalFile();
     const QFileInfo documentInfo(documentPath);
-    documentInfo.isWritable() ? setIcon(QIcon()) : setIcon(QIcon(":/icon/lockClosed.svg"));
+    documentInfo.isWritable() ? setIcon(QIcon()) :
+    g_global->themeGet() == Theme::Light ? setIcon(QIcon(":/icon/lockLight.svg")) :
+    setIcon(QIcon(":/icon/lockDark.svg"));
 }
 
 // protected
