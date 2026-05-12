@@ -681,6 +681,8 @@ void CodeWidget::markerInit() const {
 
 // private
 void CodeWidget::charAdd(const int ch) {
+    m_contentTimer->start();
+    m_dwellTimer->stop();
     selectionChange();
     const QChar character(ch);
     if (character.isLetter() || m_completionSet.contains(character)) {
@@ -694,7 +696,6 @@ void CodeWidget::charAdd(const int ch) {
         didChangeNotification();
         onTypeFormattingRequest();
     }
-    m_contentTimer->start();
 }
 
 // private: slot
