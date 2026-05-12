@@ -18,7 +18,6 @@ CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUr
       m_completionSet{'.', ':', '\'', '"', '[', '#', '*', '@', '|', '=', '-', '{', '+', '?'},
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'} {
-    themeLoad(g_mainConfig["theme"].toInt());
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
     m_scintillaWidget->viewport()->installEventFilter(this);
     // 500ms debounce for content change
@@ -29,11 +28,6 @@ CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUr
     m_dwellTimer->setSingleShot(true);
     m_dwellTimer->setInterval(1000);
     connect(m_dwellTimer, &QTimer::timeout, this, &CodeWidget::dwellChange);
-
-    QTimer::singleShot(0, [this] {
-        didOpenNotification();
-        contentChange();
-    });
 }
 
 void CodeWidget::propertySet(const QVariantHash &objects) {
@@ -41,6 +35,11 @@ void CodeWidget::propertySet(const QVariantHash &objects) {
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
     m_editorMenu = qvariant_cast<QObject *>(objects["documentModuleEditorMenu"]);
     EditorWidget::propertySet(objects);
+    themeLoad(g_mainConfig["theme"].toInt());
+    QTimer::singleShot(0, [this] {
+        didOpenNotification();
+        contentChange();
+    });
 }
 
 void CodeWidget::documentSave() {

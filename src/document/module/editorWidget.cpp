@@ -32,12 +32,6 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     layout->addWidget(m_scintillaWidget);
 
     documentOpen();
-    EditorWidget::shortcutInit();
-    miscInit();
-    EditorWidget::indicatorInit();
-    EditorWidget::marginInit();
-    EditorWidget::markerInit();
-    styleInit();
     connect(m_scintillaWidget, &ScintillaEdit::modifyAttemptReadOnly, this, &EditorWidget::permissionSet);
     connect(m_scintillaWidget, &ScintillaEdit::savePointChanged, this, &EditorWidget::changeSavepoint);
     connect(m_scintillaWidget, &ScintillaEdit::updateUi, this, [this](const Scintilla::Update updated) {
@@ -66,6 +60,12 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
         {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
+    shortcutInit();
+    miscInit();
+    indicatorInit();
+    marginInit();
+    markerInit();
+    styleInit();
 }
 
 void EditorWidget::documentSave() {

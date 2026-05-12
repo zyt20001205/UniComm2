@@ -1643,7 +1643,7 @@ Item {
         }
         onAboutToShow: {
             position = Overlay.overlay.mapFromGlobal(position)
-            x = position.x - 30
+            x = position.x - 6
             y = position.y
             documentModuleNavigationDetailToolTip.open()
             documentModuleNavigationDetailTimer.restart()
