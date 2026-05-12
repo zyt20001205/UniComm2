@@ -20,6 +20,7 @@ CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUr
       m_onTypeFormattingSet{'\n'} {
     themeLoad(g_mainConfig["theme"].toInt());
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
+    m_scintillaWidget->viewport()->installEventFilter(this);
     // 500ms debounce for content change
     m_contentTimer->setSingleShot(true);
     m_contentTimer->setInterval(500);

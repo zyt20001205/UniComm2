@@ -52,6 +52,7 @@ EditorWidget::EditorWidget(const QJsonObject &documentConfig, const QUrl &docume
     connect(m_searchWidget, &SearchWidget::nextSearch, this, &EditorWidget::searchNext);
     connect(m_searchWidget, &SearchWidget::replaceText, this, &EditorWidget::textReplace);
     connect(m_searchWidget, &SearchWidget::replaceAll, this, &EditorWidget::allReplace);
+    m_scintillaWidget->installEventFilter(this);
     // 100ms debounce for selection change
     m_selectionTimer->setSingleShot(true);
     m_selectionTimer->setInterval(100);
@@ -65,7 +66,6 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
         {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
-    m_scintillaWidget->installEventFilter(this);
 }
 
 void EditorWidget::documentSave() {
