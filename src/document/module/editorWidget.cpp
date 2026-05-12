@@ -337,8 +337,6 @@ void EditorWidget::documentOpen() {
     // history set
     m_scintillaWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
     m_scintillaWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
-    // logging
-    emit appendLog(LogLevel::Info, "document opened", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
 void EditorWidget::documentGoto() {

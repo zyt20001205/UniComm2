@@ -200,9 +200,7 @@ QVariantHash CodeWidget::menuGet(const QString &name) const {
             {"endLine", m_selection["endLine"]},
             {"endCharacter", m_selection["endCharacter"]},
             {"text", m_scintillaWidget->textGetSelected()},
-            {"navigation", navigable(m_scintillaWidget->currentPos())},
-            // TODO: assembly interaction
-            // {"assembly", m_assemblyWidget->isVisible()}
+            {"navigation", navigable(m_scintillaWidget->currentPos())}
         };
     }
     return menuSession;
@@ -476,8 +474,7 @@ void CodeWidget::selectionChange() {
     EditorWidget::selectionChange();
     if (m_scintillaWidget->selectionEmpty()) {
         documentHighlightRequest();
-        // TODO: symbol interaction
-        // m_symbolWidget->symbolLoad(m_symbol, m_selection["line"], m_selection["character"]);
+        emit showDocumentSymbol(m_selection["line"], m_selection["character"]);
     }
 }
 

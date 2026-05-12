@@ -10,7 +10,6 @@ BasePage::BasePage(const QUrl &documentUrl)
       m_documentUrl(documentUrl) {
     setTitle(documentUrl.fileName());
     BasePage::permissionGet();
-    emit appendLog(LogLevel::Info, "document opened", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
 void BasePage::pathDisambiguation() {
@@ -39,8 +38,8 @@ void BasePage::closeEvent(QCloseEvent *event) {
         event->ignore();
         return;
     }
+    emit closeDocument(m_documentUrl);
     deleteLater();
-    emit appendLog(LogLevel::Info, "document closed", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
     event->accept();
 }
 

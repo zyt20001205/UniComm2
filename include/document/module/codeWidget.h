@@ -85,6 +85,8 @@ signals:
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
 
+    void showDocumentSymbol(int line, int character);
+
 protected:
     void shortcutInit() override;
 

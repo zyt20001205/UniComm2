@@ -40,6 +40,7 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     connect(m_codeWidget, &CodeWidget::requestSpellCheck, this, &LuaPage::requestSpellCheck);
     connect(m_codeWidget, &CodeWidget::requestTypeDefinition, this, &LuaPage::requestTypeDefinition);
     connect(m_codeWidget, &CodeWidget::showDiagnostic, this, &LuaPage::showDiagnostic);
+    connect(m_codeWidget, &CodeWidget::showDocumentSymbol, this, [this](const int line, const int character){m_symbolWidget->documentSymbolShow(m_symbol, line, character); });
     connect(m_symbolWidget, &SymbolWidget::appendLog, this, &LuaPage::appendLog);
     connect(m_symbolWidget, &SymbolWidget::setFocus, handler(), &ScintillaWidget::focusSet);
     connect(m_symbolWidget, &SymbolWidget::setIndex, handler(), &ScintillaWidget::indexSet);

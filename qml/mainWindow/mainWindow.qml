@@ -1806,9 +1806,14 @@ Item {
     ToolTip {
         id: documentModulePositionTooltip
         parent: Overlay.overlay
-        x: position.x + 10; y: position.y + 10
         closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnReleaseOutside
         property point position
+
+        onPositionChanged: {
+            let p = Overlay.overlay.mapFromGlobal(position)
+            x = p.x + 10
+            y = p.y + 10
+        }
 
         Behavior on x {
             enabled: documentModulePositionTooltip.visible

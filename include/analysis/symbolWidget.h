@@ -11,7 +11,7 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    void symbolLoad(const QJsonArray &result, int line, int character);
+    void documentSymbolShow(const QJsonArray &result, int line, int character);
 
     Q_INVOKABLE void indicatorFill(const QVariantHash &position);
 

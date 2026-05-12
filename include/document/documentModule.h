@@ -39,19 +39,19 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
-    Q_INVOKABLE void documentSave(const QUrl &documentUrl);
+    Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
 
-    void permissionSet(const QUrl &documentUrl);
+    void permissionSet(const QUrl &documentUrl) const;
 
     Q_INVOKABLE [[nodiscard]] QVariantHash menuGet(const QString &name);
 
-    Q_INVOKABLE void menuRequest(const QString &request);
+    Q_INVOKABLE void menuRequest(const QString &request) const;
 
     Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &documentUrl) const;
 
     Q_INVOKABLE void eolModeSet(const QUrl &documentUrl, int eolMode) const;
 
-    Q_INVOKABLE [[nodiscard]] bool eolViewGet(const QUrl &documentUrl);
+    Q_INVOKABLE [[nodiscard]] bool eolViewGet(const QUrl &documentUrl) const;
 
     Q_INVOKABLE void eolViewSet(const QUrl &documentUrl, bool status) const;
 
@@ -73,15 +73,15 @@ public:
 
     void indexGet() const;
 
-    [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    [[nodiscard]] QString textGet(const QUrl &documentUrl, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
     void indicatorFill(const QUrl &documentUrl, int type, int startLine, int startCharacter, int endLine, int endCharacter, int time = -1);
 
-    void indicatorClear(const QUrl &documentUrl, int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    void indicatorClear(const QUrl &documentUrl, int type, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1) const;
 
     void markerAdd(const QUrl &documentUrl, int type, int line, int time = -1);
 
-    void markerDelete(const QUrl &documentUrl, int type, int line = -1);
+    void markerDelete(const QUrl &documentUrl, int type, int line = -1) const;
 
     void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
