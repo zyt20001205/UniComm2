@@ -19,6 +19,9 @@ CodeWidget::CodeWidget(const QJsonObject &documentConfig, const QUrl &documentUr
       m_signatureHelpSet{'(', ','},
       m_onTypeFormattingSet{'\n'} {
     connect(m_scintillaWidget, &ScintillaEdit::charAdded, this, &CodeWidget::charAdd);
+    connect(m_scintillaWidget, &ScintillaEdit::modified, this, [this](const Scintilla::ModificationFlags type) {
+        if (static_cast<int>(type) & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT | SC_PERFORMED_UNDO | SC_PERFORMED_REDO)) m_contentTimer->start();
+    });
     m_scintillaWidget->viewport()->installEventFilter(this);
     // 500ms debounce for content change
     m_contentTimer->setSingleShot(true);
@@ -601,12 +604,12 @@ void CodeWidget::indicatorInit() const {
 
 void CodeWidget::marginInit() const {
     m_scintillaWidget->marginDefine(
-                0,
-                QVariantHash{
-                    {"type", SC_MARGIN_NUMBER},
-                    {"width", 32},
-                    {"back", ScintillaWidget::colorGet(g_global->backGet())}
-                });
+        0,
+        QVariantHash{
+            {"type", SC_MARGIN_NUMBER},
+            {"width", 32},
+            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+        });
     m_scintillaWidget->marginDefine(
         1,
         QVariantHash{
@@ -638,12 +641,12 @@ void CodeWidget::marginInit() const {
 void CodeWidget::markerInit() const {
     EditorWidget::markerInit();
     m_scintillaWidget->markerDefine(
-                ScintillaMarker::Region,
-                QVariantHash{
-                    {"symbol", 2},
-                    {"fore", ScintillaWidget::colorGet(g_global->successFore2Get())},
-                    {"back", ScintillaWidget::colorGet(g_global->successBack2Get())}
-                });
+        ScintillaMarker::Region,
+        QVariantHash{
+            {"symbol", 2},
+            {"fore", ScintillaWidget::colorGet(g_global->successFore2Get())},
+            {"back", ScintillaWidget::colorGet(g_global->successBack2Get())}
+        });
     m_scintillaWidget->markerDefine(
         ScintillaMarker::BreakpointEnabled,
         QVariantHash{
