@@ -144,7 +144,6 @@ bool EditorWidget::symbolPair(const QChar ch) {
                 m_scintillaWidget->textSet("", line, character - 1, line, character + 1);
                 return true;
             }
-            return false;
         }
         return false;
     }
@@ -153,10 +152,11 @@ bool EditorWidget::symbolPair(const QChar ch) {
         m_scintillaWidget->textSetSelected(QString(ch) + m_pair[ch]);
         const auto position = m_scintillaWidget->positionGet();
         m_scintillaWidget->positionSet(position - 1);
-        return true;
     }
     // handle surround
-    m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
+    else {
+        m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
+    }
     return true;
 }
 
