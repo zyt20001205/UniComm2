@@ -35,7 +35,7 @@ protected:
 
     virtual void selectionChange();
 
-    virtual void symbolPair(QChar ch);
+    virtual bool symbolPair(QChar ch);
 
     void miscInit() const;
 

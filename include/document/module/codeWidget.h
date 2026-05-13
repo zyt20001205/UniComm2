@@ -92,7 +92,7 @@ protected:
 
     void selectionChange() override;
 
-    void symbolPair(QChar ch) override;
+    bool symbolPair(QChar ch) override;
 
     void indicatorInit() const override;
 

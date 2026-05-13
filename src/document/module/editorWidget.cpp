@@ -88,27 +88,21 @@ bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
             case Qt::Key_QuoteDbl:
-                symbolPair('"');
-                return true;
+                return symbolPair('"');
             case Qt::Key_Apostrophe:
-                symbolPair('\'');
-                return true;
+                return symbolPair('\'');
             case Qt::Key_ParenLeft:
-                symbolPair('(');
-                return true;
+                return symbolPair('(');
             case Qt::Key_BracketLeft:
-                symbolPair('[');
-                return true;
+                return symbolPair('[');
             case Qt::Key_BraceLeft:
-                symbolPair('{');
-                return true;
+                return symbolPair('{');
             case Qt::Key_Escape:
                 if (m_searchWidget->isVisible()) m_searchWidget->hide();
                 return false;
             case Qt::Key_Backspace:
                 if (m_scintillaWidget->selectionEmpty() && !m_scintillaWidget->atLineEnd()) {
-                    symbolPair('\b');
-                    return true;
+                    return symbolPair('\b');
                 }
                 return false;
             default: return false;
@@ -138,7 +132,7 @@ void EditorWidget::selectionChange() {
     emit changeSelection(m_selection);
 }
 
-void EditorWidget::symbolPair(const QChar ch) {
+bool EditorWidget::symbolPair(const QChar ch) {
     // handle backspace
     if (ch == '\b') {
         const auto line = m_selection["line"];
@@ -148,19 +142,22 @@ void EditorWidget::symbolPair(const QChar ch) {
             const auto nextChar = m_scintillaWidget->textGet(line, character, line, character + 1);
             if (m_pair.contains(prevChar) && !nextChar.isEmpty() && m_pair[prevChar] == nextChar) {
                 m_scintillaWidget->textSet("", line, character - 1, line, character + 1);
+                return true;
             }
+            return false;
         }
+        return false;
     }
     // handle pair
-    else if (m_scintillaWidget->selectionEmpty()) {
+    if (m_scintillaWidget->selectionEmpty()) {
         m_scintillaWidget->textSetSelected(QString(ch) + m_pair[ch]);
         const auto position = m_scintillaWidget->positionGet();
         m_scintillaWidget->positionSet(position - 1);
+        return true;
     }
     // handle surround
-    else {
-        m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
-    }
+    m_scintillaWidget->textSetSelected(ch + m_scintillaWidget->textGetSelected() + m_pair[ch]);
+    return true;
 }
 
 void EditorWidget::miscInit() const {

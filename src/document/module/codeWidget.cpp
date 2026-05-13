@@ -478,9 +478,9 @@ void CodeWidget::selectionChange() {
     }
 }
 
-void CodeWidget::symbolPair(const QChar ch) {
-    EditorWidget::symbolPair(ch);
+bool CodeWidget::symbolPair(const QChar ch) {
     charAdd(ch.toLatin1());
+    return EditorWidget::symbolPair(ch);
 }
 
 void CodeWidget::indicatorInit() const {
