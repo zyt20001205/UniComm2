@@ -71,7 +71,7 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
 
 void DocumentModule::documentConfigSave() {
     // save config
-    auto documentList = QJsonArray();
+    QJsonArray documentList{};
     for (const auto &url: m_pageHash.keys()) {
         documentSave(url);
         documentList.append(url.toString());
@@ -185,6 +185,14 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     }
     m_pageHash[documentUrl]->raise();
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
+}
+
+QString DocumentModule::documentList() const {
+    QJsonArray documentList{};
+    for (const auto &url: m_pageHash.keys()) {
+        documentList.append(url.toString());
+    }
+    return QString::fromUtf8(QJsonDocument(documentList).toJson(QJsonDocument::Compact));
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) const {

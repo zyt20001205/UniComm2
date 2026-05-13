@@ -34,6 +34,7 @@ Item {
 
             ColumnLayout {
                 id: chatColumn
+                width: chatView.availableWidth
             }
         }
 

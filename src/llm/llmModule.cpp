@@ -8,6 +8,9 @@
 #include <QQuickItem>
 #include <QQuickWidget>
 
+#include "globals.h"
+#include "document/documentModule.h"
+
 // public
 LLMModule::LLMModule()
     : DockWidget("LLM"),
@@ -16,6 +19,24 @@ LLMModule::LLMModule()
           QJsonObject{
               {"role", "system"},
               {"content", "You are a helpful assistant. Reply in plain text without any formatting."}
+          }
+      },
+      m_tools{
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "documentList"},
+                      {"description", "Get the list of files that are currently open in the editor."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
+                          }
+                      }
+                  }
+              }
           }
       } {
     setWidget(m_widget);
@@ -40,7 +61,7 @@ void LLMModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
 }
 
-void LLMModule::requestSend() {
+void LLMModule::requestSend(const QString &text) {
     QNetworkRequest request{};
     request.setUrl(QUrl("https://api.deepseek.com/v1/chat/completions"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -48,12 +69,13 @@ void LLMModule::requestSend() {
 
     m_messages.append(QJsonObject{
         {"role", "user"},
-        {"content", m_textArea->property("text").toString()}
+        {"content", text.isEmpty() ? m_textArea->property("text").toString() : text}
     });
 
     QJsonObject body{};
     body["model"] = "deepseek-chat";
     body["messages"] = m_messages;
+    body["tools"] = m_tools;
 
     auto *reply = m_manager->post(request, QJsonDocument(body).toJson());
 
@@ -62,12 +84,25 @@ void LLMModule::requestSend() {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             if (doc.isNull()) return;
-            const auto content = doc.object()
+            const auto message = doc.object()
                     .value("choices").toArray()
                     .at(0).toObject()
-                    .value("message").toObject()
-                    .value("content").toString();
-            QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, content), Q_ARG(QVariant, "output"));
+                    .value("message").toObject();
+            if (message.contains("tool_calls")) {
+                const auto toolCalls = message.value("tool_calls").toArray();
+                for (const auto &value : toolCalls) {
+                    const auto toolCall = value.toObject();
+                    const auto function = toolCall.value("function").toObject();
+                    const auto arguments = function.value("arguments").toString();
+                    const auto name = function.value("name").toString();
+                    if (name == "documentList") {
+                        requestSend(g_document->documentList());
+                    }
+                }
+            } else {
+                const auto content = message.value("content").toString();
+                QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, content), Q_ARG(QVariant, "output"));
+            }
         } else {
             qDebug() << reply->errorString();
             qDebug() << reply->readAll();

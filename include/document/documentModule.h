@@ -39,6 +39,8 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
+    [[nodiscard]] QString documentList() const;
+
     Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
 
     void permissionSet(const QUrl &documentUrl) const;

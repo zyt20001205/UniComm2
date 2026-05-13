@@ -19,7 +19,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void requestSend();
+    Q_INVOKABLE void requestSend(const QString &text = QString{});
 
 private:
     QQuickWidget *m_widget{};
@@ -27,6 +27,7 @@ private:
     QObject *m_textArea{};
     QNetworkAccessManager *m_manager{};
     QJsonArray m_messages{};
+    QJsonArray m_tools{};
 };
 
 #endif //UNICOMM_LLMMODULE_H
