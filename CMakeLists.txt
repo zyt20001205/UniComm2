@@ -81,6 +81,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/page/luaPage.h
         include/document/page/textPage.h
         include/document/page/welcomePage.h
+        include/llm/llmModule.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
@@ -162,6 +163,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/page/luaPage.cpp
         src/document/page/textPage.cpp
         src/document/page/welcomePage.cpp
+        src/llm/llmModule.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp
@@ -212,6 +214,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/document/module/imageWidget.qml"
         "qml/document/module/searchWidget.qml"
         "qml/document/page/welcomePage.qml"
+        "qml/llm/llmModule.qml"
         "qml/mainWindow/mainWindow.qml"
         "qml/mainWindow/menuModule.qml"
         "qml/mainWindow/statusModule.qml"

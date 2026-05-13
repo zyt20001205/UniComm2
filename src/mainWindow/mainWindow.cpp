@@ -35,6 +35,7 @@
 #include "debug/debugModule.h"
 #include "debug/watchModule.h"
 #include "document/documentModule.h"
+#include "llm/llmModule.h"
 #include "mainWindow/menuModule.h"
 #include "mainWindow/statusModule.h"
 #include "port/portModule.h"
@@ -114,6 +115,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("watchModuleAction", QVariant::fromValue(m_watchModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("logModuleAction", QVariant::fromValue(m_logModule->toggleAction()));
     m_overlay->rootContext()->setContextProperty("gitModuleAction", QVariant::fromValue(m_gitModule->toggleAction()));
+    m_overlay->rootContext()->setContextProperty("llmModuleAction", QVariant::fromValue(m_llmModule->toggleAction()));
 }
 
 void MainWindow::propertyGet(const QVariantMap &objects) {
@@ -207,6 +209,11 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     };
     m_gitModule->propertySet(gitObjects);
 
+    const QVariantHash llmObjects = {
+        {"global", QVariant::fromValue(m_globalManager)}
+    };
+    m_llmModule->propertySet(llmObjects);
+    
     const QVariantHash logObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
@@ -421,6 +428,7 @@ void MainWindow::moduleInit() {
     m_explorerModule = new ExplorerModule();
     m_fileModule = new FileModule();
     m_gitModule = new GitModule();
+    m_llmModule = new LLMModule();
     m_logModule = new LogModule();
     m_menuModule = new MenuModule(this);
     m_nuspellModule = new NuspellModule(this);

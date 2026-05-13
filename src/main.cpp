@@ -1,9 +1,9 @@
 #include "mainWindow/mainWindow.h"
 
 #include <core/crashHandler.h>
+#include <kddockwidgets/Config.h>
 #include <QQuickStyle>
 #include <QStyleFactory>
-#include <kddockwidgets/Config.h>
 
 #include "core/configManager.h"
 

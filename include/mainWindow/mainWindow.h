@@ -20,6 +20,7 @@ class DiagnosticsModule;
 class ExplorerModule;
 class FileModule;
 class GitModule;
+class LLMModule;
 class LogModule;
 class MenuModule;
 class NuspellModule;
@@ -99,6 +100,7 @@ private:
     ExplorerModule *m_explorerModule{};
     FileModule *m_fileModule{};
     GitModule *m_gitModule{};
+    LLMModule *m_llmModule{};
     LogModule *m_logModule{};
     MenuModule *m_menuModule{};
     NuspellModule *m_nuspellModule{};

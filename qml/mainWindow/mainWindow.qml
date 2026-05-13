@@ -3108,6 +3108,17 @@ Item {
 
             onClicked: terminalModule.powershellOpen()
         }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("LLM")
+            checkable: true
+            checked: llmModuleAction ? llmModuleAction.checked : false
+
+            onTriggered: llmModuleAction.toggle()
+        }
     }
 
     Menu {

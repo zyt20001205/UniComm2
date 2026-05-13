@@ -36,8 +36,7 @@ void LogModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("logModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
-    m_widget->rootContext()->setContextProperty("heightDialog",
-                                                qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
+    m_widget->rootContext()->setContextProperty("heightDialog", qvariant_cast<QObject *>(objects["logModuleHeightDialog"]));
     m_widget->rootContext()->setContextProperty("linkMenu", qvariant_cast<QObject *>(objects["logModuleLinkMenu"]));
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
