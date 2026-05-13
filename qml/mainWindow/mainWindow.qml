@@ -225,6 +225,7 @@ Item {
             mainWindowTextView.data = ""
         }
         onAboutToShow: {
+            position = Overlay.overlay.mapFromGlobal(position)
             x = position.x + 10
             y = position.y + 10
         }
