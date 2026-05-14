@@ -1,7 +1,6 @@
 #include "llm/llmModule.h"
 
 #include <QJsonArray>
-#include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QQmlContext>
@@ -10,6 +9,7 @@
 
 #include "globals.h"
 #include "document/documentModule.h"
+#include "llm/llmTools.h"
 
 // public
 LLMModule::LLMModule()
@@ -21,24 +21,7 @@ LLMModule::LLMModule()
               {"content", "You are a helpful assistant. Reply in plain text without any formatting."}
           }
       },
-      m_tools{
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "documentList"},
-                      {"description", "Get the list of files that are currently open in the editor."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          }
-      } {
+      m_tools{new LLMTools(this)} {
     setWidget(m_widget);
     m_manager = new QNetworkAccessManager(qApp); // NOLINT
 }
@@ -75,7 +58,7 @@ void LLMModule::requestSend(const QString &text) {
     QJsonObject body{};
     body["model"] = "deepseek-chat";
     body["messages"] = m_messages;
-    body["tools"] = m_tools;
+    body["tools"] = m_tools->toolsGet();
 
     auto *reply = m_manager->post(request, QJsonDocument(body).toJson());
 
@@ -95,9 +78,7 @@ void LLMModule::requestSend(const QString &text) {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
-                    if (name == "documentList") {
-                        requestSend(g_document->documentList());
-                    }
+                    requestSend(m_tools->toolsSet(name));
                 }
             } else {
                 const auto content = message.value("content").toString();

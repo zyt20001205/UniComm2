@@ -187,12 +187,12 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
-QString DocumentModule::documentList() const {
-    QJsonArray documentList{};
+QSet<QString> DocumentModule::documentList() const {
+    QSet<QString> keys{};
     for (const auto &url: m_pageHash.keys()) {
-        documentList.append(url.toString());
+        keys.insert(url.toString());
     }
-    return QString::fromUtf8(QJsonDocument(documentList).toJson(QJsonDocument::Compact));
+    return keys;
 }
 
 void DocumentModule::documentSave(const QUrl &documentUrl) const {

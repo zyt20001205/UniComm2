@@ -82,6 +82,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/page/textPage.h
         include/document/page/welcomePage.h
         include/llm/llmModule.h
+        include/llm/llmTools.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
@@ -164,6 +165,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/page/textPage.cpp
         src/document/page/welcomePage.cpp
         src/llm/llmModule.cpp
+        src/llm/llmTools.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp

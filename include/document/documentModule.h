@@ -39,7 +39,7 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
-    [[nodiscard]] QString documentList() const;
+    [[nodiscard]] QSet<QString> documentList() const;
 
     Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
 

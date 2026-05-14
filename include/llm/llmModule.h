@@ -7,6 +7,8 @@
 class QNetworkAccessManager;
 class QQuickWidget;
 
+class LLMTools;
+
 class LLMModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
@@ -27,7 +29,7 @@ private:
     QObject *m_textArea{};
     QNetworkAccessManager *m_manager{};
     QJsonArray m_messages{};
-    QJsonArray m_tools{};
+    LLMTools *m_tools{};
 };
 
 #endif //UNICOMM_LLMMODULE_H
