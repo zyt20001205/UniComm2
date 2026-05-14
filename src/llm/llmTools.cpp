@@ -12,8 +12,8 @@ LLMTools::LLMTools(QObject* parent)
               {"type", "function"},
               {
                   "function", QJsonObject{
-                      {"name", "documentList"},
-                      {"description", "Get the list of files that are currently open in the editor."},
+                      {"name", "document_list"},
+                      {"description", "Get the list of documents that are currently open in the editor."},
                       {
                           "parameters", QJsonObject{
                               {"type", "object"},
@@ -24,12 +24,29 @@ LLMTools::LLMTools(QObject* parent)
                   }
               }
           },
+          // documentFocused
+          QJsonObject{
+                  {"type", "function"},
+                  {
+                      "function", QJsonObject{
+                          {"name", "document_focused"},
+                          {"description", "Get the currently focused document in the editor."},
+                          {
+                              "parameters", QJsonObject{
+                                  {"type", "object"},
+                                  {"properties", QJsonObject{}},
+                                  {"required", QJsonArray{}}
+                              }
+                          }
+                      }
+                  }
+          },
           // textGet
           QJsonObject{
               {"type", "function"},
               {
                   "function", QJsonObject{
-                      {"name", "textGet"},
+                      {"name", "text_get"},
                       {"description", "Get the text content of a specified range in a file."},
                       {
                           "parameters", QJsonObject{
@@ -100,7 +117,7 @@ LLMTools::LLMTools(QObject* parent)
 QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
     // qDebug() << "name" << name;
     // qDebug() << "arguments" << arguments;
-    if (name == "documentList") {
+    if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
         for (const auto& key : keys) {
@@ -108,7 +125,10 @@ QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
-    if (name == "textGet") {
+    if (name == "document_focused") {
+        return g_document->documentFocused();
+    }
+    if (name == "text_get") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());

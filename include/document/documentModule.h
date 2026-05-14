@@ -41,6 +41,8 @@ public:
 
     [[nodiscard]] QSet<QString> documentList() const;
 
+    [[nodiscard]] QString documentFocused() const;
+
     Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
 
     void permissionSet(const QUrl &documentUrl) const;

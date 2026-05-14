@@ -19,6 +19,7 @@ Item {
         ScrollView {
             id: chatView
             Layout.fillWidth: true; Layout.fillHeight: true
+            rightPadding: 14
 
             ScrollBar.vertical: ScrollBar {
                 x: parent.mirrored ? 0 : parent.width - width
@@ -47,7 +48,7 @@ Item {
                 text: parent.text
                 textFormat: TextEdit.MarkdownText
                 wrapMode: Text.Wrap
-                Layout.preferredWidth: Math.min(chatView.width, chatMetrics.width + 20)
+                Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 20)
                 Layout.alignment: level === "input" ? Qt.AlignRight : Qt.AlignLeft
                 property string level
 
@@ -118,6 +119,10 @@ Item {
         const chatLabel = chatComponent.createObject(chatColumn, {
             "text": text,
             "level": level
+        })
+
+        Qt.callLater(function() {
+            chatView.ScrollBar.vertical.position = 1.0 - chatView.ScrollBar.vertical.size
         })
     }
 

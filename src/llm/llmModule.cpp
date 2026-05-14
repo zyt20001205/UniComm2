@@ -44,16 +44,18 @@ void LLMModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
 }
 
-void LLMModule::requestSend(const QString &text) {
+void LLMModule::requestSend() {
     QNetworkRequest request{};
     request.setUrl(QUrl("https://api.deepseek.com/v1/chat/completions"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader("Authorization", "Bearer sk-");
 
-    m_messages.append(QJsonObject{
-        {"role", "user"},
-        {"content", text.isEmpty() ? m_textArea->property("text").toString() : text}
-    });
+    const auto text = m_textArea->property("text").toString();
+    if (!text.isEmpty()) {
+        m_messages.append(QJsonObject{
+            {"role", "user"},
+            {"content", text}
+        });
+    }
 
     QJsonObject body{};
     body["model"] = "deepseek-chat";
@@ -71,16 +73,23 @@ void LLMModule::requestSend(const QString &text) {
                     .value("choices").toArray()
                     .at(0).toObject()
                     .value("message").toObject();
+            m_messages.append(message);
             if (message.contains("tool_calls")) {
                 const auto toolCalls = message.value("tool_calls").toArray();
                 for (const auto &value : toolCalls) {
                     const auto toolCall = value.toObject();
+                    const auto id = toolCall.value("id").toString();
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
                     QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, name), Q_ARG(QVariant, "tool"));
-                    requestSend(m_tools->toolsSet(name, arguments));
+                    m_messages.append(QJsonObject{
+                        {"role", "tool"},
+                        {"tool_call_id", id},
+                        {"content", m_tools->toolsSet(name, arguments)}
+                    });
                 }
+                requestSend();
             } else {
                 const auto content = message.value("content").toString();
                 QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, content), Q_ARG(QVariant, "output"));

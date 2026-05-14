@@ -195,6 +195,10 @@ QSet<QString> DocumentModule::documentList() const {
     return keys;
 }
 
+QString DocumentModule::documentFocused() const {
+    return m_focusedUrl.toString();
+}
+
 void DocumentModule::documentSave(const QUrl &documentUrl) const {
     if (m_pageHash.contains(documentUrl)) m_pageHash.value(documentUrl)->documentSave();
 }

@@ -21,7 +21,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void requestSend(const QString &text = QString{});
+    Q_INVOKABLE void requestSend();
 
 private:
     QQuickWidget *m_widget{};
