@@ -316,6 +316,13 @@ QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, co
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
 }
 
+void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
+    if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) {
+        luaPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    }
+}
+
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
                                    const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
@@ -897,13 +904,6 @@ void DocumentModule::documentClose(const QUrl &documentUrl) {
 void DocumentModule::charAdd(const QUrl &documentUrl, const QChar character) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) {
         emit luaPage->handler()->charAdded(character.toLatin1());
-    }
-}
-
-void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
-    if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) {
-        luaPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
     }
 }
 
