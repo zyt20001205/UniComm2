@@ -4,7 +4,7 @@
 #include "document/documentModule.h"
 
 // public
-LLMTools::LLMTools(QObject* parent)
+LLMTools::LLMTools(QObject *parent)
     : QObject(parent),
       m_tools{
           // documentList
@@ -26,20 +26,20 @@ LLMTools::LLMTools(QObject* parent)
           },
           // documentFocused
           QJsonObject{
-                  {"type", "function"},
-                  {
-                      "function", QJsonObject{
-                          {"name", "document_focused"},
-                          {"description", "Get the currently focused document in the editor."},
-                          {
-                              "parameters", QJsonObject{
-                                  {"type", "object"},
-                                  {"properties", QJsonObject{}},
-                                  {"required", QJsonArray{}}
-                              }
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "document_focused"},
+                      {"description", "Get the currently focused document in the editor."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
                           }
                       }
                   }
+              }
           },
           // textGet
           QJsonObject{
@@ -47,7 +47,10 @@ LLMTools::LLMTools(QObject* parent)
               {
                   "function", QJsonObject{
                       {"name", "text_get"},
-                      {"description", "Get the text content of a specified range in a file. To read the entire document, set all four line and character positional parameters to -1."},
+                      {
+                          "description",
+                          "Get the text content of a specified range in a file. To read the entire document, set all four line and character positional parameters to -1."
+                      },
                       {
                           "parameters", QJsonObject{
                               {"type", "object"},
@@ -117,7 +120,10 @@ LLMTools::LLMTools(QObject* parent)
               {
                   "function", QJsonObject{
                       {"name", "text_set"},
-                      {"description", "Set the text for a specified range in a document. To overwrite the entire document, set all four line and character positional parameters to -1."},
+                      {
+                          "description",
+                          "Set the text for a specified range in a document. To overwrite the entire document, set all four line and character positional parameters to -1."
+                      },
                       {
                           "parameters", QJsonObject{
                               {"type", "object"},
@@ -182,7 +188,10 @@ LLMTools::LLMTools(QObject* parent)
               {
                   "function", QJsonObject{
                       {"name", "thread_start"},
-                      {"description", "Start a new thread to execute a script or a specific block of code in a document. To execute the entire document, set all four line and character positional parameters to -1."},
+                      {
+                          "description",
+                          "Start a new thread to execute a script or a specific block of code in a document. To execute the entire document, set all four line and character positional parameters to -1."
+                      },
                       {
                           "parameters", QJsonObject{
                               {"type", "object"},
@@ -244,13 +253,13 @@ LLMTools::LLMTools(QObject* parent)
       } {
 }
 
-QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
+QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
     // qDebug() << "name" << name;
     // qDebug() << "arguments" << arguments;
     if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
-        for (const auto& key : keys) {
+        for (const auto &key: keys) {
             array.append(key);
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
@@ -263,9 +272,9 @@ QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter  = object.value("start_character").toInt(-1);
-        const auto endLine  = object.value("end_line").toInt(-1);
-        const auto endCharacter  = object.value("end_character").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
         return g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
     }
     if (name == "text_set") {
@@ -274,9 +283,9 @@ QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto text = object.value("text").toString();
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter  = object.value("start_character").toInt(-1);
-        const auto endLine  = object.value("end_line").toInt(-1);
-        const auto endCharacter  = object.value("end_character").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
         g_document->textSet(documentUrl, text, startLine, startCharacter, endLine, endCharacter);
         return {"\"Text set finished.\"}"};
     }
@@ -286,9 +295,9 @@ QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto mode = object.value("mode").toInt(InterpreterMode::Run);
         const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter  = object.value("start_character").toInt(-1);
-        const auto endLine  = object.value("end_line").toInt(-1);
-        const auto endCharacter  = object.value("end_character").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
         emit g_document->startThread(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
         return {"\"Thread start finished.\"}"};
     }

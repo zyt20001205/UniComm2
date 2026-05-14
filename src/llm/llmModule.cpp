@@ -76,7 +76,7 @@ void LLMModule::requestSend() {
             m_messages.append(message);
             if (message.contains("tool_calls")) {
                 const auto toolCalls = message.value("tool_calls").toArray();
-                for (const auto &value : toolCalls) {
+                for (const auto &value: toolCalls) {
                     const auto toolCall = value.toObject();
                     const auto id = toolCall.value("id").toString();
                     const auto function = toolCall.value("function").toObject();
