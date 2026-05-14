@@ -4,9 +4,10 @@
 #include "document/documentModule.h"
 
 // public
-LLMTools::LLMTools(QObject *parent)
+LLMTools::LLMTools(QObject* parent)
     : QObject(parent),
       m_tools{
+          // documentList
           QJsonObject{
               {"type", "function"},
               {
@@ -22,18 +23,92 @@ LLMTools::LLMTools(QObject *parent)
                       }
                   }
               }
+          },
+          // textGet
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "textGet"},
+                      {"description", "Get the text content of a specified range in a file."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "document_url", QJsonObject{
+                                              {"type", "string"},
+                                              {"description", "The URL / file path of the document."}
+                                          }
+                                      },
+                                      {
+                                          "start_line", QJsonObject{
+                                              {"type", "integer"},
+                                              {
+                                                  "description",
+                                                  "The starting line number (0-based). Pass -1 to start from the beginning of the file."
+                                              }
+                                          }
+                                      },
+                                      {
+                                          "start_character", QJsonObject{
+                                              {"type", "integer"},
+                                              {
+                                                  "description",
+                                                  "The starting character offset within the start line (0-based). Pass -1 to start from the first character."
+                                              }
+                                          }
+                                      },
+                                      {
+                                          "end_line", QJsonObject{
+                                              {"type", "integer"},
+                                              {
+                                                  "description",
+                                                  "The ending line number (0-based, inclusive). Pass -1 to read until the end of the file."
+                                              }
+                                          }
+                                      },
+                                      {
+                                          "end_character", QJsonObject{
+                                              {"type", "integer"},
+                                              {
+                                                  "description",
+                                                  "The ending character offset within the end line. Pass -1 to read until the end of the line."
+                                              }
+                                          }
+                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{
+                                      "document_url",
+                                      "start_line",
+                                      "start_character",
+                                      "end_line",
+                                      "end_character"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
           }
       } {
 }
 
-QString LLMTools::toolsSet(const QString& name) {
+QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
+    qDebug() << "name" << name;
+    qDebug() << "arguments" << arguments;
     if (name == "documentList") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
-        for (const auto &key : keys) {
+        for (const auto& key : keys) {
             array.append(key);
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "textGet") {
     }
     return {};
 }

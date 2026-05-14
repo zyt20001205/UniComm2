@@ -45,7 +45,7 @@ Item {
                 id: chatLabel
                 padding: 6
                 text: parent.text
-                textFormat: TextEdit.AutoText
+                textFormat: TextEdit.MarkdownText
                 wrapMode: Text.Wrap
                 Layout.preferredWidth: Math.min(chatView.width, chatMetrics.width + 20)
                 Layout.alignment: level === "input" ? Qt.AlignRight : Qt.AlignLeft

@@ -15,7 +15,7 @@ public:
           return m_tools;
      }
 
-     [[nodiscard]] QString toolsSet(const QString &name);
+     [[nodiscard]] QString toolsSet(const QString &name, const QString &arguments);
 
 private:
      QJsonArray m_tools{};

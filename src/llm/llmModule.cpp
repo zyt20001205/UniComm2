@@ -78,7 +78,7 @@ void LLMModule::requestSend(const QString &text) {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
-                    requestSend(m_tools->toolsSet(name));
+                    requestSend(m_tools->toolsSet(name, arguments));
                 }
             } else {
                 const auto content = message.value("content").toString();
