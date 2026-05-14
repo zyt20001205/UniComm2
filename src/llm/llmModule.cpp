@@ -48,7 +48,7 @@ void LLMModule::requestSend(const QString &text) {
     QNetworkRequest request{};
     request.setUrl(QUrl("https://api.deepseek.com/v1/chat/completions"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader("Authorization", "Bearer sk-57834ede00984053bd6537822bca7960");
+    request.setRawHeader("Authorization", "Bearer sk-");
 
     m_messages.append(QJsonObject{
         {"role", "user"},
@@ -63,10 +63,10 @@ void LLMModule::requestSend(const QString &text) {
     auto *reply = m_manager->post(request, QJsonDocument(body).toJson());
 
     connect(reply, &QNetworkReply::finished, [this, reply] {
+        const auto data = reply->readAll();
+        const auto doc = QJsonDocument::fromJson(data);
+        if (doc.isNull()) return;
         if (reply->error() == QNetworkReply::NoError) {
-            const auto data = reply->readAll();
-            const auto doc = QJsonDocument::fromJson(data);
-            if (doc.isNull()) return;
             const auto message = doc.object()
                     .value("choices").toArray()
                     .at(0).toObject()
@@ -78,6 +78,7 @@ void LLMModule::requestSend(const QString &text) {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
+                    QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, name), Q_ARG(QVariant, "tool"));
                     requestSend(m_tools->toolsSet(name, arguments));
                 }
             } else {
@@ -85,8 +86,10 @@ void LLMModule::requestSend(const QString &text) {
                 QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, content), Q_ARG(QVariant, "output"));
             }
         } else {
-            qDebug() << reply->errorString();
-            qDebug() << reply->readAll();
+            const auto message = doc.object()
+                    .value("error").toObject()
+                    .value("message").toString();
+            QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, message), Q_ARG(QVariant, "error"));
         }
         reply->deleteLater();
     });

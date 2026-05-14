@@ -53,7 +53,8 @@ Item {
 
                 background: Rectangle {
                     color: chatLabel.level === "input" ? global.brandBack :
-                        chatLabel.level === "output" ? global.stroke : global.dangerBack3
+                        chatLabel.level === "output" ? global.stroke :
+                        chatLabel.level === "tool" ? global.warningBack2 : global.dangerBack2
                     radius: 6
                 }
 
