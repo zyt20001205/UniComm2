@@ -98,8 +98,8 @@ LLMTools::LLMTools(QObject* parent)
 }
 
 QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
-    qDebug() << "name" << name;
-    qDebug() << "arguments" << arguments;
+    // qDebug() << "name" << name;
+    // qDebug() << "arguments" << arguments;
     if (name == "documentList") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
@@ -109,6 +109,14 @@ QString LLMTools::toolsSet(const QString& name, const QString &arguments) {
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
     if (name == "textGet") {
+        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+        const auto object = doc.object();
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto startLine = object.value("start_line").toInt(-1);
+        const auto startCharacter  = object.value("start_character").toInt(-1);
+        const auto endLine  = object.value("end_line").toInt(-1);
+        const auto endCharacter  = object.value("end_character").toInt(-1);
+        return g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
     }
     return {};
 }
