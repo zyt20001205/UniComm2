@@ -66,7 +66,7 @@ void LLMModule::requestSend() {
     }
 
     QJsonObject body{};
-    body["model"] = "deepseek-chat";
+    body["model"] = "deepseek-reasoner";
     body["messages"] = m_messages;
     body["tools"] = m_tools->toolsGet();
 

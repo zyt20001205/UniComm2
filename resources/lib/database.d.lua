@@ -10,7 +10,7 @@ database = {}
 ---@return table
 function database.list() end
 
----Writes data to a key in database.
+---Writes data to an available key in database.
 ---@param key databaseKey The key to write to.
 ---@param value boolean|number|string The value to write.
 ---@return nil

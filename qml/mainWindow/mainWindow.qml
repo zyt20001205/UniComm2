@@ -184,7 +184,7 @@ Item {
             topPadding: 30; bottomPadding: 20
 
             onOpened: {
-                mainWindow.overlayFlagSet(undefined, true)
+                mainWindow.overlayFlagSet(false, true)
                 widgetCount += 1
             }
             onClosed: {
@@ -4009,7 +4009,7 @@ Item {
 
         onOpened: {
             widgetCount += 1
-            mainWindow.overlayFlagSet(undefined, true)
+            mainWindow.overlayFlagSet(false, true)
         }
         onClosed: widgetCount -= 1
 

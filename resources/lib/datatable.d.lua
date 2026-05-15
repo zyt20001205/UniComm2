@@ -10,7 +10,7 @@ datatable = {}
 ---@return table
 function datatable.list() end
 
----Writes data to a key in datatable.
+---Writes data to an available key in datatable.
 ---@param key datatableKey The key to write to.
 ---@param value boolean|number|string The value to write.
 ---@return nil

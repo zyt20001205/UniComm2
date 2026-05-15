@@ -16,5 +16,5 @@ function thread.stop(threadId) end
 ---@param ms integer The number of milliseconds to sleep.
 ---@return nil
 ---@usage — Sleep for 1 second.
----sleep(1000)
+---thread.sleep(1000)
 function thread.sleep(ms) end
