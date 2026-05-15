@@ -3,6 +3,7 @@
 #include <QDir>
 
 #include "globals.h"
+#include "data/databaseModule.h"
 #include "document/documentModule.h"
 
 // public
@@ -296,7 +297,24 @@ LLMTools::LLMTools(QObject *parent)
                       }
                   }
               }
-          }
+          },
+          // databaseList
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "database_list"},
+                      {"description", "Get the list of all available keys that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
+                          }
+                      }
+                  }
+              }
+          },
       } {
 }
 
@@ -368,6 +386,14 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endCharacter = object.value("end_character").toInt(-1);
         emit g_document->startThread(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
         return {"\"Thread start finished.\"}"};
+    }
+    if (name == "database_list") {
+        const auto keys = g_database->databaseList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
     return {};
 }
