@@ -67,7 +67,7 @@ Item {
                     visible: chatStatus.role === "input"
                     running: visible
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    Layout.rightMargin: 6
+                    Layout.rightMargin: 4
                 }
             }
         }
