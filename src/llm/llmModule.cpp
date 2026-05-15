@@ -24,6 +24,7 @@ LLMModule::LLMModule()
       m_tools{new LLMTools(this)} {
     setWidget(m_widget);
     m_manager = new QNetworkAccessManager(qApp); // NOLINT
+    connect(m_tools, &LLMTools::appendChat, this, &LLMModule::chatAppend);
 }
 
 LLMModule::~LLMModule() {
@@ -82,7 +83,6 @@ void LLMModule::requestSend() {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
-                    QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, name), Q_ARG(QVariant, "tool"));
                     m_messages.append(QJsonObject{
                         {"role", "tool"},
                         {"tool_call_id", id},
@@ -92,14 +92,18 @@ void LLMModule::requestSend() {
                 requestSend();
             } else {
                 const auto content = message.value("content").toString();
-                QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, content), Q_ARG(QVariant, "output"));
+                chatAppend(content, "output");
             }
         } else {
             const auto message = doc.object()
                     .value("error").toObject()
                     .value("message").toString();
-            QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, message), Q_ARG(QVariant, "error"));
+            chatAppend(message, "error");
         }
         reply->deleteLater();
     });
+}
+
+void LLMModule::chatAppend(const QString& text, const QString& level) const {
+    QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, text), Q_ARG(QVariant, level));
 }

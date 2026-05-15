@@ -24,6 +24,8 @@ public:
     Q_INVOKABLE void requestSend();
 
 private:
+    void chatAppend(const QString &text, const QString &level) const;
+
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_textArea{};

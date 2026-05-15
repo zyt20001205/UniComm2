@@ -17,6 +17,9 @@ public:
 
      [[nodiscard]] QString toolsSet(const QString &name, const QString &arguments);
 
+signals:
+     void appendChat(const QString &text, const QString &level);
+
 private:
      QJsonArray m_tools{};
 };
