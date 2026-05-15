@@ -319,7 +319,8 @@ LLMTools::LLMTools(QObject *parent)
 }
 
 QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
-    emit appendChat("tool", name, name);
+    QString content{};
+    QString status{};
     // qDebug() << "name" << name;
     // qDebug() << "arguments" << arguments;
     if (name == "api_list") {
@@ -329,9 +330,9 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         for (const auto &entry : entries) {
             array.append(entry.baseName());
         }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
-    if (name == "api_get") {
+    else if (name == "api_get") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto packageName = object.value("package_name").toString();
@@ -340,20 +341,20 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
             return QString("Package '%1' not found.").arg(packageName);
         }
         QTextStream stream(&file);
-        return stream.readAll();
+        content = stream.readAll();
     }
-    if (name == "document_list") {
+    else if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
-    if (name == "document_focused") {
-        return g_document->documentFocused();
+    else if (name == "document_focused") {
+        content = g_document->documentFocused();
     }
-    if (name == "text_get") {
+    else if (name == "text_get") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -361,9 +362,9 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        return g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
+        content = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
     }
-    if (name == "text_set") {
+    else if (name == "text_set") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -373,9 +374,9 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         g_document->textSet(documentUrl, text, startLine, startCharacter, endLine, endCharacter);
-        return {"\"Text set finished.\"}"};
+        content = "\"Text set finished.\"}";
     }
-    if (name == "thread_start") {
+    else if (name == "thread_start") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -385,15 +386,16 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         emit g_document->startThread(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
-        return {"\"Thread start finished.\"}"};
+        content = "\"Thread start finished.\"}";
     }
-    if (name == "database_list") {
+    else if (name == "database_list") {
         const auto keys = g_database->databaseList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
-    return {};
+    emit appendChat("tool", name, status);
+    return content;
 }

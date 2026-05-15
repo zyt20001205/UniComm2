@@ -65,7 +65,7 @@ Item {
                 }
 
                 BusyIndicator {
-                    visible: chatStatus.role === "input"
+                    visible: chatStatus.role === "input" || chatStatus.role === "tool"
                     running: visible
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
                     Layout.rightMargin: 4
