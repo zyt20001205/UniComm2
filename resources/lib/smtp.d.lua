@@ -4,10 +4,10 @@
 Smtp = {}
 
 ---Create an SMTP instance.
----@param portName string
+---@param name portName
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return smtp
-function Smtp.new(portName, timeout) end
+function Smtp.new(name, timeout) end
 
 ---@class smtp
 smtp = {}

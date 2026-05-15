@@ -50,8 +50,8 @@ void IO::speak(const std::string &text) {
     if (text.empty()) {
         return;
     }
-    // tts.setLocale(QLocale::English);
-    tts.setLocale(QLocale::Chinese);
+    tts.setLocale(QLocale::English);
+    // tts.setLocale(QLocale::Chinese);
     tts.setRate(0.0);
     tts.setVolume(1.0);
     QEventLoop loop;

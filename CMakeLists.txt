@@ -385,6 +385,13 @@ qt_add_resources(UniComm "lib_resources"
         "resources/lib/thread.d.lua"
 )
 
+qt_add_resources(UniComm "demo_resources"
+        PREFIX "/demo"
+        BASE "resources/demo"
+        FILES
+        "resources/demo/modbusRtu.lua"
+)
+
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
 set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt-6.11.0")

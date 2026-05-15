@@ -4,7 +4,9 @@
 
 #include "globals.h"
 #include "data/databaseModule.h"
+#include "data/datatableModule.h"
 #include "document/documentModule.h"
+#include "port/portModule.h"
 
 // public
 LLMTools::LLMTools(QObject *parent)
@@ -49,6 +51,67 @@ LLMTools::LLMTools(QObject *parent)
                               },
                               {
                                   "required", QJsonArray{"package_name"}
+                              }
+                          }
+                      }
+                  }
+              }
+          },
+          // demoGet
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "demo_get"},
+                      {"description", "Get the detailed API demo for a specific package."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "package_name", QJsonObject{
+                                              {"type", "string"},
+                                              {"description", "The name of the package/module to query. Use api_list first to get available names."}
+                                          }
+                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{"package_name"}
+                              }
+                          }
+                      }
+                  }
+              }
+          },
+          // diagnosticsGet
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "diagnostics_get"},
+                      {
+                          "description",
+                          "Get the diagnostics for a specified document. Returns an array of diagnostic items. If the array is empty, there are no diagnostics (i.e., no errors or warnings). Errors related to 'PLACEHOLDER' should be ignored as they are expected placeholders."
+                      },
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "document_url", QJsonObject{
+                                              {"type", "string"},
+                                              {"description", "The URL / file path of the document."}
+                                          }
+                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{
+                                      "document_url"
+                                  }
                               }
                           }
                       }
@@ -238,7 +301,7 @@ LLMTools::LLMTools(QObject *parent)
                       {"name", "thread_start"},
                       {
                           "description",
-                          "Start a new thread to execute a script or a specific block of code in a document. To execute the entire document, set all four line and character positional parameters to -1."
+                          "Start a new thread to execute a script or a specific block of code in a document. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. To execute the entire document, set all four line and character positional parameters to -1."
                       },
                       {
                           "parameters", QJsonObject{
@@ -304,7 +367,41 @@ LLMTools::LLMTools(QObject *parent)
               {
                   "function", QJsonObject{
                       {"name", "database_list"},
-                      {"description", "Get the list of all available keys that can be queried for detailed annotations."},
+                      {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
+                          }
+                      }
+                  }
+              }
+          },
+          // datatableList
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "datatable_list"},
+                      {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
+                          }
+                      }
+                  }
+              }
+          },
+          // portList
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "port_list"},
+                      {"description", "Get the list of all available ports that can be queried for detailed annotations."},
                       {
                           "parameters", QJsonObject{
                               {"type", "object"},
@@ -327,12 +424,11 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto dir = QDir(":/lib");
         QJsonArray array{};
         const auto entries = dir.entryInfoList();
-        for (const auto &entry : entries) {
+        for (const auto &entry: entries) {
             array.append(entry.baseName());
         }
         content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    else if (name == "api_get") {
+    } else if (name == "api_get") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto packageName = object.value("package_name").toString();
@@ -342,19 +438,32 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         }
         QTextStream stream(&file);
         content = stream.readAll();
-    }
-    else if (name == "document_list") {
+    } else if (name == "demo_get") {
+        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+        const auto object = doc.object();
+        const auto packageName = object.value("package_name").toString();
+        auto file = QFile(QString(":/demo/%1.lua").arg(packageName));
+        if (!file.open(QIODevice::ReadOnly)) {
+            return QString("Demo '%1' not found.").arg(packageName);
+        }
+        QTextStream stream(&file);
+        content = stream.readAll();
+    } else if (name == "diagnostics_get") {
+        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+        const auto object = doc.object();
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto diagnostics = g_document->diagnosticsGet(documentUrl);
+        content = QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
+    } else if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
         content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    else if (name == "document_focused") {
+    } else if (name == "document_focused") {
         content = g_document->documentFocused();
-    }
-    else if (name == "text_get") {
+    } else if (name == "text_get") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -363,8 +472,7 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         content = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
-    }
-    else if (name == "text_set") {
+    } else if (name == "text_set") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -375,8 +483,7 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endCharacter = object.value("end_character").toInt(-1);
         g_document->textSet(documentUrl, text, startLine, startCharacter, endLine, endCharacter);
         content = "\"Text set finished.\"}";
-    }
-    else if (name == "thread_start") {
+    } else if (name == "thread_start") {
         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
         const auto object = doc.object();
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -387,9 +494,22 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endCharacter = object.value("end_character").toInt(-1);
         emit g_document->startThread(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
         content = "\"Thread start finished.\"}";
-    }
-    else if (name == "database_list") {
+    } else if (name == "database_list") {
         const auto keys = g_database->databaseList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    } else if (name == "datatable_list") {
+        const auto keys = g_datatable->datatableList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    } else if (name == "port_list") {
+        const auto keys = g_port->portList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);

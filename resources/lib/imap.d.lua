@@ -4,10 +4,10 @@
 Imap = {}
 
 ---Create an IMAP instance.
----@param portName string
+---@param name portName
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return imap
-function Imap.new(portName, timeout) end
+function Imap.new(name, timeout) end
 
 ---@alias mailbox
 ---| string

@@ -18,7 +18,13 @@ LLMModule::LLMModule()
       m_messages{
           QJsonObject{
               {"role", "system"},
-              {"content", "Use tools first when possible. If not, consult API annotations and generate a script."}
+              {
+                  "content",
+                  "You are an IDE code assistant. "
+                  "Use tools first when possible. If not, consult API annotations and generate a script."
+                  "All code must be written in English (including comments, variable names, identifiers, and strings)."
+                  "Use io.log() instead of print() for output."
+              }
           }
       },
       m_tools{new LLMTools(this)} {
@@ -105,6 +111,6 @@ void LLMModule::requestSend() {
     });
 }
 
-void LLMModule::chatAppend(const QString& role, const QString& text, const QString &status) const {
+void LLMModule::chatAppend(const QString &role, const QString &text, const QString &status) const {
     QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, role), Q_ARG(QVariant, text), Q_ARG(QVariant, status));
 }

@@ -16,10 +16,6 @@ function datatable.list() end
 ---@return nil
 function datatable.write(key, value) end
 
----Clears all data in datatable.
----@return nil
-function datatable.clear() end
-
 ---Exports the datatable to a CSV file.
 ---@param path? string (default: "") The path of csv file; when omitted uses timestamp as file name.
 ---@return nil

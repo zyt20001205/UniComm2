@@ -345,6 +345,10 @@ void DocumentModule::markerDelete(const QUrl &documentUrl, const int type, const
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->handler()->markerDelete(type, line);
 }
 
+QJsonArray DocumentModule::diagnosticsGet(const QUrl &documentUrl) const {
+    return m_diagnosticsHash.value(documentUrl);
+}
+
 // public: lsp
 void DocumentModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(documentUrl, diagnostics);

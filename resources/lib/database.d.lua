@@ -15,6 +15,3 @@ function database.list() end
 ---@param value boolean|number|string The value to write.
 ---@return nil
 function database.write(key, value) end
-
----Clears all data in database.
-function database.clear() end

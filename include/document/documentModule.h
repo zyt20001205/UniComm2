@@ -89,6 +89,8 @@ public:
 
     void markerDelete(const QUrl &documentUrl, int type, int line = -1) const;
 
+    [[nodiscard]] QJsonArray diagnosticsGet(const QUrl &documentUrl) const;
+
     void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
     void codeActionRequest(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);

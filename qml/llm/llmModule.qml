@@ -60,6 +60,7 @@ Item {
 
                 Label {
                     text: chatStatus.status
+                    elide: Text.ElideRight
                     Layout.fillWidth: true
                     Layout.leftMargin: 6
                 }
