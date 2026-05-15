@@ -18,7 +18,7 @@ LLMModule::LLMModule()
       m_messages{
           QJsonObject{
               {"role", "system"},
-              {"content", "You are a helpful assistant. Reply in plain text without any formatting."}
+              {"content", "Use tools first when possible. If not, consult API annotations and generate a script."}
           }
       },
       m_tools{new LLMTools(this)} {
