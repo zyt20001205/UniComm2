@@ -1,5 +1,7 @@
 #include "llm/llmTools.h"
 
+#include <QDir>
+
 #include "globals.h"
 #include "document/documentModule.h"
 
@@ -7,6 +9,51 @@
 LLMTools::LLMTools(QObject *parent)
     : QObject(parent),
       m_tools{
+          // apiList
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "api_list"},
+                      {"description", "Get the list of all available API packages/modules that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
+                          }
+                      }
+                  }
+              }
+          },
+          // apiGet
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "api_get"},
+                      {"description", "Get the detailed API annotations (function signatures, types, comments) for a specific package."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "package_name", QJsonObject{
+                                              {"type", "string"},
+                                              {"description", "The name of the package/module to query. Use api_list first to get available names."}
+                                          }
+                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{"package_name"}
+                              }
+                          }
+                      }
+                  }
+              }
+          },
           // documentList
           QJsonObject{
               {"type", "function"},
@@ -256,6 +303,26 @@ LLMTools::LLMTools(QObject *parent)
 QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
     // qDebug() << "name" << name;
     // qDebug() << "arguments" << arguments;
+    if (name == "api_list") {
+        const auto dir = QDir(":/lib");
+        QJsonArray array{};
+        const auto entries = dir.entryInfoList();
+        for (const auto &entry : entries) {
+            array.append(entry.baseName());
+        }
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "api_get") {
+        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+        const auto object = doc.object();
+        const auto packageName = object.value("package_name").toString();
+        auto file = QFile(QString(":/lib/%1.d.lua").arg(packageName));
+        if (!file.open(QIODevice::ReadOnly)) {
+            return QString("Package '%1' not found.").arg(packageName);
+        }
+        QTextStream stream(&file);
+        return stream.readAll();
+    }
     if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
