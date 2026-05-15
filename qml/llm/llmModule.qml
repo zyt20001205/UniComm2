@@ -42,13 +42,15 @@ Item {
         Item {
             id: chatStatus
             property string role: "output"
+            property string status: qsTr("Idle")
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
             Rectangle {
                 anchors.fill: parent
                 color: "transparent"
                 border.color: chatStatus.role === "input" ? global.brandBack :
-                        chatStatus.role === "output" ? global.successBack3 : global.dangerBack3
+                        chatStatus.role === "output" ? global.successBack3 :
+                        chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
                 border.width: 1
                 radius: 6
             }
@@ -57,8 +59,7 @@ Item {
                 anchors.fill: parent
 
                 Label {
-                    text: chatStatus.role === "input" ? qsTr("Responding...") :
-                            chatStatus.role === "output" ? qsTr("Idle") : qsTr("Error")
+                    text: chatStatus.status
                     Layout.fillWidth: true
                     Layout.leftMargin: 6
                 }
@@ -167,15 +168,14 @@ Item {
         easing.type: Easing.OutQuad
     }
 
-    function append(role, text) {
+    function append(role, text, status) {
         const chatLabel = chatComponent.createObject(chatColumn, {
             "role": role,
             "text": text
         })
 
-        if (["input", "output", "error"].includes(role)) {
-            chatStatus.role = role
-        }
+        chatStatus.role = role
+        chatStatus.status = status
 
         scrollTimer.restart()
     }

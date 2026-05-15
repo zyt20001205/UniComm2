@@ -52,7 +52,7 @@ void LLMModule::requestSend() {
 
     const auto text = m_textArea->property("text").toString();
     if (!text.isEmpty()) {
-        chatAppend("input", text);
+        chatAppend("input", text, "Responding...");
         m_messages.append(QJsonObject{
             {"role", "user"},
             {"content", text}
@@ -93,18 +93,18 @@ void LLMModule::requestSend() {
                 requestSend();
             } else {
                 const auto content = message.value("content").toString();
-                chatAppend("output", content);
+                chatAppend("output", content, "Finished");
             }
         } else {
             const auto message = doc.object()
                     .value("error").toObject()
                     .value("message").toString();
-            chatAppend("error", message);
+            chatAppend("error", message, reply->errorString());
         }
         reply->deleteLater();
     });
 }
 
-void LLMModule::chatAppend(const QString& role, const QString& text) const {
-    QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+void LLMModule::chatAppend(const QString& role, const QString& text, const QString &status) const {
+    QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, role), Q_ARG(QVariant, text), Q_ARG(QVariant, status));
 }
