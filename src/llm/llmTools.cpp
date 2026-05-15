@@ -301,7 +301,7 @@ LLMTools::LLMTools(QObject *parent)
 }
 
 QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
-    emit appendChat(name, "tool");
+    emit appendChat("tool", name);
     // qDebug() << "name" << name;
     // qDebug() << "arguments" << arguments;
     if (name == "api_list") {
