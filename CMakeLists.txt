@@ -83,6 +83,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/page/welcomePage.h
         include/llm/llmModule.h
         include/llm/llmTools.h
+        include/llm/agent/baseAgent.h
+        include/llm/agent/deepseekAgent.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
@@ -166,6 +168,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/page/welcomePage.cpp
         src/llm/llmModule.cpp
         src/llm/llmTools.cpp
+        src/llm/agent/baseAgent.cpp
+        src/llm/agent/deepseekAgent.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp
@@ -268,6 +272,7 @@ qt_add_resources(UniComm "icon_resources"
         "resources/icon/debugStepInto.svg"
         "resources/icon/debugStepOut.svg"
         "resources/icon/debugStepOver.svg"
+        "resources/icon/deepseek.svg"
         "resources/icon/delete.svg"
         "resources/icon/dismiss.svg"
         "resources/icon/dismissDark.svg"
@@ -458,6 +463,11 @@ set(OPENCV_INCLUDE "${OPENCV_DIR}/include")
 file(GLOB OPENCV_LIB "${OPENCV_DIR}/lib/*.a")
 set(OPENCV_BIN "${OPENCV_DIR}/bin")
 
+set(QTKEYCHAIN_DIR "${CMAKE_SOURCE_DIR}/3rd/qtkeychain-0.15.0-2")
+set(QTKEYCHAIN_INCLUDE "${QTKEYCHAIN_DIR}/include")
+file(GLOB QTKEYCHAIN_LIB "${QTKEYCHAIN_DIR}/lib/*.a")
+set(QTKEYCHAIN_BIN "${QTKEYCHAIN_DIR}/bin")
+
 set(SCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/scintilla-5.5.9")
 set(SCINTILLA_INCLUDE "${SCINTILLA_DIR}/include")
 file(GLOB SCINTILLA_LIB "${SCINTILLA_DIR}/lib/*.a")
@@ -628,6 +638,12 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${OPENCV_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "OPENCV BIN COPIED")
+#qtkeychain-0.15.0-2
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${QTKEYCHAIN_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "QTKEYCHAIN BIN COPIED")
 #scintilla-5.5.9
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

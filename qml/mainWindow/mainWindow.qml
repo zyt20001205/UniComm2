@@ -2532,6 +2532,61 @@ Item {
         }
     }
 
+    // llm module
+    Menu {
+        id: llmModuleModeMenu
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("ask")
+
+            onTriggered: llmModule.modeSet(text)
+        }
+
+        MenuItem {
+            text: qsTr("agent")
+
+            onTriggered: llmModule.modeSet(text)
+        }
+    }
+
+    Menu {
+        id: llmModuleModelMenu
+        property var deepseekModel
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        Menu {
+            id: llmModuleDeepseekMenu
+            title: qsTr("deepseek")
+            icon.source: "qrc:/icon/deepseek.svg"
+            icon.width: 16; icon.height: 16
+
+            enabled: recentFilesInstantiator.count > 0
+
+            Instantiator {
+                id: recentFilesInstantiator
+                model: llmModuleModelMenu.deepseekModel
+                delegate: MenuItem {
+                    text: model.display
+                    onTriggered: llmModule.modelSet(text)
+                }
+
+                onObjectAdded: (index, object) => llmModuleDeepseekMenu.insertItem(index, object)
+                onObjectRemoved: (index, object) => llmModuleDeepseekMenu.removeItem(object)
+            }
+        }
+    }
+
     // log module
     Dialog {
         id: logModuleHeightDialog
@@ -4085,6 +4140,9 @@ Item {
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
             "fileModulePropertyDialog": fileModulePropertyDialog,
+
+            "llmModuleModeMenu": llmModuleModeMenu,
+            "llmModuleModelMenu": llmModuleModelMenu,
 
             "logModuleHeightDialog": logModuleHeightDialog,
             "logModuleLinkMenu": logModuleLinkMenu,

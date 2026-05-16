@@ -1,14 +1,16 @@
 #include "globals.h"
 
 MainWindow *g_mainWindow = nullptr;
+QNetworkAccessManager *g_networkAccessManager = nullptr;
 GlobalManager *g_global = nullptr;
 DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;
+DocumentModule *g_document = nullptr;
 LogModule *g_log = nullptr;
 NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;
-DocumentModule *g_document = nullptr;
+ThreadpoolModule *g_thread = nullptr;
 UndoModule *g_undo = nullptr;
 
 bool g_terminating = false;

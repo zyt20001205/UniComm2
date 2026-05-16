@@ -7,6 +7,7 @@
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
 #include "port/portModule.h"
+#include "runtime/threadpoolModule.h"
 
 // public
 LLMTools::LLMTools(QObject *parent)
@@ -317,7 +318,7 @@ LLMTools::LLMTools(QObject *parent)
                                       {
                                           "mode", QJsonObject{
                                               {"type", "integer"},
-                                              {"description", "The execution mode (e.g., Run, Debug). Pass the corresponding integer enum."}
+                                              {"description", "Execution mode for the session. Always use Run (0) unless the user specifically asks for Debug (1)."}
                                           }
                                       },
                                       {
@@ -492,7 +493,7 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        emit g_document->startThread(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
+        g_thread->threadStart(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
         content = "\"Thread start finished.\"}";
     } else if (name == "database_list") {
         const auto keys = g_database->databaseList();

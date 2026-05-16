@@ -5,6 +5,7 @@
 
 #include "mainWindow/mainWindow.h"
 
+class QNetworkAccessManager;
 class QStandardItemModel;
 
 class DatabaseModule;
@@ -19,14 +20,16 @@ class ThreadpoolModule;
 class UndoModule;
 
 extern MainWindow *g_mainWindow;
+extern QNetworkAccessManager *g_networkAccessManager;
 extern GlobalManager *g_global;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
+extern DocumentModule *g_document;
 extern LogModule *g_log;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;
-extern DocumentModule *g_document;
+extern ThreadpoolModule *g_thread;
 extern UndoModule *g_undo;
 
 extern bool g_terminating;

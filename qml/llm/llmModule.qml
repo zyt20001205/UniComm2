@@ -41,15 +41,15 @@ Item {
 
         Item {
             id: chatStatus
-            property string role: "output"
+            property string role: "assistant"
             property string status: qsTr("Idle")
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
             Rectangle {
                 anchors.fill: parent
                 color: "transparent"
-                border.color: chatStatus.role === "input" ? global.brandBack :
-                        chatStatus.role === "output" ? global.successBack3 :
+                border.color: chatStatus.role === "user" ? global.brandBack :
+                        chatStatus.role === "assistant" ? global.successBack3 :
                         chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
                 border.width: 1
                 radius: 6
@@ -66,7 +66,7 @@ Item {
                 }
 
                 BusyIndicator {
-                    visible: chatStatus.role === "input" || chatStatus.role === "tool"
+                    visible: chatStatus.role === "user" || chatStatus.role === "tool"
                     running: visible
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
                     Layout.rightMargin: 4
@@ -119,6 +119,50 @@ Item {
                 }
             }
         }
+
+        RowLayout {
+            Layout.fillWidth: true; Layout.preferredHeight: 20
+
+            Button {
+                id: modeButton
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                Layout.preferredWidth: modeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
+
+                onClicked: {
+                    const globalPos = modeButton.mapToGlobal(0, modeButton.height);
+                    const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                    modeMenu.popup(localPos.x, localPos.y)
+                }
+
+                TextMetrics {
+                    id: modeButtonTextMetrics
+                    text: modeButton.text
+                    font: modeButton.font
+                }
+            }
+            
+            Button {
+                id: modelButton
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                Layout.preferredWidth: modelButtonTextMetrics.width + 8; Layout.preferredHeight: 20
+
+                onClicked: {
+                    const globalPos = modelButton.mapToGlobal(0, modelButton.height);
+                    const localPos = modelMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                    modelMenu.popup(localPos.x, localPos.y)
+                }
+
+                TextMetrics {
+                    id: modelButtonTextMetrics
+                    text: modelButton.text
+                    font: modelButton.font
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+        }
     }
 
     Component {
@@ -131,12 +175,12 @@ Item {
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 20)
-            Layout.alignment: role === "input" ? Qt.AlignRight : Qt.AlignLeft
+            Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property string role
 
             background: Rectangle {
-                color: chatLabel.role === "input" ? global.brandBack :
-                        chatLabel.role === "output" ? global.stroke :
+                color: chatLabel.role === "user" ? global.brandBack :
+                        chatLabel.role === "assistant" ? global.stroke :
                             chatLabel.role === "tool" ? global.warningBack2 : global.dangerBack2
                 radius: 6
             }
@@ -183,7 +227,9 @@ Item {
 
     Component.onCompleted: {
         const objects = {
-            "textArea": textArea
+            "textArea": textArea,
+            "modeButton": modeButton,
+            "modelButton": modelButton
         };
         llmModule.propertyGet(objects)
     }

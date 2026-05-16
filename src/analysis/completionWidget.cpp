@@ -176,7 +176,7 @@ void CompletionWidget::textReplace() {
     } else if (kind == Field) {
         insertText += ".";
     } else if (kind == EnumMember) {
-        if (insertText == "\"Get Position\"") {
+        if (insertText == "\"__PLACEHOLDER__GETPOSITION__\"") {
             const QVariantMap gotoSession = {
                 {"documentUrl", m_completionSession["documentUrl"].toUrl()},
                 {"line", m_completionSession["startLine"].toInt()},

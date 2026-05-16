@@ -17,6 +17,10 @@
     "fontFamily": "Consolas",
     "fontSize": 10
   },
+  "llmConfig": {
+    "model": "",
+    "mode": "ask"
+  },
   "logConfig": {
     "fontFamily": "Segoe UI",
     "fontSize": 10,

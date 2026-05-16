@@ -5,13 +5,13 @@ modbusAscii = {}
 ---Reads data from multiple holding registers of a Modbus ASCII device.
 ---@param name portName Target port name.
 ---@param slaveAddr integer The slave address (1-247) of the target device on the network.
----@param startAddr integer The starting address of the first register to write to.
+---@param startAddr integer The starting address of the first register to read from.
 ---@param quantity integer Number of registers to read.
 ---@param timeout? integer (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return string
 function modbusAscii.readHoldingRegisters(name, slaveAddr, startAddr, quantity, timeout) end
 
----Writes data to write single register to a Modbus ASCII device.
+---Writes data to a single register of a Modbus ASCII device.
 ---@param name portName Target port name.
 ---@param slaveAddr integer The slave address (1-247) of the target device on the network.
 ---@param regAddr integer The address of the register to write to.
@@ -20,11 +20,11 @@ function modbusAscii.readHoldingRegisters(name, slaveAddr, startAddr, quantity, 
 ---@return nil
 function modbusAscii.writeSingleRegister(name, slaveAddr, regAddr, data, timeout) end
 
----Writes data to multiple holding registers to a Modbus ASCII device.
+---Writes data to multiple holding registers of a Modbus ASCII device.
 ---@param name portName Target port name.
 ---@param slaveAddr integer The slave address (1-247) of the target device on the network.
 ---@param startAddr integer The starting address of the first register to write to.
----@param data string **Hex string** string** containing the raw data to be written.
+---@param data string **Hex string** containing the raw data to be written.
 ---@param timeout? integer (default: 1000) (default: 1000) Maximum time in **milliseconds** to wait for data to arrive.
 ---@return nil
 function modbusAscii.writeMultipleRegisters(name, slaveAddr, startAddr, data, timeout) end

@@ -5,6 +5,7 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMediaDevices>
+#include <QNetworkAccessManager>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
@@ -89,6 +90,7 @@ void MainWindow::propertySet() {
     m_overlay->rootContext()->setContextProperty("diagnosticsModule", m_diagnosticsModule);
     m_overlay->rootContext()->setContextProperty("explorerModule", m_explorerModule);
     m_overlay->rootContext()->setContextProperty("gitModule", m_gitModule);
+    m_overlay->rootContext()->setContextProperty("llmModule", m_llmModule);
     m_overlay->rootContext()->setContextProperty("logModule", m_logModule);
     m_overlay->rootContext()->setContextProperty("menuModule", m_menuModule);
     m_overlay->rootContext()->setContextProperty("portModule", m_portModule);
@@ -210,10 +212,12 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_gitModule->propertySet(gitObjects);
 
     const QVariantHash llmObjects = {
-        {"global", QVariant::fromValue(m_globalManager)}
+        {"global", QVariant::fromValue(m_globalManager)},
+        {"llmModuleModeMenu", objects["llmModuleModeMenu"]},
+        {"llmModuleModelMenu", objects["llmModuleModelMenu"]}
     };
     m_llmModule->propertySet(llmObjects);
-    
+
     const QVariantHash logObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
@@ -382,10 +386,11 @@ void MainWindow::workspaceSave(const QUrl &configUrl) {
     DatabaseModule::databaseConfigSave();
     DatatableModule::datatableConfigSave();
     m_documentModule->documentConfigSave();
+    m_llmModule->llmConfigSave();
     m_logModule->logConfigSave();
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
-    m_watchModule->watchConfigSave();
+    WatchModule::watchConfigSave();
     mainConfigSave();
     m_configManager->workspaceConfigSave(configUrl);
 
@@ -413,6 +418,7 @@ void MainWindow::moduleInit() {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "initializing module");
 
+    g_networkAccessManager = new QNetworkAccessManager(qApp);
     m_configManager = new ConfigManager(this);
     m_globalManager = new GlobalManager(this);
     m_luals = new LuaLanguageServer(this);
@@ -445,10 +451,11 @@ void MainWindow::moduleInit() {
     g_database = m_databaseModule;
     g_dataplot = m_dataplotModule;
     g_datatable = m_datatableModule;
+    g_document = m_documentModule;
     g_log = m_logModule;
     g_nuspell = m_nuspellModule;
     g_port = m_portModule;
-    g_document = m_documentModule;
+    g_thread = m_threadpoolModule;
     g_undo = m_undoModule;
 
     connect(this, &MainWindow::appendLog, m_logModule, &LogModule::logAppend);
