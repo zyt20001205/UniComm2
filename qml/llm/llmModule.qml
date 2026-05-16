@@ -50,7 +50,7 @@ Item {
                 color: "transparent"
                 border.color: chatStatus.role === "user" ? global.brandBack :
                         chatStatus.role === "assistant" ? global.successBack3 :
-                        chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
+                            chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
                 border.width: 1
                 radius: 6
             }
@@ -63,6 +63,28 @@ Item {
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                     Layout.leftMargin: 6
+                }
+
+                Button {
+                    visible: chatStatus.role === "tool"
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: "qrc:/icon/checkmark.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    onClicked: llmModule.permissionSet(true)
+                }
+
+                Button {
+                    visible: chatStatus.role === "tool"
+                    leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                    flat: true
+                    icon.source: "qrc:/icon/dismiss.svg"
+                    icon.width: 16; icon.height: 16
+                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                    onClicked: llmModule.permissionSet(false)
                 }
 
                 BusyIndicator {
@@ -140,7 +162,7 @@ Item {
                     font: modeButton.font
                 }
             }
-            
+
             Button {
                 id: modelButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
@@ -214,10 +236,12 @@ Item {
     }
 
     function append(role, text, status) {
-        const chatLabel = chatComponent.createObject(chatColumn, {
-            "role": role,
-            "text": text
-        })
+        if (text) {
+            const chatLabel = chatComponent.createObject(chatColumn, {
+                "role": role,
+                "text": text
+            })
+        }
 
         chatStatus.role = role
         chatStatus.status = status

@@ -113,11 +113,10 @@ void LLMModule::requestSend() {
             {"content", text}
         });
     }
-
     QJsonObject body{};
     body["model"] = m_model;
     body["messages"] = m_messages;
-    if (m_mode == "agent") body["tools"] = m_tools->toolsGet();
+    if (m_mode != "ask") body["tools"] = m_tools->toolsGet();
 
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
 
@@ -139,10 +138,11 @@ void LLMModule::requestSend() {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
+                    const auto content = m_tools->toolsSet(m_mode, name, arguments);
                     m_messages.append(QJsonObject{
                         {"role", "tool"},
                         {"tool_call_id", id},
-                        {"content", m_tools->toolsSet(name, arguments)}
+                        {"content", content}
                     });
                 }
                 requestSend();
@@ -160,6 +160,11 @@ void LLMModule::requestSend() {
     });
 }
 
+void LLMModule::permissionSet(const bool status) const {
+    m_tools->permissionSet(status);
+}
+
+// private
 void LLMModule::chatAppend(const QString &role, const QString &text, const QString &status) const {
     QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, role), Q_ARG(QVariant, text), Q_ARG(QVariant, status));
 }

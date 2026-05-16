@@ -31,6 +31,8 @@ public:
 
     Q_INVOKABLE void requestSend();
 
+    Q_INVOKABLE void permissionSet(bool status) const;
+
 private:
     void chatAppend(const QString &role, const QString &text, const QString &status) const;
 

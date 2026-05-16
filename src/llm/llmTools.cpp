@@ -413,14 +413,16 @@ LLMTools::LLMTools(QObject *parent)
                   }
               }
           },
-      } {
+      },
+      m_writeGroup{"text_set"},
+      m_godGroup{"thread_start"},
+      m_eventloop(new QEventLoop(this)) {
 }
 
-QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
-    QString content{};
-    QString status{};
-    // qDebug() << "name" << name;
-    // qDebug() << "arguments" << arguments;
+QString LLMTools::toolsSet(const QString &mode, const QString &name, const QString &arguments) {
+    const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+    const auto object = doc.object();
+    if (!permissionGet(mode, name, object)) return {"User denied permission to execute this tool."};
     if (name == "api_list") {
         const auto dir = QDir(":/lib");
         QJsonArray array{};
@@ -428,54 +430,51 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         for (const auto &entry: entries) {
             array.append(entry.baseName());
         }
-        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    } else if (name == "api_get") {
-        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        const auto object = doc.object();
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();
         auto file = QFile(QString(":/lib/%1.d.lua").arg(packageName));
         if (!file.open(QIODevice::ReadOnly)) {
             return QString("Package '%1' not found.").arg(packageName);
         }
         QTextStream stream(&file);
-        content = stream.readAll();
-    } else if (name == "demo_get") {
-        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        const auto object = doc.object();
+        return stream.readAll();
+    }
+    if (name == "demo_get") {
         const auto packageName = object.value("package_name").toString();
         auto file = QFile(QString(":/demo/%1.lua").arg(packageName));
         if (!file.open(QIODevice::ReadOnly)) {
             return QString("Demo '%1' not found.").arg(packageName);
         }
         QTextStream stream(&file);
-        content = stream.readAll();
-    } else if (name == "diagnostics_get") {
-        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        const auto object = doc.object();
+        return stream.readAll();
+    }
+    if (name == "diagnostics_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
-        content = QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
-    } else if (name == "document_list") {
+        return QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
+    }
+    if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
-        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    } else if (name == "document_focused") {
-        content = g_document->documentFocused();
-    } else if (name == "text_get") {
-        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        const auto object = doc.object();
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "document_focused") {
+        return g_document->documentFocused();
+    }
+    if (name == "text_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto startLine = object.value("start_line").toInt(-1);
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        content = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
-    } else if (name == "text_set") {
-        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        const auto object = doc.object();
+        return g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
+    }
+    if (name == "text_set") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto text = object.value("text").toString();
         const auto startLine = object.value("start_line").toInt(-1);
@@ -483,10 +482,9 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         g_document->textSet(documentUrl, text, startLine, startCharacter, endLine, endCharacter);
-        content = "\"Text set finished.\"}";
-    } else if (name == "thread_start") {
-        const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-        const auto object = doc.object();
+        return "\"Text set finished.\"}";
+    }
+    if (name == "thread_start") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto mode = object.value("mode").toInt(InterpreterMode::Run);
         const auto startLine = object.value("start_line").toInt(-1);
@@ -494,29 +492,92 @@ QString LLMTools::toolsSet(const QString &name, const QString &arguments) {
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         g_thread->threadStart(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
-        content = "\"Thread start finished.\"}";
-    } else if (name == "database_list") {
+        return "\"Thread start finished.\"}";
+    }
+    if (name == "database_list") {
         const auto keys = g_database->databaseList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
-        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    } else if (name == "datatable_list") {
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "datatable_list") {
         const auto keys = g_datatable->datatableList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
-        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    } else if (name == "port_list") {
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "port_list") {
         const auto keys = g_port->portList();
         QJsonArray array{};
         for (const auto &key: keys) {
             array.append(key);
         }
-        content = QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
-    emit appendChat("tool", name, status);
-    return content;
+    return {"Unknown tool."};
+}
+
+void LLMTools::permissionSet(const bool status) {
+    m_approved = status;
+    m_eventloop->quit();
+}
+
+bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJsonObject &object) {
+    m_approved = true;
+    if (mode == "read") {
+        if (m_writeGroup.contains(name) || m_godGroup.contains(name)) m_approved = false;
+    } else if (mode == "write") {
+        if (m_godGroup.contains(name)) m_approved = false;
+    }
+    QString status{};
+    if (name == "api_list") {
+        status = "I want to get all available apis.";
+        emit appendChat("tool", name, status);
+    } else if (name == "api_get") {
+        const auto packageName = object.value("package_name").toString();
+        status = QString("I want to see %1 details.").arg(packageName);
+        emit appendChat("tool", name, status);
+    } else if (name == "demo_get") {
+        const auto packageName = object.value("package_name").toString();
+        status = QString("I want to see %1 demo.").arg(packageName);
+        emit appendChat("tool", name, status);
+    } else if (name == "diagnostics_get") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        status = QString("I want to check %1 diagnostics.").arg(documentName);
+        emit appendChat("tool", name, status);
+    } else if (name == "document_list") {
+        status = "I want to get all available files.";
+        emit appendChat("tool", name, status);
+    } else if (name == "document_focused") {
+        status = "I want to know current file.";
+        emit appendChat("tool", name, status);
+    } else if (name == "text_get") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        status = QString("I want to read %1.").arg(documentName);
+        emit appendChat("tool", name, status);
+    } else if (name == "text_set") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        status = QString("I want to edit %1.").arg(documentName);
+        emit appendChat("tool", name, status);
+    } else if (name == "thread_start") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        status = QString("I want to run %1.").arg(documentName);
+        emit appendChat("tool", name, status);
+    } else if (name == "database_list") {
+        status = "I want to get all available database keys.";
+        emit appendChat("tool", name, status);
+    } else if (name == "datatable_list") {
+        status = "I want to get all available datatable keys.";
+        emit appendChat("tool", name, status);
+    } else if (name == "port_list") {
+        status = "I want to get all available ports.";
+        emit appendChat("tool", name, status);
+    }
+    if (!m_approved) m_eventloop->exec();
+    emit appendChat("user", m_approved ? "OK" : "NO", "Responding...");
+    return m_approved;
 }

@@ -2548,10 +2548,23 @@ Item {
             onTriggered: llmModule.modeSet(text)
         }
 
-        MenuItem {
-            text: qsTr("agent")
+        Menu {
+            title: qsTr("agent")
 
-            onTriggered: llmModule.modeSet(text)
+            MenuItem {
+                text: qsTr("read")
+                onTriggered: llmModule.modeSet(text)
+            }
+
+            MenuItem {
+                text: qsTr("write")
+                onTriggered: llmModule.modeSet(text)
+            }
+
+            MenuItem {
+                text: qsTr("god")
+                onTriggered: llmModule.modeSet(text)
+            }
         }
     }
 
