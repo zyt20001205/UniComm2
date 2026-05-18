@@ -119,12 +119,11 @@ void LLMModule::requestSend() {
     QJsonObject body{};
     body["model"] = m_model;
     body["messages"] = m_messages;
-    // TODO: agent stream output
     if (m_mode == "ask") body["stream"] = true;
     else body["tools"] = m_tools->toolsGet();
-
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
 
+    // ask mode
     if (m_mode == "ask") {
         chatCreate("assistant", "");
         statusSet("assistant", "Thinking...");
@@ -168,7 +167,10 @@ void LLMModule::requestSend() {
             }
             reply->deleteLater();
         });
-    } else {
+    }
+    // agent mode
+    // TODO: agent stream output
+    else {
         connect(reply, &QNetworkReply::finished, [this, reply] {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
