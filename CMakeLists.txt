@@ -498,6 +498,7 @@ target_include_directories(UniComm PRIVATE
         ${LUA_INCLUDE}
         ${NUSPELL_INCLUDE}
         ${OPENCV_INCLUDE}
+        ${QTKEYCHAIN_INCLUDE}
         ${SCINTILLA_INCLUDE}
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
