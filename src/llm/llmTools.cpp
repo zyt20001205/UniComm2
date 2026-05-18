@@ -492,7 +492,7 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         g_thread->threadStart(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
-        return "\"Thread start finished.\"}";
+        return "\"Thread started.\"}";
     }
     if (name == "database_list") {
         const auto keys = g_database->databaseList();
@@ -533,51 +533,54 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
     } else if (mode == "write") {
         if (m_godGroup.contains(name)) m_approved = false;
     }
+    QString text{};
     QString status{};
     if (name == "api_list") {
-        status = "I want to get all available apis.";
-        emit appendChat("tool", name, status);
+        text = "Get available APIs";
+        status = "I want to get all available APIs.";
     } else if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();
-        status = QString("I want to see %1 details.").arg(packageName);
-        emit appendChat("tool", name, status);
+        text = QString("Read %1 details").arg(packageName);
+        status = QString("I want to read %1 details.").arg(packageName);
     } else if (name == "demo_get") {
         const auto packageName = object.value("package_name").toString();
+        text = QString("Read %1 demo").arg(packageName);
         status = QString("I want to see %1 demo.").arg(packageName);
-        emit appendChat("tool", name, status);
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        text = QString("Check %1 diagnostics").arg(documentName);
         status = QString("I want to check %1 diagnostics.").arg(documentName);
-        emit appendChat("tool", name, status);
     } else if (name == "document_list") {
-        status = "I want to get all available files.";
-        emit appendChat("tool", name, status);
+        text = "Get available documents";
+        status = "I want to get all available documents.";
     } else if (name == "document_focused") {
-        status = "I want to know current file.";
-        emit appendChat("tool", name, status);
+        text = "Get current document";
+        status = "I want to know current document.";
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        text = QString("Read %1").arg(documentName);
         status = QString("I want to read %1.").arg(documentName);
-        emit appendChat("tool", name, status);
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        text = QString("Write %1").arg(documentName);
         status = QString("I want to edit %1.").arg(documentName);
-        emit appendChat("tool", name, status);
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        text = QString("Run %1").arg(documentName);
         status = QString("I want to run %1.").arg(documentName);
-        emit appendChat("tool", name, status);
     } else if (name == "database_list") {
+        text = "Get available database keys";
         status = "I want to get all available database keys.";
-        emit appendChat("tool", name, status);
     } else if (name == "datatable_list") {
+        text = "Get available datatable keys";
         status = "I want to get all available datatable keys.";
-        emit appendChat("tool", name, status);
     } else if (name == "port_list") {
+        text = "Get available ports";
         status = "I want to get all available ports.";
-        emit appendChat("tool", name, status);
     }
+    if (m_approved) text += " ✓";
+    emit appendChat("tool", text, status);
     if (!m_approved) m_eventloop->exec();
-    emit appendChat("user", m_approved ? "OK" : "NO", "Responding...");
+    emit appendChat("user", "", "Responding...");
     return m_approved;
 }

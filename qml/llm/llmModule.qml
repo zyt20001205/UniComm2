@@ -1,11 +1,13 @@
 import QtCore
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 Item {
     id: rootItem
     anchors.fill: parent
+    property var lastChatLabel: null
 
     Rectangle {
         anchors.fill: parent
@@ -57,12 +59,12 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
+                anchors.leftMargin: 6; anchors.rightMargin: 6
 
                 Label {
                     text: chatStatus.status
                     elide: Text.ElideRight
                     Layout.fillWidth: true
-                    Layout.leftMargin: 6
                 }
 
                 Button {
@@ -73,7 +75,10 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    onClicked: llmModule.permissionSet(true)
+                    onClicked: {
+                        rootItem.lastChatLabel.text = rootItem.lastChatLabel.text + " ✓"
+                        llmModule.permissionSet(true)
+                    }
                 }
 
                 Button {
@@ -84,14 +89,10 @@ Item {
                     icon.width: 16; icon.height: 16
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                    onClicked: llmModule.permissionSet(false)
-                }
-
-                BusyIndicator {
-                    visible: chatStatus.role === "user" || chatStatus.role === "tool"
-                    running: visible
-                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                    Layout.rightMargin: 4
+                    onClicked: {
+                        rootItem.lastChatLabel.text = rootItem.lastChatLabel.text + " ✗"
+                        llmModule.permissionSet(false)
+                    }
                 }
             }
         }
@@ -203,7 +204,7 @@ Item {
             background: Rectangle {
                 color: chatLabel.role === "user" ? global.brandBack :
                         chatLabel.role === "assistant" ? global.stroke :
-                            chatLabel.role === "tool" ? global.warningBack2 : global.dangerBack2
+                            chatLabel.role === "tool" ? global.backSelected : global.dangerBack2
                 radius: 6
             }
 
@@ -237,7 +238,7 @@ Item {
 
     function append(role, text, status) {
         if (text) {
-            const chatLabel = chatComponent.createObject(chatColumn, {
+            rootItem.lastChatLabel = chatComponent.createObject(chatColumn, {
                 "role": role,
                 "text": text
             })
