@@ -48,13 +48,29 @@ Item {
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
             Rectangle {
+                id: chatStatusRect
                 anchors.fill: parent
                 color: "transparent"
                 border.color: chatStatus.role === "user" ? global.brandBack :
-                        chatStatus.role === "assistant" ? global.successBack3 :
+                            chatStatus.role === "assistant" ? global.successBack3 :
                             chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
                 border.width: 1
                 radius: 6
+
+                SequentialAnimation on border.color {
+                    running: chatStatus.role === "tool"
+                    loops: Animation.Infinite
+                    ColorAnimation {
+                        to: global.back
+                        duration: 1000
+                    }
+                    ColorAnimation {
+                        to: chatStatus.role === "user" ? global.brandBack :
+                            chatStatus.role === "assistant" ? global.successBack3 :
+                            chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
+                        duration: 1000
+                    }
+                }
             }
 
             RowLayout {
