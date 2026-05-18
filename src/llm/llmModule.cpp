@@ -96,7 +96,7 @@ void LLMModule::modeSet(const QString &mode) {
 }
 
 void LLMModule::modelSet(const QString &model) {
-    if (model == m_mode) return;
+    if (model == m_model) return;
     m_model = model;
     m_modelButton->setProperty("text", model.isEmpty() ? "select" : model);
 }
@@ -134,22 +134,26 @@ void LLMModule::requestSend() {
             while (reply->canReadLine()) {
                 auto line = reply->readLine().trimmed();
                 if (line.isEmpty()) continue;
-                if (line.startsWith("data: ")) {
-                    line = line.mid(6);
-                    if (line == "[DONE]") continue;
-                    const auto doc = QJsonDocument::fromJson(line);
-                    if (!doc.isNull() && doc.isObject()) {
-                        const auto delta = doc.object()
-                                                    .value("choices").toArray()
-                                                    .at(0).toObject()
-                                                    .value("delta").toObject();
-                        if (delta.contains("content")) {
-                            const auto chunk = delta.value("content").toString();
-                            content->append(chunk);
-                            QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, chunk));
-                        }
-                    }
+                if (!line.startsWith("data: ")) continue;
+                line = line.mid(6);
+                if (line == "[DONE]") continue;
+                const auto doc = QJsonDocument::fromJson(line);
+                if (doc.isNull() || !doc.isObject()) continue;
+                const auto choices = doc.object().value("choices").toArray();
+                if (choices.isEmpty()) continue;
+                const auto delta = choices.at(0).toObject().value("delta").toObject();
+
+                const auto _content = delta.value("content").toString();
+                if (!_content.isEmpty()) {
+                    content->append(_content);
+                    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, _content));
                 }
+
+                // const auto _reasoning = delta.value("reasoning_content").toString();
+                // if (!_reasoning.isEmpty()) {
+                //     content->append(_content);
+                //     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, _reasoning));
+                // }
             }
         });
         connect(reply, &QNetworkReply::finished, this, [this, reply, content] {
