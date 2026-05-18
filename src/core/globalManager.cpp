@@ -76,10 +76,8 @@ GlobalManager::GlobalManager(QWidget *parent)
           + "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; background: none; }"
           + "QScrollBar:vertical { background-color: transparent; width: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
-          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette[
-              "lightBackHover"] + "; border-radius: 3px; margin: 2px; }"
-          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " +
-          m_palette["lightBackPressed"] + "; }"
+          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette["lightStroke"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["lightStrokePressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["lightBack"] + "; }"
 
           + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["lightFore"] +
@@ -98,10 +96,8 @@ GlobalManager::GlobalManager(QWidget *parent)
           + "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; background: none; }"
           + "QScrollBar:vertical { background-color: transparent; width: 10px; margin: 0px; border: none; }"
           + "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { width: 0px; background: none; }"
-          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette[
-              "darkBackHover"] + "; border-radius: 3px; margin: 2px; }"
-          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " +
-          m_palette["darkBackPressed"] + "; }"
+          + "QScrollBar::handle:horizontal, QScrollBar::handle:vertical { background-color: " + m_palette["darkStroke"] + "; border-radius: 3px; margin: 2px; }"
+          + "QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: " + m_palette["darkStrokePressed"] + "; }"
           + "QAbstractScrollArea::corner { background-color: " + m_palette["darkBack"] + "; }"
 
           + "QTabBar::tab { background: transparent; border: none; color: " + m_palette["darkFore"] +

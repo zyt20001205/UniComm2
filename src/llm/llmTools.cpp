@@ -194,7 +194,9 @@ LLMTools::LLMTools(QObject *parent)
                       {"name", "text_get"},
                       {
                           "description",
-                          "Get the text content of a specified range in a file. To read the entire document, set all four line and character positional parameters to -1."
+                          "Read text from a document using a range. "
+                          "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document. "
+                          "To read only line x, use x/0/x/-1."
                       },
                       {
                           "parameters", QJsonObject{
@@ -267,7 +269,9 @@ LLMTools::LLMTools(QObject *parent)
                       {"name", "text_set"},
                       {
                           "description",
-                          "Set the text for a specified range in a document. To overwrite the entire document, set all four line and character positional parameters to -1."
+                          "Write text to a document using a range. "
+                          "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to replace the whole document. "
+                          "To replace only line x, use x/0/x/-1."
                       },
                       {
                           "parameters", QJsonObject{
@@ -604,16 +608,20 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        text = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-        status = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+        text = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+                                                      QString::number(endCharacter));
+        status = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+                                                                   QString::number(endCharacter));
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        text = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
-        status = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+        text = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+                                                       QString::number(endCharacter));
+        status = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+                                                                   QString::number(endCharacter));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         text = QString("Run %1").arg(documentName);
