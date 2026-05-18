@@ -34,7 +34,9 @@ public:
     Q_INVOKABLE void permissionSet(bool status) const;
 
 private:
-    void chatAppend(const QString &role, const QString &text, const QString &status) const;
+    void chatCreate(const QString &role, const QString &text) const;
+
+    void statusSet(const QString &role, const QString &status) const;
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};

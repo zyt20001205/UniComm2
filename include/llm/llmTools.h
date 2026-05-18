@@ -21,7 +21,9 @@ public:
     void permissionSet(bool status);
 
 signals:
-    void appendChat(const QString &role, const QString &text, const QString &status);
+    void createChat(const QString &role, const QString &text);
+
+    void setStatus(const QString &role, const QString &status);
 
 private:
     [[nodiscard]] bool permissionGet(const QString &mode, const QString &name, const QJsonObject &object);

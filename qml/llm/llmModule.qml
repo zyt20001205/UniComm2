@@ -92,7 +92,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                     onClicked: {
-                        rootItem.lastChatLabel.text = rootItem.lastChatLabel.text + " ✓"
+                        chatAppend(" ✓")
                         llmModule.permissionSet(true)
                     }
                 }
@@ -106,7 +106,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                     onClicked: {
-                        rootItem.lastChatLabel.text = rootItem.lastChatLabel.text + " ✗"
+                        chatAppend(" ✗")
                         llmModule.permissionSet(false)
                     }
                 }
@@ -252,18 +252,22 @@ Item {
         easing.type: Easing.OutQuad
     }
 
-    function append(role, text, status) {
-        if (text) {
-            rootItem.lastChatLabel = chatComponent.createObject(chatColumn, {
-                "role": role,
-                "text": text
-            })
-        }
+    function chatCreate(role, text) {
+        rootItem.lastChatLabel = chatComponent.createObject(chatColumn, {
+            "role": role,
+            "text": text
+        })
+        scrollTimer.restart()
+    }
 
+    function chatAppend(text) {
+        rootItem.lastChatLabel.text += text
+        scrollTimer.restart()
+    }
+
+    function statusSet(role, status) {
         chatStatus.role = role
         chatStatus.status = status
-
-        scrollTimer.restart()
     }
 
     Component.onCompleted: {

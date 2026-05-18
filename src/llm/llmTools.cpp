@@ -579,8 +579,9 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         status = "I want to get all available ports.";
     }
     if (m_approved) text += " ✓";
-    emit appendChat("tool", text, status);
+    emit createChat("tool", text);
+    emit setStatus("tool", status);
     if (!m_approved) m_eventloop->exec();
-    emit appendChat("user", "", "Responding...");
+    emit setStatus("user", "Responding...");
     return m_approved;
 }

@@ -34,7 +34,8 @@ LLMModule::LLMModule()
       m_tools{new LLMTools(this)},
       m_deepseekAgent(new DeepseekAgent(this)) {
     setWidget(m_widget);
-    connect(m_tools, &LLMTools::appendChat, this, &LLMModule::chatAppend);
+    connect(m_tools, &LLMTools::createChat, this, &LLMModule::chatCreate);
+    connect(m_tools, &LLMTools::setStatus, this, &LLMModule::statusSet);
 }
 
 LLMModule::~LLMModule() {
@@ -101,13 +102,15 @@ void LLMModule::modelSet(const QString &model) {
 
 void LLMModule::requestSend() {
     if (m_model.isEmpty()) {
-        chatAppend("error", "No model selected.", "Please select a model first.");
+        chatCreate("error", "No model selected.");
+        statusSet("error", "Please select a model first.");
         return;
     }
 
     const auto text = m_textArea->property("text").toString();
     if (!text.isEmpty()) {
-        chatAppend("user", text, "Responding...");
+        chatCreate("user", text);
+        statusSet("user", "Responding...");
         m_messages.append(QJsonObject{
             {"role", "user"},
             {"content", text}
@@ -148,13 +151,15 @@ void LLMModule::requestSend() {
                 requestSend();
             } else {
                 const auto content = message.value("content").toString();
-                chatAppend("assistant", content, "Finished");
+                chatCreate("assistant", content);
+                statusSet("assistant", "Finished");
             }
         } else {
             const auto message = doc.object()
                     .value("error").toObject()
                     .value("message").toString();
-            chatAppend("error", message, reply->errorString());
+            chatCreate("user", message);
+            statusSet("user", reply->errorString());
         }
         reply->deleteLater();
     });
@@ -165,6 +170,10 @@ void LLMModule::permissionSet(const bool status) const {
 }
 
 // private
-void LLMModule::chatAppend(const QString &role, const QString &text, const QString &status) const {
-    QMetaObject::invokeMethod(m_root, "append", Q_ARG(QVariant, role), Q_ARG(QVariant, text), Q_ARG(QVariant, status));
+void LLMModule::chatCreate(const QString &role, const QString &text) const {
+    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+}
+
+void LLMModule::statusSet(const QString &role, const QString &status) const {
+    QMetaObject::invokeMethod(m_root, "statusSet", Q_ARG(QVariant, role), Q_ARG(QVariant, status));
 }
