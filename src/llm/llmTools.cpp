@@ -119,6 +119,39 @@ LLMTools::LLMTools(QObject *parent)
                   }
               }
           },
+          // symbolGet
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "symbol_get"},
+                      {
+                          "description",
+                          "Get the structural symbols (e.g., classes, functions, variables) of a specified document along with their line numbers."
+                      },
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "document_url", QJsonObject{
+                                              {"type", "string"},
+                                              {"description", "The URL / file path of the document."}
+                                          }
+                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{
+                                      "document_url"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          },
           // documentList
           QJsonObject{
               {"type", "function"},
@@ -455,6 +488,11 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
         return QString::fromUtf8(QJsonDocument(diagnostics).toJson(QJsonDocument::Compact));
     }
+    if (name == "symbol_get") {
+        const auto documentUrl = QUrl(object.value("document_url").toString());
+        const auto symbol = g_document->symbolGet(documentUrl);
+        return QString::fromUtf8(QJsonDocument(symbol).toJson(QJsonDocument::Compact));
+    }
     if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
@@ -550,6 +588,10 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         text = QString("Check %1 diagnostics").arg(documentName);
         status = QString("I want to check %1 diagnostics.").arg(documentName);
+    } else if (name == "symbol_get") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        text = QString("Understand %1 symbol").arg(documentName);
+        status = QString("I want to understand %1 symbol.").arg(documentName);
     } else if (name == "document_list") {
         text = "Get available documents";
         status = "I want to get all available documents.";
@@ -558,12 +600,20 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         status = "I want to know current document.";
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        text = QString("Read %1").arg(documentName);
-        status = QString("I want to read %1.").arg(documentName);
+        const auto startLine = object.value("start_line").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
+        text = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+        status = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        text = QString("Write %1").arg(documentName);
-        status = QString("I want to edit %1.").arg(documentName);
+        const auto startLine = object.value("start_line").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
+        text = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
+        status = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine), QString::number(endCharacter));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         text = QString("Run %1").arg(documentName);

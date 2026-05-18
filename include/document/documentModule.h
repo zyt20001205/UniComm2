@@ -91,6 +91,8 @@ public:
 
     [[nodiscard]] QJsonArray diagnosticsGet(const QUrl &documentUrl) const;
 
+    [[nodiscard]] QJsonArray symbolGet(const QUrl &documentUrl) const;
+
     void diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics);
 
     void codeActionRequest(const QUrl &documentUrl, int startLine, int startCharacter, int endLine, int endCharacter);
@@ -203,6 +205,7 @@ private:
     CodeAssistant *m_codeAssistant{};
     QHash<QUrl, BasePage *> m_pageHash{};
     QHash<QUrl, QJsonArray> m_diagnosticsHash{};
+    QHash<QUrl, QJsonArray> m_symbolHash{};
     QVariantHash m_navigationHistory{};
 };
 

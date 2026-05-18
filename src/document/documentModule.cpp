@@ -349,6 +349,10 @@ QJsonArray DocumentModule::diagnosticsGet(const QUrl &documentUrl) const {
     return m_diagnosticsHash.value(documentUrl);
 }
 
+QJsonArray DocumentModule::symbolGet(const QUrl& documentUrl) const {
+    return m_symbolHash.value(documentUrl);
+}
+
 // public: lsp
 void DocumentModule::diagnosticsNotification(const QUrl &documentUrl, const QJsonArray &diagnostics) {
     m_diagnosticsHash.insert(documentUrl, diagnostics);
@@ -498,9 +502,8 @@ void DocumentModule::documentSymbolRequest(const QUrl &documentUrl) {
 }
 
 void DocumentModule::documentSymbolResponse(const QUrl &documentUrl, const QJsonArray &result) {
-    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) {
-        luaPage->documentSymbolResponse(result);
-    }
+    m_symbolHash.insert(documentUrl, result);
+    if (auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->documentSymbolResponse(result);
 }
 
 void DocumentModule::documentHighlightRequest(const QUrl &documentUrl, const int line, const int character) {
@@ -522,9 +525,7 @@ void DocumentModule::documentHighlightRequest(const QUrl &documentUrl, const int
 }
 
 void DocumentModule::documentHighlightResponse(const QUrl &documentUrl, const QJsonArray &result) {
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) {
-        luaPage->documentHighlightResponse(result);
-    }
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->documentHighlightResponse(result);
 }
 
 void DocumentModule::foldingRangeRequest(const QUrl &documentUrl) {
