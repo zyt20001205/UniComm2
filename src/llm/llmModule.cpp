@@ -119,50 +119,97 @@ void LLMModule::requestSend() {
     QJsonObject body{};
     body["model"] = m_model;
     body["messages"] = m_messages;
-    if (m_mode != "ask") body["tools"] = m_tools->toolsGet();
+    // TODO: agent stream output
+    if (m_mode == "ask") body["stream"] = true;
+    else body["tools"] = m_tools->toolsGet();
 
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
 
-    connect(reply, &QNetworkReply::finished, [this, reply] {
-        const auto data = reply->readAll();
-        const auto doc = QJsonDocument::fromJson(data);
-        if (doc.isNull()) return;
-        if (reply->error() == QNetworkReply::NoError) {
-            const auto message = doc.object()
-                    .value("choices").toArray()
-                    .at(0).toObject()
-                    .value("message").toObject();
-            m_messages.append(message);
-            if (message.contains("tool_calls")) {
-                const auto toolCalls = message.value("tool_calls").toArray();
-                for (const auto &value: toolCalls) {
-                    const auto toolCall = value.toObject();
-                    const auto id = toolCall.value("id").toString();
-                    const auto function = toolCall.value("function").toObject();
-                    const auto arguments = function.value("arguments").toString();
-                    const auto name = function.value("name").toString();
-                    const auto content = m_tools->toolsSet(m_mode, name, arguments);
-                    m_messages.append(QJsonObject{
-                        {"role", "tool"},
-                        {"tool_call_id", id},
-                        {"content", content}
-                    });
+    if (m_mode == "ask") {
+        chatCreate("assistant", "");
+        statusSet("assistant", "Thinking...");
+        auto content = std::make_shared<QString>();
+        connect(reply, &QNetworkReply::readyRead, this, [this, reply, content] {
+            if (reply->error() != QNetworkReply::NoError) return;
+            while (reply->canReadLine()) {
+                auto line = reply->readLine().trimmed();
+                if (line.isEmpty()) continue;
+                if (line.startsWith("data: ")) {
+                    line = line.mid(6);
+                    if (line == "[DONE]") continue;
+                    const auto doc = QJsonDocument::fromJson(line);
+                    if (!doc.isNull() && doc.isObject()) {
+                        const auto delta = doc.object()
+                                                    .value("choices").toArray()
+                                                    .at(0).toObject()
+                                                    .value("delta").toObject();
+                        if (delta.contains("content")) {
+                            const auto chunk = delta.value("content").toString();
+                            content->append(chunk);
+                            QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, chunk));
+                        }
+                    }
                 }
-                requestSend();
-            } else {
-                const auto content = message.value("content").toString();
-                chatCreate("assistant", content);
-                statusSet("assistant", "Finished");
             }
-        } else {
-            const auto message = doc.object()
-                    .value("error").toObject()
-                    .value("message").toString();
-            chatCreate("user", message);
-            statusSet("user", reply->errorString());
-        }
-        reply->deleteLater();
-    });
+        });
+        connect(reply, &QNetworkReply::finished, this, [this, reply, content] {
+            if (reply->error() == QNetworkReply::NoError) {
+                m_messages.append(QJsonObject{
+                    {"role", "assistant"},
+                    {"content", *content}
+                });
+                statusSet("assistant", "Finished");
+            } else {
+                const auto data = reply->readAll();
+                const auto doc = QJsonDocument::fromJson(data);
+                const auto message = doc.object().value("error").toObject().value("message").toString();
+                chatCreate("error", message);
+                statusSet("error", reply->errorString());
+            }
+            reply->deleteLater();
+        });
+    } else {
+        connect(reply, &QNetworkReply::finished, [this, reply] {
+            const auto data = reply->readAll();
+            const auto doc = QJsonDocument::fromJson(data);
+            if (doc.isNull()) return;
+            if (reply->error() == QNetworkReply::NoError) {
+                const auto message = doc.object()
+                        .value("choices").toArray()
+                        .at(0).toObject()
+                        .value("message").toObject();
+                m_messages.append(message);
+                if (message.contains("tool_calls")) {
+                    const auto toolCalls = message.value("tool_calls").toArray();
+                    for (const auto &value: toolCalls) {
+                        const auto toolCall = value.toObject();
+                        const auto id = toolCall.value("id").toString();
+                        const auto function = toolCall.value("function").toObject();
+                        const auto arguments = function.value("arguments").toString();
+                        const auto name = function.value("name").toString();
+                        const auto content = m_tools->toolsSet(m_mode, name, arguments);
+                        m_messages.append(QJsonObject{
+                            {"role", "tool"},
+                            {"tool_call_id", id},
+                            {"content", content}
+                        });
+                    }
+                    requestSend();
+                } else {
+                    const auto content = message.value("content").toString();
+                    chatCreate("assistant", content);
+                    statusSet("assistant", "Finished");
+                }
+            } else {
+                const auto message = doc.object()
+                        .value("error").toObject()
+                        .value("message").toString();
+                chatCreate("user", message);
+                statusSet("user", reply->errorString());
+            }
+            reply->deleteLater();
+        });
+    }
 }
 
 void LLMModule::permissionSet(const bool status) const {
