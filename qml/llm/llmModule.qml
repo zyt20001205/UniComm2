@@ -111,6 +111,19 @@ Item {
                         llmModule.permissionSet(false)
                     }
                 }
+
+                BusyIndicator {
+                    visible: chatStatus.role === "busy"
+                    running: visible
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                }
+
+                IconImage {
+                    visible: chatStatus.role === "idle"
+                    color: global.successBack3
+                    source: "qrc:/icon/checkmark.svg"
+                    Layout.preferredWidth: 16; Layout.preferredHeight: 16
+                }
             }
         }
 
