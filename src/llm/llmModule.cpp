@@ -129,12 +129,13 @@ void LLMModule::requestSend() {
     body["stream"] = true;
     if (m_mode != "ask") body["tools"] = m_tools->toolsGet();
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
+    auto reasoning = std::make_shared<QString>();
     auto content = std::make_shared<QString>();
     auto reasoningId = std::make_shared<QString>();
     auto contentId = std::make_shared<QString>();
     auto toolCalls = std::make_shared<QVariantHash>();
 
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply, content, reasoningId, contentId, toolCalls] {
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, reasoning, content, reasoningId, contentId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
         while (reply->canReadLine()) {
             auto line = reply->readLine().trimmed();
@@ -158,6 +159,7 @@ void LLMModule::requestSend() {
                     *reasoningId = chatCreate("assistant", "");
                     statusSet("busy", "Thinking...");
                 }
+                reasoning->append(_reasoning);
                 QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
             }
 
@@ -189,7 +191,7 @@ void LLMModule::requestSend() {
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, content, toolCalls] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::NoError) {
             // tool calls
             if (!toolCalls->isEmpty()) {
@@ -215,6 +217,8 @@ void LLMModule::requestSend() {
                 if (!_toolCalls.isEmpty()) {
                     m_messages.append(QJsonObject{
                         {"role", "assistant"},
+                        {"content", *content},
+                        {"reasoning_content", *reasoning},
                         {"tool_calls", _toolCalls}
                     });
                 }
@@ -229,7 +233,7 @@ void LLMModule::requestSend() {
                     m_messages.append(QJsonObject{
                         {"role", "tool"},
                         {"tool_call_id", id},
-                        {"content", content}
+                        {"content", content},
                     });
                 }
                 requestSend();
