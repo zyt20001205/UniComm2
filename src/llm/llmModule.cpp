@@ -81,7 +81,7 @@ void LLMModule::llmConfigSave() {
     g_workspaceConfig["llmConfig"] = m_config;
 }
 
-void LLMModule::keySet(const QString &key, const QString &apikey) const {
+void LLMModule::apikeySet(const QString &key, const QString &apikey) const {
     if (key == "deepseek-api-key") m_deepseekAgent->apikeySet(apikey);
 }
 

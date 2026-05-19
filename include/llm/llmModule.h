@@ -25,7 +25,7 @@ public:
 
     void llmConfigSave();
 
-    Q_INVOKABLE void keySet(const QString &key, const QString &apikey) const;
+    Q_INVOKABLE void apikeySet(const QString &key, const QString &apikey) const;
 
     Q_INVOKABLE void modeSet(const QString &mode);
 
