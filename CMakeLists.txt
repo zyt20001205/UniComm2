@@ -528,6 +528,7 @@ target_link_libraries(UniComm PRIVATE
         ${LEPTONICA_LIB}
         ${LUA_LIB}
         ${NUSPELL_LIB}
+        ${QTKEYCHAIN_LIB}
         ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
         #???

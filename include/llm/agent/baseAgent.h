@@ -16,16 +16,22 @@ public:
 
     QNetworkRequest requestGet() { return m_request; }
 
+    virtual void keyGet() = 0;
+
+    virtual void keySet(const QString &apikey) = 0;
+
     virtual void modelGet() = 0;
 
 signals:
+    void setKey(const QString &apikey);
+
     void setModel(QStandardItemModel *agentModel);
 
 protected:
-    virtual void keyGet() = 0;
-
     QNetworkRequest m_request{};
-    QByteArray m_key{};
+    QString m_service{};
+    QString m_key{};
+    QString m_apikey{};
 };
 
 #endif //UNICOMM_BASEAGENT_H

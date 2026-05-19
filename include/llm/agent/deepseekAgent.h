@@ -11,10 +11,11 @@ public:
 
     ~DeepseekAgent() override = default;
 
-    void modelGet() override;
+    void keySet(const QString &apikey) override;
 
-protected:
     void keyGet() override;
+
+    void modelGet() override;
 
 private:
     QStandardItemModel *m_deepseekModel{};

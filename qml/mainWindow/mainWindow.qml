@@ -2533,6 +2533,40 @@ Item {
     }
 
     // llm module
+    Dialog {
+        id: llmModuleApikeyDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        standardButtons: Dialog.Ok
+        property string key
+        property string apikey
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            llmModuleApikeyTextField.text = llmModuleApikeyDialog.apikey
+            llmModuleApikeyTextField.forceActiveFocus()
+            llmModuleApikeyTextField.selectAll()
+        }
+        onAccepted: {
+            llmModule.keySet(llmModuleApikeyDialog.key, llmModuleApikeyTextField.text)
+        }
+
+        TextField {
+            id: llmModuleApikeyTextField
+            width: parent.width
+            placeholderText: qsTr("Enter key:")
+
+            onAccepted: llmModuleApikeyDialog.accept()
+            Keys.onEscapePressed: llmModuleApikeyDialog.reject()
+        }
+    }
+
     Menu {
         id: llmModuleModeMenu
 
@@ -2570,6 +2604,7 @@ Item {
 
     Menu {
         id: llmModuleModelMenu
+        property string deepseekApikey
         property var deepseekModel
 
         onOpened: {
@@ -2584,17 +2619,30 @@ Item {
             icon.source: "qrc:/icon/deepseek.svg"
             icon.width: 16; icon.height: 16
 
-            enabled: recentFilesInstantiator.count > 0
+            MenuItem {
+                text: qsTr("API key")
+
+                onTriggered: {
+                    llmModuleApikeyDialog.title = qsTr("Enter Deepseek API Key")
+                    llmModuleApikeyDialog.key = "deepseek-api-key"
+                    llmModuleApikeyDialog.apikey = llmModuleModelMenu.deepseekApikey
+                    llmModuleApikeyDialog.open()
+                }
+            }
+
+            MenuSeparator {
+                visible: llmModuleDeepseekInstantiator.count > 0
+            }
 
             Instantiator {
-                id: recentFilesInstantiator
+                id: llmModuleDeepseekInstantiator
                 model: llmModuleModelMenu.deepseekModel
                 delegate: MenuItem {
                     text: model.display
                     onTriggered: llmModule.modelSet(text)
                 }
 
-                onObjectAdded: (index, object) => llmModuleDeepseekMenu.insertItem(index, object)
+                onObjectAdded: (index, object) => llmModuleDeepseekMenu.addItem(object)
                 onObjectRemoved: (index, object) => llmModuleDeepseekMenu.removeItem(object)
             }
         }
