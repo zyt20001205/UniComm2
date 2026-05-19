@@ -7,6 +7,7 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property var chatMap: ({})
     property var lastChatLabel: null
 
     Rectangle {
@@ -92,7 +93,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                     onClicked: {
-                        chatAppend(" ✓")
+                        chatAppend(null, " ✓")
                         llmModule.permissionSet(true)
                     }
                 }
@@ -106,7 +107,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                     onClicked: {
-                        chatAppend(" ✗")
+                        chatAppend(null, " ✗")
                         llmModule.permissionSet(false)
                     }
                 }
@@ -252,16 +253,22 @@ Item {
         easing.type: Easing.OutQuad
     }
 
-    function chatCreate(role, text) {
-        rootItem.lastChatLabel = chatComponent.createObject(chatColumn, {
-            "role": role,
-            "text": text
+    function chatCreate(id, role, text) {
+        const obj = chatComponent.createObject(chatColumn, {
+            role: role,
+            text: text
         })
+        rootItem.lastChatLabel = obj
+        rootItem.chatMap[id] = obj
         scrollTimer.restart()
     }
 
-    function chatAppend(text) {
-        rootItem.lastChatLabel.text += text
+    function chatAppend(id, text) {
+        if (id === null) {
+            rootItem.lastChatLabel.text += text
+        } else {
+            rootItem.chatMap[id].text += text
+        }
         scrollTimer.restart()
     }
 

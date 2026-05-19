@@ -133,10 +133,11 @@ void LLMModule::requestSend() {
 
     // ask mode
     if (m_mode == "ask") {
-        chatCreate("assistant", "");
-        statusSet("assistant", "Thinking...");
         auto content = std::make_shared<QString>();
-        connect(reply, &QNetworkReply::readyRead, this, [this, reply, content] {
+        auto reasoningId = std::make_shared<QString>();
+        auto contentId = std::make_shared<QString>();
+        statusSet("assistant", "Thinking...");
+        connect(reply, &QNetworkReply::readyRead, this, [this, reply, content, reasoningId, contentId] {
             if (reply->error() != QNetworkReply::NoError) return;
             while (reply->canReadLine()) {
                 auto line = reply->readLine().trimmed();
@@ -150,17 +151,19 @@ void LLMModule::requestSend() {
                 if (choices.isEmpty()) continue;
                 const auto delta = choices.at(0).toObject().value("delta").toObject();
 
-                const auto _content = delta.value("content").toString();
-                if (!_content.isEmpty()) {
-                    content->append(_content);
-                    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, _content));
+                const auto _reasoning = delta.value("reasoning_content").toString();
+                if (!_reasoning.isEmpty()) {
+                    if (reasoningId->isEmpty()) *reasoningId = chatCreate("assistant", "");
+                    content->append(_reasoning);
+                    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
                 }
 
-                // const auto _reasoning = delta.value("reasoning_content").toString();
-                // if (!_reasoning.isEmpty()) {
-                //     content->append(_content);
-                //     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, _reasoning));
-                // }
+                const auto _content = delta.value("content").toString();
+                if (!_content.isEmpty()) {
+                    if (contentId->isEmpty()) *contentId = chatCreate("assistant", "");
+                    content->append(_content);
+                    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *contentId), Q_ARG(QVariant, _content));
+                }
             }
         });
         connect(reply, &QNetworkReply::finished, this, [this, reply, content] {
@@ -231,8 +234,10 @@ void LLMModule::permissionSet(const bool status) const {
 }
 
 // private
-void LLMModule::chatCreate(const QString &role, const QString &text) const {
-    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+QString LLMModule::chatCreate(const QString &role, const QString &text) {
+    const auto id = "id_" + QString::number(m_id++);
+    QMetaObject::invokeMethod(m_root, "chatCreate",Q_ARG(QVariant, id),  Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+    return id;
 }
 
 void LLMModule::statusSet(const QString &role, const QString &status) const {

@@ -36,7 +36,7 @@ public:
     Q_INVOKABLE void permissionSet(bool status) const;
 
 private:
-    void chatCreate(const QString &role, const QString &text) const;
+    [[nodiscard]] QString chatCreate(const QString &role, const QString &text);
 
     void statusSet(const QString &role, const QString &status) const;
 
@@ -50,6 +50,7 @@ private:
     QObject *m_modelMenu{};
     QString m_mode{};
     QString m_model{};
+    int m_id = 0;
     QJsonArray m_messages{};
     LLMTools *m_tools{};
     DeepseekAgent *m_deepseekAgent{};
