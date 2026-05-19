@@ -175,19 +175,22 @@ void LLMModule::requestSend() {
             }
 
             const auto _toolCalls = delta.value("tool_calls").toArray();
-            for (const auto &value : _toolCalls) {
-                const auto _toolCall = value.toObject();
+            if (!_toolCalls.isEmpty()) {
+                QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
+                for (const auto &value : _toolCalls) {
+                    const auto _toolCall = value.toObject();
 
-                if (!_toolCall.contains("index")) continue;
-                const QString index = QString::number(_toolCall.value("index").toInt());
-                QVariantHash toolCall = toolCalls->value(index).toHash();
+                    if (!_toolCall.contains("index")) continue;
+                    const QString index = QString::number(_toolCall.value("index").toInt());
+                    QVariantHash toolCall = toolCalls->value(index).toHash();
 
-                if (_toolCall.contains("id")) toolCall["id"] = _toolCall.value("id").toString();
+                    if (_toolCall.contains("id")) toolCall["id"] = _toolCall.value("id").toString();
 
-                const auto function = _toolCall.value("function").toObject();
-                if (function.contains("name")) toolCall["name"] = function.value("name").toString();
-                if (function.contains("arguments")) toolCall["arguments"] = toolCall.value("arguments").toString() + function.value("arguments").toString();
-                (*toolCalls)[index] = toolCall;
+                    const auto function = _toolCall.value("function").toObject();
+                    if (function.contains("name")) toolCall["name"] = function.value("name").toString();
+                    if (function.contains("arguments")) toolCall["arguments"] = toolCall.value("arguments").toString() + function.value("arguments").toString();
+                    (*toolCalls)[index] = toolCall;
+                }
             }
         }
     });
