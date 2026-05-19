@@ -155,7 +155,6 @@ void LLMModule::requestSend() {
                         *reasoningId = chatCreate("assistant", "");
                         statusSet("busy", "Thinking...");
                     }
-                    content->append(_reasoning);
                     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
                 }
 
