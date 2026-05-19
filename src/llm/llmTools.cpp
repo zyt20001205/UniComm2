@@ -575,42 +575,42 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
     } else if (mode == "write") {
         if (m_godGroup.contains(name)) m_approved = false;
     }
-    QString text{};
-    QString status{};
+    QString chatText{};
+    QString statusText{};
     if (name == "api_list") {
-        text = "Get available APIs";
-        status = "I want to get all available APIs.";
+        chatText = "Get available APIs";
+        statusText = "I want to get all available APIs.";
     } else if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();
-        text = QString("Read %1 details").arg(packageName);
-        status = QString("I want to read %1 details.").arg(packageName);
+        chatText = QString("Read %1 details").arg(packageName);
+        statusText = QString("I want to read %1 details.").arg(packageName);
     } else if (name == "demo_get") {
         const auto packageName = object.value("package_name").toString();
-        text = QString("Read %1 demo").arg(packageName);
-        status = QString("I want to see %1 demo.").arg(packageName);
+        chatText = QString("Read %1 demo").arg(packageName);
+        statusText = QString("I want to see %1 demo.").arg(packageName);
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        text = QString("Check %1 diagnostics").arg(documentName);
-        status = QString("I want to check %1 diagnostics.").arg(documentName);
+        chatText = QString("Check %1 diagnostics").arg(documentName);
+        statusText = QString("I want to check %1 diagnostics.").arg(documentName);
     } else if (name == "symbol_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        text = QString("Understand %1 symbol").arg(documentName);
-        status = QString("I want to understand %1 symbol.").arg(documentName);
+        chatText = QString("Understand %1 symbol").arg(documentName);
+        statusText = QString("I want to understand %1 symbol.").arg(documentName);
     } else if (name == "document_list") {
-        text = "Get available documents";
-        status = "I want to get all available documents.";
+        chatText = "Get available documents";
+        statusText = "I want to get all available documents.";
     } else if (name == "document_focused") {
-        text = "Get current document";
-        status = "I want to know current document.";
+        chatText = "Get current document";
+        statusText = "I want to know current document.";
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        text = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+        chatText = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
                                                       QString::number(endCharacter));
-        status = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+        statusText = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
                                                                    QString::number(endCharacter));
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
@@ -618,28 +618,28 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        text = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+        chatText = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
                                                        QString::number(endCharacter));
-        status = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+        statusText = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
                                                                    QString::number(endCharacter));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        text = QString("Run %1").arg(documentName);
-        status = QString("I want to run %1.").arg(documentName);
+        chatText = QString("Run %1").arg(documentName);
+        statusText = QString("I want to run %1.").arg(documentName);
     } else if (name == "database_list") {
-        text = "Get available database keys";
-        status = "I want to get all available database keys.";
+        chatText = "Get available database keys";
+        statusText = "I want to get all available database keys.";
     } else if (name == "datatable_list") {
-        text = "Get available datatable keys";
-        status = "I want to get all available datatable keys.";
+        chatText = "Get available datatable keys";
+        statusText = "I want to get all available datatable keys.";
     } else if (name == "port_list") {
-        text = "Get available ports";
-        status = "I want to get all available ports.";
+        chatText = "Get available ports";
+        statusText = "I want to get all available ports.";
     }
-    if (m_approved) text += " ✓";
-    emit createChat("tool", text);
-    emit setStatus("tool", status);
+    if (m_approved) chatText += " ✓";
+    emit createChat("tool", chatText);
+    emit setStatus("waiting", statusText);
     if (!m_approved) m_eventloop->exec();
-    emit setStatus("user", "Responding...");
+    emit setStatus("busy", "Responding...");
     return m_approved;
 }

@@ -38,7 +38,7 @@ public:
 private:
     QString chatCreate(const QString &role, const QString &text);
 
-    void statusSet(const QString &role, const QString &status) const;
+    void statusSet(const QString &status, const QString &text) const;
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};

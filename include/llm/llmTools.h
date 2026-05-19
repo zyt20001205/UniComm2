@@ -23,7 +23,7 @@ public:
 signals:
     void createChat(const QString &role, const QString &text);
 
-    void setStatus(const QString &role, const QString &status);
+    void setStatus(const QString &status, const QString &text);
 
 private:
     [[nodiscard]] bool permissionGet(const QString &mode, const QString &name, const QJsonObject &object);

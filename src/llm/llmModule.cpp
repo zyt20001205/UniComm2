@@ -244,6 +244,6 @@ QString LLMModule::chatCreate(const QString &role, const QString &text) {
     return id;
 }
 
-void LLMModule::statusSet(const QString &role, const QString &status) const {
-    QMetaObject::invokeMethod(m_root, "statusSet", Q_ARG(QVariant, role), Q_ARG(QVariant, status));
+void LLMModule::statusSet(const QString &status, const QString &text) const {
+    QMetaObject::invokeMethod(m_root, "statusSet", Q_ARG(QVariant, status), Q_ARG(QVariant, text));
 }

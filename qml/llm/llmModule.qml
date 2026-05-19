@@ -44,31 +44,31 @@ Item {
 
         Item {
             id: chatStatus
-            property string role: "idle"
-            property string status: qsTr("Idle")
+            property string status: "idle"
+            property string text: qsTr("Idle")
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
             Rectangle {
                 id: chatStatusRect
                 anchors.fill: parent
                 color: "transparent"
-                border.color: chatStatus.role === "busy" ? global.brandBack :
-                            chatStatus.role === "idle" ? global.successBack3 :
-                            chatStatus.role === "waiting" ? global.warningBack3 : global.dangerBack3
+                border.color: chatStatus.status === "busy" ? global.brandBack :
+                            chatStatus.status === "idle" ? global.successBack3 :
+                            chatStatus.status === "waiting" ? global.warningBack3 : global.dangerBack3
                 border.width: 1
                 radius: 6
 
                 SequentialAnimation on border.color {
-                    running: chatStatus.role === "tool"
+                    running: chatStatus.status === "waiting"
                     loops: Animation.Infinite
                     ColorAnimation {
                         to: global.back
                         duration: 1000
                     }
                     ColorAnimation {
-                        to: chatStatus.role === "busy" ? global.brandBack :
-                            chatStatus.role === "idle" ? global.successBack3 :
-                            chatStatus.role === "waiting" ? global.warningBack3 : global.dangerBack3
+                        to: chatStatus.status === "busy" ? global.brandBack :
+                            chatStatus.status === "idle" ? global.successBack3 :
+                            chatStatus.status === "waiting" ? global.warningBack3 : global.dangerBack3
                         duration: 1000
                     }
                 }
@@ -79,13 +79,13 @@ Item {
                 anchors.leftMargin: 6; anchors.rightMargin: 6
 
                 Label {
-                    text: chatStatus.status
+                    text: chatStatus.text
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
 
                 Button {
-                    visible: chatStatus.role === "tool"
+                    visible: chatStatus.status === "waiting"
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     flat: true
                     icon.source: "qrc:/icon/checkmark.svg"
@@ -99,7 +99,7 @@ Item {
                 }
 
                 Button {
-                    visible: chatStatus.role === "tool"
+                    visible: chatStatus.status === "waiting"
                     leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                     flat: true
                     icon.source: "qrc:/icon/dismiss.svg"
@@ -113,13 +113,13 @@ Item {
                 }
 
                 BusyIndicator {
-                    visible: chatStatus.role === "busy"
+                    visible: chatStatus.status === "busy"
                     running: visible
                     Layout.preferredWidth: 16; Layout.preferredHeight: 16
                 }
 
                 IconImage {
-                    visible: chatStatus.role === "idle"
+                    visible: chatStatus.status === "idle"
                     color: global.successBack3
                     source: "qrc:/icon/checkmark.svg"
                     Layout.preferredWidth: 16; Layout.preferredHeight: 16
@@ -285,9 +285,9 @@ Item {
         scrollTimer.restart()
     }
 
-    function statusSet(role, status) {
-        chatStatus.role = role
+    function statusSet(status, text) {
         chatStatus.status = status
+        chatStatus.text = text
     }
 
     Component.onCompleted: {
