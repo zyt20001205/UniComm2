@@ -36,7 +36,7 @@ public:
     Q_INVOKABLE void permissionSet(bool status) const;
 
 private:
-    [[nodiscard]] QString chatCreate(const QString &role, const QString &text);
+    QString chatCreate(const QString &role, const QString &text);
 
     void statusSet(const QString &role, const QString &status) const;
 

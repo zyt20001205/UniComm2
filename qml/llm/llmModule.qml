@@ -44,7 +44,7 @@ Item {
 
         Item {
             id: chatStatus
-            property string role: "assistant"
+            property string role: "idle"
             property string status: qsTr("Idle")
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
@@ -52,9 +52,9 @@ Item {
                 id: chatStatusRect
                 anchors.fill: parent
                 color: "transparent"
-                border.color: chatStatus.role === "user" ? global.brandBack :
-                            chatStatus.role === "assistant" ? global.successBack3 :
-                            chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
+                border.color: chatStatus.role === "busy" ? global.brandBack :
+                            chatStatus.role === "idle" ? global.successBack3 :
+                            chatStatus.role === "waiting" ? global.warningBack3 : global.dangerBack3
                 border.width: 1
                 radius: 6
 
@@ -66,9 +66,9 @@ Item {
                         duration: 1000
                     }
                     ColorAnimation {
-                        to: chatStatus.role === "user" ? global.brandBack :
-                            chatStatus.role === "assistant" ? global.successBack3 :
-                            chatStatus.role === "tool" ? global.warningBack3 : global.dangerBack3
+                        to: chatStatus.role === "busy" ? global.brandBack :
+                            chatStatus.role === "idle" ? global.successBack3 :
+                            chatStatus.role === "waiting" ? global.warningBack3 : global.dangerBack3
                         duration: 1000
                     }
                 }

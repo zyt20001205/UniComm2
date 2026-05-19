@@ -118,7 +118,6 @@ void LLMModule::requestSend() {
     const auto text = m_textArea->property("text").toString();
     if (!text.isEmpty()) {
         chatCreate("user", text);
-        statusSet("user", "Responding...");
         m_messages.append(QJsonObject{
             {"role", "user"},
             {"content", text}
@@ -136,7 +135,6 @@ void LLMModule::requestSend() {
         auto content = std::make_shared<QString>();
         auto reasoningId = std::make_shared<QString>();
         auto contentId = std::make_shared<QString>();
-        statusSet("assistant", "Thinking...");
         connect(reply, &QNetworkReply::readyRead, this, [this, reply, content, reasoningId, contentId] {
             if (reply->error() != QNetworkReply::NoError) return;
             while (reply->canReadLine()) {
@@ -153,14 +151,20 @@ void LLMModule::requestSend() {
 
                 const auto _reasoning = delta.value("reasoning_content").toString();
                 if (!_reasoning.isEmpty()) {
-                    if (reasoningId->isEmpty()) *reasoningId = chatCreate("assistant", "");
+                    if (reasoningId->isEmpty()) {
+                        *reasoningId = chatCreate("assistant", "");
+                        statusSet("busy", "Thinking...");
+                    }
                     content->append(_reasoning);
                     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
                 }
 
                 const auto _content = delta.value("content").toString();
                 if (!_content.isEmpty()) {
-                    if (contentId->isEmpty()) *contentId = chatCreate("assistant", "");
+                    if (contentId->isEmpty()) {
+                        *contentId = chatCreate("assistant", "");
+                        statusSet("busy", "Responding...");
+                    }
                     content->append(_content);
                     QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *contentId), Q_ARG(QVariant, _content));
                 }
@@ -172,7 +176,7 @@ void LLMModule::requestSend() {
                     {"role", "assistant"},
                     {"content", *content}
                 });
-                statusSet("assistant", "Finished");
+                statusSet("idle", "Finished");
             } else {
                 const auto data = reply->readAll();
                 const auto doc = QJsonDocument::fromJson(data);
@@ -215,14 +219,14 @@ void LLMModule::requestSend() {
                 } else {
                     const auto content = message.value("content").toString();
                     chatCreate("assistant", content);
-                    statusSet("assistant", "Finished");
+                    statusSet("idle", "Finished");
                 }
             } else {
                 const auto message = doc.object()
                         .value("error").toObject()
                         .value("message").toString();
-                chatCreate("user", message);
-                statusSet("user", reply->errorString());
+                chatCreate("error", message);
+                statusSet("error", reply->errorString());
             }
             reply->deleteLater();
         });
