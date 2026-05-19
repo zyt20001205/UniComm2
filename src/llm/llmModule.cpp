@@ -190,6 +190,7 @@ void LLMModule::requestSend() {
     // agent mode
     // TODO: agent stream output
     else {
+        statusSet("busy", "Responding...");
         connect(reply, &QNetworkReply::finished, [this, reply] {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
