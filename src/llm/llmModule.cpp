@@ -126,112 +126,129 @@ void LLMModule::requestSend() {
     QJsonObject body{};
     body["model"] = m_model;
     body["messages"] = m_messages;
-    if (m_mode == "ask") body["stream"] = true;
-    else body["tools"] = m_tools->toolsGet();
+    body["stream"] = true;
+    if (m_mode != "ask") body["tools"] = m_tools->toolsGet();
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
+    auto content = std::make_shared<QString>();
+    auto reasoningId = std::make_shared<QString>();
+    auto contentId = std::make_shared<QString>();
+    auto toolCalls = std::make_shared<QVariantHash>();
 
-    // ask mode
-    if (m_mode == "ask") {
-        auto content = std::make_shared<QString>();
-        auto reasoningId = std::make_shared<QString>();
-        auto contentId = std::make_shared<QString>();
-        connect(reply, &QNetworkReply::readyRead, this, [this, reply, content, reasoningId, contentId] {
-            if (reply->error() != QNetworkReply::NoError) return;
-            while (reply->canReadLine()) {
-                auto line = reply->readLine().trimmed();
-                if (line.isEmpty()) continue;
-                if (!line.startsWith("data: ")) continue;
-                line = line.mid(6);
-                if (line == "[DONE]") continue;
-                const auto doc = QJsonDocument::fromJson(line);
-                if (doc.isNull() || !doc.isObject()) continue;
-                const auto choices = doc.object().value("choices").toArray();
-                if (choices.isEmpty()) continue;
-                const auto delta = choices.at(0).toObject().value("delta").toObject();
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, content, reasoningId, contentId, toolCalls] {
+        if (reply->error() != QNetworkReply::NoError) return;
+        while (reply->canReadLine()) {
+            auto line = reply->readLine().trimmed();
+            if (line.isEmpty()) continue;
+            if (!line.startsWith("data: ")) continue;
 
-                const auto _reasoning = delta.value("reasoning_content").toString();
-                if (!_reasoning.isEmpty()) {
-                    if (reasoningId->isEmpty()) {
-                        *reasoningId = chatCreate("assistant", "");
-                        statusSet("busy", "Thinking...");
-                    }
-                    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
+            line = line.mid(6);
+            if (line == "[DONE]") continue;
+
+            const auto doc = QJsonDocument::fromJson(line);
+            if (doc.isNull() || !doc.isObject()) continue;
+
+            const auto choices = doc.object().value("choices").toArray();
+            if (choices.isEmpty()) continue;
+
+            const auto delta = choices.at(0).toObject().value("delta").toObject();
+
+            const auto _reasoning = delta.value("reasoning_content").toString();
+            if (!_reasoning.isEmpty()) {
+                if (reasoningId->isEmpty()) {
+                    *reasoningId = chatCreate("assistant", "");
+                    statusSet("busy", "Thinking...");
                 }
-
-                const auto _content = delta.value("content").toString();
-                if (!_content.isEmpty()) {
-                    if (contentId->isEmpty()) {
-                        QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
-                        *contentId = chatCreate("assistant", "");
-                        statusSet("busy", "Responding...");
-                    }
-                    content->append(_content);
-                    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *contentId), Q_ARG(QVariant, _content));
-                }
+                QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
             }
-        });
-        connect(reply, &QNetworkReply::finished, this, [this, reply, content] {
-            if (reply->error() == QNetworkReply::NoError) {
+
+            const auto _content = delta.value("content").toString();
+            if (!_content.isEmpty()) {
+                if (contentId->isEmpty()) {
+                    QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
+                    *contentId = chatCreate("assistant", "");
+                    statusSet("busy", "Responding...");
+                }
+                content->append(_content);
+                QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *contentId), Q_ARG(QVariant, _content));
+            }
+
+            const auto _toolCalls = delta.value("tool_calls").toArray();
+            for (const auto &value : _toolCalls) {
+                const auto _toolCall = value.toObject();
+
+                if (!_toolCall.contains("index")) continue;
+                const QString index = QString::number(_toolCall.value("index").toInt());
+                QVariantHash toolCall = toolCalls->value(index).toHash();
+
+                if (_toolCall.contains("id")) toolCall["id"] = _toolCall.value("id").toString();
+
+                const auto function = _toolCall.value("function").toObject();
+                if (function.contains("name")) toolCall["name"] = function.value("name").toString();
+                if (function.contains("arguments")) toolCall["arguments"] = toolCall.value("arguments").toString() + function.value("arguments").toString();
+                (*toolCalls)[index] = toolCall;
+            }
+        }
+    });
+    connect(reply, &QNetworkReply::finished, this, [this, reply, content, toolCalls] {
+        if (reply->error() == QNetworkReply::NoError) {
+            // tool calls
+            if (!toolCalls->isEmpty()) {
+                // append tool calls to m_message
+                QJsonArray _toolCalls{};
+                for (const auto &value: toolCalls->values()) {
+                    const auto toolCall = value.toHash();
+                    const auto id = toolCall.value("id").toString();
+                    const auto name = toolCall.value("name").toString();
+                    const auto arguments = toolCall.value("arguments").toString();
+
+                    if (id.isEmpty() || name.isEmpty()) continue;
+
+                    _toolCalls.append(QJsonObject{
+                        {"id", id},
+                        {"type", "function"},
+                        {"function", QJsonObject{
+                            {"name", name},
+                            {"arguments", arguments}
+                        }}
+                    });
+                }
+                if (!_toolCalls.isEmpty()) {
+                    m_messages.append(QJsonObject{
+                        {"role", "assistant"},
+                        {"tool_calls", _toolCalls}
+                    });
+                }
+                // call tools
+                for (const auto &value: _toolCalls) {
+                    const auto toolCall = value.toObject();
+                    const auto id = toolCall.value("id").toString();
+                    const auto function = toolCall.value("function").toObject();
+                    const auto arguments = function.value("arguments").toString();
+                    const auto name = function.value("name").toString();
+                    const auto content = m_tools->toolsSet(m_mode, name, arguments);
+                    m_messages.append(QJsonObject{
+                        {"role", "tool"},
+                        {"tool_call_id", id},
+                        {"content", content}
+                    });
+                }
+                requestSend();
+            } else {
                 m_messages.append(QJsonObject{
                     {"role", "assistant"},
                     {"content", *content}
                 });
                 statusSet("idle", "Finished");
-            } else {
-                const auto data = reply->readAll();
-                const auto doc = QJsonDocument::fromJson(data);
-                const auto message = doc.object().value("error").toObject().value("message").toString();
-                chatCreate("error", message);
-                statusSet("error", reply->errorString());
             }
-            reply->deleteLater();
-        });
-    }
-    // agent mode
-    // TODO: agent stream output
-    else {
-        statusSet("busy", "Responding...");
-        connect(reply, &QNetworkReply::finished, [this, reply] {
+        } else {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
-            if (doc.isNull()) return;
-            if (reply->error() == QNetworkReply::NoError) {
-                const auto message = doc.object()
-                        .value("choices").toArray()
-                        .at(0).toObject()
-                        .value("message").toObject();
-                m_messages.append(message);
-                if (message.contains("tool_calls")) {
-                    const auto toolCalls = message.value("tool_calls").toArray();
-                    for (const auto &value: toolCalls) {
-                        const auto toolCall = value.toObject();
-                        const auto id = toolCall.value("id").toString();
-                        const auto function = toolCall.value("function").toObject();
-                        const auto arguments = function.value("arguments").toString();
-                        const auto name = function.value("name").toString();
-                        const auto content = m_tools->toolsSet(m_mode, name, arguments);
-                        m_messages.append(QJsonObject{
-                            {"role", "tool"},
-                            {"tool_call_id", id},
-                            {"content", content}
-                        });
-                    }
-                    requestSend();
-                } else {
-                    const auto content = message.value("content").toString();
-                    chatCreate("assistant", content);
-                    statusSet("idle", "Finished");
-                }
-            } else {
-                const auto message = doc.object()
-                        .value("error").toObject()
-                        .value("message").toString();
-                chatCreate("error", message);
-                statusSet("error", reply->errorString());
-            }
-            reply->deleteLater();
-        });
-    }
+            const auto message = doc.object().value("error").toObject().value("message").toString();
+            chatCreate("error", message);
+            statusSet("error", reply->errorString());
+        }
+        reply->deleteLater();
+    });
 }
 
 void LLMModule::permissionSet(const bool status) const {
