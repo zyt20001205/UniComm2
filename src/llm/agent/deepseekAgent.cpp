@@ -15,7 +15,7 @@ DeepseekAgent::DeepseekAgent(QObject *parent)
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 }
 
-void DeepseekAgent::keySet(const QString &apikey) {
+void DeepseekAgent::apikeySet(const QString &apikey) {
     const auto job = new QKeychain::WritePasswordJob(m_service);
     job->setKey(m_key);
     job->setTextData(apikey);
@@ -30,7 +30,7 @@ void DeepseekAgent::keySet(const QString &apikey) {
     job->start();
 }
 
-void DeepseekAgent::keyGet() {
+void DeepseekAgent::apikeyGet() {
     const auto job = new QKeychain::ReadPasswordJob(m_service);
     job->setKey(m_key);
     connect(job, &QKeychain::Job::finished, [this](QKeychain::Job *j) {

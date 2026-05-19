@@ -63,7 +63,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     connect(m_deepseekAgent, &DeepseekAgent::setModel, this, [this](QStandardItemModel *agentStandardItemModel) {
         m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(agentStandardItemModel));
     });
-    m_deepseekAgent->keyGet();
+    m_deepseekAgent->apikeyGet();
 }
 
 void LLMModule::propertyGet(const QVariantMap &objects) {
@@ -82,7 +82,7 @@ void LLMModule::llmConfigSave() {
 }
 
 void LLMModule::keySet(const QString &key, const QString &apikey) const {
-    if (key == "deepseek-api-key") m_deepseekAgent->keySet(apikey);
+    if (key == "deepseek-api-key") m_deepseekAgent->apikeySet(apikey);
 }
 
 void LLMModule::modeSet(const QString &mode) {

@@ -11,9 +11,9 @@ public:
 
     ~DeepseekAgent() override = default;
 
-    void keySet(const QString &apikey) override;
+    void apikeySet(const QString &apikey) override;
 
-    void keyGet() override;
+    void apikeyGet() override;
 
     void modelGet() override;
 

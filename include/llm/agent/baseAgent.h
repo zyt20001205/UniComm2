@@ -16,9 +16,9 @@ public:
 
     QNetworkRequest requestGet() { return m_request; }
 
-    virtual void keyGet() = 0;
+    virtual void apikeyGet() = 0;
 
-    virtual void keySet(const QString &apikey) = 0;
+    virtual void apikeySet(const QString &apikey) = 0;
 
     virtual void modelGet() = 0;
 
