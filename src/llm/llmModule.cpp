@@ -162,6 +162,7 @@ void LLMModule::requestSend() {
                 const auto _content = delta.value("content").toString();
                 if (!_content.isEmpty()) {
                     if (contentId->isEmpty()) {
+                        QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
                         *contentId = chatCreate("assistant", "");
                         statusSet("busy", "Responding...");
                     }

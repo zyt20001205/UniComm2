@@ -285,6 +285,10 @@ Item {
         scrollTimer.restart()
     }
 
+    function chatVisible(id, status) {
+        rootItem.chatMap[id].visible = status
+    }
+
     function statusSet(status, text) {
         chatStatus.status = status
         chatStatus.text = text
