@@ -286,10 +286,7 @@ Item {
     }
 
     function chatVisible(id, status) {
-        const item = rootItem.chatMap[id]
-        if (item) {
-            item.visible = status
-        }
+        rootItem.chatMap[id].visible = status
     }
 
     function statusSet(status, text) {

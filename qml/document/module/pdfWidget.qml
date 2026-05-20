@@ -6,6 +6,7 @@ Item {
     anchors.fill: parent
 
     PdfMultiPageView {
+        anchors.fill: parent
         document: PdfDocument {
             id: pdf
         }
