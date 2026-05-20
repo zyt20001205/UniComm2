@@ -284,8 +284,8 @@ LLMTools::LLMTools(QObject *parent)
                       {
                           "description",
                           "Read text from a document using a range. "
-                          "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document. "
-                          "To read only line x, use x/0/x/-1."
+                          "For text files, use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document, use x/0/x/-1 to read only line x. "
+                          "For PDF files, one call can read only one page, use start_line/start_character/end_line/end_character = x/-1/-1/-1 to read only page x. "
                       },
                       {
                           "parameters", QJsonObject{
@@ -303,7 +303,8 @@ LLMTools::LLMTools(QObject *parent)
                                               {"type", "integer"},
                                               {
                                                   "description",
-                                                  "The starting line number (0-based). Pass -1 to start from the beginning of the file."
+                                                  "The starting line number (0-based). Pass -1 to start from the beginning of the file. "
+                                                  "For PDF files, this is the page index (0-based)."
                                               }
                                           }
                                       },
@@ -312,7 +313,8 @@ LLMTools::LLMTools(QObject *parent)
                                               {"type", "integer"},
                                               {
                                                   "description",
-                                                  "The starting character offset within the start line (0-based). Pass -1 to start from the first character."
+                                                  "The starting character offset within the start line (0-based). Pass -1 to start from the first character. "
+                                                  "For PDF files, pass -1."
                                               }
                                           }
                                       },
@@ -321,7 +323,8 @@ LLMTools::LLMTools(QObject *parent)
                                               {"type", "integer"},
                                               {
                                                   "description",
-                                                  "The ending line number (0-based, inclusive). Pass -1 to read until the end of the file."
+                                                  "The ending line number (0-based, inclusive). Pass -1 to read until the end of the file. "
+                                                  "For PDF files, pass -1."
                                               }
                                           }
                                       },
@@ -330,7 +333,8 @@ LLMTools::LLMTools(QObject *parent)
                                               {"type", "integer"},
                                               {
                                                   "description",
-                                                  "The ending character offset within the end line. Pass -1 to read until the end of the line."
+                                                  "The ending character offset within the end line. Pass -1 to read until the end of the line. "
+                                                  "For PDF files, pass -1."
                                               }
                                           }
                                       }

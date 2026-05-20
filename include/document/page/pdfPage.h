@@ -3,6 +3,7 @@
 
 #include "basePage.h"
 
+class QPdfDocument;
 class QQuickWidget;
 
 class PdfPage final: public BasePage {
@@ -19,9 +20,12 @@ public:
 
     void documentSave() override;
 
+    [[nodiscard]] QString textGet(int page) const;
+
 private:
     QQuickWidget *m_pdfWidget{};
     QObject *m_pdf{};
+    QPdfDocument *m_doc{};
 };
 
 #endif //UNICOMM_PDFPAGE_H

@@ -307,26 +307,27 @@ void DocumentModule::indexSet(const QUrl &documentUrl, const int line, const int
 
 void DocumentModule::indexGet() const {
     QHash<QString, int> index{};
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(m_focusedUrl))) {
-        index = luaPage->handler()->indexGet();
-        g_cursorPosition = {
-            {"url", m_focusedUrl},
-            {"line", index["line"]},
-            {"character", index["character"]}
-        };
-    }
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(m_focusedUrl))) index = luaPage->handler()->indexGet();
+    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(m_focusedUrl))) index = textPage->handler()->indexGet();
+    if (index.isEmpty()) return;
+    g_cursorPosition = {
+        {"url", m_focusedUrl},
+        {"line", index["line"]},
+        {"character", index["character"]}
+    };
 }
 
 QString DocumentModule::textGet(const QUrl &documentUrl, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) return luaPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
+    if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) return textPage->handler()->textGet(startLine, startCharacter, endLine, endCharacter);
+    if (const auto *pdfPage = qobject_cast<PdfPage *>(m_pageHash.value(documentUrl))) return pdfPage->textGet(startLine);
     return FileModule::textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
 }
 
 void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) {
-        luaPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
-    }
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
+    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->handler()->textSet(text, startLine, startCharacter, endLine, endCharacter);
 }
 
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
@@ -355,7 +356,7 @@ QJsonArray DocumentModule::diagnosticsGet(const QUrl &documentUrl) const {
     return m_diagnosticsHash.value(documentUrl);
 }
 
-QJsonArray DocumentModule::symbolGet(const QUrl& documentUrl) const {
+QJsonArray DocumentModule::symbolGet(const QUrl &documentUrl) const {
     return m_symbolHash.value(documentUrl);
 }
 
