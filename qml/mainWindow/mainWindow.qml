@@ -2554,7 +2554,7 @@ Item {
             llmModuleApikeyTextField.selectAll()
         }
         onAccepted: {
-            llmModule.keySet(llmModuleApikeyDialog.key, llmModuleApikeyTextField.text)
+            llmModule.apikeySet(llmModuleApikeyDialog.key, llmModuleApikeyTextField.text)
         }
 
         TextField {
