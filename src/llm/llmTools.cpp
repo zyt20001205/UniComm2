@@ -8,6 +8,7 @@
 #include "document/documentModule.h"
 #include "port/portModule.h"
 #include "runtime/threadpoolModule.h"
+#include "terminal/logModule.h"
 
 // public
 LLMTools::LLMTools(QObject *parent)
@@ -85,6 +86,94 @@ LLMTools::LLMTools(QObject *parent)
                       }
                   }
               }
+          },
+          // databaseList
+          QJsonObject{
+                  {"type", "function"},
+                  {
+                      "function", QJsonObject{
+                          {"name", "database_list"},
+                          {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
+                          {
+                              "parameters", QJsonObject{
+                                  {"type", "object"},
+                                  {"properties", QJsonObject{}},
+                                  {"required", QJsonArray{}}
+                              }
+                          }
+                      }
+                  }
+          },
+          // datatableList
+          QJsonObject{
+                  {"type", "function"},
+                  {
+                      "function", QJsonObject{
+                          {"name", "datatable_list"},
+                          {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
+                          {
+                              "parameters", QJsonObject{
+                                  {"type", "object"},
+                                  {"properties", QJsonObject{}},
+                                  {"required", QJsonArray{}}
+                              }
+                          }
+                      }
+                  }
+          },
+          // portList
+          QJsonObject{
+                  {"type", "function"},
+                  {
+                      "function", QJsonObject{
+                          {"name", "port_list"},
+                          {"description", "Get the list of all available ports that can be queried for detailed annotations."},
+                          {
+                              "parameters", QJsonObject{
+                                  {"type", "object"},
+                                  {"properties", QJsonObject{}},
+                                  {"required", QJsonArray{}}
+                              }
+                          }
+                      }
+                  }
+          },
+          // logGet
+          QJsonObject{
+                  {"type", "function"},
+                  {
+                      "function", QJsonObject{
+                          {"name", "log_get"},
+                          {
+                              "description",
+                              "Read the latest log blocks from the log panel. "
+                              "Use block_count = -1 to read all currently available blocks (up to backend limit 20)."
+                          },
+                          {
+                              "parameters", QJsonObject{
+                                  {"type", "object"},
+                                  {
+                                      "properties", QJsonObject{
+                                          {
+                                              "block_count", QJsonObject{
+                                                  {"type", "integer"},
+                                                  {
+                                                      "description",
+                                                      "Number of blocks to read from the end. Use -1 to read all currently available blocks (up to backend limit 20)."
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  },
+                                  {
+                                      "required", QJsonArray{
+                                          "block_count"
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  }
           },
           // diagnosticsGet
           QJsonObject{
@@ -399,57 +488,6 @@ LLMTools::LLMTools(QObject *parent)
                   }
               }
           },
-          // databaseList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "database_list"},
-                      {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // datatableList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "datatable_list"},
-                      {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // portList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "port_list"},
-                      {"description", "Get the list of all available ports that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
       },
       m_writeGroup{"text_set"},
       m_godGroup{"thread_start"},
@@ -465,7 +503,10 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
         QJsonArray array{};
         const auto entries = dir.entryInfoList();
         for (const auto &entry: entries) {
-            array.append(entry.baseName());
+            const auto baseName = entry.baseName();
+            if (!QStringList({"http", "mqtt"}).contains(baseName)) {
+                array.append(baseName);
+            }
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
@@ -486,6 +527,35 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
         }
         QTextStream stream(&file);
         return stream.readAll();
+    }
+    if (name == "database_list") {
+        const auto keys = g_database->databaseList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "datatable_list") {
+        const auto keys = g_datatable->datatableList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "port_list") {
+        const auto keys = g_port->portList();
+        QJsonArray array{};
+        for (const auto &key: keys) {
+            array.append(key);
+        }
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
+    }
+    if (name == "log_get") {
+        const auto blockCount = object.value("block_count").toInt(-1);
+        const auto array = g_log->logGet(blockCount);
+        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
     if (name == "diagnostics_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
@@ -536,30 +606,6 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
         g_thread->threadStart(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
         return "\"Thread started.\"}";
     }
-    if (name == "database_list") {
-        const auto keys = g_database->databaseList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "datatable_list") {
-        const auto keys = g_datatable->datatableList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
-    if (name == "port_list") {
-        const auto keys = g_port->portList();
-        QJsonArray array{};
-        for (const auto &key: keys) {
-            array.append(key);
-        }
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
     return {"Unknown tool."};
 }
 
@@ -588,6 +634,19 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto packageName = object.value("package_name").toString();
         chatText = QString("Read %1 demo").arg(packageName);
         statusText = QString("I want to see %1 demo.").arg(packageName);
+    } else if (name == "database_list") {
+        chatText = "Get available database keys";
+        statusText = "I want to get all available database keys.";
+    } else if (name == "datatable_list") {
+        chatText = "Get available datatable keys";
+        statusText = "I want to get all available datatable keys.";
+    } else if (name == "port_list") {
+        chatText = "Get available ports";
+        statusText = "I want to get all available ports.";
+    } else if (name == "log_get") {
+        const auto blockCount = object.value("block_count").toInt(-1);
+        chatText = QString("Get last %1 log blocks").arg(QString::number(blockCount));
+        statusText = QString("I want to read latest %1 log blocks.").arg(QString::number(blockCount));
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Check %1 diagnostics").arg(documentName);
@@ -626,15 +685,6 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);
         statusText = QString("I want to run %1.").arg(documentName);
-    } else if (name == "database_list") {
-        chatText = "Get available database keys";
-        statusText = "I want to get all available database keys.";
-    } else if (name == "datatable_list") {
-        chatText = "Get available datatable keys";
-        statusText = "I want to get all available datatable keys.";
-    } else if (name == "port_list") {
-        chatText = "Get available ports";
-        statusText = "I want to get all available ports.";
     }
     if (m_approved) chatText += " ✓";
     emit createChat("tool", chatText);

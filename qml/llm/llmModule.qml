@@ -286,7 +286,10 @@ Item {
     }
 
     function chatVisible(id, status) {
-        rootItem.chatMap[id].visible = status
+        const item = rootItem.chatMap[id]
+        if (item) {
+            item.visible = status
+        }
     }
 
     function statusSet(status, text) {

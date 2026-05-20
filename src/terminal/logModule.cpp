@@ -1,11 +1,13 @@
 #include "terminal/logModule.h"
 
 #include <QFileDialog>
+#include <QJsonArray>
 #include <QPrinter>
 #include <QQmlContext>
 #include <QQuickTextDocument>
 #include <QQuickWidget>
 #include <QStandardPaths>
+#include <QTextBlock>
 
 #include "globals.h"
 #include "core/globalManager.h"
@@ -72,6 +74,21 @@ void LogModule::logFontReload(const QJsonObject &fontConfigLog) const {
 void LogModule::logFontSave(const QJsonObject &fontConfigLog) {
     m_config["fontFamily"] = fontConfigLog["fontFamily"].toString();
     m_config["fontSize"] = fontConfigLog["fontSize"].toInt();
+}
+
+QJsonArray LogModule::logGet(const int blockCount) const {
+    int count{};
+    // limit range
+    if (blockCount == -1 || blockCount > 20) count = 20;
+    // limit blockCount to available
+    count = qMin(count, m_textDocument->blockCount());
+    // pack to json array
+    QJsonArray array{};
+    for (int i = m_textDocument->blockCount() - count; i < m_textDocument->blockCount(); ++i) {
+        const auto block = m_textDocument->findBlockByNumber(i);
+        array.append(block.text());
+    }
+    return array;
 }
 
 void LogModule::logAppend(const int type, const QString &prefix, const QString &message) {
