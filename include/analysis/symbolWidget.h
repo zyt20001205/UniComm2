@@ -27,7 +27,7 @@ signals:
 private:
     QVariantList symbolParse(const QJsonArray &result, int line, int character);
 
-    QQuickItem *m_rootItem{};
+    QObject *m_root{};
 };
 
 #endif //UNICOMM_SYMBOLWIDGET_H

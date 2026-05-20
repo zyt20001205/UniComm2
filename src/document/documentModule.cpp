@@ -11,6 +11,7 @@
 #include "document/module/scintillaWidget.h"
 #include "document/page/imagePage.h"
 #include "document/page/luaPage.h"
+#include "document/page/pdfPage.h"
 #include "document/page/textPage.h"
 #include "document/page/welcomePage.h"
 
@@ -146,6 +147,11 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
             connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
             connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
             luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
+        } else if (suffix == "pdf") {
+            newPage = new PdfPage(m_config, documentUrl);
+            auto *pdfPage = qobject_cast<PdfPage *>(newPage);
+            pdfPage->propertySet(QVariantHash{
+            });
         } else {
             newPage = new TextPage(m_config, documentUrl);
             auto *textPage = qobject_cast<TextPage *>(newPage);

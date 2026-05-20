@@ -79,6 +79,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/page/basePage.h
         include/document/page/imagePage.h
         include/document/page/luaPage.h
+        include/document/page/pdfPage.h
         include/document/page/textPage.h
         include/document/page/welcomePage.h
         include/llm/llmModule.h
@@ -164,6 +165,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/page/basePage.cpp
         src/document/page/imagePage.cpp
         src/document/page/luaPage.cpp
+        src/document/page/pdfPage.cpp
         src/document/page/textPage.cpp
         src/document/page/welcomePage.cpp
         src/llm/llmModule.cpp
@@ -218,6 +220,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/debug/debugModule.qml"
         "qml/debug/watchModule.qml"
         "qml/document/module/imageWidget.qml"
+        "qml/document/module/pdfWidget.qml"
         "qml/document/module/searchWidget.qml"
         "qml/document/page/welcomePage.qml"
         "qml/llm/llmModule.qml"

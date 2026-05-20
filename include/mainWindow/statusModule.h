@@ -22,7 +22,7 @@ public:
     void threadRefresh(int run, int debug) const;
 
 private:
-    QQuickItem *m_rootItem{};
+    QObject *m_root{};
     QObject *m_positionButton{};
     QObject *m_eolModeButton{};
     QObject *m_codePageButton{};

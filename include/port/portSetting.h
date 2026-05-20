@@ -78,7 +78,7 @@ private:
     ImageProvider *m_imageProvider{};
     QString m_oldPortName{};
 
-    QQuickItem *m_root{};
+    QObject *m_root{};
     QObject *m_swipeView{};
     // serial port
     QObject *m_serialPortNameComboBox{};

@@ -42,7 +42,7 @@ private:
     void databaseIndex();
 
     QQuickWidget *m_widget{};
-    QQuickItem *m_root{};
+    QObject *m_root{};
     QHash<QString, int> m_databaseHash{};
 };
 

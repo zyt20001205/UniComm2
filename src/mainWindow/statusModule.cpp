@@ -25,7 +25,7 @@ void StatusModule::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("eolModeMenu", qvariant_cast<QObject *>(objects["statusModuleEolModeMenu"]));
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/mainWindow/statusModule.qml"));
-    m_rootItem = rootObject();
+    m_root = rootObject();
 }
 
 void StatusModule::propertyGet(const QVariantMap &objects) {
@@ -42,7 +42,7 @@ void StatusModule::documentFocus(const QUrl &documentUrl, const QVariantHash &se
     const QDir workspaceDir(workspacePath);
     const QString relativePath = workspaceDir.relativeFilePath(documentPath);
     const QVariantList pathList = QVariant::fromValue(relativePath.split('/')).toList();
-    QMetaObject::invokeMethod(m_rootItem, "documentPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
+    QMetaObject::invokeMethod(m_root, "documentPathLoad", Q_ARG(QVariant, QVariant::fromValue(pathList)));
 
     switch (session["eolMode"].toInt()) {
         case SC_EOL_CRLF: m_eolModeButton->setProperty("text", tr("CRLF"));

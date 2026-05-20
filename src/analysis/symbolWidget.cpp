@@ -19,12 +19,12 @@ void SymbolWidget::propertySet(const QVariantHash &objects) {
 
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/analysis/symbolWidget.qml"));
-    m_rootItem = rootObject();
+    m_root = rootObject();
 }
 
 void SymbolWidget::documentSymbolShow(const QJsonArray &result, const int line, const int character) {
     const auto symbolList = symbolParse(result, line, character);
-    QMetaObject::invokeMethod(m_rootItem, "symbolLoad", Q_ARG(QVariant, QVariant::fromValue(symbolList)));
+    QMetaObject::invokeMethod(m_root, "symbolLoad", Q_ARG(QVariant, QVariant::fromValue(symbolList)));
 }
 
 void SymbolWidget::indicatorFill(const QVariantHash &position) {

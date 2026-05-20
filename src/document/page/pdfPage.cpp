@@ -1,0 +1,25 @@
+#include "document/page/pdfPage.h"
+
+#include <QQmlContext>
+#include <QQuickWidget>
+
+// public
+PdfPage::PdfPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
+    : BasePage(documentUrl),
+      m_pdfWidget(new QQuickWidget()) {
+    setWidget(m_pdfWidget);
+}
+
+void PdfPage::propertySet(const QVariantHash &objects) {
+    m_pdfWidget->rootContext()->setContextProperty("pdfPage", this);
+    m_pdfWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_pdfWidget->setSource(QUrl("qrc:/qml/document/module/pdfWidget.qml"));
+}
+
+void PdfPage::propertyGet(const QVariantMap &objects) {
+    m_pdf = qvariant_cast<QObject *>(objects["pdf"]);
+    m_pdf->setProperty("source", m_documentUrl);
+}
+
+void PdfPage::documentSave() {
+}

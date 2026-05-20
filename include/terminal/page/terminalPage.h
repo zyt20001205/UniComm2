@@ -36,7 +36,7 @@ protected:
 private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
-    QQuickItem *m_root{};
+    QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
     QTextDocument *m_textDocument{};

@@ -48,7 +48,7 @@ signals:
 private:
     QQuickWidget *m_widget{};
     QObject *m_global{};
-    QQuickItem *m_rootItem{};
+    QObject *m_root{};
     PortSetting *m_portSetting{};
 };
 
