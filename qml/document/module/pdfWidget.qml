@@ -15,6 +15,6 @@ Item {
         const objects = {
             "pdf": pdf,
         };
-        imagePage.propertyGet(objects)
+        pdfPage.propertyGet(objects)
     }
 }
