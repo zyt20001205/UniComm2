@@ -165,7 +165,6 @@ Item {
                     if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                         if (textArea.text.trim().length > 0) {
                             llmModule.requestSend()
-                            textArea.clear()
                         }
                         event.accepted = true
                     }
@@ -174,7 +173,7 @@ Item {
         }
 
         RowLayout {
-            Layout.fillWidth: true; Layout.preferredHeight: 20
+            Layout.fillWidth: true; Layout.preferredHeight: 24
 
             Button {
                 id: modeButton
@@ -214,6 +213,16 @@ Item {
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            Button {
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                flat: true
+                icon.source: llmModule.active ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
+                icon.width: 16; icon.height: 16
+
+                onClicked: llmModule.active ? llmModule.requestCancel() : llmModule.requestSend()
             }
         }
     }

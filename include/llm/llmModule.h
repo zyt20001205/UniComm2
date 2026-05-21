@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+class QNetworkReply;
 class QNetworkAccessManager;
 class QQuickWidget;
 
@@ -13,6 +14,7 @@ class DeepseekAgent;
 
 class LLMModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
+    Q_PROPERTY(bool active READ activeGet NOTIFY activeChanged)
 
 public:
     explicit LLMModule();
@@ -22,6 +24,10 @@ public:
     void propertySet(const QVariantHash &objects);
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
+
+    bool activeGet() const {
+        return m_active;
+    }
 
     void llmConfigSave();
 
@@ -33,9 +39,16 @@ public:
 
     Q_INVOKABLE void requestSend();
 
+    Q_INVOKABLE void requestCancel();
+
     Q_INVOKABLE void permissionSet(bool status) const;
 
+signals:
+    void activeChanged();
+
 private:
+    void activeSet(bool status);
+
     QString chatCreate(const QString &role, const QString &text);
 
     void statusSet(const QString &status, const QString &text) const;
@@ -50,6 +63,8 @@ private:
     QObject *m_modelMenu{};
     QString m_mode{};
     QString m_model{};
+    bool m_active{};
+    QNetworkReply* m_reply{};
     int m_id = 0;
     QJsonArray m_messages{};
     LLMTools *m_tools{};
