@@ -83,6 +83,10 @@ QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
         source = "qrc:/icon/fileTypeJson.svg";
     } else if (suffix == "lua") {
         source = "qrc:/icon/fileTypeLua.svg";
+    } else if (suffix == "pdf") {
+        source = "qrc:/icon/fileTypePdf.svg";
+    } else if (suffix == "txt") {
+        source = "qrc:/icon/fileTypeTxt.svg";
     } else if (fileInfo.isDir()) {
         source = "qrc:/icon/fileTypeFolder.svg";
     } else {
