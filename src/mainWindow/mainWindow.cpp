@@ -23,6 +23,7 @@
 #include "analysis/diagnosticsModule.h"
 #include "analysis/luaLanguageServer.h"
 #include "analysis/nuspellModule.h"
+#include "analysis/ripgrep.h"
 #include "analysis/structureModule.h"
 #include "core/configManager.h"
 #include "core/explorerModule.h"
@@ -422,7 +423,9 @@ void MainWindow::moduleInit() {
     m_configManager = new ConfigManager(this);
     m_globalManager = new GlobalManager(this);
     m_luals = new LuaLanguageServer(this);
+    m_ripgrep = new Ripgrep(this);
     g_global = m_globalManager;
+    g_ripgrep = m_ripgrep;
 
     m_breakpointModule = new BreakpointModule();
     m_databaseModule = new DatabaseModule();

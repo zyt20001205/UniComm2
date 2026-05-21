@@ -10,6 +10,7 @@ class QShortcut;
 class ConfigManager;
 class GlobalManager;
 class LuaLanguageServer;
+class Ripgrep;
 
 class BreakpointModule;
 class DatabaseModule;
@@ -90,6 +91,7 @@ private:
     ConfigManager *m_configManager{};
     GlobalManager *m_globalManager{};
     LuaLanguageServer *m_luals{};
+    Ripgrep *m_ripgrep{};
 
     BreakpointModule *m_breakpointModule{};
     DatabaseModule *m_databaseModule{};

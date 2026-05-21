@@ -42,6 +42,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/analysis/navigationWidget.h
         include/analysis/nuspellModule.h
         include/analysis/positionWidget.h
+        include/analysis/ripgrep.h
         include/analysis/signatureWidget.h
         include/analysis/structureModule.h
         include/analysis/symbolWidget.h
@@ -128,6 +129,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/analysis/navigationWidget.cpp
         src/analysis/nuspellModule.cpp
         src/analysis/positionWidget.cpp
+        src/analysis/ripgrep.cpp
         src/analysis/signatureWidget.cpp
         src/analysis/structureModule.cpp
         src/analysis/symbolWidget.cpp

@@ -4,10 +4,10 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QJsonObject>
+#include <QObject>
 #include <QProcess>
-#include <QWidget>
 
-class LuaLanguageServer final : public QWidget {
+class LuaLanguageServer final : public QObject {
     Q_OBJECT
 
 public:

@@ -7,7 +7,7 @@
 
 // public
 LuaLanguageServer::LuaLanguageServer(QWidget *parent)
-    : QWidget(parent),
+    : QObject(parent),
       m_process(new QProcess(this)) {
     m_process->start(QCoreApplication::applicationDirPath() + "/lua-language-server/bin/lua-language-server.exe", {});
     connect(m_process, &QProcess::readyRead, this, &LuaLanguageServer::jsonParser);

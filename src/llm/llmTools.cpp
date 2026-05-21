@@ -3,6 +3,7 @@
 #include <QDir>
 
 #include "globals.h"
+#include "analysis/ripgrep.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
@@ -234,6 +235,36 @@ LLMTools::LLMTools(QObject *parent)
                               {
                                   "required", QJsonArray{
                                       "document_url"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          },
+          // grepSearch
+          QJsonObject{
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "grep_search"},
+                      {"description", "Search text across files in the current workspace."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "pattern", QJsonObject{
+                                              {"type", "string"},
+                                              {"description", "Text or regex pattern to search for."}
+                                          }
+                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{
+                                      "pattern"
                                   }
                               }
                           }
@@ -571,6 +602,11 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
         const auto symbol = g_document->symbolGet(documentUrl);
         return QString::fromUtf8(QJsonDocument(symbol).toJson(QJsonDocument::Compact));
     }
+    if (name == "grep_search") {
+        const auto pattern = object.value("pattern").toString();
+        const auto result = g_ripgrep->grep(pattern);
+        return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
+    }
     if (name == "document_list") {
         const auto keys = g_document->documentList();
         QJsonArray array{};
@@ -638,6 +674,10 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto packageName = object.value("package_name").toString();
         chatText = QString("Read %1 demo").arg(packageName);
         statusText = QString("I want to see %1 demo.").arg(packageName);
+    } else if (name == "grep_search") {
+        const auto pattern = object.value("pattern").toString();
+        chatText = QString("Grep \"%1\"").arg(pattern);
+        statusText = QString("I want to grep \"%1\".").arg(pattern);
     } else if (name == "database_list") {
         chatText = "Get available database keys";
         statusText = "I want to get all available database keys.";

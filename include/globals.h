@@ -22,6 +22,7 @@ class UndoModule;
 extern MainWindow *g_mainWindow;
 extern QNetworkAccessManager *g_networkAccessManager;
 extern GlobalManager *g_global;
+extern Ripgrep *g_ripgrep;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;

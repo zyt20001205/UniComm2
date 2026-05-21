@@ -3,6 +3,7 @@
 MainWindow *g_mainWindow = nullptr;
 QNetworkAccessManager *g_networkAccessManager = nullptr;
 GlobalManager *g_global = nullptr;
+Ripgrep *g_ripgrep = nullptr;
 DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;
