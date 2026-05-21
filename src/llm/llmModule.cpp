@@ -109,8 +109,6 @@ void LLMModule::modelSet(const QString &model) {
 }
 
 void LLMModule::requestSend() {
-    if (m_active) return;
-    
     if (m_model.isEmpty()) {
         chatCreate("error", "No model selected.");
         statusSet("error", "Please select a model first.");
@@ -132,17 +130,19 @@ void LLMModule::requestSend() {
     if (m_mode != "ask") body["tools"] = m_tools->toolsGet();
     activeSet(true);
     QMetaObject::invokeMethod(m_textArea, "clear");
-    m_reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
+    auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
+    m_reply = reply;
     auto reasoning = std::make_shared<QString>();
     auto content = std::make_shared<QString>();
     auto reasoningId = std::make_shared<QString>();
     auto contentId = std::make_shared<QString>();
     auto toolCalls = std::make_shared<QVariantHash>();
 
-    connect(m_reply, &QNetworkReply::readyRead, this, [this, reasoning, content, reasoningId, contentId, toolCalls] {
-        if (!m_active || m_reply->error() != QNetworkReply::NoError) return;
-        while (m_reply->canReadLine()) {
-            auto line = m_reply->readLine().trimmed();
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply, reasoning, content, reasoningId, contentId, toolCalls] {
+        if (reply->error() == QNetworkReply::OperationCanceledError) return;
+        if (reply->error() != QNetworkReply::NoError) return;
+        while (reply->canReadLine()) {
+            auto line = reply->readLine().trimmed();
             if (line.isEmpty()) continue;
             if (!line.startsWith("data: ")) continue;
 
@@ -198,8 +198,11 @@ void LLMModule::requestSend() {
             }
         }
     });
-    connect(m_reply, &QNetworkReply::finished, this, [this, reasoning, content, toolCalls] {
-        if (!m_active || m_reply->error() == QNetworkReply::NoError) {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
+        if (reply->error() == QNetworkReply::OperationCanceledError) {
+            chatCreate("error", "Cancelled");
+            statusSet("idle", "Finished");
+        } else if (reply->error() == QNetworkReply::NoError) {
             // tool calls
             if (!toolCalls->isEmpty()) {
                 // append tool calls to m_message
@@ -252,14 +255,13 @@ void LLMModule::requestSend() {
                 statusSet("idle", "Finished");
             }
         } else {
-            const auto data = m_reply->readAll();
+            const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
             chatCreate("error", message);
-            statusSet("error", m_reply->errorString());
+            statusSet("error", reply->errorString());
         }
-        m_active = false;
-        m_reply->deleteLater();
+        reply->deleteLater();
     });
 }
 
