@@ -139,7 +139,6 @@ void LLMModule::requestSend() {
     auto toolCalls = std::make_shared<QVariantHash>();
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply, reasoning, content, reasoningId, contentId, toolCalls] {
-        if (reply->error() == QNetworkReply::OperationCanceledError) return;
         if (reply->error() != QNetworkReply::NoError) return;
         while (reply->canReadLine()) {
             auto line = reply->readLine().trimmed();
@@ -200,6 +199,7 @@ void LLMModule::requestSend() {
     });
     connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
+            activeSet(false);
             chatCreate("error", "Cancelled");
             statusSet("idle", "Finished");
         } else if (reply->error() == QNetworkReply::NoError) {
@@ -258,6 +258,7 @@ void LLMModule::requestSend() {
             const auto data = reply->readAll();
             const auto doc = QJsonDocument::fromJson(data);
             const auto message = doc.object().value("error").toObject().value("message").toString();
+            activeSet(false);
             chatCreate("error", message);
             statusSet("error", reply->errorString());
         }
