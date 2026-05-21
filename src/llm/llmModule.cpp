@@ -57,7 +57,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/llm/llmModule.qml"));
     m_root = m_widget->rootObject();
 
-    connect(m_deepseekAgent, &DeepseekAgent::setKey, this, [this](const QString &apikey) {
+    connect(m_deepseekAgent, &DeepseekAgent::setApikey, this, [this](const QString &apikey) {
         m_modelMenu->setProperty("deepseekApikey", apikey);
     });
     connect(m_deepseekAgent, &DeepseekAgent::setModel, this, [this](QStandardItemModel *agentStandardItemModel) {

@@ -25,7 +25,7 @@ void DeepseekAgent::apikeySet(const QString &apikey) {
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
             modelGet();
         }
-        emit setKey(m_apikey);
+        emit setApikey(m_apikey);
     });
     job->start();
 }
@@ -40,7 +40,7 @@ void DeepseekAgent::apikeyGet() {
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
             modelGet();
         }
-        emit setKey(m_apikey);
+        emit setApikey(m_apikey);
     });
     job->start();
 }

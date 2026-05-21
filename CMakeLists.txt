@@ -472,6 +472,8 @@ set(QTKEYCHAIN_INCLUDE "${QTKEYCHAIN_DIR}/include")
 file(GLOB QTKEYCHAIN_LIB "${QTKEYCHAIN_DIR}/lib/*.a")
 set(QTKEYCHAIN_BIN "${QTKEYCHAIN_DIR}/bin")
 
+set(RIPGREP_DIR "${CMAKE_SOURCE_DIR}/3rd/ripgrep-15.1.0")
+
 set(SCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/scintilla-5.5.9")
 set(SCINTILLA_INCLUDE "${SCINTILLA_DIR}/include")
 file(GLOB SCINTILLA_LIB "${SCINTILLA_DIR}/lib/*.a")
@@ -651,6 +653,12 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${QTKEYCHAIN_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "QTKEYCHAIN BIN COPIED")
+#ripgrep-15.1.0
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${RIPGREP_DIR}"
+        "${CMAKE_BINARY_DIR}/ripgrep"
+        COMMENT "RIPGREP DIR COPIED")
 #scintilla-5.5.9
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

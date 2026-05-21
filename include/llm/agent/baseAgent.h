@@ -23,7 +23,7 @@ public:
     virtual void modelGet() = 0;
 
 signals:
-    void setKey(const QString &apikey);
+    void setApikey(const QString &apikey);
 
     void setModel(QStandardItemModel *agentModel);
 
