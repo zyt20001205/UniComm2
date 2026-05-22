@@ -8,6 +8,7 @@
 #include <QUrl>
 
 #include "globals.h"
+#include "util/uniCast.h"
 
 // public
 FileModule::FileModule(QObject *parent)
@@ -70,31 +71,10 @@ void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
 QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
     const auto filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
-    QUrl source{};
-    const auto suffix = fileInfo.suffix();
-    const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
-    if (imageType.contains(suffix)) {
-        source = "qrc:/icon/fileTypeImage.svg";
-    } else if (suffix == "csv") {
-        source = "qrc:/icon/fileTypeCsv.svg";
-    } else if (suffix == "gitignore") {
-        source = "qrc:/icon/fileTypeGit.svg";
-    } else if (suffix == "json") {
-        source = "qrc:/icon/fileTypeJson.svg";
-    } else if (suffix == "lua") {
-        source = "qrc:/icon/fileTypeLua.svg";
-    } else if (suffix == "pdf") {
-        source = "qrc:/icon/fileTypePdf.svg";
-    } else if (suffix == "txt") {
-        source = "qrc:/icon/fileTypeTxt.svg";
-    } else if (fileInfo.isDir()) {
-        source = "qrc:/icon/fileTypeFolder.svg";
-    } else {
-        source = "qrc:/icon/fileTypeDefault.svg";
-    }
+    const auto source = uni_cast<QFileIcon>(fileUrl);
     const QLocale locale{QLocale::C};
     QVariantHash infoSession = {
-        {"source", source},
+        {"source", source.value},
         {"baseName", fileInfo.baseName()},
         {"absolutePath", fileInfo.absoluteFilePath()},
         {"size", locale.formattedDataSize(fileInfo.size())},

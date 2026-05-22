@@ -7,6 +7,7 @@
 #include <QQuickWidget>
 
 #include "globals.h"
+#include "util/uniCast.h"
 
 // public
 ExplorerModule::ExplorerModule()
@@ -145,29 +146,8 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
     const auto fileInfo = fileModel->fileInfo(sourceIndex);
     const auto documentUrl = QUrl::fromLocalFile(fileInfo.filePath());
     if (role == Qt::UserRole + 4) {
-        QUrl source{};
-        const auto suffix = fileInfo.suffix();
-        const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
-        if (imageType.contains(suffix)) {
-            source = "qrc:/icon/fileTypeImage.svg";
-        } else if (suffix == "csv") {
-            source = "qrc:/icon/fileTypeCsv.svg";
-        } else if (suffix == "gitignore") {
-            source = "qrc:/icon/fileTypeGit.svg";
-        } else if (suffix == "json") {
-            source = "qrc:/icon/fileTypeJson.svg";
-        } else if (suffix == "lua") {
-            source = "qrc:/icon/fileTypeLua.svg";
-        } else if (suffix == "pdf") {
-            source = "qrc:/icon/fileTypePdf.svg";
-        } else if (suffix == "txt") {
-            source = "qrc:/icon/fileTypeTxt.svg";
-        } else if (fileInfo.isDir()) {
-            source = "qrc:/icon/fileTypeFolder.svg";
-        } else {
-            source = "qrc:/icon/fileTypeDefault.svg";
-        }
-        return source;
+        const auto source = uni_cast<QFileIcon>(documentUrl);
+        return source.value;
     }
     if (role == Qt::UserRole + 5) {
         return fileInfo.isDir();

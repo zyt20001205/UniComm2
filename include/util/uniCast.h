@@ -1,6 +1,7 @@
 #ifndef UNICOMM_UNICAST_H
 #define UNICOMM_UNICAST_H
 
+#include <QUrl>
 #include <QVariant>
 #include <sol/object.hpp>
 
@@ -14,6 +15,12 @@ struct LPath {
     QString value;
     LPath(QString s) : value(std::move(s)) {}
     operator QString() const { return value; }
+};
+
+struct QFileIcon {
+    QUrl value;
+    QFileIcon(QUrl s) : value(std::move(s)) {}
+    operator QUrl() const { return value; }
 };
 
 template<typename D, typename S>
@@ -54,5 +61,9 @@ template<>
 
 template<>
 [[nodiscard]] sol::table uni_cast<sol::table, QSet<QString>>(sol::this_state ts, const QSet<QString> &s, int depth);
+
+// qt -> qt
+template<>
+[[nodiscard]] QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, int depth);
 
 #endif //UNICOMM_UNICAST_H

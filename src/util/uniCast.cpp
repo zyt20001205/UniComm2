@@ -233,7 +233,7 @@ sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const 
 }
 
 template<>
-sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const QSet<QString> &s, int depth) {
+sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const QSet<QString> &s, const int depth) {
     sol::state_view lua(ts);
     int index = 1;
     sol::table d = lua.create_table();
@@ -241,4 +241,21 @@ sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const 
         d[index++] = sol::make_object(lua, value.toStdString());
     }
     return d;
+}
+
+// qt -> qt
+template<>
+QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
+    const auto fileInfo = QFileInfo(s.toLocalFile());
+    const auto suffix = fileInfo.suffix().toLower();
+    const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
+    if (imageType.contains(suffix)) return QUrl("qrc:/icon/fileTypeImage.svg");
+    if (suffix == "csv") return QUrl("qrc:/icon/fileTypeCsv.svg");
+    if (suffix == "gitignore") return QUrl("qrc:/icon/fileTypeGit.svg");
+    if (suffix == "json") return QUrl("qrc:/icon/fileTypeJson.svg");
+    if (suffix == "lua") return QUrl("qrc:/icon/fileTypeLua.svg");
+    if (suffix == "pdf") return QUrl("qrc:/icon/fileTypePdf.svg");
+    if (suffix == "txt") return QUrl("qrc:/icon/fileTypeTxt.svg");
+    if (fileInfo.isDir()) return QUrl("qrc:/icon/fileTypeFolder.svg");
+    return QUrl("qrc:/icon/fileTypeDefault.svg");
 }
