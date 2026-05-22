@@ -83,9 +83,7 @@ Item {
                         gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                         onSingleTapped: {
-                            tableMenu.datatableIndex = row
-                            const index = headerItemModel.index(row, 0)
-                            tableMenu.datatableKey = headerItemModel.data(index, Qt.DisplayRole)
+                            tableMenu.datatableKey = model.display
                             tableMenu.popup()
                         }
                     }

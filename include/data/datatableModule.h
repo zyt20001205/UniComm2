@@ -7,6 +7,7 @@
 class QQuickWidget;
 class QStandardItemModel;
 class QTableWidget;
+class QTransposeProxyModel;
 
 class DatatableModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -50,6 +51,7 @@ private:
     QQuickItem *m_item{};
     QHash<QString, int> m_datatableHash{};
     QHash<QString, QVariantHash> m_datatableSession{};
+    QTransposeProxyModel *m_transposeProxyModel{};
 };
 
 #endif //UNICOMM_DATATABLE_H

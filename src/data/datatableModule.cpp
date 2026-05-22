@@ -7,6 +7,7 @@
 #include <QQuickWidget>
 #include <QStandardItemModel>
 #include <QStringListModel>
+#include <QTransposeProxyModel>
 #include <QVariantList>
 
 #include "globals.h"
@@ -19,6 +20,8 @@ DatatableModule::DatatableModule()
     setWidget(m_widget);
     g_datatableHeaderItemModel = new QStandardItemModel(this);
     g_datatableStandardItemModel = new QStandardItemModel(this);
+    m_transposeProxyModel = new QTransposeProxyModel(this);
+    m_transposeProxyModel->setSourceModel(g_datatableHeaderItemModel);
     for (const auto &value: g_workspaceConfig["datatableConfig"].toArray()) {
         const QString key = value.toString();
         datatableInsert(-1, key);
@@ -36,7 +39,8 @@ void DatatableModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
-    m_widget->rootContext()->setContextProperty("headerItemModel", g_datatableHeaderItemModel);
+    // auto *temp = new QTransposeProxyModel(g_datatableHeaderItemModel);
+    m_widget->rootContext()->setContextProperty("headerItemModel", m_transposeProxyModel);
     m_widget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -67,7 +71,7 @@ void DatatableModule::datatableInsert(int index, const QString &key) {
     };
     m_datatableSession.insert(key, sessionHash);
 
-    if (index == -1) index = g_datatableHeaderItemModel->rowCount();
+    if (index == -1) index = g_datatableHeaderItemModel->columnCount();
     auto *item = new QStandardItem(key); // NOLINT
     item->setData(false, Qt::WhatsThisRole);
     g_datatableHeaderItemModel->insertRow(index, item);
