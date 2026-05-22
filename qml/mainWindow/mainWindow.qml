@@ -835,7 +835,6 @@ Item {
     // dataplot module
     Menu {
         id: dataplotModuleRootMenu
-        property var drawer
         property var rootItem
 
         onOpened: {
@@ -843,14 +842,6 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-
-        MenuItem {
-            text: qsTr("Setting\tSwipe")
-            icon.source: "qrc:/icon/settings.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: dataplotModuleRootMenu.drawer.open()
-        }
 
         MenuItem {
             text: qsTr("Resize\tMB3")

@@ -8,6 +8,11 @@ Item {
     anchors.fill: parent
     property bool resize: true
 
+    Rectangle {
+        anchors.fill: parent
+        color: global.back
+    }
+
     RowLayout {
         anchors.fill: parent
 
@@ -329,22 +334,8 @@ Item {
             }
         }
 
-        Item {
-            Layout.preferredWidth: 10; Layout.fillHeight: true
-        }
-    }
-
-    Drawer {
-        id: drawer
-        width: 200; height: rootItem.height
-        edge: Qt.RightEdge
-        background: Rectangle {
-            color: "white"
-        }
-
         ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 4
+            Layout.preferredWidth: 200
             Layout.alignment: Qt.AlignTop
 
             ComboBox {
@@ -511,7 +502,6 @@ Item {
         acceptedButtons: Qt.RightButton
 
         onSingleTapped: {
-            rootMenu.drawer = drawer
             rootMenu.rootItem = rootItem
             rootMenu.popup()
         }

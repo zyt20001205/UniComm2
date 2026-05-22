@@ -147,6 +147,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_databaseModule->propertySet(databaseObjects);
 
     const QVariantHash dataplotObjects = {
+        {"global", QVariant::fromValue(m_globalManager)},
         {"dataplotModuleRootMenu", objects["dataplotModuleRootMenu"]}
     };
     m_dataplotModule->propertySet(dataplotObjects);
