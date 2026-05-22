@@ -42,7 +42,6 @@ Item {
                 marginLeft: 10; marginTop: 10; marginRight: 10; marginBottom: 10
                 orientation: barOrientationSwitch.checked ? Qt.Horizontal : Qt.Vertical
                 theme: graphsTheme
-                Layout.fillWidth: true; Layout.fillHeight: true
 
                 BarSeries {
                     id: barSeries
@@ -163,7 +162,6 @@ Item {
                 panStyle: GraphsView.PanStyle.None
                 zoomAreaEnabled: true
                 zoomStyle: GraphsView.ZoomStyle.Center
-                Layout.fillWidth: true; Layout.fillHeight: true
                 property var lineSeriesMap: ({})
 
                 ValueAxis {
@@ -335,43 +333,23 @@ Item {
         }
 
         ColumnLayout {
-            Layout.preferredWidth: 200
+            Layout.preferredWidth: 200; Layout.fillHeight: true
+            Layout.maximumWidth: 200
             Layout.alignment: Qt.AlignTop
 
             ComboBox {
                 id: graphTypeComboBox
                 model: ListModel {
                     ListElement {
-                        text: qsTr("Database(Bar)"); value: "bar"; source: "qrc:/icon/barGraph.svg"
+                        text: qsTr("Database(Bar)"); value: "bar"
                     }
                     ListElement {
-                        text: qsTr("Datatable(Line)"); value: "line"; source: "qrc:/icon/lineGraph.svg"
+                        text: qsTr("Datatable(Line)"); value: "line"
                     }
                 }
                 textRole: "text"
                 valueRole: "value"
                 Layout.fillWidth: true
-
-                delegate: ItemDelegate {
-                    width: parent.width; height: 36
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 10; anchors.rightMargin: 10
-                        Layout.alignment: Qt.AlignVCenter
-
-                        Image {
-                            width: 24; height: 24
-                            source: model.source
-                        }
-
-                        Label {
-                            text: model.text
-                            elide: Text.ElideRight
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
             }
 
             StackLayout {
@@ -405,6 +383,20 @@ Item {
                         rowSpacing: 1
                         model: databaseStandardItemModel
                         contentWidth: width
+
+                        ScrollBar.vertical: ScrollBar {
+                            policy: ScrollBar.AsNeeded
+                            palette {
+                                mid: global.stroke
+                                dark: global.strokePressed
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: global.stroke
+                        }
+
                         delegate: DelegateChooser {
                             DelegateChoice {
                                 column: 0
@@ -413,7 +405,7 @@ Item {
                                     checked: model.whatsThis
                                     text: model.display
                                     background: Rectangle {
-                                        color: "white"
+                                        color: global.back
                                     }
 
                                     onClicked: {
@@ -430,12 +422,6 @@ Item {
                                     implicitWidth: 1
                                 }
                             }
-                        }
-
-                        Rectangle {
-                            anchors.fill: parent
-                            color: "#e0e0e0"
-                            z: -1
                         }
                     }
                 }
@@ -470,12 +456,26 @@ Item {
                         rowSpacing: 1
                         model: datatableHeaderItemModel
                         contentWidth: width
+
+                        ScrollBar.vertical: ScrollBar {
+                            policy: ScrollBar.AsNeeded
+                            palette {
+                                mid: global.stroke
+                                dark: global.strokePressed
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: global.stroke
+                        }
+
                         delegate: CheckDelegate {
                             implicitWidth: datatableTableView.width
                             checked: model.whatsThis
                             text: model.display
                             background: Rectangle {
-                                color: "white"
+                                color: global.back
                             }
 
                             onClicked: {
@@ -485,12 +485,6 @@ Item {
                                     lineGraph.lineRemove(row)
                                 }
                             }
-                        }
-
-                        Rectangle {
-                            anchors.fill: parent
-                            color: "#e0e0e0"
-                            z: -1
                         }
                     }
                 }
@@ -635,12 +629,10 @@ Item {
                     if (row > lineAxisIndex.maxHint) {
                         lineAxisIndex.maxHint = row
                     }
-
                 } else {
                     // time based
                     if (lineGraph.lineSeriesMap[key].count === 0) {
                         lineAxisTime.baseTime = new Date()
-
                     }
                     const timeElapsed = (new Date() - lineAxisTime.baseTime) / 1000
                     lineGraph.lineSeriesMap[key].append(timeElapsed, value)
