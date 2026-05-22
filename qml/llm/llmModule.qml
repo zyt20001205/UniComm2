@@ -216,11 +216,12 @@ Item {
             }
 
             Button {
-                Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: llmModule.active || textArea.text.trim().length > 0
                 flat: true
                 icon.source: llmModule.active ? "qrc:/icon/stop.svg" : "qrc:/icon/send.svg"
                 icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                 onClicked: llmModule.active ? llmModule.requestCancel() : llmModule.requestSend()
             }
