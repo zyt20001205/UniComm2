@@ -1,6 +1,6 @@
 #include "llm/agent/baseAgent.h"
 
-BaseAgent::BaseAgent(QObject* parent)
+BaseAgent::BaseAgent(QObject *parent)
     : QObject(parent),
       m_service("UniComm") {
 }

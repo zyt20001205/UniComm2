@@ -34,49 +34,6 @@
 </div>
 
 ```mermaid
-flowchart RL
-    subgraph Lua Language Server
-        LuaLS[LuaLS]
-    end
-
-    subgraph UniComm
-        direction LR
-        documentModule[Module]
-        luaInterpreter[Lua Interpreter]
-        debugModule[Debug Module]
-        subgraph threadpoolModule[Threadpool Module]
-            direction LR
-            luaInterpreter1["Lua Interpreter 1<br>(run)"]
-            luaInterpreter2["Lua Interpreter 2<br>(run)"]
-            luaInterpreter3["Lua Interpreter 3<br>(debug)"]
-            more["..."]
-        end
-        portModule[Port Module]
-        subgraph dataModule[Data Module]
-            direction LR
-            databaseModule["Database"]
-            datatableModule["Data Table"]
-            dataplotModule["Data Plot"]
-        end
-    end
-
-    UniComm -->|LSP Request| LuaLS
-    LuaLS <==>|LSP Notification| UniComm
-    LuaLS -->|LSP Response| UniComm
-%%    UniComm e1@ -->|LSP Request| LuaLS
-%%    LuaLS <==>|LSP Notification| UniComm
-%%    LuaLS e2@ -->|LSP Response| UniComm
-%%    e1@{animate: true}
-%%    e2@{animate: true}
-    documentModule -->|run/debug signal| threadpoolModule
-    luaInterpreter -->|instantiation| threadpoolModule
-    debugModule <-->|debug session| threadpoolModule
-    threadpoolModule <-->|port control| portModule
-    threadpoolModule <-->|dataflow| dataModule
-
-```
-
-```mermaid
 gantt
     title Development Schedule 2026
     dateFormat MM-DD
@@ -127,6 +84,13 @@ gantt
         custom settings: 07-01, 31d
         i18n: 08-01, 31d
 ```
+
+# Gallery
+
+## Agent
+
+### Modbus read & export
+[!<img src="resources/assets/screenshot/agent_modbus.png" alt="preview">](https://www.bilibili.com/video/BV1UXGn66Enh/?share_source=copy_web&vd_source=be1c786f9652180888686cbcd18d4223)
 
 # APIS
 

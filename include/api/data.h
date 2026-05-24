@@ -14,9 +14,13 @@ public:
 
     [[nodiscard]] static sol::table databaseList(sol::this_state ts);
 
+    static void databaseClear();
+
     static void databaseWrite(const std::string &key, const sol::object &value);
 
     [[nodiscard]] static sol::table datatableList(sol::this_state ts);
+
+    static void datatableClear();
 
     static void datatableWrite(const std::string &key, const sol::object &value);
 

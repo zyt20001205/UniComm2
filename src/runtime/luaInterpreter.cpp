@@ -59,11 +59,13 @@ LuaInterpreter::LuaInterpreter(const QVariantMap &luaSession, QObject *parent)
     {
         auto database = m_lua.create_table();
         database.set_function("list", [](const sol::this_state ts) { return Data::databaseList(ts); });
+        database.set_function("clear", [] { return Data::databaseClear(); });
         database.set_function("write", [](const std::string &key, const sol::object &value) { Data::databaseWrite(key, value); });
         m_lua["database"] = database;
 
         auto datatable = m_lua.create_table();
         datatable.set_function("list", [](const sol::this_state ts) { return Data::datatableList(ts); });
+        datatable.set_function("clear", [] { return Data::datatableClear(); });
         datatable.set_function("write", [](const std::string &key, const sol::object &value) { Data::datatableWrite(key, value); });
         datatable.set_function("export", [](const sol::optional<std::string> &fileName) { Data::datatableExport(fileName.value_or("")); });
         m_lua["datatable"] = datatable;

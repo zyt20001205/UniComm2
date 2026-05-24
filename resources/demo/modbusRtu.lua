@@ -3,6 +3,9 @@ These demos use lib modbusRtu that provides low-level Modbus RTU communication o
 The helper functions string.pack, string.unpack, and string.toHex are used for binary data conversion.
 ]]
 
+--Open port.
+port.open("COM10")
+
 --Read a single 16-bit register.
 local raw = modbusRtu.readHoldingRegisters("COM10", 1, 0, 1)
 local data = string.unpack(">i2", raw)

@@ -180,7 +180,7 @@ void LLMModule::requestSend() {
             const auto _toolCalls = delta.value("tool_calls").toArray();
             if (!_toolCalls.isEmpty()) {
                 QMetaObject::invokeMethod(m_root, "chatVisible", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, false));
-                for (const auto &value : _toolCalls) {
+                for (const auto &value: _toolCalls) {
                     const auto _toolCall = value.toObject();
 
                     if (!_toolCall.contains("index")) continue;
@@ -218,10 +218,12 @@ void LLMModule::requestSend() {
                     _toolCalls.append(QJsonObject{
                         {"id", id},
                         {"type", "function"},
-                        {"function", QJsonObject{
-                            {"name", name},
-                            {"arguments", arguments}
-                        }}
+                        {
+                            "function", QJsonObject{
+                                {"name", name},
+                                {"arguments", arguments}
+                            }
+                        }
                     });
                 }
                 if (!_toolCalls.isEmpty()) {
@@ -284,7 +286,7 @@ void LLMModule::activeSet(const bool status) {
 
 QString LLMModule::chatCreate(const QString &role, const QString &text) {
     const auto id = "id_" + QString::number(m_id++);
-    QMetaObject::invokeMethod(m_root, "chatCreate",Q_ARG(QVariant, id),  Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+    QMetaObject::invokeMethod(m_root, "chatCreate",Q_ARG(QVariant, id), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
     return id;
 }
 

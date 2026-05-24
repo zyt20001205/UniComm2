@@ -19,6 +19,12 @@ sol::table Data::databaseList(const sol::this_state ts) {
     return uni_cast<sol::table>(ts, databaseSet);
 }
 
+void Data::databaseClear() {
+    QMetaObject::invokeMethod(g_database, [] {
+        g_database->databaseClear(-1);
+    }, Qt::BlockingQueuedConnection);
+}
+
 void Data::databaseWrite(const std::string &key, const sol::object &value) {
     bool status = false;
     const QString valueStr = uni_cast<QString>(value);
@@ -36,6 +42,12 @@ sol::table Data::datatableList(const sol::this_state ts) {
         datatableSet = g_datatable->datatableList();
     }, Qt::BlockingQueuedConnection);
     return uni_cast<sol::table>(ts, datatableSet);
+}
+
+void Data::datatableClear() {
+    QMetaObject::invokeMethod(g_datatable, [] {
+        g_datatable->datatableClear();
+    }, Qt::BlockingQueuedConnection);
 }
 
 void Data::datatableWrite(const std::string &key, const sol::object &value) {

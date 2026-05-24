@@ -10,6 +10,9 @@ datatable = {}
 ---@return table
 function datatable.list() end
 
+---Clears all data from the datatable。
+function datatable.clear() end
+
 ---Writes data to an available key in datatable.
 ---@param key datatableKey The key to write to.
 ---@param value boolean|number|string The value to write.

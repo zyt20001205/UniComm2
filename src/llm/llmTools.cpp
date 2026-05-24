@@ -90,91 +90,91 @@ LLMTools::LLMTools(QObject *parent)
           },
           // databaseList
           QJsonObject{
-                  {"type", "function"},
-                  {
-                      "function", QJsonObject{
-                          {"name", "database_list"},
-                          {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
-                          {
-                              "parameters", QJsonObject{
-                                  {"type", "object"},
-                                  {"properties", QJsonObject{}},
-                                  {"required", QJsonArray{}}
-                              }
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "database_list"},
+                      {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
                           }
                       }
                   }
+              }
           },
           // datatableList
           QJsonObject{
-                  {"type", "function"},
-                  {
-                      "function", QJsonObject{
-                          {"name", "datatable_list"},
-                          {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
-                          {
-                              "parameters", QJsonObject{
-                                  {"type", "object"},
-                                  {"properties", QJsonObject{}},
-                                  {"required", QJsonArray{}}
-                              }
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "datatable_list"},
+                      {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
                           }
                       }
                   }
+              }
           },
           // portList
           QJsonObject{
-                  {"type", "function"},
-                  {
-                      "function", QJsonObject{
-                          {"name", "port_list"},
-                          {"description", "Get the list of all available ports that can be queried for detailed annotations."},
-                          {
-                              "parameters", QJsonObject{
-                                  {"type", "object"},
-                                  {"properties", QJsonObject{}},
-                                  {"required", QJsonArray{}}
-                              }
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "port_list"},
+                      {"description", "Get the list of all available ports that can be queried for detailed annotations."},
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {"properties", QJsonObject{}},
+                              {"required", QJsonArray{}}
                           }
                       }
                   }
+              }
           },
           // logGet
           QJsonObject{
-                  {"type", "function"},
-                  {
-                      "function", QJsonObject{
-                          {"name", "log_get"},
-                          {
-                              "description",
-                              "Read the latest log blocks from the log panel. "
-                              "Use block_count = -1 to read all currently available blocks (up to backend limit 20)."
-                          },
-                          {
-                              "parameters", QJsonObject{
-                                  {"type", "object"},
-                                  {
-                                      "properties", QJsonObject{
-                                          {
-                                              "block_count", QJsonObject{
-                                                  {"type", "integer"},
-                                                  {
-                                                      "description",
-                                                      "Number of blocks to read from the end. Use -1 to read all currently available blocks (up to backend limit 20)."
-                                                  }
+              {"type", "function"},
+              {
+                  "function", QJsonObject{
+                      {"name", "log_get"},
+                      {
+                          "description",
+                          "Read the latest log blocks from the log panel. "
+                          "Use block_count = -1 to read all currently available blocks (up to backend limit 20)."
+                      },
+                      {
+                          "parameters", QJsonObject{
+                              {"type", "object"},
+                              {
+                                  "properties", QJsonObject{
+                                      {
+                                          "block_count", QJsonObject{
+                                              {"type", "integer"},
+                                              {
+                                                  "description",
+                                                  "Number of blocks to read from the end. Use -1 to read all currently available blocks (up to backend limit 20)."
                                               }
                                           }
                                       }
-                                  },
-                                  {
-                                      "required", QJsonArray{
-                                          "block_count"
-                                      }
+                                  }
+                              },
+                              {
+                                  "required", QJsonArray{
+                                      "block_count"
                                   }
                               }
                           }
                       }
                   }
+              }
           },
           // diagnosticsGet
           QJsonObject{
@@ -712,9 +712,9 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         chatText = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                      QString::number(endCharacter));
+                                                          QString::number(endCharacter));
         statusText = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                                   QString::number(endCharacter));
+                                                                       QString::number(endCharacter));
     } else if (name == "text_set") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         const auto startLine = object.value("start_line").toInt(-1);
@@ -722,9 +722,9 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
         chatText = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                       QString::number(endCharacter));
+                                                           QString::number(endCharacter));
         statusText = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                                   QString::number(endCharacter));
+                                                                       QString::number(endCharacter));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
         chatText = QString("Run %1").arg(documentName);

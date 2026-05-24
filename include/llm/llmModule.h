@@ -64,7 +64,7 @@ private:
     QString m_mode{};
     QString m_model{};
     bool m_active{};
-    QNetworkReply* m_reply{};
+    QNetworkReply *m_reply{};
     int m_id = 0;
     QJsonArray m_messages{};
     LLMTools *m_tools{};

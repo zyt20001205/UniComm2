@@ -35,7 +35,7 @@ void DeepseekAgent::apikeyGet() {
     job->setKey(m_key);
     connect(job, &QKeychain::Job::finished, [this](QKeychain::Job *j) {
         if (j->error() == QKeychain::NoError) {
-            const auto *readJob = static_cast<QKeychain::ReadPasswordJob*>(j);
+            const auto *readJob = static_cast<QKeychain::ReadPasswordJob *>(j);
             m_apikey = readJob->textData();
             m_request.setRawHeader("Authorization", "Bearer " + QByteArray(m_apikey.toUtf8()));
             modelGet();

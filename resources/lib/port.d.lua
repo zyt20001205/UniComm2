@@ -58,7 +58,7 @@ function port.write(name, data, peerIp) end
 ---port.read("COM3")
 ---@usage — Read data from port COM3 immediately.
 ---port.write("COM3", "0110 0000 000102 0000")
----sleep(50)
+---thread.sleep(50)
 ---port.read("COM3")
 ---@usage — Read 8 bytes data from port COM3 within 100ms.
 ---port.write("COM3", "0110 0000 000102 0000")
