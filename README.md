@@ -1,5 +1,5 @@
 <h1 align="center">
-    UniComm2
+    UniComm
 </h1>
 
 <div align="center">
@@ -10,7 +10,7 @@
 
 <div align="center">
 
-<a href="https://github.com/zyt20001205/UniComm2" target="_blank">GitHub</a>
+<a href="https://github.com/zyt20001205/UniComm" target="_blank">GitHub</a>
 
 </div>
 
@@ -20,9 +20,9 @@
 
 <div align="center">
 
-[![GitHub release](https://img.shields.io/github/v/release/zyt20001205/UniComm2?color=%2334D058&label=Version)](https://github.com/zyt20001205/UniComm2/releases)
+[![GitHub release](https://img.shields.io/github/v/release/zyt20001205/UniComm?color=%2334D058&label=Version)](https://github.com/zyt20001205/UniComm/releases)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Qt](https://img.shields.io/badge/Qt-6.10.1-green)]()
+[![Qt](https://img.shields.io/badge/Qt-6.11.1-green)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)]()
 
 </div>
