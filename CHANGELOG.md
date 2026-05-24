@@ -1,27 +1,31 @@
 # v0.2.0-alpha2
 
+## Coding
+- Integrated LLM support, currently supports deepseek. More to come...
+
 ## Dependency
 
-- Qt: 6.10.1 -> 6.11.0
+- Qt: 6.10.1 -> 6.11.1
 
 ## APIS
 
-- Rewrite ModbusAscii APIs.
-- Rewrite ModbusRtu APIs.
+- Rewrote ModbusAscii APIs.
+- Rewrote ModbusRtu APIs.
 - Added ModbusTcp support.
-- Upgrade SMTP APIs.
+- Upgraded SMTP APIs.
 - Added IMAP support.
 - Added file operations.
 
 ## Infrastructure
 
-- DocumentModule implemented.
-- Current supports image/text/code page. More to go...
+- Implemented DocumentModule.
+- Currently supports image/text/code/pdf pages. More to come...
 
 ## UI
 
-- Password is now shown when hovered.
-- Expanded menu bar features to perform edit, code actions.
+- Added dark theme support.
+- Password is now revealed on hover.
+- Expanded menu bar with edit and code actions.
 - Added file property dialog.
 
 # v0.2.0-alpha1

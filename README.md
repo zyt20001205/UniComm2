@@ -87,8 +87,8 @@ gantt
         v0.1.0: done, 02-10, 1d
         v0.2.0(Infrastructure Construction): active, 02-11, 140d
         v0.2.0-alpha1: done, 02-11, 49d
-        v0.2.0-alpha2: active, 04-01, 45d
-        v0.2.0-alpha3: 05-16, 46d
+        v0.2.0-alpha2: done, 04-01, 54d
+        v0.2.0-alpha3: 05-25, 37d
         v0.3.0(Interface Optimization): 07-01, 62d
         v0.3.0-alpha1: 07-01, 31d
         v0.3.0-alpha2: 08-01, 31d
@@ -120,10 +120,10 @@ gantt
     section ui
         status bar: done, 03-10, 3d
         file property dialog: done, 04-10, 3d
-        dark theme: 05-01, 7d
-        port session monitor: 05-01, 7d
-        git integration: 05-08, 12d
-        cli integration: 05-20, 12d
+        dark theme: done, 05-01, 7d
+        port session monitor: crit, 05-01, 7d
+        cli integration: done, 05-08, 12d
+        git integration: active, 05-20, 12d
         custom settings: 07-01, 31d
         i18n: 08-01, 31d
 ```
