@@ -19,6 +19,26 @@ Item {
         anchors.fill: parent
         anchors.margins: 6
 
+        RowLayout {
+            Layout.fillWidth: true; Layout.preferredHeight: 24
+
+            ComboBox {
+                id: topicComboBox
+                model: topicStandardItemModel
+                textRole: "display"
+                valueRole: "display"
+                Layout.fillWidth: true
+            }
+
+            Button {
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                flat: true
+                icon.source: "qrc:/icon/add.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+            }
+        }
+
         ScrollView {
             id: chatView
             Layout.fillWidth: true; Layout.fillHeight: true
@@ -306,6 +326,7 @@ Item {
 
     Component.onCompleted: {
         const objects = {
+            "topicComboBox": topicComboBox,
             "textArea": textArea,
             "modeButton": modeButton,
             "modelButton": modelButton

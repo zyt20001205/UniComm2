@@ -8,6 +8,7 @@
 class QNetworkReply;
 class QNetworkAccessManager;
 class QQuickWidget;
+class QStandardItemModel;
 
 class LLMTools;
 class DeepseekAgent;
@@ -56,11 +57,13 @@ private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
+    QObject *m_topicComboBox{};
     QObject *m_textArea{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
     QObject *m_modeMenu{};
     QObject *m_modelMenu{};
+    QStandardItemModel *m_topicStandardItemModel{};
     QString m_mode{};
     QString m_model{};
     bool m_active{};

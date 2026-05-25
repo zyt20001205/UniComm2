@@ -186,6 +186,14 @@ void ConfigManager::workspaceInit() {
             }
         }
     }
+    // 4: llm dir
+    {
+        const auto llmDirPath = QDir(workspacePath).filePath("llm");
+        // mkdir if not found
+        if (QDir().mkdir(llmDirPath)) {
+            emit appendLog(LogLevel::Info, "llm dir created", "");
+        }
+    }
 }
 
 void ConfigManager::workspaceConfigSave(const QUrl &configUrl) {

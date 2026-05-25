@@ -19,6 +19,7 @@ LLMModule::LLMModule()
     : DockWidget("LLM"),
       m_config(g_workspaceConfig["llmConfig"].toObject()),
       m_widget(new QQuickWidget()),
+      m_topicStandardItemModel(new QStandardItemModel(this)),
       m_messages{
           QJsonObject{
               {"role", "system"},
@@ -35,6 +36,7 @@ LLMModule::LLMModule()
       m_tools{new LLMTools(this)},
       m_deepseekAgent(new DeepseekAgent(this)) {
     setWidget(m_widget);
+
     connect(m_tools, &LLMTools::createChat, this, &LLMModule::chatCreate);
     connect(m_tools, &LLMTools::setStatus, this, &LLMModule::statusSet);
 }
@@ -50,6 +52,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
 
     m_widget->rootContext()->setContextProperty("llmModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("topicStandardItemModel", m_topicStandardItemModel);
     m_widget->rootContext()->setContextProperty("modeMenu", m_modeMenu);
     m_widget->rootContext()->setContextProperty("modelMenu", m_modelMenu);
 
@@ -67,6 +70,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
 }
 
 void LLMModule::propertyGet(const QVariantMap &objects) {
+    m_topicComboBox = qvariant_cast<QObject *>(objects["topicComboBox"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
@@ -109,6 +113,14 @@ void LLMModule::modelSet(const QString &model) {
 }
 
 void LLMModule::requestSend() {
+    // check topic
+    if (m_topicComboBox->property("currentText").toString().isEmpty()) {
+        const auto topic = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+        m_topicStandardItemModel->appendRow(new QStandardItem(topic));
+        m_topicComboBox->setProperty("currentValue", topic);
+    }
+
+    // check model
     if (m_model.isEmpty()) {
         chatCreate("error", "No model selected.");
         statusSet("error", "Please select a model first.");
