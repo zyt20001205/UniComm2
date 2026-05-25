@@ -450,8 +450,7 @@ set(LEPTONICA_INCLUDE "${LEPTONICA_DIR}/include")
 file(GLOB LEPTONICA_LIB "${LEPTONICA_DIR}/lib/*.a")
 set(LEPTONICA_BIN "${LEPTONICA_DIR}/bin")
 
-set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.4.8")
-#set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.5.0")
+set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.5.0")
 set(LUA_INCLUDE "${LUA_DIR}/include")
 file(GLOB LUA_LIB "${LUA_DIR}/lib/*.a")
 set(LUA_BIN "${LUA_DIR}/bin")
@@ -620,7 +619,7 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${LEPTONICA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "LEPTONICA BIN COPIED")
-#lua-5.4.8
+#lua-5.5.0
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${LUA_BIN}"

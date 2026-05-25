@@ -12,7 +12,7 @@
       "smtp.mail": "require",
       "thread.start": "require"
     },
-    "version" : "Lua 5.4"
+    "version" : "Lua 5.5"
   },
   "semantic": {
     "keyword": true

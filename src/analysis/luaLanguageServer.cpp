@@ -110,7 +110,7 @@ void LuaLanguageServer::jsonParser() {
         if (m_buffer.size() < headerEndIndex + 4 + length) break;
         const auto dataBytes = m_buffer.mid(headerEndIndex + 4, lengthBytes.toInt());
         const auto json = QJsonDocument::fromJson(dataBytes).object();
-        // qDebug() << json;
+        qDebug() << json;
         m_buffer.remove(0, headerEndIndex + 4 + length);
         if (json.contains("method")) {
             // lsp notification
@@ -128,16 +128,16 @@ void LuaLanguageServer::jsonParser() {
             } else if (method == "$/progress") {
                 // progress notification
                 // qDebug() << json;
-                const auto params = json["params"].toObject();
-                const auto token = params["token"].toInt();
-                const auto value = params["value"].toObject();
-                if (token == 2) {
-                    const int percentage = value["percentage"].toInt(100);
-                    m_progressDialog->setProperty("create2", percentage / 100.0);
-                } else if (token == 3) {
-                    const int percentage = value["percentage"].toInt(100);
-                    m_progressDialog->setProperty("create3", percentage / 100.0);
-                }
+                // const auto params = json["params"].toObject();
+                // const auto token = params["token"].toInt();
+                // const auto value = params["value"].toObject();
+                // if (token == 2) {
+                //     const int percentage = value["percentage"].toInt(100);
+                //     m_progressDialog->setProperty("create2", percentage / 100.0);
+                // } else if (token == 3) {
+                //     const int percentage = value["percentage"].toInt(100);
+                //     m_progressDialog->setProperty("create3", percentage / 100.0);
+                // }
             } else if (method == "window/logMessage") {
                 // log message notification
                 // qDebug() << json;
@@ -150,13 +150,13 @@ void LuaLanguageServer::jsonParser() {
             } else if (method == "window/workDoneProgress/create") {
                 // work done progress notification
                 // qDebug() << json;
-                const auto params = json["params"].toObject();
-                const auto token = params["token"].toInt();
-                if (token == 2) {
-                    m_progressDialog->setProperty("done2", true);
-                } else if (token == 3) {
-                    m_progressDialog->setProperty("done3", true);
-                }
+                // const auto params = json["params"].toObject();
+                // const auto token = params["token"].toInt();
+                // if (token == 2) {
+                //     m_progressDialog->setProperty("done2", true);
+                // } else if (token == 3) {
+                //     m_progressDialog->setProperty("done3", true);
+                // }
             } else {
                 qDebug() << "unknown lsp pack";
                 qDebug() << json;

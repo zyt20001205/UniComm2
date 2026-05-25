@@ -311,7 +311,8 @@ Item {
         modal: true
         title: qsTr("Lua language server initializing...")
         topPadding: 30; bottomPadding: 20
-        visible: !(done2 && done3)
+        visible: false
+        // visible: !(done2 && done3)
         property real create2
         property real create3
         property bool done2: false
