@@ -455,7 +455,7 @@ set(LUA_INCLUDE "${LUA_DIR}/include")
 file(GLOB LUA_LIB "${LUA_DIR}/lib/*.a")
 set(LUA_BIN "${LUA_DIR}/bin")
 
-set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.16.4")
+set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.18.2")
 
 set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell-5.1.6")
 set(NUSPELL_INCLUDE "${NUSPELL_DIR}/include")
@@ -625,7 +625,7 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${LUA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "LUA BIN COPIED")
-#lua-language-server-3.16.4
+#lua-language-server-3.18.2
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${LUALS_DIR}"

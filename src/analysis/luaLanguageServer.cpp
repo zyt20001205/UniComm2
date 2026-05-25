@@ -110,7 +110,7 @@ void LuaLanguageServer::jsonParser() {
         if (m_buffer.size() < headerEndIndex + 4 + length) break;
         const auto dataBytes = m_buffer.mid(headerEndIndex + 4, lengthBytes.toInt());
         const auto json = QJsonDocument::fromJson(dataBytes).object();
-        qDebug() << json;
+        // qDebug() << json;
         m_buffer.remove(0, headerEndIndex + 4 + length);
         if (json.contains("method")) {
             // lsp notification
