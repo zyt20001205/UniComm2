@@ -286,7 +286,7 @@ void LLMModule::activeSet(const bool status) {
 
 QString LLMModule::chatCreate(const QString &role, const QString &text) {
     const auto id = "id_" + QString::number(m_id++);
-    QMetaObject::invokeMethod(m_root, "chatCreate",Q_ARG(QVariant, id), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, id), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
     return id;
 }
 

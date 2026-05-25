@@ -399,11 +399,10 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
     } else {
         length = static_cast<int>(lengthGet());
     }
-    // TODO: safety check
-    // if (startPos < 0 || endPos > m_editorWidget->length() || length <= 0) {
-    //     qDebug() << "long string skipped" << currentLine << currentChar;
-    //     continue;
-    // }
+    if (start < 0 || start + length > lengthGet() || length <= 0) {
+        // qDebug() << "long string skipped (this is lua language server bug)";
+        return;
+    }
     send(SCI_STARTSTYLING, start); // NOLINT
     send(SCI_SETSTYLING, length, type); // NOLINT
 }
