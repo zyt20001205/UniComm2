@@ -236,12 +236,12 @@ Item {
     Connections {
         target: headerItemModel
 
-        function onRowsInserted() {
+        function onColumnsInserted() {
             modelVisible = true
         }
 
-        function onRowsRemoved() {
-            modelVisible = headerItemModel.rowCount() > 0
+        function onColumnsRemoved() {
+            modelVisible = headerItemModel.columnCount() > 0
         }
 
         function onModelReset() {
