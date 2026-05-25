@@ -25,5 +25,12 @@ void Thread::stop(const std::string &threadId) {
 }
 
 void Thread::sleep(const int ms) {
-    QThread::msleep(ms);
+    int elapsed = 0;
+    while (elapsed < ms) {
+        constexpr int INTERVAL = 100;
+        if (QThread::currentThread()->isInterruptionRequested()) return;
+        const int sleepTime = qMin(INTERVAL, ms - elapsed);
+        QThread::msleep(sleepTime);
+        elapsed += sleepTime;
+    }
 }

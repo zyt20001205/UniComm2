@@ -19,7 +19,7 @@ public:
 
     void stop(const std::string &threadId);
 
-    void sleep(int ms);
+    static void sleep(int ms);
 
 signals:
     void startThread(const QUrl &documentUrl, int mode, QString &threadId, int startLine, int startCharacter, int endLine, int endCharacter);

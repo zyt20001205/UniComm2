@@ -83,6 +83,7 @@ Item {
                         gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                         onSingleTapped: {
+                            tableMenu.datatableIndex = model.column
                             tableMenu.datatableKey = model.display
                             tableMenu.popup()
                         }

@@ -39,7 +39,6 @@ void DatatableModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));
-    // auto *temp = new QTransposeProxyModel(g_datatableHeaderItemModel);
     m_widget->rootContext()->setContextProperty("headerItemModel", m_transposeProxyModel);
     m_widget->rootContext()->setContextProperty("standardItemModel", g_datatableStandardItemModel);
 
