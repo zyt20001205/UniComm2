@@ -25,7 +25,7 @@ public:
 signals:
     void createChat(const QString &role, const QString &text);
 
-    void appendChat(const QString &id, const QString &text);
+    void appendChat(const QString &messageId, const QString &text);
 
     void setStatus(const QString &status, const QString &text);
 

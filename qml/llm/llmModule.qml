@@ -292,6 +292,7 @@ Item {
             wrapMode: Text.Wrap
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 20)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
+            property string messageId
             property string role
 
             background: Rectangle {
@@ -305,6 +306,11 @@ Item {
                 id: chatMetrics
                 text: chatLabel.text
                 font: chatLabel.font
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                onTapped: console.log(chatLabel.messageId)
             }
         }
     }
@@ -337,27 +343,28 @@ Item {
         rootItem.lastChatLabel = null
     }
 
-    function chatCreate(id, role, text) {
+    function chatCreate(messageId, role, text) {
         const obj = chatComponent.createObject(chatColumn, {
+            messageId: messageId,
             role: role,
-            text: text
+            text: text,
         })
-        rootItem.chatMap[id] = obj
+        rootItem.chatMap[messageId] = obj
         rootItem.lastChatLabel = obj
         scrollTimer.restart()
     }
 
-    function chatAppend(id, text) {
-        if (id === "") {
+    function chatAppend(messageId, text) {
+        if (messageId === "") {
             rootItem.lastChatLabel.text += text
         } else {
-            rootItem.chatMap[id].text += text
+            rootItem.chatMap[messageId].text += text
         }
         scrollTimer.restart()
     }
 
-    function chatVisible(id, status) {
-        rootItem.chatMap[id].visible = status
+    function chatVisible(messageId, status) {
+        rootItem.chatMap[messageId].visible = status
     }
 
     function statusSet(status, text) {

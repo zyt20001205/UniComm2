@@ -60,7 +60,7 @@ private:
 
     QString chatCreate(const QString &role, const QString &text);
 
-    void chatAppend(const QString &id, const QString &text) const;
+    void chatAppend(const QString &messageId, const QString &text) const;
 
     void statusSet(const QString &status, const QString &text) const;
 

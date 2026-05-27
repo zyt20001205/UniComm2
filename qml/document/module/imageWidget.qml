@@ -47,9 +47,7 @@ Item {
             TapHandler {
                 acceptedButtons: Qt.MiddleButton
 
-                onTapped: {
-                    flickable.ratio = 1.0
-                }
+                onTapped: flickable.ratio = 1.0
             }
 
             WheelHandler {

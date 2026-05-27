@@ -21,9 +21,11 @@ LLMModule::LLMModule()
       m_topic(m_config["topic"].toString()),
       m_widget(new QQuickWidget()),
       m_system("You are an IDE code assistant. "
-          "Use tools first when possible. If not, consult API annotations and generate a script."
-          "When dealing with files, highly prefer using 'symbol_get' to understand the code structure and locate exactly which lines you need to use with text_get or text_set."
-          "All code must be written in English (including comments, variable names, identifiers, and strings)."
+          "When in ask mode (no tools provided), you can only answer questions. If the request cannot be handled, ask user to switch to Agent mode. "
+          "When in agent mode (tools provided), you have access to file system, terminal, and advanced tools. "
+          "Use tools first when possible. If not, consult API annotations and generate a script. "
+          "When dealing with files, highly prefer using 'symbol_get' to understand the code structure and locate exactly which lines you need to use with text_get or text_set. "
+          "All code must be written in English (including comments, variable names, identifiers, and strings). "
           "Use io.log() instead of print() for assistant."),
       m_topicStandardItemModel(new QStandardItemModel(this)),
       m_tools(new LLMTools(this)),
@@ -38,6 +40,7 @@ LLMModule::LLMModule()
             const auto sessionDoc = QJsonDocument::fromJson(sessionFile.readAll());
             sessionFile.close();
             if (sessionDoc.isNull() || !sessionDoc.isObject()) continue;
+            if (sessionDoc.object().isEmpty()) continue;
             m_topicStandardItemModel->appendRow(new QStandardItem(topic));
             m_sessions[topic] = sessionDoc.object();
         }
@@ -91,7 +94,7 @@ void LLMModule::llmConfigSave() {
     g_workspaceConfig["llmConfig"] = m_config;
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath("llm");
-    for (const auto &value : QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
+    for (const auto &value: QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
         QFile::remove(value.absoluteFilePath());
     }
     for (auto it = m_sessions.constBegin(); it != m_sessions.constEnd(); ++it) {
@@ -113,16 +116,6 @@ void LLMModule::apikeySet(const QString &key, const QString &apikey) const {
 void LLMModule::modeSet(const QString &mode) {
     if (m_sessions[m_topic]["mode"].toString() == mode) return;
     m_sessions[m_topic]["mode"] = mode;
-    QString content{};
-    if (mode == "ask") content = "Mode switched to Ask. If the request cannot be handled, ask user to switch to Agent mode.";
-    else content = "Mode switched to Agent. You have access to file system, terminal, and advanced tools.";
-    chatCreate("user", content);
-    auto messages = m_sessions[m_topic]["messages"].toArray();
-    messages.append(QJsonObject{
-        {"role", "user"},
-        {"content", content}
-    });
-    m_sessions[m_topic]["messages"] = messages;
     m_modeButton->setProperty("text", m_sessions[m_topic]["mode"].toString());
 }
 
@@ -236,7 +229,7 @@ void LLMModule::conversationSend() {
     body["model"] = session["model"];
     body["messages"] = session["messages"];
     body["stream"] = true;
-    if (session["mode"] != "ask") body["tools"] = m_tools->toolsGet();
+    body["tools"] = session["mode"] == "ask" ? QJsonArray{} : m_tools->toolsGet();
     QMetaObject::invokeMethod(m_textArea, "clear");
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
@@ -382,13 +375,13 @@ void LLMModule::conversationSend() {
 }
 
 QString LLMModule::chatCreate(const QString &role, const QString &text) {
-    const auto id = "id_" + QString::number(m_id++);
-    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, id), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
-    return id;
+    const auto messageId = "id_" + QString::number(m_id++);
+    QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, messageId), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
+    return messageId;
 }
 
-void LLMModule::chatAppend(const QString &id, const QString &text) const {
-    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, id), Q_ARG(QVariant, text));
+void LLMModule::chatAppend(const QString &messageId, const QString &text) const {
+    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, messageId), Q_ARG(QVariant, text));
 }
 
 void LLMModule::statusSet(const QString &status, const QString &text) const {
