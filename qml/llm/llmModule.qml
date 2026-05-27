@@ -24,6 +24,7 @@ Item {
 
             ComboBox {
                 id: topicComboBox
+                enabled: !llmModule.active
                 model: topicStandardItemModel
                 textRole: "display"
                 valueRole: "display"
@@ -37,6 +38,7 @@ Item {
 
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: !llmModule.active
                 flat: true
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
@@ -48,7 +50,7 @@ Item {
             Button {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 checkable: true
-                enabled: topicComboBox.currentText
+                enabled: topicComboBox.currentText && !llmModule.active
                 flat: true
                 icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
                 icon.width: 16; icon.height: 16
@@ -227,6 +229,7 @@ Item {
             Button {
                 id: modeButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: !llmModule.active
                 Layout.preferredWidth: modeButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                 onClicked: {
@@ -245,6 +248,7 @@ Item {
             Button {
                 id: modelButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: !llmModule.active
                 Layout.preferredWidth: modelButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
                 onClicked: {
