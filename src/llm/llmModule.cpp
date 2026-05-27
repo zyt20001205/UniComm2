@@ -141,7 +141,7 @@ void LLMModule::conversationCreate() {
     m_topicStandardItemModel->appendRow(new QStandardItem(topic));
     m_topicComboBox->setProperty("currentValue", topic);
     m_sessions[topic] = QJsonObject{
-        {"mode", "ask"},
+        {"mode", ""},
         {"model", ""},
         {
             "messages", QJsonArray{
@@ -161,7 +161,6 @@ void LLMModule::conversationDelete(const QString &topic) {
             break;
         }
     }
-    m_topicStandardItemModel->appendRow(new QStandardItem(topic));
     m_sessions.remove(topic);
 }
 
@@ -203,6 +202,7 @@ void LLMModule::conversationStart() {
         m_sessions[m_topic]["messages"] = messages;
     }
 
+    activeSet(true);
     conversationSend();
 }
 
@@ -222,14 +222,13 @@ void LLMModule::activeSet(const bool status) {
     emit activeChanged();
 }
 
-void LLMModule::conversationSend() {
+void LLMModule::conversationSend(const int depth) {
     const auto session = m_sessions[m_topic];
     QJsonObject body{};
     body["model"] = session["model"];
     body["messages"] = session["messages"];
     body["stream"] = true;
     if (session["mode"] != "ask") body["tools"] = m_tools->toolsGet();
-    activeSet(true);
     QMetaObject::invokeMethod(m_textArea, "clear");
     auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
@@ -238,6 +237,7 @@ void LLMModule::conversationSend() {
     auto reasoningId = std::make_shared<QString>();
     auto contentId = std::make_shared<QString>();
     auto toolCalls = std::make_shared<QVariantHash>();
+    auto _depth = std::make_shared<int>(depth);
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply, reasoning, content, reasoningId, contentId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
@@ -298,7 +298,7 @@ void LLMModule::conversationSend() {
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls, _depth] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             activeSet(false);
             statusSet("idle", "Finished");
@@ -352,7 +352,7 @@ void LLMModule::conversationSend() {
                     });
                     m_sessions[m_topic]["messages"] = messages;
                 }
-                conversationSend();
+                conversationSend(*_depth + 1);
             } else {
                 auto messages = m_sessions[m_topic]["messages"].toArray();
                 messages.append(QJsonObject{
@@ -360,7 +360,11 @@ void LLMModule::conversationSend() {
                     {"content", *content}
                 });
                 m_sessions[m_topic]["messages"] = messages;
-                statusSet("idle", "Finished");
+                qDebug() << "Current Depth:" << *_depth;
+                if (*_depth == 0) {
+                    activeSet(false);
+                    statusSet("idle", "Finished");
+                }
             }
         } else {
             const auto data = reply->readAll();

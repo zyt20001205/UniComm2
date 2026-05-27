@@ -56,7 +56,7 @@ signals:
 private:
     void activeSet(bool status);
 
-    void conversationSend();
+    void conversationSend(int depth = 0);
 
     QString chatCreate(const QString &role, const QString &text);
 
