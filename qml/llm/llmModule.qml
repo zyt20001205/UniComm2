@@ -27,7 +27,12 @@ Item {
                 model: topicStandardItemModel
                 textRole: "display"
                 valueRole: "display"
-                Layout.fillWidth: true
+                Layout.fillWidth: true; Layout.preferredHeight: 24
+
+                onCurrentTextChanged: {
+                    chatClear()
+                    llmModule.conversationLoad(topicComboBox.currentText)
+                }
             }
 
             Button {
@@ -36,6 +41,8 @@ Item {
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onClicked: llmModule.conversationCreate()
             }
         }
 
@@ -184,7 +191,7 @@ Item {
                 Keys.onPressed: (event) => {
                     if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
                         if (textArea.text.trim().length > 0) {
-                            llmModule.requestSend()
+                            llmModule.conversationStart()
                         }
                         event.accepted = true
                     }
@@ -243,7 +250,7 @@ Item {
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
-                onClicked: llmModule.active ? llmModule.requestCancel() : llmModule.requestSend()
+                onClicked: llmModule.active ? llmModule.conversationEnd() : llmModule.conversationStart()
             }
         }
     }
@@ -296,13 +303,21 @@ Item {
         easing.type: Easing.OutQuad
     }
 
+    function chatClear() {
+        for (let i = chatColumn.children.length - 1; i >= 0; --i) {
+            chatColumn.children[i].destroy();
+        }
+        rootItem.chatMap = ({})
+        rootItem.lastChatLabel = null
+    }
+
     function chatCreate(id, role, text) {
         const obj = chatComponent.createObject(chatColumn, {
             role: role,
             text: text
         })
-        rootItem.lastChatLabel = obj
         rootItem.chatMap[id] = obj
+        rootItem.lastChatLabel = obj
         scrollTimer.restart()
     }
 

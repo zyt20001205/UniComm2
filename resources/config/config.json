@@ -18,8 +18,7 @@
     "fontSize": 10
   },
   "llmConfig": {
-    "model": "",
-    "mode": "ask"
+    "topic": ""
   },
   "logConfig": {
     "fontFamily": "Segoe UI",

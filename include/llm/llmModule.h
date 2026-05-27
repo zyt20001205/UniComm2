@@ -38,9 +38,13 @@ public:
 
     Q_INVOKABLE void modelSet(const QString &model);
 
-    Q_INVOKABLE void requestSend();
+    Q_INVOKABLE void conversationCreate();
 
-    Q_INVOKABLE void requestCancel();
+    Q_INVOKABLE void conversationLoad(const QString &topic);
+
+    Q_INVOKABLE void conversationStart();
+
+    Q_INVOKABLE void conversationEnd();
 
     Q_INVOKABLE void permissionSet(bool status) const;
 
@@ -50,22 +54,28 @@ signals:
 private:
     void activeSet(bool status);
 
+    void conversationSend();
+
     QString chatCreate(const QString &role, const QString &text);
 
     void statusSet(const QString &status, const QString &text) const;
 
     QJsonObject m_config{};
+    QString m_topic{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
+    QObject *m_messageDialog{};
+    QObject *m_modeMenu{};
+    QObject *m_modelMenu{};
     QObject *m_topicComboBox{};
     QObject *m_textArea{};
     QObject *m_modeButton{};
     QObject *m_modelButton{};
-    QObject *m_modeMenu{};
-    QObject *m_modelMenu{};
+
+    QString m_system{};
     QStandardItemModel *m_topicStandardItemModel{};
-    QString m_mode{};
-    QString m_model{};
+    QHash<QString, QJsonObject> m_sessions{};
+
     bool m_active{};
     QNetworkReply *m_reply{};
     int m_id = 0;
