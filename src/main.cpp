@@ -3,6 +3,7 @@
 #include <core/crashHandler.h>
 #include <kddockwidgets/Config.h>
 #include <QQuickStyle>
+#include <QQuickWindow>
 #include <QStyleFactory>
 
 #include "core/configManager.h"
@@ -24,7 +25,6 @@ int main(int argc, char *argv[]) {
     flags |= KDDockWidgets::Config::Flag_TabsHaveCloseButton;
     KDDockWidgets::Config::self().setFlags(flags);
     KDDockWidgets::Config::self().setSeparatorThickness(3);
-
     // config init
     if (ConfigManager::mainConfigLoad()) return 1;
     auto *mainWindow = new MainWindow();
