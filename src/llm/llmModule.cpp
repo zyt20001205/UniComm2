@@ -222,7 +222,7 @@ void LLMModule::activeSet(const bool status) {
     emit activeChanged();
 }
 
-void LLMModule::conversationSend(const int depth) {
+void LLMModule::conversationSend() {
     const auto session = m_sessions[m_topic];
     QJsonObject body{};
     body["model"] = session["model"];
@@ -237,7 +237,6 @@ void LLMModule::conversationSend(const int depth) {
     auto reasoningId = std::make_shared<QString>();
     auto contentId = std::make_shared<QString>();
     auto toolCalls = std::make_shared<QVariantHash>();
-    auto _depth = std::make_shared<int>(depth);
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply, reasoning, content, reasoningId, contentId, toolCalls] {
         if (reply->error() != QNetworkReply::NoError) return;
@@ -298,7 +297,7 @@ void LLMModule::conversationSend(const int depth) {
             }
         }
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls, _depth] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             activeSet(false);
             statusSet("idle", "Finished");
@@ -352,7 +351,7 @@ void LLMModule::conversationSend(const int depth) {
                     });
                     m_sessions[m_topic]["messages"] = messages;
                 }
-                conversationSend(*_depth + 1);
+                conversationSend();
             } else {
                 auto messages = m_sessions[m_topic]["messages"].toArray();
                 messages.append(QJsonObject{
@@ -360,11 +359,8 @@ void LLMModule::conversationSend(const int depth) {
                     {"content", *content}
                 });
                 m_sessions[m_topic]["messages"] = messages;
-                qDebug() << "Current Depth:" << *_depth;
-                if (*_depth == 0) {
-                    activeSet(false);
-                    statusSet("idle", "Finished");
-                }
+                activeSet(false);
+                statusSet("idle", "Finished");
             }
         } else {
             const auto data = reply->readAll();
