@@ -44,6 +44,28 @@ Item {
 
                 onClicked: llmModule.conversationCreate()
             }
+
+            Button {
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                checkable: true
+                enabled: topicComboBox.currentText
+                flat: true
+                icon.source: checked ? "qrc:/icon/checkmark.svg" : "qrc:/icon/delete.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onToggled: {
+                    if (!checked) {
+                        llmModule.conversationDelete(topicComboBox.currentText)
+                    }
+                }
+
+                Timer {
+                    interval: 1000
+                    running: parent.checked
+                    onTriggered: parent.checked = false
+                }
+            }
         }
 
         ScrollView {

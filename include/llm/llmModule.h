@@ -40,6 +40,8 @@ public:
 
     Q_INVOKABLE void conversationCreate();
 
+    Q_INVOKABLE void conversationDelete(const QString &topic);
+
     Q_INVOKABLE void conversationLoad(const QString &topic);
 
     Q_INVOKABLE void conversationStart();

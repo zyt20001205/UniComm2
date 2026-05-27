@@ -74,6 +74,8 @@ void LLMModule::propertySet(const QVariantHash &objects) {
         m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(agentStandardItemModel));
     });
     m_deepseekAgent->apikeyGet();
+
+    conversationLoad(m_topic);
 }
 
 void LLMModule::propertyGet(const QVariantMap &objects) {
@@ -81,8 +83,6 @@ void LLMModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     m_modeButton = qvariant_cast<QObject *>(objects["modeButton"]);
     m_modelButton = qvariant_cast<QObject *>(objects["modelButton"]);
-
-    conversationLoad(m_topic);
 }
 
 void LLMModule::llmConfigSave() {
@@ -90,6 +90,9 @@ void LLMModule::llmConfigSave() {
     g_workspaceConfig["llmConfig"] = m_config;
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath("llm");
+    auto llmDir = QDir(dirPath);
+    if (llmDir.exists()) llmDir.removeRecursively();
+    if (!QDir().mkpath(dirPath)) return;
     for (auto it = m_sessions.constBegin(); it != m_sessions.constEnd(); ++it) {
         const auto &topic = it.key();
         const auto sessionPath = QDir(dirPath).filePath(topic + ".json");
@@ -110,15 +113,19 @@ void LLMModule::modeSet(const QString &mode) {
     if (m_sessions[m_topic]["mode"].toString() == mode) return;
     m_sessions[m_topic]["mode"] = mode;
     if (mode == "ask") {
-        m_sessions[m_topic]["messages"].toArray().append(QJsonObject{
+        auto messages = m_sessions[m_topic]["messages"].toArray();
+        messages.append(QJsonObject{
             {"role", "user"},
             {"content", "[System command] Mode switched to Ask. If the request cannot be handled, ask user to switch to Agent mode."}
         });
+        m_sessions[m_topic]["messages"] = messages;
     } else {
-        m_sessions[m_topic]["messages"].toArray().append(QJsonObject{
+        auto messages = m_sessions[m_topic]["messages"].toArray();
+        messages.append(QJsonObject{
             {"role", "user"},
             {"content", "[System command] Mode switched to Agent. You have access to file system, terminal, and advanced tools."}
         });
+        m_sessions[m_topic]["messages"] = messages;
     }
     m_modeButton->setProperty("text", m_sessions[m_topic]["mode"].toString());
 }
@@ -134,7 +141,7 @@ void LLMModule::conversationCreate() {
     m_topicStandardItemModel->appendRow(new QStandardItem(topic));
     m_topicComboBox->setProperty("currentValue", topic);
     m_sessions[topic] = QJsonObject{
-        {"mode", ""},
+        {"mode", "ask"},
         {"model", ""},
         {
             "messages", QJsonArray{
@@ -147,26 +154,38 @@ void LLMModule::conversationCreate() {
     };
 }
 
+void LLMModule::conversationDelete(const QString &topic) {
+    for (int row = 0; row < m_topicStandardItemModel->rowCount(); ++row) {
+        if (m_topicStandardItemModel->item(row, 0)->text() == topic) {
+            m_topicStandardItemModel->removeRow(row);
+            break;
+        }
+    }
+    m_topicStandardItemModel->appendRow(new QStandardItem(topic));
+    m_sessions.remove(topic);
+}
+
 void LLMModule::conversationLoad(const QString &topic) {
-    if (topic.isEmpty()) return;
+    if (topic.isEmpty() || m_modeButton == nullptr || m_modelButton == nullptr) return;
     m_topic = topic;
     const auto session = m_sessions[m_topic];
     for (const auto &value: session["messages"].toArray()) {
         const auto message = value.toObject();
         const auto role = message.value("role").toString();
-        if (role == "system") continue;
+        if (role == "system" || role == "tool") continue;
         const auto content = message.value("content").toString();
         chatCreate(role, content);
     }
+    m_modeButton->setProperty("text", session["mode"].toString());
+    m_modelButton->setProperty("text", session["model"].toString());
 }
 
 void LLMModule::conversationStart() {
     // get topic
     if (m_topicComboBox->property("currentText").toString().isEmpty()) conversationCreate();
     m_topic = m_topicComboBox->property("currentText").toString();
-    const auto session = m_sessions[m_topic];
     // check model
-    if (session["model"].toString().isEmpty()) {
+    if (m_sessions[m_topic]["model"].toString().isEmpty()) {
         m_messageDialog->setProperty("title", tr("Error"));
         m_messageDialog->setProperty("text", tr("Please select a model first."));
         QMetaObject::invokeMethod(m_messageDialog, "open");
@@ -176,10 +195,12 @@ void LLMModule::conversationStart() {
     const auto text = m_textArea->property("text").toString();
     if (!text.isEmpty()) {
         chatCreate("user", text);
-        session["messages"].toArray().append(QJsonObject{
+        auto messages = m_sessions[m_topic]["messages"].toArray();
+        messages.append(QJsonObject{
             {"role", "user"},
             {"content", text}
         });
+        m_sessions[m_topic]["messages"] = messages;
     }
 
     conversationSend();
@@ -306,12 +327,14 @@ void LLMModule::conversationSend() {
                     });
                 }
                 if (!_toolCalls.isEmpty()) {
-                    m_sessions[m_topic]["messages"].toArray().append(QJsonObject{
+                    auto messages = m_sessions[m_topic]["messages"].toArray();
+                    messages.append(QJsonObject{
                         {"role", "assistant"},
                         {"content", *content},
                         {"reasoning_content", *reasoning},
                         {"tool_calls", _toolCalls}
                     });
+                    m_sessions[m_topic]["messages"] = messages;
                 }
                 // call tools
                 for (const auto &value: _toolCalls) {
@@ -321,18 +344,22 @@ void LLMModule::conversationSend() {
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
                     const auto content = m_tools->toolsSet(m_sessions[m_topic]["mode"].toString(), name, arguments);
-                    m_sessions[m_topic]["messages"].toArray().append(QJsonObject{
+                    auto messages = m_sessions[m_topic]["messages"].toArray();
+                    messages.append(QJsonObject{
                         {"role", "tool"},
                         {"tool_call_id", id},
                         {"content", content},
                     });
+                    m_sessions[m_topic]["messages"] = messages;
                 }
                 conversationSend();
             } else {
-                m_sessions[m_topic]["messages"].toArray().append(QJsonObject{
+                auto messages = m_sessions[m_topic]["messages"].toArray();
+                messages.append(QJsonObject{
                     {"role", "assistant"},
                     {"content", *content}
                 });
+                m_sessions[m_topic]["messages"] = messages;
                 statusSet("idle", "Finished");
             }
         } else {
