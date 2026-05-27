@@ -26,7 +26,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    bool activeGet() const {
+    [[nodiscard]] bool activeGet() const {
         return m_active;
     }
 
@@ -59,6 +59,8 @@ private:
     void conversationSend();
 
     QString chatCreate(const QString &role, const QString &text);
+
+    void chatAppend(const QString &id, const QString &text) const;
 
     void statusSet(const QString &status, const QString &text) const;
 

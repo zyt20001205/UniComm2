@@ -532,6 +532,7 @@ LLMTools::LLMTools(QObject *parent)
 QString LLMTools::toolsSet(const QString &mode, const QString &name, const QString &arguments) {
     const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
     const auto object = doc.object();
+    chatCreate(name, object);
     if (!permissionGet(mode, name, object)) return {"User denied permission to execute this tool."};
     if (name == "api_list") {
         const auto dir = QDir(":/lib");
@@ -649,6 +650,61 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
     return {"Unknown tool."};
 }
 
+void LLMTools::chatCreate(const QString &name, const QJsonObject &object) {
+    QString chatText{};
+    if (name == "api_list") {
+        chatText = "Get available APIs";
+    } else if (name == "api_get") {
+        const auto packageName = object.value("package_name").toString();
+        chatText = QString("Read %1 details").arg(packageName);
+    } else if (name == "demo_get") {
+        const auto packageName = object.value("package_name").toString();
+        chatText = QString("Read %1 demo").arg(packageName);
+    } else if (name == "grep_search") {
+        const auto pattern = object.value("pattern").toString();
+        chatText = QString("Grep \"%1\"").arg(pattern);
+    } else if (name == "database_list") {
+        chatText = "Get available database keys";
+    } else if (name == "datatable_list") {
+        chatText = "Get available datatable keys";
+    } else if (name == "port_list") {
+        chatText = "Get available ports";
+    } else if (name == "log_get") {
+        const auto blockCount = object.value("block_count").toInt(-1);
+        chatText = QString("Get last %1 log blocks").arg(QString::number(blockCount));
+    } else if (name == "diagnostics_get") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        chatText = QString("Check %1 diagnostics").arg(documentName);
+    } else if (name == "symbol_get") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        chatText = QString("Understand %1 symbol").arg(documentName);
+    } else if (name == "document_list") {
+        chatText = "Get available documents";
+    } else if (name == "document_focused") {
+        chatText = "Get current document";
+    } else if (name == "text_get") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        const auto startLine = object.value("start_line").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
+        chatText = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+                                                          QString::number(endCharacter));
+    } else if (name == "text_set") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        const auto startLine = object.value("start_line").toInt(-1);
+        const auto startCharacter = object.value("start_character").toInt(-1);
+        const auto endLine = object.value("end_line").toInt(-1);
+        const auto endCharacter = object.value("end_character").toInt(-1);
+        chatText = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
+                                                           QString::number(endCharacter));
+    } else if (name == "thread_start") {
+        const auto documentName = QUrl(object.value("document_url").toString()).fileName();
+        chatText = QString("Run %1").arg(documentName);
+    }
+    emit createChat("tool", chatText);
+}
+
 void LLMTools::permissionSet(const bool status) {
     m_approved = status;
     m_eventloop->quit();
@@ -661,49 +717,48 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
     } else if (mode == "write") {
         if (m_godGroup.contains(name)) m_approved = false;
     }
-    QString chatText{};
+    if (m_approved) {
+        emit appendChat("", " ✓");
+    }
+    else {
+        statusSet(name, object);
+        m_eventloop->exec();
+    }
+    emit setStatus("busy", "Responding...");
+    return m_approved;
+}
+
+void LLMTools::statusSet(const QString &name, const QJsonObject &object) {
     QString statusText{};
-    if (name == "api_list") {
-        chatText = "Get available APIs";
+        if (name == "api_list") {
         statusText = "I want to get all available APIs.";
     } else if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();
-        chatText = QString("Read %1 details").arg(packageName);
         statusText = QString("I want to read %1 details.").arg(packageName);
     } else if (name == "demo_get") {
         const auto packageName = object.value("package_name").toString();
-        chatText = QString("Read %1 demo").arg(packageName);
         statusText = QString("I want to see %1 demo.").arg(packageName);
     } else if (name == "grep_search") {
         const auto pattern = object.value("pattern").toString();
-        chatText = QString("Grep \"%1\"").arg(pattern);
         statusText = QString("I want to grep \"%1\".").arg(pattern);
     } else if (name == "database_list") {
-        chatText = "Get available database keys";
         statusText = "I want to get all available database keys.";
     } else if (name == "datatable_list") {
-        chatText = "Get available datatable keys";
         statusText = "I want to get all available datatable keys.";
     } else if (name == "port_list") {
-        chatText = "Get available ports";
         statusText = "I want to get all available ports.";
     } else if (name == "log_get") {
         const auto blockCount = object.value("block_count").toInt(-1);
-        chatText = QString("Get last %1 log blocks").arg(QString::number(blockCount));
         statusText = QString("I want to read latest %1 log blocks.").arg(QString::number(blockCount));
     } else if (name == "diagnostics_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        chatText = QString("Check %1 diagnostics").arg(documentName);
         statusText = QString("I want to check %1 diagnostics.").arg(documentName);
     } else if (name == "symbol_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        chatText = QString("Understand %1 symbol").arg(documentName);
         statusText = QString("I want to understand %1 symbol.").arg(documentName);
     } else if (name == "document_list") {
-        chatText = "Get available documents";
         statusText = "I want to get all available documents.";
     } else if (name == "document_focused") {
-        chatText = "Get current document";
         statusText = "I want to know current document.";
     } else if (name == "text_get") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
@@ -711,8 +766,6 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        chatText = QString("Read %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                          QString::number(endCharacter));
         statusText = QString("I want to read %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
                                                                        QString::number(endCharacter));
     } else if (name == "text_set") {
@@ -721,19 +774,11 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
         const auto startCharacter = object.value("start_character").toInt(-1);
         const auto endLine = object.value("end_line").toInt(-1);
         const auto endCharacter = object.value("end_character").toInt(-1);
-        chatText = QString("Write %1 (%2:%3)-(%4:%5)").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
-                                                           QString::number(endCharacter));
         statusText = QString("I want to edit %1 (%2:%3)-(%4:%5).").arg(documentName, QString::number(startLine), QString::number(startCharacter), QString::number(endLine),
                                                                        QString::number(endCharacter));
     } else if (name == "thread_start") {
         const auto documentName = QUrl(object.value("document_url").toString()).fileName();
-        chatText = QString("Run %1").arg(documentName);
         statusText = QString("I want to run %1.").arg(documentName);
     }
-    if (m_approved) chatText += " ✓";
-    emit createChat("tool", chatText);
     emit setStatus("waiting", statusText);
-    if (!m_approved) m_eventloop->exec();
-    emit setStatus("busy", "Responding...");
-    return m_approved;
 }

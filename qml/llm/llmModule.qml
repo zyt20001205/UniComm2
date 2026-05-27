@@ -20,7 +20,7 @@ Item {
         anchors.margins: 6
 
         RowLayout {
-            Layout.fillWidth: true; Layout.preferredHeight: 24
+            Layout.fillWidth: true; Layout.preferredHeight: 30
 
             ComboBox {
                 id: topicComboBox
@@ -28,7 +28,7 @@ Item {
                 model: topicStandardItemModel
                 textRole: "display"
                 valueRole: "display"
-                Layout.fillWidth: true; Layout.preferredHeight: 24
+                Layout.fillWidth: true; Layout.preferredHeight: 30
 
                 onCurrentTextChanged: {
                     chatClear()
@@ -96,7 +96,7 @@ Item {
         Item {
             id: chatStatus
             property string status: "idle"
-            property string text: qsTr("Idle")
+            property string text: qsTr("Ready")
             Layout.fillWidth: true; Layout.preferredHeight: 32
 
             Rectangle {
@@ -144,7 +144,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                     onClicked: {
-                        chatAppend(null, " ✓")
+                        chatAppend("", " ✓")
                         llmModule.permissionSet(true)
                     }
                 }
@@ -158,7 +158,7 @@ Item {
                     Layout.preferredWidth: 24; Layout.preferredHeight: 24
 
                     onClicked: {
-                        chatAppend(null, " ✗")
+                        chatAppend("", " ✗")
                         llmModule.permissionSet(false)
                     }
                 }
@@ -348,7 +348,7 @@ Item {
     }
 
     function chatAppend(id, text) {
-        if (id === null) {
+        if (id === "") {
             rootItem.lastChatLabel.text += text
         } else {
             rootItem.chatMap[id].text += text

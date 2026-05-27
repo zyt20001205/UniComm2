@@ -44,6 +44,7 @@ LLMModule::LLMModule()
     }
 
     connect(m_tools, &LLMTools::createChat, this, &LLMModule::chatCreate);
+    connect(m_tools, &LLMTools::appendChat, this, &LLMModule::chatAppend);
     connect(m_tools, &LLMTools::setStatus, this, &LLMModule::statusSet);
 }
 
@@ -90,9 +91,9 @@ void LLMModule::llmConfigSave() {
     g_workspaceConfig["llmConfig"] = m_config;
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath("llm");
-    auto llmDir = QDir(dirPath);
-    if (llmDir.exists()) llmDir.removeRecursively();
-    if (!QDir().mkpath(dirPath)) return;
+    for (const auto &value : QDir(dirPath).entryInfoList(QDir::Files | QDir::NoDotAndDotDot)) {
+        QFile::remove(value.absoluteFilePath());
+    }
     for (auto it = m_sessions.constBegin(); it != m_sessions.constEnd(); ++it) {
         const auto &topic = it.key();
         const auto sessionPath = QDir(dirPath).filePath(topic + ".json");
@@ -112,21 +113,16 @@ void LLMModule::apikeySet(const QString &key, const QString &apikey) const {
 void LLMModule::modeSet(const QString &mode) {
     if (m_sessions[m_topic]["mode"].toString() == mode) return;
     m_sessions[m_topic]["mode"] = mode;
-    if (mode == "ask") {
-        auto messages = m_sessions[m_topic]["messages"].toArray();
-        messages.append(QJsonObject{
-            {"role", "user"},
-            {"content", "[System command] Mode switched to Ask. If the request cannot be handled, ask user to switch to Agent mode."}
-        });
-        m_sessions[m_topic]["messages"] = messages;
-    } else {
-        auto messages = m_sessions[m_topic]["messages"].toArray();
-        messages.append(QJsonObject{
-            {"role", "user"},
-            {"content", "[System command] Mode switched to Agent. You have access to file system, terminal, and advanced tools."}
-        });
-        m_sessions[m_topic]["messages"] = messages;
-    }
+    QString content{};
+    if (mode == "ask") content = "Mode switched to Ask. If the request cannot be handled, ask user to switch to Agent mode.";
+    else content = "Mode switched to Agent. You have access to file system, terminal, and advanced tools.";
+    chatCreate("user", content);
+    auto messages = m_sessions[m_topic]["messages"].toArray();
+    messages.append(QJsonObject{
+        {"role", "user"},
+        {"content", content}
+    });
+    m_sessions[m_topic]["messages"] = messages;
     m_modeButton->setProperty("text", m_sessions[m_topic]["mode"].toString());
 }
 
@@ -173,7 +169,19 @@ void LLMModule::conversationLoad(const QString &topic) {
         const auto role = message.value("role").toString();
         if (role == "system" || role == "tool") continue;
         const auto content = message.value("content").toString();
-        chatCreate(role, content);
+        if (!content.isEmpty()) chatCreate(role, content);
+        const auto toolCalls = message.value("tool_calls").toArray();
+        if (!toolCalls.isEmpty()) {
+            for (const auto &value: toolCalls) {
+                const auto toolCall = value.toObject();
+                const auto function = toolCall.value("function").toObject();
+                const auto name = function.value("name").toString();
+                const auto arguments = function.value("arguments").toString();
+                const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+                const auto object = doc.object();
+                m_tools->chatCreate(name, object);
+            }
+        }
     }
     m_modeButton->setProperty("text", session["mode"].toString());
     m_modelButton->setProperty("text", session["model"].toString());
@@ -263,7 +271,7 @@ void LLMModule::conversationSend() {
                     statusSet("busy", "Thinking...");
                 }
                 reasoning->append(_reasoning);
-                QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *reasoningId), Q_ARG(QVariant, _reasoning));
+                chatAppend(*reasoningId, _reasoning);
             }
 
             const auto _content = delta.value("content").toString();
@@ -274,7 +282,7 @@ void LLMModule::conversationSend() {
                     statusSet("busy", "Responding...");
                 }
                 content->append(_content);
-                QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, *contentId), Q_ARG(QVariant, _content));
+                chatAppend(*contentId, _content);
             }
 
             const auto _toolCalls = delta.value("tool_calls").toArray();
@@ -300,7 +308,7 @@ void LLMModule::conversationSend() {
     connect(reply, &QNetworkReply::finished, this, [this, reply, reasoning, content, toolCalls] {
         if (reply->error() == QNetworkReply::OperationCanceledError) {
             activeSet(false);
-            statusSet("idle", "Finished");
+            statusSet("idle", "Ready");
         } else if (reply->error() == QNetworkReply::NoError) {
             // tool calls
             if (!toolCalls->isEmpty()) {
@@ -360,7 +368,7 @@ void LLMModule::conversationSend() {
                 });
                 m_sessions[m_topic]["messages"] = messages;
                 activeSet(false);
-                statusSet("idle", "Finished");
+                statusSet("idle", "Ready");
             }
         } else {
             const auto data = reply->readAll();
@@ -377,6 +385,10 @@ QString LLMModule::chatCreate(const QString &role, const QString &text) {
     const auto id = "id_" + QString::number(m_id++);
     QMetaObject::invokeMethod(m_root, "chatCreate", Q_ARG(QVariant, id), Q_ARG(QVariant, role), Q_ARG(QVariant, text));
     return id;
+}
+
+void LLMModule::chatAppend(const QString &id, const QString &text) const {
+    QMetaObject::invokeMethod(m_root, "chatAppend", Q_ARG(QVariant, id), Q_ARG(QVariant, text));
 }
 
 void LLMModule::statusSet(const QString &status, const QString &text) const {
