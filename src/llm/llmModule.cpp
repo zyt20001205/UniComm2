@@ -63,6 +63,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
 
     m_widget->rootContext()->setContextProperty("llmModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("renameDialog", objects["llmModuleRenameDialog"]);
     m_widget->rootContext()->setContextProperty("topicStandardItemModel", m_topicStandardItemModel);
     m_widget->rootContext()->setContextProperty("modeMenu", m_modeMenu);
     m_widget->rootContext()->setContextProperty("modelMenu", m_modelMenu);
@@ -123,6 +124,18 @@ void LLMModule::modelSet(const QString &model) {
     if (m_sessions[m_topic]["model"].toString() == model) return;
     m_sessions[m_topic]["model"] = model;
     m_modelButton->setProperty("text", m_sessions[m_topic]["model"].toString());
+}
+
+void LLMModule::conversationRename(const QString &oldTopic, const QString &newTopic) {
+    const auto session = m_sessions.take(oldTopic);
+    m_sessions[newTopic] = session;
+    for (int row = 0; row < m_topicStandardItemModel->rowCount(); ++row) {
+        const auto item = m_topicStandardItemModel->item(row, 0);
+        if (item->text() == oldTopic) {
+            item->setText(newTopic);
+            break;
+        }
+    }
 }
 
 void LLMModule::conversationCreate() {

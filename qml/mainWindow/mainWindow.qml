@@ -2559,6 +2559,38 @@ Item {
         }
     }
 
+    Dialog {
+        id: llmModuleRenameDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Rename Conversation")
+        standardButtons: Dialog.Ok
+        property string oldTopic
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            llmModuleRenameTextField.text = llmModuleRenameDialog.oldTopic
+            llmModuleRenameTextField.forceActiveFocus()
+            llmModuleRenameTextField.selectAll()
+        }
+        onAccepted: llmModule.conversationRename(llmModuleRenameDialog.oldTopic, llmModuleRenameTextField.text)
+
+        TextField {
+            id: llmModuleRenameTextField
+            width: parent.width
+            placeholderText: qsTr("Enter new name:")
+
+            onAccepted: llmModuleRenameDialog.accept()
+            Keys.onEscapePressed: llmModuleRenameDialog.reject()
+        }
+    }
+
     Menu {
         id: llmModuleModeMenu
 
@@ -4194,6 +4226,7 @@ Item {
 
             "fileModulePropertyDialog": fileModulePropertyDialog,
 
+            "llmModuleRenameDialog": llmModuleRenameDialog,
             "llmModuleModeMenu": llmModuleModeMenu,
             "llmModuleModelMenu": llmModuleModelMenu,
 

@@ -37,6 +37,20 @@ Item {
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 enabled: !llmModule.active
                 flat: true
+                icon.source: "qrc:/icon/rename.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onClicked: {
+                    renameDialog.oldTopic = topicComboBox.currentText
+                    renameDialog.open()
+                }
+            }
+
+            Button {
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: !llmModule.active
+                flat: true
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24

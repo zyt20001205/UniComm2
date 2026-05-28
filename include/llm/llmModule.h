@@ -38,6 +38,8 @@ public:
 
     Q_INVOKABLE void modelSet(const QString &model);
 
+    Q_INVOKABLE void conversationRename(const QString &oldTopic, const QString &newTopic);
+
     Q_INVOKABLE void conversationCreate();
 
     Q_INVOKABLE void conversationDelete(const QString &topic);
