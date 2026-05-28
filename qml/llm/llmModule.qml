@@ -30,10 +30,7 @@ Item {
                 valueRole: "display"
                 Layout.fillWidth: true; Layout.preferredHeight: 30
 
-                onCurrentTextChanged: {
-                    chatClear()
-                    llmModule.conversationLoad(topicComboBox.currentText)
-                }
+                onCurrentTextChanged: llmModule.conversationLoad(topicComboBox.currentText)
             }
 
             Button {
@@ -266,6 +263,17 @@ Item {
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            Button {
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: !llmModule.active && chatColumn.children.length > 0
+                flat: true
+                icon.source: "qrc:/icon/undo.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onClicked: llmModule.conversationUndo()
             }
 
             Button {

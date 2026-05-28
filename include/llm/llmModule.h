@@ -44,6 +44,8 @@ public:
 
     Q_INVOKABLE void conversationLoad(const QString &topic);
 
+    Q_INVOKABLE void conversationUndo();
+
     Q_INVOKABLE void conversationStart();
 
     Q_INVOKABLE void conversationEnd();
@@ -57,6 +59,8 @@ private:
     void activeSet(bool status);
 
     void conversationSend();
+
+    void chatClear();
 
     QString chatCreate(const QString &role, const QString &text);
 

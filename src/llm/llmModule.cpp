@@ -157,6 +157,7 @@ void LLMModule::conversationLoad(const QString &topic) {
     if (topic.isEmpty() || m_modeButton == nullptr || m_modelButton == nullptr) return;
     m_topic = topic;
     const auto session = m_sessions[m_topic];
+    chatClear();
     for (const auto &value: session["messages"].toArray()) {
         const auto message = value.toObject();
         const auto role = message.value("role").toString();
@@ -178,6 +179,22 @@ void LLMModule::conversationLoad(const QString &topic) {
     }
     m_modeButton->setProperty("text", session["mode"].toString());
     m_modelButton->setProperty("text", session["model"].toString());
+}
+
+void LLMModule::conversationUndo() {
+    auto messages = m_sessions[m_topic]["messages"].toArray();
+    if (messages.size() <= 1) return;
+    for (auto i = messages.size() - 1; i >= 0; --i) {
+        const auto message = messages.takeAt(i).toObject();
+        if (message.value("role").toString() == "user") {
+            const auto content = message["content"].toString();
+            m_textArea->setProperty("text", content);
+            break;
+        }
+    }
+    m_sessions[m_topic]["messages"] = messages;
+    qDebug() << m_sessions[m_topic]["messages"];
+    conversationLoad(m_topic);
 }
 
 void LLMModule::conversationStart() {
@@ -372,6 +389,10 @@ void LLMModule::conversationSend() {
         }
         reply->deleteLater();
     });
+}
+
+void LLMModule::chatClear() {
+    QMetaObject::invokeMethod(m_root, "chatClear");
 }
 
 QString LLMModule::chatCreate(const QString &role, const QString &text) {
