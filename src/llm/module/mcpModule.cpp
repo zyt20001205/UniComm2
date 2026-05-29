@@ -4,6 +4,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QStandardItemModel>
+#include <QUrlQuery>
 
 #include "globals.h"
 
@@ -39,17 +40,17 @@ void McpModule::initialize() {
     auto *reply = g_networkAccessManager->post(m_requests["Context7"], QJsonDocument(body).toJson());
 
     connect(reply, &QNetworkReply::finished, [this, reply] {
-        const auto data = reply->readAll();
-        for (const auto &line: data.split('\n')) {
-            if (line.startsWith("data: ")) {
-                const auto _data = line.mid(6);
-                const auto object = QJsonDocument::fromJson(_data).object();
-                // qDebug() << object;
-                break;
-            }
+        if (reply->error() == QNetworkReply::NoError) {
+            const auto sessionId = reply->rawHeader("Mcp-Session-Id");
+            QUrlQuery query{};
+            query.addQueryItem("sessionId", sessionId);
+            auto url = m_requests["Context7"].url();
+            url.setQuery(query);
+            m_requests["Context7"].setUrl(url);
+            const auto data = reply->readAll();
+            toolsList();
         }
         reply->deleteLater();
-        toolsList();
     });
 }
 
