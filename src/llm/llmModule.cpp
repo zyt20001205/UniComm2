@@ -11,8 +11,8 @@
 
 #include "globals.h"
 #include "document/documentModule.h"
-#include "llm/llmTools.h"
-#include "llm/agent/deepseekAgent.h"
+#include "llm/module/toolsModule.h"
+#include "llm/provider/deepseekProvider.h"
 
 // public
 LLMModule::LLMModule()
@@ -28,8 +28,8 @@ LLMModule::LLMModule()
           "All code must be written in English (including comments, variable names, identifiers, and strings). "
           "Use io.log() instead of print() for assistant."),
       m_topicStandardItemModel(new QStandardItemModel(this)),
-      m_tools(new LLMTools(this)),
-      m_deepseekAgent(new DeepseekAgent(this)) {
+      m_tools(new ToolsModule(this)),
+      m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
 
     const auto dirPath = QDir(g_workspaceUrl.toLocalFile()).filePath("llm");
@@ -46,9 +46,9 @@ LLMModule::LLMModule()
         }
     }
 
-    connect(m_tools, &LLMTools::createChat, this, &LLMModule::chatCreate);
-    connect(m_tools, &LLMTools::appendChat, this, &LLMModule::chatAppend);
-    connect(m_tools, &LLMTools::setStatus, this, &LLMModule::statusSet);
+    connect(m_tools, &ToolsModule::createChat, this, &LLMModule::chatCreate);
+    connect(m_tools, &ToolsModule::appendChat, this, &LLMModule::chatAppend);
+    connect(m_tools, &ToolsModule::setStatus, this, &LLMModule::statusSet);
 }
 
 LLMModule::~LLMModule() {
@@ -72,13 +72,13 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/llm/llmModule.qml"));
     m_root = m_widget->rootObject();
 
-    connect(m_deepseekAgent, &DeepseekAgent::setApikey, this, [this](const QString &apikey) {
+    connect(m_deepseekProvider, &DeepseekProvider::setApikey, this, [this](const QString &apikey) {
         m_modelMenu->setProperty("deepseekApikey", apikey);
     });
-    connect(m_deepseekAgent, &DeepseekAgent::setModel, this, [this](QStandardItemModel *agentStandardItemModel) {
+    connect(m_deepseekProvider, &DeepseekProvider::setModel, this, [this](QStandardItemModel *agentStandardItemModel) {
         m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(agentStandardItemModel));
     });
-    m_deepseekAgent->apikeyGet();
+    m_deepseekProvider->apikeyGet();
 
     conversationLoad(m_topic);
 }
@@ -111,7 +111,7 @@ void LLMModule::llmConfigSave() {
 }
 
 void LLMModule::apikeySet(const QString &key, const QString &apikey) const {
-    if (key == "deepseek-api-key") m_deepseekAgent->apikeySet(apikey);
+    if (key == "deepseek-api-key") m_deepseekProvider->apikeySet(apikey);
 }
 
 void LLMModule::modeSet(const QString &mode) {
@@ -261,7 +261,7 @@ void LLMModule::conversationSend() {
     body["stream"] = true;
     body["tools"] = session["mode"] == "ask" ? QJsonArray{} : m_tools->toolsGet();
     QMetaObject::invokeMethod(m_textArea, "clear");
-    auto *reply = g_networkAccessManager->post(m_deepseekAgent->requestGet(), QJsonDocument(body).toJson());
+    auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
     auto reasoning = std::make_shared<QString>();
     auto content = std::make_shared<QString>();

@@ -85,9 +85,10 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/page/textPage.h
         include/document/page/welcomePage.h
         include/llm/llmModule.h
-        include/llm/llmTools.h
-        include/llm/agent/baseAgent.h
-        include/llm/agent/deepseekAgent.h
+        include/llm/module/mcpModule.h
+        include/llm/module/toolsModule.h
+        include/llm/provider/baseProvider.h
+        include/llm/provider/deepseekProvider.h
         include/mainWindow/kddwCustom.h
         include/mainWindow/mainWindow.h
         include/mainWindow/menuModule.h
@@ -172,9 +173,10 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/page/textPage.cpp
         src/document/page/welcomePage.cpp
         src/llm/llmModule.cpp
-        src/llm/llmTools.cpp
-        src/llm/agent/baseAgent.cpp
-        src/llm/agent/deepseekAgent.cpp
+        src/llm/module/mcpModule.cpp
+        src/llm/module/toolsModule.cpp
+        src/llm/provider/baseProvider.cpp
+        src/llm/provider/deepseekProvider.cpp
         src/mainWindow/kddwCustom.cpp
         src/mainWindow/mainWindow.cpp
         src/mainWindow/menuModule.cpp

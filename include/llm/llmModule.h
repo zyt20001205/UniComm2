@@ -10,8 +10,8 @@ class QNetworkAccessManager;
 class QQuickWidget;
 class QStandardItemModel;
 
-class LLMTools;
-class DeepseekAgent;
+class ToolsModule;
+class DeepseekProvider;
 
 class LLMModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -90,8 +90,8 @@ private:
     QNetworkReply *m_reply{};
     int m_id = 0;
     QJsonArray m_messages{};
-    LLMTools *m_tools{};
-    DeepseekAgent *m_deepseekAgent{};
+    ToolsModule *m_tools{};
+    DeepseekProvider *m_deepseekProvider{};
 };
 
 #endif //UNICOMM_LLMMODULE_H

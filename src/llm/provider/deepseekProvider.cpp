@@ -1,4 +1,4 @@
-#include "llm/agent/deepseekAgent.h"
+#include "llm/provider/deepseekProvider.h"
 
 #include <QJsonArray>
 #include <QNetworkReply>
@@ -7,15 +7,15 @@
 
 #include "globals.h"
 
-DeepseekAgent::DeepseekAgent(QObject *parent)
-    : BaseAgent(parent),
+DeepseekProvider::DeepseekProvider(QObject *parent)
+    : BaseProvider(parent),
       m_deepseekModel(new QStandardItemModel(this)) {
     m_key = "deepseek-api-key";
     m_request.setUrl(QUrl("https://api.deepseek.com/v1/chat/completions"));
     m_request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 }
 
-void DeepseekAgent::apikeySet(const QString &apikey) {
+void DeepseekProvider::apikeySet(const QString &apikey) {
     const auto job = new QKeychain::WritePasswordJob(m_service);
     job->setKey(m_key);
     job->setTextData(apikey);
@@ -30,7 +30,7 @@ void DeepseekAgent::apikeySet(const QString &apikey) {
     job->start();
 }
 
-void DeepseekAgent::apikeyGet() {
+void DeepseekProvider::apikeyGet() {
     const auto job = new QKeychain::ReadPasswordJob(m_service);
     job->setKey(m_key);
     connect(job, &QKeychain::Job::finished, [this](QKeychain::Job *j) {
@@ -45,7 +45,7 @@ void DeepseekAgent::apikeyGet() {
     job->start();
 }
 
-void DeepseekAgent::modelGet() {
+void DeepseekProvider::modelGet() {
     m_deepseekModel->clear();
     QNetworkRequest request{};
     request.setUrl(QUrl("https://api.deepseek.com/models"));

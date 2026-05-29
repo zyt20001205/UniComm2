@@ -1,16 +1,16 @@
-#ifndef UNICOMM_LLMTOOLS_H
-#define UNICOMM_LLMTOOLS_H
+#ifndef UNICOMM_TOOLSMODULE_H
+#define UNICOMM_TOOLSMODULE_H
 
 #include <QEventLoop>
 #include <QJsonArray>
 
-class LLMTools final : public QObject {
+class ToolsModule final : public QObject {
     Q_OBJECT
 
 public:
-    explicit LLMTools(QObject *parent = nullptr);
+    explicit ToolsModule(QObject *parent = nullptr);
 
-    ~LLMTools() override = default;
+    ~ToolsModule() override = default;
 
     [[nodiscard]] QJsonArray toolsGet() {
         return m_tools;
@@ -41,4 +41,4 @@ private:
     bool m_approved{};
 };
 
-#endif //UNICOMM_LLMTOOLS_H
+#endif //UNICOMM_TOOLSMODULE_H

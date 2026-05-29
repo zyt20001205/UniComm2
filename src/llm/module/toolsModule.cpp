@@ -1,4 +1,4 @@
-#include "llm/llmTools.h"
+#include "llm/module/toolsModule.h"
 
 #include <QDir>
 
@@ -12,7 +12,7 @@
 #include "terminal/logModule.h"
 
 // public
-LLMTools::LLMTools(QObject *parent)
+ToolsModule::ToolsModule(QObject *parent)
     : QObject(parent),
       m_tools{
           // apiList
@@ -529,7 +529,7 @@ LLMTools::LLMTools(QObject *parent)
       m_eventloop(new QEventLoop(this)) {
 }
 
-QString LLMTools::toolsSet(const QString &mode, const QString &name, const QString &arguments) {
+QString ToolsModule::toolsSet(const QString &mode, const QString &name, const QString &arguments) {
     const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
     const auto object = doc.object();
     chatCreate(name, object);
@@ -650,7 +650,7 @@ QString LLMTools::toolsSet(const QString &mode, const QString &name, const QStri
     return {"Unknown tool."};
 }
 
-void LLMTools::chatCreate(const QString &name, const QJsonObject &object) {
+void ToolsModule::chatCreate(const QString &name, const QJsonObject &object) {
     QString chatText{};
     if (name == "api_list") {
         chatText = "Get available APIs";
@@ -705,12 +705,12 @@ void LLMTools::chatCreate(const QString &name, const QJsonObject &object) {
     emit createChat("tool", chatText);
 }
 
-void LLMTools::permissionSet(const bool status) {
+void ToolsModule::permissionSet(const bool status) {
     m_approved = status;
     m_eventloop->quit();
 }
 
-bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJsonObject &object) {
+bool ToolsModule::permissionGet(const QString &mode, const QString &name, const QJsonObject &object) {
     m_approved = true;
     if (mode == "read") {
         if (m_writeGroup.contains(name) || m_godGroup.contains(name)) m_approved = false;
@@ -728,7 +728,7 @@ bool LLMTools::permissionGet(const QString &mode, const QString &name, const QJs
     return m_approved;
 }
 
-void LLMTools::statusSet(const QString &name, const QJsonObject &object) {
+void ToolsModule::statusSet(const QString &name, const QJsonObject &object) {
     QString statusText{};
         if (name == "api_list") {
         statusText = "I want to get all available APIs.";

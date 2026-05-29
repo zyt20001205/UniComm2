@@ -1,18 +1,18 @@
-#ifndef UNICOMM_BASEAGENT_H
-#define UNICOMM_BASEAGENT_H
+#ifndef UNICOMM_BASEPROVIDER_H
+#define UNICOMM_BASEPROVIDER_H
 
 #include <QNetworkRequest>
 #include <QObject>
 
 class QStandardItemModel;
 
-class BaseAgent : public QObject {
+class BaseProvider : public QObject {
     Q_OBJECT
 
 public:
-    explicit BaseAgent(QObject *parent = nullptr);
+    explicit BaseProvider(QObject *parent = nullptr);
 
-    ~BaseAgent() override = default;
+    ~BaseProvider() override = default;
 
     QNetworkRequest requestGet() { return m_request; }
 
@@ -34,4 +34,4 @@ protected:
     QString m_apikey{};
 };
 
-#endif //UNICOMM_BASEAGENT_H
+#endif //UNICOMM_BASEPROVIDER_H
