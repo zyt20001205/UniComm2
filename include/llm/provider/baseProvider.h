@@ -25,7 +25,7 @@ public:
 signals:
     void setApikey(const QString &apikey);
 
-    void setModel(QStandardItemModel *agentModel);
+    void setModel(QStandardItemModel *providerModel);
 
 protected:
     QNetworkRequest m_request{};

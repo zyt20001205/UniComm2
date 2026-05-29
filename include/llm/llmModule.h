@@ -10,6 +10,7 @@ class QNetworkAccessManager;
 class QQuickWidget;
 class QStandardItemModel;
 
+class McpModule;
 class ToolsModule;
 class DeepseekProvider;
 
@@ -90,7 +91,8 @@ private:
     QNetworkReply *m_reply{};
     int m_id = 0;
     QJsonArray m_messages{};
-    ToolsModule *m_tools{};
+    McpModule *m_mcpModule{};
+    ToolsModule *m_toolsModule{};
     DeepseekProvider *m_deepseekProvider{};
 };
 

@@ -11,6 +11,7 @@
 
 #include "globals.h"
 #include "document/documentModule.h"
+#include "llm/module/mcpModule.h"
 #include "llm/module/toolsModule.h"
 #include "llm/provider/deepseekProvider.h"
 
@@ -28,7 +29,8 @@ LLMModule::LLMModule()
           "All code must be written in English (including comments, variable names, identifiers, and strings). "
           "Use io.log() instead of print() for assistant."),
       m_topicStandardItemModel(new QStandardItemModel(this)),
-      m_tools(new ToolsModule(this)),
+      m_mcpModule(new McpModule(QJsonArray(), this)),
+      m_toolsModule(new ToolsModule(this)),
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
 
@@ -46,9 +48,9 @@ LLMModule::LLMModule()
         }
     }
 
-    connect(m_tools, &ToolsModule::createChat, this, &LLMModule::chatCreate);
-    connect(m_tools, &ToolsModule::appendChat, this, &LLMModule::chatAppend);
-    connect(m_tools, &ToolsModule::setStatus, this, &LLMModule::statusSet);
+    connect(m_toolsModule, &ToolsModule::createChat, this, &LLMModule::chatCreate);
+    connect(m_toolsModule, &ToolsModule::appendChat, this, &LLMModule::chatAppend);
+    connect(m_toolsModule, &ToolsModule::setStatus, this, &LLMModule::statusSet);
 }
 
 LLMModule::~LLMModule() {
@@ -72,11 +74,16 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/llm/llmModule.qml"));
     m_root = m_widget->rootObject();
 
+    connect(m_mcpModule, &McpModule::setModel, this, [this](QStandardItemModel *mcpModel) {
+        // m_modelMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
+    });
+    m_mcpModule->initialize();
+
     connect(m_deepseekProvider, &DeepseekProvider::setApikey, this, [this](const QString &apikey) {
         m_modelMenu->setProperty("deepseekApikey", apikey);
     });
-    connect(m_deepseekProvider, &DeepseekProvider::setModel, this, [this](QStandardItemModel *agentStandardItemModel) {
-        m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(agentStandardItemModel));
+    connect(m_deepseekProvider, &DeepseekProvider::setModel, this, [this](QStandardItemModel *deepseekModel) {
+        m_modelMenu->setProperty("deepseekModel", QVariant::fromValue(deepseekModel));
     });
     m_deepseekProvider->apikeyGet();
 
@@ -186,7 +193,7 @@ void LLMModule::conversationLoad(const QString &topic) {
                 const auto arguments = function.value("arguments").toString();
                 const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
                 const auto object = doc.object();
-                m_tools->chatCreate(name, object);
+                m_toolsModule->chatCreate(name, object);
             }
         }
     }
@@ -243,7 +250,7 @@ void LLMModule::conversationEnd() {
 }
 
 void LLMModule::permissionSet(const bool status) const {
-    m_tools->permissionSet(status);
+    m_toolsModule->permissionSet(status);
 }
 
 // private
@@ -259,7 +266,7 @@ void LLMModule::conversationSend() {
     body["model"] = session["model"];
     body["messages"] = session["messages"];
     body["stream"] = true;
-    body["tools"] = session["mode"] == "ask" ? QJsonArray{} : m_tools->toolsGet();
+    body["tools"] = session["mode"] == "ask" ? QJsonArray{} : m_toolsModule->toolsGet();
     QMetaObject::invokeMethod(m_textArea, "clear");
     auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
@@ -373,7 +380,7 @@ void LLMModule::conversationSend() {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
-                    const auto content = m_tools->toolsSet(m_sessions[m_topic]["mode"].toString(), name, arguments);
+                    const auto content = m_toolsModule->toolsSet(m_sessions[m_topic]["mode"].toString(), name, arguments);
                     auto messages = m_sessions[m_topic]["messages"].toArray();
                     messages.append(QJsonObject{
                         {"role", "tool"},
