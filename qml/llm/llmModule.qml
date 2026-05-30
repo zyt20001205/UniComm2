@@ -333,7 +333,7 @@ Item {
 
             Timer {
                 id: timer
-                interval: 100
+                interval: 16
 
                 onTriggered: {
                     chatTextArea.text = chatTextArea.buffer
