@@ -77,7 +77,11 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     connect(m_mcpModule, &McpModule::setModel, this, [this](QStandardItemModel *mcpModel) {
         // m_modelMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
     });
+    connect(m_mcpModule, &McpModule::registerTools, this, &LLMModule::toolsRegister);
     m_mcpModule->initialize();
+
+    connect(m_toolsModule, &ToolsModule::registerTools, this, &LLMModule::toolsRegister);
+    m_toolsModule->initialize();
 
     connect(m_deepseekProvider, &DeepseekProvider::setApikey, this, [this](const QString &apikey) {
         m_modelMenu->setProperty("deepseekApikey", apikey);
@@ -266,7 +270,7 @@ void LLMModule::conversationSend() {
     body["model"] = session["model"];
     body["messages"] = session["messages"];
     body["stream"] = true;
-    body["tools"] = session["mode"] == "ask" ? QJsonArray{} : m_toolsModule->toolsGet();
+    body["tools"] = session["mode"] == "ask" ? QJsonArray{} : toolsList({"Context7"});
     QMetaObject::invokeMethod(m_textArea, "clear");
     auto *reply = g_networkAccessManager->post(m_deepseekProvider->requestGet(), QJsonDocument(body).toJson());
     m_reply = reply;
@@ -380,7 +384,10 @@ void LLMModule::conversationSend() {
                     const auto function = toolCall.value("function").toObject();
                     const auto arguments = function.value("arguments").toString();
                     const auto name = function.value("name").toString();
-                    const auto content = m_toolsModule->toolsSet(m_sessions[m_topic]["mode"].toString(), name, arguments);
+                    QString content{};
+                    const auto owner = m_owner.value(name);
+                    if (owner == "UniComm") content = m_toolsModule->toolsCall(m_sessions[m_topic]["mode"].toString(), name, arguments);
+                    else content = m_mcpModule->toolsCall(owner, name, arguments);
                     auto messages = m_sessions[m_topic]["messages"].toArray();
                     messages.append(QJsonObject{
                         {"role", "tool"},
@@ -411,7 +418,7 @@ void LLMModule::conversationSend() {
     });
 }
 
-void LLMModule::chatClear() {
+void LLMModule::chatClear() const {
     QMetaObject::invokeMethod(m_root, "chatClear");
 }
 
@@ -427,4 +434,22 @@ void LLMModule::chatAppend(const QString &messageId, const QString &text) const 
 
 void LLMModule::statusSet(const QString &status, const QString &text) const {
     QMetaObject::invokeMethod(m_root, "statusSet", Q_ARG(QVariant, status), Q_ARG(QVariant, text));
+}
+
+void LLMModule::toolsRegister(const QString &name, const QJsonArray &tools) {
+    for (const auto &value: tools) {
+        const auto _name = value.toObject().value("function").toObject().value("name").toString();
+        m_owner[_name] = name;
+    }
+    m_tools[name] = tools;
+}
+
+QJsonArray LLMModule::toolsList(const QStringList &names) {
+    auto tools = m_tools["UniComm"];
+    for (const auto &name: names) {
+        for (const auto &tool: m_tools.value(name)) {
+            tools.append(tool);
+        }
+    }
+    return tools;
 }

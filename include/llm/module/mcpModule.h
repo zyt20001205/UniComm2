@@ -1,7 +1,7 @@
 #ifndef UNICOMM_MCPMODULE_H
 #define UNICOMM_MCPMODULE_H
 
-#include <QHash>
+#include <QJsonArray>
 #include <QObject>
 
 class QNetworkRequest;
@@ -17,8 +17,12 @@ public:
 
     void initialize();
 
+    [[nodiscard]] QString toolsCall(const QString &owner, const QString &name, const QString &arguments);
+
 signals:
     void setModel(QStandardItemModel *mcpModel);
+
+    void registerTools(const QString &name, const QJsonArray &tools);
 
 private:
     void toolsList();

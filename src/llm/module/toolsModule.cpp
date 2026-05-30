@@ -14,526 +14,531 @@
 // public
 ToolsModule::ToolsModule(QObject *parent)
     : QObject(parent),
-      m_tools{
-          // apiList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "api_list"},
-                      {"description", "Get the list of all available API packages/modules that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // apiGet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "api_get"},
-                      {"description", "Get the detailed API annotations (function signatures, types, comments) for a specific package."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "package_name", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The name of the package/module to query. Use api_list first to get available names."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{"package_name"}
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // demoGet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "demo_get"},
-                      {"description", "Get the detailed API demo for a specific package."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "package_name", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The name of the package/module to query. Use api_list first to get available names."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{"package_name"}
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // databaseList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "database_list"},
-                      {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // datatableList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "datatable_list"},
-                      {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // portList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "port_list"},
-                      {"description", "Get the list of all available ports that can be queried for detailed annotations."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // logGet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "log_get"},
-                      {
-                          "description",
-                          "Read the latest log blocks from the log panel. "
-                          "Use block_count = -1 to read all currently available blocks (up to backend limit 20)."
-                      },
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "block_count", QJsonObject{
-                                              {"type", "integer"},
-                                              {
-                                                  "description",
-                                                  "Number of blocks to read from the end. Use -1 to read all currently available blocks (up to backend limit 20)."
-                                              }
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "block_count"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // diagnosticsGet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "diagnostics_get"},
-                      {
-                          "description",
-                          "Get the diagnostics for a specified document. Returns an array of diagnostic items. If the array is empty, there are no diagnostics (i.e., no errors or warnings). Errors related to 'PLACEHOLDER' should be ignored as they are expected placeholders."
-                      },
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "document_url", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The URL / file path of the document."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "document_url"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // symbolGet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "symbol_get"},
-                      {
-                          "description",
-                          "Get the structural symbols (e.g., classes, functions, variables) of a specified document along with their line numbers."
-                      },
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "document_url", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The URL / file path of the document."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "document_url"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // grepSearch
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "grep_search"},
-                      {"description", "Search text across files in the current workspace."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "pattern", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "Text or regex pattern to search for."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "pattern"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // documentList
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "document_list"},
-                      {"description", "Get the list of documents that are currently open in the editor."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // documentFocused
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "document_focused"},
-                      {"description", "Get the currently focused document in the editor."},
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {"properties", QJsonObject{}},
-                              {"required", QJsonArray{}}
-                          }
-                      }
-                  }
-              }
-          },
-          // textGet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "text_get"},
-                      {
-                          "description",
-                          "Read text from a document using a range. "
-                          "For text files, use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document, use x/0/x/-1 to read only line x. "
-                          "For PDF files, one call can read only one page, use start_line/start_character/end_line/end_character = x/-1/-1/-1 to read only page x. "
-                      },
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "document_url", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The URL / file path of the document."}
-                                          }
-                                      },
-                                      {
-                                          "start_line", QJsonObject{
-                                              {"type", "integer"},
-                                              {
-                                                  "description",
-                                                  "The starting line number (0-based). Pass -1 to start from the beginning of the file. "
-                                                  "For PDF files, this is the page index (0-based)."
-                                              }
-                                          }
-                                      },
-                                      {
-                                          "start_character", QJsonObject{
-                                              {"type", "integer"},
-                                              {
-                                                  "description",
-                                                  "The starting character offset within the start line (0-based). Pass -1 to start from the first character. "
-                                                  "For PDF files, pass -1."
-                                              }
-                                          }
-                                      },
-                                      {
-                                          "end_line", QJsonObject{
-                                              {"type", "integer"},
-                                              {
-                                                  "description",
-                                                  "The ending line number (0-based, inclusive). Pass -1 to read until the end of the file. "
-                                                  "For PDF files, pass -1."
-                                              }
-                                          }
-                                      },
-                                      {
-                                          "end_character", QJsonObject{
-                                              {"type", "integer"},
-                                              {
-                                                  "description",
-                                                  "The ending character offset within the end line. Pass -1 to read until the end of the line. "
-                                                  "For PDF files, pass -1."
-                                              }
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "document_url",
-                                      "start_line",
-                                      "start_character",
-                                      "end_line",
-                                      "end_character"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // textSet
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "text_set"},
-                      {
-                          "description",
-                          "Write text to a document using a range. "
-                          "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to replace the whole document. "
-                          "To replace only line x, use x/0/x/-1."
-                      },
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "document_url", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The URL / file path of the document."}
-                                          }
-                                      },
-                                      {
-                                          "text", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The new text to insert or replace with."}
-                                          }
-                                      },
-                                      {
-                                          "start_line", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The starting line number (0-based). Pass -1 to start from the beginning of the file."}
-                                          }
-                                      },
-                                      {
-                                          "start_character", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The starting character offset within the start line (0-based). Pass -1 to start from the first character."}
-                                          }
-                                      },
-                                      {
-                                          "end_line", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The ending line number (0-based, inclusive). Pass -1 to replace until the end of the file."}
-                                          }
-                                      },
-                                      {
-                                          "end_character", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The ending character offset within the end line. Pass -1 to replace until the end of the line."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "document_url",
-                                      "text",
-                                      "start_line",
-                                      "start_character",
-                                      "end_line",
-                                      "end_character"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-          // threadStart
-          QJsonObject{
-              {"type", "function"},
-              {
-                  "function", QJsonObject{
-                      {"name", "thread_start"},
-                      {
-                          "description",
-                          "Start a new thread to execute a script or a specific block of code in a document. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. To execute the entire document, set all four line and character positional parameters to -1."
-                      },
-                      {
-                          "parameters", QJsonObject{
-                              {"type", "object"},
-                              {
-                                  "properties", QJsonObject{
-                                      {
-                                          "document_url", QJsonObject{
-                                              {"type", "string"},
-                                              {"description", "The URL / file path of the document to execute."}
-                                          }
-                                      },
-                                      {
-                                          "mode", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "Execution mode for the session. Always use Run (0) unless the user specifically asks for Debug (1)."}
-                                          }
-                                      },
-                                      {
-                                          "start_line", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The starting line number (0-based) of the code block to execute. Pass -1 for the whole file."}
-                                          }
-                                      },
-                                      {
-                                          "start_character", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The starting character offset (0-based). Pass -1 for the whole file."}
-                                          }
-                                      },
-                                      {
-                                          "end_line", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The ending line number (0-based). Pass -1 for the whole file."}
-                                          }
-                                      },
-                                      {
-                                          "end_character", QJsonObject{
-                                              {"type", "integer"},
-                                              {"description", "The ending character offset. Pass -1 for the whole file."}
-                                          }
-                                      }
-                                  }
-                              },
-                              {
-                                  "required", QJsonArray{
-                                      "document_url",
-                                      "mode",
-                                      "start_line",
-                                      "start_character",
-                                      "end_line",
-                                      "end_character"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          },
-      },
       m_writeGroup{"text_set"},
       m_godGroup{"thread_start"},
       m_eventloop(new QEventLoop(this)) {
 }
 
-QString ToolsModule::toolsSet(const QString &mode, const QString &name, const QString &arguments) {
+void ToolsModule::initialize() {
+    const auto tools = QJsonArray{
+        // apiList
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "api_list"},
+                    {"description", "Get the list of all available API packages/modules that can be queried for detailed annotations."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {"properties", QJsonObject{}},
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // apiGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "api_get"},
+                    {"description", "Get the detailed API annotations (function signatures, types, comments) for a specific package."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "package_name", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The name of the package/module to query. Use api_list first to get available names."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{"package_name"}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // demoGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "demo_get"},
+                    {"description", "Get the detailed API demo for a specific package."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "package_name", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The name of the package/module to query. Use api_list first to get available names."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{"package_name"}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // databaseList
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "database_list"},
+                    {"description", "Get the list of all available database keys that can be queried for detailed annotations."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {"properties", QJsonObject{}},
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // datatableList
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "datatable_list"},
+                    {"description", "Get the list of all available data table keys that can be queried for detailed annotations."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {"properties", QJsonObject{}},
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // portList
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "port_list"},
+                    {"description", "Get the list of all available ports that can be queried for detailed annotations."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {"properties", QJsonObject{}},
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // logGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "log_get"},
+                    {
+                        "description",
+                        "Read the latest log blocks from the log panel. "
+                        "Use block_count = -1 to read all currently available blocks (up to backend limit 20)."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "block_count", QJsonObject{
+                                            {"type", "integer"},
+                                            {
+                                                "description",
+                                                "Number of blocks to read from the end. Use -1 to read all currently available blocks (up to backend limit 20)."
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "block_count"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // diagnosticsGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "diagnostics_get"},
+                    {
+                        "description",
+                        "Get the diagnostics for a specified document. Returns an array of diagnostic items. If the array is empty, there are no diagnostics (i.e., no errors or warnings). Errors related to 'PLACEHOLDER' should be ignored as they are expected placeholders."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The URL / file path of the document."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "document_url"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // symbolGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "symbol_get"},
+                    {
+                        "description",
+                        "Get the structural symbols (e.g., classes, functions, variables) of a specified document along with their line numbers."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The URL / file path of the document."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "document_url"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // grepSearch
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "grep_search"},
+                    {"description", "Search text across files in the current workspace."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "pattern", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "Text or regex pattern to search for."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "pattern"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // documentList
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "document_list"},
+                    {"description", "Get the list of documents that are currently open in the editor."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {"properties", QJsonObject{}},
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // documentFocused
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "document_focused"},
+                    {"description", "Get the currently focused document in the editor."},
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {"properties", QJsonObject{}},
+                            {"required", QJsonArray{}}
+                        }
+                    }
+                }
+            }
+        },
+        // textGet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "text_get"},
+                    {
+                        "description",
+                        "Read text from a document using a range. "
+                        "For text files, use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to read the whole document, use x/0/x/-1 to read only line x. "
+                        "For PDF files, one call can read only one page, use start_line/start_character/end_line/end_character = x/-1/-1/-1 to read only page x. "
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The URL / file path of the document."}
+                                        }
+                                    },
+                                    {
+                                        "start_line", QJsonObject{
+                                            {"type", "integer"},
+                                            {
+                                                "description",
+                                                "The starting line number (0-based). Pass -1 to start from the beginning of the file. "
+                                                "For PDF files, this is the page index (0-based)."
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "start_character", QJsonObject{
+                                            {"type", "integer"},
+                                            {
+                                                "description",
+                                                "The starting character offset within the start line (0-based). Pass -1 to start from the first character. "
+                                                "For PDF files, pass -1."
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "end_line", QJsonObject{
+                                            {"type", "integer"},
+                                            {
+                                                "description",
+                                                "The ending line number (0-based, inclusive). Pass -1 to read until the end of the file. "
+                                                "For PDF files, pass -1."
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "end_character", QJsonObject{
+                                            {"type", "integer"},
+                                            {
+                                                "description",
+                                                "The ending character offset within the end line. Pass -1 to read until the end of the line. "
+                                                "For PDF files, pass -1."
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "document_url",
+                                    "start_line",
+                                    "start_character",
+                                    "end_line",
+                                    "end_character"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // textSet
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "text_set"},
+                    {
+                        "description",
+                        "Write text to a document using a range. "
+                        "Use start_line/start_character/end_line/end_character = -1/-1/-1/-1 to replace the whole document. "
+                        "To replace only line x, use x/0/x/-1."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The URL / file path of the document."}
+                                        }
+                                    },
+                                    {
+                                        "text", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The new text to insert or replace with."}
+                                        }
+                                    },
+                                    {
+                                        "start_line", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The starting line number (0-based). Pass -1 to start from the beginning of the file."}
+                                        }
+                                    },
+                                    {
+                                        "start_character", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The starting character offset within the start line (0-based). Pass -1 to start from the first character."}
+                                        }
+                                    },
+                                    {
+                                        "end_line", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The ending line number (0-based, inclusive). Pass -1 to replace until the end of the file."}
+                                        }
+                                    },
+                                    {
+                                        "end_character", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The ending character offset within the end line. Pass -1 to replace until the end of the line."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "document_url",
+                                    "text",
+                                    "start_line",
+                                    "start_character",
+                                    "end_line",
+                                    "end_character"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        // threadStart
+        QJsonObject{
+            {"type", "function"},
+            {
+                "function", QJsonObject{
+                    {"name", "thread_start"},
+                    {
+                        "description",
+                        "Start a new thread to execute a script or a specific block of code in a document. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. To execute the entire document, set all four line and character positional parameters to -1."
+                    },
+                    {
+                        "parameters", QJsonObject{
+                            {"type", "object"},
+                            {
+                                "properties", QJsonObject{
+                                    {
+                                        "document_url", QJsonObject{
+                                            {"type", "string"},
+                                            {"description", "The URL / file path of the document to execute."}
+                                        }
+                                    },
+                                    {
+                                        "mode", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "Execution mode for the session. Always use Run (0) unless the user specifically asks for Debug (1)."}
+                                        }
+                                    },
+                                    {
+                                        "start_line", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The starting line number (0-based) of the code block to execute. Pass -1 for the whole file."}
+                                        }
+                                    },
+                                    {
+                                        "start_character", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The starting character offset (0-based). Pass -1 for the whole file."}
+                                        }
+                                    },
+                                    {
+                                        "end_line", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The ending line number (0-based). Pass -1 for the whole file."}
+                                        }
+                                    },
+                                    {
+                                        "end_character", QJsonObject{
+                                            {"type", "integer"},
+                                            {"description", "The ending character offset. Pass -1 for the whole file."}
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "required", QJsonArray{
+                                    "document_url",
+                                    "mode",
+                                    "start_line",
+                                    "start_character",
+                                    "end_line",
+                                    "end_character"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    };
+    emit registerTools("UniComm", tools);
+}
+
+QString ToolsModule::toolsCall(const QString &mode, const QString &name, const QString &arguments) {
     const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
     const auto object = doc.object();
     chatCreate(name, object);
     if (!permissionGet(mode, name, object)) return {"User denied permission to execute this tool."};
+    // UniComm tools
     if (name == "api_list") {
         const auto dir = QDir(":/lib");
         QJsonArray array{};
@@ -647,6 +652,7 @@ QString ToolsModule::toolsSet(const QString &mode, const QString &name, const QS
         g_thread->threadStart(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
         return "\"Thread started.\"}";
     }
+    // MCP tools
     return {"Unknown tool."};
 }
 
@@ -719,8 +725,7 @@ bool ToolsModule::permissionGet(const QString &mode, const QString &name, const 
     }
     if (m_approved) {
         emit appendChat("", " ✓");
-    }
-    else {
+    } else {
         statusSet(name, object);
         m_eventloop->exec();
     }
@@ -730,7 +735,7 @@ bool ToolsModule::permissionGet(const QString &mode, const QString &name, const 
 
 void ToolsModule::statusSet(const QString &name, const QJsonObject &object) {
     QString statusText{};
-        if (name == "api_list") {
+    if (name == "api_list") {
         statusText = "I want to get all available APIs.";
     } else if (name == "api_get") {
         const auto packageName = object.value("package_name").toString();

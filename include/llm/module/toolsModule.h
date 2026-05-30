@@ -12,17 +12,17 @@ public:
 
     ~ToolsModule() override = default;
 
-    [[nodiscard]] QJsonArray toolsGet() {
-        return m_tools;
-    }
+    void initialize();
 
-    [[nodiscard]] QString toolsSet(const QString &mode, const QString &name, const QString &arguments);
+    [[nodiscard]] QString toolsCall(const QString &mode, const QString &name, const QString &arguments);
 
     void chatCreate(const QString &name, const QJsonObject &object);
 
     void permissionSet(bool status);
 
 signals:
+    void registerTools(const QString &name, const QJsonArray &tools);
+
     void createChat(const QString &role, const QString &text);
 
     void appendChat(const QString &messageId, const QString &text);
@@ -34,7 +34,6 @@ private:
 
     void statusSet(const QString &name, const QJsonObject &object);
 
-    QJsonArray m_tools{};
     QSet<QString> m_writeGroup{};
     QSet<QString> m_godGroup{};
     QEventLoop *m_eventloop{};

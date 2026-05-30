@@ -63,13 +63,17 @@ private:
 
     void conversationSend();
 
-    void chatClear();
+    void chatClear() const;
 
     QString chatCreate(const QString &role, const QString &text);
 
     void chatAppend(const QString &messageId, const QString &text) const;
 
     void statusSet(const QString &status, const QString &text) const;
+
+    void toolsRegister(const QString &name, const QJsonArray &tools);
+
+    [[nodiscard]] QJsonArray toolsList(const QStringList &names);
 
     QJsonObject m_config{};
     QString m_topic{};
@@ -91,6 +95,8 @@ private:
     QNetworkReply *m_reply{};
     int m_id = 0;
     QJsonArray m_messages{};
+    QHash<QString, QString> m_owner{};
+    QHash<QString, QJsonArray> m_tools{};
     McpModule *m_mcpModule{};
     ToolsModule *m_toolsModule{};
     DeepseekProvider *m_deepseekProvider{};
