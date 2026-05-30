@@ -8,7 +8,7 @@ Item {
     id: rootItem
     anchors.fill: parent
     property var chatMap: ({})
-    property var lastChatLabel: null
+    property var lastChatTextArea: null
 
     Rectangle {
         anchors.fill: parent
@@ -306,33 +306,49 @@ Item {
     Component {
         id: chatComponent
 
-        Label {
-            id: chatLabel
+        TextArea {
+            id: chatTextArea
             padding: 6
-            text: parent.text
+            readOnly: true
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
             Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 20)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property string messageId
             property string role
+            property string buffer
 
             background: Rectangle {
-                color: chatLabel.role === "user" ? global.brandBack :
-                        chatLabel.role === "assistant" ? global.stroke :
-                            chatLabel.role === "tool" ? global.backSelected : global.dangerBack2
+                color: chatTextArea.role === "user" ? global.brandBack :
+                        chatTextArea.role === "assistant" ? global.stroke :
+                            chatTextArea.role === "tool" ? global.backSelected : global.dangerBack2
                 radius: 6
+            }
+
+            onBufferChanged: {
+                if(!timer.running) {
+                    timer.start()
+                }
+            }
+
+            Timer {
+                id: timer
+                interval: 100
+
+                onTriggered: {
+                    chatTextArea.text = chatTextArea.buffer
+                }
             }
 
             TextMetrics {
                 id: chatMetrics
-                text: chatLabel.text
-                font: chatLabel.font
+                text: chatTextArea.text
+                font: chatTextArea.font
             }
 
             TapHandler {
                 acceptedButtons: Qt.RightButton
-                onTapped: console.log(chatLabel.messageId)
+                onTapped: console.log(chatTextArea.messageId)
             }
         }
     }
@@ -362,25 +378,25 @@ Item {
             chatColumn.children[i].destroy();
         }
         rootItem.chatMap = ({})
-        rootItem.lastChatLabel = null
+        rootItem.lastChatTextArea = null
     }
 
     function chatCreate(messageId, role, text) {
         const obj = chatComponent.createObject(chatColumn, {
             messageId: messageId,
             role: role,
-            text: text,
+            buffer: text,
         })
         rootItem.chatMap[messageId] = obj
-        rootItem.lastChatLabel = obj
+        rootItem.lastChatTextArea = obj
         scrollTimer.restart()
     }
 
     function chatAppend(messageId, text) {
         if (messageId === "") {
-            rootItem.lastChatLabel.text += text
+            rootItem.lastChatTextArea.buffer += text
         } else {
-            rootItem.chatMap[messageId].text += text
+            rootItem.chatMap[messageId].buffer += text
         }
         scrollTimer.restart()
     }
