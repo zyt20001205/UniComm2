@@ -217,7 +217,6 @@ void LLMModule::conversationUndo() {
         }
     }
     m_sessions[m_topic]["messages"] = messages;
-    qDebug() << m_sessions[m_topic]["messages"];
     conversationLoad(m_topic);
 }
 
