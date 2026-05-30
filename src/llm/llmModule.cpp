@@ -29,7 +29,7 @@ LLMModule::LLMModule()
           "All code must be written in English (including comments, variable names, identifiers, and strings). "
           "Use io.log() instead of print() for assistant."),
       m_topicStandardItemModel(new QStandardItemModel(this)),
-      m_mcpModule(new McpModule(QJsonArray(), this)),
+      m_mcpModule(new McpModule(m_config["mcp"].toObject(), this)),
       m_toolsModule(new ToolsModule(this)),
       m_deepseekProvider(new DeepseekProvider(this)) {
     setWidget(m_widget);
@@ -60,6 +60,7 @@ LLMModule::~LLMModule() {
 
 void LLMModule::propertySet(const QVariantHash &objects) {
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
+    m_mcpMenu = qvariant_cast<QObject *>(objects["llmModuleMcpMenu"]);
     m_modeMenu = qvariant_cast<QObject *>(objects["llmModuleModeMenu"]);
     m_modelMenu = qvariant_cast<QObject *>(objects["llmModuleModelMenu"]);
 
@@ -67,6 +68,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("renameDialog", objects["llmModuleRenameDialog"]);
     m_widget->rootContext()->setContextProperty("topicStandardItemModel", m_topicStandardItemModel);
+    m_widget->rootContext()->setContextProperty("mcpMenu", m_mcpMenu);
     m_widget->rootContext()->setContextProperty("modeMenu", m_modeMenu);
     m_widget->rootContext()->setContextProperty("modelMenu", m_modelMenu);
 
@@ -75,7 +77,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
 
     connect(m_mcpModule, &McpModule::setModel, this, [this](QStandardItemModel *mcpModel) {
-        // m_modelMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
+        m_mcpMenu->setProperty("mcpModel", QVariant::fromValue(mcpModel));
     });
     connect(m_mcpModule, &McpModule::registerTools, this, &LLMModule::toolsRegister);
     m_mcpModule->initialize();
@@ -188,18 +190,18 @@ void LLMModule::conversationLoad(const QString &topic) {
         if (role == "system" || role == "tool") continue;
         const auto content = message.value("content").toString();
         if (!content.isEmpty()) chatCreate(role, content);
-        const auto toolCalls = message.value("tool_calls").toArray();
-        if (!toolCalls.isEmpty()) {
-            for (const auto &value: toolCalls) {
-                const auto toolCall = value.toObject();
-                const auto function = toolCall.value("function").toObject();
-                const auto name = function.value("name").toString();
-                const auto arguments = function.value("arguments").toString();
-                const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
-                const auto object = doc.object();
-                m_toolsModule->chatCreate(name, object);
-            }
-        }
+        // const auto toolCalls = message.value("tool_calls").toArray();
+        // if (!toolCalls.isEmpty()) {
+        //     for (const auto &value: toolCalls) {
+        //         const auto toolCall = value.toObject();
+        //         const auto function = toolCall.value("function").toObject();
+        //         const auto name = function.value("name").toString();
+        //         const auto arguments = function.value("arguments").toString();
+        //         const auto doc = QJsonDocument::fromJson(arguments.toUtf8());
+        //         const auto object = doc.object();
+        //         m_toolsModule->chatCreate(name, object);
+        //     }
+        // }
     }
     m_modeButton->setProperty("text", session["mode"].toString());
     m_modelButton->setProperty("text", session["model"].toString());

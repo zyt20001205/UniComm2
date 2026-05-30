@@ -2592,6 +2592,41 @@ Item {
     }
 
     Menu {
+        id: llmModuleMcpMenu
+        property var mcpModel
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        
+        MenuItem {
+            text: qsTr("Add server")
+
+            onTriggered: {
+            }
+        }
+
+        MenuSeparator {
+            visible: llmModuleMcpInstantiator.count > 0
+        }
+
+        Instantiator {
+            id: llmModuleMcpInstantiator
+            model: llmModuleMcpMenu.mcpModel
+            delegate: MenuItem {
+                checkable: true
+                text: model.display
+                // onTriggered: llmModule.modelSet(text)
+            }
+
+            onObjectAdded: (index, object) => llmModuleMcpMenu.addItem(object)
+            onObjectRemoved: (index, object) => llmModuleMcpMenu.removeItem(object)
+        }
+    }
+    
+    Menu {
         id: llmModuleModeMenu
 
         onOpened: {
@@ -2644,7 +2679,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("API key")
+                text: qsTr("API Key")
 
                 onTriggered: {
                     llmModuleApikeyDialog.title = qsTr("Enter Deepseek API Key")
@@ -4227,6 +4262,7 @@ Item {
             "fileModulePropertyDialog": fileModulePropertyDialog,
 
             "llmModuleRenameDialog": llmModuleRenameDialog,
+            "llmModuleMcpMenu": llmModuleMcpMenu,
             "llmModuleModeMenu": llmModuleModeMenu,
             "llmModuleModelMenu": llmModuleModelMenu,
 

@@ -80,6 +80,7 @@ private:
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
+    QObject *m_mcpMenu{};
     QObject *m_modeMenu{};
     QObject *m_modelMenu{};
     QObject *m_topicComboBox{};

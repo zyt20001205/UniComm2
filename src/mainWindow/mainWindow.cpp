@@ -217,6 +217,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
         {"global", QVariant::fromValue(m_globalManager)},
         {"mainWindowMessageDialog", objects["mainWindowMessageDialog"]},
         {"llmModuleRenameDialog", objects["llmModuleRenameDialog"]},
+        {"llmModuleMcpMenu", objects["llmModuleMcpMenu"]},
         {"llmModuleModeMenu", objects["llmModuleModeMenu"]},
         {"llmModuleModelMenu", objects["llmModuleModelMenu"]}
     };

@@ -238,6 +238,22 @@ Item {
             Layout.fillWidth: true; Layout.preferredHeight: 24
 
             Button {
+                id: mcpButton
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                enabled: !llmModule.active
+                flat: true
+                icon.source: "qrc:/icon/mcp.svg"
+                icon.width: 16; icon.height: 16
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                onClicked: {
+                    const globalPos = mcpButton.mapToGlobal(0, mcpButton.height);
+                    const localPos = modeMenu.parent.mapFromGlobal(globalPos.x, globalPos.y);
+                    mcpMenu.popup(localPos.x, localPos.y)
+                }
+            }
+
+            Button {
                 id: modeButton
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 enabled: !llmModule.active
@@ -312,7 +328,7 @@ Item {
             readOnly: true
             textFormat: TextEdit.MarkdownText
             wrapMode: Text.Wrap
-            Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 20)
+            Layout.preferredWidth: Math.min(chatView.availableWidth, chatMetrics.width + 28)
             Layout.alignment: role === "user" ? Qt.AlignRight : Qt.AlignLeft
             property string messageId
             property string role
