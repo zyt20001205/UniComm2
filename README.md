@@ -90,7 +90,10 @@ gantt
 ## Agent
 
 ### Modbus read & export
-[!<img src="resources/assets/screenshot/agent_modbus.png" alt="preview">](https://www.bilibili.com/video/BV1UXGn66Enh/?share_source=copy_web&vd_source=be1c786f9652180888686cbcd18d4223)
+
+<img src="resources/assets/screenshot/agent_modbus.png" alt="preview">
+
+![Bilibili](https://img.shields.io/badge/dynamic/json?color=fb7299&label=Bilibili&query=%24.data.stat.view&url=https%3A%2F%2Fapi.bilibili.com%2Fx%2Fweb-interface%2Fview%3Fbvid%3DBV1UXGn66Enh&style=flat-square&logo=bilibili)
 
 # APIS
 
