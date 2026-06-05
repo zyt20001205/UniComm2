@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.31)
 project(UniComm)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
+set(CMAKE_PREFIX_PATH  "C:/msys64/ucrt64")
 
 find_package(Qt6 REQUIRED COMPONENTS
         Core
@@ -13,7 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS
         Gui
         Multimedia
         Network
-        Pdf
+#        Pdf
         PrintSupport
         Qml
         Quick
@@ -408,7 +410,7 @@ qt_add_resources(UniComm "demo_resources"
 
 set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
-set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt-6.11.1")
+set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt")
 set(QT_BIN "${QT_DIR}/bin")
 set(QT_PLUGINS
         "generic"
@@ -428,65 +430,65 @@ set(MISC_DIR "${CMAKE_SOURCE_DIR}/3rd/misc")
 set(MISC_BIN "${MISC_DIR}/bin")
 
 #3rd alphabetical order
-set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark-0.31.1")
+set(CMARK_DIR "${CMAKE_SOURCE_DIR}/3rd/cmark")
 set(CMARK_INCLUDE "${CMARK_DIR}/include")
 file(GLOB CMARK_LIB "${CMARK_DIR}/lib/*.a")
 set(CMARK_BIN "${CMARK_DIR}/bin")
 
-set(DRMINGW_DIR "${CMAKE_SOURCE_DIR}/3rd/drmingw-0.9.11")
+set(DRMINGW_DIR "${CMAKE_SOURCE_DIR}/3rd/drmingw")
 set(DRMINGW_INCLUDE "${DRMINGW_DIR}/include")
 file(GLOB DRMINGW_LIB "${DRMINGW_DIR}/lib/*.a")
 set(DRMINGW_BIN "${DRMINGW_DIR}/bin")
 
-set(ICU_DIR "${CMAKE_SOURCE_DIR}/3rd/icu-78.1")
+set(ICU_DIR "${CMAKE_SOURCE_DIR}/3rd/icu")
 set(ICU_INCLUDE "${ICU_DIR}/include")
 file(GLOB ICU_LIB "${ICU_DIR}/lib/*.a")
 set(ICU_BIN "${ICU_DIR}/bin")
 
-set(KDDW_DIR "${CMAKE_SOURCE_DIR}/3rd/kddw-2.4.0")
+set(KDDW_DIR "${CMAKE_SOURCE_DIR}/3rd/kddw")
 set(KDDW_INCLUDE "${KDDW_DIR}/include")
 file(GLOB KDDW_LIB "${KDDW_DIR}/lib/*.a")
 set(KDDW_BIN "${KDDW_DIR}/bin")
 
-set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica-1.86.0")
+set(LEPTONICA_DIR "${CMAKE_SOURCE_DIR}/3rd/leptonica")
 set(LEPTONICA_INCLUDE "${LEPTONICA_DIR}/include")
 file(GLOB LEPTONICA_LIB "${LEPTONICA_DIR}/lib/*.a")
 set(LEPTONICA_BIN "${LEPTONICA_DIR}/bin")
 
-set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-5.5.0")
+set(LUA_DIR "${CMAKE_SOURCE_DIR}/3rd/lua")
 set(LUA_INCLUDE "${LUA_DIR}/include")
 file(GLOB LUA_LIB "${LUA_DIR}/lib/*.a")
 set(LUA_BIN "${LUA_DIR}/bin")
 
-set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server-3.18.2")
+set(LUALS_DIR "${CMAKE_SOURCE_DIR}/3rd/lua-language-server")
 
-set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell-5.1.6")
+set(NUSPELL_DIR "${CMAKE_SOURCE_DIR}/3rd/nuspell")
 set(NUSPELL_INCLUDE "${NUSPELL_DIR}/include")
 file(GLOB NUSPELL_LIB "${NUSPELL_DIR}/lib/*.a")
 set(NUSPELL_BIN "${NUSPELL_DIR}/bin")
 set(NUSPELL_DICT "${NUSPELL_DIR}/dict")
 
-set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv-4.12.0")
+set(OPENCV_DIR "${CMAKE_SOURCE_DIR}/3rd/opencv")
 set(OPENCV_INCLUDE "${OPENCV_DIR}/include")
 file(GLOB OPENCV_LIB "${OPENCV_DIR}/lib/*.a")
 set(OPENCV_BIN "${OPENCV_DIR}/bin")
 
-set(QTKEYCHAIN_DIR "${CMAKE_SOURCE_DIR}/3rd/qtkeychain-0.15.0-2")
+set(QTKEYCHAIN_DIR "${CMAKE_SOURCE_DIR}/3rd/qtkeychain")
 set(QTKEYCHAIN_INCLUDE "${QTKEYCHAIN_DIR}/include")
 file(GLOB QTKEYCHAIN_LIB "${QTKEYCHAIN_DIR}/lib/*.a")
 set(QTKEYCHAIN_BIN "${QTKEYCHAIN_DIR}/bin")
 
-set(RIPGREP_DIR "${CMAKE_SOURCE_DIR}/3rd/ripgrep-15.1.0")
+set(RIPGREP_DIR "${CMAKE_SOURCE_DIR}/3rd/ripgrep")
 
-set(SCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/scintilla-5.5.9")
+set(SCINTILLA_DIR "${CMAKE_SOURCE_DIR}/3rd/scintilla")
 set(SCINTILLA_INCLUDE "${SCINTILLA_DIR}/include")
 file(GLOB SCINTILLA_LIB "${SCINTILLA_DIR}/lib/*.a")
 set(SCINTILLA_BIN "${SCINTILLA_DIR}/bin")
 
-set(SOL2_DIR "${CMAKE_SOURCE_DIR}/3rd/sol2-3.5.0")
+set(SOL2_DIR "${CMAKE_SOURCE_DIR}/3rd/sol2")
 set(SOL2_INCLUDE "${SOL2_DIR}/include")
 
-set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract-5.5.1")
+set(TESSERACT_DIR "${CMAKE_SOURCE_DIR}/3rd/tesseract")
 set(TESSERACT_INCLUDE "${TESSERACT_DIR}/include")
 file(GLOB TESSERACT_LIB "${TESSERACT_DIR}/lib/*.a")
 set(TESSERACT_BIN "${TESSERACT_DIR}/bin")
@@ -522,7 +524,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::Graphs
         Qt6::Multimedia
         Qt6::Network
-        Qt6::Pdf
+#        Qt6::Pdf
         Qt6::PrintSupport
         Qt6::Qml
         Qt6::Quick
@@ -572,7 +574,7 @@ add_custom_command(TARGET UniComm POST_BUILD
 #        COMMAND Qt6::windeployqt
 #        --qmldir "${CMAKE_SOURCE_DIR}/qml"
 #        "$<TARGET_FILE:UniComm>")
-#qt-6.11.1
+#qt-6.11.0
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${QT_BIN}"
@@ -592,19 +594,19 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${MISC_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "MISC BIN COPIED")
-#cmark-0.31.1
+#cmark-0.31.2
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMARK_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "CMARK BIN COPIED")
-#drmingw-0.9.11
+#drmingw-0.9.11-2
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${DRMINGW_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "DRMINGW BIN COPIED")
-#icu-78.1
+#icu-78.3-2
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${ICU_BIN}"
@@ -616,13 +618,13 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${KDDW_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "KDDW BIN COPIED")
-#leptonica-1.86.0
+#leptonica-1.87.0-1
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${LEPTONICA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "LEPTONICA BIN COPIED")
-#lua-5.5.0
+#lua-5.5.0-1
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${LUA_BIN}"
@@ -634,7 +636,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${LUALS_DIR}"
         "${CMAKE_BINARY_DIR}/lua-language-server"
         COMMENT "LUALS DIR COPIED")
-#nuspell-5.1.6
+#nuspell-5.1.7-1
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${NUSPELL_BIN}"
@@ -645,7 +647,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${NUSPELL_DICT}"
         "${CMAKE_BINARY_DIR}/dict"
         COMMENT "NUSPELL DICT COPIED")
-#opencv-4.12.0
+#opencv-4.13.0-4
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${OPENCV_BIN}"
@@ -663,13 +665,13 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${RIPGREP_DIR}"
         "${CMAKE_BINARY_DIR}/ripgrep"
         COMMENT "RIPGREP DIR COPIED")
-#scintilla-5.5.9
+#scintilla-5.6.2
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${SCINTILLA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "SCINTILLA BIN COPIED")
-#tesseract-5.5.1
+#tesseract-5.5.2-1
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${TESSERACT_BIN}"

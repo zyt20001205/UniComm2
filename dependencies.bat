@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set "EXE_PATH=cmake-build-debug-mingw64\UniComm.exe"
-set "MSYS2_PATH=C:\msys64\mingw64\bin"
+set "EXE_PATH=cmake-build-debug-ucrt64\UniComm.exe"
+set "MSYS2_PATH=C:\msys64\ucrt64\bin"
 set "OUTPUT_PATH=3rd\misc\bin"
 
 echo Checking for missing MSYS2 DLLs...
