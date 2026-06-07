@@ -78,6 +78,29 @@ void GitModule::gitSwitch(const QString &name) {
     terminalStdin(QStringList{"switch", name});
 }
 
+void GitModule::gitCreate(const QString &src, const QString &dst, const bool _switch) {
+    m_command = Create;
+    if (_switch) {
+        QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git switch -c " + dst + " " + src));
+        terminalStdin(QStringList{"switch", "-c", dst, src});
+    } else {
+        QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch " + dst + " " + src));
+        terminalStdin(QStringList{"branch", dst, src});
+    }
+}
+
+void GitModule::gitRename(const QString &src, const QString &dst) {
+    m_command = Rename;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -m " + src + " " + dst));
+    terminalStdin(QStringList{"branch", "-m", src, dst});
+}
+
+void GitModule::gitDelete(const QString &name) {
+    m_command = Delete;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -D " + name));
+    terminalStdin(QStringList{"branch", "-D", name});
+}
+
 // public: mutable
 void GitModule::gitAdd(const QUrl &documentUrl) {
     m_command = Add;
@@ -197,13 +220,10 @@ void GitModule::terminalStdout() {
                 item->setData(type, Qt::UserRole + 1);
                 item->setData(hash, Qt::UserRole + 2);
                 item->setData(commit, Qt::UserRole + 3);
-                if (name == "master") {
-                    item->setData("favourite", Qt::UserRole + 1);
-                    localItem->insertRow(0, item);
-                } else {
-                    localItem->appendRow(item);
-                }
+                if (name == "master") localItem->insertRow(0, item);
+                else localItem->appendRow(item);
             }
+            QMetaObject::invokeMethod(m_root, "branchExpand");
         }
         break;
         default: break;
@@ -226,7 +246,10 @@ void GitModule::processFinished(const int exitcode) {
             emit initGit(true);
             emit undateGit();
         }
-        case Switch: {
+        case Switch:
+        case Create:
+        case Rename:
+        case Delete: {
             m_command = Null;
             gitBranch();
         }

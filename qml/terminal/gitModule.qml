@@ -111,7 +111,6 @@ Item {
                             width: 16; height: 16
                             source: model.type === "local" ? "qrc:/icon/tcpClient.svg" :
                                     model.type === "remote" ? "qrc:/icon/tcpServer.svg" :
-                                    model.type === "favourite" ? "qrc:/icon/star.svg" :
                                     model.type === "current" ? "qrc:/icon/tag.svg" :
                                     "qrc:/icon/gitBranch.svg"
                             color: ["favourite", "current"].includes(model.type) ? global.warningFore3 : global.fore
@@ -150,6 +149,7 @@ Item {
                     onTapped: {
                         if (!(isTreeNode && hasChildren)) {
                             branchMenu.name = model.display
+                            branchMenu.current = model.type === "current"
                             branchMenu.popup()
                         }
                     }
@@ -225,6 +225,12 @@ Item {
 
     function processFinished() {
         textArea.append(">>> ")
+    }
+
+    function branchExpand() {
+        for (let i = 0; i < treeView.rows; ++i) {
+            treeView.expandRecursively(i)
+        }
     }
 
     Component.onCompleted: {

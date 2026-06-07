@@ -31,6 +31,12 @@ public:
 
     Q_INVOKABLE void gitSwitch(const QString &name);
 
+    Q_INVOKABLE void gitCreate(const QString &src, const QString &dst, bool _switch);
+
+    Q_INVOKABLE void gitRename(const QString &src, const QString &dst);
+
+    Q_INVOKABLE void gitDelete(const QString &name);
+
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
     Q_INVOKABLE void gitAddAll();
@@ -72,6 +78,9 @@ private:
         Init,
         Branch,
         Switch,
+        Create,
+        Rename,
+        Delete,
         Add,
         Reset,
         Commit

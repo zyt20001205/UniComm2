@@ -2525,9 +2525,90 @@ Item {
     }
 
     // git module
+    Dialog {
+        id: gitModuleBranchCreateDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Create branch from ") + gitModuleBranchCreateDialog.name
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string name
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            gitModuleBranchCreateTextField.text = gitModuleBranchCreateDialog.name
+            gitModuleBranchCreateTextField.forceActiveFocus()
+            gitModuleBranchCreateTextField.selectAll()
+            gitModuleBranchSwitchCheckBox.checked = true
+        }
+
+        onAccepted: gitModule.gitCreate(gitModuleBranchCreateDialog.name, gitModuleBranchCreateTextField.text, gitModuleBranchSwitchCheckBox.checked)
+
+        ColumnLayout {
+            width: parent.width
+
+            TextField {
+                id: gitModuleBranchCreateTextField
+                placeholderText: qsTr("Enter branch name:")
+                Layout.fillWidth: true
+
+                onAccepted: gitModuleBranchCreateDialog.accept()
+                Keys.onEscapePressed: gitModuleBranchCreateDialog.reject()
+            }
+
+            RowLayout {
+                Layout.preferredHeight: 32
+
+                CheckBox {
+                    id: gitModuleBranchSwitchCheckBox
+                    text: qsTr("Switch")
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: gitModuleBranchRenameDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 600
+        modal: true
+        title: qsTr("Rename branch ") + gitModuleBranchRenameDialog.name
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property string name
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            gitModuleBranchRenameTextField.text = gitModuleBranchRenameDialog.name
+            gitModuleBranchRenameTextField.forceActiveFocus()
+            gitModuleBranchRenameTextField.selectAll()
+        }
+
+        onAccepted: gitModule.gitRename(gitModuleBranchRenameDialog.name, gitModuleBranchRenameTextField.text)
+        
+        TextField {
+            id: gitModuleBranchRenameTextField
+            placeholderText: qsTr("Enter branch name:")
+            width: parent.width
+
+            onAccepted: gitModuleBranchRenameDialog.accept()
+            Keys.onEscapePressed: gitModuleBranchRenameDialog.reject()
+        }
+    }
+    
     Menu {
         id: gitModuleBranchMenu
         property url name
+        property bool current
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2537,10 +2618,51 @@ Item {
 
         MenuItem {
             text: qsTr("Switch")
-            icon.source: "qrc:/icon/eye.svg"
+            enabled: !gitModuleBranchMenu.current
+            icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
 
             onTriggered: gitModule.gitSwitch(gitModuleBranchMenu.name)
+        }
+
+        MenuItem {
+            text: qsTr("Create")
+            icon.source: "qrc:/icon/add.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                gitModuleBranchCreateDialog.name = gitModuleBranchMenu.name
+                gitModuleBranchCreateDialog.open()
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Rename")
+            icon.source: "qrc:/icon/rename.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                gitModuleBranchRenameDialog.name = gitModuleBranchMenu.name
+                gitModuleBranchRenameDialog.open()
+            }
+        }
+
+        Menu {
+            title: qsTr("Delete")
+            enabled: !gitModuleBranchMenu.current
+            icon.source: "qrc:/icon/delete.svg"
+            icon.width: 16; icon.height: 16
+
+            DelayButton {
+                delay: 1000
+                text: qsTr("Confirm")
+
+                onActivated: {
+                    gitModule.gitDelete(gitModuleBranchMenu.name)
+                    progress = 0
+                    gitModuleBranchMenu.close()
+                }
+            }
         }
     }
 
