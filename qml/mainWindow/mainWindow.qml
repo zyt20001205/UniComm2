@@ -2524,6 +2524,26 @@ Item {
         }
     }
 
+    // git module
+    Menu {
+        id: gitModuleBranchMenu
+        property url name
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        MenuItem {
+            text: qsTr("Switch")
+            icon.source: "qrc:/icon/eye.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: gitModule.gitSwitch(gitModuleBranchMenu.name)
+        }
+    }
+
     // llm module
     Dialog {
         id: llmModuleApikeyDialog
@@ -3732,7 +3752,7 @@ Item {
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
                 IconImage {
-                    source: "qrc:/icon/commit.svg"
+                    source: "qrc:/icon/gitCommit.svg"
                     sourceSize.width: 16
                     sourceSize.height: 16
                     color: global.fore
@@ -4260,6 +4280,8 @@ Item {
             "explorerModuleRootMenu": explorerModuleRootMenu,
 
             "fileModulePropertyDialog": fileModulePropertyDialog,
+
+            "gitModuleBranchMenu": gitModuleBranchMenu,
 
             "llmModuleRenameDialog": llmModuleRenameDialog,
             "llmModuleMcpMenu": llmModuleMcpMenu,

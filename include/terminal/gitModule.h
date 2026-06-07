@@ -3,10 +3,13 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
+#include <QStandardItemModel>
 
 class QProcess;
 class QQuickWidget;
 class QTextDocument;
+
+class BranchModel;
 
 class GitModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -23,6 +26,10 @@ public:
     Q_INVOKABLE void gitInit();
 
     Q_INVOKABLE void gitStatus() const;
+
+    void gitBranch();
+
+    Q_INVOKABLE void gitSwitch(const QString &name);
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
@@ -46,29 +53,36 @@ private:
 
     void terminalStdout();
 
-    void terminalStderr();
+    void terminalStderr() const;
 
     void processFinished(int exitcode);
-
-    void parser(bool status);
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
+    BranchModel *m_standardItemModel{};
     QTextDocument *m_textDocument{};
     QProcess *m_process{};
-
     int m_command{};
 
     enum GitCommand {
         Null,
         Init,
+        Branch,
+        Switch,
         Add,
         Reset,
         Commit
     };
+};
+
+class BranchModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
 #endif //UNICOMM_GITMODULE_H

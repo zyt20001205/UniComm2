@@ -210,6 +210,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantHash gitObjects = {
         {"global", QVariant::fromValue(m_globalManager)},
+        {"gitModuleBranchMenu", objects["gitModuleBranchMenu"]}
     };
     m_gitModule->propertySet(gitObjects);
 
