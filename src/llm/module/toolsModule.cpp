@@ -3,12 +3,12 @@
 #include <QDir>
 
 #include "globals.h"
-#include "analysis/ripgrep.h"
 #include "data/databaseModule.h"
 #include "data/datatableModule.h"
 #include "document/documentModule.h"
 #include "port/portModule.h"
 #include "runtime/threadpoolModule.h"
+#include "service/ripgrep.h"
 #include "terminal/logModule.h"
 
 // public

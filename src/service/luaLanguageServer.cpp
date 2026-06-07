@@ -1,4 +1,4 @@
-#include "analysis/luaLanguageServer.h"
+#include "service/luaLanguageServer.h"
 
 #include <QJsonArray>
 

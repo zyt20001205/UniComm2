@@ -21,9 +21,7 @@
 
 #include "globals.h"
 #include "analysis/diagnosticsModule.h"
-#include "analysis/luaLanguageServer.h"
 #include "analysis/nuspellModule.h"
-#include "analysis/ripgrep.h"
 #include "analysis/structureModule.h"
 #include "core/configManager.h"
 #include "core/explorerModule.h"
@@ -44,6 +42,8 @@
 #include "port/sendModule.h"
 #include "runtime/luaInterpreter.h"
 #include "runtime/threadpoolModule.h"
+#include "service/luaLanguageServer.h"
+#include "service/ripgrep.h"
 #include "terminal/gitModule.h"
 #include "terminal/logModule.h"
 #include "terminal/terminalModule.h"

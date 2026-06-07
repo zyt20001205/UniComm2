@@ -40,11 +40,9 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/analysis/completionWidget.h
         include/analysis/diagnosticsModule.h
         include/analysis/dwellWidget.h
-        include/analysis/luaLanguageServer.h
         include/analysis/navigationWidget.h
         include/analysis/nuspellModule.h
         include/analysis/positionWidget.h
-        include/analysis/ripgrep.h
         include/analysis/signatureWidget.h
         include/analysis/structureModule.h
         include/analysis/symbolWidget.h
@@ -109,6 +107,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/port/visa.h
         include/runtime/luaInterpreter.h
         include/runtime/threadpoolModule.h
+        include/service/luaLanguageServer.h
+        include/service/ripgrep.h
         include/terminal/gitModule.h
         include/terminal/logModule.h
         include/terminal/terminalModule.h
@@ -128,11 +128,9 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/analysis/completionWidget.cpp
         src/analysis/diagnosticsModule.cpp
         src/analysis/dwellWidget.cpp
-        src/analysis/luaLanguageServer.cpp
         src/analysis/navigationWidget.cpp
         src/analysis/nuspellModule.cpp
         src/analysis/positionWidget.cpp
-        src/analysis/ripgrep.cpp
         src/analysis/signatureWidget.cpp
         src/analysis/structureModule.cpp
         src/analysis/symbolWidget.cpp
@@ -197,6 +195,8 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/port/visa.cpp
         src/runtime/luaInterpreter.cpp
         src/runtime/threadpoolModule.cpp
+        src/service/luaLanguageServer.cpp
+        src/service/ripgrep.cpp
         src/terminal/gitModule.cpp
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp

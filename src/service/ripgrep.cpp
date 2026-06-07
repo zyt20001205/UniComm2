@@ -1,4 +1,4 @@
-#include "analysis/ripgrep.h"
+#include "service/ripgrep.h"
 
 #include <QJsonArray>
 #include <QProcess>
