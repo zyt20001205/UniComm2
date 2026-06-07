@@ -513,7 +513,7 @@ target_link_libraries(UniComm PRIVATE
         Qt6::Graphs
         Qt6::Multimedia
         Qt6::Network
-#        Qt6::Pdf
+        Qt6::Pdf
         Qt6::PrintSupport
         Qt6::Qml
         Qt6::Quick

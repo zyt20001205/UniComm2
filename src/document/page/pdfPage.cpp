@@ -1,17 +1,16 @@
 #include "document/page/pdfPage.h"
 
-// #include <QPdfDocument>
+#include <QPdfDocument>
 #include <QQmlContext>
 #include <QQuickWidget>
 
 // public
 PdfPage::PdfPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
-      m_pdfWidget(new QQuickWidget())
-// ,m_doc(new QPdfDocument(this))
-{
+      m_pdfWidget(new QQuickWidget()),
+      m_doc(new QPdfDocument(this)) {
     setWidget(m_pdfWidget);
-    // m_doc->load(m_documentUrl.toLocalFile());
+    m_doc->load(m_documentUrl.toLocalFile());
 }
 
 void PdfPage::propertySet(const QVariantHash &objects) {
@@ -29,6 +28,6 @@ void PdfPage::documentSave() {
 }
 
 QString PdfPage::textGet(const int page) const {
-    // if (page < 0 || page >= m_doc->pageCount()) return {"out of range"};
-    // return m_doc->getAllText(page).text();
+    if (page < 0 || page >= m_doc->pageCount()) return {"out of range"};
+    return m_doc->getAllText(page).text();
 }
