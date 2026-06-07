@@ -15,7 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS
         Gui
         Multimedia
         Network
-#        Pdf
+        Pdf
         PrintSupport
         Qml
         Quick
@@ -412,19 +412,8 @@ set(UNICOMM_INCLUDE "${CMAKE_SOURCE_DIR}/include")
 
 set(QT_DIR "${CMAKE_SOURCE_DIR}/3rd/qt")
 set(QT_BIN "${QT_DIR}/bin")
-set(QT_PLUGINS
-        "generic"
-        "iconengines"
-        "imageformats"
-        "multimedia"
-        "networkinformation"
-        "platforms"
-        "qml"
-        "qmltooling"
-        "styles"
-        "texttospeech"
-        "tls"
-        "translations")
+set(QT_QML "${QT_DIR}/qml")
+set(QT_SHARE "${QT_DIR}/share")
 
 set(MISC_DIR "${CMAKE_SOURCE_DIR}/3rd/misc")
 set(MISC_BIN "${MISC_DIR}/bin")
@@ -568,26 +557,48 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${THEME_DIR}"
         "${CMAKE_BINARY_DIR}/theme"
         COMMENT "THEME DIR COPIED")
+#lua-language-server-3.18.2
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${LUALS_DIR}"
+        "${CMAKE_BINARY_DIR}/lua-language-server"
+        COMMENT "LUALS DIR COPIED")
+#nuspell-5.1.7-1
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${NUSPELL_DICT}"
+        "${CMAKE_BINARY_DIR}/dict"
+        COMMENT "NUSPELL DICT COPIED")
+#ripgrep-15.1.0
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${RIPGREP_DIR}"
+        "${CMAKE_BINARY_DIR}/ripgrep"
+        COMMENT "RIPGREP DIR COPIED")
+#tesseract-5.5.2-1
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${TESSERACT_LANG}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "TESSERACT LANG COPIED")
 
 #auto deploy(do not use)
 #add_custom_command(TARGET UniComm POST_BUILD
 #        COMMAND Qt6::windeployqt
 #        --qmldir "${CMAKE_SOURCE_DIR}/qml"
 #        "$<TARGET_FILE:UniComm>")
+
 #qt-6.11.0
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${QT_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "QT BIN COPIED")
-foreach(QT_PLUGIN ${QT_PLUGINS})
-    add_custom_command(TARGET UniComm POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${QT_DIR}/${QT_PLUGIN}"
-            "${CMAKE_BINARY_DIR}/${QT_PLUGIN}"
-            COMMENT "${QT_PLUGIN} PLUGIN COPIED")
-endforeach ()
-
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${QT_SHARE}"
+        "${CMAKE_BINARY_DIR}/share"
+        COMMENT "QT SHARE COPIED")
 #misc
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -630,23 +641,12 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${LUA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "LUA BIN COPIED")
-#lua-language-server-3.18.2
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${LUALS_DIR}"
-        "${CMAKE_BINARY_DIR}/lua-language-server"
-        COMMENT "LUALS DIR COPIED")
 #nuspell-5.1.7-1
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${NUSPELL_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "NUSPELL BIN COPIED")
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${NUSPELL_DICT}"
-        "${CMAKE_BINARY_DIR}/dict"
-        COMMENT "NUSPELL DICT COPIED")
 #opencv-4.13.0-4
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -659,12 +659,6 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${QTKEYCHAIN_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "QTKEYCHAIN BIN COPIED")
-#ripgrep-15.1.0
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${RIPGREP_DIR}"
-        "${CMAKE_BINARY_DIR}/ripgrep"
-        COMMENT "RIPGREP DIR COPIED")
 #scintilla-5.6.2
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -677,11 +671,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${TESSERACT_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "TESSERACT BIN COPIED")
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${TESSERACT_LANG}"
-        "${CMAKE_BINARY_DIR}"
-        COMMENT "TESSERACT LANG COPIED")
 #visa
 add_custom_command(TARGET UniComm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
