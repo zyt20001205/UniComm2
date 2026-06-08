@@ -118,7 +118,7 @@ void GitModule::gitDelete(const QString &name) {
 void GitModule::gitLog() {
     m_command = Log;
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git log --all --reverse --pretty=format:\"%H|%P|%cr|%an|%s\""));
-    terminalStdin(QStringList{"log", "--all", "--reverse", "--pretty=format:\"%H|%P|%cr|%an|%s\""});
+    terminalStdin(QStringList{"log", "--all", "--reverse", "--pretty=format:%H|%P|%cr|%an|%s"});
 }
 
 // public: file
@@ -249,7 +249,16 @@ void GitModule::terminalStdout() {
         case Log: {
             m_command = Null;
             m_logModel->clear();
-
+            for (const auto &value: output.split('\n')) {
+                const auto param = value.split('|');
+                if (param.size() != 5) continue;
+                const auto &hash = param[0];
+                const auto &parent = param[1];
+                const auto &date = param[2];
+                const auto &author = param[3];
+                const auto &subject = param[4];
+                m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject)});
+            }
         }
         break;
         default: break;
@@ -280,7 +289,7 @@ void GitModule::processFinished(const int exitcode) {
         }
         break;
         case Add:
-        case Reset:{
+        case Reset: {
             m_command = Null;
             emit undateGit();
         }
@@ -301,5 +310,11 @@ QHash<int, QByteArray> BranchModel::roleNames() const {
     roles[Qt::UserRole + 1] = "type";
     roles[Qt::UserRole + 2] = "hash";
     roles[Qt::UserRole + 3] = "commit";
+    return roles;
+}
+
+// public
+QHash<int, QByteArray> LogModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
     return roles;
 }

@@ -6,6 +6,7 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property bool modelVisible: branchModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -44,11 +45,10 @@ Item {
         Item {
             id: branchItem
             implicitWidth: 400
-            property bool modelVisible: branchModel.rowCount() > 0
 
             RowLayout {
                 anchors.centerIn: parent
-                visible: !branchItem.modelVisible
+                visible: !modelVisible
 
                 Button {
                     flat: true
@@ -71,7 +71,7 @@ Item {
                 anchors.fill: parent
                 clip: true
                 model: branchModel
-                visible: branchItem.modelVisible
+                visible: modelVisible
                 property int selectedRow: -1
 
                 ScrollBar.vertical: ScrollBar {
@@ -215,27 +215,82 @@ Item {
                     onTapped: gitModule.gitBranch()
                 }
             }
-
-            Connections {
-                target: branchModel
-
-                function onRowsInserted() {
-                    branchItem.modelVisible = true
-                }
-
-                function onRowsRemoved() {
-                    branchItem.modelVisible = branchModel.rowCount() > 0
-                }
-
-                function onModelReset() {
-                    branchItem.modelVisible = false
-                }
-            }
         }
 
         TableView {
-            id: logTable
+            id: tableView
             implicitWidth: 400
+            alternatingRows: false
+            clip: true
+            editTriggers: TableView.NoEditTriggers
+            rowSpacing: 1
+            model: logModel
+            visible: modelVisible
+            contentWidth: width
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                palette {
+                    mid: global.stroke
+                    dark: global.strokePressed
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: global.stroke
+            }
+
+            delegate: Item {
+                implicitWidth: {
+                    if (column === tableView.columns - 1) {
+                        let usedWidth = 0
+                        for (let i = 0; i < tableView.columns - 1; i++) {
+                            usedWidth += tableView.columnWidth(i)
+                        }
+                        return tableView.width - usedWidth
+                    }
+                    return Math.max(textMetrics.width + 16, 60)
+                }
+                implicitHeight: 24
+                required property int column
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.back
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: global.backHover
+                    opacity: hoverHandler.hovered ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                TextMetrics {
+                    id: textMetrics
+                    font: label.font
+                    text: model.display || ""
+                }
+
+                Label {
+                    id: label
+                    anchors.fill: parent
+                    leftPadding: 6
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.display
+                    elide: Text.ElideRight
+                }
+
+                HoverHandler {
+                    id: hoverHandler
+                }
+            }
 
             TapHandler {
                 acceptedButtons: Qt.MiddleButton
@@ -301,6 +356,22 @@ Item {
     function branchExpand() {
         for (let i = 0; i < treeView.rows; ++i) {
             treeView.expandRecursively(i)
+        }
+    }
+
+    Connections {
+        target: branchModel
+
+        function onRowsInserted() {
+            modelVisible = true
+        }
+
+        function onRowsRemoved() {
+            modelVisible = branchModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            modelVisible = false
         }
     }
 
