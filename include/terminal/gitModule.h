@@ -40,7 +40,7 @@ public:
 
     Q_INVOKABLE void gitDelete(const QString &name);
 
-    Q_INVOKABLE void gitLog();
+    void gitLog();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
@@ -60,7 +60,7 @@ signals:
 private:
     void terminalStdin(const QStringList &arguments) const;
 
-    void terminalStdout();
+    void terminalStdout() const;
 
     void terminalStderr() const;
 

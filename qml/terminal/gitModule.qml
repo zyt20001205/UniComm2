@@ -156,10 +156,10 @@ Item {
 
                         Label {
                             horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
-                            text: model.commit ? model.commit : ""
+                            text: model.commit || ""
                             elide: Text.ElideLeft
                             Layout.preferredHeight: 24
-                            Layout.rightMargin: 6
+                            Layout.rightMargin: 10
                         }
                     }
 
@@ -172,7 +172,7 @@ Item {
                         }
                         onPointChanged: {
                             mainToolTip.position = parent.mapToGlobal(point.position)
-                            mainToolTip.text = model.hash ? model.hash : ""
+                            mainToolTip.text = model.hash || ""
                         }
                     }
 
@@ -217,13 +217,53 @@ Item {
             }
         }
 
+        Canvas {
+            id: canvas
+            implicitWidth: 400
+
+            onPaint: {
+                const ctx = getContext("2d")
+                ctx.reset()
+                const w = width
+                const h = height
+                const cx = w / 2
+                const rowCount = logModel.rowCount()
+                if (rowCount < 1) return
+                const spacing = h / Math.max(rowCount, 1)
+
+                ctx.strokeStyle = global.fore
+                ctx.fillStyle = global.fore
+                ctx.lineWidth = 2
+
+                for (let i = 0; i < rowCount; ++i) {
+                    const y = i * spacing + spacing / 2
+                    if (i > 0) {
+                        const prevY = (i - 1) * spacing + spacing / 2
+                        ctx.beginPath()
+                        ctx.moveTo(cx, prevY)
+                        ctx.lineTo(cx, y)
+                        ctx.stroke()
+                    }
+                    ctx.beginPath()
+                    ctx.arc(cx, y, 4, 0, Math.PI * 2)
+                    ctx.fill()
+                }
+            }
+        }
+
+        Connections {
+            target: logModel
+            function onRowsInserted() { canvas.requestPaint() }
+            function onRowsRemoved() { canvas.requestPaint() }
+            function onModelReset() { canvas.requestPaint() }
+        }
+
         TableView {
             id: tableView
             implicitWidth: 400
             alternatingRows: false
             clip: true
             editTriggers: TableView.NoEditTriggers
-            rowSpacing: 1
             model: logModel
             visible: modelVisible
             contentWidth: width
@@ -236,20 +276,8 @@ Item {
                 }
             }
 
-            Rectangle {
-                anchors.fill: parent
-                color: global.stroke
-            }
-
             delegate: Item {
                 implicitWidth: {
-                    if (column === tableView.columns - 1) {
-                        let usedWidth = 0
-                        for (let i = 0; i < tableView.columns - 1; i++) {
-                            usedWidth += tableView.columnWidth(i)
-                        }
-                        return tableView.width - usedWidth
-                    }
                     return Math.max(textMetrics.width + 16, 60)
                 }
                 implicitHeight: 24
@@ -283,19 +311,13 @@ Item {
                     anchors.fill: parent
                     leftPadding: 6
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    text: model.display
+                    text: model.display || ""
                     elide: Text.ElideRight
                 }
 
                 HoverHandler {
                     id: hoverHandler
                 }
-            }
-
-            TapHandler {
-                acceptedButtons: Qt.MiddleButton
-
-                onTapped: gitModule.gitLog()
             }
         }
 

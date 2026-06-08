@@ -210,13 +210,12 @@ void GitModule::terminalStdin(const QStringList &arguments) const {
     m_process->start("git", arguments);
 }
 
-void GitModule::terminalStdout() {
+void GitModule::terminalStdout() const {
     const auto output = QString::fromLocal8Bit(m_process->readAllStandardOutput());
     QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, output));
     const auto command = m_command;
     switch (command) {
         case Branch: {
-            m_command = Null;
             m_branchModel->clear();
             auto *localItem = new QStandardItem(tr("Local")); // NOLINT
             localItem->setData("local", Qt::UserRole + 1);
@@ -247,7 +246,6 @@ void GitModule::terminalStdout() {
         }
         break;
         case Log: {
-            m_command = Null;
             m_logModel->clear();
             for (const auto &value: output.split('\n')) {
                 const auto param = value.split('|');
@@ -273,29 +271,30 @@ void GitModule::terminalStderr() const {
 void GitModule::processFinished(const int exitcode) {
     QMetaObject::invokeMethod(m_root, "processFinished");
     const auto command = m_command;
+    m_command = Null;
     switch (command) {
         case Init: {
-            m_command = Null;
             g_globalManager->gitSet();
             emit undateGit();
+        }
+        break;
+        case Branch: {
+            gitLog();
         }
         break;
         case Switch:
         case Create:
         case Rename:
         case Delete: {
-            m_command = Null;
             gitBranch();
         }
         break;
         case Add:
         case Reset: {
-            m_command = Null;
             emit undateGit();
         }
         break;
         case Commit: {
-            m_command = Null;
             gitBranch();
             emit undateGit();
         }
