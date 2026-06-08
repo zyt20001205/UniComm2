@@ -373,11 +373,8 @@ Item {
         id: scrollTimer
         interval: 50
         onTriggered: {
-            const bottom = Math.max(0, 1.0 - chatView.ScrollBar.vertical.size)
-            if (bottom > 0) {
-                scrollAnim.to = bottom
-                scrollAnim.restart()
-            }
+            scrollAnim.to = 1.0 - chatView.ScrollBar.vertical.size
+            scrollAnim.restart()
         }
     }
 

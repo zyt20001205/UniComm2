@@ -255,6 +255,7 @@ void GitModule::processFinished(const int exitcode) {
             g_globalManager->gitSet();
             emit undateGit();
         }
+        break;
         case Switch:
         case Create:
         case Rename:
@@ -264,9 +265,14 @@ void GitModule::processFinished(const int exitcode) {
         }
         break;
         case Add:
-        case Reset:
+        case Reset:{
+            m_command = Null;
+            emit undateGit();
+        }
+        break;
         case Commit: {
             m_command = Null;
+            gitBranch();
             emit undateGit();
         }
         break;

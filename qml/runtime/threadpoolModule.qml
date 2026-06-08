@@ -63,7 +63,7 @@ Item {
     TableView {
         id: tableView
         anchors.top: horizontalHeaderView.bottom; anchors.bottom: parent.bottom
-        width: parent.width;
+        width: parent.width
         alternatingRows: false
         clip: true
         editTriggers: TableView.NoEditTriggers

@@ -36,144 +36,199 @@ Item {
         }
     }
 
-    RowLayout {
+    SplitView {
         anchors.fill: parent
+        orientation: Qt.Horizontal
+        visible: global.git
 
-        TreeView {
-            id: treeView
-            clip: true
-            model: standardItemModel
-            visible: global.git
-            property int selectedRow: -1
-            Layout.preferredWidth: 200; Layout.fillHeight: true
+        Item {
+            id: branchItem
+            implicitWidth: 400
+            property bool modelVisible: standardItemModel.rowCount() > 0
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
+            RowLayout {
+                anchors.centerIn: parent
+                visible: !branchItem.modelVisible
+
+                Button {
+                    flat: true
+                    text: qsTr("No commits yet.")
+                    font.pixelSize: 16
+                    Layout.alignment: Qt.AlignVCenter
+
+                    onClicked: gitModule.gitCommit()
+                }
+
+                IconImage {
+                    source: "qrc:/icon/gitBranch.svg"
+                    color: global.fore
+                    Layout.alignment: Qt.AlignVCenter
                 }
             }
 
-            delegate: Item {
-                implicitWidth: treeView.width; implicitHeight: 24
-                required property TreeView treeView
-                required property bool isTreeNode
-                required property bool expanded
-                required property bool hasChildren
-                required property int depth
-                required property int row
+            TreeView {
+                id: treeView
+                anchors.fill: parent
+                clip: true
+                model: standardItemModel
+                visible: branchItem.modelVisible
+                property int selectedRow: -1
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: global.backHover
-                    opacity: hoverHandler.hovered ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
-                        }
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
                     }
                 }
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: treeView.selectedRow === row ? global.backSelected : "transparent"
-                }
+                delegate: Item {
+                    implicitWidth: treeView.width; implicitHeight: 24
+                    required property TreeView treeView
+                    required property bool isTreeNode
+                    required property bool expanded
+                    required property bool hasChildren
+                    required property int depth
+                    required property int row
 
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 0
-
-                    Item {
-                        Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
-                    }
-
-                    Item {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
-
-                        IconImage {
-                            anchors.centerIn: parent
-                            width: 16; height: 16
-                            source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
-                            color: global.fore
-                            visible: isTreeNode && hasChildren
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: global.backHover
+                        opacity: hoverHandler.hovered ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
                         }
                     }
 
-                    Item {
-                        Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: treeView.selectedRow === row ? global.backSelected : "transparent"
+                    }
 
-                        IconImage {
-                            anchors.centerIn: parent
-                            width: 16; height: 16
-                            source: model.type === "local" ? "qrc:/icon/tcpClient.svg" :
-                                    model.type === "remote" ? "qrc:/icon/tcpServer.svg" :
-                                    model.type === "current" ? "qrc:/icon/tag.svg" :
-                                    "qrc:/icon/gitBranch.svg"
-                            color: ["favourite", "current"].includes(model.type) ? global.warningFore3 : global.fore
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 0
+
+                        Item {
+                            Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                            IconImage {
+                                anchors.centerIn: parent
+                                width: 16; height: 16
+                                source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                color: global.fore
+                                visible: isTreeNode && hasChildren
+                            }
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                            IconImage {
+                                anchors.centerIn: parent
+                                width: 16; height: 16
+                                source: model.type === "local" ? "qrc:/icon/tcpClient.svg" :
+                                        model.type === "remote" ? "qrc:/icon/tcpServer.svg" :
+                                            model.type === "current" ? "qrc:/icon/tag.svg" :
+                                            "qrc:/icon/gitBranch.svg"
+                                color: ["favourite", "current"].includes(model.type) ? global.warningFore3 : global.fore
+                            }
+                        }
+
+                        Label {
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                            text: model.display
+                            elide: Text.ElideRight
+                            Layout.preferredHeight: 24
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
+                            text: model.commit ? model.commit : ""
+                            elide: Text.ElideLeft
+                            Layout.preferredHeight: 24
+                            Layout.rightMargin: 6
                         }
                     }
 
-                    Label {
-                        horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                        text: model.display
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true; Layout.preferredHeight: 24
+                    HoverHandler {
+                        id: hoverHandler
                     }
-                }
 
-                HoverHandler {
-                    id: hoverHandler
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onTapped: {
+                            treeView.selectedRow = row
+                            if (isTreeNode && hasChildren) {
+                                treeView.toggleExpanded(row)
+                            } else {
+                            }
+                        }
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.RightButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onTapped: {
+                            if (!(isTreeNode && hasChildren)) {
+                                branchMenu.name = model.display
+                                branchMenu.current = model.type === "current"
+                                branchMenu.popup()
+                            }
+                        }
+                    }
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                    onTapped: {
-                        treeView.selectedRow = row
-                        if (isTreeNode && hasChildren) {
-                            treeView.toggleExpanded(row)
-                        } else {
-                        }
-                    }
+                    onTapped: treeView.selectedRow = -1
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
-                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                     onTapped: {
-                        if (!(isTreeNode && hasChildren)) {
-                            branchMenu.name = model.display
-                            branchMenu.current = model.type === "current"
-                            branchMenu.popup()
-                        }
+                        // rootMenu.treeView = treeView
+                        // rootMenu.popup()
                     }
                 }
             }
 
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
+            Connections {
+                target: standardItemModel
 
-                onTapped: treeView.selectedRow = -1
-            }
+                function onRowsInserted() {
+                    branchItem.modelVisible = true
+                }
 
-            TapHandler {
-                acceptedButtons: Qt.RightButton
+                function onRowsRemoved() {
+                    branchItem.modelVisible = standardItemModel.rowCount() > 0
+                }
 
-                onTapped: {
-                    // rootMenu.treeView = treeView
-                    // rootMenu.popup()
+                function onModelReset() {
+                    branchItem.modelVisible = false
                 }
             }
         }
 
         ScrollView {
-            visible: global.git
-            Layout.fillWidth: true; Layout.fillHeight: true
+            id: terminalView
 
             ScrollBar.vertical: ScrollBar {
                 x: parent.mirrored ? 0 : parent.width - width
