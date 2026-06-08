@@ -44,7 +44,7 @@ Item {
         Item {
             id: branchItem
             implicitWidth: 400
-            property bool modelVisible: standardItemModel.rowCount() > 0
+            property bool modelVisible: branchModel.rowCount() > 0
 
             RowLayout {
                 anchors.centerIn: parent
@@ -70,7 +70,7 @@ Item {
                 id: treeView
                 anchors.fill: parent
                 clip: true
-                model: standardItemModel
+                model: branchModel
                 visible: branchItem.modelVisible
                 property int selectedRow: -1
 
@@ -217,19 +217,30 @@ Item {
             }
 
             Connections {
-                target: standardItemModel
+                target: branchModel
 
                 function onRowsInserted() {
                     branchItem.modelVisible = true
                 }
 
                 function onRowsRemoved() {
-                    branchItem.modelVisible = standardItemModel.rowCount() > 0
+                    branchItem.modelVisible = branchModel.rowCount() > 0
                 }
 
                 function onModelReset() {
                     branchItem.modelVisible = false
                 }
+            }
+        }
+
+        TableView {
+            id: logTable
+            implicitWidth: 400
+
+            TapHandler {
+                acceptedButtons: Qt.MiddleButton
+
+                onTapped: gitModule.gitLog()
             }
         }
 

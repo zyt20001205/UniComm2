@@ -10,6 +10,7 @@ class QQuickWidget;
 class QTextDocument;
 
 class BranchModel;
+class LogModel;
 
 class GitModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -38,6 +39,8 @@ public:
     Q_INVOKABLE void gitRename(const QString &src, const QString &dst);
 
     Q_INVOKABLE void gitDelete(const QString &name);
+
+    Q_INVOKABLE void gitLog();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
@@ -68,7 +71,8 @@ private:
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
-    BranchModel *m_standardItemModel{};
+    BranchModel *m_branchModel{};
+    LogModel *m_logModel{};
     QTextDocument *m_textDocument{};
     QProcess *m_process{};
     int m_command{};
@@ -81,6 +85,7 @@ private:
         Create,
         Rename,
         Delete,
+        Log,
         Add,
         Reset,
         Commit
@@ -93,5 +98,13 @@ class BranchModel final : public QStandardItemModel {
 public:
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
+
+class LogModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+};
+
 
 #endif //UNICOMM_GITMODULE_H

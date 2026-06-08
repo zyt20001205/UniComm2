@@ -15,7 +15,8 @@ GitModule::GitModule()
     : DockWidget("Git"),
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
-      m_standardItemModel(new BranchModel()),
+      m_branchModel(new BranchModel()),
+      m_logModel(new LogModel()),
       m_textDocument(new QTextDocument()),
       m_process(new QProcess(this)) {
     setWidget(m_widget);
@@ -37,7 +38,8 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("branchMenu", objects["gitModuleBranchMenu"]);
-    m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);
+    m_widget->rootContext()->setContextProperty("branchModel", m_branchModel);
+    m_widget->rootContext()->setContextProperty("logModel", m_logModel);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
@@ -111,6 +113,12 @@ void GitModule::gitDelete(const QString &name) {
     m_command = Delete;
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -D " + name));
     terminalStdin(QStringList{"branch", "-D", name});
+}
+
+void GitModule::gitLog() {
+    m_command = Log;
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git log --all --reverse --pretty=format:\"%H|%P|%cr|%an|%s\""));
+    terminalStdin(QStringList{"log", "--all", "--reverse", "--pretty=format:\"%H|%P|%cr|%an|%s\""});
 }
 
 // public: file
@@ -209,13 +217,13 @@ void GitModule::terminalStdout() {
     switch (command) {
         case Branch: {
             m_command = Null;
-            m_standardItemModel->clear();
+            m_branchModel->clear();
             auto *localItem = new QStandardItem(tr("Local")); // NOLINT
             localItem->setData("local", Qt::UserRole + 1);
-            m_standardItemModel->appendRow(localItem);
+            m_branchModel->appendRow(localItem);
             auto *remoteItem = new QStandardItem(tr("Remote")); // NOLINT
             remoteItem->setData("remote", Qt::UserRole + 1);
-            m_standardItemModel->appendRow(remoteItem);
+            m_branchModel->appendRow(remoteItem);
             for (const auto &value: output.split('\n')) {
                 QString branch{};
                 QString type = "untracked";
@@ -236,6 +244,12 @@ void GitModule::terminalStdout() {
                 else localItem->appendRow(item);
             }
             QMetaObject::invokeMethod(m_root, "branchExpand");
+        }
+        break;
+        case Log: {
+            m_command = Null;
+            m_logModel->clear();
+
         }
         break;
         default: break;
