@@ -422,9 +422,9 @@ void LuaInterpreter::luaDebugHook(lua_State *L, lua_Debug *ar) {
         }
         const int currentLine = ar->currentline;
         // watch refresh
-        if (g_global->refreshGet()) {
+        if (g_globalManager->refreshGet()) {
             watchSet(L, ar);
-            g_global->refreshSet(false);
+            g_globalManager->refreshSet(false);
         }
         // debug state machine
         if (session["state"].toInt() == Debug::Resume && g_breakpoints.contains(currentUrl.toString())) {

@@ -8,7 +8,7 @@
 #include <QQuickWidget>
 #include <QTextDocument>
 
-#include "globals.h"
+#include "core/globalManager.h"
 
 // public
 GitModule::GitModule()
@@ -41,11 +41,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
     m_root = m_widget->rootObject();
-    m_root->setProperty("gitEnabled", g_gitEnabled);
-
-    if (g_gitEnabled) {
-        gitBranch();
-    }
+    if (g_globalManager->gitGet()) gitBranch();
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
@@ -54,18 +50,33 @@ void GitModule::propertyGet(const QVariantMap &objects) {
     m_textArea->setProperty("font", font);
 }
 
+bool GitModule::gitGet() {
+    QProcess process{};
+    process.start("git", {"--version"});
+    process.waitForFinished();
+    if (process.exitCode() == 0) {
+        process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
+        process.start("git", {"status"});
+        process.waitForFinished();
+        if (process.exitCode() == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void GitModule::gitInit() {
     m_command = Init;
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, {"git init"}));
     terminalStdin(QStringList{"init"});
 }
 
-// public: immutable
 void GitModule::gitStatus() const {
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git status --porcelain"));
     terminalStdin(QStringList{"status", "--porcelain"});
 }
 
+// public: branch
 void GitModule::gitBranch() {
     m_command = Branch;
     QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -av"));
@@ -101,7 +112,7 @@ void GitModule::gitDelete(const QString &name) {
     terminalStdin(QStringList{"branch", "-D", name});
 }
 
-// public: mutable
+// public: file
 void GitModule::gitAdd(const QUrl &documentUrl) {
     m_command = Add;
     const auto documentPath = documentUrl.toLocalFile();
@@ -213,9 +224,9 @@ void GitModule::terminalStdout() {
                 branch = value.mid(2);
                 const auto param = branch.split(' ', Qt::SkipEmptyParts);
                 if (param.size() != 3) continue;
-                const auto name = param[0];
-                const auto hash = param[1];
-                const auto commit = param[2];
+                const auto &name = param[0];
+                const auto &hash = param[1];
+                const auto &commit = param[2];
                 auto *item = new QStandardItem(name); // NOLINT
                 item->setData(type, Qt::UserRole + 1);
                 item->setData(hash, Qt::UserRole + 2);
@@ -241,9 +252,7 @@ void GitModule::processFinished(const int exitcode) {
     switch (command) {
         case Init: {
             m_command = Null;
-            m_root->setProperty("gitEnabled", true);
-            g_gitEnabled = true;
-            emit initGit(true);
+            g_globalManager->gitSet();
             emit undateGit();
         }
         case Switch:

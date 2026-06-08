@@ -1916,7 +1916,6 @@ Item {
 
     Menu {
         id: explorerModuleFileMenu
-        property bool gitEnabled
         property bool gitUntracked
         property bool gitIgnored
         property string documentUrl
@@ -2004,7 +2003,7 @@ Item {
 
         Menu {
             title: qsTr("Git")
-            enabled: explorerModuleFileMenu.gitEnabled
+            enabled: global.git
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2081,7 +2080,6 @@ Item {
 
     Menu {
         id: explorerModuleFolderMenu
-        property bool gitEnabled
         property string documentUrl
         property var treeView
 
@@ -2162,7 +2160,7 @@ Item {
 
         Menu {
             title: qsTr("Git")
-            enabled: explorerModuleFolderMenu.gitEnabled
+            enabled: global.git
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2237,7 +2235,6 @@ Item {
 
     Menu {
         id: explorerModuleRootMenu
-        property bool gitEnabled
         property string documentUrl
         property var treeView
 
@@ -2288,7 +2285,7 @@ Item {
 
         Menu {
             title: qsTr("Git")
-            enabled: explorerModuleFolderMenu.gitEnabled
+            enabled: global.git
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 

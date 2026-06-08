@@ -2,7 +2,7 @@
 
 MainWindow *g_mainWindow = nullptr;
 QNetworkAccessManager *g_networkAccessManager = nullptr;
-GlobalManager *g_global = nullptr;
+GlobalManager *g_globalManager = nullptr;
 Ripgrep *g_ripgrep = nullptr;
 DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
@@ -17,7 +17,6 @@ UndoModule *g_undo = nullptr;
 bool g_terminating = false;
 int g_theme = {};
 QUrl g_workspaceUrl = {};
-bool g_gitEnabled = false;
 QJsonObject g_mainConfig = {};
 QJsonObject g_workspaceConfig = {};
 

@@ -5,6 +5,7 @@
 #include "kddockwidgets/Config.h"
 #include "mainWindow/kddwCustom.h"
 
+
 // public
 GlobalManager::GlobalManager(QWidget *parent)
     : QObject(parent),
@@ -114,4 +115,6 @@ GlobalManager::GlobalManager(QWidget *parent)
     else QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
     qApp->setStyleSheet(m_styleSheet[m_theme]);
     KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(m_theme));
+
+    gitSet();
 }

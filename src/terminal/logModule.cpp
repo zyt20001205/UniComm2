@@ -18,9 +18,9 @@ LogModule::LogModule()
       m_config(g_workspaceConfig["logConfig"].toObject()),
       m_widget(new QQuickWidget()),
       m_textDocument(new QTextDocument()),
-      m_errorFore(g_global->dangerFore3Get()),
-      m_warningFore(g_global->warningFore3Get()),
-      m_infoFore(g_global->foreGet()) {
+      m_errorFore(g_globalManager->dangerFore3Get()),
+      m_warningFore(g_globalManager->warningFore3Get()),
+      m_infoFore(g_globalManager->foreGet()) {
     setWidget(m_widget);
 }
 

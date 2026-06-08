@@ -167,18 +167,18 @@ void EditorWidget::miscInit() const {
     // folding
     m_scintillaWidget->send(SCI_SETPROPERTY, reinterpret_cast<sptr_t>("fold"), reinterpret_cast<sptr_t>("1")); // NOLINT
     m_scintillaWidget->send(SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE); // NOLINT
-    m_scintillaWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
-    m_scintillaWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_global->backGet())); // NOLINT
+    m_scintillaWidget->send(SCI_SETFOLDMARGINCOLOUR, true, ScintillaWidget::colorGet(g_globalManager->backGet())); // NOLINT
+    m_scintillaWidget->send(SCI_SETFOLDMARGINHICOLOUR, true, ScintillaWidget::colorGet(g_globalManager->backGet())); // NOLINT
     m_scintillaWidget->send(SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_STANDARD); // NOLINT
     m_scintillaWidget->send(SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, reinterpret_cast<sptr_t>("...")); // NOLINT
     // scrollbar
     m_scintillaWidget->send(SCI_SETSCROLLWIDTH, 1); // NOLINT
     m_scintillaWidget->send(SCI_SETSCROLLWIDTHTRACKING, true); // NOLINT
     // selection
-    m_scintillaWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_global->brandBackGet(), 128)); // NOLINT
+    m_scintillaWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, ScintillaWidget::colorGet(g_globalManager->brandBackGet(), 128)); // NOLINT
     m_scintillaWidget->send(SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT); // NOLINT
-    m_scintillaWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET, ScintillaWidget::colorGet(g_global->foreGet(), 255)); // NOLINT
-    m_scintillaWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_global->backSelectedGet(), 128)); // NOLINT
+    m_scintillaWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET, ScintillaWidget::colorGet(g_globalManager->foreGet(), 255)); // NOLINT
+    m_scintillaWidget->send(SCI_SETELEMENTCOLOUR, SC_ELEMENT_CARET_LINE_BACK, ScintillaWidget::colorGet(g_globalManager->backSelectedGet(), 128)); // NOLINT
     m_scintillaWidget->send(SCI_SETCARETLINELAYER, SC_LAYER_UNDER_TEXT); // NOLINT
     // tab
     m_scintillaWidget->send(SCI_SETUSETABS, false); // NOLINT
@@ -193,7 +193,7 @@ void EditorWidget::indicatorInit() const {
         ScintillaIndicator::Result,
         QVariantHash{
             {"style", INDIC_STRAIGHTBOX},
-            {"fore", ScintillaWidget::colorGet(g_global->brandBackGet())},
+            {"fore", ScintillaWidget::colorGet(g_globalManager->brandBackGet())},
             {"alpha", 128},
             {"outlineAlpha", 128},
             {"setUnder", true}
@@ -202,7 +202,7 @@ void EditorWidget::indicatorInit() const {
         ScintillaIndicator::Current,
         QVariantHash{
             {"style", INDIC_STRAIGHTBOX},
-            {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
+            {"fore", ScintillaWidget::colorGet(g_globalManager->foreGet())},
             {"strokeWidth", 200},
             {"alpha", 0},
             {"outlineAlpha", 255},
@@ -231,50 +231,50 @@ void EditorWidget::markerInit() const {
         SC_MARKNUM_FOLDEREND,
         QVariantHash{
             {"symbol", SC_MARK_BOXPLUSCONNECTED},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
     m_scintillaWidget->markerDefine(
         SC_MARKNUM_FOLDEROPENMID,
         QVariantHash{
             {"symbol", SC_MARK_BOXMINUSCONNECTED},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
     m_scintillaWidget->markerDefine(
         SC_MARKNUM_FOLDERMIDTAIL,
         QVariantHash{
             {"symbol", SC_MARK_TCORNER},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
     m_scintillaWidget->markerDefine(
         SC_MARKNUM_FOLDERTAIL,
         QVariantHash{
             {"symbol", SC_MARK_LCORNER},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
     m_scintillaWidget->markerDefine(
         SC_MARKNUM_FOLDERSUB,
         QVariantHash{
             {"symbol", SC_MARK_VLINE},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
     m_scintillaWidget->markerDefine(
         SC_MARKNUM_FOLDER,
         QVariantHash{
             {"symbol", SC_MARK_BOXPLUS},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
     m_scintillaWidget->markerDefine(
         SC_MARKNUM_FOLDEROPEN,
         QVariantHash{
             {"symbol", SC_MARK_BOXMINUS},
-            {"fore", ScintillaWidget::colorGet(g_global->backGet())},
-            {"back", ScintillaWidget::colorGet(g_global->strokeGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->backGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->strokeGet())}
         });
 }
 
@@ -284,27 +284,27 @@ void EditorWidget::styleInit() const {
         QVariantHash{
             {"font", m_config["fontFamily"].toString()},
             {"size", m_config["fontSize"].toInt()},
-            {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
-            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->foreGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleClearAll();
     m_scintillaWidget->styleDefine(
         CustomStyle::LineNumber,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
-            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->strokeGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
     m_scintillaWidget->styleDefine(
         CustomStyle::FoldDisplayText,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(g_global->foreGet())},
-            {"back", ScintillaWidget::colorGet(g_global->backSelectedGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->foreGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backSelectedGet())}
         });
     m_scintillaWidget->styleDefine(
         CustomStyle::Annotation,
         QVariantHash{
-            {"fore", ScintillaWidget::colorGet(g_global->strokeGet())},
-            {"back", ScintillaWidget::colorGet(g_global->backGet())}
+            {"fore", ScintillaWidget::colorGet(g_globalManager->strokeGet())},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
         });
 }
 

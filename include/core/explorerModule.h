@@ -25,8 +25,6 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void gitInit(bool status) const;
-
     void gitUpdate() const;
 
     Q_INVOKABLE void toggleHidden() const;
@@ -50,9 +48,6 @@ private:
     QQuickWidget *m_widget{};
     QFileSystemModel *m_fileSystemModel{};
     SortFilterProxyModel *m_sortFilterProxyModel{};
-    QObject *m_fileMenu{};
-    QObject *m_folderMenu{};
-    QObject *m_rootMenu{};
     QObject *m_treeView{};
     QProcess *m_process{};
     QFileSystemWatcher *m_fileWatcher{};

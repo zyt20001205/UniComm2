@@ -6,7 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH  "C:/msys64/ucrt64")
+set(CMAKE_PREFIX_PATH  "C:/MyFileAudit/software/msys64/ucrt64")
 
 find_package(Qt6 REQUIRED COMPONENTS
         Core

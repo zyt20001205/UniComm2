@@ -31,7 +31,7 @@ void BasePage::permissionGet() {
     const QString documentPath = m_documentUrl.toLocalFile();
     const QFileInfo documentInfo(documentPath);
     documentInfo.isWritable() ? setIcon(QIcon()) :
-    g_global->themeGet() == Theme::Light ? setIcon(QIcon(":/icon/lockLight.svg")) :
+    g_globalManager->themeGet() == Theme::Light ? setIcon(QIcon(":/icon/lockLight.svg")) :
     setIcon(QIcon(":/icon/lockDark.svg"));
 }
 

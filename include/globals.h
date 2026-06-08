@@ -21,7 +21,7 @@ class UndoModule;
 
 extern MainWindow *g_mainWindow;
 extern QNetworkAccessManager *g_networkAccessManager;
-extern GlobalManager *g_global;
+extern GlobalManager *g_globalManager;
 extern Ripgrep *g_ripgrep;
 extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
@@ -35,7 +35,6 @@ extern UndoModule *g_undo;
 
 extern bool g_terminating;
 extern QUrl g_workspaceUrl;
-extern bool g_gitEnabled;
 extern QJsonObject g_mainConfig;
 extern QJsonObject g_workspaceConfig;
 

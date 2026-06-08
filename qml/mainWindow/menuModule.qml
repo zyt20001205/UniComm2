@@ -5,7 +5,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool gitEnabled: false
 
     Rectangle {
         anchors.fill: parent
@@ -101,7 +100,7 @@ Item {
 
         Button {
             id: gitMenuButton
-            enabled: rootItem.gitEnabled
+            enabled: global.git
             flat: true
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             text: "Git"

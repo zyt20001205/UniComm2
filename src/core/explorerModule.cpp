@@ -7,6 +7,7 @@
 #include <QQuickWidget>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "util/uniCast.h"
 
 // public
@@ -56,12 +57,6 @@ ExplorerModule::~ExplorerModule() {
 }
 
 void ExplorerModule::propertySet(const QVariantHash &objects) {
-    m_fileMenu = qvariant_cast<QObject *>(objects["explorerModuleFileMenu"]);
-    m_fileMenu->setProperty("gitEnabled", g_gitEnabled);
-    m_folderMenu = qvariant_cast<QObject *>(objects["explorerModuleFolderMenu"]);
-    m_folderMenu->setProperty("gitEnabled", g_gitEnabled);
-    m_rootMenu = qvariant_cast<QObject *>(objects["explorerModuleRootMenu"]);
-    m_rootMenu->setProperty("gitEnabled", g_gitEnabled);
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
     m_fileSystemModel->setRootPath(modelRootPath);
     m_sortFilterProxyModel->setSourceModel(m_fileSystemModel);
@@ -69,10 +64,10 @@ void ExplorerModule::propertySet(const QVariantHash &objects) {
 
     m_widget->rootContext()->setContextProperty("explorerModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
-    m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
-    m_widget->rootContext()->setContextProperty("fileMenu", m_fileMenu);
-    m_widget->rootContext()->setContextProperty("folderMenu", m_folderMenu);
-    m_widget->rootContext()->setContextProperty("rootMenu", m_rootMenu);
+    m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
+    m_widget->rootContext()->setContextProperty("fileMenu", objects["explorerModuleFileMenu"]);
+    m_widget->rootContext()->setContextProperty("folderMenu", objects["explorerModuleFolderMenu"]);
+    m_widget->rootContext()->setContextProperty("rootMenu", objects["explorerModuleRootMenu"]);
     m_widget->rootContext()->setContextProperty("modelRootIndex", modelRootIndex);
     m_widget->rootContext()->setContextProperty("modelRootPath", modelRootPath);
     m_widget->rootContext()->setContextProperty("modelRootUrl", g_workspaceUrl);
@@ -85,13 +80,7 @@ void ExplorerModule::propertySet(const QVariantHash &objects) {
 void ExplorerModule::propertyGet(const QVariantMap &objects) {
     m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
 
-    if (g_gitEnabled) gitUpdate();
-}
-
-void ExplorerModule::gitInit(const bool status) const {
-    m_fileMenu->setProperty("gitEnabled", status);
-    m_folderMenu->setProperty("gitEnabled", status);
-    m_rootMenu->setProperty("gitEnabled", status);
+    if (g_globalManager->gitGet()) gitUpdate();
 }
 
 void ExplorerModule::gitUpdate() const {
@@ -156,7 +145,7 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
         return documentUrl;
     }
     if (role == Qt::UserRole + 7) {
-        if (!g_gitEnabled || !m_documentStatus->contains(documentUrl)) {
+        if (!g_globalManager->gitGet() || !m_documentStatus->contains(documentUrl)) {
             return {};
         }
         const auto gitStatus = m_documentStatus->value(documentUrl).toHash();

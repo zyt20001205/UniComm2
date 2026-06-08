@@ -2,6 +2,7 @@
 #define UNICOMM_GLOBALMANAGER_H
 
 #include "globals.h"
+#include "terminal/gitModule.h"
 
 class GlobalManager final : public QObject {
     Q_OBJECT
@@ -39,6 +40,11 @@ class GlobalManager final : public QObject {
     Q_PROPERTY(QString dangerFore3 READ dangerFore3Get CONSTANT)
     Q_PROPERTY(QString dangerBack3 READ dangerBack3Get CONSTANT)
 
+    // modules
+
+    // git module
+    Q_PROPERTY(bool git READ gitGet NOTIFY gitChanged)
+
     // watch module
     Q_PROPERTY(bool refresh READ refreshGet WRITE refreshSet)
 
@@ -66,7 +72,7 @@ public:
     [[nodiscard]] QString foreSelectedGet() const {
         return m_theme == Theme::Light ? m_palette["lightForeSelected"] : m_palette["darkForeSelected"];
     }
-    
+
     [[nodiscard]] QString foreDisabledGet() const {
         return m_theme == Theme::Light ? m_palette["lightForeDisabled"] : m_palette["darkForeDisabled"];
     }
@@ -102,11 +108,11 @@ public:
     [[nodiscard]] QString brandBackGet() const {
         return m_theme == Theme::Light ? m_palette["lightBrandBack"] : m_palette["darkBrandBack"];
     }
-    
+
     [[nodiscard]] QString brandLinkGet() const {
         return m_theme == Theme::Light ? m_palette["lightBrandLink"] : m_palette["darkBrandLink"];
     }
-    
+
     [[nodiscard]] QString successFore2Get() const {
         return m_theme == Theme::Light ? m_palette["lightSuccessFore2"] : m_palette["darkSuccessFore2"];
     }
@@ -114,7 +120,7 @@ public:
     [[nodiscard]] QString successBack2Get() const {
         return m_theme == Theme::Light ? m_palette["lightSuccessBack2"] : m_palette["darkSuccessBack2"];
     }
-    
+
     [[nodiscard]] QString successFore3Get() const {
         return m_theme == Theme::Light ? m_palette["lightSuccessFore3"] : m_palette["darkSuccessFore3"];
     }
@@ -122,7 +128,7 @@ public:
     [[nodiscard]] QString successBack3Get() const {
         return m_theme == Theme::Light ? m_palette["lightSuccessBack3"] : m_palette["darkSuccessBack3"];
     }
-    
+
     [[nodiscard]] QString warningFore2Get() const {
         return m_theme == Theme::Light ? m_palette["lightWarningFore2"] : m_palette["darkWarningFore2"];
     }
@@ -146,13 +152,22 @@ public:
     [[nodiscard]] QString dangerBack2Get() const {
         return m_theme == Theme::Light ? m_palette["lightDangerBack2"] : m_palette["darkDangerBack2"];
     }
-    
+
     [[nodiscard]] QString dangerFore3Get() const {
         return m_theme == Theme::Light ? m_palette["lightDangerFore3"] : m_palette["darkDangerFore3"];
     }
 
     [[nodiscard]] QString dangerBack3Get() const {
         return m_theme == Theme::Light ? m_palette["lightDangerBack3"] : m_palette["darkDangerBack3"];
+    }
+
+    [[nodiscard]] bool gitGet() const {
+        return m_git;
+    }
+
+    void gitSet() {
+        m_git = GitModule::gitGet();
+        emit gitChanged();
     }
 
     [[nodiscard]] bool refreshGet() const {
@@ -163,10 +178,15 @@ public:
         m_refresh = refresh;
     }
 
+signals:
+    void gitChanged();
+
 private:
     int m_theme{};
     QHash<QString, QString> m_palette{};
     QStringList m_styleSheet{};
+
+    bool m_git = false;
     bool m_refresh{};
 };
 

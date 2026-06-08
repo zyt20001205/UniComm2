@@ -52,19 +52,6 @@ int ConfigManager::mainConfigLoad() {
     g_mainConfig = mainConfig;
     g_workspaceUrl = workspaceUrl;
 
-    // check if git is installed
-    QProcess process{};
-    process.start("git", {"--version"});
-    process.waitForFinished();
-    if (process.exitCode() == 0) {
-        process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
-        process.start("git", {"status"});
-        process.waitForFinished();
-        if (process.exitCode() == 0) {
-            g_gitEnabled = true;
-        }
-    }
-
     // logging
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2").arg(timestamp, "main config loaded");

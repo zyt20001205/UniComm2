@@ -13,15 +13,12 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    void gitInit(bool status) const;
-
     Q_INVOKABLE void themeSet(int theme);
 
 signals:
     void setTheme(int theme);
 
 private:
-    QObject *m_root{};
 };
 
 #endif //UNICOMM_MENUMODULE_H

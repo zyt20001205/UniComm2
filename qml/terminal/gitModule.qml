@@ -6,7 +6,6 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
-    property bool gitEnabled: false
 
     Rectangle {
         anchors.fill: parent
@@ -15,7 +14,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !gitEnabled
+        visible: !global.git
 
         RowLayout {
             anchors.centerIn: parent
@@ -44,7 +43,7 @@ Item {
             id: treeView
             clip: true
             model: standardItemModel
-            visible: gitEnabled
+            visible: global.git
             property int selectedRow: -1
             Layout.preferredWidth: 200; Layout.fillHeight: true
 
@@ -173,7 +172,7 @@ Item {
         }
 
         ScrollView {
-            visible: gitEnabled
+            visible: global.git
             Layout.fillWidth: true; Layout.fillHeight: true
 
             ScrollBar.vertical: ScrollBar {

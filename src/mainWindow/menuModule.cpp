@@ -30,13 +30,7 @@ void MenuModule::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("gitMenu", qvariant_cast<QObject *>(objects["menuModuleGitMenu"]));
 
     setSource(QUrl("qrc:/qml/mainWindow/menuModule.qml"));
-    m_root = rootObject();
-    m_root->setProperty("gitEnabled", g_gitEnabled);
     setVisible(true);
-}
-
-void MenuModule::gitInit(const bool status) const {
-    m_root->setProperty("gitEnabled", status);
 }
 
 void MenuModule::themeSet(const int theme) {

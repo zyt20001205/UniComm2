@@ -23,6 +23,8 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
+    [[nodiscard]] static bool gitGet();
+
     Q_INVOKABLE void gitInit();
 
     Q_INVOKABLE void gitStatus() const;
@@ -50,8 +52,6 @@ public:
     Q_INVOKABLE void gitCommit();
 
 signals:
-    void initGit(bool status);
-
     void undateGit();
 
 private:

@@ -429,7 +429,7 @@ void MainWindow::moduleInit() {
     m_globalManager = new GlobalManager(this);
     m_luals = new LuaLanguageServer(this);
     m_ripgrep = new Ripgrep(this);
-    g_global = m_globalManager;
+    g_globalManager = m_globalManager;
     g_ripgrep = m_ripgrep;
 
     m_breakpointModule = new BreakpointModule();
@@ -527,8 +527,6 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
-    connect(m_gitModule, &GitModule::initGit, m_explorerModule, &ExplorerModule::gitInit);
-    connect(m_gitModule, &GitModule::initGit, m_menuModule, &MenuModule::gitInit);
     connect(m_gitModule, &GitModule::undateGit, m_explorerModule, &ExplorerModule::gitUpdate);
 
     connect(m_menuModule, &MenuModule::setTheme, this, &MainWindow::themeSet);
