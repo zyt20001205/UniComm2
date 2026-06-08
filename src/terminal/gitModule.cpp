@@ -35,6 +35,7 @@ GitModule::~GitModule() {
 void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("branchMenu", objects["gitModuleBranchMenu"]);
     m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);
 
@@ -223,10 +224,10 @@ void GitModule::terminalStdout() {
                 }
                 branch = value.mid(2);
                 const auto param = branch.split(' ', Qt::SkipEmptyParts);
-                if (param.size() != 3) continue;
+                if (param.size() < 2) continue;
                 const auto &name = param[0];
                 const auto &hash = param[1];
-                const auto &commit = param[2];
+                const auto &commit = QStringList(param.mid(2)).join(' ');
                 auto *item = new QStandardItem(name); // NOLINT
                 item->setData(type, Qt::UserRole + 1);
                 item->setData(hash, Qt::UserRole + 2);

@@ -165,6 +165,15 @@ Item {
 
                     HoverHandler {
                         id: hoverHandler
+                        onHoveredChanged: {
+                            if (!hovered) {
+                                mainToolTip.text = ""
+                            }
+                        }
+                        onPointChanged: {
+                            mainToolTip.position = parent.mapToGlobal(point.position)
+                            mainToolTip.text = model.hash ? model.hash : ""
+                        }
                     }
 
                     TapHandler {
@@ -201,12 +210,9 @@ Item {
                 }
 
                 TapHandler {
-                    acceptedButtons: Qt.RightButton
+                    acceptedButtons: Qt.MiddleButton
 
-                    onTapped: {
-                        // rootMenu.treeView = treeView
-                        // rootMenu.popup()
-                    }
+                    onTapped: gitModule.gitBranch()
                 }
             }
 

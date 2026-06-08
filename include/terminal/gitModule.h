@@ -29,7 +29,7 @@ public:
 
     Q_INVOKABLE void gitStatus() const;
 
-    void gitBranch();
+    Q_INVOKABLE void gitBranch();
 
     Q_INVOKABLE void gitSwitch(const QString &name);
 
