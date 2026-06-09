@@ -235,45 +235,49 @@ Item {
                 }
             }
 
-            // Canvas {
-            //     id: canvas
-            //     implicitWidth: 400
-            //
-            //     Component.onCompleted: {
-            //         canvas.requestPaint()
-            //     }
-            //
-            //     onPaint: {
-            //         const ctx = getContext("2d")
-            //         ctx.reset()
-            //         const w = width
-            //         const h = height
-            //         const cx = w / 2
-            //         const rowCount = logModel.rowCount()
-            //         if (rowCount < 1) return
-            //         const spacing = h / Math.max(rowCount, 1)
-            //
-            //         ctx.strokeStyle = global.fore
-            //         ctx.fillStyle = global.fore
-            //         ctx.lineWidth = 2
-            //
-            //         for (let i = 0; i < rowCount; ++i) {
-            //             const y = i * spacing + spacing / 2
-            //             if (i > 0) {
-            //                 const prevY = (i - 1) * spacing + spacing / 2
-            //                 ctx.beginPath()
-            //                 ctx.moveTo(cx, prevY)
-            //                 ctx.lineTo(cx, y)
-            //                 ctx.stroke()
-            //             }
-            //             ctx.beginPath()
-            //             ctx.arc(cx, y, 4, 0, Math.PI * 2)
-            //             ctx.fill()
-            //         }
-            //     }
-            // }
+            Canvas {
+                id: canvas
+                parent: tableView.contentItem
+
+                x: tableView.width - width
+                y: 0
+                width: 80
+                height: tableView.contentHeight
+
+                Component.onCompleted: {
+                    canvas.requestPaint()
+                }
+
+                onPaint: {
+                    const ctx = getContext("2d")
+                    ctx.reset()
+
+                    const cx = width / 2
+                    const rowCount = logModel.rowCount()
+                    const rowHeight = 24
+
+                    ctx.strokeStyle = global.fore
+                    ctx.fillStyle = global.fore
+                    ctx.lineWidth = 2
+
+                    for (let i = 0; i < rowCount; ++i) {
+                        const y = i * rowHeight + rowHeight / 2
+                        if (i > 0) {
+                            const prevY = (i - 1) * rowHeight + rowHeight / 2
+                            ctx.beginPath()
+                            ctx.moveTo(cx, prevY)
+                            ctx.lineTo(cx, y)
+                            ctx.stroke()
+                        }
+                        ctx.beginPath()
+                        ctx.arc(cx, y, 4, 0, Math.PI * 2)
+                        ctx.fill()
+                    }
+                }
+            }
 
             delegate: Item {
+                visible: column !== tableView.columns - 1
                 implicitWidth: {
                     if (column === tableView.columns - 1) {
                         let usedWidth = 0

@@ -100,7 +100,7 @@ Item {
                                         model.git.workingTreeStatus === 3 ? global.brandBack :
                                         global.fore :
                         global.fore
-                    text: model.display
+                    text: model.display || ""
                     elide: Text.ElideRight
                     Layout.fillWidth: true; Layout.preferredHeight: 24
                 }
