@@ -241,8 +241,9 @@ Item {
 
                 x: tableView.width - width
                 y: 0
-                width: 240
+                width: 24 * laneCount
                 height: tableView.contentHeight
+                property int laneCount: 0
 
                 onPaint: {
                     const ctx = getContext("2d")
@@ -250,27 +251,28 @@ Item {
 
                     const unit = 24
                     const rows = logModel.rowCount() - 1
-
-                    ctx.strokeStyle = global.fore
-                    ctx.fillStyle = global.fore
-                    ctx.lineWidth = 1
+                    const colors = ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"]
 
                     for (let i = logModel.rowCount() - 1; i >= 0; --i) {
+                        // node
                         const index = logModel.index(i, 3);
                         const pos = logModel.data(index, Qt.UserRole + 1)
                         const parent = logModel.data(index, Qt.UserRole + 2)
                         const _x = pos.x * unit + unit / 2
                         const _y = (rows - pos.y) * unit + unit / 2
+                        ctx.fillStyle = colors[pos.x % colors.length]
                         ctx.beginPath()
                         ctx.arc(_x, _y, 4, 0, Math.PI * 2)
                         ctx.fill()
+                        // line
                         for (let j = 0; j < parent.length; j++) {
                             const px = parent[j].x * unit + unit / 2
                             const py = (rows - parent[j].y) * unit + unit / 2
+                            const dy = py - _y
+                            ctx.lineWidth = 2
+                            ctx.strokeStyle = colors[Math.max(pos.x, parent[j].x) % colors.length]
                             ctx.beginPath()
                             ctx.moveTo(_x, _y);
-                            // ctx.lineTo(px, py);
-                            const dy = py - _y
                             ctx.bezierCurveTo(
                                 _x, _y + dy * 0.5,
                                 px, py - dy * 0.5,
@@ -415,6 +417,7 @@ Item {
 
     Component.onCompleted: {
         const objects = {
+            "canvas": canvas,
             "textArea": textArea
         };
         gitModule.propertyGet(objects)

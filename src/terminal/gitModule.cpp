@@ -48,6 +48,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
+    m_canvas = qvariant_cast<QObject *>(objects["canvas"]);
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     m_textArea->setProperty("font", font);
@@ -248,6 +249,7 @@ void GitModule::terminalStdout() const {
         case Log: {
             m_logModel->clear();
             QVariantHash laneHash{};
+            int laneCount = 0;
             int index = -1;
             for (const auto &value: output.split('\n')) {
                 index++;
@@ -296,6 +298,7 @@ void GitModule::terminalStdout() const {
                     };
                 }
                 laneHash[hash] = nodeHash;
+                laneCount = qMax(laneCount, nodeHash["pos"].toPoint().x());
                 // fill table
                 const auto &date = param[2];
                 const auto &author = param[3];
@@ -303,9 +306,9 @@ void GitModule::terminalStdout() const {
                 const auto &node = new QStandardItem(); // NOLINT
                 node->setData(nodeHash["pos"], Qt::UserRole + 1);
                 node->setData(nodeHash["parent"], Qt::UserRole + 2);
-
                 m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), node});
             }
+            m_canvas->setProperty("laneCount", laneCount + 1);
         }
         break;
         default: break;

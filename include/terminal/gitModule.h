@@ -70,6 +70,7 @@ private:
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
+    QObject *m_canvas{};
     QObject *m_textArea{};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
