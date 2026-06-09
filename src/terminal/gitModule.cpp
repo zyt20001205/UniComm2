@@ -255,7 +255,7 @@ void GitModule::terminalStdout() const {
                 const auto &date = param[2];
                 const auto &author = param[3];
                 const auto &subject = param[4];
-                m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject)});
+                m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), new QStandardItem()});
             }
         }
         break;
