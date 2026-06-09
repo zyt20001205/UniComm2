@@ -241,37 +241,43 @@ Item {
 
                 x: tableView.width - width
                 y: 0
-                width: 80
+                width: 240
                 height: tableView.contentHeight
-
-                Component.onCompleted: {
-                    canvas.requestPaint()
-                }
 
                 onPaint: {
                     const ctx = getContext("2d")
                     ctx.reset()
 
-                    const cx = width / 2
-                    const rowCount = logModel.rowCount()
-                    const rowHeight = 24
+                    const unit = 24
+                    const rows = logModel.rowCount() - 1
 
                     ctx.strokeStyle = global.fore
                     ctx.fillStyle = global.fore
-                    ctx.lineWidth = 2
+                    ctx.lineWidth = 1
 
-                    for (let i = 0; i < rowCount; ++i) {
-                        const y = i * rowHeight + rowHeight / 2
-                        if (i > 0) {
-                            const prevY = (i - 1) * rowHeight + rowHeight / 2
-                            ctx.beginPath()
-                            ctx.moveTo(cx, prevY)
-                            ctx.lineTo(cx, y)
-                            ctx.stroke()
-                        }
+                    for (let i = logModel.rowCount() - 1; i >= 0; --i) {
+                        const index = logModel.index(i, 3);
+                        const pos = logModel.data(index, Qt.UserRole + 1)
+                        const parent = logModel.data(index, Qt.UserRole + 2)
+                        const _x = pos.x * unit + unit / 2
+                        const _y = (rows - pos.y) * unit + unit / 2
                         ctx.beginPath()
-                        ctx.arc(cx, y, 4, 0, Math.PI * 2)
+                        ctx.arc(_x, _y, 4, 0, Math.PI * 2)
                         ctx.fill()
+                        for (let j = 0; j < parent.length; j++) {
+                            const px = parent[j].x * unit + unit / 2
+                            const py = (rows - parent[j].y) * unit + unit / 2
+                            ctx.beginPath()
+                            ctx.moveTo(_x, _y);
+                            // ctx.lineTo(px, py);
+                            const dy = py - _y
+                            ctx.bezierCurveTo(
+                                _x, _y + dy * 0.5,
+                                px, py - dy * 0.5,
+                                px, py
+                            )
+                            ctx.stroke();
+                        }
                     }
                 }
             }
@@ -394,10 +400,12 @@ Item {
 
         function onRowsInserted() {
             modelVisible = true
+            canvas.requestPaint()
         }
 
         function onRowsRemoved() {
             modelVisible = branchModel.rowCount() > 0
+            canvas.requestPaint()
         }
 
         function onModelReset() {

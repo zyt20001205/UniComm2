@@ -247,15 +247,64 @@ void GitModule::terminalStdout() const {
         break;
         case Log: {
             m_logModel->clear();
+            QVariantHash laneHash{};
+            int index = -1;
             for (const auto &value: output.split('\n')) {
+                index++;
                 const auto param = value.split('|');
                 if (param.size() != 5) continue;
+                // fill lane hash
                 const auto &hash = param[0];
-                const auto &parent = param[1];
+                const auto &phash = param[1];
+                QVariantHash nodeHash{};
+                // root node
+                if (phash.isEmpty()) {
+                    nodeHash = QVariantHash{
+                        {"pos", QPoint(0, index)},
+                        {"parent", ""},
+                        {"children", 0}
+                    };
+                }
+                // merge node
+                else if (phash.contains(' ')) {
+                    auto phashs = phash.split(' ');
+                    auto parent0 = laneHash[phashs[0]].toHash();
+                    auto parent1 = laneHash[phashs[1]].toHash();
+                    const auto pos0 = parent0["pos"].toPoint();
+                    const auto pos1 = parent1["pos"].toPoint();
+                    const auto lane = pos0.x();
+                    nodeHash = QVariantHash{
+                        {"pos", QPoint(lane, index)},
+                        {"parent", QVariantList{pos0, pos1}},
+                        {"children", 0}
+                    };
+                }
+                // commit node
+                else {
+                    // parent.children++
+                    auto parent = laneHash[phash].toHash();
+                    const auto pos = parent["pos"].toPoint();
+                    const auto lane = pos.x();
+                    const auto children = parent["children"].toInt();
+                    parent["children"] = children + 1;
+                    laneHash[phash] = parent;
+                    //
+                    nodeHash = QVariantHash{
+                        {"pos", QPoint(lane + children, index)},
+                        {"parent", QVariantList{pos}},
+                        {"children", 0}
+                    };
+                }
+                laneHash[hash] = nodeHash;
+                // fill table
                 const auto &date = param[2];
                 const auto &author = param[3];
                 const auto &subject = param[4];
-                m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), new QStandardItem()});
+                const auto &node = new QStandardItem(); // NOLINT
+                node->setData(nodeHash["pos"], Qt::UserRole + 1);
+                node->setData(nodeHash["parent"], Qt::UserRole + 2);
+
+                m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), node});
             }
         }
         break;
@@ -315,5 +364,7 @@ QHash<int, QByteArray> BranchModel::roleNames() const {
 // public
 QHash<int, QByteArray> LogModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "pos";
+    roles[Qt::UserRole + 2] = "parent";
     return roles;
 }
