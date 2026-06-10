@@ -269,11 +269,22 @@ Item {
                             ctx.strokeStyle = colors[Math.max(pos.x, parentPos.x) % colors.length]
                             ctx.beginPath()
                             ctx.moveTo(_x, _y)
-                            ctx.bezierCurveTo(
-                                _x, _y + dy * 0.5,
-                                px, py - dy * 0.5,
-                                px, py
-                            )
+
+                            const dx = px - _x
+                            const diagonalHeight = Math.abs(dx)
+                            if (dx === 0) {
+                                ctx.lineTo(px, py)
+                            } else if (diagonalHeight <= dy) {
+                                if (dx > 0) {
+                                    ctx.lineTo(px, _y + diagonalHeight)
+                                    ctx.lineTo(px, py)
+                                } else {
+                                    ctx.lineTo(_x, py - diagonalHeight)
+                                    ctx.lineTo(px, py)
+                                }
+                            } else {
+                                ctx.lineTo(px, py)
+                            }
                             ctx.stroke()
                         }
                     }
