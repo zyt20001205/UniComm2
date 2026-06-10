@@ -20,13 +20,6 @@ void BasePage::pathDisambiguation() {
     setTitle(relatedPath);
 }
 
-void BasePage::documentReload() {
-}
-
-QUrl BasePage::documentUrl() {
-    return m_documentUrl;
-}
-
 void BasePage::permissionGet() {
     const QString documentPath = m_documentUrl.toLocalFile();
     const QFileInfo documentInfo(documentPath);
@@ -44,8 +37,4 @@ void BasePage::closeEvent(QCloseEvent *event) {
     emit closeDocument(m_documentUrl);
     deleteLater();
     event->accept();
-}
-
-bool BasePage::documentClose() {
-    return true;
 }

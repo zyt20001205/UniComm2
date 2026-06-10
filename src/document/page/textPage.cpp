@@ -32,8 +32,12 @@ void TextPage::documentSave() {
     m_editorWidget->documentSave();
 }
 
-// protected
-bool TextPage::documentClose() {
+bool TextPage::documentClose(const bool force) {
+    if (force) {
+        emit closeDocument(m_documentUrl);
+        deleteLater();
+        return true;
+    }
     bool status = true;
     if (handler()->modifyGet()) {
         m_saveDialog->setProperty("documentUrl", m_documentUrl);

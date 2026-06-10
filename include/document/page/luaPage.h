@@ -20,6 +20,8 @@ public:
 
     void documentSave() override;
 
+    bool documentClose(bool force = false) override;
+
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
     void menuRequest(const QString &request) const;
@@ -84,9 +86,6 @@ signals:
     void notificationJson(const QString &method, const QJsonObject &params);
 
     void showDiagnostic(const QVariantHash &diagnosticSession, const QString &message);
-
-protected:
-    bool documentClose() override;
 
 private:
     void savepointChange(bool status);

@@ -66,6 +66,27 @@ void LuaPage::documentSave() {
     m_codeWidget->documentSave();
 }
 
+bool LuaPage::documentClose(const bool force) {
+    if (force) {
+        emit closeDocument(m_documentUrl);
+        deleteLater();
+        return true;
+    }
+    bool status = true;
+    if (handler()->modifyGet()) {
+        m_saveDialog->setProperty("documentUrl", m_documentUrl);
+        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
+        QMetaObject::invokeMethod(m_saveDialog, "open");
+        const auto eventloop = new QEventLoop(this);
+        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
+        eventloop->exec();
+        disconnect(conn);
+        delete eventloop;
+        status = m_saveDialog->property("status").toBool();
+    }
+    return status;
+}
+
 QVariantHash LuaPage::menuGet(const QString &name) const {
     return m_codeWidget->menuGet(name);
 }
@@ -111,22 +132,6 @@ void LuaPage::spellCheckResponse(const QVariantList &typos) const {
     m_codeWidget->spellCheckResponse(typos);
 }
 
-// protected
-bool LuaPage::documentClose() {
-    bool status = true;
-    if (handler()->modifyGet()) {
-        m_saveDialog->setProperty("documentUrl", m_documentUrl);
-        m_saveDialog->setProperty("documentName", m_documentUrl.fileName());
-        QMetaObject::invokeMethod(m_saveDialog, "open");
-        const auto eventloop = new QEventLoop(this);
-        const auto conn = connect(m_saveDialog, SIGNAL(closed()), eventloop, SLOT(quit()));
-        eventloop->exec();
-        disconnect(conn);
-        delete eventloop;
-        status = m_saveDialog->property("status").toBool();
-    }
-    return status;
-}
 
 // private
 void LuaPage::savepointChange(const bool status) {

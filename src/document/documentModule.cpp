@@ -1,6 +1,7 @@
 #include "document/documentModule.h"
 
 #include <QFileInfo>
+#include <QFileSystemWatcher>
 #include <QShortcut>
 #include <QTextBrowser>
 #include <QTimer>
@@ -19,12 +20,14 @@
 DocumentModule::DocumentModule(QWidget *parent)
     : QObject(parent),
       m_config(g_workspaceConfig["documentConfig"].toObject()),
+      m_watcher(new QFileSystemWatcher(this)),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     m_navigationHistory = QVariantHash{
         {"index", -1},
         {"list", QVariantList{}}
     };
+    connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &DocumentModule::documentReload);
     qApp->installEventFilter(m_codeAssistant);
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
@@ -178,6 +181,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
         if (conflict) {
             newPage->pathDisambiguation();
         }
+        m_watcher->addPath(documentUrl.toLocalFile());
         m_pageHash[documentUrl] = newPage;
         if (m_focusedUrl.isEmpty()) {
             m_welcomePage->open();
@@ -207,6 +211,15 @@ QString DocumentModule::documentFocused() const {
 
 void DocumentModule::documentSave(const QUrl &documentUrl) const {
     if (m_pageHash.contains(documentUrl)) m_pageHash.value(documentUrl)->documentSave();
+}
+
+void DocumentModule::documentReload(const QString &documentPath) {
+    const auto documentUrl = QUrl::fromLocalFile(documentPath);
+    if (m_pageHash.contains(documentUrl)) {
+        auto *basePage = m_pageHash.value(documentUrl);
+        connect(basePage, &BasePage::destroyed, this, [this, documentUrl](){documentOpen(documentUrl);});
+        basePage->documentClose(true);
+    }
 }
 
 void DocumentModule::permissionSet(const QUrl &documentUrl) const {
@@ -901,6 +914,7 @@ void DocumentModule::documentFocus(BasePage *basePage, const bool status) {
 }
 
 void DocumentModule::documentClose(const QUrl &documentUrl) {
+    m_watcher->removePath(documentUrl.toLocalFile());
     m_pageHash.remove(documentUrl);
     if (g_terminating) return;
     if (m_pageHash.isEmpty()) {

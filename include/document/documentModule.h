@@ -6,12 +6,13 @@
 
 #include "document/page/welcomePage.h"
 
-class BasePage;
+class QFileSystemWatcher;
 class QLabel;
 class QTableWidget;
 class QTabWidget;
 class QTextBrowser;
 
+class BasePage;
 class CodeAssistant;
 class LuaPage;
 class EditorWidget;
@@ -44,6 +45,8 @@ public:
     [[nodiscard]] QString documentFocused() const;
 
     Q_INVOKABLE void documentSave(const QUrl &documentUrl) const;
+
+    void documentReload(const QString &documentPath);
 
     void permissionSet(const QUrl &documentUrl) const;
 
@@ -201,6 +204,7 @@ private:
     QObject *m_saveDialog{};
     QObject *m_editorMenu{};
     QUrl m_focusedUrl{};
+    QFileSystemWatcher *m_watcher{};
     WelcomePage *m_welcomePage{}; // TODO: inherits base page later
     CodeAssistant *m_codeAssistant{};
     QHash<QUrl, BasePage *> m_pageHash{};

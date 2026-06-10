@@ -18,11 +18,10 @@ public:
 
     void documentSave() override;
 
+    bool documentClose(bool force = false) override;
+
 signals:
     void changeSelection(const QHash<QString, int> &selection);
-
-protected:
-    bool documentClose() override;
 
 private:
     void savepointChange(bool status);

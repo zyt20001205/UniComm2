@@ -17,21 +17,23 @@ public:
 
     virtual void documentSave() = 0;
 
-    void documentReload();
+    virtual bool documentClose(bool force = false) {
+        return true;
+    }
 
-    [[nodiscard]] QUrl documentUrl();
+    [[nodiscard]] QUrl documentUrl() {
+        return m_documentUrl;
+    }
 
     virtual void permissionGet();
 
 signals:
     void appendLog(int type, const QString &prefix, const QString &message);
 
-    void closeDocument(const QUrl& documentUrl);
+    void closeDocument(const QUrl &documentUrl);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
-
-    virtual bool documentClose();
 
     QUrl m_documentUrl{};
 };
