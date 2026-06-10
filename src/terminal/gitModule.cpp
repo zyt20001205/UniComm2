@@ -259,16 +259,51 @@ void GitModule::processFinished(const int exitcode) {
         break;
         case Log: {
             m_logModel->clear();
+            QHash<QString, QPoint> nodeHash{};
+            QList<QStringList> parentRows{};
+            QStringList lanes{};
+            int laneCount = 0;
             for (const auto &value: output.split('\n')) {
                 const auto param = value.split('|');
-                if (param.size() != 5) continue;
+                if (param.size() < 5) continue;
+
+                const QString &hash = param[0];
+                const QStringList parents = param[1].split(' ', Qt::SkipEmptyParts);
+                int lane = static_cast<int>(lanes.indexOf(hash));
+                if (lane < 0) {
+                    lane = 0;
+                    lanes.insert(0, hash);
+                }
+                const int index = m_logModel->rowCount();
+                const QPoint nodePos(lane, index);
+                nodeHash.insert(hash, nodePos);
+                parentRows.append(parents);
+
+                lanes.removeAt(lane);
+                int insertLane = lane;
+                for (const QString &parentHash: parents) {
+                    if (lanes.contains(parentHash)) continue;
+                    lanes.insert(insertLane++, parentHash);
+                }
+                laneCount = qMax(laneCount, lanes.size());
+
                 const auto &date = param[2];
                 const auto &author = param[3];
-                const auto &subject = param[4];
-                const auto &node = new QStandardItem(); // NOLINT
-                m_logModel->appendRow({new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), node});
+                const auto subject = QStringList(param.mid(4)).join('|');
+                const auto &nodeItem = new QStandardItem(); // NOLINT
+                nodeItem->setData(nodePos, Qt::UserRole + 1);
+                m_logModel->appendRow({new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), nodeItem});
             }
-            m_canvas->setProperty("laneCount", 6);
+
+            for (int row = 0; row < parentRows.size(); ++row) {
+                QVariantList parentPositions{};
+                for (const QString &parentHash: parentRows[row]) {
+                    const auto parent = nodeHash.constFind(parentHash);
+                    if (parent != nodeHash.cend()) parentPositions.append(*parent);
+                }
+                m_logModel->item(row, 3)->setData(parentPositions, Qt::UserRole + 2);
+            }
+            m_canvas->setProperty("laneCount", qMax(laneCount, 1));
         }
         break;
         default: break;
