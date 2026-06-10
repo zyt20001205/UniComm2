@@ -232,9 +232,7 @@ void GitModule::processFinished(const int exitcode) {
             auto *localItem = new QStandardItem(tr("Local")); // NOLINT
             localItem->setData("local", Qt::UserRole + 1);
             m_branchModel->appendRow(localItem);
-            auto *remoteItem = new QStandardItem(tr("Remote")); // NOLINT
-            remoteItem->setData("remote", Qt::UserRole + 1);
-            m_branchModel->appendRow(remoteItem);
+            QStandardItem *remoteItem = nullptr;
             for (const auto &value: output.split('\n')) {
                 QString branch{};
                 QString type = "untracked";
@@ -247,12 +245,24 @@ void GitModule::processFinished(const int exitcode) {
                 const auto &name = param[0];
                 const auto &hash = param[1];
                 const auto &commit = QStringList(param.mid(2)).join(' ');
-                auto *item = new QStandardItem(name); // NOLINT
+                auto *item = new QStandardItem(name.startsWith("remotes/") ? name.mid(8) : name); // NOLINT
                 item->setData(type, Qt::UserRole + 1);
                 item->setData(hash, Qt::UserRole + 2);
                 item->setData(commit, Qt::UserRole + 3);
-                if (name == "master") localItem->insertRow(0, item);
-                else localItem->appendRow(item);
+                // remote
+                if (name.startsWith("remotes/")) {
+                    if (remoteItem == nullptr) {
+                        remoteItem = new QStandardItem(tr("Remote")); // NOLINT
+                        remoteItem->setData("remote", Qt::UserRole + 1);
+                        m_branchModel->appendRow(remoteItem);
+                    }
+                    remoteItem->appendRow(item);
+                }
+                // local
+                else {
+                    if (name == "master") localItem->insertRow(0, item);
+                    else localItem->appendRow(item);
+                }
             }
             QMetaObject::invokeMethod(m_root, "branchExpand");
         }
@@ -285,7 +295,7 @@ void GitModule::processFinished(const int exitcode) {
                     if (lanes.contains(parentHash)) continue;
                     lanes.insert(insertLane++, parentHash);
                 }
-                laneCount = qMax(laneCount, lanes.size());
+                laneCount = qMax(laneCount, static_cast<int>(lanes.size()));
 
                 const auto &date = param[2];
                 const auto &author = param[3];
