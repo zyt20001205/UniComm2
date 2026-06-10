@@ -185,6 +185,7 @@ Item {
                             if (isTreeNode && hasChildren) {
                                 treeView.toggleExpanded(row)
                             } else {
+                                gitModule.branchSet(model.display)
                             }
                         }
                     }

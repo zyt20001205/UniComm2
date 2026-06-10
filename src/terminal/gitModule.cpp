@@ -23,7 +23,6 @@ GitModule::GitModule()
     m_widget->installEventFilter(this);
 
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
-    connect(m_process, &QProcess::readyReadStandardOutput, this, &GitModule::terminalStdout);
     connect(m_process, &QProcess::readyReadStandardError, this, &GitModule::terminalStderr);
     connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
 }
@@ -52,6 +51,12 @@ void GitModule::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
     const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
     m_textArea->setProperty("font", font);
+}
+
+void GitModule::branchSet(const QString &name) {
+    if (m_branch == name) return;
+    m_branch = name;
+    gitLog();
 }
 
 bool GitModule::gitGet() {
@@ -117,9 +122,10 @@ void GitModule::gitDelete(const QString &name) {
 }
 
 void GitModule::gitLog() {
+    if (m_branch.isEmpty()) return;
     m_command = Log;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git log --all --reverse --pretty=format:\"%H|%P|%cr|%an|%s\""));
-    terminalStdin(QStringList{"log", "--all", "--reverse", "--pretty=format:%H|%P|%cr|%an|%s"});
+    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git log " + m_branch + " --pretty=format:\"%H|%P|%cr|%an|%s\""));
+    terminalStdin(QStringList{"log", m_branch, "--pretty=format:%H|%P|%cr|%an|%s"});
 }
 
 // public: file
@@ -211,7 +217,12 @@ void GitModule::terminalStdin(const QStringList &arguments) const {
     m_process->start("git", arguments);
 }
 
-void GitModule::terminalStdout() const {
+void GitModule::terminalStderr() const {
+    const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
+    QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, error));
+}
+
+void GitModule::processFinished(const int exitcode) {
     const auto output = QString::fromLocal8Bit(m_process->readAllStandardOutput());
     QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, output));
     const auto command = m_command;
@@ -248,81 +259,22 @@ void GitModule::terminalStdout() const {
         break;
         case Log: {
             m_logModel->clear();
-            QVariantHash laneHash{};
-            int laneCount = 0;
-            int index = -1;
             for (const auto &value: output.split('\n')) {
-                index++;
                 const auto param = value.split('|');
                 if (param.size() != 5) continue;
-                // fill lane hash
-                const auto &hash = param[0];
-                const auto &phash = param[1];
-                QVariantHash nodeHash{};
-                // root node
-                if (phash.isEmpty()) {
-                    nodeHash = QVariantHash{
-                        {"pos", QPoint(0, index)},
-                        {"parent", ""},
-                        {"children", 0}
-                    };
-                }
-                // merge node
-                else if (phash.contains(' ')) {
-                    auto phashs = phash.split(' ');
-                    auto parent0 = laneHash[phashs[0]].toHash();
-                    auto parent1 = laneHash[phashs[1]].toHash();
-                    const auto pos0 = parent0["pos"].toPoint();
-                    const auto pos1 = parent1["pos"].toPoint();
-                    const auto lane = pos0.x();
-                    nodeHash = QVariantHash{
-                        {"pos", QPoint(lane, index)},
-                        {"parent", QVariantList{pos0, pos1}},
-                        {"children", 0}
-                    };
-                }
-                // commit node
-                else {
-                    // parent.children++
-                    auto parent = laneHash[phash].toHash();
-                    const auto pos = parent["pos"].toPoint();
-                    const auto lane = pos.x();
-                    const auto children = parent["children"].toInt();
-                    parent["children"] = children + 1;
-                    laneHash[phash] = parent;
-                    //
-                    nodeHash = QVariantHash{
-                        {"pos", QPoint(lane + children, index)},
-                        {"parent", QVariantList{pos}},
-                        {"children", 0}
-                    };
-                }
-                laneHash[hash] = nodeHash;
-                laneCount = qMax(laneCount, nodeHash["pos"].toPoint().x());
-                // fill table
                 const auto &date = param[2];
                 const auto &author = param[3];
                 const auto &subject = param[4];
                 const auto &node = new QStandardItem(); // NOLINT
-                node->setData(nodeHash["pos"], Qt::UserRole + 1);
-                node->setData(nodeHash["parent"], Qt::UserRole + 2);
-                m_logModel->insertRow(0, {new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), node});
+                m_logModel->appendRow({new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), node});
             }
-            m_canvas->setProperty("laneCount", laneCount + 1);
+            m_canvas->setProperty("laneCount", 6);
         }
         break;
         default: break;
     }
-}
 
-void GitModule::terminalStderr() const {
-    const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
-    QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, error));
-}
-
-void GitModule::processFinished(const int exitcode) {
     QMetaObject::invokeMethod(m_root, "processFinished");
-    const auto command = m_command;
     m_command = Null;
     switch (command) {
         case Init: {

@@ -24,6 +24,8 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
+    Q_INVOKABLE void branchSet(const QString &name);
+
     [[nodiscard]] static bool gitGet();
 
     Q_INVOKABLE void gitInit();
@@ -40,7 +42,7 @@ public:
 
     Q_INVOKABLE void gitDelete(const QString &name);
 
-    void gitLog();
+    Q_INVOKABLE void gitLog();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
@@ -60,8 +62,6 @@ signals:
 private:
     void terminalStdin(const QStringList &arguments) const;
 
-    void terminalStdout() const;
-
     void terminalStderr() const;
 
     void processFinished(int exitcode);
@@ -72,6 +72,7 @@ private:
     QObject *m_messageDialog{};
     QObject *m_canvas{};
     QObject *m_textArea{};
+    QString m_branch{};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     QTextDocument *m_textDocument{};
