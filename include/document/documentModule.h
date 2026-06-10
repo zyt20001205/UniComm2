@@ -205,6 +205,7 @@ private:
     QObject *m_editorMenu{};
     QUrl m_focusedUrl{};
     QFileSystemWatcher *m_watcher{};
+    QTimer *m_watcherTimer{};
     WelcomePage *m_welcomePage{}; // TODO: inherits base page later
     CodeAssistant *m_codeAssistant{};
     QHash<QUrl, BasePage *> m_pageHash{};

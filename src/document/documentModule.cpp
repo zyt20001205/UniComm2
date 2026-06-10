@@ -21,6 +21,7 @@ DocumentModule::DocumentModule(QWidget *parent)
     : QObject(parent),
       m_config(g_workspaceConfig["documentConfig"].toObject()),
       m_watcher(new QFileSystemWatcher(this)),
+      m_watcherTimer(new QTimer(this)),
       m_welcomePage(new WelcomePage()),
       m_codeAssistant(new CodeAssistant(parent)) {
     m_navigationHistory = QVariantHash{
@@ -28,6 +29,9 @@ DocumentModule::DocumentModule(QWidget *parent)
         {"list", QVariantList{}}
     };
     connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &DocumentModule::documentReload);
+    m_watcherTimer->setSingleShot(true);
+    m_watcherTimer->setInterval(1000);
+    connect(m_watcherTimer, &QTimer::timeout, this, [this] {m_watcher->blockSignals(false);});
     qApp->installEventFilter(m_codeAssistant);
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
@@ -74,6 +78,7 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
 }
 
 void DocumentModule::documentConfigSave() {
+    m_watcher->blockSignals(true);
     // save config
     QJsonArray documentList{};
     for (const auto &url: m_pageHash.keys()) {
@@ -87,6 +92,7 @@ void DocumentModule::documentConfigSave() {
         m_config["documentFocused"] = m_focusedUrl.toString();
     }
     g_workspaceConfig["documentConfig"] = m_config;
+    m_watcherTimer->start();
 }
 
 void DocumentModule::scriptFontReload(const QJsonObject &fontConfigScript) const {
