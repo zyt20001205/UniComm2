@@ -396,6 +396,8 @@ void ScintillaWidget::styleSet(const int type, const int startLine, const int st
     Position start{};
     if (startLine != -1) {
         start = positionGet(startLine, startCharacter);
+        const Position end = positionGet(startLine, startCharacter + length);
+        length = static_cast<int>(end - start);
     } else {
         length = static_cast<int>(lengthGet());
     }
