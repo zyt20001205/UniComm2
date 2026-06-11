@@ -145,43 +145,6 @@ void ToolsModule::initialize() {
                 }
             }
         },
-        // logGet
-        QJsonObject{
-            {"type", "function"},
-            {
-                "function", QJsonObject{
-                    {"name", "log_get"},
-                    {
-                        "description",
-                        "Read the latest log blocks from the log panel. "
-                        "Use block_count = -1 to read all currently available blocks (up to backend limit 20)."
-                    },
-                    {
-                        "parameters", QJsonObject{
-                            {"type", "object"},
-                            {
-                                "properties", QJsonObject{
-                                    {
-                                        "block_count", QJsonObject{
-                                            {"type", "integer"},
-                                            {
-                                                "description",
-                                                "Number of blocks to read from the end. Use -1 to read all currently available blocks (up to backend limit 20)."
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "required", QJsonArray{
-                                    "block_count"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         // diagnosticsGet
         QJsonObject{
             {"type", "function"},
@@ -469,7 +432,7 @@ void ToolsModule::initialize() {
                     {"name", "thread_start"},
                     {
                         "description",
-                        "Start a new thread to execute a script or a specific block of code in a document. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings. To execute the entire document, set all four line and character positional parameters to -1."
+                        "Start a new thread to execute a script. Before execution, you must first call diagnostics_get to verify that there are no syntax errors or warnings."
                     },
                     {
                         "parameters", QJsonObject{
@@ -481,47 +444,12 @@ void ToolsModule::initialize() {
                                             {"type", "string"},
                                             {"description", "The URL / file path of the document to execute."}
                                         }
-                                    },
-                                    {
-                                        "mode", QJsonObject{
-                                            {"type", "integer"},
-                                            {"description", "Execution mode for the session. Always use Run (0) unless the user specifically asks for Debug (1)."}
-                                        }
-                                    },
-                                    {
-                                        "start_line", QJsonObject{
-                                            {"type", "integer"},
-                                            {"description", "The starting line number (0-based) of the code block to execute. Pass -1 for the whole file."}
-                                        }
-                                    },
-                                    {
-                                        "start_character", QJsonObject{
-                                            {"type", "integer"},
-                                            {"description", "The starting character offset (0-based). Pass -1 for the whole file."}
-                                        }
-                                    },
-                                    {
-                                        "end_line", QJsonObject{
-                                            {"type", "integer"},
-                                            {"description", "The ending line number (0-based). Pass -1 for the whole file."}
-                                        }
-                                    },
-                                    {
-                                        "end_character", QJsonObject{
-                                            {"type", "integer"},
-                                            {"description", "The ending character offset. Pass -1 for the whole file."}
-                                        }
                                     }
                                 }
                             },
                             {
                                 "required", QJsonArray{
-                                    "document_url",
-                                    "mode",
-                                    "start_line",
-                                    "start_character",
-                                    "end_line",
-                                    "end_character"
+                                    "document_url"
                                 }
                             }
                         }
@@ -593,11 +521,6 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
         }
         return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
     }
-    if (name == "log_get") {
-        const auto blockCount = object.value("block_count").toInt(-1);
-        const auto array = g_log->logGet(blockCount);
-        return QString::fromUtf8(QJsonDocument(array).toJson(QJsonDocument::Compact));
-    }
     if (name == "diagnostics_get") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
         const auto diagnostics = g_document->diagnosticsGet(documentUrl);
@@ -644,13 +567,9 @@ QString ToolsModule::toolsCall(const QString &mode, const QString &name, const Q
     }
     if (name == "thread_start") {
         const auto documentUrl = QUrl(object.value("document_url").toString());
-        const auto mode = object.value("mode").toInt(InterpreterMode::Run);
-        const auto startLine = object.value("start_line").toInt(-1);
-        const auto startCharacter = object.value("start_character").toInt(-1);
-        const auto endLine = object.value("end_line").toInt(-1);
-        const auto endCharacter = object.value("end_character").toInt(-1);
-        g_thread->threadStart(documentUrl, mode, startLine, startCharacter, endLine, endCharacter);
-        return "\"Thread started.\"}";
+        QString threadId{};
+        const auto result = g_thread->threadStart(documentUrl, InterpreterMode::Agent, threadId);
+        return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
     }
     // MCP tools
     return {"Unknown tool."};

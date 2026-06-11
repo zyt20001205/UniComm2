@@ -64,10 +64,12 @@ void ThreadpoolModule::quit() {
     }
 }
 
-void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine,
-                                   const int endCharacter) {
+QJsonArray ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QString &threadId, const int startLine, const int startCharacter, const int endLine,
+                                         const int endCharacter) {
     auto *worker = new QThread(); // NOLINT
     threadId = QString("0x%1").arg(reinterpret_cast<quintptr>(worker), 0, 16);
+    QJsonArray buffer{};
+    QEventLoop eventloop{};
     // preload thread with lua session
     QVariantMap luaSession{};
     luaSession.insert("mode", mode);
@@ -94,22 +96,49 @@ void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, QStr
     connect(worker, &QThread::finished, interpreter, &LuaInterpreter::deleteLater);
     connect(worker, &QThread::finished, worker, &QObject::deleteLater);
     // load thread with script
-    const QString script = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
+    const auto script = g_document->textGet(documentUrl, startLine, startCharacter, endLine, endCharacter);
     connect(worker, &QThread::started, [interpreter, script] {
         interpreter->start(script);
         QThread::currentThread()->quit();
     });
-    // start thread
-    worker->start();
     m_threadHash.insert(threadId, worker);
     m_interpreterHash.insert(threadId, interpreter);
     connect(worker, &QThread::finished, this, [this, threadId] { m_threadHash.remove(threadId); });
     connect(worker, &QThread::finished, this, [this, threadId] { m_interpreterHash.remove(threadId); });
+
     threadAppend(mode, documentUrl.fileName(), threadId);
     if (mode == InterpreterMode::Debug) {
         emit startDebug(threadId);
         connect(worker, &QThread::finished, this, [this, threadId] { emit stopDebug(threadId); });
+    } else if (mode == InterpreterMode::Agent) {
+        connect(interpreter, &LuaInterpreter::appendLog, this, [&buffer](const int type, const QString &prefix, const QString &message) {
+            QString _type{};
+            switch (type) {
+                case LogLevel::Error: _type = "Error";
+                    break;
+                case LogLevel::Warning: _type = "Warning";
+                    break;
+                case LogLevel::Info: _type = "Info";
+                    break;
+                case LogLevel::Transmit: _type = "Transmit";
+                    break;
+                case LogLevel::Receive: _type = "Receive";
+                    break;
+            }
+            const auto session = QJsonObject{
+                {"type", _type},
+                {"prefix", prefix},
+                {"message", message}
+            };
+            buffer.append(session);
+        });
+        connect(worker, &QThread::finished, &eventloop, &QEventLoop::quit);
     }
+    worker->start();
+    if (mode == InterpreterMode::Agent) {
+        eventloop.exec();
+    }
+    return buffer;
 }
 
 void ThreadpoolModule::threadStart(const QUrl &documentUrl, const int mode, const int startLine, const int startCharacter, const int endLine, const int endCharacter) {

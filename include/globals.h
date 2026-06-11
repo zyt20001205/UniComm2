@@ -89,6 +89,7 @@ namespace InterpreterMode {
     enum {
         Run,
         Debug,
+        Agent,
         Terminate
     };
 }

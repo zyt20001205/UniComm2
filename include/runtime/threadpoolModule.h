@@ -2,6 +2,7 @@
 #define UNICOMM_THREADPOOL_H
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <QJsonArray>
 #include <QStandardItemModel>
 
 class QTableWidget;
@@ -22,7 +23,7 @@ public:
 
     void quit();
 
-    void threadStart(const QUrl &documentUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
+    QJsonArray threadStart(const QUrl &documentUrl, int mode, QString &threadId, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
     Q_INVOKABLE void threadStart(const QUrl &documentUrl, int mode, int startLine = -1, int startCharacter = -1, int endLine = -1, int endCharacter = -1);
 
