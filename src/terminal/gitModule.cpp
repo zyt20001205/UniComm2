@@ -241,7 +241,7 @@ void GitModule::processFinished(const int exitcode) {
                 }
                 branch = value.mid(2);
                 const auto param = branch.split(' ', Qt::SkipEmptyParts);
-                if (param.size() < 2) continue;
+                if (param.size() < 2 || param[1] == "->") continue;
                 const auto &name = param[0];
                 const auto &hash = param[1];
                 const auto &commit = QStringList(param.mid(2)).join(' ');
@@ -309,7 +309,7 @@ void GitModule::processFinished(const int exitcode) {
                 QVariantList parentPositions{};
                 for (const QString &parentHash: parentRows[row]) {
                     const auto parent = nodeHash.constFind(parentHash);
-                    if (parent != nodeHash.cend()) parentPositions.append(*parent);
+                    if (parent != nodeHash.cend()) parentPositions.append(parent.value());
                 }
                 m_logModel->item(row, 3)->setData(parentPositions, Qt::UserRole + 2);
             }
