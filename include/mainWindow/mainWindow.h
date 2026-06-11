@@ -79,6 +79,8 @@ private:
 
     void overlayInit();
 
+    void overlayUpdate() const;
+
     void mainConfigSave();
 
     void maximizeToggle();

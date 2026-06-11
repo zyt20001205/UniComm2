@@ -4,11 +4,13 @@
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QGuiApplication>
 #include <QMediaDevices>
 #include <QNetworkAccessManager>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
+#include <QScreen>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QStatusBar>
@@ -650,25 +652,37 @@ void MainWindow::layoutInit() {
 
 void MainWindow::overlayInit() {
     m_overlay = new QQuickView();
+    m_overlay->setResizeMode(QQuickView::SizeRootObjectToView);
     m_overlay->setColor(Qt::transparent);
     m_overlay->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput);
     m_overlay->setTransientParent(windowHandle());
     propertySet();
     m_overlay->setSource(QUrl("qrc:/qml/mainWindow/mainWindow.qml"));
-    m_overlay->setScreen(windowHandle()->screen());
-    m_overlay->setGeometry(windowHandle()->screen()->geometry());
+
+    overlayUpdate();
     m_overlay->show();
-    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this](QScreen *screen) {
-        m_overlay->setScreen(screen);
-        m_overlay->setGeometry(screen->geometry());
-    });
+    QTimer::singleShot(0, m_overlay, [this] { overlayUpdate(); });
+    connect(windowHandle(), &QWindow::screenChanged, m_overlay, [this] { overlayUpdate(); });
     connect(windowHandle(), &QWindow::visibilityChanged, m_overlay, [this](const QWindow::Visibility visible) {
-        if (visible == QWindow::Minimized || visible == QWindow::Hidden) {
-            m_overlay->hide();
-        } else {
-            m_overlay->show();
-        }
+        if (visible == QWindow::Minimized || visible == QWindow::Hidden) m_overlay->hide();
+        else m_overlay->show();
     });
+}
+
+void MainWindow::overlayUpdate() const {
+    const auto screens = QGuiApplication::screens();
+    QRect geometry{};
+    for (const auto *screen: screens) {
+        geometry = geometry.united(screen->geometry());
+    }
+    auto *screen = windowHandle()->screen();
+    m_overlay->setScreen(screen);
+    m_overlay->setGeometry(geometry);
+    const QRect mainGeometry(
+        m_overlay->mapFromGlobal(screen->geometry().topLeft()),
+        screen->geometry().size()
+    );
+    m_overlay->rootObject()->setProperty("mainGeometry", mainGeometry);
 }
 
 void MainWindow::mainConfigSave() {

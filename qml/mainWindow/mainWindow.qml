@@ -12,33 +12,42 @@ Item {
 
     // overlay control
     property int widgetCount: 0
+    property rect mainGeometry: Qt.rect(0, 0, width, height)
 
     Item {
-        id: debugConsole
-        anchors.fill: parent
-        // visible: true
-        visible: false
+        id: mainScreenItem
+        x: mainGeometry.x
+        y: mainGeometry.y
+        width: mainGeometry.width
+        height: mainGeometry.height
 
-        Rectangle {
+        Item {
+            id: debugConsole
             anchors.fill: parent
-            color: "transparent"
-            border.color: global.dangerFore3
-            border.width: 3
-        }
+            visible: true
+            // visible: false
 
-        ColumnLayout {
-            anchors.centerIn: parent
-
-            Label {
-                text: Application.styleHints.colorScheme === Qt.Light ? "Light" : "Dark"
-                color: global.dangerFore3
-                font.pointSize: 16
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: global.dangerFore3
+                border.width: 3
             }
 
-            Label {
-                id: debugWidgetCount
-                color: global.dangerFore3
-                font.pointSize: 16
+            ColumnLayout {
+                anchors.centerIn: parent
+
+                Label {
+                    text: Application.styleHints.colorScheme === Qt.Light ? "Light" : "Dark"
+                    color: global.dangerFore3
+                    font.pointSize: 16
+                }
+
+                Label {
+                    id: debugWidgetCount
+                    color: global.dangerFore3
+                    font.pointSize: 16
+                }
             }
         }
     }
@@ -61,7 +70,8 @@ Item {
     Dialog {
         id: mainWindowBusyDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         standardButtons: Dialog.Abort
@@ -83,7 +93,8 @@ Item {
     Dialog {
         id: mainWindowCloseDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Save and Exit?")
@@ -100,7 +111,8 @@ Item {
     Dialog {
         id: mainWindowMessageDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         standardButtons: Dialog.Ok
@@ -121,7 +133,8 @@ Item {
     Dialog {
         id: mainWindowQuitDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Exiting application...")
@@ -176,7 +189,8 @@ Item {
         Dialog {
             id: mainWindowMessageDialog
             parent: Overlay.overlay
-            anchors.centerIn: parent
+            x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+            y: mainScreenItem.y + (mainScreenItem.height - height) / 2
             width: 600
             modal: true
             standardButtons: Dialog.Ok
@@ -305,7 +319,8 @@ Item {
     Dialog {
         id: lualsProgressDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         closePolicy: Popup.NoAutoClose
         modal: true
@@ -347,7 +362,8 @@ Item {
     Dialog {
         id: breakpointModuleEditDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Breakpoint Setting")
@@ -575,7 +591,8 @@ Item {
     Dialog {
         id: databaseModuleEditDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Enter Key Name")
@@ -706,7 +723,8 @@ Item {
     Dialog {
         id: datatableModuleEditDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Enter Key Name")
@@ -887,7 +905,8 @@ Item {
     Dialog {
         id: debugModuleErrorDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Select a Thread First")
@@ -933,7 +952,8 @@ Item {
     Dialog {
         id: documentModuleGotoDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Goto Line[:Character]")
@@ -971,7 +991,8 @@ Item {
     Dialog {
         id: documentModuleSaveDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Save and Exit")
@@ -1855,7 +1876,8 @@ Item {
     Dialog {
         id: explorerModuleFileNewDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("New File")
@@ -1886,7 +1908,8 @@ Item {
     Dialog {
         id: explorerModuleFolderNewDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("New Folder")
@@ -2354,7 +2377,8 @@ Item {
     Dialog {
         id: fileModulePropertyDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("File Property")
@@ -2525,7 +2549,8 @@ Item {
     Dialog {
         id: gitModuleBranchCreateDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Create branch from ") + gitModuleBranchCreateDialog.name
@@ -2572,7 +2597,8 @@ Item {
     Dialog {
         id: gitModuleBranchRenameDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Rename branch ") + gitModuleBranchRenameDialog.name
@@ -2667,7 +2693,8 @@ Item {
     Dialog {
         id: llmModuleApikeyDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         standardButtons: Dialog.Ok
@@ -2701,7 +2728,8 @@ Item {
     Dialog {
         id: llmModuleRenameDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Rename Conversation")
@@ -2850,7 +2878,8 @@ Item {
     Dialog {
         id: logModuleHeightDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Set Max Line Count")
@@ -4047,7 +4076,8 @@ Item {
     Dialog {
         id: threadpoolModuleErrorDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Terminate Request Has Been Sent")
@@ -4083,7 +4113,8 @@ Item {
     Dialog {
         id: watchModuleExpressionDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Enter Watch")
@@ -4151,7 +4182,8 @@ Item {
     Dialog {
         id: watchModuleValueDialog
         parent: Overlay.overlay
-        anchors.centerIn: parent
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
         title: qsTr("Edit Value")
