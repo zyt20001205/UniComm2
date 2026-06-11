@@ -227,6 +227,8 @@ Item {
             model: logModel
             visible: modelVisible
             contentWidth: width
+            property int hoveredRow: -1
+            property int selectedRow: -1
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
@@ -234,6 +236,92 @@ Item {
                     mid: global.stroke
                     dark: global.strokePressed
                 }
+            }
+
+            delegate: Item {
+                implicitWidth: {
+                    if (column === tableView.columns - 1) {
+                        let usedWidth = 0
+                        for (let i = 0; i < tableView.columns - 1; i++) {
+                            usedWidth += tableView.columnWidth(i)
+                        }
+                        return tableView.width - usedWidth
+                    }
+                    return Math.max(textMetrics.width + 16, 60)
+                }
+                implicitHeight: 24
+                required property int column
+                required property int row
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: global.back
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    topLeftRadius: column === 0 ? radius : 0
+                    bottomLeftRadius: column === 0 ? radius : 0
+                    topRightRadius: column === tableView.columns - 1 ? radius : 0
+                    bottomRightRadius: column === tableView.columns - 1 ? radius : 0
+                    color: global.backHover
+                    opacity: tableView.hoveredRow === row ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    topLeftRadius: column === 0 ? radius : 0
+                    bottomLeftRadius: column === 0 ? radius : 0
+                    topRightRadius: column === tableView.columns - 1 ? radius : 0
+                    bottomRightRadius: column === tableView.columns - 1 ? radius : 0
+                    color: tableView.selectedRow === row ? global.backSelected : "transparent"
+                }
+
+                TextMetrics {
+                    id: textMetrics
+                    font: label.font
+                    text: model.display || ""
+                }
+
+                Label {
+                    id: label
+                    anchors.fill: parent
+                    leftPadding: 6
+                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                    text: model.display || ""
+                    elide: Text.ElideRight
+                    visible: column !== tableView.columns - 1
+                }
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (hovered) {
+                            tableView.hoveredRow = row
+                        } else if (tableView.hoveredRow === row) {
+                            tableView.hoveredRow = -1
+                        }
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                    onTapped: tableView.selectedRow = row
+                }
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+
+                onTapped: tableView.selectedRow = -1
             }
 
             Canvas {
@@ -244,6 +332,7 @@ Item {
                 y: 0
                 width: 24 * laneCount
                 height: tableView.contentHeight
+                z: 100
                 property int laneCount: 0
 
                 onPaint: {
@@ -299,58 +388,6 @@ Item {
                         ctx.arc(_x, _y, 4, 0, Math.PI * 2)
                         ctx.fill()
                     }
-                }
-            }
-
-            delegate: Item {
-                visible: column !== tableView.columns - 1
-                implicitWidth: {
-                    if (column === tableView.columns - 1) {
-                        let usedWidth = 0
-                        for (let i = 0; i < tableView.columns - 1; i++) {
-                            usedWidth += tableView.columnWidth(i)
-                        }
-                        return tableView.width - usedWidth
-                    }
-                    return Math.max(textMetrics.width + 16, 60)
-                }
-                implicitHeight: 24
-                required property int column
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: global.back
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: global.backHover
-                    opacity: hoverHandler.hovered ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
-                        }
-                    }
-                }
-
-                TextMetrics {
-                    id: textMetrics
-                    font: label.font
-                    text: model.display || ""
-                }
-
-                Label {
-                    id: label
-                    anchors.fill: parent
-                    leftPadding: 6
-                    horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    text: model.display || ""
-                    elide: Text.ElideRight
-                }
-
-                HoverHandler {
-                    id: hoverHandler
                 }
             }
         }
