@@ -44,6 +44,8 @@ public:
 
     Q_INVOKABLE void gitLog();
 
+    Q_INVOKABLE void gitShow(const QString &hash);
+
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
     Q_INVOKABLE void gitAddAll();
@@ -71,7 +73,9 @@ private:
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_canvas{};
-    QObject *m_textArea{};
+    QObject *m_subjectLabel{};
+    QObject *m_dateLabel{};
+    QObject *m_authorLabel{};
     QString m_branch{};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
@@ -88,6 +92,7 @@ private:
         Rename,
         Delete,
         Log,
+        Show,
         Add,
         Reset,
         Commit

@@ -238,17 +238,15 @@ Item {
                 }
             }
 
+            columnWidthProvider: function (column) {
+                if (column !== columns - 1) return implicitColumnWidth(column)
+                let usedWidth = 0
+                for (let i = 0; i < columns - 1; ++i) usedWidth += implicitColumnWidth(i)
+                return width - usedWidth
+            }
+
             delegate: Item {
-                implicitWidth: {
-                    if (column === tableView.columns - 1) {
-                        let usedWidth = 0
-                        for (let i = 0; i < tableView.columns - 1; i++) {
-                            usedWidth += tableView.columnWidth(i)
-                        }
-                        return tableView.width - usedWidth
-                    }
-                    return Math.max(textMetrics.width + 16, 60)
-                }
+                implicitWidth: Math.max(textMetrics.width + 16, 60)
                 implicitHeight: 24
                 required property int column
                 required property int row
@@ -276,11 +274,10 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 6
-                    topLeftRadius: column === 0 ? radius : 0
-                    bottomLeftRadius: column === 0 ? radius : 0
-                    topRightRadius: column === tableView.columns - 1 ? radius : 0
-                    bottomRightRadius: column === tableView.columns - 1 ? radius : 0
+                    topLeftRadius: column === 0 ? 6 : 0
+                    bottomLeftRadius: column === 0 ? 6 : 0
+                    topRightRadius: column === tableView.columns - 1 ? 6 : 0
+                    bottomRightRadius: column === tableView.columns - 1 ? 6 : 0
                     color: tableView.selectedRow === row ? global.backSelected : "transparent"
                 }
 
@@ -314,7 +311,10 @@ Item {
                     acceptedButtons: Qt.LeftButton
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                    onTapped: tableView.selectedRow = row
+                    onTapped: {
+                        gitModule.gitShow(model.hash)
+                        tableView.selectedRow = row
+                    }
                 }
             }
 
@@ -344,8 +344,8 @@ Item {
 
                     for (let i = 0; i < logModel.rowCount(); ++i) {
                         const index = logModel.index(i, 3);
-                        const pos = logModel.data(index, Qt.UserRole + 1)
-                        const parents = logModel.data(index, Qt.UserRole + 2) || []
+                        const pos = logModel.data(index, Qt.UserRole + 2)
+                        const parents = logModel.data(index, Qt.UserRole + 3) || []
                         const _x = pos.x * unit + unit / 2
                         const _y = pos.y * unit + unit / 2
 
@@ -380,7 +380,7 @@ Item {
 
                     for (let i = 0; i < logModel.rowCount(); ++i) {
                         const index = logModel.index(i, 3)
-                        const pos = logModel.data(index, Qt.UserRole + 1)
+                        const pos = logModel.data(index, Qt.UserRole + 2)
                         const _x = pos.x * unit + unit / 2
                         const _y = pos.y * unit + unit / 2
                         ctx.fillStyle = colors[pos.x % colors.length]
@@ -392,58 +392,35 @@ Item {
             }
         }
 
-        ScrollView {
-            id: terminalView
+        ColumnLayout {
+            implicitWidth: 400
 
-            ScrollBar.vertical: ScrollBar {
-                x: parent.mirrored ? 0 : parent.width - width
-                y: parent.topPadding
-                height: parent.availableHeight
-                active: parent.ScrollBar.horizontal.active
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
-                }
+            Label {
+                id: subjectLabel
+                horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                font.bold: true
+                Layout.fillWidth: true
             }
 
-            ScrollBar.horizontal: ScrollBar {
-                x: parent.leftPadding
-                y: parent.height - height
-                width: parent.availableWidth
-                active: parent.ScrollBar.vertical.active
-                policy: ScrollBar.AsNeeded
-                palette {
-                    mid: global.stroke
-                    dark: global.strokePressed
-                }
+            Item {
+                Layout.fillHeight: true
             }
 
-            TextArea {
-                id: textArea
-                readOnly: true
-                text: ">>> "
-                textFormat: TextEdit.PlainText
-                verticalAlignment: TextEdit.AlignTop
-                ContextMenu.menu: null
+            Label {
+                id: dateLabel
+                horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+            }
+
+            Label {
+                id: authorLabel
+                horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                Layout.fillWidth: true
             }
         }
-    }
-
-    function terminalStdin(input) {
-        textArea.insert(textArea.length, input)
-    }
-
-    function terminalStdout(output) {
-        textArea.append(output)
-    }
-
-    function terminalStderr(error) {
-        textArea.append(error)
-    }
-
-    function processFinished() {
-        textArea.append(">>> ")
     }
 
     function branchExpand() {
@@ -491,7 +468,9 @@ Item {
     Component.onCompleted: {
         const objects = {
             "canvas": canvas,
-            "textArea": textArea
+            "subjectLabel": subjectLabel,
+            "dateLabel": dateLabel,
+            "authorLabel": authorLabel
         };
         gitModule.propertyGet(objects)
     }

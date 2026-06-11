@@ -48,9 +48,9 @@ void GitModule::propertySet(const QVariantHash &objects) {
 
 void GitModule::propertyGet(const QVariantMap &objects) {
     m_canvas = qvariant_cast<QObject *>(objects["canvas"]);
-    m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
-    const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
-    m_textArea->setProperty("font", font);
+    m_subjectLabel = qvariant_cast<QObject *>(objects["subjectLabel"]);
+    m_dateLabel = qvariant_cast<QObject *>(objects["dateLabel"]);
+    m_authorLabel = qvariant_cast<QObject *>(objects["authorLabel"]);
 }
 
 void GitModule::branchSet(const QString &name) {
@@ -76,56 +76,49 @@ bool GitModule::gitGet() {
 
 void GitModule::gitInit() {
     m_command = Init;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, {"git init"}));
     terminalStdin(QStringList{"init"});
 }
 
 void GitModule::gitStatus() const {
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git status --porcelain"));
     terminalStdin(QStringList{"status", "--porcelain"});
 }
 
 // public: branch
 void GitModule::gitBranch() {
     m_command = Branch;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -av"));
     terminalStdin(QStringList{"branch", "-av"});
 }
 
 void GitModule::gitSwitch(const QString &name) {
     m_command = Switch;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git switch " + name));
     terminalStdin(QStringList{"switch", name});
 }
 
 void GitModule::gitCreate(const QString &src, const QString &dst, const bool _switch) {
     m_command = Create;
-    if (_switch) {
-        QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git switch -c " + dst + " " + src));
-        terminalStdin(QStringList{"switch", "-c", dst, src});
-    } else {
-        QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch " + dst + " " + src));
-        terminalStdin(QStringList{"branch", dst, src});
-    }
+    if (_switch) terminalStdin(QStringList{"switch", "-c", dst, src});
+    else terminalStdin(QStringList{"branch", dst, src});
 }
 
 void GitModule::gitRename(const QString &src, const QString &dst) {
     m_command = Rename;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -m " + src + " " + dst));
     terminalStdin(QStringList{"branch", "-m", src, dst});
 }
 
 void GitModule::gitDelete(const QString &name) {
     m_command = Delete;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git branch -D " + name));
     terminalStdin(QStringList{"branch", "-D", name});
 }
 
 void GitModule::gitLog() {
     if (m_branch.isEmpty()) return;
     m_command = Log;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git log " + m_branch + " --pretty=format:\"%H|%P|%cr|%an|%s\""));
-    terminalStdin(QStringList{"log", m_branch, "--pretty=format:%H|%P|%cr|%an|%s"});
+    terminalStdin(QStringList{"log", m_branch,  "-z", "--pretty=format:%H%x1e%P%x1e%ar%x1e%an%x1e%s"});
+}
+
+void GitModule::gitShow(const QString &hash) {
+    m_command = Show;
+    terminalStdin(QStringList{"show", hash, "-s", "--format=%s%x1e%ad%x1e%an%x1e%ae"});
 }
 
 // public: file
@@ -134,13 +127,11 @@ void GitModule::gitAdd(const QUrl &documentUrl) {
     const auto documentPath = documentUrl.toLocalFile();
     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git add " + relativePath));
     terminalStdin(QStringList{"add", documentPath});
 }
 
 void GitModule::gitAddAll() {
     m_command = Add;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git add ."));
     terminalStdin(QStringList{"add", "."});
 }
 
@@ -149,13 +140,11 @@ void GitModule::gitReset(const QUrl &documentUrl) {
     const auto documentPath = documentUrl.toLocalFile();
     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git reset " + relativePath));
     terminalStdin(QStringList{"reset", documentPath});
 }
 
 void GitModule::gitResetAll() {
     m_command = Reset;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, "git reset"));
     terminalStdin(QStringList{"reset"});
 }
 
@@ -208,7 +197,6 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
 
 void GitModule::gitCommit() {
     m_command = Commit;
-    QMetaObject::invokeMethod(m_root, "terminalStdin", Q_ARG(QVariant, QString("commit -m %1").arg("test")));
     terminalStdin(QStringList{"commit", "-m", "test"});
 }
 
@@ -219,12 +207,11 @@ void GitModule::terminalStdin(const QStringList &arguments) const {
 
 void GitModule::terminalStderr() const {
     const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
-    QMetaObject::invokeMethod(m_root, "terminalStderr", Q_ARG(QVariant, error));
+    qDebug() << error;
 }
 
 void GitModule::processFinished(const int exitcode) {
-    const auto output = QString::fromLocal8Bit(m_process->readAllStandardOutput());
-    QMetaObject::invokeMethod(m_root, "terminalStdout", Q_ARG(QVariant, output));
+    const auto output = m_process->readAllStandardOutput();
     const auto command = m_command;
     switch (command) {
         case Branch: {
@@ -233,7 +220,7 @@ void GitModule::processFinished(const int exitcode) {
             localItem->setData("local", Qt::UserRole + 1);
             m_branchModel->appendRow(localItem);
             QStandardItem *remoteItem = nullptr;
-            for (const auto &value: output.split('\n')) {
+            for (const auto &value: QString::fromLocal8Bit(output).split('\n')) {
                 QString branch{};
                 QString type = "untracked";
                 if (value.startsWith('*')) {
@@ -273,12 +260,12 @@ void GitModule::processFinished(const int exitcode) {
             QList<QStringList> parentRows{};
             QStringList lanes{};
             int laneCount = 0;
-            for (const auto &value: output.split('\n')) {
-                const auto param = value.split('|');
-                if (param.size() < 5) continue;
+            for (const auto &value: output.split('\0')) {
+                const auto param = value.split('\x1e');
+                if (param.size() != 5) continue;
 
-                const QString &hash = param[0];
-                const QStringList parents = param[1].split(' ', Qt::SkipEmptyParts);
+                const QString &hash = QString::fromUtf8(param[0]);
+                const QStringList parents = QString::fromUtf8(param[1]).split(' ', Qt::SkipEmptyParts);
                 int lane = static_cast<int>(lanes.indexOf(hash));
                 if (lane < 0) {
                     lane = 0;
@@ -297,12 +284,16 @@ void GitModule::processFinished(const int exitcode) {
                 }
                 laneCount = qMax(laneCount, static_cast<int>(lanes.size()));
 
-                const auto &date = param[2];
-                const auto &author = param[3];
-                const auto subject = QStringList(param.mid(4)).join('|');
+                const auto &date = QString::fromUtf8(param[2]);
+                const auto &author = QString::fromUtf8(param[3]);
+                const auto subject = QString::fromUtf8(param[4]);
                 const auto &nodeItem = new QStandardItem(); // NOLINT
-                nodeItem->setData(nodePos, Qt::UserRole + 1);
-                m_logModel->appendRow({new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), nodeItem});
+                const QList items{new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), nodeItem};
+                for (auto *item : items) {
+                    item->setData(hash, Qt::UserRole + 1);
+                }
+                nodeItem->setData(nodePos, Qt::UserRole + 2);
+                m_logModel->appendRow(items);
             }
 
             for (int row = 0; row < parentRows.size(); ++row) {
@@ -311,15 +302,22 @@ void GitModule::processFinished(const int exitcode) {
                     const auto parent = nodeHash.constFind(parentHash);
                     if (parent != nodeHash.cend()) parentPositions.append(parent.value());
                 }
-                m_logModel->item(row, 3)->setData(parentPositions, Qt::UserRole + 2);
+                m_logModel->item(row, 3)->setData(parentPositions, Qt::UserRole + 3);
             }
             m_canvas->setProperty("laneCount", qMax(laneCount, 1));
+        }
+        break;
+        case Show: {
+            const auto param = output.split('\x1e');
+            if (param.size() != 4) break;
+            m_subjectLabel->setProperty("text", QString::fromLocal8Bit(param[0].trimmed()));
+            m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[1].trimmed()));
+            m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()) + '<' + QString::fromLocal8Bit(param[3].trimmed()) + '>');
         }
         break;
         default: break;
     }
 
-    QMetaObject::invokeMethod(m_root, "processFinished");
     m_command = Null;
     switch (command) {
         case Init: {
@@ -364,7 +362,8 @@ QHash<int, QByteArray> BranchModel::roleNames() const {
 // public
 QHash<int, QByteArray> LogModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "pos";
-    roles[Qt::UserRole + 2] = "parent";
+    roles[Qt::UserRole + 1] = "hash";
+    roles[Qt::UserRole + 2] = "pos";
+    roles[Qt::UserRole + 3] = "parent";
     return roles;
 }
