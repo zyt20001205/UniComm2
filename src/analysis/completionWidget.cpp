@@ -183,6 +183,7 @@ void CompletionWidget::textReplace() {
                 {"character", m_completionSession["startCharacter"].toInt()}
             };
             emit showPosition(gotoSession);
+            completionHide();
             return;
         }
         insertText.replace("\\", "\\\\");
