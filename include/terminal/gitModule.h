@@ -92,6 +92,7 @@ private:
         Rename,
         Delete,
         Log,
+        Diff,
         Show,
         Add,
         Reset,

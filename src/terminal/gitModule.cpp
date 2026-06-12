@@ -113,12 +113,12 @@ void GitModule::gitDelete(const QString &name) {
 void GitModule::gitLog() {
     if (m_branch.isEmpty()) return;
     m_command = Log;
-    terminalStdin(QStringList{"log", m_branch,  "-z", "--pretty=format:%H%x1e%P%x1e%ar%x1e%an%x1e%s"});
+    terminalStdin(QStringList{"log", m_branch, "-z", "--pretty=format:%H%x1e%P%x1e%ar%x1e%an%x1e%s"});
 }
 
 void GitModule::gitShow(const QString &hash) {
     m_command = Show;
-    terminalStdin(QStringList{"show", hash, "-s", "--format=%s%x1e%ad%x1e%an%x1e%ae"});
+    terminalStdin(QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
 // public: file
@@ -289,7 +289,7 @@ void GitModule::processFinished(const int exitcode) {
                 const auto subject = QString::fromUtf8(param[4]);
                 const auto &nodeItem = new QStandardItem(); // NOLINT
                 const QList items{new QStandardItem(date), new QStandardItem(author), new QStandardItem(subject), nodeItem};
-                for (auto *item : items) {
+                for (auto *item: items) {
                     item->setData(hash, Qt::UserRole + 1);
                 }
                 nodeItem->setData(nodePos, Qt::UserRole + 2);
@@ -309,10 +309,14 @@ void GitModule::processFinished(const int exitcode) {
         break;
         case Show: {
             const auto param = output.split('\x1e');
-            if (param.size() != 4) break;
-            m_subjectLabel->setProperty("text", QString::fromLocal8Bit(param[0].trimmed()));
-            m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[1].trimmed()));
-            m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()) + '<' + QString::fromLocal8Bit(param[3].trimmed()) + '>');
+            if (param.size() != 6) break;
+            m_subjectLabel->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
+            m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
+            m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
+            const auto files = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
+            for (const auto &file: files) {
+                qDebug() << file;
+            }
         }
         break;
         default: break;
