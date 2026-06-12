@@ -203,6 +203,11 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     m_pageHash[documentUrl]->setFocus(Qt::FocusReason::MouseFocusReason);
 }
 
+void DocumentModule::documentGoto(const QUrl &documentUrl) const {
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->documentGoto();
+    else if (const auto *textPage = qobject_cast<TextPage *>(m_pageHash.value(documentUrl))) textPage->documentGoto();
+}
+
 QSet<QString> DocumentModule::documentList() const {
     QSet<QString> keys{};
     for (const auto &url: m_pageHash.keys()) {

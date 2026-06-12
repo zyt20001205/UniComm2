@@ -87,6 +87,10 @@ bool LuaPage::documentClose(const bool force) {
     return status;
 }
 
+void LuaPage::documentGoto() const {
+    m_codeWidget->documentGoto();
+}
+
 QVariantHash LuaPage::menuGet(const QString &name) const {
     return m_codeWidget->menuGet(name);
 }

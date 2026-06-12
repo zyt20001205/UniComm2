@@ -21,6 +21,8 @@ public:
 
     virtual void documentSave();
 
+    void documentGoto();
+
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
@@ -57,8 +59,6 @@ protected:
 
 private:
     void documentOpen() const;
-
-    void documentGoto();
 
     void permissionSet() const;
 

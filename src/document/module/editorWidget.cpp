@@ -83,6 +83,13 @@ void EditorWidget::documentSave() {
     emit appendLog(LogLevel::Info, "document saved", QString("<a href='%1'>%2</a>").arg(m_documentUrl.toString(), m_documentUrl.toString()));
 }
 
+void EditorWidget::documentGoto() {
+    m_gotoDialog->setProperty("documentUrl", m_documentUrl);
+    m_gotoDialog->setProperty("line", m_selection["line"]);
+    m_gotoDialog->setProperty("character", m_selection["character"]);
+    QMetaObject::invokeMethod(m_gotoDialog, "open");
+}
+
 bool EditorWidget::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scintillaWidget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
@@ -334,13 +341,6 @@ void EditorWidget::documentOpen() const {
     // history set
     m_scintillaWidget->send(SCI_EMPTYUNDOBUFFER); // NOLINT
     m_scintillaWidget->send(SCI_SETCHANGEHISTORY,SC_CHANGE_HISTORY_ENABLED | SC_CHANGE_HISTORY_MARKERS); // NOLINT
-}
-
-void EditorWidget::documentGoto() {
-    m_gotoDialog->setProperty("documentUrl", m_documentUrl);
-    m_gotoDialog->setProperty("line", m_selection["line"]);
-    m_gotoDialog->setProperty("character", m_selection["character"]);
-    QMetaObject::invokeMethod(m_gotoDialog, "open");
 }
 
 void EditorWidget::permissionSet() const {

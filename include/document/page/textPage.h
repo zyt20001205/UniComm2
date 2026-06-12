@@ -20,6 +20,8 @@ public:
 
     bool documentClose(bool force = false) override;
 
+    void documentGoto() const;
+
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 

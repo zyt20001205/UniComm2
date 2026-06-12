@@ -40,6 +40,8 @@ public:
 
     void documentOpen(const QUrl &documentUrl);
 
+    void documentGoto(const QUrl &documentUrl) const;
+
     [[nodiscard]] QSet<QString> documentList() const;
 
     [[nodiscard]] QString documentFocused() const;

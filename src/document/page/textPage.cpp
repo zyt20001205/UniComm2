@@ -53,6 +53,10 @@ bool TextPage::documentClose(const bool force) {
     return status;
 }
 
+void TextPage::documentGoto() const {
+    m_editorWidget->documentGoto();
+}
+
 // private
 void TextPage::savepointChange(const bool status) {
     const QString pageName = title();

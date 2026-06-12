@@ -22,6 +22,8 @@ public:
 
     bool documentClose(bool force = false) override;
 
+    void documentGoto() const;
+
     [[nodiscard]] QVariantHash menuGet(const QString &name) const;
 
     void menuRequest(const QString &request) const;

@@ -35,6 +35,10 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
+void StatusModule::documentGoto(const QUrl &documentUrl) {
+    emit gotoDocument(documentUrl);
+}
+
 void StatusModule::documentFocus(const QUrl &documentUrl, const QVariantHash &session) const {
     rootContext()->setContextProperty("documentUrl", documentUrl);
     const QString documentPath = documentUrl.toLocalFile();

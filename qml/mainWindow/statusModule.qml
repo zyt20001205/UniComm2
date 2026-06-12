@@ -70,7 +70,7 @@ Item {
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             Layout.preferredWidth: positionButtonTextMetrics.width + 8; Layout.preferredHeight: 20
 
-            // onClicked:
+            onClicked: statusModule.documentGoto(documentUrl)
 
             TextMetrics {
                 id: positionButtonTextMetrics

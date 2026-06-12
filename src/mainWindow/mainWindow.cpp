@@ -538,6 +538,8 @@ void MainWindow::moduleInit() {
 
     connect(m_portModule, &PortModule::appendLog, m_logModule, &LogModule::logAppend);
 
+    connect(m_statusModule, &StatusModule::gotoDocument, m_documentModule, &DocumentModule::documentGoto);
+
     connect(m_structureModule, &StructureModule::appendLog, m_logModule, &LogModule::logAppend);
     connect(m_structureModule, &StructureModule::setFocus, m_documentModule, &DocumentModule::focusSet);
     connect(m_structureModule, &StructureModule::setIndex, m_documentModule, &DocumentModule::indexSet);

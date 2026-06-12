@@ -15,11 +15,16 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
+    Q_INVOKABLE void documentGoto(const QUrl &documentUrl);
+
     void documentFocus(const QUrl &documentUrl, const QVariantHash &session) const;
 
     void selectionChange(const QHash<QString, int> &selection) const;
 
     void threadRefresh(int run, int debug) const;
+
+signals:
+    void gotoDocument(const QUrl &documentUrl);
 
 private:
     QObject *m_root{};
