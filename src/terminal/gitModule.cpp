@@ -313,9 +313,13 @@ void GitModule::processFinished(const int exitcode) {
             m_subjectLabel->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
             m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
             m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
-            const auto files = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
-            for (const auto &file: files) {
-                qDebug() << file;
+            const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
+            for (const auto &value: changes) {
+                const auto change = value.split('\t');
+                if (change.size() != 2) continue;
+                const auto &status = change[0].front();
+                const auto &path = change[1];
+                qDebug() << g_gitStatus[status] << path;
             }
         }
         break;

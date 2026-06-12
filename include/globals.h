@@ -41,6 +41,7 @@ extern QJsonObject g_workspaceConfig;
 extern ViSession g_rm;
 
 extern QVariantMap g_cursorPosition;
+extern QHash<QChar, int> g_gitStatus;
 
 extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
 extern QStandardItemModel *g_portStandardItemModel;

@@ -16,19 +16,7 @@ ExplorerModule::ExplorerModule()
       m_widget(new QQuickWidget()),
       m_fileSystemModel(new QFileSystemModel()),
       m_sortFilterProxyModel(new SortFilterProxyModel(&m_documentStatus)),
-      m_process(new QProcess()),
-      m_gitStatus{
-          {'?', GitStatus::Untracked},
-          {'!', GitStatus::Ignored},
-          {' ', GitStatus::Unmodified},
-          {'M', GitStatus::Modified},
-          {'T', GitStatus::FileTypeChanged},
-          {'A', GitStatus::Added},
-          {'D', GitStatus::Deleted},
-          {'R', GitStatus::Renamed},
-          {'C', GitStatus::Copied},
-          {'U', GitStatus::UpdatedButUnmerged},
-      } {
+      m_process(new QProcess()) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
@@ -43,8 +31,8 @@ ExplorerModule::ExplorerModule()
             const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(filePath);
             const auto documentUrl = QUrl::fromLocalFile(documentPath);
             m_documentStatus[documentUrl] = QVariantHash{
-                {"indexStatus", m_gitStatus[indexStatus]},
-                {"workingTreeStatus", m_gitStatus[workingTreeStatus]}
+                {"indexStatus", g_gitStatus[indexStatus]},
+                {"workingTreeStatus", g_gitStatus[workingTreeStatus]}
             };
         }
         m_sortFilterProxyModel->invalidate();

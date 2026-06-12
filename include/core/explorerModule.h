@@ -52,7 +52,6 @@ private:
     QProcess *m_process{};
     QFileSystemWatcher *m_fileWatcher{};
     QHash<QUrl, QVariant> m_documentStatus{};
-    QHash<QChar, int> m_gitStatus{};
 };
 
 class SortFilterProxyModel final : public QSortFilterProxyModel {
