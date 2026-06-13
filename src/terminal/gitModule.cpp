@@ -38,6 +38,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("branchMenu", objects["gitModuleBranchMenu"]);
+    m_widget->rootContext()->setContextProperty("logMenu", objects["gitModuleLogMenu"]);
     m_widget->rootContext()->setContextProperty("branchModel", m_branchModel);
     m_widget->rootContext()->setContextProperty("logModel", m_logModel);
     m_widget->rootContext()->setContextProperty("showModel", m_showModel);
@@ -115,7 +116,24 @@ void GitModule::gitDelete(const QString &name) {
 void GitModule::gitLog() {
     if (m_branch.isEmpty()) return;
     m_command = Log;
-    terminalStdin(QStringList{"log", m_branch, "-z", "--pretty=format:%H%x1e%P%x1e%ar%x1e%an%x1e%s"});
+    terminalStdin(QStringList{"log", m_branch, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
+}
+
+void GitModule::gitReset(const QString &hash, const int mode) {
+    QString _mode{};
+    switch (mode) {
+        case 0: _mode = "--soft";
+            break;
+        case 1: _mode = "--mixed";
+            break;
+        case 2: _mode = "--keep";
+            break;
+        case 3: _mode = "--hard";
+            break;
+        default: return;
+    }
+    m_command = Reset;
+    terminalStdin(QStringList{"reset", hash, _mode});
 }
 
 void GitModule::gitShow(const QString &hash) {
@@ -124,31 +142,31 @@ void GitModule::gitShow(const QString &hash) {
 }
 
 // public: file
-void GitModule::gitAdd(const QUrl &documentUrl) {
-    m_command = Add;
-    const auto documentPath = documentUrl.toLocalFile();
-    const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-    const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    terminalStdin(QStringList{"add", documentPath});
-}
+// void GitModule::gitAdd(const QUrl &documentUrl) {
+//     m_command = Add;
+//     const auto documentPath = documentUrl.toLocalFile();
+//     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
+//     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+//     terminalStdin(QStringList{"add", documentPath});
+// }
 
-void GitModule::gitAddAll() {
-    m_command = Add;
-    terminalStdin(QStringList{"add", "."});
-}
+// void GitModule::gitAddAll() {
+//     m_command = Add;
+//     terminalStdin(QStringList{"add", "."});
+// }
 
-void GitModule::gitReset(const QUrl &documentUrl) {
-    m_command = Reset;
-    const auto documentPath = documentUrl.toLocalFile();
-    const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-    const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    terminalStdin(QStringList{"reset", documentPath});
-}
+// void GitModule::gitReset(const QUrl &documentUrl) {
+//     m_command = Reset;
+//     const auto documentPath = documentUrl.toLocalFile();
+//     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
+//     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+//     terminalStdin(QStringList{"reset", documentPath});
+// }
 
-void GitModule::gitResetAll() {
-    m_command = Reset;
-    terminalStdin(QStringList{"reset"});
-}
+// void GitModule::gitResetAll() {
+//     m_command = Reset;
+//     terminalStdin(QStringList{"reset"});
+// }
 
 void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     // check file and open
@@ -253,7 +271,6 @@ void GitModule::processFinished(const int exitcode) {
                     else localItem->appendRow(item);
                 }
             }
-            QMetaObject::invokeMethod(m_root, "branchExpand");
         }
         break;
         case Log: {
@@ -393,8 +410,19 @@ void GitModule::processFinished(const int exitcode) {
             gitBranch();
         }
         break;
-        case Add:
+        case Log: {
+            if (m_logModel->rowCount() > 0) {
+                const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
+                gitShow(hash);
+            }
+        }
+        break;
         case Reset: {
+            gitBranch();
+        }
+        break;
+        case Add:
+        case Checkout: {
             emit undateGit();
         }
         break;

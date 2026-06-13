@@ -302,7 +302,12 @@ Item {
                             tableView.hoveredRow = row
                         } else if (tableView.hoveredRow === row) {
                             tableView.hoveredRow = -1
+                            mainToolTip.text = ""
                         }
+                    }
+                    onPointChanged: {
+                        mainToolTip.position = parent.mapToGlobal(point.position)
+                        mainToolTip.text = model.hash || ""
                     }
                 }
 
@@ -311,8 +316,18 @@ Item {
                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
                     onTapped: {
-                        gitModule.gitShow(model.hash)
                         tableView.selectedRow = row
+                        gitModule.gitShow(model.hash)
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.RightButton
+                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                    onTapped: {
+                        logMenu.hash = model.hash
+                        logMenu.popup()
                     }
                 }
             }
@@ -579,12 +594,6 @@ Item {
         }
     }
 
-    function branchExpand() {
-        for (let i = 0; i < branchTreeView.rows; ++i) {
-            branchTreeView.expandRecursively(i)
-        }
-    }
-
     Connections {
         target: branchModel
 
@@ -612,12 +621,9 @@ Item {
             canvas.requestPaint()
         }
 
-        function onDataChanged() {
-            canvas.requestPaint()
-        }
-
         function onModelReset() {
             canvas.requestPaint()
+            tableView.selectedRow = 0
         }
     }
 

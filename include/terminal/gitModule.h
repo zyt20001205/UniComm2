@@ -45,15 +45,17 @@ public:
 
     Q_INVOKABLE void gitLog();
 
+    Q_INVOKABLE void gitReset(const QString &hash, int mode);
+
     Q_INVOKABLE void gitShow(const QString &hash);
 
-    Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
+    // Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
 
-    Q_INVOKABLE void gitAddAll();
+    // Q_INVOKABLE void gitAddAll();
 
-    Q_INVOKABLE void gitReset(const QUrl &documentUrl);
+    // Q_INVOKABLE void gitReset(const QUrl &documentUrl);
 
-    Q_INVOKABLE void gitResetAll();
+    // Q_INVOKABLE void gitResetAll();
 
     Q_INVOKABLE void gitIgnore(const QUrl &documentUrl, bool status);
 
@@ -93,11 +95,19 @@ private:
         Rename,
         Delete,
         Log,
+        Reset,
         Diff,
         Show,
         Add,
-        Reset,
+        Checkout,
         Commit
+    };
+
+    enum GitResetMode {
+        Soft,
+        Mixed,
+        Keep,
+        Hard
     };
 };
 

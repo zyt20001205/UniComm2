@@ -2025,6 +2025,7 @@ Item {
         }
 
         Menu {
+            visible: false
             title: qsTr("Git")
             enabled: global.git
             icon.source: "qrc:/icon/fileTypeGit.svg"
@@ -2685,6 +2686,47 @@ Item {
                     progress = 0
                     gitModuleBranchMenu.close()
                 }
+            }
+        }
+    }
+
+    Menu {
+        id: gitModuleLogMenu
+        property string hash
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        Menu {
+            title: qsTr("Reset")
+            icon.source: "qrc:/icon/reset.svg"
+            icon.width: 16; icon.height: 16
+
+            MenuItem {
+                text: qsTr("Soft")
+
+                onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 0)
+            }
+
+            MenuItem {
+                text: qsTr("Mixed")
+
+                onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 1)
+            }
+
+            MenuItem {
+                text: qsTr("Keep")
+
+                onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 2)
+            }
+
+            MenuItem {
+                text: qsTr("Hard")
+
+                onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 3)
             }
         }
     }
@@ -4433,6 +4475,7 @@ Item {
             "fileModulePropertyDialog": fileModulePropertyDialog,
 
             "gitModuleBranchMenu": gitModuleBranchMenu,
+            "gitModuleLogMenu": gitModuleLogMenu,
 
             "llmModuleRenameDialog": llmModuleRenameDialog,
             "llmModuleMcpMenu": llmModuleMcpMenu,
