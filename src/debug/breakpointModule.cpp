@@ -10,7 +10,7 @@
 BreakpointModule::BreakpointModule()
     : DockWidget("Breakpoint"),
       m_widget(new QQuickWidget()),
-      m_standardItemModel(new BreakpointModel()) {
+      m_standardItemModel(new BreakpointModel(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
     auto breakpointConfig = g_workspaceConfig["breakpointConfig"].toObject();

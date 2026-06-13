@@ -94,12 +94,13 @@ Item {
 
                 Label {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
-                    color: model.git ? model.git.indexStatus === 0 ? global.dangerFore3 :
-                                model.git.indexStatus === 1 ? global.fore :
-                                    model.git.workingTreeStatus === 2 ? global.fore :
-                                        model.git.workingTreeStatus === 3 ? global.brandBack :
-                                        global.fore :
-                        global.fore
+                    color: !model.git ? global.fore
+                        : model.git.indexStatus === 0 ? global.dangerFore3
+                            : model.git.indexStatus === 5 ? global.successFore3
+                                : model.git.indexStatus === 7 ? global.warningFore3
+                                    : model.git.workingTreeStatus === 2 ? global.fore
+                                        : model.git.workingTreeStatus === 3 ? global.brandBack
+                                            : global.fore
                     text: model.display || ""
                     elide: Text.ElideRight
                     Layout.fillWidth: true; Layout.preferredHeight: 24
@@ -121,6 +122,10 @@ Item {
                             mainToolTip.text = "Untracked"
                         } else if (model.git.indexStatus === 1) {
                             mainToolTip.text = "Ignored"
+                        } else if (model.git.indexStatus === 5) {
+                            mainToolTip.text = "Added"
+                        } else if (model.git.indexStatus === 7) {
+                            mainToolTip.text = "Renamed"
                         } else if (model.git.workingTreeStatus === 2) {
                             // mainToolTip.text = "Unmodified"
                         } else if (model.git.workingTreeStatus === 3) {
@@ -181,6 +186,12 @@ Item {
                 rootMenu.treeView = treeView
                 rootMenu.popup()
             }
+        }
+
+        TapHandler {
+            acceptedButtons: Qt.MiddleButton
+
+            onTapped: explorerModule.gitUpdate()
         }
     }
 

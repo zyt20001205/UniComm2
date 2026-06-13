@@ -9,15 +9,16 @@
 #include <QTextDocument>
 
 #include "core/globalManager.h"
+#include "util/uniCast.h"
 
 // public
 GitModule::GitModule()
     : DockWidget("Git"),
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
-      m_branchModel(new BranchModel()),
-      m_logModel(new LogModel()),
-      m_textDocument(new QTextDocument()),
+      m_branchModel(new BranchModel(this)),
+      m_logModel(new LogModel(this)),
+      m_showModel(new ShowModel(this)),
       m_process(new QProcess(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
@@ -39,6 +40,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("branchMenu", objects["gitModuleBranchMenu"]);
     m_widget->rootContext()->setContextProperty("branchModel", m_branchModel);
     m_widget->rootContext()->setContextProperty("logModel", m_logModel);
+    m_widget->rootContext()->setContextProperty("showModel", m_showModel);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
@@ -313,13 +315,60 @@ void GitModule::processFinished(const int exitcode) {
             m_subjectLabel->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
             m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
             m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
+
+            m_showModel->clear();
+            QHash<QString, QStandardItem *> rootItems{};
             const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
             for (const auto &value: changes) {
                 const auto change = value.split('\t');
-                if (change.size() != 2) continue;
-                const auto &status = change[0].front();
-                const auto &path = change[1];
-                qDebug() << g_gitStatus[status] << path;
+                if (change.size() < 2) continue;
+                const auto &status = g_gitStatus[change[0].front()];
+                QString path1{};
+                QString path2{};
+                if (status == GitStatus::Renamed || status == GitStatus::Copied) {
+                    path1 = change[1];
+                    path2 = change[2];
+                } else {
+                    path2 = change[1];
+                }
+                const auto &path = path2.split('/');
+                const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                const auto documentUrl = QUrl::fromLocalFile(documentPath);
+                QString display{};
+                if (status == GitStatus::Renamed || status == GitStatus::Copied) {
+                    display = QString("%1 -> %2 (%3%)").arg(
+                        QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(path1)).fileName(),
+                        documentUrl.fileName(),
+                        change[0].mid(1)
+                    );
+                } else {
+                    display = documentUrl.fileName();
+                }
+                const auto source = uni_cast<QFileIcon>(documentUrl);
+
+                QStandardItem *rootItem{};
+                QString rootPath{};
+                for (int i = 0; i < path.size() - 1; ++i) {
+                    if (!rootPath.isEmpty()) rootPath += '/';
+                    rootPath += path[i];
+
+                    auto *_rootItem = rootItems.value(rootPath);
+                    if (!_rootItem) {
+                        _rootItem = new QStandardItem(path[i]); // NOLINT
+                        _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
+                        if (rootItem) rootItem->appendRow(_rootItem);
+                        else m_showModel->appendRow(_rootItem);
+                        rootItems.insert(rootPath, _rootItem);
+                    }
+                    rootItem = _rootItem;
+                }
+
+                auto *item = new QStandardItem(display); // NOLINT
+                item->setData(source.value, Qt::DecorationRole);
+                item->setData(documentUrl, Qt::UserRole + 1);
+                item->setData(status, Qt::UserRole + 2);
+                if (rootItem) rootItem->appendRow(item);
+                else m_showModel->appendRow(item);
             }
         }
         break;
@@ -373,5 +422,13 @@ QHash<int, QByteArray> LogModel::roleNames() const {
     roles[Qt::UserRole + 1] = "hash";
     roles[Qt::UserRole + 2] = "pos";
     roles[Qt::UserRole + 3] = "parent";
+    return roles;
+}
+
+// public
+QHash<int, QByteArray> ShowModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "documentUrl";
+    roles[Qt::UserRole + 2] = "status";
     return roles;
 }

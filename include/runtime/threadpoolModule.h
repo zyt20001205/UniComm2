@@ -81,6 +81,8 @@ class ThreadpoolModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:
+    using QStandardItemModel::QStandardItemModel;
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;

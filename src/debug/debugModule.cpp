@@ -16,7 +16,7 @@
 DebugModule::DebugModule()
     : DockWidget("Debug"),
       m_widget(new QQuickWidget()),
-      m_stringListModel(new QStringListModel()) {
+      m_stringListModel(new QStringListModel(this)) {
     setWidget(m_widget);
 }
 

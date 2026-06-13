@@ -65,6 +65,8 @@ class BreakpointModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:
+    using QStandardItemModel::QStandardItemModel;
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 

@@ -11,6 +11,7 @@ class QTextDocument;
 
 class BranchModel;
 class LogModel;
+class ShowModel;
 
 class GitModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -79,7 +80,7 @@ private:
     QString m_branch{};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
-    QTextDocument *m_textDocument{};
+    ShowModel *m_showModel{};
     QProcess *m_process{};
     int m_command{};
 
@@ -104,6 +105,8 @@ class BranchModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:
+    using QStandardItemModel::QStandardItemModel;
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
@@ -111,8 +114,18 @@ class LogModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:
+    using QStandardItemModel::QStandardItemModel;
+
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 };
 
+class ShowModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+};
 
 #endif //UNICOMM_GITMODULE_H

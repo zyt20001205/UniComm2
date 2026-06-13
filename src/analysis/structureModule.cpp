@@ -13,7 +13,7 @@
 StructureModule::StructureModule()
     : DockWidget("Structure"),
       m_widget(new QQuickWidget()),
-      m_standardItemModel(new StructureModel()) {
+      m_standardItemModel(new StructureModel(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 }

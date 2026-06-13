@@ -14,9 +14,9 @@
 ExplorerModule::ExplorerModule()
     : DockWidget("Explorer"),
       m_widget(new QQuickWidget()),
-      m_fileSystemModel(new QFileSystemModel()),
+      m_fileSystemModel(new QFileSystemModel(this)),
       m_sortFilterProxyModel(new SortFilterProxyModel(&m_documentStatus)),
-      m_process(new QProcess()) {
+      m_process(new QProcess(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
@@ -27,7 +27,8 @@ ExplorerModule::ExplorerModule()
         for (const auto &line: lines) {
             const auto indexStatus = line.at(0);
             const auto workingTreeStatus = line.at(1);
-            const auto filePath = line.mid(3).trimmed();
+            auto filePath = line.mid(3).trimmed();
+            if (indexStatus == 'R' || indexStatus == 'C') filePath = filePath.section(" -> ", 1);
             const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(filePath);
             const auto documentUrl = QUrl::fromLocalFile(documentPath);
             m_documentStatus[documentUrl] = QVariantHash{
@@ -72,7 +73,7 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 }
 
 void ExplorerModule::gitUpdate() const {
-    m_process->start("git", {"status", "--porcelain", "-uall", "--ignored"});
+    m_process->start("git", {"status", "-uall", "--porcelain", "--ignored"});
 }
 
 void ExplorerModule::toggleHidden() const {
