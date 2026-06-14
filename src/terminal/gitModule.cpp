@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QQuickView>
 #include <QQuickWidget>
 #include <QTextDocument>
 
@@ -19,13 +20,14 @@ GitModule::GitModule()
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
       m_process(new QProcess(this)),
+      m_window(new QQuickView()),
       m_indexWatcher(new QFileSystemWatcher(this)),
       m_indexWatcherTimer(new QTimer(this)),
       m_branchWatcher(new QFileSystemWatcher(this)),
       m_branchWatcherTimer(new QTimer(this)),
       m_branchModel(new BranchModel(this)),
       m_logModel(new LogModel(this)),
-      m_showModel(new ShowModel(this)) {
+      m_showModel(new ShowModel(this)){
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 
@@ -64,6 +66,16 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
     m_root = m_widget->rootObject();
     if (g_globalManager->gitGet()) gitWatch();
+
+    m_window->setTitle(tr("Port Setting"));
+    m_window->setTransientParent(g_mainWindow->windowHandle());
+
+    m_window->rootContext()->setContextProperty("gitModule", this);
+    m_window->rootContext()->setContextProperty("global", objects["global"]);
+
+    m_window->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_window->setSource(QUrl("qrc:/qml/port/portSetting.qml"));
+    m_root = m_window->rootObject();
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
@@ -168,6 +180,15 @@ void GitModule::gitShow(const QString &hash) {
     terminalStdin(QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
+void GitModule::gitCommitPush() {
+
+}
+
+void GitModule::gitCommit() {
+    m_command = Commit;
+    terminalStdin(QStringList{"commit", "-m", "test"});
+}
+
 // public: file
 void GitModule::gitAdd(const QUrl &documentUrl) {
     m_command = Add;
@@ -249,11 +270,6 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     gitignoreFile.close();
 
     emit updateIndex();
-}
-
-void GitModule::gitCommit() {
-    m_command = Commit;
-    terminalStdin(QStringList{"commit", "-m", "test"});
 }
 
 // private

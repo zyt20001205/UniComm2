@@ -7,6 +7,7 @@
 
 class QFileSystemWatcher;
 class QProcess;
+class QQuickView;
 class QQuickWidget;
 class QTextDocument;
 
@@ -52,13 +53,15 @@ public:
 
     Q_INVOKABLE void gitShow(const QString &hash);
 
+    void gitCommitPush();
+
+    void gitCommit();
+
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
 
     Q_INVOKABLE void gitRestore(const QUrl &documentUrl, int mode);
 
     Q_INVOKABLE void gitIgnore(const QUrl &documentUrl, bool status);
-
-    Q_INVOKABLE void gitCommit();
 
 signals:
     void updateIndex();
@@ -77,6 +80,7 @@ private:
     QObject *m_dateLabel{};
     QObject *m_authorLabel{};
     QProcess *m_process{};
+    QQuickView *m_window{};
     QFileSystemWatcher *m_indexWatcher{};
     QTimer *m_indexWatcherTimer{};
     QFileSystemWatcher *m_branchWatcher{};
@@ -100,9 +104,9 @@ private:
         Reset,
         Diff,
         Show,
+        Commit,
         Add,
-        Restore,
-        Commit
+        Restore
     };
 
     enum GitResetMode {
