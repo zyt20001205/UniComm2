@@ -206,7 +206,11 @@ Item {
                         }
                     }
 
-                    onClicked: gitModule.gitAdd()
+                    onClicked: {
+                        gitModule.gitAdd()
+                        workingTreeView.selectedRow = -1
+                        workingTreeView.documentUrl = ""
+                    }
                 }
 
                 Button {
@@ -285,7 +289,11 @@ Item {
                         }
                     }
 
-                    onClicked: gitModule.gitRestore("", 1)
+                    onClicked: {
+                        gitModule.gitRestore("", 1)
+                        indexTreeView.selectedRow = -1
+                        indexTreeView.documentUrl = ""
+                    }
                 }
             }
 
@@ -459,6 +467,14 @@ Item {
                 onClicked: gitModule.gitCommit(commitTextArea.text)
             }
         }
+    }
+
+    function reset() {
+        workingTreeView.selectedRow = -1
+        workingTreeView.documentUrl = ""
+        indexTreeView.selectedRow = -1
+        indexTreeView.documentUrl = ""
+        commitTextArea.text = ""
     }
 
     function workingTreeExpand() {

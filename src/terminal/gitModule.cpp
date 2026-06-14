@@ -37,13 +37,13 @@ GitModule::GitModule()
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
     connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
 
-    connect(m_indexWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_indexWatcherTimer->start(); });
+    connect(m_indexWatcher, &QFileSystemWatcher::fileChanged, this, [this]() {m_indexWatcherTimer->start();});
     m_indexWatcherTimer->setSingleShot(true);
     m_indexWatcherTimer->setInterval(100);
     connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::updateIndex);
     connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::gitStatus);
 
-    connect(m_branchWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_branchWatcherTimer->start(); });
+    connect(m_branchWatcher, &QFileSystemWatcher::fileChanged, this, [this] {m_branchWatcherTimer->start(); });
     m_branchWatcherTimer->setSingleShot(true);
     m_branchWatcherTimer->setInterval(100);
     connect(m_branchWatcherTimer, &QTimer::timeout, this, &GitModule::gitBranch);
@@ -190,6 +190,7 @@ void GitModule::gitStatus() {
 }
 
 void GitModule::gitCommitPre() {
+    QMetaObject::invokeMethod(m_commitRoot, "reset");
     m_commitWindow->resize(1080, 720);
     m_commitWindow->show();
     gitStatus();
