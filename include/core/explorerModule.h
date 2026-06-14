@@ -25,7 +25,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void gitUpdate() const;
+    void indexUpdate() const;
 
     Q_INVOKABLE void toggleHidden() const;
 

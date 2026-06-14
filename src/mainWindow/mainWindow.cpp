@@ -405,7 +405,7 @@ void MainWindow::workspaceSave(const QUrl &configUrl) {
     mainConfigSave();
     m_configManager->workspaceConfigSave(configUrl);
 
-    m_explorerModule->gitUpdate();
+    m_explorerModule->indexUpdate();
 }
 
 void MainWindow::quitTrack(const float secondaryProgress, const QString &secondaryLog) const {
@@ -532,7 +532,7 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::setPermission, m_documentModule, &DocumentModule::permissionSet);
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
-    connect(m_gitModule, &GitModule::undateGit, m_explorerModule, &ExplorerModule::gitUpdate);
+    connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);
 
     connect(m_menuModule, &MenuModule::setTheme, this, &MainWindow::themeSet);
 

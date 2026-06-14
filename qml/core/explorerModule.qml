@@ -187,12 +187,6 @@ Item {
                 rootMenu.popup()
             }
         }
-
-        TapHandler {
-            acceptedButtons: Qt.MiddleButton
-
-            onTapped: explorerModule.gitUpdate()
-        }
     }
 
     Component.onCompleted: {

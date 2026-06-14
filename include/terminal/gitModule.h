@@ -65,7 +65,7 @@ public:
     Q_INVOKABLE void gitCommit();
 
 signals:
-    void undateGit();
+    void updateIndex();
 
 private:
     void terminalStdin(const QStringList &arguments) const;
@@ -81,8 +81,10 @@ private:
     QObject *m_dateLabel{};
     QObject *m_authorLabel{};
     QProcess *m_process{};
-    QFileSystemWatcher *m_watcher{};
-    QTimer *m_watcherTimer{};
+    QFileSystemWatcher *m_indexWatcher{};
+    QTimer *m_indexWatcherTimer{};
+    QFileSystemWatcher *m_branchWatcher{};
+    QTimer *m_branchWatcherTimer{};
     QString m_branch{};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};

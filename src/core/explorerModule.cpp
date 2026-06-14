@@ -69,10 +69,10 @@ void ExplorerModule::propertySet(const QVariantHash &objects) {
 void ExplorerModule::propertyGet(const QVariantMap &objects) {
     m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
 
-    if (g_globalManager->gitGet()) gitUpdate();
+    if (g_globalManager->gitGet()) indexUpdate();
 }
 
-void ExplorerModule::gitUpdate() const {
+void ExplorerModule::indexUpdate() const {
     m_process->start("git", {"status", "-uall", "--porcelain", "--ignored"});
 }
 

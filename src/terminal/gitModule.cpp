@@ -19,8 +19,10 @@ GitModule::GitModule()
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
       m_process(new QProcess(this)),
-      m_watcher(new QFileSystemWatcher(this)),
-      m_watcherTimer(new QTimer(this)),
+      m_indexWatcher(new QFileSystemWatcher(this)),
+      m_indexWatcherTimer(new QTimer(this)),
+      m_branchWatcher(new QFileSystemWatcher(this)),
+      m_branchWatcherTimer(new QTimer(this)),
       m_branchModel(new BranchModel(this)),
       m_logModel(new LogModel(this)),
       m_showModel(new ShowModel(this)) {
@@ -30,10 +32,15 @@ GitModule::GitModule()
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
     connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
 
-    connect(m_watcher, &QFileSystemWatcher::fileChanged, this, [this] { m_watcherTimer->start(); });
-    m_watcherTimer->setSingleShot(true);
-    m_watcherTimer->setInterval(100);
-    connect(m_watcherTimer, &QTimer::timeout, this, &GitModule::gitBranch);
+    connect(m_indexWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_indexWatcherTimer->start(); });
+    m_indexWatcherTimer->setSingleShot(true);
+    m_indexWatcherTimer->setInterval(100);
+    connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::updateIndex);
+
+    connect(m_branchWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_branchWatcherTimer->start(); });
+    m_branchWatcherTimer->setSingleShot(true);
+    m_branchWatcherTimer->setInterval(100);
+    connect(m_branchWatcherTimer, &QTimer::timeout, this, &GitModule::gitBranch);
 }
 
 GitModule::~GitModule() {
@@ -93,8 +100,8 @@ void GitModule::gitInit() {
 }
 
 void GitModule::gitWatch() {
-    const auto &files = m_watcher->files();
-    if (!files.isEmpty()) m_watcher->removePaths(files);
+    const auto &files = m_branchWatcher->files();
+    if (!files.isEmpty()) m_branchWatcher->removePaths(files);
 
     m_command = Watch;
     terminalStdin(QStringList{"rev-parse", "--absolute-git-dir"});
@@ -232,7 +239,7 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     }
     gitignoreFile.close();
 
-    emit undateGit();
+    emit updateIndex();
 }
 
 void GitModule::gitCommit() {
@@ -262,12 +269,16 @@ void GitModule::processFinished(const int exitcode) {
         case Watch: {
             const auto &gitPath = QString::fromLocal8Bit(output).trimmed();
             const auto &gitDir = QDir(gitPath);
+
+            const auto &indexPath = gitDir.filePath("index");
+            if (QFileInfo::exists(indexPath)) m_indexWatcher->addPath(indexPath);
+
             const auto &headPath = gitDir.filePath("HEAD");
             const auto &refsPath = gitDir.filePath("refs");
-            if (QFileInfo::exists(headPath)) m_watcher->addPath(headPath);
+            if (QFileInfo::exists(headPath)) m_branchWatcher->addPath(headPath);
             if (QFileInfo::exists(refsPath)) {
-                auto iterator = QDirIterator(gitPath, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-                while (iterator.hasNext()) m_watcher->addPath(iterator.next());
+                auto iterator = QDirIterator(refsPath, QDir::Files, QDirIterator::Subdirectories);
+                while (iterator.hasNext()) m_branchWatcher->addPath(iterator.next());
             }
         }
         break;
@@ -430,10 +441,12 @@ void GitModule::processFinished(const int exitcode) {
         default: break;
     }
 
+    // state machine
     switch (command) {
         case Init: {
             g_globalManager->gitSet();
-            emit undateGit();
+            emit updateIndex();
+            gitWatch();
         }
         break;
         case Watch: {
@@ -455,16 +468,6 @@ void GitModule::processFinished(const int exitcode) {
                 const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
                 gitShow(hash);
             }
-        }
-        break;
-        case Add:
-        case Checkout: {
-            emit undateGit();
-        }
-        break;
-        case Commit: {
-            gitBranch();
-            emit undateGit();
         }
         break;
         default: break;
