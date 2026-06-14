@@ -147,15 +147,15 @@ void GitModule::gitLog() {
 void GitModule::gitReset(const QString &hash, const int mode) {
     QString _mode{};
     switch (mode) {
-        case 0: _mode = "--mixed";
+        case Mixed: _mode = "--mixed";
             break;
-        case 1: _mode = "--soft";
+        case Soft: _mode = "--soft";
             break;
-        case 2: _mode = "--hard";
+        case Hard: _mode = "--hard";
             break;
-        case 3: _mode = "--merge";
+        case Merge: _mode = "--merge";
             break;
-        case 4: _mode = "--keep";
+        case Keep: _mode = "--keep";
             break;
         default: return;
     }
@@ -169,31 +169,40 @@ void GitModule::gitShow(const QString &hash) {
 }
 
 // public: file
-// void GitModule::gitAdd(const QUrl &documentUrl) {
-//     m_command = Add;
-//     const auto documentPath = documentUrl.toLocalFile();
-//     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-//     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-//     terminalStdin(QStringList{"add", documentPath});
-// }
+void GitModule::gitAdd(const QUrl &documentUrl) {
+    m_command = Add;
+    if (documentUrl.isEmpty()) {
+        terminalStdin(QStringList{"add", "."});
+    } else {
+        const auto documentPath = documentUrl.toLocalFile();
+        const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
+        const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+        terminalStdin(QStringList{"add", documentPath});
+    }
+}
 
-// void GitModule::gitAddAll() {
-//     m_command = Add;
-//     terminalStdin(QStringList{"add", "."});
-// }
-
-// void GitModule::gitReset(const QUrl &documentUrl) {
-//     m_command = Reset;
-//     const auto documentPath = documentUrl.toLocalFile();
-//     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-//     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-//     terminalStdin(QStringList{"reset", documentPath});
-// }
-
-// void GitModule::gitResetAll() {
-//     m_command = Reset;
-//     terminalStdin(QStringList{"reset"});
-// }
+void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
+    QStringList arguments{"restore"};
+    switch (mode) {
+        case Worktree: arguments << "--worktree";
+            break;
+        case Staged: arguments << "--staged";
+            break;
+        case Both: arguments << "--worktree" << "--staged";
+            break;
+        default: return;
+    }
+    m_command = Restore;
+    if (documentUrl.isEmpty()) {
+        arguments << ".";
+    } else {
+        const auto documentPath = documentUrl.toLocalFile();
+        const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
+        const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+        arguments << documentPath;
+    }
+    terminalStdin(arguments);
+}
 
 void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     // check file and open

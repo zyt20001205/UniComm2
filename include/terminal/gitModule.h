@@ -52,13 +52,9 @@ public:
 
     Q_INVOKABLE void gitShow(const QString &hash);
 
-    // Q_INVOKABLE void gitAdd(const QUrl &documentUrl);
+    Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
 
-    // Q_INVOKABLE void gitAddAll();
-
-    // Q_INVOKABLE void gitReset(const QUrl &documentUrl);
-
-    // Q_INVOKABLE void gitResetAll();
+    Q_INVOKABLE void gitRestore(const QUrl &documentUrl, int mode);
 
     Q_INVOKABLE void gitIgnore(const QUrl &documentUrl, bool status);
 
@@ -105,7 +101,7 @@ private:
         Diff,
         Show,
         Add,
-        Checkout,
+        Restore,
         Commit
     };
 
@@ -114,7 +110,13 @@ private:
         Soft,
         Hard,
         Merge,
-        Keep,
+        Keep
+    };
+
+    enum GitRestoreMode {
+        Worktree,
+        Staged,
+        Both
     };
 };
 

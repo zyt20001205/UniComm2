@@ -344,7 +344,8 @@ void EditorWidget::documentOpen() const {
 }
 
 void EditorWidget::permissionSet() const {
-    m_propertyDialog->setProperty("fileUrl", m_documentUrl);
+    m_propertyDialog->setProperty("documentUrl", m_documentUrl);
+    QMetaObject::invokeMethod(m_propertyDialog, "permission");
     QMetaObject::invokeMethod(m_propertyDialog, "open");
 }
 

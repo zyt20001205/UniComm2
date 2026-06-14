@@ -53,6 +53,7 @@ void LuaPage::propertySet(const QVariantHash &objects) {
         {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
+        {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
         {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]},
         {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]}
     });

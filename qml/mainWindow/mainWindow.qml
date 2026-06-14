@@ -1231,6 +1231,7 @@ Item {
 
             onTriggered: {
                 fileModulePropertyDialog.documentUrl = documentModuleEditorMenu.menuSession.documentUrl
+                fileModulePropertyDialog.property()
                 fileModulePropertyDialog.open()
             }
         }
@@ -2023,9 +2024,8 @@ Item {
 
             onTriggered: {
                 fileModulePropertyDialog.documentUrl = explorerModuleFileMenu.documentUrl
+                fileModulePropertyDialog.rename()
                 fileModulePropertyDialog.open()
-                fileModulePropertyNameTextField.forceActiveFocus()
-                fileModulePropertyNameTextField.selectAll()
             }
         }
 
@@ -2046,13 +2046,24 @@ Item {
             }
         }
 
+        MenuItem {
+            text: qsTr("Property")
+            icon.source: "qrc:/icon/property.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                fileModulePropertyDialog.documentUrl = explorerModuleFileMenu.documentUrl
+                fileModulePropertyDialog.property()
+                fileModulePropertyDialog.open()
+            }
+        }
+
         MenuSeparator {
         }
 
         Menu {
             title: qsTr("Git")
-            // enabled: global.git
-            enabled: false
+            enabled: global.git
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2067,13 +2078,29 @@ Item {
                 }
             }
 
-            MenuItem {
-                text: qsTr("Reset")
+            Menu {
+                title: qsTr("Restore")
                 enabled: !explorerModuleFileMenu.gitUntracked && !explorerModuleFileMenu.gitIgnored
                 icon.source: "qrc:/icon/reset.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: gitModule.gitReset(explorerModuleFileMenu.documentUrl)
+                MenuItem {
+                    text: qsTr("Worktree")
+
+                    onTriggered: gitModule.gitRestore(explorerModuleFileMenu.documentUrl, 0)
+                }
+
+                MenuItem {
+                    text: qsTr("Staged")
+
+                    onTriggered: gitModule.gitRestore(explorerModuleFileMenu.documentUrl, 1)
+                }
+
+                MenuItem {
+                    text: qsTr("Both")
+
+                    onTriggered: gitModule.gitRestore(explorerModuleFileMenu.documentUrl, 2)
+                }
             }
 
             MenuItem {
@@ -2214,7 +2241,7 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("Add")
+                text: qsTr("Add Folder")
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
 
@@ -2223,12 +2250,28 @@ Item {
                 }
             }
 
-            MenuItem {
-                text: qsTr("Reset")
+            Menu {
+                title: qsTr("Restore Folder")
                 icon.source: "qrc:/icon/reset.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: gitModule.gitReset(explorerModuleFolderMenu.documentUrl)
+                MenuItem {
+                    text: qsTr("Worktree")
+
+                    onTriggered: gitModule.gitRestore(explorerModuleFolderMenu.documentUrl, 0)
+                }
+
+                MenuItem {
+                    text: qsTr("Staged")
+
+                    onTriggered: gitModule.gitRestore(explorerModuleFolderMenu.documentUrl, 1)
+                }
+
+                MenuItem {
+                    text: qsTr("Both")
+
+                    onTriggered: gitModule.gitRestore(explorerModuleFolderMenu.documentUrl, 2)
+                }
             }
 
             MenuItem {
@@ -2339,21 +2382,37 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("Add all")
+                text: qsTr("Add All")
                 icon.source: "qrc:/icon/add.svg"
                 icon.width: 16; icon.height: 16
 
                 onTriggered: {
-                    gitModule.gitAddAll()
+                    gitModule.gitAdd()
                 }
             }
 
-            MenuItem {
-                text: qsTr("Reset all")
+            Menu {
+                title: qsTr("Restore All")
                 icon.source: "qrc:/icon/reset.svg"
                 icon.width: 16; icon.height: 16
 
-                onTriggered: gitModule.gitResetAll()
+                MenuItem {
+                    text: qsTr("Worktree")
+
+                    onTriggered: gitModule.gitRestore("", 0)
+                }
+
+                MenuItem {
+                    text: qsTr("Staged")
+
+                    onTriggered: gitModule.gitRestore("", 1)
+                }
+
+                MenuItem {
+                    text: qsTr("Both")
+
+                    onTriggered: gitModule.gitRestore("", 2)
+                }
             }
         }
 
@@ -2438,6 +2497,20 @@ Item {
             if (fileModulePropertyWritableCheckBox.checked !== fileModulePropertyDialog.infoSession.writable) {
                 fileModule.fileWritable(fileModulePropertyDialog.documentUrl, fileModulePropertyWritableCheckBox.checked)
             }
+        }
+
+        function rename() {
+            fileModulePropertyNameTextField.forceActiveFocus()
+            fileModulePropertyNameTextField.selectAll()
+        }
+
+        function permission() {
+            fileModulePropertyWritableCheckBox.forceActiveFocus()
+        }
+
+        function property() {
+            fileModulePropertyNameTextField.forceActiveFocus()
+            fileModulePropertyNameTextField.cursorPosition = fileModulePropertyNameTextField.length
         }
 
         ColumnLayout {
@@ -2561,6 +2634,17 @@ Item {
                 CheckBox {
                     id: fileModulePropertyWritableCheckBox
                     text: qsTr("Writable")
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        z: -1
+                        visible: parent.activeFocus
+                        color: "transparent"
+                        border.width: 2
+                        border.color: global.warningBack3
+                        radius: 7
+                    }
                 }
 
                 CheckBox {
