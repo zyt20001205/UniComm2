@@ -67,14 +67,14 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
     if (g_globalManager->gitGet()) gitWatch();
 
-    m_window->setTitle(tr("Port Setting"));
+    m_window->setTitle(tr("Commit and Push"));
     m_window->setTransientParent(g_mainWindow->windowHandle());
 
     m_window->rootContext()->setContextProperty("gitModule", this);
     m_window->rootContext()->setContextProperty("global", objects["global"]);
 
     m_window->setResizeMode(QQuickView::SizeRootObjectToView);
-    m_window->setSource(QUrl("qrc:/qml/port/portSetting.qml"));
+    m_window->setSource(QUrl("qrc:/qml/terminal/gitCommitPush.qml"));
     m_root = m_window->rootObject();
 }
 
@@ -180,8 +180,9 @@ void GitModule::gitShow(const QString &hash) {
     terminalStdin(QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
-void GitModule::gitCommitPush() {
-
+void GitModule::gitCommitPush() const {
+    m_window->resize(1600, 900);
+    m_window->show();
 }
 
 void GitModule::gitCommit() {

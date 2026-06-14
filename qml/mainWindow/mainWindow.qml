@@ -4153,7 +4153,7 @@ Item {
                 }
             }
 
-            onTriggered: gitModule.gitCommit()
+            onTriggered: gitModule.gitCommitPush()
         }
     }
 

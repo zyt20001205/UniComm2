@@ -53,7 +53,7 @@ public:
 
     Q_INVOKABLE void gitShow(const QString &hash);
 
-    void gitCommitPush();
+    Q_INVOKABLE void gitCommitPush() const;
 
     void gitCommit();
 
