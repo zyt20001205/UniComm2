@@ -43,7 +43,6 @@ Item {
         visible: global.git
 
         Item {
-            id: branchItem
             implicitWidth: 400
 
             RowLayout {

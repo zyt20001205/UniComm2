@@ -4116,27 +4116,6 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 12; anchors.rightMargin: 12
 
-                Item {
-                    Layout.preferredWidth: 16; Layout.preferredHeight: 16;
-                }
-
-                Label {
-                    text: qsTr("Status")
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-            }
-
-            onTriggered: gitModule.gitStatus()
-        }
-
-        MenuItem {
-            contentItem: RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 12; anchors.rightMargin: 12
-
                 IconImage {
                     source: "qrc:/icon/gitCommit.svg"
                     sourceSize.width: 16
@@ -4153,7 +4132,31 @@ Item {
                 }
             }
 
-            onTriggered: gitModule.gitCommitPush()
+            onTriggered: gitModule.gitCommitPre()
+        }
+
+        MenuItem {
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12; anchors.rightMargin: 12
+
+                IconImage {
+                    source: "qrc:/icon/gitPush.svg"
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    color: global.fore
+                }
+
+                Label {
+                    text: qsTr("Push")
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+            onTriggered: gitModule.gitPushPre()
         }
     }
 

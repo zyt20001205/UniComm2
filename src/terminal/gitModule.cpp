@@ -20,14 +20,17 @@ GitModule::GitModule()
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
       m_process(new QProcess(this)),
-      m_window(new QQuickView()),
+      m_commitWindow(new QQuickView()),
+      m_pushWindow(new QQuickView()),
       m_indexWatcher(new QFileSystemWatcher(this)),
       m_indexWatcherTimer(new QTimer(this)),
       m_branchWatcher(new QFileSystemWatcher(this)),
       m_branchWatcherTimer(new QTimer(this)),
       m_branchModel(new BranchModel(this)),
       m_logModel(new LogModel(this)),
-      m_showModel(new ShowModel(this)){
+      m_showModel(new ShowModel(this)),
+      m_workingTreeModel(new StatusModel(this)),
+      m_indexModel(new StatusModel(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 
@@ -38,6 +41,7 @@ GitModule::GitModule()
     m_indexWatcherTimer->setSingleShot(true);
     m_indexWatcherTimer->setInterval(100);
     connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::updateIndex);
+    connect(m_indexWatcherTimer, &QTimer::timeout, this, &GitModule::gitStatus);
 
     connect(m_branchWatcher, &QFileSystemWatcher::fileChanged, this, [this] { m_branchWatcherTimer->start(); });
     m_branchWatcherTimer->setSingleShot(true);
@@ -67,14 +71,28 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
     if (g_globalManager->gitGet()) gitWatch();
 
-    m_window->setTitle(tr("Commit and Push"));
-    m_window->setTransientParent(g_mainWindow->windowHandle());
+    // commit window
+    m_commitWindow->setTitle(tr("Git Commit"));
+    m_commitWindow->setTransientParent(g_mainWindow->windowHandle());
 
-    m_window->rootContext()->setContextProperty("gitModule", this);
-    m_window->rootContext()->setContextProperty("global", objects["global"]);
+    m_commitWindow->rootContext()->setContextProperty("gitModule", this);
+    m_commitWindow->rootContext()->setContextProperty("global", objects["global"]);
+    m_commitWindow->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
+    m_commitWindow->rootContext()->setContextProperty("workingTreeModel", m_workingTreeModel);
+    m_commitWindow->rootContext()->setContextProperty("indexModel", m_indexModel);
 
-    m_window->setResizeMode(QQuickView::SizeRootObjectToView);
-    m_window->setSource(QUrl("qrc:/qml/terminal/gitCommitPush.qml"));
+    m_commitWindow->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_commitWindow->setSource(QUrl("qrc:/qml/terminal/gitCommitWindow.qml"));
+
+    // push window
+    m_pushWindow->setTitle(tr("Git Commit"));
+    m_pushWindow->setTransientParent(g_mainWindow->windowHandle());
+
+    m_pushWindow->rootContext()->setContextProperty("gitModule", this);
+    m_pushWindow->rootContext()->setContextProperty("global", objects["global"]);
+
+    m_pushWindow->setResizeMode(QQuickView::SizeRootObjectToView);
+    m_pushWindow->setSource(QUrl("qrc:/qml/terminal/gitPushWindow.qml"));
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
@@ -106,53 +124,42 @@ bool GitModule::gitGet() {
 }
 
 void GitModule::gitInit() {
-    m_command = Init;
-    terminalStdin(QStringList{"init"});
+    processEnqueue(Init, QStringList{"init"});
 }
 
 void GitModule::gitWatch() {
     const auto &files = m_branchWatcher->files();
     if (!files.isEmpty()) m_branchWatcher->removePaths(files);
-
-    m_command = Watch;
-    terminalStdin(QStringList{"rev-parse", "--absolute-git-dir"});
-}
-
-void GitModule::gitStatus() const {
-    terminalStdin(QStringList{"status", "--porcelain"});
+    processEnqueue(Watch, QStringList{"rev-parse", "--absolute-git-dir"});
 }
 
 // public: branch
 void GitModule::gitBranch() {
-    m_command = Branch;
-    terminalStdin(QStringList{"branch", "-av"});
+    processEnqueue(Branch, QStringList{"branch", "-av"});
 }
 
 void GitModule::gitSwitch(const QString &name) {
-    m_command = Switch;
-    terminalStdin(QStringList{"switch", name});
+    processEnqueue(Switch, QStringList{"switch", name});
 }
 
 void GitModule::gitCreate(const QString &src, const QString &dst, const bool _switch) {
-    m_command = Create;
-    if (_switch) terminalStdin(QStringList{"switch", "-c", dst, src});
-    else terminalStdin(QStringList{"branch", dst, src});
+    QStringList arguments{};
+    if (_switch) arguments = QStringList{"switch", "-c", dst, src};
+    else arguments = QStringList{"branch", dst, src};
+    processEnqueue(Create, arguments);
 }
 
 void GitModule::gitRename(const QString &src, const QString &dst) {
-    m_command = Rename;
-    terminalStdin(QStringList{"branch", "-m", src, dst});
+    processEnqueue(Rename, QStringList{"branch", "-m", src, dst});
 }
 
 void GitModule::gitDelete(const QString &name) {
-    m_command = Delete;
-    terminalStdin(QStringList{"branch", "-D", name});
+    processEnqueue(Delete, QStringList{"branch", "-D", name});
 }
 
 void GitModule::gitLog() {
     if (m_branch.isEmpty()) return;
-    m_command = Log;
-    terminalStdin(QStringList{"log", m_branch, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
+    processEnqueue(Log, QStringList{"log", m_branch, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
 }
 
 void GitModule::gitReset(const QString &hash, const int mode) {
@@ -170,36 +177,45 @@ void GitModule::gitReset(const QString &hash, const int mode) {
             break;
         default: return;
     }
-    m_command = Reset;
-    terminalStdin(QStringList{"reset", hash, _mode});
+    processEnqueue(Reset, QStringList{"reset", hash, _mode});
 }
 
 void GitModule::gitShow(const QString &hash) {
-    m_command = Show;
-    terminalStdin(QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
+    processEnqueue(Show, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
-void GitModule::gitCommitPush() const {
-    m_window->resize(1600, 900);
-    m_window->show();
+void GitModule::gitStatus() {
+    processEnqueue(Status, QStringList{"status", "-uall", "--porcelain"});
 }
 
-void GitModule::gitCommit() {
-    m_command = Commit;
-    terminalStdin(QStringList{"commit", "-m", "test"});
+void GitModule::gitCommitPre() {
+    m_commitWindow->resize(1080, 720);
+    m_commitWindow->show();
+    gitStatus();
+}
+
+void GitModule::gitCommit(const QString &subject) {
+    m_commitWindow->close();
+    processEnqueue(Commit, QStringList{"commit", "-m", subject});
+}
+
+void GitModule::gitPushPre() const {
+    m_pushWindow->resize(1080, 720);
+    m_pushWindow->show();
 }
 
 // public: file
 void GitModule::gitAdd(const QUrl &documentUrl) {
-    m_command = Add;
+    QStringList arguments{};
     if (documentUrl.isEmpty()) {
-        terminalStdin(QStringList{"add", "."});
+        arguments = QStringList{"add", "."};
     } else {
         const auto documentPath = documentUrl.toLocalFile();
         const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
         const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-        terminalStdin(QStringList{"add", documentPath});
+        arguments = QStringList{"add", documentPath};
     }
+    processEnqueue(Add, arguments);
 }
 
 void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
@@ -213,7 +229,6 @@ void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
             break;
         default: return;
     }
-    m_command = Restore;
     if (documentUrl.isEmpty()) {
         arguments << ".";
     } else {
@@ -222,7 +237,7 @@ void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
         const auto relativePath = workspaceDir.relativeFilePath(documentPath);
         arguments << documentPath;
     }
-    terminalStdin(arguments);
+    processEnqueue(Restore, arguments);
 }
 
 void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
@@ -273,8 +288,19 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
 }
 
 // private
-void GitModule::terminalStdin(const QStringList &arguments) const {
-    m_process->start("git", arguments);
+void GitModule::processEnqueue(int command, const QStringList &arguments) {
+    m_queue.enqueue(QVariantHash{
+        {"command", command},
+        {"arguments", arguments},
+    });
+    if (m_process->state() == QProcess::NotRunning) processDequeue();
+}
+
+void GitModule::processDequeue() {
+    if (m_queue.isEmpty()) return;
+    const auto &session = m_queue.dequeue();
+    m_command = session["command"].toInt();
+    m_process->start("git", session["arguments"].toStringList());
 }
 
 void GitModule::processFinished(const int exitcode) {
@@ -408,7 +434,7 @@ void GitModule::processFinished(const int exitcode) {
             m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
 
             m_showModel->clear();
-            QHash<QString, QStandardItem *> rootItems{};
+            QHash<QString, QStandardItem *> roots{};
             const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
             for (const auto &value: changes) {
                 const auto change = value.split('\t');
@@ -423,8 +449,8 @@ void GitModule::processFinished(const int exitcode) {
                     path2 = change[1];
                 }
                 const auto &path = path2.split('/');
-                const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
-                const auto documentUrl = QUrl::fromLocalFile(documentPath);
+                const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                const auto &documentUrl = QUrl::fromLocalFile(documentPath);
                 QString display{};
                 if (status == GitStatus::Renamed || status == GitStatus::Copied) {
                     display = QString("%1 -> %2 (%3%)").arg(
@@ -435,7 +461,7 @@ void GitModule::processFinished(const int exitcode) {
                 } else {
                     display = documentUrl.fileName();
                 }
-                const auto source = uni_cast<QFileIcon>(documentUrl);
+                const auto &source = uni_cast<QFileIcon>(documentUrl);
 
                 QStandardItem *rootItem{};
                 QString rootPath{};
@@ -443,13 +469,13 @@ void GitModule::processFinished(const int exitcode) {
                     if (!rootPath.isEmpty()) rootPath += '/';
                     rootPath += path[i];
 
-                    auto *_rootItem = rootItems.value(rootPath);
+                    auto *_rootItem = roots.value(rootPath);
                     if (!_rootItem) {
                         _rootItem = new QStandardItem(path[i]); // NOLINT
                         _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
                         if (rootItem) rootItem->appendRow(_rootItem);
                         else m_showModel->appendRow(_rootItem);
-                        rootItems.insert(rootPath, _rootItem);
+                        roots.insert(rootPath, _rootItem);
                     }
                     rootItem = _rootItem;
                 }
@@ -460,6 +486,90 @@ void GitModule::processFinished(const int exitcode) {
                 item->setData(status, Qt::UserRole + 2);
                 if (rootItem) rootItem->appendRow(item);
                 else m_showModel->appendRow(item);
+            }
+        }
+        break;
+        case Status: {
+            m_workingTreeModel->clear();
+            m_indexModel->clear();
+            QHash<QString, QStandardItem *> workingTreeRoots{};
+            QHash<QString, QStandardItem *> indexRoots{};
+
+            const auto changes = output.split('\n');
+            for (const auto &value: changes) {
+                if (value.size() < 4) continue;
+                const auto &change = QString::fromUtf8(value);
+
+                const auto indexStatus = g_gitStatus[change.at(0)];
+                const auto workingTreeStatus = g_gitStatus[change.at(1)];
+                auto path = change.mid(3).trimmed();
+                if (indexStatus == 'R' || indexStatus == 'C' || workingTreeStatus == 'R' || workingTreeStatus == 'C') path = path.section(" -> ", 1);
+                const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
+                const auto &documentUrl = QUrl::fromLocalFile(documentPath);
+                const auto &display = documentUrl.fileName();
+                const auto &source = uni_cast<QFileIcon>(documentUrl);
+                const auto &pathList = path.split('/');
+
+                // append working tree model
+                if (workingTreeStatus != GitStatus::Unmodified) {
+                    QStandardItem *rootItem{};
+                    QString rootPath{};
+                    for (int i = 0; i < pathList.size() - 1; ++i) {
+                        if (!rootPath.isEmpty()) rootPath += '/';
+                        rootPath += pathList[i];
+
+                        auto *_rootItem = workingTreeRoots.value(rootPath);
+                        if (!_rootItem) {
+                            _rootItem = new QStandardItem(pathList[i]); // NOLINT
+                            _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
+                            _rootItem->setData(QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(rootPath)), Qt::UserRole + 1);
+
+                            if (rootItem) rootItem->appendRow(_rootItem);
+                            else m_workingTreeModel->appendRow(_rootItem);
+                            workingTreeRoots.insert(rootPath, _rootItem);
+                        }
+                        rootItem = _rootItem;
+                    }
+
+                    auto *item = new QStandardItem(display); // NOLINT
+                    item->setData(source.value, Qt::DecorationRole);
+                    item->setData(documentUrl, Qt::UserRole + 1);
+                    item->setData(workingTreeStatus, Qt::UserRole + 2);
+                    if (rootItem) rootItem->appendRow(item);
+                    else m_workingTreeModel->appendRow(item);
+
+                    // skip index model if not added
+                    if (workingTreeStatus == GitStatus::Untracked) continue;
+                }
+
+                // append index model
+                if (indexStatus != GitStatus::Unmodified) {
+                    QStandardItem *rootItem{};
+                    QString rootPath{};
+                    for (int i = 0; i < pathList.size() - 1; ++i) {
+                        if (!rootPath.isEmpty()) rootPath += '/';
+                        rootPath += pathList[i];
+
+                        auto *_rootItem = indexRoots.value(rootPath);
+                        if (!_rootItem) {
+                            _rootItem = new QStandardItem(pathList[i]); // NOLINT
+                            _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
+                            _rootItem->setData(QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(rootPath)), Qt::UserRole + 1);
+
+                            if (rootItem) rootItem->appendRow(_rootItem);
+                            else m_indexModel->appendRow(_rootItem);
+                            indexRoots.insert(rootPath, _rootItem);
+                        }
+                        rootItem = _rootItem;
+                    }
+
+                    auto *item = new QStandardItem(display); // NOLINT
+                    item->setData(source.value, Qt::DecorationRole);
+                    item->setData(documentUrl, Qt::UserRole + 1);
+                    item->setData(indexStatus, Qt::UserRole + 2);
+                    if (rootItem) rootItem->appendRow(item);
+                    else m_indexModel->appendRow(item);
+                }
             }
         }
         break;
@@ -497,6 +607,8 @@ void GitModule::processFinished(const int exitcode) {
         break;
         default: break;
     }
+
+    processDequeue();
 }
 
 // public
@@ -519,6 +631,14 @@ QHash<int, QByteArray> LogModel::roleNames() const {
 
 // public
 QHash<int, QByteArray> ShowModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "documentUrl";
+    roles[Qt::UserRole + 2] = "status";
+    return roles;
+}
+
+// public
+QHash<int, QByteArray> StatusModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "documentUrl";
     roles[Qt::UserRole + 2] = "status";

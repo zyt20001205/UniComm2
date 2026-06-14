@@ -45,6 +45,8 @@ signals:
     void startThread(const QUrl &documentUrl, int mode, int startLine, int startCharacter, int endLine, int endCharacter);
 
 private:
+    void processFinished(int exitcode);
+
     QQuickWidget *m_widget{};
     QFileSystemModel *m_fileSystemModel{};
     SortFilterProxyModel *m_sortFilterProxyModel{};

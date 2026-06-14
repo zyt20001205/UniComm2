@@ -20,24 +20,7 @@ ExplorerModule::ExplorerModule()
     setWidget(m_widget);
     m_widget->installEventFilter(this);
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
-    connect(m_process, &QProcess::readyReadStandardOutput, this, [this] {
-        const auto output = m_process->readAllStandardOutput();
-        const auto lines = QString(output).split('\n', Qt::SkipEmptyParts);
-        m_documentStatus.clear();
-        for (const auto &line: lines) {
-            const auto indexStatus = line.at(0);
-            const auto workingTreeStatus = line.at(1);
-            auto filePath = line.mid(3).trimmed();
-            if (indexStatus == 'R' || indexStatus == 'C') filePath = filePath.section(" -> ", 1);
-            const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(filePath);
-            const auto documentUrl = QUrl::fromLocalFile(documentPath);
-            m_documentStatus[documentUrl] = QVariantHash{
-                {"indexStatus", g_gitStatus[indexStatus]},
-                {"workingTreeStatus", g_gitStatus[workingTreeStatus]}
-            };
-        }
-        m_sortFilterProxyModel->invalidate();
-    });
+    connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
 }
 
 ExplorerModule::~ExplorerModule() {
@@ -102,6 +85,25 @@ bool ExplorerModule::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     return DockWidget::eventFilter(watched, event);
+}
+
+void ExplorerModule::processFinished(const int exitcode) {
+    const auto output = m_process->readAllStandardOutput();
+    const auto lines = QString(output).split('\n', Qt::SkipEmptyParts);
+    m_documentStatus.clear();
+    for (const auto &line: lines) {
+        const auto indexStatus = line.at(0);
+        const auto workingTreeStatus = line.at(1);
+        auto filePath = line.mid(3).trimmed();
+        if (indexStatus == 'R' || indexStatus == 'C' || workingTreeStatus == 'R' || workingTreeStatus == 'C') filePath = filePath.section(" -> ", 1);
+        const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(filePath);
+        const auto documentUrl = QUrl::fromLocalFile(documentPath);
+        m_documentStatus[documentUrl] = QVariantHash{
+                    {"indexStatus", g_gitStatus[indexStatus]},
+                    {"workingTreeStatus", g_gitStatus[workingTreeStatus]}
+        };
+    }
+    m_sortFilterProxyModel->invalidate();
 }
 
 SortFilterProxyModel::SortFilterProxyModel(const QHash<QUrl, QVariant> *documentStatus, QObject *parent)

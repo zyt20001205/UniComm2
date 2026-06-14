@@ -3,6 +3,7 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
+#include <QQueue>
 #include <QStandardItemModel>
 
 class QFileSystemWatcher;
@@ -14,6 +15,7 @@ class QTextDocument;
 class BranchModel;
 class LogModel;
 class ShowModel;
+class StatusModel;
 
 class GitModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -35,8 +37,6 @@ public:
 
     void gitWatch();
 
-    Q_INVOKABLE void gitStatus() const;
-
     Q_INVOKABLE void gitBranch();
 
     Q_INVOKABLE void gitSwitch(const QString &name);
@@ -53,9 +53,13 @@ public:
 
     Q_INVOKABLE void gitShow(const QString &hash);
 
-    Q_INVOKABLE void gitCommitPush() const;
+    Q_INVOKABLE void gitStatus();
 
-    void gitCommit();
+    Q_INVOKABLE void gitCommitPre();
+
+    Q_INVOKABLE void gitCommit(const QString &subject);
+
+    Q_INVOKABLE void gitPushPre() const;
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
 
@@ -67,7 +71,9 @@ signals:
     void updateIndex();
 
 private:
-    void terminalStdin(const QStringList &arguments) const;
+    void processEnqueue(int command, const QStringList &arguments);
+
+    void processDequeue();
 
     void processFinished(int exitcode);
 
@@ -80,7 +86,9 @@ private:
     QObject *m_dateLabel{};
     QObject *m_authorLabel{};
     QProcess *m_process{};
-    QQuickView *m_window{};
+    QQuickView *m_commitWindow{};
+    QQuickView *m_pushWindow{};
+    QQueue<QVariantHash> m_queue{};
     QFileSystemWatcher *m_indexWatcher{};
     QTimer *m_indexWatcherTimer{};
     QFileSystemWatcher *m_branchWatcher{};
@@ -89,6 +97,8 @@ private:
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     ShowModel *m_showModel{};
+    StatusModel *m_workingTreeModel{};
+    StatusModel *m_indexModel{};
     int m_command{};
 
     enum GitCommand {
@@ -104,6 +114,7 @@ private:
         Reset,
         Diff,
         Show,
+        Status,
         Commit,
         Add,
         Restore
@@ -143,6 +154,15 @@ public:
 };
 
 class ShowModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+};
+
+class StatusModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:

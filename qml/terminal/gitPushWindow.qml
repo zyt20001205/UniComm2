@@ -13,6 +13,6 @@ Item {
     }
 
     Label {
-        text: "test"
+        text: "commit"
     }
 }
