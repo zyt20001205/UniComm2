@@ -75,7 +75,6 @@ void GitModule::propertySet(const QVariantHash &objects) {
 
     m_window->setResizeMode(QQuickView::SizeRootObjectToView);
     m_window->setSource(QUrl("qrc:/qml/terminal/gitCommitPush.qml"));
-    m_root = m_window->rootObject();
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
