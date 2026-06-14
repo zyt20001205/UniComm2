@@ -83,6 +83,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
 
     m_commitWindow->setResizeMode(QQuickView::SizeRootObjectToView);
     m_commitWindow->setSource(QUrl("qrc:/qml/terminal/gitCommitWindow.qml"));
+    m_commitRoot = m_commitWindow->rootObject();
 
     // push window
     m_pushWindow->setTitle(tr("Git Commit"));
@@ -297,6 +298,7 @@ void GitModule::processEnqueue(int command, const QStringList &arguments) {
 }
 
 void GitModule::processDequeue() {
+    if (m_process->state() != QProcess::NotRunning) return;
     if (m_queue.isEmpty()) return;
     const auto &session = m_queue.dequeue();
     m_command = session["command"].toInt();
@@ -313,6 +315,7 @@ void GitModule::processFinished(const int exitcode) {
         m_errorDialog->setProperty("title", "Git command failed");
         m_errorDialog->setProperty("text", QString::fromLocal8Bit(error).trimmed());
         QMetaObject::invokeMethod(m_errorDialog, "open");
+        processDequeue();
         return;
     }
 
@@ -571,6 +574,8 @@ void GitModule::processFinished(const int exitcode) {
                     else m_indexModel->appendRow(item);
                 }
             }
+            QMetaObject::invokeMethod(m_commitRoot, "workingTreeExpand");
+            QMetaObject::invokeMethod(m_commitRoot, "indexExpand");
         }
         break;
         default: break;

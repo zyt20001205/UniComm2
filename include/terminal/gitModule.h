@@ -87,7 +87,9 @@ private:
     QObject *m_authorLabel{};
     QProcess *m_process{};
     QQuickView *m_commitWindow{};
+    QObject *m_commitRoot{};
     QQuickView *m_pushWindow{};
+    QObject *m_pushRoot{};
     QQueue<QVariantHash> m_queue{};
     QFileSystemWatcher *m_indexWatcher{};
     QTimer *m_indexWatcherTimer{};

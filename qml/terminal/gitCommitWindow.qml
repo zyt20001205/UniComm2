@@ -461,9 +461,15 @@ Item {
         }
     }
 
-    function branchExpand() {
+    function workingTreeExpand() {
         for (let i = 0; i < workingTreeView.rows; ++i) {
             workingTreeView.expandRecursively(i)
+        }
+    }
+
+    function indexExpand() {
+        for (let i = 0; i < indexTreeView.rows; ++i) {
+            indexTreeView.expandRecursively(i)
         }
     }
 
