@@ -1,8 +1,10 @@
 #include "terminal/gitModule.h"
 
-#include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
+#include <QFileSystemWatcher>
 #include <QProcess>
+#include <QTimer>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
@@ -16,16 +18,22 @@ GitModule::GitModule()
     : DockWidget("Git"),
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
+      m_process(new QProcess(this)),
+      m_watcher(new QFileSystemWatcher(this)),
+      m_watcherTimer(new QTimer(this)),
       m_branchModel(new BranchModel(this)),
       m_logModel(new LogModel(this)),
-      m_showModel(new ShowModel(this)),
-      m_process(new QProcess(this)) {
+      m_showModel(new ShowModel(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
-    connect(m_process, &QProcess::readyReadStandardError, this, &GitModule::terminalStderr);
     connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
+
+    connect(m_watcher, &QFileSystemWatcher::fileChanged, this, [this] { m_watcherTimer->start(); });
+    m_watcherTimer->setSingleShot(true);
+    m_watcherTimer->setInterval(100);
+    connect(m_watcherTimer, &QTimer::timeout, this, &GitModule::gitBranch);
 }
 
 GitModule::~GitModule() {
@@ -34,6 +42,8 @@ GitModule::~GitModule() {
 }
 
 void GitModule::propertySet(const QVariantHash &objects) {
+    m_errorDialog = qvariant_cast<QObject *>(objects["gitModuleErrorDialog"]);
+
     m_widget->rootContext()->setContextProperty("gitModule", this);
     m_widget->rootContext()->setContextProperty("global", objects["global"]);
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
@@ -46,7 +56,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
     m_root = m_widget->rootObject();
-    if (g_globalManager->gitGet()) gitBranch();
+    if (g_globalManager->gitGet()) gitWatch();
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
@@ -80,6 +90,11 @@ bool GitModule::gitGet() {
 void GitModule::gitInit() {
     m_command = Init;
     terminalStdin(QStringList{"init"});
+}
+
+void GitModule::gitWatch() {
+    m_command = Watch;
+    terminalStdin(QStringList{"rev-parse", "--absolute-git-dir"});
 }
 
 void GitModule::gitStatus() const {
@@ -227,15 +242,32 @@ void GitModule::terminalStdin(const QStringList &arguments) const {
     m_process->start("git", arguments);
 }
 
-void GitModule::terminalStderr() const {
-    const auto error = QString::fromLocal8Bit(m_process->readAllStandardError());
-    qDebug() << error;
-}
-
 void GitModule::processFinished(const int exitcode) {
     const auto output = m_process->readAllStandardOutput();
+    const auto error = m_process->readAllStandardError();
     const auto command = m_command;
+    m_command = Null;
+
+    if (exitcode != 0) {
+        m_errorDialog->setProperty("title", "Git command failed");
+        m_errorDialog->setProperty("text", QString::fromLocal8Bit(error).trimmed());
+        QMetaObject::invokeMethod(m_errorDialog, "open");
+        return;
+    }
+
     switch (command) {
+        case Watch: {
+            const auto &gitPath = QString::fromLocal8Bit(output).trimmed();
+            const auto &gitDir = QDir(gitPath);
+            const auto &headPath = gitDir.filePath("HEAD");
+            const auto &refsPath = gitDir.filePath("refs");
+            if (QFileInfo::exists(headPath)) m_watcher->addPath(headPath);
+            if (QFileInfo::exists(refsPath)) {
+                auto iterator = QDirIterator(gitPath, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+                while (iterator.hasNext()) m_watcher->addPath(iterator.next());
+            }
+        }
+        break;
         case Branch: {
             m_branchModel->clear();
             auto *localItem = new QStandardItem(tr("Local")); // NOLINT
@@ -273,6 +305,7 @@ void GitModule::processFinished(const int exitcode) {
                     else localItem->appendRow(item);
                 }
             }
+            QMetaObject::invokeMethod(m_root, "branchExpand");
         }
         break;
         case Log: {
@@ -394,18 +427,20 @@ void GitModule::processFinished(const int exitcode) {
         default: break;
     }
 
-    m_command = Null;
     switch (command) {
         case Init: {
             g_globalManager->gitSet();
             emit undateGit();
         }
         break;
+        case Watch: {
+            gitBranch();
+        }
+        break;
         case Branch: {
             gitLog();
         }
         break;
-        case Switch:
         case Create:
         case Rename:
         case Delete: {

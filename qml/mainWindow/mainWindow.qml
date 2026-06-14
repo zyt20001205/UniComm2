@@ -2573,6 +2573,27 @@ Item {
 
     // git module
     Dialog {
+        id: gitModuleErrorDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        standardButtons: Dialog.Ok
+        property string text
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+
+        Label {
+            text: gitModuleErrorDialog.text
+        }
+    }
+
+    Dialog {
         id: gitModuleBranchCreateDialog
         parent: Overlay.overlay
         x: mainScreenItem.x + (mainScreenItem.width - width) / 2
@@ -4565,6 +4586,7 @@ Item {
 
             "fileModulePropertyDialog": fileModulePropertyDialog,
 
+            "gitModuleErrorDialog": gitModuleErrorDialog,
             "gitModuleBranchMenu": gitModuleBranchMenu,
             "gitModuleLogMenu": gitModuleLogMenu,
 

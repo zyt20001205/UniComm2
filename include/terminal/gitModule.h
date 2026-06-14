@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QStandardItemModel>
 
+class QFileSystemWatcher;
 class QProcess;
 class QQuickWidget;
 class QTextDocument;
@@ -30,6 +31,8 @@ public:
     [[nodiscard]] static bool gitGet();
 
     Q_INVOKABLE void gitInit();
+
+    void gitWatch();
 
     Q_INVOKABLE void gitStatus() const;
 
@@ -67,28 +70,29 @@ signals:
 private:
     void terminalStdin(const QStringList &arguments) const;
 
-    void terminalStderr() const;
-
     void processFinished(int exitcode);
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
-    QObject *m_messageDialog{};
+    QObject *m_errorDialog{};
     QObject *m_canvas{};
     QObject *m_subjectLabel{};
     QObject *m_dateLabel{};
     QObject *m_authorLabel{};
+    QProcess *m_process{};
+    QFileSystemWatcher *m_watcher{};
+    QTimer *m_watcherTimer{};
     QString m_branch{};
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     ShowModel *m_showModel{};
-    QProcess *m_process{};
     int m_command{};
 
     enum GitCommand {
         Null,
         Init,
+        Watch,
         Branch,
         Switch,
         Create,

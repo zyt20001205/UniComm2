@@ -627,6 +627,12 @@ Item {
         }
     }
 
+    function branchExpand() {
+        for (let i = 0; i < branchTreeView.rows; ++i) {
+            branchTreeView.expandRecursively(i)
+        }
+    }
+
     Component.onCompleted: {
         const objects = {
             "canvas": canvas,
