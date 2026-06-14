@@ -104,10 +104,11 @@ private:
     };
 
     enum GitResetMode {
-        Soft,
         Mixed,
+        Soft,
+        Hard,
+        Merge,
         Keep,
-        Hard
     };
 };
 

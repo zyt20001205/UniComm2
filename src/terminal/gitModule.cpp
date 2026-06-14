@@ -122,13 +122,15 @@ void GitModule::gitLog() {
 void GitModule::gitReset(const QString &hash, const int mode) {
     QString _mode{};
     switch (mode) {
-        case 0: _mode = "--soft";
+        case 0: _mode = "--mixed";
             break;
-        case 1: _mode = "--mixed";
+        case 1: _mode = "--soft";
             break;
-        case 2: _mode = "--keep";
+        case 2: _mode = "--hard";
             break;
-        case 3: _mode = "--hard";
+        case 3: _mode = "--merge";
+            break;
+        case 4: _mode = "--keep";
             break;
         default: return;
     }

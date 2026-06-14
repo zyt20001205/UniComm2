@@ -1139,12 +1139,25 @@ Item {
         }
 
         MenuItem {
+            id: documentModuleEditorMenuAddWatchItem
             text: qsTr("Add Watch")
             icon.source: "qrc:/icon/eye.svg"
             icon.width: 16; icon.height: 16
             enabled: documentModuleEditorMenu.menuSession ? documentModuleEditorMenu.menuSession.text : false
-            ToolTip.visible: hovered && !enabled
-            ToolTip.text: qsTr("Nothing selected")
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainWindowToolTip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    if (!documentModuleEditorMenuAddWatchItem.enabled) {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("Nothing selected")
+                    }
+                }
+            }
 
             onTriggered: {
                 watchModuleExpressionDialog.watchIndex = -1
@@ -1160,8 +1173,20 @@ Item {
             icon.source: "qrc:/icon/debugContinue.svg"
             icon.width: 16; icon.height: 16
             enabled: false
-            ToolTip.visible: hovered && !enabled
-            ToolTip.text: qsTr("No debug sessions")
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (!hovered) {
+                        mainWindowToolTip.text = ""
+                    }
+                }
+                onPointChanged: {
+                    if (!documentModuleEditorMenuRunHereItem.enabled) {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("No debug sessions")
+                    }
+                }
+            }
 
             onTriggered: debugModule.stateSet("", 6)
         }
@@ -2025,9 +2050,9 @@ Item {
         }
 
         Menu {
-            visible: false
             title: qsTr("Git")
-            enabled: global.git
+            // enabled: global.git
+            enabled: false
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2706,27 +2731,93 @@ Item {
             icon.width: 16; icon.height: 16
 
             MenuItem {
-                text: qsTr("Soft")
+                text: qsTr("Mixed")
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainWindowToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("Leave your working directory unchanged.")
+                    }
+                }
 
                 onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 0)
             }
 
             MenuItem {
-                text: qsTr("Mixed")
+                text: qsTr("Soft")
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainWindowToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("Leave your working tree files and the index unchanged.")
+                    }
+                }
 
                 onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 1)
             }
 
             MenuItem {
-                text: qsTr("Keep")
+                text: qsTr("Hard")
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainWindowToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("Overwrite all files and directories with the version from commit, and may overwrite untracked files.")
+                    }
+                }
 
                 onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 2)
             }
 
             MenuItem {
-                text: qsTr("Hard")
+                text: qsTr("Merge")
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainWindowToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("Reset the index and update the files in the working tree that are different between commit and HEAD, but keep those which are different between the index and working tree.")
+                    }
+                }
 
                 onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 3)
+            }
+
+            MenuItem {
+                text: qsTr("Keep")
+
+                HoverHandler {
+                    onHoveredChanged: {
+                        if (!hovered) {
+                            mainWindowToolTip.text = ""
+                        }
+                    }
+                    onPointChanged: {
+                        mainWindowToolTip.position = parent.mapToGlobal(point.position)
+                        mainWindowToolTip.text = qsTr("Resets index entries and updates files in the working tree that are different between commit and HEAD.")
+                    }
+                }
+
+                onTriggered: gitModule.gitReset(gitModuleLogMenu.hash, 4)
             }
         }
     }
