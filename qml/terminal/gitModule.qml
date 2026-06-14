@@ -208,12 +208,6 @@ Item {
 
                     onTapped: branchTreeView.selectedRow = -1
                 }
-
-                TapHandler {
-                    acceptedButtons: Qt.MiddleButton
-
-                    onTapped: gitModule.gitBranch()
-                }
             }
         }
 

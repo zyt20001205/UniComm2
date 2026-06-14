@@ -93,6 +93,9 @@ void GitModule::gitInit() {
 }
 
 void GitModule::gitWatch() {
+    const auto &files = m_watcher->files();
+    if (!files.isEmpty()) m_watcher->removePaths(files);
+
     m_command = Watch;
     terminalStdin(QStringList{"rev-parse", "--absolute-git-dir"});
 }
@@ -444,7 +447,7 @@ void GitModule::processFinished(const int exitcode) {
         case Create:
         case Rename:
         case Delete: {
-            gitBranch();
+            gitWatch();
         }
         break;
         case Log: {
@@ -452,10 +455,6 @@ void GitModule::processFinished(const int exitcode) {
                 const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
                 gitShow(hash);
             }
-        }
-        break;
-        case Reset: {
-            gitBranch();
         }
         break;
         case Add:
