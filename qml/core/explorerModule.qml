@@ -41,12 +41,6 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 6
-                color: model.git ? model.git.indexStatus === 1 ? global.warningBack2 : "transparent" : "transparent"
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 6
                 color: global.backHover
                 opacity: hoverHandler.hovered ? 1 : 0
                 Behavior on opacity {
@@ -96,11 +90,12 @@ Item {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                     color: !model.git ? global.fore
                         : model.git.indexStatus === 0 ? global.dangerFore3
-                            : model.git.indexStatus === 5 ? global.successFore3
-                                : model.git.indexStatus === 7 ? global.warningFore3
-                                    : model.git.workingTreeStatus === 2 ? global.fore
-                                        : model.git.workingTreeStatus === 3 ? global.brandBack
-                                            : global.fore
+                            : model.git.indexStatus === 1 ? global.stroke
+                                : model.git.indexStatus === 5 ? global.successFore3
+                                    : model.git.indexStatus === 7 ? global.warningFore3
+                                        : model.git.workingTreeStatus === 2 ? global.fore
+                                            : model.git.workingTreeStatus === 3 ? global.brandBack
+                                                : global.fore
                     text: model.display || ""
                     elide: Text.ElideRight
                     Layout.fillWidth: true; Layout.preferredHeight: 24

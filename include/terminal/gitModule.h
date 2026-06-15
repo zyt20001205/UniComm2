@@ -55,6 +55,8 @@ public:
 
     Q_INVOKABLE void gitStatus();
 
+    Q_INVOKABLE void gitFetch();
+
     Q_INVOKABLE void gitCommitPre();
 
     Q_INVOKABLE void gitCommit(const QString &subject);
@@ -117,6 +119,7 @@ private:
         Diff,
         Show,
         Status,
+        Fetch,
         Commit,
         Add,
         Restore

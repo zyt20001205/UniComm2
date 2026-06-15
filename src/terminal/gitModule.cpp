@@ -189,6 +189,10 @@ void GitModule::gitStatus() {
     processEnqueue(Status, QStringList{"status", "-uall", "--porcelain"});
 }
 
+void GitModule::gitFetch() {
+    processEnqueue(Fetch, QStringList{"fetch"});
+}
+
 void GitModule::gitCommitPre() {
     QMetaObject::invokeMethod(m_commitRoot, "reset");
     m_commitWindow->resize(1080, 720);
@@ -262,7 +266,7 @@ void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
     // ready to add / remove
     const auto documentPath = documentUrl.toLocalFile();
     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-    const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+    const auto relativePath = '/' + workspaceDir.relativeFilePath(documentPath);
     if (status) {
         bool inserted = false;
         for (int i = 0; i < gitignoreList.size(); ++i) {

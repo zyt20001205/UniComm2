@@ -154,6 +154,36 @@ Item {
 
                             HoverHandler {
                                 id: hoverHandler
+
+                                onHoveredChanged: {
+                                    if (!hovered) {
+                                        mainToolTip.text = ""
+                                    }
+                                }
+                                onPointChanged: {
+                                    if (!(isTreeNode && hasChildren)) {
+                                        mainToolTip.position = parent.mapToGlobal(point.position)
+                                        switch (model.status) {
+                                            case 0:
+                                                mainToolTip.text = "Untracked"
+                                                break
+                                            case 3:
+                                                mainToolTip.text = "Modified"
+                                                break
+                                            case 5:
+                                                mainToolTip.text = "Added"
+                                                break
+                                            case 6:
+                                                mainToolTip.text = "Deleted"
+                                                break
+                                            case 7:
+                                                mainToolTip.text = "Renamed"
+                                                break
+                                            default:
+                                                mainToolTip.text = "contact author: unsupported status (" + model.status + ")"
+                                        }
+                                    }
+                                }
                             }
 
                             TapHandler {
@@ -418,6 +448,36 @@ Item {
 
                             HoverHandler {
                                 id: hoverHandler
+
+                                onHoveredChanged: {
+                                    if (!hovered) {
+                                        mainToolTip.text = ""
+                                    }
+                                }
+                                onPointChanged: {
+                                    if (!(isTreeNode && hasChildren)) {
+                                        mainToolTip.position = parent.mapToGlobal(point.position)
+                                        switch (model.status) {
+                                            case 0:
+                                                mainToolTip.text = "Untracked"
+                                                break
+                                            case 3:
+                                                mainToolTip.text = "Modified"
+                                                break
+                                            case 5:
+                                                mainToolTip.text = "Added"
+                                                break
+                                            case 6:
+                                                mainToolTip.text = "Deleted"
+                                                break
+                                            case 7:
+                                                mainToolTip.text = "Renamed"
+                                                break
+                                            default:
+                                                mainToolTip.text = "contact author: unsupported status (" + model.status + ")"
+                                        }
+                                    }
+                                }
                             }
 
                             TapHandler {
