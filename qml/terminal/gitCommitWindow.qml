@@ -138,18 +138,6 @@ Item {
                                     }
                                     Layout.fillWidth: true; Layout.preferredHeight: 24
                                 }
-
-                                Item {
-                                    Layout.fillWidth: true
-                                }
-
-                                Label {
-                                    horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
-                                    text: model.commit || ""
-                                    elide: Text.ElideLeft
-                                    Layout.preferredHeight: 24
-                                    Layout.rightMargin: 10
-                                }
                             }
 
                             HoverHandler {

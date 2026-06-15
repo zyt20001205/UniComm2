@@ -6,13 +6,324 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     anchors.fill: parent
+    property bool pushable: commitModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
         color: global.back
     }
 
-    Label {
-        text: "commit"
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 10
+        spacing: 10
+
+        SplitView {
+            Layout.fillWidth: true; Layout.fillHeight: true
+            orientation: Qt.Horizontal
+
+            TreeView {
+                id: commitTreeView
+                SplitView.fillWidth: true
+                SplitView.fillHeight: true
+                clip: true
+                model: commitModel
+                property int selectedRow: -1
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    palette {
+                        mid: global.stroke
+                        dark: global.strokePressed
+                    }
+                }
+
+                delegate: Item {
+                    implicitWidth: commitTreeView.width; implicitHeight: 24
+                    required property bool isTreeNode
+                    required property bool expanded
+                    required property bool hasChildren
+                    required property int depth
+                    required property int row
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: global.backHover
+                        opacity: hoverHandler.hovered ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 150
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 6
+                        color: commitTreeView.selectedRow === row ? global.backSelected : "transparent"
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 0
+
+                        Item {
+                            Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+
+                            IconImage {
+                                anchors.centerIn: parent
+                                width: 16; height: 16
+                                source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+                                color: global.fore
+                                visible: isTreeNode && hasChildren
+                            }
+                        }
+
+                        Label {
+                            horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+                            text: model.display
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true; Layout.preferredHeight: 24
+                        }
+                    }
+
+                    HoverHandler {
+                        id: hoverHandler
+
+                        onHoveredChanged: {
+                            if (!hovered) {
+                                mainToolTip.text = ""
+                            }
+                        }
+                        onPointChanged: {
+                            if (!(isTreeNode && hasChildren)) {
+                                mainToolTip.position = parent.mapToGlobal(point.position)
+                                mainToolTip.text = model.hash
+                            }
+                        }
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onTapped: {
+                            commitTreeView.selectedRow = row
+                            if (isTreeNode && hasChildren) {
+                                commitTreeView.toggleExpanded(row)
+                            }
+                        }
+                    }
+                }
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+
+                    onTapped: {
+                        commitTreeView.selectedRow = -1
+                    }
+                }
+            }
+
+            // ColumnLayout {
+            //     Layout.fillWidth: true
+            //     Layout.preferredWidth: 1
+            //
+            //     Item {
+            //         Layout.fillWidth: true; Layout.fillHeight: true
+            //
+            //         Rectangle {
+            //             anchors.fill: parent
+            //             color: "transparent"
+            //             border.width: 2
+            //             border.color: global.stroke
+            //             radius: 6
+            //         }
+            //
+            //         TreeView {
+            //             id: indexTreeView
+            //             anchors.fill: parent
+            //             anchors.margins: 6
+            //             clip: true
+            //             model: indexModel
+            //             property int selectedRow: -1
+            //
+            //             ScrollBar.vertical: ScrollBar {
+            //                 policy: ScrollBar.AsNeeded
+            //                 palette {
+            //                     mid: global.stroke
+            //                     dark: global.strokePressed
+            //                 }
+            //             }
+            //
+            //             delegate: Item {
+            //                 implicitWidth: indexTreeView.width; implicitHeight: 24
+            //                 required property bool isTreeNode
+            //                 required property bool expanded
+            //                 required property bool hasChildren
+            //                 required property int depth
+            //                 required property int row
+            //
+            //                 Rectangle {
+            //                     anchors.fill: parent
+            //                     radius: 6
+            //                     color: global.backHover
+            //                     opacity: hoverHandler.hovered ? 1 : 0
+            //                     Behavior on opacity {
+            //                         NumberAnimation {
+            //                             duration: 150
+            //                         }
+            //                     }
+            //                 }
+            //
+            //                 Rectangle {
+            //                     anchors.fill: parent
+            //                     radius: 6
+            //                     color: indexTreeView.selectedRow === row ? global.backSelected : "transparent"
+            //                 }
+            //
+            //                 RowLayout {
+            //                     anchors.fill: parent
+            //                     spacing: 0
+            //
+            //                     Item {
+            //                         Layout.preferredWidth: depth * 24; Layout.preferredHeight: 24
+            //                     }
+            //
+            //                     Item {
+            //                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
+            //
+            //                         IconImage {
+            //                             anchors.centerIn: parent
+            //                             width: 16; height: 16
+            //                             source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
+            //                             color: global.fore
+            //                             visible: isTreeNode && hasChildren
+            //                         }
+            //                     }
+            //
+            //                     Item {
+            //                         Layout.preferredWidth: 24; Layout.preferredHeight: 24
+            //
+            //                         Image {
+            //                             anchors.centerIn: parent
+            //                             width: 16; height: 16
+            //                             source: model.decoration
+            //                         }
+            //                     }
+            //
+            //                     Label {
+            //                         horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
+            //                         text: model.display
+            //                         elide: Text.ElideRight
+            //                         color: {
+            //                             switch (model.status) {
+            //                                 case 3:
+            //                                     return global.brandBack
+            //                                 case 5:
+            //                                     return global.successFore3
+            //                                 case 6:
+            //                                     return global.stroke
+            //                                 case 7:
+            //                                     return global.warningFore3
+            //                                 default:
+            //                                     return global.fore
+            //                             }
+            //                         }
+            //                         Layout.fillWidth: true; Layout.preferredHeight: 24
+            //                     }
+            //                 }
+            //
+            //                 HoverHandler {
+            //                     id: hoverHandler
+            //
+            //                     onHoveredChanged: {
+            //                         if (!hovered) {
+            //                             mainToolTip.text = ""
+            //                         }
+            //                     }
+            //                     onPointChanged: {
+            //                         if (!(isTreeNode && hasChildren)) {
+            //                             mainToolTip.position = parent.mapToGlobal(point.position)
+            //                             switch (model.status) {
+            //                                 case 3:
+            //                                     mainToolTip.text = "Modified"
+            //                                     break
+            //                                 case 5:
+            //                                     mainToolTip.text = "Added"
+            //                                     break
+            //                                 case 6:
+            //                                     mainToolTip.text = "Deleted"
+            //                                     break
+            //                                 case 7:
+            //                                     mainToolTip.text = "Renamed"
+            //                                     break
+            //                                 default:
+            //                                     mainToolTip.text = "contact author: unsupported status (" + model.status + ")"
+            //                             }
+            //                         }
+            //                     }
+            //                 }
+            //
+            //                 TapHandler {
+            //                     acceptedButtons: Qt.LeftButton
+            //                     gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+            //
+            //                     onTapped: {
+            //                         indexTreeView.selectedRow = row
+            //                         indexTreeView.documentUrl = model.documentUrl
+            //                         if (isTreeNode && hasChildren) {
+            //                             indexTreeView.toggleExpanded(row)
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //
+            //             TapHandler {
+            //                 acceptedButtons: Qt.LeftButton
+            //
+            //                 onTapped: indexTreeView.selectedRow = -1
+            //             }
+            //         }
+            //     }
+            // }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true; Layout.preferredHeight: 24
+            Layout.alignment: Qt.AlignRight
+
+            Button {
+                enabled: pushable
+                text: qsTr("Push")
+
+                onClicked: gitModule.gitPush()
+            }
+        }
+    }
+
+    function reset() {
+        commitTreeView.selectedRow = -1
+    }
+
+    Connections {
+        target: commitModel
+
+        function onRowsInserted() {
+            pushable = true
+        }
+
+        function onRowsRemoved() {
+            pushable = commitModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            pushable = false
+        }
     }
 }

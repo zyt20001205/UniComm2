@@ -30,7 +30,8 @@ GitModule::GitModule()
       m_logModel(new LogModel(this)),
       m_showModel(new ShowModel(this)),
       m_workingTreeModel(new StatusModel(this)),
-      m_indexModel(new StatusModel(this)) {
+      m_indexModel(new StatusModel(this)),
+      m_commitModel(new CommitModel(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 
@@ -86,11 +87,13 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_commitRoot = m_commitWindow->rootObject();
 
     // push window
-    m_pushWindow->setTitle(tr("Git Commit"));
+    m_pushWindow->setTitle(tr("Git Push"));
     m_pushWindow->setTransientParent(g_mainWindow->windowHandle());
 
     m_pushWindow->rootContext()->setContextProperty("gitModule", this);
     m_pushWindow->rootContext()->setContextProperty("global", objects["global"]);
+    m_pushWindow->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
+    m_pushWindow->rootContext()->setContextProperty("commitModel", m_commitModel);
 
     m_pushWindow->setResizeMode(QQuickView::SizeRootObjectToView);
     m_pushWindow->setSource(QUrl("qrc:/qml/terminal/gitPushWindow.qml"));
@@ -136,7 +139,7 @@ void GitModule::gitWatch() {
 
 // public: branch
 void GitModule::gitBranch() {
-    processEnqueue(Branch, QStringList{"branch", "-av"});
+    processEnqueue(Branch, QStringList{"branch", "-avv"});
 }
 
 void GitModule::gitSwitch(const QString &name) {
@@ -185,10 +188,6 @@ void GitModule::gitShow(const QString &hash) {
     processEnqueue(Show, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
-void GitModule::gitStatus() {
-    processEnqueue(Status, QStringList{"status", "-uall", "--porcelain"});
-}
-
 void GitModule::gitFetch() {
     processEnqueue(Fetch, QStringList{"fetch"});
 }
@@ -200,14 +199,31 @@ void GitModule::gitCommitPre() {
     gitStatus();
 }
 
+void GitModule::gitStatus() {
+    processEnqueue(Status, QStringList{"status", "-uall", "--porcelain"});
+}
+
 void GitModule::gitCommit(const QString &subject) {
     m_commitWindow->close();
     processEnqueue(Commit, QStringList{"commit", "-m", subject});
 }
 
-void GitModule::gitPushPre() const {
+void GitModule::gitPushPre() {
     m_pushWindow->resize(1080, 720);
     m_pushWindow->show();
+    gitUpstream();
+}
+
+void GitModule::gitUpstream() {
+    processEnqueue(Upstream, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
+}
+
+void GitModule::gitAhead() {
+    processEnqueue(Ahead, QStringList{"log", "@{upstream}..HEAD", "-z", "--pretty=format:%h%x1e%s"});
+}
+
+void GitModule::gitPush() {
+    processEnqueue(Push, QStringList{"push"});
 }
 
 // public: file
@@ -583,6 +599,24 @@ void GitModule::processFinished(const int exitcode) {
             QMetaObject::invokeMethod(m_commitRoot, "indexExpand");
         }
         break;
+        case Upstream: {
+            m_commitModel->clear();
+            m_commitModel->appendRow(new QStandardItem("->" + QString::fromLocal8Bit(output)));
+        }
+        break;
+        case Ahead: {
+            if (m_commitModel->rowCount() <= 0) break;
+            auto *root = m_commitModel->item(0, 0);
+            for (const auto &value: output.split('\0')) {
+                const auto param = value.split('\x1e');
+                if (param.size() < 2) continue;
+                const auto &hash = param[0];
+                const auto &subject = param[1];
+                auto *item = new QStandardItem(subject); // NOLINT
+                item->setData(hash, Qt::UserRole + 1);
+                root->appendRow(item);
+            }
+        }
         default: break;
     }
 
@@ -613,6 +647,10 @@ void GitModule::processFinished(const int exitcode) {
                 const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
                 gitShow(hash);
             }
+        }
+        break;
+        case Upstream: {
+            gitAhead();
         }
         break;
         default: break;
@@ -652,5 +690,12 @@ QHash<int, QByteArray> StatusModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
     roles[Qt::UserRole + 1] = "documentUrl";
     roles[Qt::UserRole + 2] = "status";
+    return roles;
+}
+
+// public
+QHash<int, QByteArray> CommitModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "hash";
     return roles;
 }

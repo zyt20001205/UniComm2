@@ -16,6 +16,7 @@ class BranchModel;
 class LogModel;
 class ShowModel;
 class StatusModel;
+class CommitModel;
 
 class GitModule final : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -53,15 +54,21 @@ public:
 
     Q_INVOKABLE void gitShow(const QString &hash);
 
-    Q_INVOKABLE void gitStatus();
-
     Q_INVOKABLE void gitFetch();
 
     Q_INVOKABLE void gitCommitPre();
 
+    void gitStatus();
+
     Q_INVOKABLE void gitCommit(const QString &subject);
 
-    Q_INVOKABLE void gitPushPre() const;
+    Q_INVOKABLE void gitPushPre();
+
+    void gitUpstream();
+
+    void gitAhead();
+
+    void gitPush();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
 
@@ -103,6 +110,7 @@ private:
     ShowModel *m_showModel{};
     StatusModel *m_workingTreeModel{};
     StatusModel *m_indexModel{};
+    CommitModel *m_commitModel{};
     int m_command{};
 
     enum GitCommand {
@@ -118,9 +126,12 @@ private:
         Reset,
         Diff,
         Show,
-        Status,
         Fetch,
+        Status,
         Commit,
+        Upstream,
+        Ahead,
+        Push,
         Add,
         Restore
     };
@@ -168,6 +179,15 @@ public:
 };
 
 class StatusModel final : public QStandardItemModel {
+    Q_OBJECT
+
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+};
+
+class CommitModel final : public QStandardItemModel {
     Q_OBJECT
 
 public:
