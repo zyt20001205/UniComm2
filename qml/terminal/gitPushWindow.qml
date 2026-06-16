@@ -115,7 +115,7 @@ Item {
                             commitTreeView.selectedRow = row
                             if (isTreeNode && hasChildren) {
                                 commitTreeView.toggleExpanded(row)
-                                gitModule.gitDiff()
+                                gitModule.gitDiff_()
                             } else {
                                 gitModule.gitShow_(model.hash)
                             }

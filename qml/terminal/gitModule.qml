@@ -546,7 +546,7 @@ Item {
 
                         onTapped: {
                             if (!(isTreeNode && hasChildren)) {
-                                console.log(model.status, model.documentUrl)
+                                gitModule.gitDiff(showModel.hash, model.documentUrl)
                             }
                         }
                     }

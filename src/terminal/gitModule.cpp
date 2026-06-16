@@ -196,6 +196,13 @@ void GitModule::gitShow(const QString &hash) {
     processEnqueue(Show, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
+void GitModule::gitDiff(const QString &hash, const QUrl &documentUrl) {
+    const auto documentPath = documentUrl.toLocalFile();
+    const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
+    const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+    processEnqueue(Diff, QStringList{"show", hash, "--format=", relativePath});
+}
+
 void GitModule::gitFetch() {
     processEnqueue(Fetch, QStringList{"fetch"});
 }
@@ -232,8 +239,8 @@ void GitModule::gitAhead() {
     processEnqueue(Ahead, QStringList{"log", "@{upstream}..HEAD", "-z", "--pretty=format:%h%x1e%s"});
 }
 
-void GitModule::gitDiff() {
-    processEnqueue(Diff, QStringList{"diff", "--name-status", "@{upstream}..HEAD"});
+void GitModule::gitDiff_() {
+    processEnqueue(Diff_, QStringList{"diff", "--name-status", "@{upstream}..HEAD"});
 }
 
 void GitModule::gitShow_(const QString &hash) {
@@ -471,11 +478,14 @@ void GitModule::processFinished(const int exitcode) {
         case Show: {
             const auto param = output.split('\x1e');
             if (param.size() != 6) break;
-            m_subjectLabel->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
+            const auto &hash = QString::fromLocal8Bit(param[0].trimmed());
+            m_subjectLabel->setProperty("text", '(' + hash + ')' + QString::fromLocal8Bit(param[1].trimmed()));
             m_dateLabel->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
             m_authorLabel->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
 
             m_showModel->clear();
+            m_showModel->hashSet(QString());
+            m_showModel->hashSet(hash);
             QHash<QString, QStandardItem *> roots{};
             const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
             for (const auto &value: changes) {
@@ -529,6 +539,10 @@ void GitModule::processFinished(const int exitcode) {
                 if (rootItem) rootItem->appendRow(item);
                 else m_showModel->appendRow(item);
             }
+        }
+        break;
+        case Diff: {
+            qDebug() << output;
         }
         break;
         case Status: {
@@ -636,7 +650,7 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case Diff: {
+        case Diff_: {
             m_showModel_->clear();
             QHash<QString, QStandardItem *> roots{};
             const auto &changes = QString::fromUtf8(output).split('\n', Qt::SkipEmptyParts);
@@ -793,7 +807,7 @@ void GitModule::processFinished(const int exitcode) {
         }
         break;
         case Ahead: {
-            gitDiff();
+            gitDiff_();
         }
         break;
         default: break;

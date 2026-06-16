@@ -56,6 +56,8 @@ public:
 
     Q_INVOKABLE void gitShow(const QString &hash);
 
+    Q_INVOKABLE void gitDiff(const QString &hash, const QUrl &documentUrl);
+
     Q_INVOKABLE void gitFetch();
 
     Q_INVOKABLE void gitCommitPre();
@@ -70,7 +72,7 @@ public:
 
     void gitAhead();
 
-    Q_INVOKABLE void gitDiff();
+    Q_INVOKABLE void gitDiff_();
 
     Q_INVOKABLE void gitShow_(const QString &hash);
 
@@ -140,12 +142,13 @@ private:
         Log,
         Reset,
         Show,
+        Diff,
         Fetch,
         Status,
         Commit,
         Upstream,
         Ahead,
-        Diff,
+        Diff_,
         Show_,
         Push,
         Add,
@@ -187,11 +190,26 @@ public:
 
 class ShowModel final : public QStandardItemModel {
     Q_OBJECT
+    Q_PROPERTY(QString hash READ hashGet NOTIFY hashChanged)
 
 public:
     using QStandardItemModel::QStandardItemModel;
 
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] QString hashGet() {
+        return m_hash;
+    }
+
+    void hashSet(const QString &hash) {
+        m_hash = hash;
+    }
+
+signals:
+    void hashChanged();
+
+private:
+    QString m_hash{};
 };
 
 class StatusModel final : public QStandardItemModel {
