@@ -19,9 +19,9 @@ GitModule::GitModule()
     : DockWidget("Git"),
       m_config(g_workspaceConfig["gitConfig"].toObject()),
       m_widget(new QQuickWidget()),
-      m_process(new QProcess(this)),
       m_commitWindow(new QQuickView()),
       m_pushWindow(new QQuickView()),
+      m_process(new QProcess(this)),
       m_indexWatcher(new QFileSystemWatcher(this)),
       m_indexWatcherTimer(new QTimer(this)),
       m_branchWatcher(new QFileSystemWatcher(this)),
@@ -31,7 +31,8 @@ GitModule::GitModule()
       m_showModel(new ShowModel(this)),
       m_workingTreeModel(new StatusModel(this)),
       m_indexModel(new StatusModel(this)),
-      m_commitModel(new CommitModel(this)) {
+      m_commitModel(new CommitModel(this)),
+      m_showModel_(new ShowModel(this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 
@@ -94,6 +95,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_pushWindow->rootContext()->setContextProperty("global", objects["global"]);
     m_pushWindow->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_pushWindow->rootContext()->setContextProperty("commitModel", m_commitModel);
+    m_pushWindow->rootContext()->setContextProperty("showModel", m_showModel_);
 
     m_pushWindow->setResizeMode(QQuickView::SizeRootObjectToView);
     m_pushWindow->setSource(QUrl("qrc:/qml/terminal/gitPushWindow.qml"));
@@ -104,6 +106,12 @@ void GitModule::propertyGet(const QVariantMap &objects) {
     m_subjectLabel = qvariant_cast<QObject *>(objects["subjectLabel"]);
     m_dateLabel = qvariant_cast<QObject *>(objects["dateLabel"]);
     m_authorLabel = qvariant_cast<QObject *>(objects["authorLabel"]);
+}
+
+void GitModule::propertyGet_(const QVariantMap &objects) {
+    m_subjectLabel_ = qvariant_cast<QObject *>(objects["subjectLabel"]);
+    m_dateLabel_ = qvariant_cast<QObject *>(objects["dateLabel"]);
+    m_authorLabel_ = qvariant_cast<QObject *>(objects["authorLabel"]);
 }
 
 void GitModule::branchSet(const QString &name) {
@@ -192,6 +200,7 @@ void GitModule::gitFetch() {
     processEnqueue(Fetch, QStringList{"fetch"});
 }
 
+// public: commit
 void GitModule::gitCommitPre() {
     QMetaObject::invokeMethod(m_commitRoot, "reset");
     m_commitWindow->resize(1080, 720);
@@ -208,6 +217,7 @@ void GitModule::gitCommit(const QString &subject) {
     processEnqueue(Commit, QStringList{"commit", "-m", subject});
 }
 
+// public: push
 void GitModule::gitPushPre() {
     m_pushWindow->resize(1080, 720);
     m_pushWindow->show();
@@ -220,6 +230,14 @@ void GitModule::gitUpstream() {
 
 void GitModule::gitAhead() {
     processEnqueue(Ahead, QStringList{"log", "@{upstream}..HEAD", "-z", "--pretty=format:%h%x1e%s"});
+}
+
+void GitModule::gitDiff() {
+    processEnqueue(Diff, QStringList{"diff", "--name-status", "@{upstream}..HEAD"});
+}
+
+void GitModule::gitShow_(const QString &hash) {
+    processEnqueue(Show_, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
 void GitModule::gitPush() {
@@ -617,6 +635,127 @@ void GitModule::processFinished(const int exitcode) {
                 root->appendRow(item);
             }
         }
+        break;
+        case Diff: {
+            m_showModel_->clear();
+            QHash<QString, QStandardItem *> roots{};
+            const auto &changes = QString::fromUtf8(output).split('\n', Qt::SkipEmptyParts);
+            for (const auto &value: changes) {
+                const auto change = value.split('\t');
+                if (change.size() < 2) continue;
+                const auto &status = g_gitStatus[change[0].front()];
+                QString path1{};
+                QString path2{};
+                if (status == GitStatus::Renamed || status == GitStatus::Copied) {
+                    path1 = change[1];
+                    path2 = change[2];
+                } else {
+                    path2 = change[1];
+                }
+                const auto &path = path2.split('/');
+                const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                const auto &documentUrl = QUrl::fromLocalFile(documentPath);
+                QString display{};
+                if (status == GitStatus::Renamed || status == GitStatus::Copied) {
+                    display = QString("%1 -> %2 (%3%)").arg(
+                        QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(path1)).fileName(),
+                        documentUrl.fileName(),
+                        change[0].mid(1)
+                    );
+                } else {
+                    display = documentUrl.fileName();
+                }
+                const auto &source = uni_cast<QFileIcon>(documentUrl);
+
+                QStandardItem *rootItem{};
+                QString rootPath{};
+                for (int i = 0; i < path.size() - 1; ++i) {
+                    if (!rootPath.isEmpty()) rootPath += '/';
+                    rootPath += path[i];
+
+                    auto *_rootItem = roots.value(rootPath);
+                    if (!_rootItem) {
+                        _rootItem = new QStandardItem(path[i]); // NOLINT
+                        _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
+                        if (rootItem) rootItem->appendRow(_rootItem);
+                        else m_showModel_->appendRow(_rootItem);
+                        roots.insert(rootPath, _rootItem);
+                    }
+                    rootItem = _rootItem;
+                }
+
+                auto *item = new QStandardItem(display); // NOLINT
+                item->setData(source.value, Qt::DecorationRole);
+                item->setData(documentUrl, Qt::UserRole + 1);
+                item->setData(status, Qt::UserRole + 2);
+                if (rootItem) rootItem->appendRow(item);
+                else m_showModel_->appendRow(item);
+            }
+        }
+        break;
+        case Show_: {
+            const auto param = output.split('\x1e');
+            if (param.size() != 6) break;
+            m_subjectLabel_->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
+            m_dateLabel_->setProperty("text", QString::fromLocal8Bit(param[2].trimmed()));
+            m_authorLabel_->setProperty("text", QString::fromLocal8Bit(param[3].trimmed()) + '<' + QString::fromLocal8Bit(param[4].trimmed()) + '>');
+
+            m_showModel_->clear();
+            QHash<QString, QStandardItem *> roots{};
+            const auto &changes = QString::fromUtf8(param[5]).split('\n', Qt::SkipEmptyParts);
+            for (const auto &value: changes) {
+                const auto change = value.split('\t');
+                if (change.size() < 2) continue;
+                const auto &status = g_gitStatus[change[0].front()];
+                QString path1{};
+                QString path2{};
+                if (status == GitStatus::Renamed || status == GitStatus::Copied) {
+                    path1 = change[1];
+                    path2 = change[2];
+                } else {
+                    path2 = change[1];
+                }
+                const auto &path = path2.split('/');
+                const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path2);
+                const auto &documentUrl = QUrl::fromLocalFile(documentPath);
+                QString display{};
+                if (status == GitStatus::Renamed || status == GitStatus::Copied) {
+                    display = QString("%1 -> %2 (%3%)").arg(
+                        QUrl::fromLocalFile(QDir(g_workspaceUrl.toLocalFile()).filePath(path1)).fileName(),
+                        documentUrl.fileName(),
+                        change[0].mid(1)
+                    );
+                } else {
+                    display = documentUrl.fileName();
+                }
+                const auto &source = uni_cast<QFileIcon>(documentUrl);
+
+                QStandardItem *rootItem{};
+                QString rootPath{};
+                for (int i = 0; i < path.size() - 1; ++i) {
+                    if (!rootPath.isEmpty()) rootPath += '/';
+                    rootPath += path[i];
+
+                    auto *_rootItem = roots.value(rootPath);
+                    if (!_rootItem) {
+                        _rootItem = new QStandardItem(path[i]); // NOLINT
+                        _rootItem->setData(QUrl("qrc:/icon/fileTypeFolder.svg"), Qt::DecorationRole);
+                        if (rootItem) rootItem->appendRow(_rootItem);
+                        else m_showModel_->appendRow(_rootItem);
+                        roots.insert(rootPath, _rootItem);
+                    }
+                    rootItem = _rootItem;
+                }
+
+                auto *item = new QStandardItem(display); // NOLINT
+                item->setData(source.value, Qt::DecorationRole);
+                item->setData(documentUrl, Qt::UserRole + 1);
+                item->setData(status, Qt::UserRole + 2);
+                if (rootItem) rootItem->appendRow(item);
+                else m_showModel_->appendRow(item);
+            }
+        }
+        break;
         default: break;
     }
 
@@ -651,6 +790,10 @@ void GitModule::processFinished(const int exitcode) {
         break;
         case Upstream: {
             gitAhead();
+        }
+        break;
+        case Ahead: {
+            gitDiff();
         }
         break;
         default: break;

@@ -30,6 +30,8 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
+    Q_INVOKABLE void propertyGet_(const QVariantMap &objects);
+
     Q_INVOKABLE void branchSet(const QString &name);
 
     [[nodiscard]] static bool gitGet();
@@ -68,6 +70,10 @@ public:
 
     void gitAhead();
 
+    Q_INVOKABLE void gitDiff();
+
+    Q_INVOKABLE void gitShow_(const QString &hash);
+
     void gitPush();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
@@ -94,11 +100,18 @@ private:
     QObject *m_subjectLabel{};
     QObject *m_dateLabel{};
     QObject *m_authorLabel{};
-    QProcess *m_process{};
+
     QQuickView *m_commitWindow{};
     QObject *m_commitRoot{};
+
     QQuickView *m_pushWindow{};
     QObject *m_pushRoot{};
+    QObject *m_subjectLabel_{};
+    QObject *m_dateLabel_{};
+    QObject *m_authorLabel_{};
+
+    int m_command{};
+    QProcess *m_process{};
     QQueue<QVariantHash> m_queue{};
     QFileSystemWatcher *m_indexWatcher{};
     QTimer *m_indexWatcherTimer{};
@@ -108,10 +121,12 @@ private:
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     ShowModel *m_showModel{};
+
     StatusModel *m_workingTreeModel{};
     StatusModel *m_indexModel{};
+
     CommitModel *m_commitModel{};
-    int m_command{};
+    ShowModel *m_showModel_{};
 
     enum GitCommand {
         Null,
@@ -124,13 +139,14 @@ private:
         Delete,
         Log,
         Reset,
-        Diff,
         Show,
         Fetch,
         Status,
         Commit,
         Upstream,
         Ahead,
+        Diff,
+        Show_,
         Push,
         Add,
         Restore

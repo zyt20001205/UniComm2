@@ -43,7 +43,7 @@ Item {
         visible: global.git
 
         Item {
-            implicitWidth: 400
+            SplitView.preferredWidth: 400
 
             RowLayout {
                 anchors.centerIn: parent
@@ -212,13 +212,13 @@ Item {
 
         TableView {
             id: tableView
-            implicitWidth: 800
             alternatingRows: false
             clip: true
             editTriggers: TableView.NoEditTriggers
             model: logModel
             visible: modelVisible
             contentWidth: width
+            SplitView.fillWidth: true
             property int hoveredRow: -1
             property int selectedRow: -1
 
@@ -400,7 +400,7 @@ Item {
         }
 
         ColumnLayout {
-            implicitWidth: 400
+            SplitView.preferredWidth: 400
 
             TreeView {
                 id: showTreeView
