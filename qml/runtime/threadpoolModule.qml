@@ -103,8 +103,8 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: model.status == 0 ? global.successBack2 :
-                            model.status == 1 ? global.warningBack2 : global.dangerBack2
+                    color: model.status === 0 ? global.successBack2 :
+                            model.status === 1 ? global.warningBack2 : global.dangerBack2
                 }
 
                 BusyIndicator {
@@ -134,8 +134,8 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: model.status == 0 ? global.successBack2 :
-                            model.status == 1 ? global.warningBack2 : global.dangerBack2
+                    color: model.status === 0 ? global.successBack2 :
+                            model.status === 1 ? global.warningBack2 : global.dangerBack2
                 }
 
                 Rectangle {

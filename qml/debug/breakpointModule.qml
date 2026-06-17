@@ -95,6 +95,18 @@ Item {
                         color: global.fore
                         visible: isTreeNode && hasChildren
                     }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onTapped: {
+                            treeView.selectedRow = row
+                            if (isTreeNode && hasChildren) {
+                                treeView.toggleExpanded(row)
+                            }
+                        }
+                    }
                 }
 
                 Item {
@@ -130,7 +142,6 @@ Item {
                 onTapped: {
                     treeView.selectedRow = row
                     if (isTreeNode && hasChildren) {
-                        treeView.toggleExpanded(row)
                         breakpointModule.documentOpen(model.documentUrl)
                     } else {
                         breakpointModule.markerAdd(model.documentUrl, model.display)

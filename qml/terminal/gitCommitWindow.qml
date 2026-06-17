@@ -104,6 +104,18 @@ Item {
                                         color: global.fore
                                         visible: isTreeNode && hasChildren
                                     }
+
+                                    TapHandler {
+                                        acceptedButtons: Qt.LeftButton
+                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                        onTapped: {
+                                            workingTreeView.selectedRow = row
+                                            if (isTreeNode && hasChildren) {
+                                                workingTreeView.toggleExpanded(row)
+                                            }
+                                        }
+                                    }
                                 }
 
                                 Item {
@@ -123,15 +135,17 @@ Item {
                                     color: {
                                         switch (model.status) {
                                             case 0:
-                                                return global.dangerFore3
+                                                return global.successFore3
                                             case 3:
                                                 return global.brandBack
                                             case 5:
-                                                return global.successFore3
+                                                return global.successFore2
                                             case 6:
                                                 return global.stroke
                                             case 7:
                                                 return global.warningFore3
+                                            case 9:
+                                                return global.dangerFore3
                                             default:
                                                 return global.fore
                                         }
@@ -167,6 +181,9 @@ Item {
                                             case 7:
                                                 mainToolTip.text = "Renamed"
                                                 break
+                                            case 9:
+                                                mainToolTip.text = "Unmerged"
+                                                break
                                             default:
                                                 mainToolTip.text = "contact author: unsupported status (" + model.status + ")"
                                         }
@@ -181,9 +198,6 @@ Item {
                                 onTapped: {
                                     workingTreeView.selectedRow = row
                                     workingTreeView.documentUrl = model.documentUrl
-                                    if (isTreeNode && hasChildren) {
-                                        workingTreeView.toggleExpanded(row)
-                                    }
                                 }
                             }
                         }
@@ -398,6 +412,18 @@ Item {
                                         color: global.fore
                                         visible: isTreeNode && hasChildren
                                     }
+
+                                    TapHandler {
+                                        acceptedButtons: Qt.LeftButton
+                                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                        onTapped: {
+                                            indexTreeView.selectedRow = row
+                                            if (isTreeNode && hasChildren) {
+                                                indexTreeView.toggleExpanded(row)
+                                            }
+                                        }
+                                    }
                                 }
 
                                 Item {
@@ -417,15 +443,17 @@ Item {
                                     color: {
                                         switch (model.status) {
                                             case 0:
-                                                return global.dangerFore3
+                                                return global.successFore3
                                             case 3:
                                                 return global.brandBack
                                             case 5:
-                                                return global.successFore3
+                                                return global.successFore2
                                             case 6:
                                                 return global.stroke
                                             case 7:
                                                 return global.warningFore3
+                                            case 9:
+                                                return global.dangerFore3
                                             default:
                                                 return global.fore
                                         }
@@ -461,6 +489,9 @@ Item {
                                             case 7:
                                                 mainToolTip.text = "Renamed"
                                                 break
+                                            case 9:
+                                                mainToolTip.text = "Unmerged"
+                                                break
                                             default:
                                                 mainToolTip.text = "contact author: unsupported status (" + model.status + ")"
                                         }
@@ -475,9 +506,6 @@ Item {
                                 onTapped: {
                                     indexTreeView.selectedRow = row
                                     indexTreeView.documentUrl = model.documentUrl
-                                    if (isTreeNode && hasChildren) {
-                                        indexTreeView.toggleExpanded(row)
-                                    }
                                 }
                             }
                         }

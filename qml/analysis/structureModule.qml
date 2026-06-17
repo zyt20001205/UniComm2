@@ -72,6 +72,18 @@ Item {
                         color: global.fore
                         visible: isTreeNode && hasChildren
                     }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onTapped: {
+                            treeView.selectedRow = row
+                            if (isTreeNode && hasChildren) {
+                                treeView.toggleExpanded(row)
+                            }
+                        }
+                    }
                 }
 
                 Item {
@@ -113,9 +125,6 @@ Item {
                 onTapped: {
                     treeView.selectedRow = row
                     structureModule.markerAdd(model.position)
-                    if (isTreeNode && hasChildren) {
-                        treeView.toggleExpanded(row)
-                    }
                 }
             }
 

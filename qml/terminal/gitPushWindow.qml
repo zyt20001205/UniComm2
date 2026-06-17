@@ -81,6 +81,18 @@ Item {
                                 color: global.fore
                                 visible: isTreeNode && hasChildren
                             }
+
+                            TapHandler {
+                                acceptedButtons: Qt.LeftButton
+                                gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                onTapped: {
+                                    commitTreeView.selectedRow = row
+                                    if (isTreeNode && hasChildren) {
+                                        commitTreeView.toggleExpanded(row)
+                                    }
+                                }
+                            }
                         }
 
                         Label {
@@ -114,7 +126,6 @@ Item {
                         onTapped: {
                             commitTreeView.selectedRow = row
                             if (isTreeNode && hasChildren) {
-                                commitTreeView.toggleExpanded(row)
                                 gitModule.gitDiff_()
                             } else {
                                 gitModule.gitShow_(model.hash)
@@ -196,6 +207,18 @@ Item {
                                     color: global.fore
                                     visible: isTreeNode && hasChildren
                                 }
+
+                                TapHandler {
+                                    acceptedButtons: Qt.LeftButton
+                                    gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                                    onTapped: {
+                                        showTreeView.selectedRow = row
+                                        if (isTreeNode && hasChildren) {
+                                            showTreeView.toggleExpanded(row)
+                                        }
+                                    }
+                                }
                             }
 
                             Item {
@@ -217,7 +240,7 @@ Item {
                                         case 3:
                                             return global.brandBack
                                         case 5:
-                                            return global.successFore3
+                                            return global.successFore2
                                         case 6:
                                             return global.stroke
                                         case 7:
@@ -265,12 +288,7 @@ Item {
                             acceptedButtons: Qt.LeftButton
                             gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                            onTapped: {
-                                showTreeView.selectedRow = row
-                                if (isTreeNode && hasChildren) {
-                                    showTreeView.toggleExpanded(row)
-                                }
-                            }
+                            onTapped: showTreeView.selectedRow = row
                         }
 
                         TapHandler {

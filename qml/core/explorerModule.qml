@@ -74,6 +74,18 @@ Item {
                         color: global.fore
                         visible: model.isDir
                     }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
+
+                        onTapped: {
+                            treeView.selectedRow = row
+                            if (model.isDir) {
+                                treeView.toggleExpanded(row)
+                            }
+                        }
+                    }
                 }
 
                 Item {
@@ -89,13 +101,14 @@ Item {
                 Label {
                     horizontalAlignment: Text.AlignLeft; verticalAlignment: Text.AlignVCenter
                     color: !model.git ? global.fore
-                        : model.git.indexStatus === 0 ? global.dangerFore3
+                        : model.git.indexStatus === 0 ? global.successFore3
                             : model.git.indexStatus === 1 ? global.stroke
-                                : model.git.indexStatus === 5 ? global.successFore3
+                                : model.git.indexStatus === 5 ? global.successFore2
                                     : model.git.indexStatus === 7 ? global.warningFore3
                                         : model.git.workingTreeStatus === 2 ? global.fore
                                             : model.git.workingTreeStatus === 3 ? global.brandBack
-                                                : global.fore
+                                                : model.git.workingTreeStatus === 9 ? global.dangerFore3
+                                                    : global.fore
                     text: model.display || ""
                     elide: Text.ElideRight
                     Layout.fillWidth: true; Layout.preferredHeight: 24
@@ -125,6 +138,8 @@ Item {
                             // mainToolTip.text = "Unmodified"
                         } else if (model.git.workingTreeStatus === 3) {
                             mainToolTip.text = "Modified"
+                        } else if (model.git.workingTreeStatus === 9) {
+                            mainToolTip.text = "Unmerged"
                         }
                     }
                 }
@@ -134,12 +149,7 @@ Item {
                 acceptedButtons: Qt.LeftButton
                 gesturePolicy: TapHandler.ReleaseWithinBounds | TapHandler.WithinBounds
 
-                onTapped: {
-                    treeView.selectedRow = row
-                    if (model.isDir) {
-                        treeView.toggleExpanded(row)
-                    }
-                }
+                onTapped: treeView.selectedRow = row
                 onDoubleTapped: {
                     if (!model.isDir) {
                         explorerModule.documentOpen(model.documentUrl)
