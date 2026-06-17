@@ -34,6 +34,8 @@ signals:
     void gotoDocument(const QUrl &documentUrl);
 
 private:
+    void backgroundUpdate() const;
+
     QObject *m_root{};
     QObject *m_positionButton{};
     QObject *m_eolModeButton{};

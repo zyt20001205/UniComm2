@@ -43,14 +43,7 @@ void StatusModule::backgroundAppend(const QString &name, const std::function<voi
         auto *item = new QStandardItem(name); // NOLINT
         item->setData(taskid, Qt::UserRole + 1);
         m_backgroundModel->appendRow(item);
-        const auto taskCount = m_backgroundModel->rowCount();
-        if (taskCount == 1) {
-            m_backgroundModel->titleSet(name);
-            m_backgroundModel->taskidSet(taskid);
-        } else {
-            m_backgroundModel->titleSet(tr("%1 tasks running.").arg(QString::number(taskCount)));
-            m_backgroundModel->taskidSet(-1);
-        }
+        backgroundUpdate();
         m_callbacks.insert(taskid, callback);
     }
 }
@@ -59,6 +52,7 @@ void StatusModule::backgroundAbort(const int taskid) {
     for (int i = 0; i < m_backgroundModel->rowCount(); ++i) {
         if (m_backgroundModel->item(i, 0)->data(Qt::UserRole + 1).toInt() == taskid) {
             m_backgroundModel->removeRow(i);
+            backgroundUpdate();
             break;
         }
     }
@@ -119,6 +113,19 @@ void StatusModule::threadRefresh(const int run, const int debug) const {
         m_threadButton->setProperty("text", tr("Idle"));
     } else {
         m_threadButton->setProperty("text", QString(tr("Run: %1 Debug: %2")).arg(QString::number(run), QString::number(debug)));
+    }
+}
+
+// private
+void StatusModule::backgroundUpdate() const {
+    const auto taskCount = m_backgroundModel->rowCount();
+    if (taskCount == 1) {
+        const auto item = m_backgroundModel->item(0, 0);
+        m_backgroundModel->titleSet(item->text());
+        m_backgroundModel->taskidSet(item->data(Qt::UserRole + 1).toInt());
+    } else {
+        m_backgroundModel->titleSet(tr("%1 tasks running.").arg(QString::number(taskCount)));
+        m_backgroundModel->taskidSet(-1);
     }
 }
 
