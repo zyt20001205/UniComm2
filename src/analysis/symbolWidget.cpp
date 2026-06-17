@@ -5,6 +5,7 @@
 #include <QQuickItem>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 SymbolWidget::SymbolWidget(QWidget *parent)
@@ -14,7 +15,7 @@ SymbolWidget::SymbolWidget(QWidget *parent)
 
 void SymbolWidget::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("symbolWidget", this);
-    rootContext()->setContextProperty("global", objects["global"]);
+    rootContext()->setContextProperty("global", g_globalManager);
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     setResizeMode(SizeRootObjectToView);

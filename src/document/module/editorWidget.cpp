@@ -57,7 +57,6 @@ void EditorWidget::propertySet(const QVariantHash &objects) {
     m_propertyDialog = qvariant_cast<QObject *>(objects["fileModulePropertyDialog"]);
     m_gotoDialog = qvariant_cast<QObject *>(objects["documentModuleGotoDialog"]);
     m_searchWidget->propertySet(QVariantHash{
-        {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
     shortcutInit();

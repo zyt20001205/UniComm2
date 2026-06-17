@@ -8,6 +8,7 @@
 #include <QTreeView>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 StructureModule::StructureModule()
@@ -25,7 +26,7 @@ StructureModule::~StructureModule() {
 
 void StructureModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("structureModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["structureModuleRootMenu"]));
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);

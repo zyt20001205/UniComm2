@@ -11,6 +11,7 @@
 #include <QVariantList>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "util/uniCast.h"
 
 // public
@@ -35,7 +36,7 @@ DatatableModule::~DatatableModule() {
 
 void DatatableModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("datatableModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["datatableModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["datatableModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["datatableModuleRootMenu"]));

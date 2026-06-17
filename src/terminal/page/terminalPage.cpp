@@ -7,6 +7,7 @@
 #include <QTextDocument>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 TerminalPage::TerminalPage(const QString &uniqueName, const QJsonObject &config)
@@ -24,7 +25,7 @@ TerminalPage::~TerminalPage() {
 }
 
 void TerminalPage::propertySet(const QVariantHash &objects) {
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("terminalPage", this);
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/page/terminalPage.qml"));

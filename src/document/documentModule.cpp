@@ -15,6 +15,7 @@
 #include "document/page/luaPage.h"
 #include "document/page/pdfPage.h"
 #include "document/page/textPage.h"
+#include "document/page/conflictPage.h"
 #include "document/page/welcomePage.h"
 
 // public
@@ -112,88 +113,108 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
-        if (documentUrl.hasQuery()) {
-            const auto &query = QUrlQuery(documentUrl);
-            const auto &mode = query.queryItemValue("mode");
-            qDebug() << mode;
-            return;
-        }
-        const auto documentPath = documentUrl.toLocalFile();
-        const QFileInfo documentInfo(documentPath);
-        const auto suffix = documentInfo.suffix();
         BasePage *newPage{};
-        const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
-        if (imageType.contains(suffix)) {
-            newPage = new ImagePage(m_config, documentUrl);
-            auto *imagePage = qobject_cast<ImagePage *>(newPage);
-            imagePage->propertySet(QVariantHash{
-            });
-        } else if (suffix == "lua") {
-            newPage = new LuaPage(m_config, documentUrl);
-            auto *luaPage = qobject_cast<LuaPage *>(newPage);
-            luaPage->propertySet(QVariantHash{
-                {"global", QVariant::fromValue(m_global)},
-                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
-                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
-                {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
-            });
-            connect(luaPage, &LuaPage::isFocusedChanged, this, [this, luaPage](const bool status) { documentFocus(luaPage, status); });
-            connect(luaPage, &LuaPage::appendLog, this, &DocumentModule::appendLog);
-            connect(luaPage, &LuaPage::startThread, this, &DocumentModule::startThread);
-            connect(luaPage, &LuaPage::changeSelection, this, &DocumentModule::changeSelection);
-            connect(luaPage, &LuaPage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
-            connect(luaPage, &LuaPage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
-            connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
-            connect(luaPage, &LuaPage::requestCompletion, this, &DocumentModule::completionRequest);
-            connect(luaPage, &LuaPage::requestDefinition, this, &DocumentModule::definitionRequest);
-            connect(luaPage, &LuaPage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
-            connect(luaPage, &LuaPage::requestDocumentSymbol, this, &DocumentModule::documentSymbolRequest);
-            connect(luaPage, &LuaPage::requestFoldingRange, this, &DocumentModule::foldingRangeRequest);
-            connect(luaPage, &LuaPage::requestFormatting, this, &DocumentModule::formattingRequest);
-            connect(luaPage, &LuaPage::requestHover, this, &DocumentModule::hoverRequest);
-            connect(luaPage, &LuaPage::requestImplementation, this, &DocumentModule::implementationRequest);
-            connect(luaPage, &LuaPage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
-            connect(luaPage, &LuaPage::requestReferences, this, &DocumentModule::referencesRequest);
-            connect(luaPage, &LuaPage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
-            connect(luaPage, &LuaPage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
-            connect(luaPage, &LuaPage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
-            connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
-            connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
-            luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
-        } else if (suffix == "pdf") {
-            newPage = new PdfPage(m_config, documentUrl);
-            auto *pdfPage = qobject_cast<PdfPage *>(newPage);
-            pdfPage->propertySet(QVariantHash{
-            });
-        } else {
-            newPage = new TextPage(m_config, documentUrl);
-            auto *textPage = qobject_cast<TextPage *>(newPage);
-            textPage->propertySet(QVariantHash{
-                {"global", QVariant::fromValue(m_global)},
-                {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
-                {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
-                {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
-                {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
-            });
-            connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
-            connect(textPage, &TextPage::appendLog, this, &DocumentModule::appendLog);
-            connect(textPage, &TextPage::changeSelection, this, &DocumentModule::changeSelection);
+        // special page
+        if (documentUrl.hasQuery()) {
+            auto _documentUrl = documentUrl;
+            auto query = QUrlQuery(_documentUrl);
+            const auto &type = query.queryItemValue("type");
+            query.removeQueryItem("type");
+            _documentUrl.setQuery(query);
+            // conflict page
+            if (type == "conflict") {
+                newPage = new ConflictPage(m_config, documentUrl);
+                auto *conflictPage = qobject_cast<ConflictPage *>(newPage);
+                conflictPage->propertySet(QVariantHash{
+                });
+            } else {
+                qDebug() << "unknown document type";
+                return;
+            }
+        }
+        // normal page
+        else {
+            const auto documentPath = documentUrl.toLocalFile();
+            const QFileInfo documentInfo(documentPath);
+            const auto suffix = documentInfo.suffix();
+            // image page
+            const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
+            if (imageType.contains(suffix)) {
+                newPage = new ImagePage(m_config, documentUrl);
+                auto *imagePage = qobject_cast<ImagePage *>(newPage);
+                imagePage->propertySet(QVariantHash{
+                });
+            }
+            // lua page
+            else if (suffix == "lua") {
+                newPage = new LuaPage(m_config, documentUrl);
+                auto *luaPage = qobject_cast<LuaPage *>(newPage);
+                luaPage->propertySet(QVariantHash{
+                    {"global", QVariant::fromValue(m_global)},
+                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                    {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
+                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
+                    {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
+                    {"documentModuleEditorMenu", QVariant::fromValue(m_editorMenu)}
+                });
+                connect(luaPage, &LuaPage::isFocusedChanged, this, [this, luaPage](const bool status) { documentFocus(luaPage, status); });
+                connect(luaPage, &LuaPage::appendLog, this, &DocumentModule::appendLog);
+                connect(luaPage, &LuaPage::startThread, this, &DocumentModule::startThread);
+                connect(luaPage, &LuaPage::changeSelection, this, &DocumentModule::changeSelection);
+                connect(luaPage, &LuaPage::insertBreakpoint, this, &DocumentModule::insertBreakpoint);
+                connect(luaPage, &LuaPage::removeBreakpoint, this, &DocumentModule::removeBreakpoint);
+                connect(luaPage, &LuaPage::notificationJson, this, &DocumentModule::notificationJson);
+                connect(luaPage, &LuaPage::requestCompletion, this, &DocumentModule::completionRequest);
+                connect(luaPage, &LuaPage::requestDefinition, this, &DocumentModule::definitionRequest);
+                connect(luaPage, &LuaPage::requestDocumentHighlight, this, &DocumentModule::documentHighlightRequest);
+                connect(luaPage, &LuaPage::requestDocumentSymbol, this, &DocumentModule::documentSymbolRequest);
+                connect(luaPage, &LuaPage::requestFoldingRange, this, &DocumentModule::foldingRangeRequest);
+                connect(luaPage, &LuaPage::requestFormatting, this, &DocumentModule::formattingRequest);
+                connect(luaPage, &LuaPage::requestHover, this, &DocumentModule::hoverRequest);
+                connect(luaPage, &LuaPage::requestImplementation, this, &DocumentModule::implementationRequest);
+                connect(luaPage, &LuaPage::requestOnTypeFormatting, this, &DocumentModule::onTypeFormattingRequest);
+                connect(luaPage, &LuaPage::requestReferences, this, &DocumentModule::referencesRequest);
+                connect(luaPage, &LuaPage::requestSemanticTokens, this, &DocumentModule::semanticTokensRequest);
+                connect(luaPage, &LuaPage::requestSignatureHelp, this, &DocumentModule::signatureHelpRequest);
+                connect(luaPage, &LuaPage::requestSpellCheck, this, &DocumentModule::requestSpellCheck);
+                connect(luaPage, &LuaPage::requestTypeDefinition, this, &DocumentModule::typeDefinitionRequest);
+                connect(luaPage, &LuaPage::showDiagnostic, m_codeAssistant, &CodeAssistant::diagnosticShow);
+                luaPage->diagnosticsNotification(m_diagnosticsHash[documentUrl]);
+            }
+            // pdf page
+            else if (suffix == "pdf") {
+                newPage = new PdfPage(m_config, documentUrl);
+                auto *pdfPage = qobject_cast<PdfPage *>(newPage);
+                pdfPage->propertySet(QVariantHash{
+                });
+            }
+            // text page
+            else {
+                newPage = new TextPage(m_config, documentUrl);
+                auto *textPage = qobject_cast<TextPage *>(newPage);
+                textPage->propertySet(QVariantHash{
+                    {"global", QVariant::fromValue(m_global)},
+                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
+                    {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
+                    {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},
+                    {"documentModuleSaveDialog", QVariant::fromValue(m_saveDialog)},
+                });
+                connect(textPage, &TextPage::isFocusedChanged, this, [this, textPage](const bool status) { documentFocus(textPage, status); });
+                connect(textPage, &TextPage::appendLog, this, &DocumentModule::appendLog);
+                connect(textPage, &TextPage::changeSelection, this, &DocumentModule::changeSelection);
+            }
         }
         // path disambiguation
         bool conflict = false;
         for (const auto &url: m_pageHash.keys()) {
             if (url.fileName() == documentUrl.fileName()) {
                 conflict = true;
-                auto *conflictPage = m_pageHash[url];
-                conflictPage->pathDisambiguation();
+                auto *page = m_pageHash[url];
+                page->pathDisambiguation();
             }
         }
-        if (conflict) {
-            newPage->pathDisambiguation();
-        }
+        if (conflict) newPage->pathDisambiguation();
         m_watcher->addPath(documentUrl.toLocalFile());
         m_pageHash[documentUrl] = newPage;
         if (m_focusedUrl.isEmpty()) {
@@ -235,7 +256,7 @@ void DocumentModule::documentReload(const QString &documentPath) {
     const auto documentUrl = QUrl::fromLocalFile(documentPath);
     if (m_pageHash.contains(documentUrl)) {
         auto *basePage = m_pageHash.value(documentUrl);
-        connect(basePage, &BasePage::destroyed, this, [this, documentUrl]() { documentOpen(documentUrl); });
+        connect(basePage, &BasePage::destroyed, this, [this, documentUrl] { documentOpen(documentUrl); });
         basePage->documentClose(true);
     }
 }

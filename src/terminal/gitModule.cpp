@@ -61,7 +61,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_errorDialog = qvariant_cast<QObject *>(objects["gitModuleErrorDialog"]);
 
     m_widget->rootContext()->setContextProperty("gitModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("branchMenu", objects["gitModuleBranchMenu"]);
     m_widget->rootContext()->setContextProperty("logMenu", objects["gitModuleLogMenu"]);
@@ -79,7 +79,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_commitWindow->setTransientParent(g_mainWindow->windowHandle());
 
     m_commitWindow->rootContext()->setContextProperty("gitModule", this);
-    m_commitWindow->rootContext()->setContextProperty("global", objects["global"]);
+    m_commitWindow->rootContext()->setContextProperty("global", g_globalManager);
     m_commitWindow->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_commitWindow->rootContext()->setContextProperty("workingTreeModel", m_workingTreeModel);
     m_commitWindow->rootContext()->setContextProperty("indexModel", m_indexModel);
@@ -93,7 +93,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_pushWindow->setTransientParent(g_mainWindow->windowHandle());
 
     m_pushWindow->rootContext()->setContextProperty("gitModule", this);
-    m_pushWindow->rootContext()->setContextProperty("global", objects["global"]);
+    m_pushWindow->rootContext()->setContextProperty("global", g_globalManager);
     m_pushWindow->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_pushWindow->rootContext()->setContextProperty("commitModel", m_commitModel);
     m_pushWindow->rootContext()->setContextProperty("showModel", m_showModel_);
@@ -560,7 +560,7 @@ void GitModule::processFinished(const int exitcode) {
                     const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
                     auto documentUrl = QUrl::fromLocalFile(documentPath);
                     QUrlQuery query{};
-                    query.addQueryItem("mode", "diff");
+                    query.addQueryItem("type", "conflict");
                     documentUrl.setQuery(query);
                     emit openDocument(documentUrl);
                 }

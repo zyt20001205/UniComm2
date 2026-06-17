@@ -4,10 +4,10 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QStandardItemModel>
 #include <QTimer>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 WatchModule::WatchModule()
@@ -31,7 +31,7 @@ WatchModule::~WatchModule() {
 
 void WatchModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("watchModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_widget->rootContext()->setContextProperty("expressionMenu", qvariant_cast<QObject *>(objects["watchModuleExpressionMenu"]));
     m_widget->rootContext()->setContextProperty("valueMenu", qvariant_cast<QObject *>(objects["watchModuleValueMenu"]));

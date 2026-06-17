@@ -7,9 +7,9 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QStandardItemModel>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "document/documentModule.h"
 #include "llm/module/mcpModule.h"
 #include "llm/module/toolsModule.h"
@@ -65,7 +65,7 @@ void LLMModule::propertySet(const QVariantHash &objects) {
     m_modelMenu = qvariant_cast<QObject *>(objects["llmModuleModelMenu"]);
 
     m_widget->rootContext()->setContextProperty("llmModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("renameDialog", objects["llmModuleRenameDialog"]);
     m_widget->rootContext()->setContextProperty("topicStandardItemModel", m_topicStandardItemModel);
     m_widget->rootContext()->setContextProperty("mcpMenu", m_mcpMenu);

@@ -6,6 +6,7 @@
 #include <Scintilla.h>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 StatusModule::StatusModule(QWidget *parent)
@@ -19,7 +20,7 @@ StatusModule::~StatusModule() {
 }
 
 void StatusModule::propertySet(const QVariantHash &objects) {
-    rootContext()->setContextProperty("global", objects["global"]);
+    rootContext()->setContextProperty("global", g_globalManager);
 
     rootContext()->setContextProperty("statusModule", this);
     rootContext()->setContextProperty("workspaceName", g_workspaceUrl.fileName());

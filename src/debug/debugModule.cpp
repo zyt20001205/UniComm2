@@ -9,6 +9,7 @@
 #include <QStringListModel>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "runtime/luaInterpreter.h"
 #include "document/documentModule.h"
 
@@ -29,7 +30,7 @@ void DebugModule::propertySet(const QVariantHash &objects) {
     m_errorDialog = qvariant_cast<QObject *>(objects["debugModuleErrorDialog"]);
 
     m_widget->rootContext()->setContextProperty("debugModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
     m_widget->rootContext()->setContextProperty("stringListModel", m_stringListModel);
     m_widget->rootContext()->setContextProperty("standardItemModel", new QStandardItemModel());

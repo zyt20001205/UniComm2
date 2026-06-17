@@ -2,6 +2,9 @@
 
 #include <QQmlContext>
 
+#include "globals.h"
+#include "core/globalManager.h"
+
 // public
 SearchWidget::SearchWidget(QWidget *parent)
     : QQuickWidget(parent) {
@@ -11,7 +14,7 @@ SearchWidget::SearchWidget(QWidget *parent)
 
 void SearchWidget::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("searchWidget", this);
-    rootContext()->setContextProperty("global", objects["global"]);
+    rootContext()->setContextProperty("global", g_globalManager);
     rootContext()->setContextProperty("mainToolTip", qvariant_cast<QObject *>(objects["mainWindowToolTip"]));
 
     setResizeMode(SizeRootObjectToView);

@@ -36,7 +36,7 @@ void ExplorerModule::propertySet(const QVariantHash &objects) {
     const QModelIndex modelRootIndex = m_sortFilterProxyModel->mapFromSource(m_fileSystemModel->index(modelRootPath));
 
     m_widget->rootContext()->setContextProperty("explorerModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("mainToolTip", objects["mainWindowToolTip"]);
     m_widget->rootContext()->setContextProperty("fileMenu", objects["explorerModuleFileMenu"]);
     m_widget->rootContext()->setContextProperty("folderMenu", objects["explorerModuleFolderMenu"]);

@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "util/qtUtils.h"
 
 // public
@@ -27,7 +28,7 @@ void DiagnosticsModule::propertySet(const QVariantHash &objects) {
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Code"), tr("Data"), tr("Message")};
 
     m_widget->rootContext()->setContextProperty("diagnosticsModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("diagnosticMenu", qvariant_cast<QObject *>(objects["diagnosticsModuleDiagnosticMenu"]));
     m_widget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
 

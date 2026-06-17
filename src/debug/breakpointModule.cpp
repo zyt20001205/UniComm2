@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 BreakpointModule::BreakpointModule()
@@ -32,7 +33,7 @@ BreakpointModule::~BreakpointModule() {
 
 void BreakpointModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("breakpointModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("lineMenu", qvariant_cast<QObject *>(objects["breakpointModuleLineMenu"]));
     m_widget->rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["breakpointModuleFileMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["breakpointModuleRootMenu"]));

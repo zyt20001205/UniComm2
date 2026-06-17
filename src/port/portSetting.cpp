@@ -15,12 +15,12 @@
 #include <QQuickWidget>
 #include <QScreenCapture>
 #include <QSerialPortInfo>
-#include <QStandardItemModel>
 #include <QVBoxLayout>
 #include <QVideoSink>
 #include <visa.h>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "util/cvUtils.h"
 
 // public
@@ -47,7 +47,7 @@ void PortSetting::propertySet(const QVariantHash &objects) {
     m_window->engine()->addImageProvider("capture", m_imageProvider);
 
     m_window->rootContext()->setContextProperty("portSetting", this);
-    m_window->rootContext()->setContextProperty("global", objects["global"]);
+    m_window->rootContext()->setContextProperty("global", g_globalManager);
     m_window->rootContext()->setContextProperty("serialPortStandardItemModel", m_serialPortStandardItemModel);
     m_window->rootContext()->setContextProperty("visaStandardItemModel", m_visaStandardItemModel);
     m_window->rootContext()->setContextProperty("localHostStandardItemModel", m_localHostStandardItemModel);

@@ -50,7 +50,6 @@ LuaPage::LuaPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
 void LuaPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_codeWidget->propertySet(QVariantHash{
-        {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
         {"breakpointModuleEditDialog", objects["breakpointModuleEditDialog"]},
         {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
@@ -58,7 +57,6 @@ void LuaPage::propertySet(const QVariantHash &objects) {
         {"documentModuleEditorMenu", objects["documentModuleEditorMenu"]}
     });
     m_symbolWidget->propertySet(QVariantHash{
-        {"global", objects["global"]},
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
 }

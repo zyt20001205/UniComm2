@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "runtime/luaInterpreter.h"
 #include "document/documentModule.h"
 
@@ -31,7 +32,7 @@ void ThreadpoolModule::propertySet(const QVariantHash &objects) {
     const QVariantList horizontalHeader = {"", tr("Source"), tr("Spawn Time"), tr("Thread ID")};
 
     m_widget->rootContext()->setContextProperty("threadpoolModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("threadMenu", qvariant_cast<QObject *>(objects["threadpoolModuleThreadMenu"]));
     m_widget->rootContext()->setContextProperty("horizontalHeader", horizontalHeader);
     m_widget->rootContext()->setContextProperty("standardItemModel", m_standardItemModel);

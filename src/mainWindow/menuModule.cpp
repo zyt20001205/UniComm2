@@ -4,6 +4,7 @@
 #include <QQuickItem>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 MenuModule::MenuModule(QWidget *parent)
@@ -20,7 +21,7 @@ MenuModule::~MenuModule() {
 
 void MenuModule::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("menuModule", this);
-    rootContext()->setContextProperty("global", objects["global"]);
+    rootContext()->setContextProperty("global", g_globalManager);
     rootContext()->setContextProperty("fileMenu", qvariant_cast<QObject *>(objects["menuModuleFileMenu"]));
     rootContext()->setContextProperty("editMenu", qvariant_cast<QObject *>(objects["menuModuleEditMenu"]));
     rootContext()->setContextProperty("viewMenu", qvariant_cast<QObject *>(objects["menuModuleViewMenu"]));

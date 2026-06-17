@@ -6,6 +6,7 @@
 #include <QStandardItemModel>
 
 #include "globals.h"
+#include "core/globalManager.h"
 
 // public
 DatabaseModule::DatabaseModule()
@@ -26,7 +27,7 @@ DatabaseModule::~DatabaseModule() {
 
 void DatabaseModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("databaseModule", this);
-    m_widget->rootContext()->setContextProperty("global", objects["global"]);
+    m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("editDialog", qvariant_cast<QObject *>(objects["databaseModuleEditDialog"]));
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["databaseModuleTableMenu"]));
     m_widget->rootContext()->setContextProperty("rootMenu", qvariant_cast<QObject *>(objects["databaseModuleRootMenu"]));

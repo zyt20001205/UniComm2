@@ -3,6 +3,8 @@
 #include <QQmlContext>
 #include <QQuickWidget>
 
+#include "core/globalManager.h"
+
 // public
 WelcomePage::WelcomePage()
     : DockWidget("welcome") ,
@@ -12,7 +14,7 @@ WelcomePage::WelcomePage()
 
 void WelcomePage::propertySet(const QVariantHash &objects) {
     m_welcomeWidget->rootContext()->setContextProperty("welcomePage", this);
-    m_welcomeWidget->rootContext()->setContextProperty("global", objects["global"]);
+    m_welcomeWidget->rootContext()->setContextProperty("global", g_globalManager);
 
     m_welcomeWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_welcomeWidget->setSource(QUrl("qrc:/qml/document/page/welcomePage.qml"));
