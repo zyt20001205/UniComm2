@@ -495,9 +495,9 @@ Item {
                             IconImage {
                                 anchors.centerIn: parent
                                 width: 16; height: 16
-                                source: model.decoration == "qrc:/icon/fileTypeFolder.svg" ?
-                                    expanded ? "qrc:/icon/fileTypeFolderOpen.svg" : "qrc:/icon/fileTypeFolder.svg"
-                                    : model.decoration
+                                source: !expanded ? model.decoration
+                                    : model.decoration == "qrc:/icon/fileTypeFolder.svg" ? "qrc:/icon/fileTypeFolderOpen.svg"
+                                        : model.decoration
                             }
                         }
 

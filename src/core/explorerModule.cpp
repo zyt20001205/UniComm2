@@ -31,6 +31,7 @@ ExplorerModule::~ExplorerModule() {
 void ExplorerModule::propertySet(const QVariantHash &objects) {
     const auto modelRootPath = g_workspaceUrl.toLocalFile();
     m_fileSystemModel->setRootPath(modelRootPath);
+    m_fileSystemModel->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden);
     m_sortFilterProxyModel->setSourceModel(m_fileSystemModel);
     const QModelIndex modelRootIndex = m_sortFilterProxyModel->mapFromSource(m_fileSystemModel->index(modelRootPath));
 
@@ -57,13 +58,6 @@ void ExplorerModule::propertyGet(const QVariantMap &objects) {
 
 void ExplorerModule::indexUpdate() const {
     m_process->start("git", {"status", "-uall", "--porcelain", "--ignored"});
-}
-
-void ExplorerModule::toggleHidden() const {
-    auto filters = m_fileSystemModel->filter();
-    if (filters.testFlag(QDir::Hidden)) filters &= ~QDir::Hidden;
-    else filters |= QDir::Hidden;
-    m_fileSystemModel->setFilter(filters);
 }
 
 void ExplorerModule::scriptRun(const QUrl &documentUrl) {

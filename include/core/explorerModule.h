@@ -27,8 +27,6 @@ public:
 
     void indexUpdate() const;
 
-    Q_INVOKABLE void toggleHidden() const;
-
     Q_INVOKABLE void scriptRun(const QUrl &documentUrl);
 
     Q_INVOKABLE void scriptDebug(const QUrl &documentUrl);

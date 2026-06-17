@@ -2115,14 +2115,6 @@ Item {
         MenuSeparator {
         }
 
-        MenuItem {
-            text: qsTr("Toggle hidden")
-            icon.source: "qrc:/icon/hide.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: explorerModule.toggleHidden()
-        }
-
         Menu {
             title: qsTr("Folding")
             icon.source: "qrc:/icon/fold.svg"
@@ -2286,14 +2278,6 @@ Item {
         MenuSeparator {
         }
 
-        MenuItem {
-            text: qsTr("Toggle hidden")
-            icon.source: "qrc:/icon/hide.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: explorerModule.toggleHidden()
-        }
-
         Menu {
             title: qsTr("Folding")
             icon.source: "qrc:/icon/fold.svg"
@@ -2417,14 +2401,6 @@ Item {
         }
 
         MenuSeparator {
-        }
-
-        MenuItem {
-            text: qsTr("Toggle hidden")
-            icon.source: "qrc:/icon/hide.svg"
-            icon.width: 16; icon.height: 16
-
-            onTriggered: explorerModule.toggleHidden()
         }
 
         Menu {

@@ -256,6 +256,8 @@ QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
     if (suffix == "lua") return QUrl("qrc:/icon/fileTypeLua.svg");
     if (suffix == "pdf") return QUrl("qrc:/icon/fileTypePdf.svg");
     if (suffix == "txt") return QUrl("qrc:/icon/fileTypeTxt.svg");
+    if (fileInfo.isDir() && fileInfo.fileName() == ".git") return QUrl("qrc:/icon/fileTypeFolderGit.svg");
+    if (fileInfo.isDir() && fileInfo.fileName() == ".idea") return QUrl("qrc:/icon/fileTypeFolderIntellij.svg");
     if (fileInfo.isDir()) return QUrl("qrc:/icon/fileTypeFolder.svg");
     return QUrl("qrc:/icon/fileTypeDefault.svg");
 }
