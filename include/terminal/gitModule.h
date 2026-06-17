@@ -95,6 +95,8 @@ signals:
 
     void appendBackground(int &taskid, const QString &name, const std::function<void()> &callback);
 
+    void openDocument(const QUrl &documentUrl);
+
 private:
     void processEnqueue(int command, const QStringList &arguments);
 

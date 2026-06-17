@@ -10,6 +10,7 @@
 #include <QQuickView>
 #include <QQuickWidget>
 #include <QTextDocument>
+#include <QUrlQuery>
 
 #include "core/globalManager.h"
 #include "util/uniCast.h"
@@ -557,8 +558,11 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Diff: {
                 for (const auto &path: QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts)) {
                     const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
-                    const auto &documentUrl = QUrl::fromLocalFile(documentPath);
-                    qDebug() << documentUrl;
+                    auto documentUrl = QUrl::fromLocalFile(documentPath);
+                    QUrlQuery query{};
+                    query.addQueryItem("mode", "diff");
+                    documentUrl.setQuery(query);
+                    emit openDocument(documentUrl);
                 }
             }
             break;

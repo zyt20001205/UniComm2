@@ -5,6 +5,7 @@
 #include <QShortcut>
 #include <QTextBrowser>
 #include <QTimer>
+#include <QUrlQuery>
 
 #include "globals.h"
 #include "analysis/codeAssistant.h"
@@ -31,7 +32,7 @@ DocumentModule::DocumentModule(QWidget *parent)
     connect(m_watcher, &QFileSystemWatcher::fileChanged, this, &DocumentModule::documentReload);
     m_watcherTimer->setSingleShot(true);
     m_watcherTimer->setInterval(1000);
-    connect(m_watcherTimer, &QTimer::timeout, this, [this] {m_watcher->blockSignals(false);});
+    connect(m_watcherTimer, &QTimer::timeout, this, [this] { m_watcher->blockSignals(false); });
     qApp->installEventFilter(m_codeAssistant);
     connect(m_welcomePage, &WelcomePage::openWorkspace, this, &DocumentModule::openWorkspace);
     connect(this, &DocumentModule::responseCodeAction, m_codeAssistant, &CodeAssistant::codeActionShow);
@@ -111,6 +112,12 @@ void DocumentModule::scriptFontSave(const QJsonObject &fontConfigScript) {
 void DocumentModule::documentOpen(const QUrl &documentUrl) {
     // open page
     if (!m_pageHash.contains(documentUrl)) {
+        if (documentUrl.hasQuery()) {
+            const auto &query = QUrlQuery(documentUrl);
+            const auto &mode = query.queryItemValue("mode");
+            qDebug() << mode;
+            return;
+        }
         const auto documentPath = documentUrl.toLocalFile();
         const QFileInfo documentInfo(documentPath);
         const auto suffix = documentInfo.suffix();
@@ -228,7 +235,7 @@ void DocumentModule::documentReload(const QString &documentPath) {
     const auto documentUrl = QUrl::fromLocalFile(documentPath);
     if (m_pageHash.contains(documentUrl)) {
         auto *basePage = m_pageHash.value(documentUrl);
-        connect(basePage, &BasePage::destroyed, this, [this, documentUrl](){documentOpen(documentUrl);});
+        connect(basePage, &BasePage::destroyed, this, [this, documentUrl]() { documentOpen(documentUrl); });
         basePage->documentClose(true);
     }
 }
@@ -357,8 +364,9 @@ void DocumentModule::textSet(const QUrl &documentUrl, const QString &text, const
 void DocumentModule::indicatorFill(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter,
                                    const int time) {
     if (!m_pageHash.contains(documentUrl)) documentOpen(documentUrl);
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl))) luaPage->handler()->indicatorFill(
-        type, startLine, startCharacter, endLine, endCharacter, time);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(documentUrl)))
+        luaPage->handler()->indicatorFill(
+            type, startLine, startCharacter, endLine, endCharacter, time);
 }
 
 void DocumentModule::indicatorClear(const QUrl &documentUrl, const int type, const int startLine, const int startCharacter, const int endLine, const int endCharacter) const {
