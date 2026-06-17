@@ -62,6 +62,10 @@ public:
 
     Q_INVOKABLE void gitMerge(const QString &name);
 
+    void gitMergeAbort();
+
+    Q_INVOKABLE void gitDiff();
+
     Q_INVOKABLE void gitCommitPre();
 
     void gitStatus();
@@ -88,6 +92,8 @@ public:
 
 signals:
     void updateIndex();
+
+    void appendBackground(const QString &name, const std::function<void()> &callback);
 
 private:
     void processEnqueue(int command, const QStringList &arguments);
@@ -148,6 +154,8 @@ private:
             ShowFile,
             Fetch,
             Merge,
+            MergeAbort,
+            Diff,
             Status,
             Commit,
             Upstream,
@@ -211,7 +219,9 @@ public:
     }
 
     void hashSet(const QString &hash) {
+        if (m_hash == hash) return;
         m_hash = hash;
+        emit hashChanged();
     }
 
 signals:

@@ -533,6 +533,7 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);
+    connect(m_gitModule, &GitModule::appendBackground, m_statusModule, &StatusModule::backgroundAppend);
 
     connect(m_menuModule, &MenuModule::setTheme, this, &MainWindow::themeSet);
 

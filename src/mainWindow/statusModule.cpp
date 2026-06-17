@@ -9,7 +9,8 @@
 
 // public
 StatusModule::StatusModule(QWidget *parent)
-    : QQuickWidget(parent) {
+    : QQuickWidget(parent),
+      m_backgroundModel(new BackgroundModel(this)) {
 }
 
 StatusModule::~StatusModule() {
@@ -23,6 +24,7 @@ void StatusModule::propertySet(const QVariantHash &objects) {
     rootContext()->setContextProperty("statusModule", this);
     rootContext()->setContextProperty("workspaceName", g_workspaceUrl.fileName());
     rootContext()->setContextProperty("eolModeMenu", qvariant_cast<QObject *>(objects["statusModuleEolModeMenu"]));
+    rootContext()->setContextProperty("backgroundModel", m_backgroundModel);
     setResizeMode(SizeRootObjectToView);
     setSource(QUrl("qrc:/qml/mainWindow/statusModule.qml"));
     m_root = rootObject();
@@ -34,6 +36,36 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_codePageButton = qvariant_cast<QObject *>(objects["codePageButton"]);
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
+
+void StatusModule::backgroundAppend(const QString &name, const std::function<void()> &callback) {
+    const int taskid = m_taskid++;
+    if (callback) {
+        auto *item = new QStandardItem(name); // NOLINT
+        item->setData(taskid, Qt::UserRole + 1);
+        m_backgroundModel->appendRow(item);
+        const auto taskCount = m_backgroundModel->rowCount();
+        if (taskCount == 1) {
+            m_backgroundModel->titleSet(name);
+            m_backgroundModel->taskidSet(taskid);
+        } else {
+            m_backgroundModel->titleSet(tr("%1 tasks running.").arg(QString::number(taskCount)));
+            m_backgroundModel->taskidSet(-1);
+        }
+        m_callbacks.insert(taskid, callback);
+    }
+}
+
+void StatusModule::backgroundAbort(const int taskid) {
+    for (int i = 0; i < m_backgroundModel->rowCount(); ++i) {
+        if (m_backgroundModel->item(i, 0)->data(Qt::UserRole + 1).toInt() == taskid) {
+            m_backgroundModel->removeRow(i);
+            break;
+        }
+    }
+    const auto callback = m_callbacks.take(taskid);
+    if (callback) callback();
+}
+
 
 void StatusModule::documentGoto(const QUrl &documentUrl) {
     emit gotoDocument(documentUrl);
@@ -88,4 +120,11 @@ void StatusModule::threadRefresh(const int run, const int debug) const {
     } else {
         m_threadButton->setProperty("text", QString(tr("Run: %1 Debug: %2")).arg(QString::number(run), QString::number(debug)));
     }
+}
+
+// public
+QHash<int, QByteArray> BackgroundModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "taskid";
+    return roles;
 }

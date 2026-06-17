@@ -6,6 +6,7 @@ import QtQuick.Layouts
 Item {
     id: rootItem
     height: 24
+    property bool modelVisible: backgroundModel.rowCount() > 0
 
     Rectangle {
         anchors.fill: parent
@@ -62,6 +63,31 @@ Item {
 
         Item {
             Layout.fillWidth: true
+        }
+
+        RowLayout {
+            visible: modelVisible
+
+            Label {
+                text: backgroundModel.title
+            }
+
+            ProgressBar {
+                indeterminate: true
+                Layout.preferredWidth: 160
+            }
+
+            Button {
+                visible: taskid !== -1
+                leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
+                flat: true
+                icon.source: "qrc:/icon/dismiss.svg"
+                icon.width: 12; icon.height: 12
+                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                property int taskid: backgroundModel.taskid
+
+                onClicked: statusModule.backgroundAbort(taskid)
+            }
         }
 
         Button {
@@ -132,14 +158,20 @@ Item {
         }
     }
 
-    Component.onCompleted: {
-        const objects = {
-            "positionButton": positionButton,
-            "eolModeButton": eolModeButton,
-            "codePageButton": codePageButton,
-            "threadButton": threadButton
-        };
-        statusModule.propertyGet(objects)
+    Connections {
+        target: backgroundModel
+
+        function onRowsInserted() {
+            modelVisible = true
+        }
+
+        function onRowsRemoved() {
+            modelVisible = backgroundModel.rowCount() > 0
+        }
+
+        function onModelReset() {
+            modelVisible = false
+        }
     }
 
     function documentPathLoad(pathList) {
@@ -149,5 +181,15 @@ Item {
                 "text": path
             });
         }
+    }
+
+    Component.onCompleted: {
+        const objects = {
+            "positionButton": positionButton,
+            "eolModeButton": eolModeButton,
+            "codePageButton": codePageButton,
+            "threadButton": threadButton
+        };
+        statusModule.propertyGet(objects)
     }
 }
