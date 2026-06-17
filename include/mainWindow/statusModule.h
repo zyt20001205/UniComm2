@@ -18,7 +18,7 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void backgroundAppend(const QString &name, const std::function<void()> &callback);
+    void backgroundAppend(int &taskid, const QString &name, const std::function<void()> &callback);
 
     Q_INVOKABLE void backgroundAbort(int taskid);
 
@@ -83,7 +83,7 @@ signals:
 
 private:
     QString m_title{};
-    int m_taskid{};
+    int m_taskid = 0;
 };
 
 #endif //UNICOMM_STATUSMODULE_H

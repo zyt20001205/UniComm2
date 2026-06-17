@@ -209,7 +209,9 @@ void GitModule::gitFetch() {
 
 void GitModule::gitMerge(const QString &name) {
     processEnqueue(GitCommand::Merge, QStringList{"merge", name});
-    emit appendBackground(tr("Merging branch %1").arg(name), [this]{this->gitMergeAbort(); });
+    int taskid = -1;
+    emit appendBackground(taskid, tr("Merging branch %1").arg(name), [this]{this->gitMergeAbort(); });
+    qDebug() << taskid;
 }
 
 void GitModule::gitMergeAbort() {

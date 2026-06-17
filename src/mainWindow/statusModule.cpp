@@ -37,8 +37,8 @@ void StatusModule::propertyGet(const QVariantMap &objects) {
     m_threadButton = qvariant_cast<QObject *>(objects["threadButton"]);
 }
 
-void StatusModule::backgroundAppend(const QString &name, const std::function<void()> &callback) {
-    const int taskid = m_taskid++;
+void StatusModule::backgroundAppend(int &taskid, const QString &name, const std::function<void()> &callback) {
+    taskid = m_taskid++;
     if (callback) {
         auto *item = new QStandardItem(name); // NOLINT
         item->setData(taskid, Qt::UserRole + 1);

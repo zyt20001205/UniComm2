@@ -93,7 +93,7 @@ public:
 signals:
     void updateIndex();
 
-    void appendBackground(const QString &name, const std::function<void()> &callback);
+    void appendBackground(int &taskid, const QString &name, const std::function<void()> &callback);
 
 private:
     void processEnqueue(int command, const QStringList &arguments);
