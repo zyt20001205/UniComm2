@@ -60,6 +60,8 @@ public:
 
     Q_INVOKABLE void gitFetch();
 
+    Q_INVOKABLE void gitMerge(const QString &name);
+
     Q_INVOKABLE void gitCommitPre();
 
     void gitStatus();
@@ -130,43 +132,50 @@ private:
     CommitModel *m_commitModel{};
     ShowModel *m_showModel_{};
 
-    enum GitCommand {
-        Null,
-        Init,
-        Watch,
-        Branch,
-        Switch,
-        Create,
-        Rename,
-        Delete,
-        Log,
-        Reset,
-        Show,
-        Diff,
-        Fetch,
-        Status,
-        Commit,
-        Upstream,
-        Ahead,
-        Diff_,
-        Show_,
-        Push,
-        Add,
-        Restore
+    struct GitCommand {
+        enum {
+            Null,
+            Init,
+            Watch,
+            Branch,
+            Switch,
+            Create,
+            Rename,
+            Delete,
+            Log,
+            Reset,
+            Show,
+            Diff,
+            Fetch,
+            Merge,
+            Status,
+            Commit,
+            Upstream,
+            Ahead,
+            Diff_,
+            Show_,
+            Push,
+            Add,
+            Restore
+        };
     };
 
-    enum GitResetMode {
-        Mixed,
-        Soft,
-        Hard,
-        Merge,
-        Keep
+    struct ResetMode {
+        enum {
+            Mixed,
+            Soft,
+            Hard,
+            Merge,
+            Keep
+        };
     };
 
-    enum GitRestoreMode {
-        Worktree,
-        Staged,
-        Both
+    struct RestoreMode {
+        enum {
+            Worktree,
+            Staged,
+            Both
+        };
     };
 };
 

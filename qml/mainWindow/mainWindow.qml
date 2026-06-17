@@ -2820,6 +2820,31 @@ Item {
                 }
             }
         }
+
+        MenuSeparator {
+        }
+
+        MenuItem {
+            text: qsTr("Merge")
+            enabled: !gitModuleBranchMenu.current
+            icon.source: "qrc:/icon/gitMerge.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                gitModule.gitMerge(gitModuleBranchMenu.name)
+            }
+        }
+
+        MenuItem {
+            text: qsTr("Rebase")
+            enabled: !gitModuleBranchMenu.current
+            icon.source: "qrc:/icon/gitMerge.svg"
+            icon.width: 16; icon.height: 16
+
+            onTriggered: {
+                // gitModule.gitMerge(gitModuleBranchMenu.name)
+            }
+        }
     }
 
     Menu {

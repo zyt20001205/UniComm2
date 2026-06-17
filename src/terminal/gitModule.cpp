@@ -136,75 +136,80 @@ bool GitModule::gitGet() {
 }
 
 void GitModule::gitInit() {
-    processEnqueue(Init, QStringList{"init"});
+    processEnqueue(GitCommand::Init, QStringList{"init"});
 }
 
 void GitModule::gitWatch() {
     const auto &files = m_branchWatcher->files();
     if (!files.isEmpty()) m_branchWatcher->removePaths(files);
-    processEnqueue(Watch, QStringList{"rev-parse", "--absolute-git-dir"});
+    processEnqueue(GitCommand::Watch, QStringList{"rev-parse", "--absolute-git-dir"});
 }
 
 // public: branch
 void GitModule::gitBranch() {
-    processEnqueue(Branch, QStringList{"branch", "-avv"});
+    processEnqueue(GitCommand::Branch, QStringList{"branch", "-avv"});
 }
 
 void GitModule::gitSwitch(const QString &name) {
-    processEnqueue(Switch, QStringList{"switch", name});
+    processEnqueue(GitCommand::Switch, QStringList{"switch", name});
 }
 
 void GitModule::gitCreate(const QString &src, const QString &dst, const bool _switch) {
     QStringList arguments{};
     if (_switch) arguments = QStringList{"switch", "-c", dst, src};
     else arguments = QStringList{"branch", dst, src};
-    processEnqueue(Create, arguments);
+    processEnqueue(GitCommand::Create, arguments);
 }
 
 void GitModule::gitRename(const QString &src, const QString &dst) {
-    processEnqueue(Rename, QStringList{"branch", "-m", src, dst});
+    processEnqueue(GitCommand::Rename, QStringList{"branch", "-m", src, dst});
 }
 
 void GitModule::gitDelete(const QString &name) {
-    processEnqueue(Delete, QStringList{"branch", "-D", name});
+    processEnqueue(GitCommand::Delete, QStringList{"branch", "-D", name});
 }
 
 void GitModule::gitLog() {
     if (m_branch.isEmpty()) return;
-    processEnqueue(Log, QStringList{"log", m_branch, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
+    processEnqueue(GitCommand::Log, QStringList{"log", m_branch, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
 }
 
 void GitModule::gitReset(const QString &hash, const int mode) {
     QString _mode{};
     switch (mode) {
-        case Mixed: _mode = "--mixed";
+        case ResetMode::Mixed: _mode = "--mixed";
             break;
-        case Soft: _mode = "--soft";
+        case ResetMode::Soft: _mode = "--soft";
             break;
-        case Hard: _mode = "--hard";
+        case ResetMode::Hard: _mode = "--hard";
             break;
-        case Merge: _mode = "--merge";
+        case ResetMode::Merge: _mode = "--merge";
             break;
-        case Keep: _mode = "--keep";
+        case ResetMode::Keep: _mode = "--keep";
             break;
         default: return;
     }
-    processEnqueue(Reset, QStringList{"reset", hash, _mode});
+    processEnqueue(GitCommand::Reset, QStringList{"reset", hash, _mode});
 }
 
 void GitModule::gitShow(const QString &hash) {
-    processEnqueue(Show, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
+    processEnqueue(GitCommand::Show, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
 void GitModule::gitDiff(const QString &hash, const QUrl &documentUrl) {
     const auto documentPath = documentUrl.toLocalFile();
     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    processEnqueue(Diff, QStringList{"show", hash, "--format=", relativePath});
+    processEnqueue(GitCommand::Diff, QStringList{"show", hash, "--format=", relativePath});
 }
 
 void GitModule::gitFetch() {
-    processEnqueue(Fetch, QStringList{"fetch"});
+    processEnqueue(GitCommand::Fetch, QStringList{"fetch"});
+}
+
+void GitModule::gitMerge(const QString &name) {
+    processEnqueue(GitCommand::Commit, QStringList{"merge", name});
+    // processEnqueue(GitCommand::Commit, QStringList{"merge", "--quiet", name});
 }
 
 // public: commit
@@ -216,12 +221,12 @@ void GitModule::gitCommitPre() {
 }
 
 void GitModule::gitStatus() {
-    processEnqueue(Status, QStringList{"status", "-uall", "--porcelain"});
+    processEnqueue(GitCommand::Status, QStringList{"status", "-uall", "--porcelain"});
 }
 
 void GitModule::gitCommit(const QString &subject) {
     m_commitWindow->close();
-    processEnqueue(Commit, QStringList{"commit", "-m", subject});
+    processEnqueue(GitCommand::Commit, QStringList{"commit", "-m", subject});
 }
 
 // public: push
@@ -232,23 +237,23 @@ void GitModule::gitPushPre() {
 }
 
 void GitModule::gitUpstream() {
-    processEnqueue(Upstream, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
+    processEnqueue(GitCommand::Upstream, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
 }
 
 void GitModule::gitAhead() {
-    processEnqueue(Ahead, QStringList{"log", "@{upstream}..HEAD", "-z", "--pretty=format:%h%x1e%s"});
+    processEnqueue(GitCommand::Ahead, QStringList{"log", "@{upstream}..HEAD", "-z", "--pretty=format:%h%x1e%s"});
 }
 
 void GitModule::gitDiff_() {
-    processEnqueue(Diff_, QStringList{"diff", "--name-status", "@{upstream}..HEAD"});
+    processEnqueue(GitCommand::Diff_, QStringList{"diff", "--name-status", "@{upstream}..HEAD"});
 }
 
 void GitModule::gitShow_(const QString &hash) {
-    processEnqueue(Show_, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
+    processEnqueue(GitCommand::Show_, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
 void GitModule::gitPush() {
-    processEnqueue(Push, QStringList{"push"});
+    processEnqueue(GitCommand::Push, QStringList{"push"});
 }
 
 // public: file
@@ -262,17 +267,17 @@ void GitModule::gitAdd(const QUrl &documentUrl) {
         const auto relativePath = workspaceDir.relativeFilePath(documentPath);
         arguments = QStringList{"add", documentPath};
     }
-    processEnqueue(Add, arguments);
+    processEnqueue(GitCommand::Add, arguments);
 }
 
 void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
     QStringList arguments{"restore"};
     switch (mode) {
-        case Worktree: arguments << "--worktree";
+        case RestoreMode::Worktree: arguments << "--worktree";
             break;
-        case Staged: arguments << "--staged";
+        case RestoreMode::Staged: arguments << "--staged";
             break;
-        case Both: arguments << "--worktree" << "--staged";
+        case RestoreMode::Both: arguments << "--worktree" << "--staged";
             break;
         default: return;
     }
@@ -284,7 +289,7 @@ void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
         const auto relativePath = workspaceDir.relativeFilePath(documentPath);
         arguments << documentPath;
     }
-    processEnqueue(Restore, arguments);
+    processEnqueue(GitCommand::Restore, arguments);
 }
 
 void GitModule::gitIgnore(const QUrl &documentUrl, const bool status) {
@@ -355,7 +360,7 @@ void GitModule::processFinished(const int exitcode) {
     const auto output = m_process->readAllStandardOutput();
     const auto error = m_process->readAllStandardError();
     const auto command = m_command;
-    m_command = Null;
+    m_command = GitCommand::Null;
 
     if (exitcode != 0) {
         m_errorDialog->setProperty("title", "Git command failed");
@@ -366,7 +371,7 @@ void GitModule::processFinished(const int exitcode) {
     }
 
     switch (command) {
-        case Watch: {
+        case GitCommand::Watch: {
             const auto &gitPath = QString::fromLocal8Bit(output).trimmed();
             const auto &gitDir = QDir(gitPath);
 
@@ -382,7 +387,7 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case Branch: {
+        case GitCommand::Branch: {
             m_branchModel->clear();
             auto *localItem = new QStandardItem(tr("Local")); // NOLINT
             localItem->setData("local", Qt::UserRole + 1);
@@ -422,7 +427,7 @@ void GitModule::processFinished(const int exitcode) {
             QMetaObject::invokeMethod(m_root, "branchExpand");
         }
         break;
-        case Log: {
+        case GitCommand::Log: {
             m_logModel->clear();
             QHash<QString, QPoint> nodeHash{};
             QList<QStringList> parentRows{};
@@ -475,7 +480,7 @@ void GitModule::processFinished(const int exitcode) {
             m_canvas->setProperty("laneCount", qMax(laneCount, 1));
         }
         break;
-        case Show: {
+        case GitCommand::Show: {
             const auto param = output.split('\x1e');
             if (param.size() != 6) break;
             const auto &hash = QString::fromLocal8Bit(param[0].trimmed());
@@ -541,11 +546,11 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case Diff: {
+        case GitCommand::Diff: {
             qDebug() << output;
         }
         break;
-        case Status: {
+        case GitCommand::Status: {
             m_workingTreeModel->clear();
             m_indexModel->clear();
             QHash<QString, QStandardItem *> workingTreeRoots{};
@@ -631,12 +636,12 @@ void GitModule::processFinished(const int exitcode) {
             QMetaObject::invokeMethod(m_commitRoot, "indexExpand");
         }
         break;
-        case Upstream: {
+        case GitCommand::Upstream: {
             m_commitModel->clear();
             m_commitModel->appendRow(new QStandardItem("->" + QString::fromLocal8Bit(output)));
         }
         break;
-        case Ahead: {
+        case GitCommand::Ahead: {
             if (m_commitModel->rowCount() <= 0) break;
             auto *root = m_commitModel->item(0, 0);
             for (const auto &value: output.split('\0')) {
@@ -650,7 +655,7 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case Diff_: {
+        case GitCommand::Diff_: {
             m_showModel_->clear();
             QHash<QString, QStandardItem *> roots{};
             const auto &changes = QString::fromUtf8(output).split('\n', Qt::SkipEmptyParts);
@@ -707,7 +712,7 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case Show_: {
+        case GitCommand::Show_: {
             const auto param = output.split('\x1e');
             if (param.size() != 6) break;
             m_subjectLabel_->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
@@ -775,38 +780,38 @@ void GitModule::processFinished(const int exitcode) {
 
     // state machine
     switch (command) {
-        case Init: {
+        case GitCommand::Init: {
             g_globalManager->gitSet();
             emit updateIndex();
             gitWatch();
         }
         break;
-        case Watch: {
+        case GitCommand::Watch: {
             gitBranch();
         }
         break;
-        case Branch: {
+        case GitCommand::Branch: {
             gitLog();
         }
         break;
-        case Create:
-        case Rename:
-        case Delete: {
+        case GitCommand::Create:
+        case GitCommand::Rename:
+        case GitCommand::Delete: {
             gitWatch();
         }
         break;
-        case Log: {
+        case GitCommand::Log: {
             if (m_logModel->rowCount() > 0) {
                 const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
                 gitShow(hash);
             }
         }
         break;
-        case Upstream: {
+        case GitCommand::Upstream: {
             gitAhead();
         }
         break;
-        case Ahead: {
+        case GitCommand::Ahead: {
             gitDiff_();
         }
         break;
