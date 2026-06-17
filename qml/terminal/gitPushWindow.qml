@@ -128,7 +128,7 @@ Item {
                             if (isTreeNode && hasChildren) {
                                 gitModule.gitDiff_()
                             } else {
-                                gitModule.gitShow_(model.hash)
+                                gitModule.gitShowCommit_(model.hash)
                             }
                         }
                     }
@@ -227,7 +227,9 @@ Item {
                                 IconImage {
                                     anchors.centerIn: parent
                                     width: 16; height: 16
-                                    source: model.decoration
+                                    source: model.decoration == "qrc:/icon/fileTypeFolder.svg" ?
+                                        expanded ? "qrc:/icon/fileTypeFolderOpen.svg" : "qrc:/icon/fileTypeFolder.svg"
+                                        : model.decoration
                                 }
                             }
 

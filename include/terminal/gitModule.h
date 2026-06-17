@@ -54,9 +54,9 @@ public:
 
     Q_INVOKABLE void gitReset(const QString &hash, int mode);
 
-    Q_INVOKABLE void gitShow(const QString &hash);
+    Q_INVOKABLE void gitShowCommit(const QString &hash);
 
-    Q_INVOKABLE void gitDiff(const QString &hash, const QUrl &documentUrl);
+    Q_INVOKABLE void gitShowFile(const QString &hash, const QUrl &documentUrl);
 
     Q_INVOKABLE void gitFetch();
 
@@ -76,7 +76,7 @@ public:
 
     Q_INVOKABLE void gitDiff_();
 
-    Q_INVOKABLE void gitShow_(const QString &hash);
+    Q_INVOKABLE void gitShowCommit_(const QString &hash);
 
     void gitPush();
 
@@ -144,8 +144,8 @@ private:
             Delete,
             Log,
             Reset,
-            Show,
-            Diff,
+            ShowCommit,
+            ShowFile,
             Fetch,
             Merge,
             Status,
@@ -153,7 +153,7 @@ private:
             Upstream,
             Ahead,
             Diff_,
-            Show_,
+            ShowCommit_,
             Push,
             Add,
             Restore

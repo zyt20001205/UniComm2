@@ -322,7 +322,7 @@ Item {
 
                     onTapped: {
                         tableView.selectedRow = row
-                        gitModule.gitShow(model.hash)
+                        gitModule.gitShowCommit(model.hash)
                     }
                 }
 
@@ -495,7 +495,9 @@ Item {
                             IconImage {
                                 anchors.centerIn: parent
                                 width: 16; height: 16
-                                source: model.decoration
+                                source: model.decoration == "qrc:/icon/fileTypeFolder.svg" ?
+                                    expanded ? "qrc:/icon/fileTypeFolderOpen.svg" : "qrc:/icon/fileTypeFolder.svg"
+                                    : model.decoration
                             }
                         }
 
@@ -565,7 +567,7 @@ Item {
 
                         onTapped: {
                             if (!(isTreeNode && hasChildren)) {
-                                gitModule.gitDiff(showModel.hash, model.documentUrl)
+                                gitModule.gitShowFile(showModel.hash, model.documentUrl)
                             }
                         }
                     }

@@ -124,7 +124,9 @@ Item {
                                     Image {
                                         anchors.centerIn: parent
                                         width: 16; height: 16
-                                        source: model.decoration
+                                        source: model.decoration == "qrc:/icon/fileTypeFolder.svg" ?
+                                            expanded ? "qrc:/icon/fileTypeFolderOpen.svg" : "qrc:/icon/fileTypeFolder.svg"
+                                            : model.decoration
                                     }
                                 }
 
@@ -432,7 +434,9 @@ Item {
                                     Image {
                                         anchors.centerIn: parent
                                         width: 16; height: 16
-                                        source: model.decoration
+                                        source: model.decoration == "qrc:/icon/fileTypeFolder.svg" ?
+                                            expanded ? "qrc:/icon/fileTypeFolderOpen.svg" : "qrc:/icon/fileTypeFolder.svg"
+                                            : model.decoration
                                     }
                                 }
 

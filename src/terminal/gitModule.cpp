@@ -192,15 +192,15 @@ void GitModule::gitReset(const QString &hash, const int mode) {
     processEnqueue(GitCommand::Reset, QStringList{"reset", hash, _mode});
 }
 
-void GitModule::gitShow(const QString &hash) {
-    processEnqueue(GitCommand::Show, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
+void GitModule::gitShowCommit(const QString &hash) {
+    processEnqueue(GitCommand::ShowCommit, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
-void GitModule::gitDiff(const QString &hash, const QUrl &documentUrl) {
+void GitModule::gitShowFile(const QString &hash, const QUrl &documentUrl) {
     const auto documentPath = documentUrl.toLocalFile();
     const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
     const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    processEnqueue(GitCommand::Diff, QStringList{"show", hash, "--format=", relativePath});
+    processEnqueue(GitCommand::ShowFile, QStringList{"show", hash, "--format=", relativePath});
 }
 
 void GitModule::gitFetch() {
@@ -208,8 +208,8 @@ void GitModule::gitFetch() {
 }
 
 void GitModule::gitMerge(const QString &name) {
-    processEnqueue(GitCommand::Commit, QStringList{"merge", name});
-    // processEnqueue(GitCommand::Commit, QStringList{"merge", "--quiet", name});
+    processEnqueue(GitCommand::Merge, QStringList{"merge", name});
+    // processEnqueue(GitCommand::Merge, QStringList{"merge", "--quiet", name});
 }
 
 // public: commit
@@ -248,8 +248,8 @@ void GitModule::gitDiff_() {
     processEnqueue(GitCommand::Diff_, QStringList{"diff", "--name-status", "@{upstream}..HEAD"});
 }
 
-void GitModule::gitShow_(const QString &hash) {
-    processEnqueue(GitCommand::Show_, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
+void GitModule::gitShowCommit_(const QString &hash) {
+    processEnqueue(GitCommand::ShowCommit_, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
 
 void GitModule::gitPush() {
@@ -480,7 +480,7 @@ void GitModule::processFinished(const int exitcode) {
             m_canvas->setProperty("laneCount", qMax(laneCount, 1));
         }
         break;
-        case GitCommand::Show: {
+        case GitCommand::ShowCommit: {
             const auto param = output.split('\x1e');
             if (param.size() != 6) break;
             const auto &hash = QString::fromLocal8Bit(param[0].trimmed());
@@ -546,7 +546,7 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case GitCommand::Diff: {
+        case GitCommand::ShowFile: {
             qDebug() << output;
         }
         break;
@@ -712,7 +712,7 @@ void GitModule::processFinished(const int exitcode) {
             }
         }
         break;
-        case GitCommand::Show_: {
+        case GitCommand::ShowCommit_: {
             const auto param = output.split('\x1e');
             if (param.size() != 6) break;
             m_subjectLabel_->setProperty("text", '(' + QString::fromLocal8Bit(param[0].trimmed()) + ')' + QString::fromLocal8Bit(param[1].trimmed()));
@@ -803,7 +803,7 @@ void GitModule::processFinished(const int exitcode) {
         case GitCommand::Log: {
             if (m_logModel->rowCount() > 0) {
                 const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
-                gitShow(hash);
+                gitShowCommit(hash);
             }
         }
         break;

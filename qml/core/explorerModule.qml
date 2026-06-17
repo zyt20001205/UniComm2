@@ -94,7 +94,9 @@ Item {
                     Image {
                         anchors.centerIn: parent
                         width: 20; height: 20
-                        source: model.source
+                        source: model.source == "qrc:/icon/fileTypeFolder.svg" ?
+                            expanded ? "qrc:/icon/fileTypeFolderOpen.svg" : "qrc:/icon/fileTypeFolder.svg"
+                            : model.source
                     }
                 }
 
