@@ -2,14 +2,15 @@
 
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QProcess>
 #include <QShortcut>
 #include <QTextBrowser>
 #include <QTimer>
-#include <QUrlQuery>
 
 #include "globals.h"
 #include "analysis/codeAssistant.h"
 #include "core/fileModule.h"
+#include "core/globalManager.h"
 #include "document/module/scintillaWidget.h"
 #include "document/page/imagePage.h"
 #include "document/page/luaPage.h"
@@ -115,25 +116,20 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) {
         BasePage *newPage{};
         // special page
-        if (documentUrl.hasQuery()) {
-            auto _documentUrl = documentUrl;
-            auto query = QUrlQuery(_documentUrl);
-            const auto &type = query.queryItemValue("type");
-            query.removeQueryItem("type");
-            _documentUrl.setQuery(query);
-            // conflict page
-            if (type == "conflict") {
+        if (g_globalManager->gitGet()) {
+            QProcess process{};
+            process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
+            process.start("git", {"diff", "--name-only", "--diff-filter=U", "--", documentUrl.toLocalFile()});
+            process.waitForFinished(300);
+            if (process.exitCode() == 0 && !process.readAllStandardOutput().isEmpty()) {
                 newPage = new ConflictPage(m_config, documentUrl);
                 auto *conflictPage = qobject_cast<ConflictPage *>(newPage);
                 conflictPage->propertySet(QVariantHash{
                 });
-            } else {
-                qDebug() << "unknown document type";
-                return;
             }
         }
         // normal page
-        else {
+        if (!newPage) {
             const auto documentPath = documentUrl.toLocalFile();
             const QFileInfo documentInfo(documentPath);
             const auto suffix = documentInfo.suffix();
@@ -265,24 +261,24 @@ void DocumentModule::permissionSet(const QUrl &documentUrl) const {
     if (m_pageHash.contains(documentUrl)) m_pageHash.value(documentUrl)->permissionGet();
 }
 
-QVariantHash DocumentModule::menuGet(const QString &name) {
+QVariantHash DocumentModule::menuLoad(const QString &name) {
     // TODO: text page
     if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(m_focusedUrl))) {
         if (name == "nav") {
-            auto menuSession = luaPage->menuGet(name);
+            auto menuSession = luaPage->menuLoad(name);
             menuSession.insert("prev", m_navigationHistory["index"].toInt() > 0);
             menuSession.insert("next", m_navigationHistory["index"].toInt() < m_navigationHistory["list"].toList().size() - 1);
             // qDebug() << menuSession["documentUrl"] << menuSession["line"] << menuSession["character"] << menuSession["navigation"];
             return menuSession;
         }
-        return luaPage->menuGet(name);
+        return luaPage->menuLoad(name);
     }
     return {};
 }
 
-void DocumentModule::menuRequest(const QString &request) const {
+void DocumentModule::menuCall(const QString &name) const {
     // TODO: text page
-    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(m_focusedUrl))) luaPage->menuRequest(request);
+    if (const auto *luaPage = qobject_cast<LuaPage *>(m_pageHash.value(m_focusedUrl))) luaPage->menuCall(name);
 }
 
 int DocumentModule::eolModeGet(const QUrl &documentUrl) const {

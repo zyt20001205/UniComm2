@@ -156,7 +156,7 @@ void CodeWidget::themeLoad(const int theme) const {
         });
 }
 
-QVariantHash CodeWidget::menuGet(const QString &name) const {
+QVariantHash CodeWidget::menuLoad(const QString &name) const {
     QVariantHash menuSession{};
     if (name == "edit") {
         menuSession = {
@@ -209,21 +209,21 @@ QVariantHash CodeWidget::menuGet(const QString &name) const {
     return menuSession;
 }
 
-void CodeWidget::menuRequest(const QString &request) const {
+void CodeWidget::menuCall(const QString &name) const {
     m_scintillaWidget->focusSet(true);
-    if (request == "undo") {
+    if (name == "undo") {
         m_scintillaWidget->undo();
-    } else if (request == "redo") {
+    } else if (name == "redo") {
         m_scintillaWidget->redo();
-    } else if (request == "cut") {
+    } else if (name == "cut") {
         m_scintillaWidget->cut();
-    } else if (request == "copy") {
+    } else if (name == "copy") {
         m_scintillaWidget->copy();
-    } else if (request == "paste") {
+    } else if (name == "paste") {
         m_scintillaWidget->paste();
-    } else if (request == "search") {
+    } else if (name == "search") {
         searchShow();
-    } else if (request == "replace") {
+    } else if (name == "replace") {
         replaceShow();
     }
 }

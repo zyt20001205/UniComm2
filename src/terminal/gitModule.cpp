@@ -10,7 +10,6 @@
 #include <QQuickView>
 #include <QQuickWidget>
 #include <QTextDocument>
-#include <QUrlQuery>
 
 #include "core/globalManager.h"
 #include "util/uniCast.h"
@@ -198,10 +197,8 @@ void GitModule::gitShowCommit(const QString &hash) {
 }
 
 void GitModule::gitShowFile(const QString &hash, const QUrl &documentUrl) {
-    const auto documentPath = documentUrl.toLocalFile();
-    const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-    const auto relativePath = workspaceDir.relativeFilePath(documentPath);
-    processEnqueue(GitCommand::ShowFile, QStringList{"show", hash, "--format=", relativePath});
+    const auto &documentPath = documentUrl.toLocalFile();
+    processEnqueue(GitCommand::ShowFile, QStringList{"show", hash, "--format=", documentPath});
 }
 
 void GitModule::gitFetch() {
@@ -273,9 +270,7 @@ void GitModule::gitAdd(const QUrl &documentUrl) {
     if (documentUrl.isEmpty()) {
         arguments = QStringList{"add", "."};
     } else {
-        const auto documentPath = documentUrl.toLocalFile();
-        const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-        const auto relativePath = workspaceDir.relativeFilePath(documentPath);
+        const auto &documentPath = documentUrl.toLocalFile();
         arguments = QStringList{"add", documentPath};
     }
     processEnqueue(GitCommand::Add, arguments);
@@ -296,8 +291,6 @@ void GitModule::gitRestore(const QUrl &documentUrl, const int mode) {
         arguments << ".";
     } else {
         const auto documentPath = documentUrl.toLocalFile();
-        const auto workspaceDir = QDir(g_workspaceUrl.toLocalFile());
-        const auto relativePath = workspaceDir.relativeFilePath(documentPath);
         arguments << documentPath;
     }
     processEnqueue(GitCommand::Restore, arguments);
@@ -559,9 +552,6 @@ void GitModule::processFinished(const int exitcode) {
                 for (const auto &path: QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts)) {
                     const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
                     auto documentUrl = QUrl::fromLocalFile(documentPath);
-                    QUrlQuery query{};
-                    query.addQueryItem("type", "conflict");
-                    documentUrl.setQuery(query);
                     emit openDocument(documentUrl);
                 }
             }

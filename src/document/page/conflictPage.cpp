@@ -5,30 +5,27 @@
 #include <QShortcut>
 
 #include "globals.h"
-#include "document/module/editorWidget.h"
+#include "document/module/conflictWidget.h"
 #include "document/module/scintillaWidget.h"
 
 // public
 ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
-      m_editorWidget(new EditorWidget(documentConfig, documentUrl, this)) {
-    setWidget(m_editorWidget);
-    connect(m_editorWidget, &EditorWidget::appendLog, this, &ConflictPage::appendLog);
-    connect(m_editorWidget, &EditorWidget::changeSavepoint, this, &ConflictPage::savepointChange);
-    connect(m_editorWidget, &EditorWidget::changeSelection, this, &ConflictPage::changeSelection);
+      m_conflictWidget(new ConflictWidget(documentConfig, documentUrl, this)) {
+    setWidget(m_conflictWidget);
+    connect(m_conflictWidget, &ConflictWidget::appendLog, this, &ConflictPage::appendLog);
+    connect(m_conflictWidget, &ConflictWidget::changeSavepoint, this, &ConflictPage::savepointChange);
+    connect(m_conflictWidget, &ConflictWidget::changeSelection, this, &ConflictPage::changeSelection);
 }
 
 void ConflictPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
-    m_editorWidget->propertySet(QVariantHash{
-        {"mainWindowToolTip", objects["mainWindowToolTip"]},
-        {"fileModulePropertyDialog", objects["fileModulePropertyDialog"]},
-        {"documentModuleGotoDialog", objects["documentModuleGotoDialog"]}
+    m_conflictWidget->propertySet(QVariantHash{
     });
 }
 
 void ConflictPage::documentSave() {
-    m_editorWidget->documentSave();
+    m_conflictWidget->documentSave();
 }
 
 bool ConflictPage::documentClose(const bool force) {
@@ -53,7 +50,7 @@ bool ConflictPage::documentClose(const bool force) {
 }
 
 void ConflictPage::documentGoto() const {
-    m_editorWidget->documentGoto();
+    m_conflictWidget->documentGoto();
 }
 
 // private

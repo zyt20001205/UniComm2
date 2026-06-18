@@ -2,7 +2,7 @@
 #define UNICOMM_CONFLICTPAGE_H
 
 #include "basePage.h"
-#include "document/module/editorWidget.h"
+#include "document/module/conflictWidget.h"
 
 class ConflictPage final : public BasePage {
     Q_OBJECT
@@ -14,7 +14,7 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    [[nodiscard]] ScintillaWidget *handler() const { return m_editorWidget->handler(); }
+    [[nodiscard]] ScintillaWidget *handler() const { return m_conflictWidget->handler(); }
 
     void documentSave() override;
 
@@ -28,7 +28,7 @@ signals:
 private:
     void savepointChange(bool status);
 
-    EditorWidget *m_editorWidget{};
+    ConflictWidget *m_conflictWidget{};
     QObject *m_saveDialog{};
 };
 

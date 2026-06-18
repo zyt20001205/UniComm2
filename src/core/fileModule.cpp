@@ -69,9 +69,9 @@ void FileModule::fileOpenInApplication(const QUrl &fileUrl) {
 }
 
 QVariantHash FileModule::fileInfo(const QUrl &fileUrl) {
-    const auto filePath = fileUrl.toLocalFile();
+    const auto &filePath = fileUrl.toLocalFile();
     const QFileInfo fileInfo(filePath);
-    const auto source = uni_cast<QFileIcon>(fileUrl);
+    const auto &source = uni_cast<QFileIcon>(fileUrl);
     const QLocale locale{QLocale::C};
     QVariantHash infoSession = {
         {"source", source.value},

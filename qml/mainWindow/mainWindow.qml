@@ -1031,7 +1031,7 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            documentModuleEditorMenu.menuSession = documentModule.menuGet("editor")
+            documentModuleEditorMenu.menuSession = documentModule.menuLoad("editor")
             documentModuleEditorMenuRunHereItem.enabled = threadpoolModule.debugging()
         }
 
@@ -3328,7 +3328,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleEditMenu.menuSession = documentModule.menuGet("edit")
+        onAboutToShow: menuModuleEditMenu.menuSession = documentModule.menuLoad("edit")
 
         MenuItem {
             id: menuModuleEditUndoItem
@@ -3358,7 +3358,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("undo")
+            onTriggered: documentModule.menuCall("undo")
         }
 
         MenuItem {
@@ -3389,7 +3389,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("redo")
+            onTriggered: documentModule.menuCall("redo")
         }
 
         MenuSeparator {
@@ -3423,7 +3423,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("cut")
+            onTriggered: documentModule.menuCall("cut")
         }
 
         MenuItem {
@@ -3454,7 +3454,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("copy")
+            onTriggered: documentModule.menuCall("copy")
         }
 
         MenuItem {
@@ -3485,7 +3485,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("paste")
+            onTriggered: documentModule.menuCall("paste")
         }
 
         MenuSeparator {
@@ -3516,7 +3516,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("search")
+            onTriggered: documentModule.menuCall("search")
         }
 
         MenuItem {
@@ -3544,7 +3544,7 @@ Item {
                 }
             }
 
-            onTriggered: documentModule.menuRequest("replace")
+            onTriggered: documentModule.menuCall("replace")
         }
     }
 
@@ -3715,7 +3715,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleNavMenu.menuSession = documentModule.menuGet("nav")
+        onAboutToShow: menuModuleNavMenu.menuSession = documentModule.menuLoad("nav")
 
         MenuItem {
             id: menuModuleNavPrevItem
@@ -3895,7 +3895,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleCodeMenu.menuSession = documentModule.menuGet("code")
+        onAboutToShow: menuModuleCodeMenu.menuSession = documentModule.menuLoad("code")
 
         MenuItem {
             id: menuModuleCodeCompletionItem
@@ -3927,7 +3927,7 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Space"
                 onActivated: {
-                    menuModuleCodeMenu.menuSession = documentModule.menuGet("code")
+                    menuModuleCodeMenu.menuSession = documentModule.menuLoad("code")
                     menuModuleCodeCompletionItem.triggered()
                 }
             }
@@ -3965,7 +3965,7 @@ Item {
             Shortcut {
                 sequence: "Ctrl+Alt+L"
                 onActivated: {
-                    menuModuleCodeMenu.menuSession = documentModule.menuGet("code")
+                    menuModuleCodeMenu.menuSession = documentModule.menuLoad("code")
                     menuModuleCodeReformatItem.triggered()
                 }
             }
@@ -4020,7 +4020,7 @@ Item {
             widgetCount += 1
         }
         onClosed: widgetCount -= 1
-        onAboutToShow: menuModuleExecMenu.menuSession = documentModule.menuGet("exec")
+        onAboutToShow: menuModuleExecMenu.menuSession = documentModule.menuLoad("exec")
 
         MenuItem {
             id: menuModuleExecRunItem
@@ -4052,7 +4052,7 @@ Item {
             Shortcut {
                 sequence: "Shift+F10"
                 onActivated: {
-                    menuModuleExecMenu.menuSession = documentModule.menuGet("exec")
+                    menuModuleExecMenu.menuSession = documentModule.menuLoad("exec")
                     menuModuleExecRunItem.triggered()
                 }
             }
@@ -4096,7 +4096,7 @@ Item {
             Shortcut {
                 sequence: "Shift+F9"
                 onActivated: {
-                    menuModuleExecMenu.menuSession = documentModule.menuGet("exec")
+                    menuModuleExecMenu.menuSession = documentModule.menuLoad("exec")
                     menuModuleExecDebugItem.triggered()
                 }
             }

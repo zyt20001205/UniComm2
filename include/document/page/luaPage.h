@@ -24,9 +24,9 @@ public:
 
     void documentGoto() const;
 
-    [[nodiscard]] QVariantHash menuGet(const QString &name) const;
+    [[nodiscard]] QVariantHash menuLoad(const QString &name) const;
 
-    void menuRequest(const QString &request) const;
+    void menuCall(const QString &name) const;
 
     // public: lsp
     void diagnosticsNotification(const QJsonArray &diagnostics) const;

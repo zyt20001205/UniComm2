@@ -52,9 +52,9 @@ public:
 
     void permissionSet(const QUrl &documentUrl) const;
 
-    Q_INVOKABLE [[nodiscard]] QVariantHash menuGet(const QString &name);
+    Q_INVOKABLE [[nodiscard]] QVariantHash menuLoad(const QString &name);
 
-    Q_INVOKABLE void menuRequest(const QString &request) const;
+    Q_INVOKABLE void menuCall(const QString &name) const;
 
     Q_INVOKABLE [[nodiscard]] int eolModeGet(const QUrl &documentUrl) const;
 

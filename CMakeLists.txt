@@ -75,6 +75,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/debug/watchModule.h
         include/document/documentModule.h
         include/document/module/codeWidget.h
+        include/document/module/conflictWidget.h
         include/document/module/editorWidget.h
         include/document/module/scintillaWidget.h
         include/document/module/searchWidget.h
@@ -164,6 +165,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/debug/watchModule.cpp
         src/document/documentModule.cpp
         src/document/module/codeWidget.cpp
+        src/document/module/conflictWidget.cpp
         src/document/module/editorWidget.cpp
         src/document/module/scintillaWidget.cpp
         src/document/module/searchWidget.cpp

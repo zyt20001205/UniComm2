@@ -120,7 +120,7 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
     const auto fileInfo = fileModel->fileInfo(sourceIndex);
     const auto documentUrl = QUrl::fromLocalFile(fileInfo.filePath());
     if (role == Qt::UserRole + 4) {
-        const auto source = uni_cast<QFileIcon>(documentUrl);
+        const auto &source = uni_cast<QFileIcon>(documentUrl);
         return source.value;
     }
     if (role == Qt::UserRole + 5) {

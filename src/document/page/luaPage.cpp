@@ -90,12 +90,12 @@ void LuaPage::documentGoto() const {
     m_codeWidget->documentGoto();
 }
 
-QVariantHash LuaPage::menuGet(const QString &name) const {
-    return m_codeWidget->menuGet(name);
+QVariantHash LuaPage::menuLoad(const QString &name) const {
+    return m_codeWidget->menuLoad(name);
 }
 
-void LuaPage::menuRequest(const QString &request) const {
-    m_codeWidget->menuRequest(request);
+void LuaPage::menuCall(const QString &name) const {
+    m_codeWidget->menuCall(name);
 }
 
 void LuaPage::diagnosticsNotification(const QJsonArray &diagnostics) const {

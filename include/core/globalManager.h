@@ -187,7 +187,7 @@ private:
     QStringList m_styleSheet{};
 
     bool m_git = false;
-    bool m_refresh{};
+    bool m_refresh = false;
 };
 
 #endif //UNICOMM_GLOBALMANAGER_H
