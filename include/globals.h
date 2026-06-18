@@ -120,7 +120,10 @@ namespace ScintillaIndicator {
         Write,
         Hyperlink,
         Result,
-        Current
+        Current,
+        ConflictStart,
+        ConflictSeparator,
+        ConflictEnd
     };
 }
 
@@ -131,7 +134,9 @@ namespace ScintillaMarker {
         BreakpointDisabled,
         Navigation,
         Debug,
-        Hint
+        Hint,
+        ConflictCurrent,
+        ConflictIncoming
     };
 }
 

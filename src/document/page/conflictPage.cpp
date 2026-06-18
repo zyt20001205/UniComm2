@@ -5,6 +5,7 @@
 #include <QShortcut>
 
 #include "globals.h"
+#include "core/globalManager.h"
 #include "document/module/conflictWidget.h"
 #include "document/module/scintillaWidget.h"
 
@@ -12,6 +13,7 @@
 ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
       m_conflictWidget(new ConflictWidget(documentConfig, documentUrl, this)) {
+    setIcon(g_globalManager->themeGet() == Theme::Light ? QIcon(":/icon/gitBranchConflictLight.svg") : QIcon(":/icon/gitBranchConflictDark.svg"));
     setWidget(m_conflictWidget);
     connect(m_conflictWidget, &ConflictWidget::appendLog, this, &ConflictPage::appendLog);
     connect(m_conflictWidget, &ConflictWidget::changeSavepoint, this, &ConflictPage::savepointChange);
@@ -21,6 +23,7 @@ ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &docume
 void ConflictPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_conflictWidget->propertySet(QVariantHash{
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
 }
 

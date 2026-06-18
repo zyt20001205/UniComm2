@@ -125,7 +125,10 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new ConflictPage(m_config, documentUrl);
                 auto *conflictPage = qobject_cast<ConflictPage *>(newPage);
                 conflictPage->propertySet(QVariantHash{
+                    {"mainWindowToolTip", QVariant::fromValue(m_toolTip)}
                 });
+                connect(conflictPage, &ConflictPage::isFocusedChanged, this, [this, conflictPage](const bool status) { documentFocus(conflictPage, status); });
+                connect(conflictPage, &ConflictPage::changeSelection, this, &DocumentModule::changeSelection);
             }
         }
         // normal page

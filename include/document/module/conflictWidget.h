@@ -4,7 +4,6 @@
 #include <QJsonArray>
 
 #include "editorWidget.h"
-#include "ScintillaTypes.h"
 
 class EditorWidget;
 
@@ -18,19 +17,21 @@ public:
 
     void propertySet(const QVariantHash &objects) override;
 
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 signals:
 
 protected:
-    void marginInit() const override;
+    void indicatorInit() const override;
 
     void markerInit() const override;
 
 private:
-    void marginClick(Scintilla::Position position, int mouseButton, Scintilla::KeyMod modifiers, int margin);
-
     void contentChange();
 
+    QObject *m_toolTip{};
     QTimer *m_contentTimer{};
+    QHash<int, QList<int>> m_hunk{};
 };
 
 #endif //UNICOMM_CONFLICTWIDGET_H
