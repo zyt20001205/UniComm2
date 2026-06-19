@@ -18,9 +18,13 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    void backgroundAppend(int &taskid, const QString &name, const std::function<void()> &callback);
+    void backgroundAppend(int &taskId, const QString &name, const std::function<void()> &callback);
 
-    Q_INVOKABLE void backgroundAbort(int taskid);
+    void backgroundRemove(int taskId) const;
+
+    void backgroundRefresh(int taskId, const QString &message) const;
+
+    Q_INVOKABLE void backgroundAbort(int taskId);
 
     Q_INVOKABLE void documentGoto(const QUrl &documentUrl);
 
@@ -41,7 +45,7 @@ private:
     QObject *m_eolModeButton{};
     QObject *m_codePageButton{};
     QObject *m_threadButton{};
-    int m_taskid{};
+    int m_taskId{};
     QHash<int, std::function<void()>> m_callbacks{};
     BackgroundModel *m_backgroundModel{};
 };
@@ -49,7 +53,7 @@ private:
 class BackgroundModel final : public QStandardItemModel {
     Q_OBJECT
     Q_PROPERTY(QString title READ titleGet NOTIFY titleChanged)
-    Q_PROPERTY(int taskid READ taskidGet NOTIFY taskidChanged)
+    Q_PROPERTY(int taskId READ taskIdGet NOTIFY taskIdChanged)
 
 public:
     using QStandardItemModel::QStandardItemModel;
@@ -66,24 +70,24 @@ public:
         emit titleChanged();
     }
 
-    [[nodiscard]] int taskidGet() const {
-        return m_taskid;
+    [[nodiscard]] int taskIdGet() const {
+        return m_taskId;
     }
 
-    void taskidSet(const int taskid) {
-        if (m_taskid == taskid) return;
-        m_taskid = taskid;
-        emit taskidChanged();
+    void taskIdSet(const int taskId) {
+        if (m_taskId == taskId) return;
+        m_taskId = taskId;
+        emit taskIdChanged();
     }
 
 signals:
     void titleChanged();
 
-    void taskidChanged();
+    void taskIdChanged();
 
 private:
     QString m_title{};
-    int m_taskid = 0;
+    int m_taskId = 0;
 };
 
 #endif //UNICOMM_STATUSMODULE_H

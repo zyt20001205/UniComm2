@@ -15,7 +15,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        visible: !global.git
+        visible: !global.gitEnabled
 
         RowLayout {
             anchors.centerIn: parent
@@ -40,7 +40,7 @@ Item {
     SplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
-        visible: global.git
+        visible: global.gitEnabled
 
         Item {
             SplitView.preferredWidth: 400

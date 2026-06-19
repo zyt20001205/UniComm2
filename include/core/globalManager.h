@@ -43,7 +43,8 @@ class GlobalManager final : public QObject {
     // modules
 
     // git module
-    Q_PROPERTY(bool git READ gitGet NOTIFY gitChanged)
+    Q_PROPERTY(bool gitEnabled READ gitEnabledGet NOTIFY gitEnabledChanged)
+    Q_PROPERTY(int gitConflict READ gitConflictGet NOTIFY gitConflictChanged)
 
     // watch module
     Q_PROPERTY(bool refresh READ refreshGet WRITE refreshSet)
@@ -161,13 +162,22 @@ public:
         return m_theme == Theme::Light ? m_palette["lightDangerBack3"] : m_palette["darkDangerBack3"];
     }
 
-    [[nodiscard]] bool gitGet() const {
-        return m_git;
+    [[nodiscard]] bool gitEnabledGet() const {
+        return m_gitEnabled;
     }
 
-    void gitSet() {
-        m_git = GitModule::gitGet();
-        emit gitChanged();
+    void gitEnabledSet() {
+        m_gitEnabled = GitModule::gitGet();
+        emit gitEnabledChanged();
+    }
+
+    [[nodiscard]] int gitConflictGet() const {
+        return m_gitConflict;
+    }
+
+    void gitConflictSet(const int type) {
+        m_gitConflict = type;
+        emit gitConflictChanged();
     }
 
     [[nodiscard]] bool refreshGet() const {
@@ -179,14 +189,18 @@ public:
     }
 
 signals:
-    void gitChanged();
+    void gitEnabledChanged();
+
+    void gitConflictChanged();
 
 private:
     int m_theme{};
     QHash<QString, QString> m_palette{};
     QStringList m_styleSheet{};
 
-    bool m_git = false;
+    bool m_gitEnabled = false;
+    int m_gitConflict = GitConflict::None;
+
     bool m_refresh = false;
 };
 

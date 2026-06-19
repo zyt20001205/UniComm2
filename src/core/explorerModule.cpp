@@ -53,7 +53,7 @@ void ExplorerModule::propertySet(const QVariantHash &objects) {
 void ExplorerModule::propertyGet(const QVariantMap &objects) {
     m_treeView = qvariant_cast<QObject *>(objects["treeView"]);
 
-    if (g_globalManager->gitGet()) indexUpdate();
+    if (g_globalManager->gitEnabledGet()) indexUpdate();
 }
 
 void ExplorerModule::indexUpdate() const {
@@ -130,7 +130,7 @@ QVariant SortFilterProxyModel::data(const QModelIndex &index, const int role) co
         return documentUrl;
     }
     if (role == Qt::UserRole + 7) {
-        if (!g_globalManager->gitGet() || !m_documentStatus->contains(documentUrl)) {
+        if (!g_globalManager->gitEnabledGet() || !m_documentStatus->contains(documentUrl)) {
             return {};
         }
         const auto gitStatus = m_documentStatus->value(documentUrl).toHash();

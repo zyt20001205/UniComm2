@@ -2063,7 +2063,7 @@ Item {
 
         Menu {
             title: qsTr("Git")
-            enabled: global.git
+            enabled: global.gitEnabled
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2228,7 +2228,7 @@ Item {
 
         Menu {
             title: qsTr("Git")
-            enabled: global.git
+            enabled: global.gitEnabled
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2361,7 +2361,7 @@ Item {
 
         Menu {
             title: qsTr("Git")
-            enabled: global.git
+            enabled: global.gitEnabled
             icon.source: "qrc:/icon/fileTypeGit.svg"
             icon.width: 16; icon.height: 16
 
@@ -2802,7 +2802,7 @@ Item {
 
         MenuItem {
             text: qsTr("Merge")
-            enabled: !gitModuleBranchMenu.current
+            enabled: !gitModuleBranchMenu.current && global.gitConflict === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 
@@ -2813,7 +2813,7 @@ Item {
 
         MenuItem {
             text: qsTr("Rebase")
-            enabled: !gitModuleBranchMenu.current
+            enabled: !gitModuleBranchMenu.current && global.gitConflict === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 

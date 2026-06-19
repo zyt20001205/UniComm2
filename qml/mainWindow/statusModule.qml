@@ -78,15 +78,15 @@ Item {
             }
 
             Button {
-                visible: taskid !== -1
+                visible: taskId !== -1
                 leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
                 flat: true
                 icon.source: "qrc:/icon/dismiss.svg"
                 icon.width: 12; icon.height: 12
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                property int taskid: backgroundModel.taskid
+                property int taskId: backgroundModel.taskId
 
-                onClicked: statusModule.backgroundAbort(taskid)
+                onClicked: statusModule.backgroundAbort(taskId)
             }
         }
 

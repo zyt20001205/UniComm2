@@ -267,4 +267,12 @@ namespace GitStatus {
     };
 }
 
+namespace GitConflict {
+    enum {
+        None,
+        Merge,
+        Rebase
+    };
+}
+
 #endif //UNICOMM_GLOBALS_H

@@ -71,7 +71,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
     m_root = m_widget->rootObject();
-    if (g_globalManager->gitGet()) gitWatch();
+    if (g_globalManager->gitEnabledGet()) gitWatch();
 
     // commit window
     m_commitWindow->setTitle(tr("Git Commit"));
@@ -207,13 +207,17 @@ void GitModule::gitFetch() {
 
 void GitModule::gitMerge(const QString &name) {
     processEnqueue(GitCommand::Merge, QStringList{"merge", name});
-    int taskid = -1;
-    emit appendBackground(taskid, tr("Merging branch %1").arg(name), [this]{this->gitMergeAbort(); });
-    qDebug() << taskid;
 }
 
-void GitModule::gitMergeAbort() {
-    processEnqueue(GitCommand::MergeAbort, QStringList{"merge", "--abort"});
+void GitModule::gitAbort() {
+    switch (g_globalManager->gitConflictGet()) {
+        case GitConflict::Merge: {
+            processEnqueue(GitCommand::Abort, QStringList{"merge", "--abort"});
+        }
+        break;
+        default: break;
+    }
+    g_globalManager->gitConflictSet(GitConflict::None);
 }
 
 void GitModule::gitDiff() {
@@ -552,7 +556,7 @@ void GitModule::processFinished(const int exitcode) {
                 for (const auto &path: QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts)) {
                     const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
                     auto documentUrl = QUrl::fromLocalFile(documentPath);
-                    emit openDocument(documentUrl);
+                    qDebug() << documentUrl;
                 }
             }
             break;
@@ -786,7 +790,7 @@ void GitModule::processFinished(const int exitcode) {
         // state machine
         switch (command) {
             case GitCommand::Init: {
-                g_globalManager->gitSet();
+                g_globalManager->gitEnabledSet();
                 emit updateIndex();
                 gitWatch();
             }
@@ -832,6 +836,9 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
+                int taskId = -1;
+                emit appendBackground(taskId, tr("Git merging..."), [this]{this->gitAbort(); });
+                g_globalManager->gitConflictSet(GitConflict::Merge);
             }
             break;
             default: {

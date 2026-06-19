@@ -62,7 +62,7 @@ public:
 
     Q_INVOKABLE void gitMerge(const QString &name);
 
-    void gitMergeAbort();
+    void gitAbort();
 
     Q_INVOKABLE void gitDiff();
 
@@ -93,9 +93,7 @@ public:
 signals:
     void updateIndex();
 
-    void appendBackground(int &taskid, const QString &name, const std::function<void()> &callback);
-
-    void openDocument(const QUrl &documentUrl);
+    void appendBackground(int &taskId, const QString &name, const std::function<void()> &callback);
 
 private:
     void processEnqueue(int command, const QStringList &arguments);
@@ -156,7 +154,7 @@ private:
             ShowFile,
             Fetch,
             Merge,
-            MergeAbort,
+            Abort,
             Diff,
             Status,
             Commit,

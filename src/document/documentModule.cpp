@@ -116,7 +116,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
     if (!m_pageHash.contains(documentUrl)) {
         BasePage *newPage{};
         // special page
-        if (g_globalManager->gitGet()) {
+        if (g_globalManager->gitEnabledGet()) {
             QProcess process{};
             process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
             process.start("git", {"diff", "--name-only", "--diff-filter=U", "--", documentUrl.toLocalFile()});

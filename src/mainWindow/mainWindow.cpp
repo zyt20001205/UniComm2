@@ -516,7 +516,6 @@ void MainWindow::moduleInit() {
 
     connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);
     connect(m_gitModule, &GitModule::appendBackground, m_statusModule, &StatusModule::backgroundAppend);
-    connect(m_gitModule, &GitModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
 
     connect(m_menuModule, &MenuModule::setTheme, this, &MainWindow::themeSet);
 

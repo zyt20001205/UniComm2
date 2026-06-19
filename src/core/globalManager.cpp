@@ -116,5 +116,5 @@ GlobalManager::GlobalManager(QWidget *parent)
     qApp->setStyleSheet(m_styleSheet[m_theme]);
     KDDockWidgets::Config::self().setViewFactory(new CustomWidgetFactory(m_theme));
 
-    gitSet();
+    gitEnabledSet();
 }
