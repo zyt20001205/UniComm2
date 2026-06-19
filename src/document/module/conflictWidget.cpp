@@ -33,11 +33,14 @@ bool ConflictWidget::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scintillaWidget->viewport()) {
         const QPoint globalPos = QCursor::pos();
         const QPoint localPos = m_scintillaWidget->viewport()->mapFromGlobal(globalPos);
+        // within margin
+        if (localPos.x() < m_scintillaWidget->marginWidthGet()) {
+            m_toolTip->setProperty("text", QString());
+            return false;
+        }
         if (event->type() == QEvent::MouseButtonPress) {
             const auto *mouseEvent = static_cast<QMouseEvent *>(event);
             const auto &position = m_scintillaWidget->positionGet(localPos);
-            // margin click
-            if (localPos.x() < m_scintillaWidget->marginWidthGet()) return false;
             // text area click
             if (mouseEvent->button() == Qt::LeftButton) {
                 const auto &index = m_scintillaWidget->indexGet(position);
@@ -73,7 +76,12 @@ bool ConflictWidget::eventFilter(QObject *watched, QEvent *event) {
             else if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictSeparator) tooltip = tr("Accept Both");
             else if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictEnd) tooltip = tr("Accept Incoming");
             else tooltip = QString();
-            if (!tooltip.isEmpty()) m_toolTip->setProperty("position", QCursor::pos());
+            if (!tooltip.isEmpty()) {
+                m_scintillaWidget->viewport()->setCursor(Qt::PointingHandCursor);
+                m_toolTip->setProperty("position", QCursor::pos());
+            } else {
+                m_scintillaWidget->viewport()->setCursor(Qt::IBeamCursor);
+            }
             m_toolTip->setProperty("text", tooltip);
             return false;
         }
@@ -113,6 +121,25 @@ void ConflictWidget::indicatorInit() const {
         });
 }
 
+void ConflictWidget::marginInit() const {
+    m_scintillaWidget->marginDefine(
+        0,
+        QVariantHash{
+            {"type", SC_MARGIN_NUMBER},
+            {"width", 32},
+            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+        });
+    m_scintillaWidget->marginDefine(
+    1,
+    QVariantHash{
+        {"type", SC_MARGIN_SYMBOL},
+        {"width", 16},
+        {"mask", static_cast<int>(SC_MASK_FOLDERS)},
+        {"sensitive", true},
+        {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
+    });
+}
+
 void ConflictWidget::markerInit() const {
     EditorWidget::markerInit();
     m_scintillaWidget->markerDefine(
@@ -137,6 +164,9 @@ void ConflictWidget::contentChange() {
     m_scintillaWidget->indicatorClear(ScintillaIndicator::ConflictEnd);
     m_scintillaWidget->markerDelete(ScintillaMarker::ConflictCurrent);
     m_scintillaWidget->markerDelete(ScintillaMarker::ConflictIncoming);
+    for (int i = 0; i < m_scintillaWidget->lineCountGet(); ++i) {
+        m_scintillaWidget->foldLevelSet(i, SC_FOLDLEVELBASE);
+    }
     int start = -1;
     int separator = -1;
     int end = -1;
@@ -155,6 +185,8 @@ void ConflictWidget::contentChange() {
                 m_scintillaWidget->indicatorFill(ScintillaIndicator::ConflictEnd, end, 0, end, -1);
                 for (int j = start + 1; j < separator; ++j) m_scintillaWidget->markerAdd(ScintillaMarker::ConflictCurrent, j);
                 for (int j = separator + 1; j < end; ++j) m_scintillaWidget->markerAdd(ScintillaMarker::ConflictIncoming, j);
+                m_scintillaWidget->foldLevelSet(start, SC_FOLDLEVELBASE | SC_FOLDLEVELHEADERFLAG);
+                for (int j = start + 1; j <= end - 1; ++j) m_scintillaWidget->foldLevelSet(j, SC_FOLDLEVELBASE + 1);
             }
             start = -1;
             separator = -1;

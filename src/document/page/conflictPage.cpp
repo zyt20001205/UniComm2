@@ -3,18 +3,26 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QShortcut>
+#include <QGridLayout>
 
 #include "globals.h"
 #include "core/globalManager.h"
 #include "document/module/conflictWidget.h"
+#include "document/module/resolveWidget.h"
 #include "document/module/scintillaWidget.h"
 
 // public
 ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &documentUrl)
     : BasePage(documentUrl),
-      m_conflictWidget(new ConflictWidget(documentConfig, documentUrl, this)) {
+      m_widget(new QWidget(this)),
+      m_conflictWidget(new ConflictWidget(documentConfig, documentUrl, m_widget)),
+      m_resolveWidget(new ResolveWidget(m_widget)) {
     setIcon(g_globalManager->themeGet() == Theme::Light ? QIcon(":/icon/gitBranchConflictLight.svg") : QIcon(":/icon/gitBranchConflictDark.svg"));
-    setWidget(m_conflictWidget);
+    auto *layout = new QGridLayout(m_widget); // NOLINT
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_conflictWidget, 0, 0);
+    layout->addWidget(m_resolveWidget, 0, 0, Qt::AlignTop | Qt::AlignRight);
+    setWidget(m_widget);
     connect(m_conflictWidget, &ConflictWidget::appendLog, this, &ConflictPage::appendLog);
     connect(m_conflictWidget, &ConflictWidget::changeSavepoint, this, &ConflictPage::savepointChange);
     connect(m_conflictWidget, &ConflictWidget::changeSelection, this, &ConflictPage::changeSelection);
@@ -23,6 +31,9 @@ ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &docume
 void ConflictPage::propertySet(const QVariantHash &objects) {
     m_saveDialog = qvariant_cast<QObject *>(objects["documentModuleSaveDialog"]);
     m_conflictWidget->propertySet(QVariantHash{
+        {"mainWindowToolTip", objects["mainWindowToolTip"]}
+    });
+    m_resolveWidget->propertySet(QVariantHash{
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
 }

@@ -4,6 +4,10 @@
 #include "basePage.h"
 #include "document/module/conflictWidget.h"
 
+class QWidget;
+
+class ResolveWidget;
+
 class ConflictPage final : public BasePage {
     Q_OBJECT
 
@@ -28,7 +32,9 @@ signals:
 private:
     void savepointChange(bool status);
 
+    QWidget *m_widget{};
     ConflictWidget *m_conflictWidget{};
+    ResolveWidget *m_resolveWidget{};
     QObject *m_saveDialog{};
 };
 

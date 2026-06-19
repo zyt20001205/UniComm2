@@ -77,6 +77,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/document/module/codeWidget.h
         include/document/module/conflictWidget.h
         include/document/module/editorWidget.h
+        include/document/module/resolveWidget.h
         include/document/module/scintillaWidget.h
         include/document/module/searchWidget.h
         include/document/page/basePage.h
@@ -167,6 +168,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/document/module/codeWidget.cpp
         src/document/module/conflictWidget.cpp
         src/document/module/editorWidget.cpp
+        src/document/module/resolveWidget.cpp
         src/document/module/scintillaWidget.cpp
         src/document/module/searchWidget.cpp
         src/document/page/basePage.cpp
@@ -232,6 +234,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/debug/watchModule.qml"
         "qml/document/module/imageWidget.qml"
         "qml/document/module/pdfWidget.qml"
+        "qml/document/module/resolveWidget.qml"
         "qml/document/module/searchWidget.qml"
         "qml/document/page/welcomePage.qml"
         "qml/llm/llmModule.qml"

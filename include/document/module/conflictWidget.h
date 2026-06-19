@@ -24,6 +24,8 @@ signals:
 protected:
     void indicatorInit() const override;
 
+    void marginInit() const override;
+
     void markerInit() const override;
 
 private:
@@ -32,6 +34,7 @@ private:
     QObject *m_toolTip{};
     QTimer *m_contentTimer{};
     QHash<int, QList<int>> m_hunk{};
+    QList<int> m_head{};
 };
 
 #endif //UNICOMM_CONFLICTWIDGET_H
