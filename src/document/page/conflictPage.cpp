@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QShortcut>
 #include <QGridLayout>
+#include <QProcess>
 
 #include "globals.h"
 #include "core/globalManager.h"
@@ -21,11 +22,13 @@ ConflictPage::ConflictPage(const QJsonObject &documentConfig, const QUrl &docume
     auto *layout = new QGridLayout(m_widget); // NOLINT
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_conflictWidget, 0, 0);
-    layout->addWidget(m_resolveWidget, 0, 0, Qt::AlignTop | Qt::AlignRight);
+    layout->addWidget(m_resolveWidget, 0, 0, Qt::AlignBottom | Qt::AlignHCenter);
     setWidget(m_widget);
     connect(m_conflictWidget, &ConflictWidget::appendLog, this, &ConflictPage::appendLog);
     connect(m_conflictWidget, &ConflictWidget::changeSavepoint, this, &ConflictPage::savepointChange);
     connect(m_conflictWidget, &ConflictWidget::changeSelection, this, &ConflictPage::changeSelection);
+    connect(m_conflictWidget, &ConflictWidget::statResolve, m_resolveWidget, &ResolveWidget::resolveStat);
+    connect(m_resolveWidget, &ResolveWidget::finishResolve, this, &ConflictPage::resolveFinish);
 }
 
 void ConflictPage::propertySet(const QVariantHash &objects) {
@@ -34,7 +37,6 @@ void ConflictPage::propertySet(const QVariantHash &objects) {
         {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
     m_resolveWidget->propertySet(QVariantHash{
-        {"mainWindowToolTip", objects["mainWindowToolTip"]}
     });
 }
 
@@ -75,4 +77,13 @@ void ConflictPage::savepointChange(const bool status) {
     } else {
         setTitle(pageName.chopped(1));
     }
+}
+
+void ConflictPage::resolveFinish() {
+    documentSave();
+    QProcess process{};
+    process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
+    process.start("git", {"add", m_documentUrl.toLocalFile()});
+    process.waitForFinished(300);
+    if (process.exitCode() == 0) emit reloadDocument(m_documentUrl.toLocalFile());
 }

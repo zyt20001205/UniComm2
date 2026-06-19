@@ -29,8 +29,12 @@ public:
 signals:
     void changeSelection(const QHash<QString, int> &selection);
 
+    void reloadDocument(const QString &documentPath);
+
 private:
     void savepointChange(bool status);
+
+    void resolveFinish();
 
     QWidget *m_widget{};
     ConflictWidget *m_conflictWidget{};

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Item {
     id: rootItem
+    property int conflicts
 
     Rectangle {
         anchors.fill: parent
@@ -20,63 +21,29 @@ Item {
 
         Label {
             id: resolveStatLabel
-            horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
-            leftPadding: 6
+            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            text: conflicts === 0 ? qsTr("Add to index")
+                : conflicts + qsTr(" conflicts remaining")
             Layout.fillWidth: true; Layout.preferredHeight: 24
         }
 
         Button {
-            id: resolvePrevButton
-            Layout.preferredWidth: 24; Layout.preferredHeight: 24
+            id: resolveFinishButton
             leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
             flat: true
-            icon.source: "qrc:/icon/arrowUp.svg"
+            visible: conflicts === 0
+            icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
-
-            onClicked: resolveWidget.resolvePrev()
-
-            HoverHandler {
-                onHoveredChanged: {
-                    if (!hovered) {
-                        mainToolTip.text = ""
-                    }
-                }
-                onPointChanged: {
-                    mainToolTip.position = parent.mapToGlobal(point.position)
-                    mainToolTip.text = qsTr("Resolve Previous")
-                }
-            }
-        }
-
-        Button {
-            id: resolveNextButton
             Layout.preferredWidth: 24; Layout.preferredHeight: 24
-            leftPadding: 0; rightPadding: 0; topPadding: 0; bottomPadding: 0
-            flat: true
-            icon.source: "qrc:/icon/arrowDown.svg"
-            icon.width: 16; icon.height: 16
 
-            onClicked: resolveWidget.resolveNext()
-
-            HoverHandler {
-                onHoveredChanged: {
-                    if (!hovered) {
-                        mainToolTip.text = ""
-                    }
-                }
-                onPointChanged: {
-                    mainToolTip.position = parent.mapToGlobal(point.position)
-                    mainToolTip.text = qsTr("Resolve Next")
-                }
-            }
+            onClicked: resolveWidget.resolveFinish()
         }
     }
 
     Component.onCompleted: {
         const objects = {
-            "resolvePrevButton": resolvePrevButton,
-            "resolveNextButton": resolveNextButton,
-            "resolveStatLabel": resolveStatLabel
+            "resolveStatLabel": resolveStatLabel,
+            "resolveFinishButton": resolveFinishButton
         };
         resolveWidget.propertyGet(objects)
     }

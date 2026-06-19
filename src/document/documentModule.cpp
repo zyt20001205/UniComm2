@@ -129,6 +129,7 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 });
                 connect(conflictPage, &ConflictPage::isFocusedChanged, this, [this, conflictPage](const bool status) { documentFocus(conflictPage, status); });
                 connect(conflictPage, &ConflictPage::changeSelection, this, &DocumentModule::changeSelection);
+                connect(conflictPage, &ConflictPage::reloadDocument, this, &DocumentModule::documentReload);
             }
         }
         // normal page

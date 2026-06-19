@@ -45,28 +45,26 @@ bool ConflictWidget::eventFilter(QObject *watched, QEvent *event) {
             if (mouseEvent->button() == Qt::LeftButton) {
                 const auto &index = m_scintillaWidget->indexGet(position);
                 const auto &line = index["line"];
-                if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictStart) {
-                    const auto &start = m_hunk.value(line)[0];
-                    const auto &separator = m_hunk.value(line)[1];
-                    const auto &end = m_hunk.value(line)[2];
-                    const auto &text = m_scintillaWidget->textGet(start + 1, 0, separator - 1, -1);
+                const int indicators = m_scintillaWidget->indicatorGet(position);
+                if (indicators & (1 << ScintillaIndicator::ConflictStart | 1 << ScintillaIndicator::ConflictSeparator | 1 << ScintillaIndicator::ConflictEnd)) {
+                    const auto hunk = m_hunk.value(line);
+                    if (hunk.size() != 3) return false;
+                    const int start = hunk[0];
+                    const int separator = hunk[1];
+                    const int end = hunk[2];
+
+                    QString text{};
+                    if (indicators & 1 << ScintillaIndicator::ConflictStart) {
+                        text = m_scintillaWidget->textGet(start + 1, 0, separator - 1, -1);
+                    } else if (indicators & 1 << ScintillaIndicator::ConflictSeparator) {
+                        text = m_scintillaWidget->textGet(start + 1, 0, separator, 0)
+                               + m_scintillaWidget->textGet(separator + 1, 0, end - 1, -1);
+                    } else {
+                        text = m_scintillaWidget->textGet(separator + 1, 0, end - 1, -1);
+                    }
                     m_scintillaWidget->selectionSet(start, 0, end, -1);
                     m_scintillaWidget->textSetSelected(text);
-                } else if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictSeparator) {
-                    const auto &start = m_hunk.value(line)[0];
-                    const auto &separator = m_hunk.value(line)[1];
-                    const auto &end = m_hunk.value(line)[2];
-                    const auto &text = m_scintillaWidget->textGet(start + 1, 0, separator, 0)
-                                       + m_scintillaWidget->textGet(separator + 1, 0, end - 1, -1);
-                    m_scintillaWidget->selectionSet(start, 0, end, -1);
-                    m_scintillaWidget->textSetSelected(text);
-                } else if (m_scintillaWidget->indicatorGet(position) & 1 << ScintillaIndicator::ConflictEnd) {
-                    const auto &start = m_hunk.value(line)[0];
-                    const auto &separator = m_hunk.value(line)[1];
-                    const auto &end = m_hunk.value(line)[2];
-                    const auto &text = m_scintillaWidget->textGet(separator + 1, 0, end - 1, -1);
-                    m_scintillaWidget->selectionSet(start, 0, end, -1);
-                    m_scintillaWidget->textSetSelected(text);
+                    contentChange();
                 }
             }
         } else if (event->type() == QEvent::MouseMove) {
@@ -121,25 +119,6 @@ void ConflictWidget::indicatorInit() const {
         });
 }
 
-void ConflictWidget::marginInit() const {
-    m_scintillaWidget->marginDefine(
-        0,
-        QVariantHash{
-            {"type", SC_MARGIN_NUMBER},
-            {"width", 32},
-            {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-        });
-    m_scintillaWidget->marginDefine(
-    1,
-    QVariantHash{
-        {"type", SC_MARGIN_SYMBOL},
-        {"width", 16},
-        {"mask", static_cast<int>(SC_MASK_FOLDERS)},
-        {"sensitive", true},
-        {"back", ScintillaWidget::colorGet(g_globalManager->backGet())}
-    });
-}
-
 void ConflictWidget::markerInit() const {
     EditorWidget::markerInit();
     m_scintillaWidget->markerDefine(
@@ -158,15 +137,13 @@ void ConflictWidget::markerInit() const {
 
 // private:
 void ConflictWidget::contentChange() {
+    m_head.clear();
     m_hunk.clear();
     m_scintillaWidget->indicatorClear(ScintillaIndicator::ConflictStart);
     m_scintillaWidget->indicatorClear(ScintillaIndicator::ConflictSeparator);
     m_scintillaWidget->indicatorClear(ScintillaIndicator::ConflictEnd);
     m_scintillaWidget->markerDelete(ScintillaMarker::ConflictCurrent);
     m_scintillaWidget->markerDelete(ScintillaMarker::ConflictIncoming);
-    for (int i = 0; i < m_scintillaWidget->lineCountGet(); ++i) {
-        m_scintillaWidget->foldLevelSet(i, SC_FOLDLEVELBASE);
-    }
     int start = -1;
     int separator = -1;
     int end = -1;
@@ -177,6 +154,7 @@ void ConflictWidget::contentChange() {
         else if (text.startsWith(">>>>>>>")) {
             end = i;
             if (start != -1 && separator != -1 && end != -1) {
+                m_head.append(start);
                 m_hunk.insert(start, QList{start, separator, end});
                 m_hunk.insert(separator, QList{start, separator, end});
                 m_hunk.insert(end, QList{start, separator, end});
@@ -185,11 +163,10 @@ void ConflictWidget::contentChange() {
                 m_scintillaWidget->indicatorFill(ScintillaIndicator::ConflictEnd, end, 0, end, -1);
                 for (int j = start + 1; j < separator; ++j) m_scintillaWidget->markerAdd(ScintillaMarker::ConflictCurrent, j);
                 for (int j = separator + 1; j < end; ++j) m_scintillaWidget->markerAdd(ScintillaMarker::ConflictIncoming, j);
-                m_scintillaWidget->foldLevelSet(start, SC_FOLDLEVELBASE | SC_FOLDLEVELHEADERFLAG);
-                for (int j = start + 1; j <= end - 1; ++j) m_scintillaWidget->foldLevelSet(j, SC_FOLDLEVELBASE + 1);
             }
             start = -1;
             separator = -1;
         }
     }
+    emit statResolve(m_head.size());
 }

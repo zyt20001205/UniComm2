@@ -13,19 +13,17 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void resolvePrev();
+    void resolveStat(int conflicts) const;
 
-    Q_INVOKABLE void resolveNext();
+    Q_INVOKABLE void resolveFinish();
 
 signals:
-    void prevResolve();
-
-    void nextResolve();
+    void finishResolve();
 
 private:
-    QObject *m_resolvePrevButton{};
-    QObject *m_resolveNextButton{};
+    QObject *m_root{};
     QObject *m_resolveStatLabel{};
+    QObject *m_resolveFinishButton{};
 };
 
 #endif //UNICOMM_RESOLVEWIDGET_H

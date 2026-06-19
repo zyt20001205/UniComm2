@@ -20,11 +20,10 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
+    void statResolve(int conflicts);
 
 protected:
     void indicatorInit() const override;
-
-    void marginInit() const override;
 
     void markerInit() const override;
 
@@ -33,8 +32,8 @@ private:
 
     QObject *m_toolTip{};
     QTimer *m_contentTimer{};
-    QHash<int, QList<int>> m_hunk{};
     QList<int> m_head{};
+    QHash<int, QList<int>> m_hunk{};
 };
 
 #endif //UNICOMM_CONFLICTWIDGET_H
