@@ -2633,6 +2633,51 @@ Item {
 
     // git module
     Dialog {
+        id: gitModuleContinueDialog
+        parent: Overlay.overlay
+        x: mainScreenItem.x + (mainScreenItem.width - width) / 2
+        y: mainScreenItem.y + (mainScreenItem.height - height) / 2
+        width: 600
+        modal: true
+        title: global.gitConflict === 1 ? qsTr("Finish Merge") : qsTr("Finish Rebase")
+        standardButtons: Dialog.Abort | Dialog.Ok
+
+        onOpened: {
+            mainWindow.overlayFlagSet(false, true)
+            widgetCount += 1
+        }
+        onClosed: widgetCount -= 1
+        onAboutToShow: {
+            gitModuleContinueCheckBox.checked = global.gitConflict !== 1
+            gitModuleContinueCheckBox.enabled = global.gitConflict === 1
+            gitModuleContinueTextField.text = ""
+            gitModuleContinueTextField.forceActiveFocus()
+        }
+
+        onAccepted: gitModule.gitContinue(gitModuleContinueTextField.text)
+        onRejected: gitModule.gitAbort()
+
+        ColumnLayout {
+            width: parent.width
+
+            CheckBox {
+                id: gitModuleContinueCheckBox
+                text: qsTr("Used auto-generated message")
+            }
+
+            TextField {
+                id: gitModuleContinueTextField
+                visible: !gitModuleContinueCheckBox.checked
+                placeholderText: qsTr("Enter commit message:")
+                Layout.fillWidth: true
+
+                onAccepted: gitModuleContinueDialog.accept()
+                Keys.onEscapePressed: gitModuleContinueDialog.reject()
+            }
+        }
+    }
+
+    Dialog {
         id: gitModuleErrorDialog
         parent: Overlay.overlay
         x: mainScreenItem.x + (mainScreenItem.width - width) / 2
@@ -2806,9 +2851,7 @@ Item {
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                gitModule.gitMerge(gitModuleBranchMenu.name)
-            }
+            onTriggered: gitModule.gitMerge(gitModuleBranchMenu.name)
         }
 
         MenuItem {
@@ -2817,9 +2860,7 @@ Item {
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 
-            onTriggered: {
-                // gitModule.gitMerge(gitModuleBranchMenu.name)
-            }
+            onTriggered: gitModule.gitRebase(gitModuleBranchMenu.name)
         }
     }
 
@@ -4700,6 +4741,7 @@ Item {
 
             "fileModulePropertyDialog": fileModulePropertyDialog,
 
+            "gitModuleContinueDialog": gitModuleContinueDialog,
             "gitModuleErrorDialog": gitModuleErrorDialog,
             "gitModuleBranchMenu": gitModuleBranchMenu,
             "gitModuleLogMenu": gitModuleLogMenu,

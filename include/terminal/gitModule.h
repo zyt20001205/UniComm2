@@ -62,7 +62,11 @@ public:
 
     Q_INVOKABLE void gitMerge(const QString &name);
 
-    void gitAbort();
+    Q_INVOKABLE void gitRebase(const QString &name);
+
+    Q_INVOKABLE void gitAbort();
+
+    Q_INVOKABLE void gitContinue(const QString &message);
 
     Q_INVOKABLE void gitDiff();
 
@@ -113,6 +117,7 @@ private:
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
+    QObject *m_continueDialog{};
     QObject *m_errorDialog{};
     QObject *m_canvas{};
     QObject *m_subjectLabel{};
@@ -163,7 +168,9 @@ private:
             ShowFile,
             Fetch,
             Merge,
+            Rebase,
             Abort,
+            Continue,
             Diff,
             Status,
             Commit,

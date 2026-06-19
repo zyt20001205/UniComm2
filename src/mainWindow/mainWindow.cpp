@@ -204,6 +204,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
 
     const QVariantHash gitObjects = {
         {"mainWindowToolTip", objects["mainWindowToolTip"]},
+        {"gitModuleContinueDialog", objects["gitModuleContinueDialog"]},
         {"gitModuleErrorDialog", objects["gitModuleErrorDialog"]},
         {"gitModuleBranchMenu", objects["gitModuleBranchMenu"]},
         {"gitModuleLogMenu", objects["gitModuleLogMenu"]}

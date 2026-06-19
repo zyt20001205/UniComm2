@@ -36,6 +36,9 @@ GitModule::GitModule()
     setWidget(m_widget);
     m_widget->installEventFilter(this);
 
+    auto env = QProcessEnvironment::systemEnvironment();
+    env.insert("GIT_EDITOR", "true");
+    m_process->setProcessEnvironment(env);
     m_process->setWorkingDirectory(g_workspaceUrl.toLocalFile());
     connect(m_process, &QProcess::finished, this, [this](const int exitcode) { processFinished(exitcode); });
 
@@ -57,6 +60,7 @@ GitModule::~GitModule() {
 }
 
 void GitModule::propertySet(const QVariantHash &objects) {
+    m_continueDialog = qvariant_cast<QObject *>(objects["gitModuleContinueDialog"]);
     m_errorDialog = qvariant_cast<QObject *>(objects["gitModuleErrorDialog"]);
 
     m_widget->rootContext()->setContextProperty("gitModule", this);
@@ -209,16 +213,35 @@ void GitModule::gitMerge(const QString &name) {
     processEnqueue(GitCommand::Merge, QStringList{"merge", name});
 }
 
+void GitModule::gitRebase(const QString &name) {
+    processEnqueue(GitCommand::Rebase, QStringList{"rebase", name});
+}
+
 void GitModule::gitAbort() {
     switch (g_globalManager->gitConflictGet()) {
-        case GitConflict::Merge: {
-            processEnqueue(GitCommand::Abort, QStringList{"merge", "--abort"});
-        }
-        break;
+        case GitConflict::Merge: processEnqueue(GitCommand::Abort, QStringList{"merge", "--abort"});
+            break;
+        case GitConflict::Rebase: processEnqueue(GitCommand::Abort, QStringList{"rebase", "--abort"});
+            break;
         default: break;
     }
-    g_globalManager->gitConflictSet(GitConflict::None);
 }
+
+void GitModule::gitContinue(const QString &message) {
+    QStringList arguments{};
+    switch (g_globalManager->gitConflictGet()) {
+        case GitConflict::Merge: {
+            if (message.isEmpty()) arguments = {"merge", "--continue"};
+            else arguments = {"commit", "-m", message};
+        }
+        break;
+        case GitConflict::Rebase: arguments = {"rebase", "--continue"};
+            break;
+        default: break;
+    }
+    processEnqueue(GitCommand::Continue, arguments);
+}
+
 
 void GitModule::gitDiff() {
     processEnqueue(GitCommand::Diff, QStringList{"diff", "--name-only", "--diff-filter=U"});
@@ -554,22 +577,17 @@ void GitModule::processFinished(const int exitcode) {
             break;
             case GitCommand::Diff: {
                 const auto &paths = QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts);
-                // start conflict resolve
-                if (m_taskId == -1) {
-                    emit appendBackground(m_taskId, QString(), [this]{this->gitAbort(); });
-                    g_globalManager->gitConflictSet(GitConflict::Merge);
-                }
                 // finish conflict resolve
                 if (paths.size() == 0) {
-                    emit refreshBackground(m_taskId, tr("Git merging: ready for commit"));
-                    gitCommitPre();
+                    emit refreshBackground(m_taskId, tr("Resolving conflict: ready for commit"));
+                    QMetaObject::invokeMethod(m_continueDialog, "open");
                 }
                 // continue conflict resolve
                 else {
                     const auto &documentPath = paths.first();
                     auto documentUrl = QUrl::fromLocalFile(documentPath);
                     // emit openDocument(documentUrl);
-                    emit refreshBackground(m_taskId, tr("Git merging: %1 file(s) conflict").arg(QString::number(paths.size())));
+                    emit refreshBackground(m_taskId, tr("Resolving conflict: %1 file(s) left").arg(QString::number(paths.size())));
                 }
             }
             break;
@@ -829,11 +847,10 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
-            case GitCommand::Commit: {
-                if (g_globalManager->gitConflictGet() != GitConflict::None) {
-                    g_globalManager->gitConflictSet(GitConflict::None);
-                    emit removeBackground(m_taskId);
-                }
+            case GitCommand::Continue:
+            case GitCommand::Abort: {
+                g_globalManager->gitConflictSet(GitConflict::None);
+                emit removeBackground(m_taskId);
             }
             break;
             case GitCommand::Upstream: {
@@ -862,6 +879,15 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
+                emit appendBackground(m_taskId, QString(), [this] { this->gitAbort(); });
+                g_globalManager->gitConflictSet(GitConflict::Merge);
+            }
+            break;
+            case GitCommand::Rebase: {
+                title = tr("Rebase Failed");
+                text = QString::fromLocal8Bit(output).trimmed();
+                emit appendBackground(m_taskId, QString(), [this] { this->gitAbort(); });
+                g_globalManager->gitConflictSet(GitConflict::Rebase);
             }
             break;
             default: {
@@ -875,7 +901,8 @@ void GitModule::processFinished(const int exitcode) {
         QMetaObject::invokeMethod(m_errorDialog, "open");
         // state machine
         switch (command) {
-            case GitCommand::Merge: {
+            case GitCommand::Merge:
+            case GitCommand::Rebase: {
                 gitDiff();
             }
             break;
