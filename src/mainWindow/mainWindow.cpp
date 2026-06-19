@@ -447,6 +447,7 @@ void MainWindow::moduleInit() {
     g_dataplot = m_dataplotModule;
     g_datatable = m_datatableModule;
     g_document = m_documentModule;
+    g_git = m_gitModule;
     g_log = m_logModule;
     g_nuspell = m_nuspellModule;
     g_port = m_portModule;
@@ -515,7 +516,10 @@ void MainWindow::moduleInit() {
     connect(m_fileModule, &FileModule::notificationJson, m_luals, &LuaLanguageServer::jsonNotification);
 
     connect(m_gitModule, &GitModule::updateIndex, m_explorerModule, &ExplorerModule::indexUpdate);
+    connect(m_gitModule, &GitModule::openDocument, m_documentModule, &DocumentModule::documentOpen);
     connect(m_gitModule, &GitModule::appendBackground, m_statusModule, &StatusModule::backgroundAppend);
+    connect(m_gitModule, &GitModule::removeBackground, m_statusModule, &StatusModule::backgroundRemove);
+    connect(m_gitModule, &GitModule::refreshBackground, m_statusModule, &StatusModule::backgroundRefresh);
 
     connect(m_menuModule, &MenuModule::setTheme, this, &MainWindow::themeSet);
 

@@ -27,6 +27,7 @@ extern DatabaseModule *g_database;
 extern DatatableModule *g_datatable;
 extern DataplotModule *g_dataplot;
 extern DocumentModule *g_document;
+extern GitModule *g_git;
 extern LogModule *g_log;
 extern NuspellModule *g_nuspell;
 extern PortModule *g_port;

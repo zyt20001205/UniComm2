@@ -553,10 +553,23 @@ void GitModule::processFinished(const int exitcode) {
             }
             break;
             case GitCommand::Diff: {
-                for (const auto &path: QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts)) {
-                    const auto &documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(path);
+                const auto &paths = QString::fromLocal8Bit(output).split('\n', Qt::SkipEmptyParts);
+                // start conflict resolve
+                if (m_taskId == -1) {
+                    emit appendBackground(m_taskId, QString(), [this]{this->gitAbort(); });
+                    g_globalManager->gitConflictSet(GitConflict::Merge);
+                }
+                // finish conflict resolve
+                if (paths.size() == 0) {
+                    emit refreshBackground(m_taskId, tr("Git merging: ready for commit"));
+                    gitCommitPre();
+                }
+                // continue conflict resolve
+                else {
+                    const auto &documentPath = paths.first();
                     auto documentUrl = QUrl::fromLocalFile(documentPath);
-                    qDebug() << documentUrl;
+                    // emit openDocument(documentUrl);
+                    emit refreshBackground(m_taskId, tr("Git merging: %1 file(s) conflict").arg(QString::number(paths.size())));
                 }
             }
             break;
@@ -816,6 +829,13 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
+            case GitCommand::Commit: {
+                if (g_globalManager->gitConflictGet() != GitConflict::None) {
+                    g_globalManager->gitConflictSet(GitConflict::None);
+                    emit removeBackground(m_taskId);
+                }
+            }
+            break;
             case GitCommand::Upstream: {
                 gitAhead();
             }
@@ -824,6 +844,12 @@ void GitModule::processFinished(const int exitcode) {
                 gitDiff_();
             }
             break;
+            case GitCommand::Add: {
+                if (g_globalManager->gitConflictGet() != GitConflict::None) {
+                    emit addFinish();
+                    gitDiff();
+                }
+            }
             default: break;
         }
     }
@@ -836,9 +862,6 @@ void GitModule::processFinished(const int exitcode) {
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
-                int taskId = -1;
-                emit appendBackground(taskId, tr("Git merging..."), [this]{this->gitAbort(); });
-                g_globalManager->gitConflictSet(GitConflict::Merge);
             }
             break;
             default: {

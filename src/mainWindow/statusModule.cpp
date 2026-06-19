@@ -64,6 +64,7 @@ void StatusModule::backgroundRefresh(const int taskId, const QString &message) c
         auto item = m_backgroundModel->item(i, 0);
         if (item->data(Qt::UserRole + 1).toInt() == taskId) {
             item->setText(message);
+            backgroundUpdate();
             break;
         }
     }

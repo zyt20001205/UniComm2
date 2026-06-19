@@ -8,6 +8,7 @@ DatabaseModule *g_database = nullptr;
 DatatableModule *g_datatable = nullptr;
 DataplotModule *g_dataplot = nullptr;
 DocumentModule *g_document = nullptr;
+GitModule *g_git = nullptr;
 LogModule *g_log = nullptr;
 NuspellModule *g_nuspell = nullptr;
 PortModule *g_port = nullptr;

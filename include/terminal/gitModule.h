@@ -93,7 +93,15 @@ public:
 signals:
     void updateIndex();
 
+    void openDocument(const QUrl &documentUrl);
+
+    void addFinish();
+
     void appendBackground(int &taskId, const QString &name, const std::function<void()> &callback);
+
+    void removeBackground(int taskId);
+
+    void refreshBackground(int taskId, const QString &message);
 
 private:
     void processEnqueue(int command, const QStringList &arguments);
@@ -128,6 +136,7 @@ private:
     QFileSystemWatcher *m_branchWatcher{};
     QTimer *m_branchWatcherTimer{};
     QString m_branch{};
+    int m_taskId = -1;
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
     ShowModel *m_showModel{};

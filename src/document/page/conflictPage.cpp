@@ -4,7 +4,6 @@
 #include <QFileInfo>
 #include <QShortcut>
 #include <QGridLayout>
-#include <QProcess>
 
 #include "globals.h"
 #include "core/globalManager.h"
@@ -81,9 +80,6 @@ void ConflictPage::savepointChange(const bool status) {
 
 void ConflictPage::resolveFinish() {
     documentSave();
-    QProcess process{};
-    process.setWorkingDirectory(g_workspaceUrl.toLocalFile());
-    process.start("git", {"add", m_documentUrl.toLocalFile()});
-    process.waitForFinished(300);
-    if (process.exitCode() == 0) emit reloadDocument(m_documentUrl.toLocalFile());
+    g_git->gitAdd(m_documentUrl);
+    connect(g_git, &GitModule::addFinish, this, [this] { emit reloadDocument(m_documentUrl.toLocalFile()); });
 }
