@@ -5,7 +5,6 @@
 #include "kddockwidgets/Config.h"
 #include "mainWindow/kddwCustom.h"
 
-
 // public
 GlobalManager::GlobalManager(QWidget *parent)
     : QObject(parent),

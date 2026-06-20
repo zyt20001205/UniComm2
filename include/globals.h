@@ -42,7 +42,7 @@ extern QJsonObject g_workspaceConfig;
 extern ViSession g_rm;
 
 extern QVariantMap g_cursorPosition;
-extern QHash<QChar, int> g_gitStatus;
+extern QHash<QChar, int> g_gitStatusCode;
 
 extern QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints;
 extern QStandardItemModel *g_portStandardItemModel;
@@ -255,6 +255,15 @@ namespace LspTokenModifiers {
 
 namespace GitStatus {
     enum {
+        Idle,
+        Transfer,
+        Merge,
+        Rebase
+    };
+}
+
+namespace GitStatusCode {
+    enum {
         /* '?' */Untracked,
         /* '!' */Ignored,
         /* ' ' */Unmodified,
@@ -265,14 +274,6 @@ namespace GitStatus {
         /* 'R' */Renamed,
         /* 'C' */Copied,
         /* 'U' */UpdatedButUnmerged
-    };
-}
-
-namespace GitConflict {
-    enum {
-        None,
-        Merge,
-        Rebase
     };
 }
 

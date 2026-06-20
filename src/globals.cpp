@@ -29,17 +29,17 @@ QVariantMap g_cursorPosition = {
     {"character", -1}
 };
 
-QHash<QChar, int> g_gitStatus = {
-    {'?', GitStatus::Untracked},
-    {'!', GitStatus::Ignored},
-    {' ', GitStatus::Unmodified},
-    {'M', GitStatus::Modified},
-    {'T', GitStatus::FileTypeChanged},
-    {'A', GitStatus::Added},
-    {'D', GitStatus::Deleted},
-    {'R', GitStatus::Renamed},
-    {'C', GitStatus::Copied},
-    {'U', GitStatus::UpdatedButUnmerged}
+QHash<QChar, int> g_gitStatusCode = {
+    {'?', GitStatusCode::Untracked},
+    {'!', GitStatusCode::Ignored},
+    {' ', GitStatusCode::Unmodified},
+    {'M', GitStatusCode::Modified},
+    {'T', GitStatusCode::FileTypeChanged},
+    {'A', GitStatusCode::Added},
+    {'D', GitStatusCode::Deleted},
+    {'R', GitStatusCode::Renamed},
+    {'C', GitStatusCode::Copied},
+    {'U', GitStatusCode::UpdatedButUnmerged}
 };
 
 QHash<QUrl, QHash<int, QVariantHash> > g_breakpoints = {};

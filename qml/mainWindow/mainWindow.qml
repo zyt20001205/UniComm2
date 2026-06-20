@@ -2639,7 +2639,7 @@ Item {
         y: mainScreenItem.y + (mainScreenItem.height - height) / 2
         width: 600
         modal: true
-        title: global.gitConflict === 1 ? qsTr("Finish Merge") : qsTr("Finish Rebase")
+        title: global.gitStatus === 1 ? qsTr("Finish Merge") : qsTr("Finish Rebase")
         standardButtons: Dialog.Abort | Dialog.Ok
 
         onOpened: {
@@ -2648,8 +2648,8 @@ Item {
         }
         onClosed: widgetCount -= 1
         onAboutToShow: {
-            gitModuleContinueCheckBox.checked = global.gitConflict !== 1
-            gitModuleContinueCheckBox.enabled = global.gitConflict === 1
+            gitModuleContinueCheckBox.checked = global.gitStatus !== 2
+            gitModuleContinueCheckBox.enabled = global.gitStatus === 2
             gitModuleContinueTextField.text = ""
             gitModuleContinueTextField.forceActiveFocus()
         }
@@ -2847,7 +2847,7 @@ Item {
 
         MenuItem {
             text: qsTr("Merge")
-            enabled: !gitModuleBranchMenu.current && global.gitConflict === 0
+            enabled: !gitModuleBranchMenu.current && global.gitStatus === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 
@@ -2856,7 +2856,7 @@ Item {
 
         MenuItem {
             text: qsTr("Rebase")
-            enabled: !gitModuleBranchMenu.current && global.gitConflict === 0
+            enabled: !gitModuleBranchMenu.current && global.gitStatus === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 

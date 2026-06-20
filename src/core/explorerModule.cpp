@@ -93,8 +93,8 @@ void ExplorerModule::processFinished(const int exitcode) {
         const auto documentPath = QDir(g_workspaceUrl.toLocalFile()).filePath(filePath);
         const auto documentUrl = QUrl::fromLocalFile(documentPath);
         m_documentStatus[documentUrl] = QVariantHash{
-                    {"indexStatus", g_gitStatus[indexStatus]},
-                    {"workingTreeStatus", g_gitStatus[workingTreeStatus]}
+                    {"indexStatus", g_gitStatusCode[indexStatus]},
+                    {"workingTreeStatus", g_gitStatusCode[workingTreeStatus]}
         };
     }
     m_sortFilterProxyModel->invalidate();

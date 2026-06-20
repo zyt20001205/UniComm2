@@ -38,6 +38,8 @@ public:
 
     Q_INVOKABLE void gitInit();
 
+    void gitProxy();
+
     void gitWatch();
 
     Q_INVOKABLE void gitBranch();

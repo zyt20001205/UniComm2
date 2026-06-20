@@ -44,7 +44,7 @@ class GlobalManager final : public QObject {
 
     // git module
     Q_PROPERTY(bool gitEnabled READ gitEnabledGet NOTIFY gitEnabledChanged)
-    Q_PROPERTY(int gitConflict READ gitConflictGet NOTIFY gitConflictChanged)
+    Q_PROPERTY(int gitStatus READ gitStatusGet NOTIFY gitStatusChanged)
 
     // watch module
     Q_PROPERTY(bool refresh READ refreshGet WRITE refreshSet)
@@ -171,13 +171,13 @@ public:
         emit gitEnabledChanged();
     }
 
-    [[nodiscard]] int gitConflictGet() const {
-        return m_gitConflict;
+    [[nodiscard]] int gitStatusGet() const {
+        return m_gitStatus;
     }
 
-    void gitConflictSet(const int type) {
-        m_gitConflict = type;
-        emit gitConflictChanged();
+    void gitStatusSet(const int type) {
+        m_gitStatus = type;
+        emit gitStatusChanged();
     }
 
     [[nodiscard]] bool refreshGet() const {
@@ -191,7 +191,7 @@ public:
 signals:
     void gitEnabledChanged();
 
-    void gitConflictChanged();
+    void gitStatusChanged();
 
 private:
     int m_theme{};
@@ -199,7 +199,7 @@ private:
     QStringList m_styleSheet{};
 
     bool m_gitEnabled = false;
-    int m_gitConflict = GitConflict::None;
+    int m_gitStatus = GitStatus::Idle;
 
     bool m_refresh = false;
 };
