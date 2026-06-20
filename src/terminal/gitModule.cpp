@@ -121,7 +121,6 @@ void GitModule::propertyGet_(const QVariantMap &objects) {
 void GitModule::branchSet(const QString &name) {
     if (m_current == name) return;
     m_current = name;
-    gitUpstream();
     gitLog();
 }
 
@@ -442,7 +441,9 @@ void GitModule::processFinished(const int exitcode) {
                     const auto param = branch.split(' ', Qt::SkipEmptyParts);
                     if (param.size() < 2 || param[1] == "->") continue; // exclude HEAD
                     auto name = param[0];
-                    if (type.isEmpty()) {
+                    if (type == "current") {
+                        m_current = name;
+                    } else {
                         if (name.startsWith("remotes/")) {
                             name = name.mid(8);
                             if (name == m_upstream) type = "upstream";
@@ -849,6 +850,8 @@ void GitModule::processFinished(const int exitcode) {
                 break;
             case GitCommand::Branch: gitLog();
                 break;
+            case GitCommand::Switch: gitUpstream();
+                break;
             case GitCommand::Create:
             case GitCommand::Rename:
             case GitCommand::Delete: gitWatch();
@@ -885,6 +888,8 @@ void GitModule::processFinished(const int exitcode) {
         QString text{};
         // error parser
         switch (command) {
+            case GitCommand::Upstream: m_upstream = "";
+                break;
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
@@ -919,16 +924,15 @@ void GitModule::processFinished(const int exitcode) {
             }
             break;
         }
-        m_errorDialog->setProperty("title", title);
-        m_errorDialog->setProperty("text", text);
-        QMetaObject::invokeMethod(m_errorDialog, "open");
+        if (!title.isEmpty() && !text.isEmpty()) {
+            m_errorDialog->setProperty("title", title);
+            m_errorDialog->setProperty("text", text);
+            QMetaObject::invokeMethod(m_errorDialog, "open");
+        }
         // state machine
         switch (command) {
-            case GitCommand::Upstream: {
-                qDebug() << "no upstream found" << m_current;
-                gitBranch();
-            }
-            break;
+            case GitCommand::Upstream: gitBranch();
+                break;
             case GitCommand::Merge:
             case GitCommand::Rebase: gitDiff();
                 break;

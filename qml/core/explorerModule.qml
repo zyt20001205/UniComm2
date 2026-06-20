@@ -72,7 +72,7 @@ Item {
                         width: 16; height: 16
                         source: expanded ? "qrc:/icon/arrowExpand.svg" : "qrc:/icon/arrowCollapse.svg"
                         color: global.fore
-                        visible: model.isDir
+                        visible: model.isDir === true
                     }
 
                     TapHandler {

@@ -2795,7 +2795,7 @@ Item {
 
         MenuItem {
             text: qsTr("Switch")
-            enabled: gitModuleBranchMenu.type !== "current" && gitModuleBranchMenu.type !== "remote"
+            enabled: !["current", "upstream", "remote"].includes(gitModuleBranchMenu.type)
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
 
@@ -2804,7 +2804,7 @@ Item {
 
         MenuItem {
             text: qsTr("Create")
-            enabled: gitModuleBranchMenu.type !== "remote"
+            enabled: !["upstream", "remote"].includes(gitModuleBranchMenu.type)
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
@@ -2816,7 +2816,7 @@ Item {
 
         MenuItem {
             text: qsTr("Rename")
-            enabled: gitModuleBranchMenu.type !== "remote"
+            enabled: !["upstream", "remote"].includes(gitModuleBranchMenu.type)
             icon.source: "qrc:/icon/rename.svg"
             icon.width: 16; icon.height: 16
 
@@ -2828,7 +2828,7 @@ Item {
 
         Menu {
             title: qsTr("Delete")
-            enabled: gitModuleBranchMenu.type !== "current" && gitModuleBranchMenu.type !== "remote"
+            enabled: !["upstream", "remote"].includes(gitModuleBranchMenu.type)
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
