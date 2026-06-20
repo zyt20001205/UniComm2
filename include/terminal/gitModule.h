@@ -38,7 +38,7 @@ public:
 
     Q_INVOKABLE void gitInit();
 
-    void gitProxy();
+    Q_INVOKABLE void gitProxy();
 
     void gitWatch();
 
