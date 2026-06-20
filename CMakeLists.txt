@@ -6,7 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH  "C:/MyFileAudit/software/msys64/ucrt64")
+set(CMAKE_PREFIX_PATH "C:/MyFileAudit/software/msys64/ucrt64")
 
 find_package(Qt6 REQUIRED COMPONENTS
         Core
@@ -115,6 +115,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/service/git/gitModule.h
         include/terminal/logModule.h
         include/terminal/terminalModule.h
+        include/terminal/vtermWidget.h
         include/terminal/page/cmdPage.h
         include/terminal/page/powershellPage.h
         include/terminal/page/terminalPage.h
@@ -206,6 +207,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/service/git/gitModule.cpp
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp
+        src/terminal/vtermWidget.cpp
         src/terminal/page/cmdPage.cpp
         src/terminal/page/powershellPage.cpp
         src/terminal/page/terminalPage.cpp
@@ -505,11 +507,15 @@ file(GLOB TESSERACT_LIB "${TESSERACT_DIR}/lib/*.a")
 set(TESSERACT_BIN "${TESSERACT_DIR}/bin")
 set(TESSERACT_LANG "${TESSERACT_DIR}/lang")
 
-#???
 set(VISA_DIR "${CMAKE_SOURCE_DIR}/3rd/visa")
 set(VISA_INCLUDE "${VISA_DIR}/include")
 file(GLOB VISA_LIB "${VISA_DIR}/bin/*.dll")
 set(VISA_BIN "${VISA_DIR}/bin")
+
+set(VTERM_DIR "${CMAKE_SOURCE_DIR}/3rd/vterm")
+set(VTERM_INCLUDE "${VTERM_DIR}/include")
+file(GLOB VTERM_LIB "${VTERM_DIR}/lib/*.a")
+set(VTERM_BIN "${VTERM_DIR}/bin")
 
 target_include_directories(UniComm PRIVATE
         ${UNICOMM_INCLUDE}
@@ -526,6 +532,7 @@ target_include_directories(UniComm PRIVATE
         ${SOL2_INCLUDE}
         ${TESSERACT_INCLUDE}
         ${VISA_INCLUDE}
+        ${VTERM_INCLUDE}
 )
 
 target_link_libraries(UniComm PRIVATE
@@ -555,8 +562,8 @@ target_link_libraries(UniComm PRIVATE
         ${QTKEYCHAIN_LIB}
         ${SCINTILLA_LIB}
         ${TESSERACT_LIB}
-        #???
         ${VISA_LIB}
+        ${VTERM_LIB}
         -Wl,--start-group
         ${OPENCV_LIB}
         -Wl,--end-group
@@ -699,3 +706,9 @@ add_custom_command(TARGET UniComm POST_BUILD
         "${VISA_BIN}"
         "${CMAKE_BINARY_DIR}"
         COMMENT "VISA BIN COPIED")
+#vterm-0.3.3-1
+add_custom_command(TARGET UniComm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${VTERM_BIN}"
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "VTERM BIN COPIED")
