@@ -119,8 +119,9 @@ void GitModule::propertyGet_(const QVariantMap &objects) {
 }
 
 void GitModule::branchSet(const QString &name) {
-    if (m_branch == name) return;
-    m_branch = name;
+    if (m_current == name) return;
+    m_current = name;
+    gitUpstream();
     gitLog();
 }
 
@@ -144,7 +145,7 @@ void GitModule::gitInit() {
 }
 
 void GitModule::gitProxy() {
-
+    // TODO: proxy dialog
 }
 
 void GitModule::gitWatch() {
@@ -154,6 +155,10 @@ void GitModule::gitWatch() {
 }
 
 // public: branch
+void GitModule::gitUpstream() {
+    processEnqueue(GitCommand::Upstream, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
+}
+
 void GitModule::gitBranch() {
     processEnqueue(GitCommand::Branch, QStringList{"branch", "-avv"});
 }
@@ -177,9 +182,10 @@ void GitModule::gitDelete(const QString &name) {
     processEnqueue(GitCommand::Delete, QStringList{"branch", "-D", name});
 }
 
+// public: log
 void GitModule::gitLog() {
-    if (m_branch.isEmpty()) return;
-    processEnqueue(GitCommand::Log, QStringList{"log", m_branch, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
+    if (m_current.isEmpty()) return;
+    processEnqueue(GitCommand::Log, QStringList{"log", m_current, "-z", "--pretty=format:%h%x1e%p%x1e%ar%x1e%an%x1e%s"});
 }
 
 void GitModule::gitReset(const QString &hash, const int mode) {
@@ -200,6 +206,7 @@ void GitModule::gitReset(const QString &hash, const int mode) {
     processEnqueue(GitCommand::Reset, QStringList{"reset", hash, _mode});
 }
 
+// public: show
 void GitModule::gitShowCommit(const QString &hash) {
     processEnqueue(GitCommand::ShowCommit, QStringList{"show", hash, "--format=%h%x1e%s%x1e%ad%x1e%an%x1e%ae%x1e", "--name-status"});
 }
@@ -207,12 +214,6 @@ void GitModule::gitShowCommit(const QString &hash) {
 void GitModule::gitShowFile(const QString &hash, const QUrl &documentUrl) {
     const auto &documentPath = documentUrl.toLocalFile();
     processEnqueue(GitCommand::ShowFile, QStringList{"show", hash, "--format=", documentPath});
-}
-
-void GitModule::gitFetch() {
-    processEnqueue(GitCommand::Fetch, QStringList{"fetch", "--dry-run"});
-    emit appendBackground(m_taskId, tr("Fetching from remote..."), [this] { this->gitAbort(); });
-    g_globalManager->gitStatusSet(GitStatus::Transfer);
 }
 
 void GitModule::gitMerge(const QString &name) {
@@ -271,15 +272,18 @@ void GitModule::gitCommit(const QString &subject) {
     processEnqueue(GitCommand::Commit, QStringList{"commit", "-m", subject});
 }
 
+// public: pull
+void GitModule::gitFetch() {
+    processEnqueue(GitCommand::Fetch, QStringList{"fetch", "-p"});
+    emit appendBackground(m_taskId, tr("Fetching from remote..."), [this] { this->gitAbort(); });
+    g_globalManager->gitStatusSet(GitStatus::Transfer);
+}
+
 // public: push
 void GitModule::gitPushPre() {
     m_pushWindow->resize(1080, 720);
     m_pushWindow->show();
-    gitUpstream();
-}
-
-void GitModule::gitUpstream() {
-    processEnqueue(GitCommand::Upstream, QStringList{"rev-parse", "--abbrev-ref", "@{upstream}"});
+    gitAhead();
 }
 
 void GitModule::gitAhead() {
@@ -295,7 +299,10 @@ void GitModule::gitShowCommit_(const QString &hash) {
 }
 
 void GitModule::gitPush() {
+    m_pushWindow->close();
     processEnqueue(GitCommand::Push, QStringList{"push"});
+    emit appendBackground(m_taskId, tr("Pushing to remote..."), [this] { this->gitAbort(); });
+    g_globalManager->gitStatusSet(GitStatus::Transfer);
 }
 
 // public: file
@@ -397,7 +404,6 @@ void GitModule::processDequeue() {
 void GitModule::processFinished(const int exitcode) {
     const auto output = m_process->readAllStandardOutput();
     const auto error = m_process->readAllStandardError();
-    qDebug() << output << error;
     const auto command = m_command;
     m_command = GitCommand::Null;
     // output
@@ -420,41 +426,48 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
+            case GitCommand::Upstream: m_upstream = QString::fromLocal8Bit(output).trimmed();
+                break;
             case GitCommand::Branch: {
                 m_branchModel->clear();
                 auto *localItem = new QStandardItem(tr("Local")); // NOLINT
-                localItem->setData("local", Qt::UserRole + 1);
+                localItem->setData("localRep", Qt::UserRole + 1);
                 m_branchModel->appendRow(localItem);
                 QStandardItem *remoteItem = nullptr;
                 for (const auto &value: QString::fromLocal8Bit(output).split('\n')) {
                     QString branch{};
-                    QString type = "untracked";
-                    if (value.startsWith('*')) {
-                        type = "current";
-                    }
+                    QString type{};
+                    if (value.startsWith('*')) type = "current";
                     branch = value.mid(2);
                     const auto param = branch.split(' ', Qt::SkipEmptyParts);
-                    if (param.size() < 2 || param[1] == "->") continue;
-                    const auto &name = param[0];
+                    if (param.size() < 2 || param[1] == "->") continue; // exclude HEAD
+                    auto name = param[0];
+                    if (type.isEmpty()) {
+                        if (name.startsWith("remotes/")) {
+                            name = name.mid(8);
+                            if (name == m_upstream) type = "upstream";
+                            else type = "remote";
+                        } else {
+                            type = "local";
+                        }
+                    }
                     const auto &hash = param[1];
                     const auto &commit = QStringList(param.mid(2)).join(' ');
-                    auto *item = new QStandardItem(name.startsWith("remotes/") ? name.mid(8) : name); // NOLINT
+                    auto *item = new QStandardItem(name); // NOLINT
                     item->setData(type, Qt::UserRole + 1);
                     item->setData(hash, Qt::UserRole + 2);
                     item->setData(commit, Qt::UserRole + 3);
-                    // remote
-                    if (name.startsWith("remotes/")) {
+                    // local
+                    if (type == "current" || type == "local") {
+                        if (name == "master") localItem->insertRow(0, item);
+                        else localItem->appendRow(item);
+                    } else {
                         if (remoteItem == nullptr) {
                             remoteItem = new QStandardItem(tr("Remote")); // NOLINT
-                            remoteItem->setData("remote", Qt::UserRole + 1);
+                            remoteItem->setData("remoteRep", Qt::UserRole + 1);
                             m_branchModel->appendRow(remoteItem);
                         }
                         remoteItem->appendRow(item);
-                    }
-                    // local
-                    else {
-                        if (name == "master") localItem->insertRow(0, item);
-                        else localItem->appendRow(item);
                     }
                 }
                 QMetaObject::invokeMethod(m_root, "branchExpand");
@@ -685,13 +698,9 @@ void GitModule::processFinished(const int exitcode) {
                 QMetaObject::invokeMethod(m_commitRoot, "indexExpand");
             }
             break;
-            case GitCommand::Upstream: {
-                m_commitModel->clear();
-                m_commitModel->appendRow(new QStandardItem("->" + QString::fromLocal8Bit(output)));
-            }
-            break;
             case GitCommand::Ahead: {
-                if (m_commitModel->rowCount() <= 0) break;
+                m_commitModel->clear();
+                m_commitModel->appendRow(new QStandardItem(m_current + " -> " + m_upstream));
                 auto *root = m_commitModel->item(0, 0);
                 for (const auto &value: output.split('\0')) {
                     const auto param = value.split('\x1e');
@@ -834,20 +843,16 @@ void GitModule::processFinished(const int exitcode) {
                 gitWatch();
             }
             break;
-            case GitCommand::Watch: {
-                gitBranch();
-            }
-            break;
-            case GitCommand::Branch: {
-                gitLog();
-            }
-            break;
+            case GitCommand::Watch: gitUpstream();
+                break;
+            case GitCommand::Upstream: gitBranch();
+                break;
+            case GitCommand::Branch: gitLog();
+                break;
             case GitCommand::Create:
             case GitCommand::Rename:
-            case GitCommand::Delete: {
-                gitWatch();
-            }
-            break;
+            case GitCommand::Delete: gitWatch();
+                break;
             case GitCommand::Log: {
                 if (m_logModel->rowCount() > 0) {
                     const auto hash = m_logModel->item(0, 0)->data(Qt::UserRole + 1).toString();
@@ -855,21 +860,16 @@ void GitModule::processFinished(const int exitcode) {
                 }
             }
             break;
-            case GitCommand::Fetch:
+            case GitCommand::Fetch: gitWatch();
             case GitCommand::Continue:
-            case GitCommand::Abort: {
+            case GitCommand::Abort:
+            case GitCommand::Push: {
                 emit removeBackground(m_taskId);
                 g_globalManager->gitStatusSet(GitStatus::Idle);
             }
             break;
-            case GitCommand::Upstream: {
-                gitAhead();
-            }
-            break;
-            case GitCommand::Ahead: {
-                gitDiff_();
-            }
-            break;
+            case GitCommand::Ahead: gitDiff_();
+                break;
             case GitCommand::Add: {
                 if (g_globalManager->gitStatusGet() != GitStatus::Idle) {
                     emit addFinish();
@@ -885,13 +885,6 @@ void GitModule::processFinished(const int exitcode) {
         QString text{};
         // error parser
         switch (command) {
-            case GitCommand::Fetch: {
-                title = tr("Fetch Failed");
-                text = QString::fromLocal8Bit(error).trimmed();
-                emit removeBackground(m_taskId);
-                g_globalManager->gitStatusSet(GitStatus::Idle);
-            }
-            break;
             case GitCommand::Merge: {
                 title = tr("Merge Failed");
                 text = QString::fromLocal8Bit(output).trimmed();
@@ -906,6 +899,20 @@ void GitModule::processFinished(const int exitcode) {
                 g_globalManager->gitStatusSet(GitStatus::Rebase);
             }
             break;
+            case GitCommand::Fetch: {
+                title = tr("Fetch Failed");
+                text = QString::fromLocal8Bit(error).trimmed();
+                emit removeBackground(m_taskId);
+                g_globalManager->gitStatusSet(GitStatus::Idle);
+            }
+            break;
+            case GitCommand::Push: {
+                title = tr("Push Failed");
+                text = QString::fromLocal8Bit(error).trimmed();
+                emit removeBackground(m_taskId);
+                g_globalManager->gitStatusSet(GitStatus::Idle);
+            }
+            break;
             default: {
                 title = tr("Git command failed");
                 text = QString::fromLocal8Bit(error).trimmed();
@@ -917,11 +924,14 @@ void GitModule::processFinished(const int exitcode) {
         QMetaObject::invokeMethod(m_errorDialog, "open");
         // state machine
         switch (command) {
-            case GitCommand::Merge:
-            case GitCommand::Rebase: {
-                gitDiff();
+            case GitCommand::Upstream: {
+                qDebug() << "no upstream found" << m_current;
+                gitBranch();
             }
             break;
+            case GitCommand::Merge:
+            case GitCommand::Rebase: gitDiff();
+                break;
             default: break;
         }
     }

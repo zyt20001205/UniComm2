@@ -145,11 +145,12 @@ Item {
                             IconImage {
                                 anchors.centerIn: parent
                                 width: 16; height: 16
-                                source: model.type === "local" ? "qrc:/icon/tcpClient.svg" :
-                                        model.type === "remote" ? "qrc:/icon/tcpServer.svg" :
-                                            model.type === "current" ? "qrc:/icon/tag.svg" :
-                                            "qrc:/icon/gitBranch.svg"
-                                color: ["favourite", "current"].includes(model.type) ? global.warningFore3 : global.fore
+                                source: model.type === "localRep" ? "qrc:/icon/tcpClient.svg"
+                                    : model.type === "remoteRep" ? "qrc:/icon/tcpServer.svg"
+                                        : model.type === "current" ? "qrc:/icon/tag.svg"
+                                            : model.type === "upstream" ? "qrc:/icon/tag.svg"
+                                                : "qrc:/icon/gitBranch.svg"
+                                color: ["current", "upstream"].includes(model.type) ? global.warningFore3 : global.fore
                             }
                         }
 
@@ -207,7 +208,7 @@ Item {
                         onTapped: {
                             if (!(isTreeNode && hasChildren)) {
                                 branchMenu.name = model.display
-                                branchMenu.current = model.type === "current"
+                                branchMenu.type = model.type
                                 branchMenu.popup()
                             }
                         }

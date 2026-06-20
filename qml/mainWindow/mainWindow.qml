@@ -2785,7 +2785,7 @@ Item {
     Menu {
         id: gitModuleBranchMenu
         property url name
-        property bool current
+        property string type
 
         onOpened: {
             mainWindow.overlayFlagSet(false, true)
@@ -2795,7 +2795,7 @@ Item {
 
         MenuItem {
             text: qsTr("Switch")
-            enabled: !gitModuleBranchMenu.current
+            enabled: gitModuleBranchMenu.type !== "current" && gitModuleBranchMenu.type !== "remote"
             icon.source: "qrc:/icon/arrowRight.svg"
             icon.width: 16; icon.height: 16
 
@@ -2804,6 +2804,7 @@ Item {
 
         MenuItem {
             text: qsTr("Create")
+            enabled: gitModuleBranchMenu.type !== "remote"
             icon.source: "qrc:/icon/add.svg"
             icon.width: 16; icon.height: 16
 
@@ -2815,6 +2816,7 @@ Item {
 
         MenuItem {
             text: qsTr("Rename")
+            enabled: gitModuleBranchMenu.type !== "remote"
             icon.source: "qrc:/icon/rename.svg"
             icon.width: 16; icon.height: 16
 
@@ -2826,7 +2828,7 @@ Item {
 
         Menu {
             title: qsTr("Delete")
-            enabled: !gitModuleBranchMenu.current
+            enabled: gitModuleBranchMenu.type !== "current" && gitModuleBranchMenu.type !== "remote"
             icon.source: "qrc:/icon/delete.svg"
             icon.width: 16; icon.height: 16
 
@@ -2847,7 +2849,7 @@ Item {
 
         MenuItem {
             text: qsTr("Merge")
-            enabled: !gitModuleBranchMenu.current && global.gitStatus === 0
+            enabled: gitModuleBranchMenu.type !== "current" && global.gitStatus === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 
@@ -2856,7 +2858,7 @@ Item {
 
         MenuItem {
             text: qsTr("Rebase")
-            enabled: !gitModuleBranchMenu.current && global.gitStatus === 0
+            enabled: gitModuleBranchMenu.type !== "current" && global.gitStatus === 0
             icon.source: "qrc:/icon/gitMerge.svg"
             icon.width: 16; icon.height: 16
 

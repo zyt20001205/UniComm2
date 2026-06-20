@@ -42,6 +42,8 @@ public:
 
     void gitWatch();
 
+    void gitUpstream();
+
     Q_INVOKABLE void gitBranch();
 
     Q_INVOKABLE void gitSwitch(const QString &name);
@@ -60,8 +62,6 @@ public:
 
     Q_INVOKABLE void gitShowFile(const QString &hash, const QUrl &documentUrl);
 
-    Q_INVOKABLE void gitFetch();
-
     Q_INVOKABLE void gitMerge(const QString &name);
 
     Q_INVOKABLE void gitRebase(const QString &name);
@@ -78,9 +78,9 @@ public:
 
     Q_INVOKABLE void gitCommit(const QString &subject);
 
-    Q_INVOKABLE void gitPushPre();
+    Q_INVOKABLE void gitFetch();
 
-    void gitUpstream();
+    Q_INVOKABLE void gitPushPre();
 
     void gitAhead();
 
@@ -88,7 +88,7 @@ public:
 
     Q_INVOKABLE void gitShowCommit_(const QString &hash);
 
-    void gitPush();
+    Q_INVOKABLE void gitPush();
 
     Q_INVOKABLE void gitAdd(const QUrl &documentUrl = QUrl());
 
@@ -142,7 +142,8 @@ private:
     QTimer *m_indexWatcherTimer{};
     QFileSystemWatcher *m_branchWatcher{};
     QTimer *m_branchWatcherTimer{};
-    QString m_branch{};
+    QString m_current{};
+    QString m_upstream{};
     int m_taskId = -1;
     BranchModel *m_branchModel{};
     LogModel *m_logModel{};
@@ -160,6 +161,7 @@ private:
             Init,
             Watch,
             Branch,
+            Upstream,
             Switch,
             Create,
             Rename,
@@ -168,7 +170,6 @@ private:
             Reset,
             ShowCommit,
             ShowFile,
-            Fetch,
             Merge,
             Rebase,
             Abort,
@@ -176,7 +177,7 @@ private:
             Diff,
             Status,
             Commit,
-            Upstream,
+            Fetch,
             Ahead,
             Diff_,
             ShowCommit_,
