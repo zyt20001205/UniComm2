@@ -2,7 +2,7 @@
 #define UNICOMM_GLOBALMANAGER_H
 
 #include "globals.h"
-#include "terminal/gitModule.h"
+#include "service/git/gitModule.h"
 
 class GlobalManager final : public QObject {
     Q_OBJECT

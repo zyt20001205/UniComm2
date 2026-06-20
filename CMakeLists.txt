@@ -112,7 +112,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/runtime/threadpoolModule.h
         include/service/luaLanguageServer.h
         include/service/ripgrep.h
-        include/terminal/gitModule.h
+        include/service/git/gitModule.h
         include/terminal/logModule.h
         include/terminal/terminalModule.h
         include/terminal/page/cmdPage.h
@@ -203,7 +203,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/runtime/threadpoolModule.cpp
         src/service/luaLanguageServer.cpp
         src/service/ripgrep.cpp
-        src/terminal/gitModule.cpp
+        src/service/git/gitModule.cpp
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp
         src/terminal/page/cmdPage.cpp
@@ -245,9 +245,9 @@ qt_add_resources(UniComm "qml_resources"
         "qml/port/portSetting.qml"
         "qml/port/sendModule.qml"
         "qml/runtime/threadpoolModule.qml"
-        "qml/terminal/gitCommitWindow.qml"
-        "qml/terminal/gitPushWindow.qml"
-        "qml/terminal/gitModule.qml"
+        "qml/service/git/gitCommitWindow.qml"
+        "qml/service/git/gitPushWindow.qml"
+        "qml/service/git/gitModule.qml"
         "qml/terminal/logModule.qml"
         "qml/terminal/page/terminalPage.qml"
 )

@@ -46,7 +46,7 @@
 #include "runtime/threadpoolModule.h"
 #include "service/luaLanguageServer.h"
 #include "service/ripgrep.h"
-#include "terminal/gitModule.h"
+#include "service/git/gitModule.h"
 #include "terminal/logModule.h"
 #include "terminal/terminalModule.h"
 

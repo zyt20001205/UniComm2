@@ -1,4 +1,4 @@
-#include "terminal/gitModule.h"
+#include "service/git/gitModule.h"
 
 #include <QDirIterator>
 #include <QFileInfo>
@@ -73,7 +73,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("showModel", m_showModel);
 
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_widget->setSource(QUrl("qrc:/qml/terminal/gitModule.qml"));
+    m_widget->setSource(QUrl("qrc:/qml/service/git/gitModule.qml"));
     m_root = m_widget->rootObject();
     if (g_globalManager->gitEnabledGet()) gitWatch();
 
@@ -88,7 +88,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_commitWindow->rootContext()->setContextProperty("indexModel", m_indexModel);
 
     m_commitWindow->setResizeMode(QQuickView::SizeRootObjectToView);
-    m_commitWindow->setSource(QUrl("qrc:/qml/terminal/gitCommitWindow.qml"));
+    m_commitWindow->setSource(QUrl("qrc:/qml/service/git/gitCommitWindow.qml"));
     m_commitRoot = m_commitWindow->rootObject();
 
     // push window
@@ -102,7 +102,7 @@ void GitModule::propertySet(const QVariantHash &objects) {
     m_pushWindow->rootContext()->setContextProperty("showModel", m_showModel_);
 
     m_pushWindow->setResizeMode(QQuickView::SizeRootObjectToView);
-    m_pushWindow->setSource(QUrl("qrc:/qml/terminal/gitPushWindow.qml"));
+    m_pushWindow->setSource(QUrl("qrc:/qml/service/git/gitPushWindow.qml"));
 }
 
 void GitModule::propertyGet(const QVariantMap &objects) {
