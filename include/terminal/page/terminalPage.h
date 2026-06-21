@@ -34,21 +34,14 @@ protected:
 
     [[nodiscard]] bool terminalRunning() const;
 
-    QString m_name{};
-    QStringList m_arguments{};
+    QString m_commandLine{};
 
 private:
-    void terminalOutput(const QByteArray &bytes) const;
-
     void terminalRefresh() const;
-
-    [[nodiscard]] QString commandLine() const;
 
     void processStop();
 
     static void closeHandle(void *&handle);
-
-    [[nodiscard]] static QString quoteCommandArgument(const QString &argument);
 
     QJsonObject m_config{};
     QQuickWidget *m_widget{};

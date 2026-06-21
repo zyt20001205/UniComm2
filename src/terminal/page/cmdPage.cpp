@@ -6,8 +6,7 @@
 // public
 CmdPage::CmdPage(const QString &uniqueName, const QJsonObject &config)
     : TerminalPage(uniqueName, config) {
-    m_name = "cmd.exe";
-    m_arguments = {};
+    m_commandLine = "cmd.exe";
 }
 
 // protected

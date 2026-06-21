@@ -1,13 +1,13 @@
 #ifndef UNICOMM_VTERMWIDGET_H
 #define UNICOMM_VTERMWIDGET_H
 
-#include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <vterm.h>
 
 extern "C" {
-typedef struct VTerm VTerm;
-typedef struct VTermScreen VTermScreen;
+typedef VTerm VTerm;
+typedef VTermScreen VTermScreen;
 }
 
 class VtermWidget final : public QObject {
@@ -30,23 +30,24 @@ public:
 
     void reset(bool hard = true) const;
 
-    void write(const QByteArray &bytes) const;
-
     [[nodiscard]] QByteArray keyboardKey(int key, int modifiers) const;
 
     [[nodiscard]] QByteArray keyboardUnichar(const QString &text, int modifiers) const;
+
+    void inputWrite(const QByteArray &bytes) const;
 
     [[nodiscard]] QString text() const;
 
     [[nodiscard]] int cursorPosition() const;
 
 private:
-    [[nodiscard]] QByteArray readOutput() const;
+    [[nodiscard]] QByteArray outputRead() const;
 
     int m_rows{};
     int m_cols{};
     VTerm *m_vterm{};
     VTermScreen *m_screen{};
+    const VTermScreenCallbacks m_callbacks{};
 };
 
 #endif //UNICOMM_VTERMWIDGET_H

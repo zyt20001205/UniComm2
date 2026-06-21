@@ -3,32 +3,25 @@
 #include <QStringList>
 #include <vterm.h>
 
-namespace {
-    int screenDamage(VTermRect, void *user) {
-        return user ? 1 : 0;
-    }
-
-    const VTermScreenCallbacks kScreenCallbacks{
-        screenDamage,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr
-    };
-}
-
 VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     : QObject(parent),
       m_rows(rows),
       m_cols(cols),
       m_vterm(vterm_new(m_rows, m_cols)),
-      m_screen(vterm_obtain_screen(m_vterm)) {
+      m_screen(vterm_obtain_screen(m_vterm)),
+      m_callbacks{
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr
+      } {
     vterm_set_utf8(m_vterm, 1);
 
-    vterm_screen_set_callbacks(m_screen, &kScreenCallbacks, this);
+    vterm_screen_set_callbacks(m_screen, &m_callbacks, this);
     vterm_screen_set_damage_merge(m_screen, VTERM_DAMAGE_SCROLL);
     vterm_screen_reset(m_screen, 1);
 }
@@ -49,7 +42,7 @@ void VtermWidget::reset(const bool hard) const {
     vterm_screen_flush_damage(m_screen);
 }
 
-void VtermWidget::write(const QByteArray &bytes) const {
+void VtermWidget::inputWrite(const QByteArray &bytes) const {
     if (bytes.isEmpty()) return;
     vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
@@ -57,12 +50,12 @@ void VtermWidget::write(const QByteArray &bytes) const {
 
 QByteArray VtermWidget::keyboardKey(const int key, const int modifiers) const {
     vterm_keyboard_key(m_vterm, static_cast<VTermKey>(key), static_cast<VTermModifier>(modifiers));
-    return readOutput();
+    return outputRead();
 }
 
 QByteArray VtermWidget::keyboardUnichar(const QString &text, const int modifiers) const {
     for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, static_cast<VTermModifier>(modifiers));
-    return readOutput();
+    return outputRead();
 }
 
 QString VtermWidget::text() const {
@@ -91,7 +84,7 @@ int VtermWidget::cursorPosition() const {
     return pos.row * (m_cols + 1) + pos.col;
 }
 
-QByteArray VtermWidget::readOutput() const {
+QByteArray VtermWidget::outputRead() const {
     QByteArray output;
     char buffer[256]{};
     while (vterm_output_get_buffer_current(m_vterm) > 0) {

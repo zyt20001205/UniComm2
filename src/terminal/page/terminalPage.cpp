@@ -6,7 +6,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <QRegularExpression>
 #include <vterm.h>
 #include <windows.h>
 
@@ -37,6 +36,7 @@ TerminalPage::~TerminalPage() {
 void TerminalPage::propertySet(const QVariantHash &objects) {
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("terminalPage", this);
+
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/page/terminalPage.qml"));
     m_root = m_widget->rootObject();
@@ -134,8 +134,7 @@ bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_widget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
-            terminalInput(Qt::Key_Tab, keyEvent->modifiers(), QStringLiteral("\t"));
-            return true;
+            return terminalInput(Qt::Key_Tab, keyEvent->modifiers(), "\t");
         }
     }
     return DockWidget::eventFilter(watched, event);
@@ -200,17 +199,15 @@ void TerminalPage::processStart() {
     startupInfo.lpAttributeList = attributeList;
 
     PROCESS_INFORMATION processInfo{};
-    auto command = commandLine().toStdWString();
-    auto workingDir = QDir::toNativeSeparators(g_workspaceUrl.toLocalFile()).toStdWString();
     const BOOL created = CreateProcessW(
         nullptr,
-        command.data(),
+        m_commandLine.toStdWString().data(),
         nullptr,
         nullptr,
         FALSE,
         EXTENDED_STARTUPINFO_PRESENT,
         nullptr,
-        workingDir.empty() ? nullptr : workingDir.c_str(),
+        QDir::toNativeSeparators(g_workspaceUrl.toLocalFile()).toStdWString().c_str(),
         &startupInfo.StartupInfo,
         &processInfo
     );
@@ -237,7 +234,8 @@ void TerminalPage::processStart() {
         while (ReadFile(outputRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
             const QByteArray bytes(buffer, static_cast<qsizetype>(read));
             QMetaObject::invokeMethod(this, [this, bytes] {
-                terminalOutput(bytes);
+                m_vtermWidget->inputWrite(bytes);
+                terminalRefresh();
             }, Qt::QueuedConnection);
         }
         QMetaObject::invokeMethod(this, [this] {
@@ -266,26 +264,11 @@ bool TerminalPage::terminalRunning() const {
 }
 
 // private
-void TerminalPage::terminalOutput(const QByteArray &bytes) const {
-    m_vtermWidget->write(bytes);
-    terminalRefresh();
-}
-
 void TerminalPage::terminalRefresh() const {
     if (m_textArea && m_vtermWidget) {
         m_textArea->setProperty("text", m_vtermWidget->text());
         m_textArea->setProperty("cursorPosition", m_vtermWidget->cursorPosition());
     }
-}
-
-QString TerminalPage::commandLine() const {
-    QStringList arguments;
-    arguments.reserve(m_arguments.size() + 1);
-    arguments << quoteCommandArgument(m_name);
-    for (const auto &argument: m_arguments) {
-        arguments << quoteCommandArgument(argument);
-    }
-    return arguments.join(QLatin1Char(' '));
 }
 
 void TerminalPage::processStop() {
@@ -317,27 +300,4 @@ void TerminalPage::closeHandle(void *&handle) {
         CloseHandle(handle);
         handle = nullptr;
     }
-}
-
-QString TerminalPage::quoteCommandArgument(const QString &argument) {
-    if (!argument.contains(QRegularExpression(QStringLiteral("[\\s\"]")))) return argument;
-
-    QString quoted = QStringLiteral("\"");
-    int backslashes = 0;
-    for (const auto ch: argument) {
-        if (ch == QLatin1Char('\\')) {
-            ++backslashes;
-        } else if (ch == QLatin1Char('"')) {
-            quoted += QString(backslashes * 2 + 1, QLatin1Char('\\'));
-            quoted += ch;
-            backslashes = 0;
-        } else {
-            quoted += QString(backslashes, QLatin1Char('\\'));
-            quoted += ch;
-            backslashes = 0;
-        }
-    }
-    quoted += QString(backslashes * 2, QLatin1Char('\\'));
-    quoted += QLatin1Char('"');
-    return quoted;
 }
