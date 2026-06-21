@@ -49,6 +49,7 @@ Item {
             textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
             wrapMode: TextEdit.NoWrap
+            ContextMenu.menu: null
             onWidthChanged: rootItem.terminalResize()
             onHeightChanged: rootItem.terminalResize()
             onFontChanged: rootItem.terminalResize()
