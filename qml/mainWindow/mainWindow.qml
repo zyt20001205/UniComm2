@@ -3743,7 +3743,6 @@ Item {
             }
 
             MenuSeparator {
-                visible: terminalModuleTerminalMenu.terminalModel.rowCount > 0
             }
 
             Instantiator {

@@ -28,7 +28,6 @@ void TerminalModule::propertySet(const QVariantHash &objects) {
         item->setData(command, Qt::UserRole + 1);
         m_terminalModel->appendRow(item);
     }
-    emit m_terminalModel->rowCountChanged();
 }
 
 void TerminalModule::terminalConfigSave() const {

@@ -29,7 +29,6 @@ private:
 
 class TerminalModel final : public QStandardItemModel {
     Q_OBJECT
-    Q_PROPERTY(int rowCount READ rowCountGet NOTIFY rowCountChanged)
 
 public:
     using QStandardItemModel::QStandardItemModel;
