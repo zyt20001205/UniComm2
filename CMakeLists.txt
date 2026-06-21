@@ -115,7 +115,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/service/git/gitModule.h
         include/terminal/logModule.h
         include/terminal/terminalModule.h
-        include/terminal/vtermWidget.h
+        include/terminal/module/vtermWidget.h
         include/terminal/page/cmdPage.h
         include/terminal/page/powershellPage.h
         include/terminal/page/terminalPage.h
@@ -207,7 +207,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/service/git/gitModule.cpp
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp
-        src/terminal/vtermWidget.cpp
+        src/terminal/module/vtermWidget.cpp
         src/terminal/page/cmdPage.cpp
         src/terminal/page/powershellPage.cpp
         src/terminal/page/terminalPage.cpp

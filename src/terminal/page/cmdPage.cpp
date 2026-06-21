@@ -7,14 +7,13 @@
 CmdPage::CmdPage(const QString &uniqueName, const QJsonObject &config)
     : TerminalPage(uniqueName, config) {
     m_name = "cmd.exe";
-    m_arguments = {"/Q"};
+    m_arguments = {};
 }
 
 // protected
 void CmdPage::closeEvent(QCloseEvent *event) {
-    if (m_process->state() == QProcess::Running) {
-        terminalInput("exit\n");
-        m_process->waitForFinished();
+    if (terminalRunning()) {
+        terminalWrite("exit\r\n");
     }
     deleteLater();
     event->accept();

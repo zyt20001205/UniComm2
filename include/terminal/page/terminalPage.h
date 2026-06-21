@@ -3,10 +3,11 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
-#include <QProcess>
+#include <QThread>
 
-class QTextDocument;
 class QQuickWidget;
+
+class VtermWidget;
 
 class TerminalPage : public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
@@ -20,26 +21,47 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE virtual void terminalInput(const QString &input) const;
+    Q_INVOKABLE bool terminalInput(int key, int modifiers, const QString &text) const;
+
+    Q_INVOKABLE void terminalResize(int rows, int cols) const;
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 protected:
     virtual void processStart();
 
-    void terminalOutput() const;
+    void terminalWrite(const QByteArray &bytes) const;
+
+    [[nodiscard]] bool terminalRunning() const;
 
     QString m_name{};
     QStringList m_arguments{};
-    QProcess *m_process{};
 
 private:
+    void terminalOutput(const QByteArray &bytes) const;
+
+    void terminalRefresh() const;
+
+    [[nodiscard]] QString commandLine() const;
+
+    void processStop();
+
+    static void closeHandle(void *&handle);
+
+    [[nodiscard]] static QString quoteCommandArgument(const QString &argument);
+
     QJsonObject m_config{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_textArea{};
-    QTextDocument *m_textDocument{};
+    VtermWidget *m_vtermWidget{};
+    void *m_pseudoConsole{};
+    void *m_conptyInputWrite{};
+    void *m_conptyOutputRead{};
+    void *m_processHandle{};
+    void *m_threadHandle{};
+    QThread *m_readerThread{};
 };
 
 #endif //UNICOMM_TERMINALPAGE_H

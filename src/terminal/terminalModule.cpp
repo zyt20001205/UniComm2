@@ -1,6 +1,7 @@
 #include "terminal/terminalModule.h"
 
 #include "globals.h"
+#include "../../include/terminal/module/vtermWidget.h"
 #include "terminal/page/cmdPage.h"
 #include "terminal/page/powershellPage.h"
 
@@ -8,6 +9,7 @@
 TerminalModule::TerminalModule(QWidget *parent)
     : QObject(parent)
       , m_config(g_workspaceConfig["terminalConfig"].toObject()) {
+    new VtermWidget(24, 80, this);
 }
 
 TerminalModule::~TerminalModule() {
