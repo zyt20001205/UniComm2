@@ -64,18 +64,39 @@ QString VtermWidget::text() const {
     for (int row = 0; row < m_rows; ++row) {
         // line
         QString line{};
+
+        QString buffer{};
+        QString foreground{};
         for (int col = 0; col < m_cols; ++col) {
             QString cell{};
             // cell
             VTermScreenCell _cell{};
             vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
-            if (_cell.chars[0] == 0) cell = ' ';
-            else cell = QString::fromUcs4(&_cell.chars[0], 1);
-            line.append(cell);
+            if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') cell = "&nbsp;";
+            else cell = QString::fromUcs4(&_cell.chars[0], 1).toHtmlEscaped();
+
+            VTermColor fg = _cell.fg;
+            vterm_screen_convert_color_to_rgb(m_screen, &fg);
+            const auto &_foreground = QString("#%1%2%3")
+                .arg(fg.rgb.red, 2, 16, QLatin1Char('0'))
+                .arg(fg.rgb.green, 2, 16, QLatin1Char('0'))
+                .arg(fg.rgb.blue, 2, 16, QLatin1Char('0'));
+            // first
+            if (foreground.isEmpty()) {
+                foreground = _foreground;
+            }
+            // new style
+            else if (foreground != _foreground) {
+                line.append(QString("<span style=\"color:%1\">%2</span>").arg(foreground, buffer));
+                buffer.clear();
+                foreground = _foreground;
+            }
+            buffer.append(cell);
         }
+        if (!buffer.isEmpty()) line.append(QString("<span style=\"color:%1\">%2</span>").arg(foreground, buffer));
         lines.append(line);
     }
-    return lines.join(QLatin1Char('\n'));
+    return lines.join("<br>");
 }
 
 int VtermWidget::cursorPosition() const {

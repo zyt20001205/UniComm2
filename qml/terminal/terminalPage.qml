@@ -46,7 +46,7 @@ Item {
 
         TextArea {
             id: textArea
-            textFormat: TextEdit.PlainText
+            textFormat: TextEdit.RichText
             verticalAlignment: TextEdit.AlignTop
             wrapMode: TextEdit.NoWrap
             onWidthChanged: rootItem.terminalResize()
