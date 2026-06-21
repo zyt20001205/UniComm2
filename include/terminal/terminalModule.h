@@ -17,6 +17,8 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
+    void terminalConfigSave() const;
+
     Q_INVOKABLE void terminalOpen(const QString &name, const QString &command);
 
 private:

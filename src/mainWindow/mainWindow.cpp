@@ -385,6 +385,7 @@ void MainWindow::workspaceSave(const QUrl &configUrl) {
     m_logModule->logConfigSave();
     m_portModule->portConfigSave();
     m_sendModule->sendConfigSave();
+    m_terminalModule->terminalConfigSave();
     WatchModule::watchConfigSave();
     mainConfigSave();
     m_configManager->workspaceConfigSave(configUrl);

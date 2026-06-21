@@ -31,6 +31,10 @@ void TerminalModule::propertySet(const QVariantHash &objects) {
     emit m_terminalModel->rowCountChanged();
 }
 
+void TerminalModule::terminalConfigSave() const {
+    g_workspaceConfig["terminalConfig"] = m_config;
+}
+
 void TerminalModule::terminalOpen(const QString &name, const QString &command) {
     int index = 0;
     while (m_terminalHash.contains(index)) {
