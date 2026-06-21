@@ -54,7 +54,6 @@ DocumentModule::~DocumentModule() {
 }
 
 void DocumentModule::propertySet(const QVariantHash &objects) {
-    m_global = qvariant_cast<QObject *>(objects["global"]);
     m_messageDialog = qvariant_cast<QObject *>(objects["mainWindowMessageDialog"]);
     m_toolTip = qvariant_cast<QObject *>(objects["mainWindowToolTip"]);
     m_breakpointEditDialog = qvariant_cast<QObject *>(objects["breakpointModuleEditDialog"]);
@@ -74,7 +73,6 @@ void DocumentModule::propertySet(const QVariantHash &objects) {
     }
 
     m_welcomePage->propertySet(QVariantHash{
-        {"global", QVariant::fromValue(m_global)}
     });
     m_codeAssistant->propertySet(objects);
     m_codeAssistant->fontSet(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
@@ -150,7 +148,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new LuaPage(m_config, documentUrl);
                 auto *luaPage = qobject_cast<LuaPage *>(newPage);
                 luaPage->propertySet(QVariantHash{
-                    {"global", QVariant::fromValue(m_global)},
                     {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                     {"breakpointModuleEditDialog", QVariant::fromValue(m_breakpointEditDialog)},
                     {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
@@ -194,7 +191,6 @@ void DocumentModule::documentOpen(const QUrl &documentUrl) {
                 newPage = new TextPage(m_config, documentUrl);
                 auto *textPage = qobject_cast<TextPage *>(newPage);
                 textPage->propertySet(QVariantHash{
-                    {"global", QVariant::fromValue(m_global)},
                     {"mainWindowToolTip", QVariant::fromValue(m_toolTip)},
                     {"fileModulePropertyDialog", QVariant::fromValue(m_systemPropertyDialog)},
                     {"documentModuleGotoDialog", QVariant::fromValue(m_gotoDialog)},

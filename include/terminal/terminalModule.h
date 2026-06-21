@@ -2,9 +2,10 @@
 #define UNICOMM_TERMINALMODULE_H
 
 #include <QJsonObject>
+#include <QStandardItemModel>
 
-class CmdPage;
-class PowershellPage;
+class TerminalModel;
+class TerminalPage;
 
 class TerminalModule final : public QObject {
     Q_OBJECT
@@ -16,15 +17,29 @@ public:
 
     void propertySet(const QVariantHash &objects);
 
-    Q_INVOKABLE void cmdOpen();
-
-    Q_INVOKABLE void powershellOpen();
+    Q_INVOKABLE void terminalOpen(const QString &name, const QString &command);
 
 private:
     QJsonObject m_config{};
-    QObject *m_global{};
-    QHash<int, CmdPage *> m_cmdHash{};
-    QHash<int, PowershellPage *> m_powershellHash{};
+    TerminalModel *m_terminalModel{};
+    QHash<int, TerminalPage *> m_terminalHash{};
+};
+
+class TerminalModel final : public QStandardItemModel {
+    Q_OBJECT
+    Q_PROPERTY(int rowCount READ rowCountGet NOTIFY rowCountChanged)
+
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+
+    [[nodiscard]] int rowCountGet () const {
+        return rowCount();
+    }
+
+signals:
+    void rowCountChanged();
 };
 
 #endif //UNICOMM_TERMINALMODULE_H

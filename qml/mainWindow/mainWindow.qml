@@ -3724,16 +3724,39 @@ Item {
             onTriggered: gitModuleAction.toggle()
         }
 
-        MenuItem {
-            text: qsTr("Cmd")
+        Menu {
+            id: terminalModuleTerminalMenu
+            title: qsTr("Terminal")
+            property var terminalModel
 
-            onClicked: terminalModule.cmdOpen()
-        }
+            onOpened: {
+                mainWindow.overlayFlagSet(false, true)
+                widgetCount += 1
+            }
+            onClosed: widgetCount -= 1
 
-        MenuItem {
-            text: qsTr("Powershell")
+            MenuItem {
+                text: qsTr("Settings")
 
-            onClicked: terminalModule.powershellOpen()
+                onTriggered: {
+                }
+            }
+
+            MenuSeparator {
+                visible: terminalModuleTerminalMenu.terminalModel.rowCount > 0
+            }
+
+            Instantiator {
+                id: terminalModuleTerminalInstantiator
+                model: terminalModuleTerminalMenu.terminalModel
+                delegate: MenuItem {
+                    text: model.display
+                    onTriggered: terminalModule.terminalOpen(model.display, model.command)
+                }
+
+                onObjectAdded: (index, object) => terminalModuleTerminalMenu.addItem(object)
+                onObjectRemoved: (index, object) => terminalModuleTerminalMenu.removeItem(object)
+            }
         }
 
         MenuSeparator {
@@ -4770,6 +4793,8 @@ Item {
             "statusModuleEolModeMenu": statusModuleEolModeMenu,
 
             "structureModuleRootMenu": structureModuleRootMenu,
+
+            "terminalModuleTerminalMenu": terminalModuleTerminalMenu,
 
             "threadpoolModuleErrorDialog": threadpoolModuleErrorDialog,
             "threadpoolModuleThreadMenu": threadpoolModuleThreadMenu,

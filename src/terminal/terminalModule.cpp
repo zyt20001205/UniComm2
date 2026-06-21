@@ -1,15 +1,14 @@
 #include "terminal/terminalModule.h"
 
 #include "globals.h"
-#include "../../include/terminal/module/vtermWidget.h"
-#include "terminal/page/cmdPage.h"
-#include "terminal/page/powershellPage.h"
+#include "terminal/logModule.h"
+#include "terminal/terminalPage.h"
 
 // public
 TerminalModule::TerminalModule(QWidget *parent)
     : QObject(parent)
-      , m_config(g_workspaceConfig["terminalConfig"].toObject()) {
-    new VtermWidget(24, 80, this);
+      , m_config(g_workspaceConfig["terminalConfig"].toObject()),
+      m_terminalModel(new TerminalModel(this)) {
 }
 
 TerminalModule::~TerminalModule() {
@@ -18,31 +17,36 @@ TerminalModule::~TerminalModule() {
 }
 
 void TerminalModule::propertySet(const QVariantHash &objects) {
-    m_global = qvariant_cast<QObject *>(objects["global"]);
+    const auto &terminalMenu = qvariant_cast<QObject *>(objects["terminalModuleTerminalMenu"]);
+    terminalMenu->setProperty("terminalModel", QVariant::fromValue(m_terminalModel));
+
+    const auto terminals = m_config["terminals"].toObject();
+    for (auto iterator = terminals.constBegin(); iterator != terminals.constEnd(); ++iterator) {
+        const auto name = iterator.key();
+        const auto command = iterator.value().toString();
+        auto *item = new QStandardItem(name); // NOLINT
+        item->setData(command, Qt::UserRole + 1);
+        m_terminalModel->appendRow(item);
+    }
+    emit m_terminalModel->rowCountChanged();
 }
 
-void TerminalModule::cmdOpen() {
+void TerminalModule::terminalOpen(const QString &name, const QString &command) {
     int index = 0;
-    while (m_cmdHash.contains(index)) {
+    while (m_terminalHash.contains(index)) {
         index++;
     }
-    auto *cmdPage = new CmdPage("Cmd " + QString::number(index), m_config);
-    cmdPage->propertySet(QVariantHash{
-        {"global", QVariant::fromValue(m_global)}
+    auto *terminalPage = new TerminalPage(QString("%1 %2").arg(name, QString::number(index)), command, m_config);
+    g_log->addDockWidgetAsTab(terminalPage);
+    terminalPage->propertySet(QVariantHash{
     });
-    m_cmdHash.insert(index, cmdPage);
-    connect(cmdPage, &CmdPage::destroyed, this, [this, index] { m_cmdHash.remove(index); });
+    m_terminalHash.insert(index, terminalPage);
+    connect(terminalPage, &TerminalPage::destroyed, this, [this, index] { m_terminalHash.remove(index); });
 }
 
-void TerminalModule::powershellOpen() {
-    int index = 0;
-    while (m_powershellHash.contains(index)) {
-        index++;
-    }
-    auto *powershellPage = new PowershellPage("Powershell " + QString::number(index), m_config);
-    powershellPage->propertySet(QVariantHash{
-        {"global", QVariant::fromValue(m_global)}
-    });
-    m_powershellHash.insert(index, powershellPage);
-    connect(powershellPage, &PowershellPage::destroyed, this, [this, index] { m_powershellHash.remove(index); });
+// public
+QHash<int, QByteArray> TerminalModel::roleNames() const {
+    auto roles = QStandardItemModel::roleNames();
+    roles[Qt::UserRole + 1] = "command";
+    return roles;
 }

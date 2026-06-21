@@ -269,6 +269,7 @@ void MainWindow::propertyGet(const QVariantMap &objects) {
     m_fileModule->propertySet(systemObjects);
 
     const QVariantHash terminalObjects = {
+        {"terminalModuleTerminalMenu", objects["terminalModuleTerminalMenu"]}
     };
     m_terminalModule->propertySet(terminalObjects);
 

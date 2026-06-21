@@ -116,9 +116,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         include/terminal/logModule.h
         include/terminal/terminalModule.h
         include/terminal/module/vtermWidget.h
-        include/terminal/page/cmdPage.h
-        include/terminal/page/powershellPage.h
-        include/terminal/page/terminalPage.h
+        include/terminal/terminalPage.h
         include/util/cmarkUtils.h
         include/util/cvUtils.h
         include/util/luaUtils.h
@@ -208,9 +206,7 @@ qt_add_executable(UniComm ${GUI_TYPE}
         src/terminal/logModule.cpp
         src/terminal/terminalModule.cpp
         src/terminal/module/vtermWidget.cpp
-        src/terminal/page/cmdPage.cpp
-        src/terminal/page/powershellPage.cpp
-        src/terminal/page/terminalPage.cpp
+        src/terminal/terminalPage.cpp
         src/util/cmarkUtils.cpp
         src/util/cvUtils.cpp
         src/util/luaUtils.cpp
@@ -251,7 +247,7 @@ qt_add_resources(UniComm "qml_resources"
         "qml/service/git/gitPushWindow.qml"
         "qml/service/git/gitModule.qml"
         "qml/terminal/logModule.qml"
-        "qml/terminal/page/terminalPage.qml"
+        "qml/terminal/terminalPage.qml"
 )
 
 qt_add_resources(UniComm "icon_resources"

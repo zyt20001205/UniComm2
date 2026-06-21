@@ -45,8 +45,6 @@ PortModule::~PortModule() {
 }
 
 void PortModule::propertySet(const QVariantHash &objects) {
-    m_global = qvariant_cast<QObject *>(objects["global"]);
-
     m_widget->rootContext()->setContextProperty("portModule", this);
     m_widget->rootContext()->setContextProperty("global", g_globalManager);
     m_widget->rootContext()->setContextProperty("tableMenu", qvariant_cast<QObject *>(objects["portModuleTableMenu"]));
@@ -58,7 +56,6 @@ void PortModule::propertySet(const QVariantHash &objects) {
     m_root = m_widget->rootObject();
 
     m_portSetting->propertySet(QVariantHash{
-        {"global", QVariant::fromValue(m_global)}
     });
 }
 
