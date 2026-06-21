@@ -19,7 +19,7 @@ public:
 
     void terminalConfigSave() const;
 
-    Q_INVOKABLE void terminalOpen(const QString &name, const QString &command);
+    Q_INVOKABLE void terminalOpen(const QString &name, const QVariantHash &session);
 
 private:
     QJsonObject m_config{};

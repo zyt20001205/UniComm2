@@ -12,7 +12,7 @@ class TerminalPage final: public KDDockWidgets::QtWidgets::DockWidget {
     Q_OBJECT
 
 public:
-    explicit TerminalPage(const QString &uniqueName, const QString &command, const QJsonObject &config);
+    explicit TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config);
 
     ~TerminalPage() override;
 
@@ -40,7 +40,7 @@ private:
     static void closeHandle(void *&handle);
 
     QJsonObject m_config{};
-    QString m_command{};
+    QVariantHash m_session{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};

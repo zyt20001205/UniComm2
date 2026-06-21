@@ -3750,7 +3750,7 @@ Item {
                 model: terminalModuleTerminalMenu.terminalModel
                 delegate: MenuItem {
                     text: model.display
-                    onTriggered: terminalModule.terminalOpen(model.display, model.command)
+                    onTriggered: terminalModule.terminalOpen(model.display, model.session)
                 }
 
                 onObjectAdded: (index, object) => terminalModuleTerminalMenu.addItem(object)

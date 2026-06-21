@@ -23,9 +23,9 @@ void TerminalModule::propertySet(const QVariantHash &objects) {
     const auto terminals = m_config["terminals"].toObject();
     for (auto iterator = terminals.constBegin(); iterator != terminals.constEnd(); ++iterator) {
         const auto name = iterator.key();
-        const auto command = iterator.value().toString();
+        const auto session = iterator.value().toObject().toVariantHash();
         auto *item = new QStandardItem(name); // NOLINT
-        item->setData(command, Qt::UserRole + 1);
+        item->setData(session, Qt::UserRole + 1);
         m_terminalModel->appendRow(item);
     }
 }
@@ -34,12 +34,12 @@ void TerminalModule::terminalConfigSave() const {
     g_workspaceConfig["terminalConfig"] = m_config;
 }
 
-void TerminalModule::terminalOpen(const QString &name, const QString &command) {
+void TerminalModule::terminalOpen(const QString &name, const QVariantHash &session) {
     int index = 0;
     while (m_terminalHash.contains(index)) {
         index++;
     }
-    auto *terminalPage = new TerminalPage(QString("%1 %2").arg(name, QString::number(index)), command, m_config);
+    auto *terminalPage = new TerminalPage(QString("%1 %2").arg(name, QString::number(index)), session, m_config);
     g_log->addDockWidgetAsTab(terminalPage);
     terminalPage->propertySet(QVariantHash{
     });
@@ -50,6 +50,6 @@ void TerminalModule::terminalOpen(const QString &name, const QString &command) {
 // public
 QHash<int, QByteArray> TerminalModel::roleNames() const {
     auto roles = QStandardItemModel::roleNames();
-    roles[Qt::UserRole + 1] = "command";
+    roles[Qt::UserRole + 1] = "session";
     return roles;
 }

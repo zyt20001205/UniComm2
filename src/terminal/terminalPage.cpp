@@ -18,10 +18,10 @@
 #endif
 
 // public
-TerminalPage::TerminalPage(const QString &uniqueName, const QString &command, const QJsonObject &config)
+TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config)
     : DockWidget(uniqueName),
       m_config(config),
-      m_command(command),
+      m_session(session),
       m_widget(new QQuickWidget()),
       m_vtermWidget(new VtermWidget(1, 1, this)) {
     setWidget(m_widget);
@@ -200,10 +200,12 @@ void TerminalPage::processStart() {
     startupInfo.StartupInfo.cb = sizeof(startupInfo);
     startupInfo.lpAttributeList = attributeList;
 
+    const auto applicationName = m_session["program"].toString();
+    const auto commandLine = QString("\"%1\" %2").arg(applicationName, m_session["arguments"].toString());
     PROCESS_INFORMATION processInfo{};
     const BOOL created = CreateProcessW(
-        nullptr,
-        m_command.toStdWString().data(),
+        applicationName.toStdWString().c_str(),
+        commandLine.toStdWString().data(),
         nullptr,
         nullptr,
         FALSE,
