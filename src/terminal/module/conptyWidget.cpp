@@ -107,7 +107,10 @@ bool ConptyWidget::start(const QString &program, const QString &arguments, const
     m_processHandle = processInfo.hProcess;
     m_threadHandle = processInfo.hThread;
 
-    m_readerThread = QThread::create([this] {outputRead(); });
+    m_readerThread = QThread::create([this] {
+        outputRead();
+        emit quit();
+    });
     m_readerThread->start();
     m_processThread = QThread::create([this] {
         WaitForSingleObject(m_processHandle, INFINITE);

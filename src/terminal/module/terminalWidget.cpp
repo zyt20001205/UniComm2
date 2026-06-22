@@ -47,10 +47,6 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Vterm
     m_cols = cols;
     m_cells = cells;
     m_cursor = cursor;
-    // if (hasActiveFocus()) {
-    //     m_cursorVisible = true;
-    //     cursorBlink(true);
-    // }
     update();
 }
 
