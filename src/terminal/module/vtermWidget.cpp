@@ -1,5 +1,6 @@
 #include "terminal/module/vtermWidget.h"
 
+#include <QDebug>
 #include <QStringList>
 #include <vterm.h>
 
@@ -72,6 +73,7 @@ QString VtermWidget::text() const {
             // cell
             VTermScreenCell _cell{};
             vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
+            if (_cell.chars[0] == UINT32_MAX) continue;
             if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') cell = "&nbsp;";
             else cell = QString::fromUcs4(&_cell.chars[0], 1).toHtmlEscaped();
 

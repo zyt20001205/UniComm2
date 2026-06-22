@@ -47,7 +47,9 @@ void TerminalPage::propertySet(const QVariantHash &objects) {
 
 void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_textArea = qvariant_cast<QObject *>(objects["textArea"]);
-    const auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
+    auto font = QFont(m_config["fontFamily"].toString(), m_config["fontSize"].toInt());
+    font.setFixedPitch(true);
+    font.setStyleHint(QFont::Monospace);
     m_textArea->setProperty("font", font);
 }
 
