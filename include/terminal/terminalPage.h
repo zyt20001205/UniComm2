@@ -3,8 +3,8 @@
 
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <QJsonObject>
-#include <QThread>
 
+class ConptyWidget;
 class QQuickWidget;
 class TerminalWidget;
 class VtermWidget;
@@ -38,22 +38,15 @@ private:
 
     void processStop();
 
-    static void closeHandle(void *&handle);
-
     QJsonObject m_config{};
     QVariantHash m_session{};
     QQuickWidget *m_widget{};
     QObject *m_root{};
     QObject *m_messageDialog{};
     QObject *m_terminalItem{};
+    ConptyWidget *m_conptyWidget{};
     TerminalWidget *m_terminalWidget{};
     VtermWidget *m_vtermWidget{};
-    void *m_pseudoConsole{};
-    void *m_conptyInputWrite{};
-    void *m_conptyOutputRead{};
-    void *m_processHandle{};
-    void *m_threadHandle{};
-    QThread *m_readerThread{};
 };
 
 #endif //UNICOMM_TERMINALPAGE_H

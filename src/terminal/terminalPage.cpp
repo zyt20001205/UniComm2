@@ -1,22 +1,16 @@
 #include "terminal/terminalPage.h"
 
 #include <QKeyEvent>
-#include <QDir>
-#include <QMetaObject>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
 #include <vterm.h>
-#include <windows.h>
 
 #include "globals.h"
 #include "core/globalManager.h"
+#include "terminal/module/conptyWidget.h"
 #include "terminal/module/terminalWidget.h"
 #include "terminal/module/vtermWidget.h"
-
-#ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
-#define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE ProcThreadAttributeValue(22, FALSE, TRUE, FALSE)
-#endif
 
 // public
 TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &session, const QJsonObject &config)
@@ -24,9 +18,17 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
       m_config(config),
       m_session(session),
       m_widget(new QQuickWidget()),
+      m_conptyWidget(new ConptyWidget(this)),
       m_vtermWidget(new VtermWidget(1, 1, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
+    connect(m_conptyWidget, &ConptyWidget::outputReady, this, [this](const QByteArray &bytes) {
+        m_vtermWidget->inputWrite(bytes);
+        terminalRefresh();
+    });
+    connect(m_conptyWidget, &ConptyWidget::closed, this, [this] {
+        close();
+    });
 }
 
 TerminalPage::~TerminalPage() {
@@ -150,7 +152,7 @@ void TerminalPage::terminalResize(const int rows, const int cols) const {
     if (!m_vtermWidget || rows < 1 || cols < 1) return;
     if (m_vtermWidget->rows() == rows && m_vtermWidget->cols() == cols) return;
     m_vtermWidget->resize(rows, cols);
-    if (m_pseudoConsole) ResizePseudoConsole(m_pseudoConsole, COORD{static_cast<SHORT>(cols), static_cast<SHORT>(rows)});
+    if (m_conptyWidget) m_conptyWidget->resize(rows, cols);
     terminalRefresh();
 }
 
@@ -166,127 +168,23 @@ bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
 
 // private
 void TerminalPage::processStart() {
-    HANDLE inputRead{};
-    HANDLE inputWrite{};
-    HANDLE outputRead{};
-    HANDLE outputWrite{};
-
-    if (!CreatePipe(&inputRead, &inputWrite, nullptr, 0)) return;
-    if (!CreatePipe(&outputRead, &outputWrite, nullptr, 0)) {
-        CloseHandle(inputRead);
-        CloseHandle(inputWrite);
-        return;
-    }
-
-    const auto rows = static_cast<SHORT>(m_vtermWidget->rows());
-    const auto cols = static_cast<SHORT>(m_vtermWidget->cols());
-    HPCON pseudoConsole{};
-    const HRESULT hr = CreatePseudoConsole(COORD{cols, rows}, inputRead, outputWrite, 0, &pseudoConsole);
-    CloseHandle(inputRead);
-    CloseHandle(outputWrite);
-    if (FAILED(hr)) {
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
-        return;
-    }
-
-    SIZE_T attributeListSize{};
-    InitializeProcThreadAttributeList(nullptr, 1, 0, &attributeListSize);
-    auto *attributeList = static_cast<PPROC_THREAD_ATTRIBUTE_LIST>(HeapAlloc(GetProcessHeap(), 0, attributeListSize));
-    if (!attributeList || !InitializeProcThreadAttributeList(attributeList, 1, 0, &attributeListSize)) {
-        if (attributeList) HeapFree(GetProcessHeap(), 0, attributeList);
-        ClosePseudoConsole(pseudoConsole);
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
-        return;
-    }
-
-    if (!UpdateProcThreadAttribute(
-        attributeList,
-        0,
-        PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-        pseudoConsole,
-        sizeof(pseudoConsole),
-        nullptr,
-        nullptr
-    )) {
-        DeleteProcThreadAttributeList(attributeList);
-        HeapFree(GetProcessHeap(), 0, attributeList);
-        ClosePseudoConsole(pseudoConsole);
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
-        return;
-    }
-
-    STARTUPINFOEXW startupInfo{};
-    startupInfo.StartupInfo.cb = sizeof(startupInfo);
-    startupInfo.lpAttributeList = attributeList;
-
-    const auto applicationName = m_session["program"].toString();
-    const auto commandLine = QString("\"%1\" %2").arg(applicationName, m_session["arguments"].toString());
-    PROCESS_INFORMATION processInfo{};
-    const BOOL created = CreateProcessW(
-        applicationName.toStdWString().c_str(),
-        commandLine.toStdWString().data(),
-        nullptr,
-        nullptr,
-        FALSE,
-        EXTENDED_STARTUPINFO_PRESENT,
-        nullptr,
-        QDir::toNativeSeparators(g_workspaceUrl.toLocalFile()).toStdWString().c_str(),
-        &startupInfo.StartupInfo,
-        &processInfo
+    if (!m_conptyWidget || !m_vtermWidget) return;
+    const bool started = m_conptyWidget->start(
+        m_session["program"].toString(),
+        m_session["arguments"].toString(),
+        g_workspaceUrl.toLocalFile(),
+        m_vtermWidget->rows(),
+        m_vtermWidget->cols()
     );
-
-    DeleteProcThreadAttributeList(attributeList);
-    HeapFree(GetProcessHeap(), 0, attributeList);
-
-    if (!created) {
-        ClosePseudoConsole(pseudoConsole);
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
-        return;
-    }
-
-    m_pseudoConsole = pseudoConsole;
-    m_conptyInputWrite = inputWrite;
-    m_conptyOutputRead = outputRead;
-    m_processHandle = processInfo.hProcess;
-    m_threadHandle = processInfo.hThread;
-
-    m_readerThread = QThread::create([this, outputRead] {
-        char buffer[4096]{};
-        DWORD read{};
-        while (ReadFile(outputRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
-            const QByteArray bytes(buffer, static_cast<qsizetype>(read));
-            QMetaObject::invokeMethod(this, [this, bytes] {
-                m_vtermWidget->inputWrite(bytes);
-                terminalRefresh();
-            }, Qt::QueuedConnection);
-        }
-        QMetaObject::invokeMethod(this, [this] {
-            close();
-        }, Qt::QueuedConnection);
-    });
-    m_readerThread->start();
+    if (!started) close();
 }
 
 void TerminalPage::terminalWrite(const QByteArray &bytes) const {
-    if (!m_conptyInputWrite || bytes.isEmpty()) return;
-
-    DWORD written{};
-    WriteFile(
-        m_conptyInputWrite,
-        bytes.constData(),
-        bytes.size(),
-        &written,
-        nullptr
-    );
+    if (m_conptyWidget) m_conptyWidget->write(bytes);
 }
 
 bool TerminalPage::terminalRunning() const {
-    if (!m_processHandle) return false;
-    return WaitForSingleObject(m_processHandle, 0) == WAIT_TIMEOUT;
+    return m_conptyWidget && m_conptyWidget->running();
 }
 
 void TerminalPage::terminalRefresh() const {
@@ -297,32 +195,5 @@ void TerminalPage::terminalRefresh() const {
 }
 
 void TerminalPage::processStop() {
-    if (m_conptyInputWrite) terminalWrite("exit\r\n");
-
-    if (m_processHandle) WaitForSingleObject(m_processHandle, 1000);
-
-    closeHandle(m_conptyInputWrite);
-
-    if (m_pseudoConsole) {
-        ClosePseudoConsole(m_pseudoConsole);
-        m_pseudoConsole = nullptr;
-    }
-
-    if (m_readerThread) {
-        m_readerThread->quit();
-        m_readerThread->wait(1000);
-        delete m_readerThread;
-        m_readerThread = nullptr;
-    }
-
-    closeHandle(m_conptyOutputRead);
-    closeHandle(m_threadHandle);
-    closeHandle(m_processHandle);
-}
-
-void TerminalPage::closeHandle(void *&handle) {
-    if (handle) {
-        CloseHandle(handle);
-        handle = nullptr;
-    }
+    if (m_conptyWidget) m_conptyWidget->stop();
 }
