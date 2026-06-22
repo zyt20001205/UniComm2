@@ -7,6 +7,7 @@ TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
+    forceActiveFocus();
     m_cursorBlinkTimer.setInterval(500);
     connect(&m_cursorBlinkTimer, &QTimer::timeout, this, [this] {
         m_cursorVisible = !m_cursorVisible;
@@ -22,7 +23,6 @@ void TerminalWidget::paint(QPainter *painter) {
         const qreal y = row * m_cellHeight + m_ascent;
         for (int col = 0; col < m_cols; ++col) {
             const int index = row * m_cols + col;
-            if (index >= m_cells.size()) return;
             const auto &cell = m_cells[index];
             const QRectF rect(col * m_cellWidth, row * m_cellHeight, m_cellWidth, m_cellHeight);
             const bool isCursor = m_cursorVisible && row == m_cursor.row && col == m_cursor.col;
@@ -42,19 +42,15 @@ void TerminalWidget::fontSet(const QFont &font) {
     update();
 }
 
-void TerminalWidget::cellsSet(const QList<VtermWidget::Cell> &cells, const int rows, const int cols) {
-    m_cells = cells;
+void TerminalWidget::screenSet(const int rows, const int cols, const QList<VtermWidget::Cell> &cells, const VtermWidget::Cursor &cursor) {
     m_rows = rows;
     m_cols = cols;
-    update();
-}
-
-void TerminalWidget::cursorSet(const VtermWidget::Cursor &cursor) {
+    m_cells = cells;
     m_cursor = cursor;
-    if (hasActiveFocus()) {
-        m_cursorVisible = true;
-        cursorBlink(true);
-    }
+    // if (hasActiveFocus()) {
+    //     m_cursorVisible = true;
+    //     cursorBlink(true);
+    // }
     update();
 }
 
@@ -93,7 +89,7 @@ void TerminalWidget::metricsUpdate() {
 
     m_requestedRows = rows;
     m_requestedCols = cols;
-    emit resizeRequest(rows, cols);
+    emit resize(rows, cols);
 }
 
 void TerminalWidget::cursorBlink(const bool enabled) {

@@ -43,10 +43,42 @@ void VtermWidget::reset(const bool hard) const {
     vterm_screen_flush_damage(m_screen);
 }
 
-void VtermWidget::inputWrite(const QByteArray &bytes) const {
+void VtermWidget::inputWrite(const QByteArray &bytes) {
     if (bytes.isEmpty()) return;
     vterm_input_write(m_vterm, bytes.constData(), static_cast<size_t>(bytes.size()));
     vterm_screen_flush_damage(m_screen);
+    QList<Cell> cells{};
+    cells.reserve(m_rows * m_cols);
+    for (int row = 0; row < m_rows; ++row) {
+        for (int col = 0; col < m_cols; ++col) {
+            VTermScreenCell _cell{};
+            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
+            Cell cell{};
+
+            if (_cell.chars[0] == UINT32_MAX) {
+                cell.text = QString{};
+            } else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
+                cell.text = ' ';
+            } else {
+                int length = 0;
+                while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) ++length;
+                cell.text = QString::fromUcs4(_cell.chars, length);
+            }
+
+            VTermColor foreground = _cell.fg;
+            vterm_screen_convert_color_to_rgb(m_screen, &foreground);
+            cell.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
+
+            VTermColor background = _cell.bg;
+            vterm_screen_convert_color_to_rgb(m_screen, &background);
+            cell.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
+
+            cells.append(cell);
+        }
+    }
+    VTermPos pos{};
+    vterm_state_get_cursorpos(vterm_obtain_state(m_vterm), &pos);
+    emit setScreen(m_rows, m_cols, cells, {pos.row, pos.col});
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
@@ -122,45 +154,7 @@ void VtermWidget::keyPressed(const int key, const int modifiers, const QString &
     if (!output.isEmpty()) emit outputWrite(output);
 }
 
-QList<VtermWidget::Cell> VtermWidget::cells() const {
-    QList<Cell> cells{};
-    cells.reserve(m_rows * m_cols);
-    for (int row = 0; row < m_rows; ++row) {
-        for (int col = 0; col < m_cols; ++col) {
-            VTermScreenCell _cell{};
-            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
-            Cell cell{};
-
-            if (_cell.chars[0] == UINT32_MAX) {
-                cell.text = QString{};
-            } else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
-                cell.text = ' ';
-            } else {
-                int length = 0;
-                while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) ++length;
-                cell.text = QString::fromUcs4(_cell.chars, length);
-            }
-
-            VTermColor foreground = _cell.fg;
-            vterm_screen_convert_color_to_rgb(m_screen, &foreground);
-            cell.foreground = QColor(foreground.rgb.red, foreground.rgb.green, foreground.rgb.blue);
-
-            VTermColor background = _cell.bg;
-            vterm_screen_convert_color_to_rgb(m_screen, &background);
-            cell.background = QColor(background.rgb.red, background.rgb.green, background.rgb.blue);
-
-            cells.append(cell);
-        }
-    }
-    return cells;
-}
-
-VtermWidget::Cursor VtermWidget::cursor() const {
-    VTermPos pos{};
-    vterm_state_get_cursorpos(vterm_obtain_state(m_vterm), &pos);
-    return Cursor{pos.row, pos.col};
-}
-
+// private
 QByteArray VtermWidget::outputRead() const {
     QByteArray output;
     char buffer[256]{};

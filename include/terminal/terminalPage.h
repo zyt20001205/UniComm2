@@ -5,6 +5,7 @@
 #include <QJsonObject>
 
 class ConptyWidget;
+class QCloseEvent;
 class QQuickWidget;
 class TerminalWidget;
 class VtermWidget;
@@ -21,18 +22,17 @@ public:
 
     Q_INVOKABLE void propertyGet(const QVariantMap &objects);
 
-    Q_INVOKABLE void terminalResize(int rows, int cols) const;
-
     bool eventFilter(QObject *watched, QEvent *event) override;
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private:
-    void processStart();
+    void start();
 
-    [[nodiscard]] bool terminalRunning() const;
+    void _resize(int rows, int cols);
 
-    void terminalRefresh() const;
-
-    void processStop();
+    void stop() const;
 
     QJsonObject m_config{};
     QVariantHash m_session{};
@@ -43,6 +43,8 @@ private:
     ConptyWidget *m_conptyWidget{};
     TerminalWidget *m_terminalWidget{};
     VtermWidget *m_vtermWidget{};
+    int m_rows{1};
+    int m_cols{1};
 };
 
 #endif //UNICOMM_TERMINALPAGE_H

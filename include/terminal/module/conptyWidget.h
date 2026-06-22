@@ -1,6 +1,8 @@
 #ifndef UNICOMM_CONPTYWIDGET_H
 #define UNICOMM_CONPTYWIDGET_H
 
+#include <atomic>
+
 #include <QByteArray>
 #include <QObject>
 #include <QString>
@@ -25,9 +27,9 @@ public:
     [[nodiscard]] bool running() const;
 
 signals:
-    void outputWrite(const QByteArray &bytes);
+    void quit();
 
-    void closed();
+    void outputWrite(const QByteArray &bytes);
 
 private:
     void outputRead();
@@ -40,6 +42,7 @@ private:
     void *m_processHandle{};
     void *m_threadHandle{};
     QThread *m_readerThread{};
+    QThread *m_processThread{};
 };
 
 #endif //UNICOMM_CONPTYWIDGET_H

@@ -18,12 +18,10 @@ public:
 
     void fontSet(const QFont &font);
 
-    void cellsSet(const QList<VtermWidget::Cell> &cells, int rows, int cols);
-
-    void cursorSet(const VtermWidget::Cursor &cursor);
+    void screenSet(int rows, int cols, const QList<VtermWidget::Cell> &cells, const VtermWidget::Cursor &cursor);
 
 signals:
-    void resizeRequest(int rows, int cols);
+    void resize(int rows, int cols);
 
     void keyPressed(int key, int modifiers, const QString &text);
 

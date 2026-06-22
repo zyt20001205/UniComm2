@@ -8,7 +8,8 @@
 #define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE ProcThreadAttributeValue(22, FALSE, TRUE, FALSE)
 #endif
 
-ConptyWidget::ConptyWidget(QObject *parent) : QObject(parent) {}
+ConptyWidget::ConptyWidget(QObject *parent) : QObject(parent) {
+}
 
 ConptyWidget::~ConptyWidget() {
     stop();
@@ -106,11 +107,13 @@ bool ConptyWidget::start(const QString &program, const QString &arguments, const
     m_processHandle = processInfo.hProcess;
     m_threadHandle = processInfo.hThread;
 
-    m_readerThread = QThread::create([this] {
-        outputRead();
-        emit closed();
-    });
+    m_readerThread = QThread::create([this] {outputRead(); });
     m_readerThread->start();
+    m_processThread = QThread::create([this] {
+        WaitForSingleObject(m_processHandle, INFINITE);
+        emit quit();
+    });
+    m_processThread->start();
     return true;
 }
 
@@ -126,7 +129,6 @@ void ConptyWidget::inputWrite(const QByteArray &bytes) const {
 }
 
 void ConptyWidget::resize(const int rows, const int cols) const {
-    if (!m_pseudoConsole || rows < 1 || cols < 1) return;
     ResizePseudoConsole(m_pseudoConsole, COORD{static_cast<SHORT>(cols), static_cast<SHORT>(rows)});
 }
 
@@ -147,6 +149,13 @@ void ConptyWidget::stop() {
         m_readerThread->wait(1000);
         delete m_readerThread;
         m_readerThread = nullptr;
+    }
+
+    if (m_processThread) {
+        m_processThread->quit();
+        m_processThread->wait(1000);
+        delete m_processThread;
+        m_processThread = nullptr;
     }
 
     closeHandle(m_conptyOutputRead);

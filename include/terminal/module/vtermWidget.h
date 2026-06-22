@@ -31,29 +31,18 @@ public:
 
     ~VtermWidget() override;
 
-    [[nodiscard]] int rows() const {
-        return m_rows;
-    };
-
-    [[nodiscard]] int cols() const {
-        return m_cols;
-    };
-
     void resize(int rows, int cols);
 
     void reset(bool hard = true) const;
 
-    void inputWrite(const QByteArray &bytes) const;
+    void inputWrite(const QByteArray &bytes);
 
     void keyPressed(int key, int modifiers, const QString &text);
 
 signals:
     void outputWrite(const QByteArray &bytes);
 
-public:
-    [[nodiscard]] QList<Cell> cells() const;
-
-    [[nodiscard]] Cursor cursor() const;
+    void setScreen(int row, int col, const QList<Cell> &cells, const Cursor &cursor);
 
 private:
     [[nodiscard]] QByteArray outputRead() const;

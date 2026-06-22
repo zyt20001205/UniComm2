@@ -1,10 +1,10 @@
 #include "terminal/terminalPage.h"
 
+#include <QCloseEvent>
 #include <QKeyEvent>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWidget>
-#include <vterm.h>
 
 #include "globals.h"
 #include "core/globalManager.h"
@@ -25,7 +25,7 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
 }
 
 TerminalPage::~TerminalPage() {
-    processStop();
+    stop();
     const auto timestamp = QDateTime::currentDateTime().toString("HH:mm:ss.zzz");
     qDebug() << QString("[%1] %2 destructed").arg(timestamp, uniqueName());
 }
@@ -37,8 +37,6 @@ void TerminalPage::propertySet(const QVariantHash &objects) {
     m_widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_widget->setSource(QUrl("qrc:/qml/terminal/terminalPage.qml"));
     m_root = m_widget->rootObject();
-
-    processStart();
 }
 
 void TerminalPage::propertyGet(const QVariantMap &objects) {
@@ -51,39 +49,23 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
 
     m_terminalWidget = new TerminalWidget(terminalItem);
     m_terminalWidget->setParentItem(terminalItem);
+
+    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &VtermWidget::keyPressed);
+    connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
+    connect(m_conptyWidget, &ConptyWidget::outputWrite, m_vtermWidget, &VtermWidget::inputWrite);
+    connect(m_vtermWidget, &VtermWidget::setScreen, m_terminalWidget, &TerminalWidget::screenSet);
+
+    connect(m_conptyWidget, &ConptyWidget::quit, this, &TerminalPage::close);
+
+    connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] {m_terminalWidget->setWidth(terminalItem->width());});
+    connect(terminalItem, &QQuickItem::heightChanged, m_terminalWidget, [this, terminalItem] {m_terminalWidget->setHeight(terminalItem->height());});
+    connect(m_terminalWidget, &TerminalWidget::resize, this, &TerminalPage::_resize);
+
     m_terminalWidget->setWidth(terminalItem->width());
     m_terminalWidget->setHeight(terminalItem->height());
     m_terminalWidget->fontSet(font);
 
-    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &VtermWidget::keyPressed);
-    connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
-    connect(m_conptyWidget, &ConptyWidget::outputWrite, this, [this](const QByteArray &bytes) {
-        m_vtermWidget->inputWrite(bytes);
-        terminalRefresh();
-    });
-
-    connect(m_conptyWidget, &ConptyWidget::closed, this, [this] {
-        close();
-    });
-    connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] {
-        m_terminalWidget->setWidth(terminalItem->width());
-    });
-    connect(terminalItem, &QQuickItem::heightChanged, m_terminalWidget, [this, terminalItem] {
-        m_terminalWidget->setHeight(terminalItem->height());
-    });
-    connect(m_terminalWidget, &TerminalWidget::resizeRequest, this, [this](const int rows, const int cols) {
-        terminalResize(rows, cols);
-    });
-
-    terminalRefresh();
-}
-
-void TerminalPage::terminalResize(const int rows, const int cols) const {
-    if (!m_vtermWidget || rows < 1 || cols < 1) return;
-    if (m_vtermWidget->rows() == rows && m_vtermWidget->cols() == cols) return;
-    m_vtermWidget->resize(rows, cols);
-    if (m_conptyWidget) m_conptyWidget->resize(rows, cols);
-    terminalRefresh();
+    start();
 }
 
 bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
@@ -97,30 +79,34 @@ bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
     return DockWidget::eventFilter(watched, event);
 }
 
+// protected
+void TerminalPage::closeEvent(QCloseEvent *event) {
+    stop();
+    deleteLater();
+    event->accept();
+}
+
 // private
-void TerminalPage::processStart() {
+void TerminalPage::start() {
     if (!m_conptyWidget || !m_vtermWidget) return;
     const bool started = m_conptyWidget->start(
         m_session["program"].toString(),
         m_session["arguments"].toString(),
         g_workspaceUrl.toLocalFile(),
-        m_vtermWidget->rows(),
-        m_vtermWidget->cols()
+        m_rows,
+        m_cols
     );
     if (!started) close();
 }
 
-bool TerminalPage::terminalRunning() const {
-    return m_conptyWidget && m_conptyWidget->running();
+void TerminalPage::_resize(const int rows, const int cols) {
+    if (m_rows == rows && m_cols == cols) return;
+    m_rows = rows;
+    m_cols = cols;
+    if (m_vtermWidget) m_vtermWidget->resize(rows, cols);
+    if (m_conptyWidget) m_conptyWidget->resize(rows, cols);
 }
 
-void TerminalPage::terminalRefresh() const {
-    if (m_terminalWidget && m_vtermWidget) {
-        m_terminalWidget->cellsSet(m_vtermWidget->cells(), m_vtermWidget->rows(), m_vtermWidget->cols());
-        m_terminalWidget->cursorSet(m_vtermWidget->cursor());
-    }
-}
-
-void TerminalPage::processStop() {
+void TerminalPage::stop() const {
     if (m_conptyWidget) m_conptyWidget->stop();
 }
