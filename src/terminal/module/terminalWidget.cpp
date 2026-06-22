@@ -1,12 +1,14 @@
 #include "terminal/module/terminalWidget.h"
 
 #include <QKeyEvent>
+#include <QMouseEvent>
 #include <QPainter>
 
 TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
+    setAcceptedMouseButtons(Qt::AllButtons);
     forceActiveFocus();
     m_cursorBlinkTimer.setInterval(500);
     connect(&m_cursorBlinkTimer, &QTimer::timeout, this, [this] {
@@ -52,6 +54,37 @@ void TerminalWidget::screenSet(const int rows, const int cols, const QList<Vterm
 
 void TerminalWidget::keyPressEvent(QKeyEvent *event) {
     emit keyPressed(event->key(), event->modifiers(), event->text());
+    event->accept();
+}
+
+void TerminalWidget::mousePressEvent(QMouseEvent *event) {
+    forceActiveFocus();
+    emit mousePressed(
+        event->position().y() / m_cellHeight,
+        event->position().x() / m_cellWidth,
+        event->button(),
+        event->modifiers()
+    );
+    event->accept();
+}
+
+void TerminalWidget::mouseReleaseEvent(QMouseEvent *event) {
+    emit mouseReleased(
+        event->position().y() / m_cellHeight,
+        event->position().x() / m_cellWidth,
+        event->button(),
+        event->modifiers()
+    );
+    event->accept();
+}
+
+void TerminalWidget::mouseMoveEvent(QMouseEvent *event) {
+    emit mouseMoved(
+        event->position().y() / m_cellHeight,
+        event->position().x() / m_cellWidth,
+        event->button(),
+        event->modifiers()
+    );
     event->accept();
 }
 

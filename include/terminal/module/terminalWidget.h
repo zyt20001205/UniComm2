@@ -3,7 +3,6 @@
 
 #include "terminal/module/vtermWidget.h"
 
-#include <QFont>
 #include <QList>
 #include <QQuickPaintedItem>
 #include <QTimer>
@@ -25,8 +24,20 @@ signals:
 
     void keyPressed(int key, int modifiers, const QString &text);
 
+    void mousePressed(int row, int col, int button, int modifiers);
+
+    void mouseReleased(int row, int col, int button, int modifiers);
+
+    void mouseMoved(int row, int col, int button, int modifiers);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+
+    void mousePressEvent(QMouseEvent *event) override;
+
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
+    void mouseMoveEvent(QMouseEvent *event) override;
 
     void focusInEvent(QFocusEvent *event) override;
 

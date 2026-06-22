@@ -39,13 +39,19 @@ public:
 
     void keyPressed(int key, int modifiers, const QString &text);
 
+    void mousePressed(int row, int col, int button, int modifiers);
+
+    void mouseReleased(int row, int col, int button, int modifiers);
+
+    void mouseMoved(int row, int col, int button, int modifiers);
+
 signals:
     void outputWrite(const QByteArray &bytes);
 
     void setScreen(int row, int col, const QList<Cell> &cells, const Cursor &cursor);
 
 private:
-    [[nodiscard]] QByteArray outputRead() const;
+    void outputRead();
 
     int m_rows{};
     int m_cols{};

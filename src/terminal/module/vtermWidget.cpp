@@ -2,7 +2,31 @@
 
 #include <QDebug>
 #include <QStringList>
+#include <Qt>
 #include <vterm.h>
+
+namespace {
+VTermModifier toVtermModifiers(const int modifiers) {
+    int vtermModifiers = VTERM_MOD_NONE;
+    if (modifiers & Qt::ShiftModifier) vtermModifiers |= VTERM_MOD_SHIFT;
+    if (modifiers & Qt::AltModifier) vtermModifiers |= VTERM_MOD_ALT;
+    if (modifiers & Qt::ControlModifier) vtermModifiers |= VTERM_MOD_CTRL;
+    return static_cast<VTermModifier>(vtermModifiers);
+}
+
+int toVtermButton(const int button) {
+    switch (button) {
+        case Qt::LeftButton:
+            return 1;
+        case Qt::MiddleButton:
+            return 2;
+        case Qt::RightButton:
+            return 3;
+        default:
+            return 0;
+    }
+}
+}
 
 VtermWidget::VtermWidget(const int rows, const int cols, QObject *parent)
     : QObject(parent),
@@ -82,11 +106,7 @@ void VtermWidget::inputWrite(const QByteArray &bytes) {
 }
 
 void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
-    int vtermModifiers = VTERM_MOD_NONE;
-    if (modifiers & Qt::ShiftModifier) vtermModifiers |= VTERM_MOD_SHIFT;
-    if (modifiers & Qt::AltModifier) vtermModifiers |= VTERM_MOD_ALT;
-    if (modifiers & Qt::ControlModifier) vtermModifiers |= VTERM_MOD_CTRL;
-
+    const auto vtermModifiers = toVtermModifiers(modifiers);
     int vtermKey = VTERM_KEY_NONE;
     switch (key) {
         case Qt::Key_Return:
@@ -140,22 +160,35 @@ void VtermWidget::keyPressed(const int key, const int modifiers, const QString &
             break;
     }
 
-    if (vtermKey != VTERM_KEY_NONE) vterm_keyboard_key(m_vterm, static_cast<VTermKey>(vtermKey), static_cast<VTermModifier>(vtermModifiers));
-    else if (!text.isEmpty()) for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, static_cast<VTermModifier>(vtermModifiers));
+    if (vtermKey != VTERM_KEY_NONE) vterm_keyboard_key(m_vterm, static_cast<VTermKey>(vtermKey), vtermModifiers);
+    else for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, vtermModifiers);
+    outputRead();
+}
 
-    QByteArray output;
-    char buffer[256]{};
-    while (vterm_output_get_buffer_current(m_vterm) > 0) {
-        const auto read = vterm_output_read(m_vterm, buffer, sizeof(buffer));
-        if (read == 0) break;
-        output.append(buffer, static_cast<qsizetype>(read));
-    }
+void VtermWidget::mousePressed(const int row, const int col, const int button, const int modifiers) {
+    const auto vtermModifiers = toVtermModifiers(modifiers);
+    vterm_mouse_move(m_vterm, row, col, vtermModifiers);
+    const int vtermButton = toVtermButton(button);
+    if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, true, vtermModifiers);
+    outputRead();
+}
 
-    if (!output.isEmpty()) emit outputWrite(output);
+void VtermWidget::mouseReleased(const int row, const int col, const int button, const int modifiers) {
+    const auto vtermModifiers = toVtermModifiers(modifiers);
+    vterm_mouse_move(m_vterm, row, col, vtermModifiers);
+    const int vtermButton = toVtermButton(button);
+    if (vtermButton > 0) vterm_mouse_button(m_vterm, vtermButton, false, vtermModifiers);
+    outputRead();
+}
+
+void VtermWidget::mouseMoved(const int row, const int col, const int button, const int modifiers) {
+    const auto vtermModifiers = toVtermModifiers(modifiers);
+    vterm_mouse_move(m_vterm, row, col, vtermModifiers);
+    outputRead();
 }
 
 // private
-QByteArray VtermWidget::outputRead() const {
+void VtermWidget::outputRead() {
     QByteArray output;
     char buffer[256]{};
     while (vterm_output_get_buffer_current(m_vterm) > 0) {
@@ -163,5 +196,5 @@ QByteArray VtermWidget::outputRead() const {
         if (read == 0) break;
         output.append(buffer, static_cast<qsizetype>(read));
     }
-    return output;
+    emit outputWrite(output);
 }
