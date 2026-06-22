@@ -49,7 +49,7 @@ void VtermWidget::inputWrite(const QByteArray &bytes) const {
     vterm_screen_flush_damage(m_screen);
 }
 
-void VtermWidget::keyPress(const int key, const int modifiers, const QString &text) {
+void VtermWidget::keyPressed(const int key, const int modifiers, const QString &text) {
     int vtermModifiers = VTERM_MOD_NONE;
     if (modifiers & Qt::ShiftModifier) vtermModifiers |= VTERM_MOD_SHIFT;
     if (modifiers & Qt::AltModifier) vtermModifiers |= VTERM_MOD_ALT;
@@ -119,7 +119,7 @@ void VtermWidget::keyPress(const int key, const int modifiers, const QString &te
         output.append(buffer, static_cast<qsizetype>(read));
     }
 
-    if (!output.isEmpty()) emit write(output);
+    if (!output.isEmpty()) emit outputWrite(output);
 }
 
 QList<VtermWidget::Cell> VtermWidget::cells() const {

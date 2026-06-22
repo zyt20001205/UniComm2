@@ -17,25 +17,25 @@ ConptyWidget::~ConptyWidget() {
 bool ConptyWidget::start(const QString &program, const QString &arguments, const QString &workingDirectory, const int rows, const int cols) {
     if (program.isEmpty() || rows < 1 || cols < 1) return false;
 
-    HANDLE inputRead{};
-    HANDLE inputWrite{};
-    HANDLE outputRead{};
-    HANDLE outputWrite{};
+    HANDLE h_inputRead{};
+    HANDLE h_inputWrite{};
+    HANDLE h_outputRead{};
+    HANDLE h_outputWrite{};
 
-    if (!CreatePipe(&inputRead, &inputWrite, nullptr, 0)) return false;
-    if (!CreatePipe(&outputRead, &outputWrite, nullptr, 0)) {
-        CloseHandle(inputRead);
-        CloseHandle(inputWrite);
+    if (!CreatePipe(&h_inputRead, &h_inputWrite, nullptr, 0)) return false;
+    if (!CreatePipe(&h_outputRead, &h_outputWrite, nullptr, 0)) {
+        CloseHandle(h_inputRead);
+        CloseHandle(h_inputWrite);
         return false;
     }
 
     HPCON pseudoConsole{};
-    const HRESULT hr = CreatePseudoConsole(COORD{static_cast<SHORT>(cols), static_cast<SHORT>(rows)}, inputRead, outputWrite, 0, &pseudoConsole);
-    CloseHandle(inputRead);
-    CloseHandle(outputWrite);
+    const HRESULT hr = CreatePseudoConsole(COORD{static_cast<SHORT>(cols), static_cast<SHORT>(rows)}, h_inputRead, h_outputWrite, 0, &pseudoConsole);
+    CloseHandle(h_inputRead);
+    CloseHandle(h_outputWrite);
     if (FAILED(hr)) {
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(h_inputWrite);
+        CloseHandle(h_outputRead);
         return false;
     }
 
@@ -45,8 +45,8 @@ bool ConptyWidget::start(const QString &program, const QString &arguments, const
     if (!attributeList || !InitializeProcThreadAttributeList(attributeList, 1, 0, &attributeListSize)) {
         if (attributeList) HeapFree(GetProcessHeap(), 0, attributeList);
         ClosePseudoConsole(pseudoConsole);
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(h_inputWrite);
+        CloseHandle(h_outputRead);
         return false;
     }
 
@@ -62,8 +62,8 @@ bool ConptyWidget::start(const QString &program, const QString &arguments, const
         DeleteProcThreadAttributeList(attributeList);
         HeapFree(GetProcessHeap(), 0, attributeList);
         ClosePseudoConsole(pseudoConsole);
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(h_inputWrite);
+        CloseHandle(h_outputRead);
         return false;
     }
 
@@ -95,33 +95,26 @@ bool ConptyWidget::start(const QString &program, const QString &arguments, const
 
     if (!created) {
         ClosePseudoConsole(pseudoConsole);
-        CloseHandle(inputWrite);
-        CloseHandle(outputRead);
+        CloseHandle(h_inputWrite);
+        CloseHandle(h_outputRead);
         return false;
     }
 
     m_pseudoConsole = pseudoConsole;
-    m_conptyInputWrite = inputWrite;
-    m_conptyOutputRead = outputRead;
+    m_conptyInputWrite = h_inputWrite;
+    m_conptyOutputRead = h_outputRead;
     m_processHandle = processInfo.hProcess;
     m_threadHandle = processInfo.hThread;
 
-    m_readerThread = QThread::create([this, outputRead] {
-        char buffer[4096]{};
-        DWORD read{};
-        while (ReadFile(outputRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
-            const QByteArray bytes(buffer, static_cast<qsizetype>(read));
-            emit outputReady(bytes);
-        }
+    m_readerThread = QThread::create([this] {
+        outputRead();
         emit closed();
     });
     m_readerThread->start();
     return true;
 }
 
-void ConptyWidget::write(const QByteArray &bytes) const {
-    if (!m_conptyInputWrite || bytes.isEmpty()) return;
-
+void ConptyWidget::inputWrite(const QByteArray &bytes) const {
     DWORD written{};
     WriteFile(
         m_conptyInputWrite,
@@ -138,7 +131,7 @@ void ConptyWidget::resize(const int rows, const int cols) const {
 }
 
 void ConptyWidget::stop() {
-    if (m_conptyInputWrite) write("exit\r\n");
+    if (m_conptyInputWrite) inputWrite("exit\r\n");
 
     if (m_processHandle) WaitForSingleObject(m_processHandle, 1000);
 
@@ -164,6 +157,16 @@ void ConptyWidget::stop() {
 bool ConptyWidget::running() const {
     if (!m_processHandle) return false;
     return WaitForSingleObject(m_processHandle, 0) == WAIT_TIMEOUT;
+}
+
+// private:
+void ConptyWidget::outputRead() {
+    char buffer[4096]{};
+    DWORD read{};
+    while (ReadFile(m_conptyOutputRead, buffer, sizeof(buffer), &read, nullptr) && read > 0) {
+        const QByteArray bytes(buffer, static_cast<qsizetype>(read));
+        emit outputWrite(bytes);
+    }
 }
 
 void ConptyWidget::closeHandle(void *&handle) {

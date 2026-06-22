@@ -45,10 +45,10 @@ public:
 
     void inputWrite(const QByteArray &bytes) const;
 
-    void keyPress(int key, int modifiers, const QString &text);
+    void keyPressed(int key, int modifiers, const QString &text);
 
 signals:
-    void write(const QByteArray &bytes);
+    void outputWrite(const QByteArray &bytes);
 
 public:
     [[nodiscard]] QList<Cell> cells() const;

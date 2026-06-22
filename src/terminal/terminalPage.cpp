@@ -22,14 +22,6 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
       m_vtermWidget(new VtermWidget(1, 1, this)) {
     setWidget(m_widget);
     m_widget->installEventFilter(this);
-    connect(m_conptyWidget, &ConptyWidget::outputReady, this, [this](const QByteArray &bytes) {
-        m_vtermWidget->inputWrite(bytes);
-        terminalRefresh();
-    });
-    connect(m_vtermWidget, &VtermWidget::write, m_conptyWidget, &ConptyWidget::write);
-    connect(m_conptyWidget, &ConptyWidget::closed, this, [this] {
-        close();
-    });
 }
 
 TerminalPage::~TerminalPage() {
@@ -62,6 +54,17 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalWidget->setWidth(terminalItem->width());
     m_terminalWidget->setHeight(terminalItem->height());
     m_terminalWidget->fontSet(font);
+
+    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &VtermWidget::keyPressed);
+    connect(m_vtermWidget, &VtermWidget::outputWrite, m_conptyWidget, &ConptyWidget::inputWrite);
+    connect(m_conptyWidget, &ConptyWidget::outputWrite, this, [this](const QByteArray &bytes) {
+        m_vtermWidget->inputWrite(bytes);
+        terminalRefresh();
+    });
+
+    connect(m_conptyWidget, &ConptyWidget::closed, this, [this] {
+        close();
+    });
     connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] {
         m_terminalWidget->setWidth(terminalItem->width());
     });
@@ -71,8 +74,6 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_terminalWidget, &TerminalWidget::resizeRequest, this, [this](const int rows, const int cols) {
         terminalResize(rows, cols);
     });
-    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &VtermWidget::keyPress);
-    m_terminalWidget->forceActiveFocus();
 
     terminalRefresh();
 }
@@ -89,7 +90,7 @@ bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_widget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
-            if (m_vtermWidget) m_vtermWidget->keyPress(keyEvent->key(), keyEvent->modifiers(), "\t");
+            if (m_vtermWidget) m_vtermWidget->keyPressed(keyEvent->key(), keyEvent->modifiers(), "\t");
             return true;
         }
     }

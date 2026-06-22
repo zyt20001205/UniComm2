@@ -16,7 +16,7 @@ public:
 
     [[nodiscard]] bool start(const QString &program, const QString &arguments, const QString &workingDirectory, int rows, int cols);
 
-    void write(const QByteArray &bytes) const;
+    void inputWrite(const QByteArray &bytes) const;
 
     void resize(int rows, int cols) const;
 
@@ -25,11 +25,13 @@ public:
     [[nodiscard]] bool running() const;
 
 signals:
-    void outputReady(const QByteArray &bytes);
+    void outputWrite(const QByteArray &bytes);
 
     void closed();
 
 private:
+    void outputRead();
+
     static void closeHandle(void *&handle);
 
     void *m_pseudoConsole{};
