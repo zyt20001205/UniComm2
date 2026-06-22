@@ -10,8 +10,6 @@ TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
 }
 
 void TerminalWidget::paint(QPainter *painter) {
-    if (!painter) return;
-
     painter->setFont(m_font);
 
     for (int row = 0; row < m_rows; ++row) {
@@ -21,11 +19,12 @@ void TerminalWidget::paint(QPainter *painter) {
             if (index >= m_cells.size()) return;
             const auto &cell = m_cells[index];
             const QRectF rect(col * m_cellWidth, row * m_cellHeight, m_cellWidth, m_cellHeight);
+            const bool isCursor = row == m_cursor.row && col == m_cursor.col;
 
-            painter->fillRect(rect, cell.background);
+            painter->fillRect(rect, isCursor ? cell.foreground : cell.background);
 
             if (cell.text.isEmpty()) continue;
-            painter->setPen(cell.foreground);
+            painter->setPen(isCursor ? cell.background : cell.foreground);
             painter->drawText(QPointF(rect.left(), y), cell.text);
         }
     }
@@ -41,6 +40,11 @@ void TerminalWidget::cellsSet(const QList<VtermWidget::Cell> &cells, const int r
     m_cells = cells;
     m_rows = rows;
     m_cols = cols;
+    update();
+}
+
+void TerminalWidget::cursorSet(const VtermWidget::Cursor &cursor) {
+    m_cursor = cursor;
     update();
 }
 

@@ -17,9 +17,14 @@ class VtermWidget final : public QObject {
 
 public:
     struct Cell {
-        QString text;
-        QColor foreground;
-        QColor background;
+        QString text{};
+        QColor foreground{};
+        QColor background{};
+    };
+
+    struct Cursor {
+        int row{};
+        int col{};
     };
 
     explicit VtermWidget(int rows = 24, int cols = 80, QObject *parent = nullptr);
@@ -44,11 +49,9 @@ public:
 
     void inputWrite(const QByteArray &bytes) const;
 
-    [[nodiscard]] QString text() const;
-
     [[nodiscard]] QList<Cell> cells() const;
 
-    [[nodiscard]] int cursorPosition() const;
+    [[nodiscard]] Cursor cursor() const;
 
 private:
     [[nodiscard]] QByteArray outputRead() const;

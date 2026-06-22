@@ -291,6 +291,7 @@ bool TerminalPage::terminalRunning() const {
 void TerminalPage::terminalRefresh() const {
     if (m_terminalWidget && m_vtermWidget) {
         m_terminalWidget->cellsSet(m_vtermWidget->cells(), m_vtermWidget->rows(), m_vtermWidget->cols());
+        m_terminalWidget->cursorSet(m_vtermWidget->cursor());
     }
 }
 

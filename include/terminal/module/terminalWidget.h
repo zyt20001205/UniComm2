@@ -19,6 +19,8 @@ public:
 
     void cellsSet(const QList<VtermWidget::Cell> &cells, int rows, int cols);
 
+    void cursorSet(const VtermWidget::Cursor &cursor);
+
 signals:
     void resizeRequest(int rows, int cols);
 
@@ -30,6 +32,7 @@ private:
 
     QFont m_font{};
     QList<VtermWidget::Cell> m_cells{};
+    VtermWidget::Cursor m_cursor{};
     int m_rows{};
     int m_cols{};
     int m_requestedRows{};

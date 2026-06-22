@@ -59,58 +59,6 @@ QByteArray VtermWidget::keyboardUnichar(const QString &text, const int modifiers
     return outputRead();
 }
 
-QString VtermWidget::text() const {
-    // all
-    QStringList lines{};
-    for (int row = 0; row < m_rows; ++row) {
-        // line
-        QString line{};
-
-        QString buffer{};
-        QString foreground{};
-        QString background{};
-        for (int col = 0; col < m_cols; ++col) {
-            QString cell{};
-            // cell
-            VTermScreenCell _cell{};
-            vterm_screen_get_cell(m_screen, VTermPos{row, col}, &_cell);
-            if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') cell = "&nbsp;";
-            else if (_cell.chars[0] == UINT32_MAX) cell = "&#8203;";
-            else cell = QString::fromUcs4(&_cell.chars[0], 1).toHtmlEscaped();
-            // foreground
-            VTermColor fg = _cell.fg;
-            vterm_screen_convert_color_to_rgb(m_screen, &fg);
-            const auto &_foreground = QString("#%1%2%3")
-                .arg(fg.rgb.red, 2, 16, QLatin1Char('0'))
-                .arg(fg.rgb.green, 2, 16, QLatin1Char('0'))
-                .arg(fg.rgb.blue, 2, 16, QLatin1Char('0'));
-            // background
-            VTermColor bg = _cell.bg;
-            vterm_screen_convert_color_to_rgb(m_screen, &bg);
-            const auto &_background = QString("#%1%2%3")
-                .arg(bg.rgb.red, 2, 16, QLatin1Char('0'))
-                .arg(bg.rgb.green, 2, 16, QLatin1Char('0'))
-                .arg(bg.rgb.blue, 2, 16, QLatin1Char('0'));
-            // first
-            if (foreground.isEmpty() || background.isEmpty()) {
-                foreground = _foreground;
-                background = _background;
-            }
-            // new style
-            else if (foreground != _foreground || background != _background) {
-                line.append(QString("<span style=\"color:%1; background:%2\">%3</span>").arg(foreground, background, buffer));
-                buffer.clear();
-                foreground = _foreground;
-                background = _background;
-            }
-            buffer.append(cell);
-        }
-        if (!buffer.isEmpty()) line.append(QString("<span style=\"color:%1; background:%2\">%3</span>").arg(foreground, background, buffer));
-        lines.append(line);
-    }
-    return lines.join("<br>");
-}
-
 QList<VtermWidget::Cell> VtermWidget::cells() const {
     QList<Cell> cells{};
     cells.reserve(m_rows * m_cols);
@@ -123,12 +71,10 @@ QList<VtermWidget::Cell> VtermWidget::cells() const {
             if (_cell.chars[0] == UINT32_MAX) {
                 cell.text = QString{};
             } else if (_cell.chars[0] == 0 || _cell.chars[0] == ' ') {
-                cell.text = QStringLiteral(" ");
+                cell.text = ' ';
             } else {
                 int length = 0;
-                while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) {
-                    ++length;
-                }
+                while (length < VTERM_MAX_CHARS_PER_CELL && _cell.chars[length] != 0 && _cell.chars[length] != UINT32_MAX) ++length;
                 cell.text = QString::fromUcs4(_cell.chars, length);
             }
 
@@ -146,10 +92,10 @@ QList<VtermWidget::Cell> VtermWidget::cells() const {
     return cells;
 }
 
-int VtermWidget::cursorPosition() const {
+VtermWidget::Cursor VtermWidget::cursor() const {
     VTermPos pos{};
     vterm_state_get_cursorpos(vterm_obtain_state(m_vterm), &pos);
-    return pos.row * (m_cols + 1) + pos.col;
+    return Cursor{pos.row, pos.col};
 }
 
 QByteArray VtermWidget::outputRead() const {
