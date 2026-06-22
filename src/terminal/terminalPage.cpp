@@ -26,6 +26,7 @@ TerminalPage::TerminalPage(const QString &uniqueName, const QVariantHash &sessio
         m_vtermWidget->inputWrite(bytes);
         terminalRefresh();
     });
+    connect(m_vtermWidget, &VtermWidget::write, m_conptyWidget, &ConptyWidget::write);
     connect(m_conptyWidget, &ConptyWidget::closed, this, [this] {
         close();
     });
@@ -70,82 +71,10 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     connect(m_terminalWidget, &TerminalWidget::resizeRequest, this, [this](const int rows, const int cols) {
         terminalResize(rows, cols);
     });
+    connect(m_terminalWidget, &TerminalWidget::keyPressed, m_vtermWidget, &VtermWidget::keyPress);
     m_terminalWidget->forceActiveFocus();
 
     terminalRefresh();
-}
-
-bool TerminalPage::terminalInput(const int key, const int modifiers, const QString &text) const {
-    if (!m_vtermWidget) return false;
-
-    int vtermModifiers = VTERM_MOD_NONE;
-    if (modifiers & Qt::ShiftModifier) vtermModifiers |= VTERM_MOD_SHIFT;
-    if (modifiers & Qt::AltModifier) vtermModifiers |= VTERM_MOD_ALT;
-    if (modifiers & Qt::ControlModifier) vtermModifiers |= VTERM_MOD_CTRL;
-
-    int vtermKey = VTERM_KEY_NONE;
-    switch (key) {
-        case Qt::Key_Return:
-        case Qt::Key_Enter:
-            vtermKey = VTERM_KEY_ENTER;
-            break;
-        case Qt::Key_Tab:
-            vtermKey = VTERM_KEY_TAB;
-            break;
-        case Qt::Key_Backspace:
-            vtermKey = VTERM_KEY_BACKSPACE;
-            break;
-        case Qt::Key_Escape:
-            vtermKey = VTERM_KEY_ESCAPE;
-            break;
-        case Qt::Key_Up:
-            vtermKey = VTERM_KEY_UP;
-            break;
-        case Qt::Key_Down:
-            vtermKey = VTERM_KEY_DOWN;
-            break;
-        case Qt::Key_Left:
-            vtermKey = VTERM_KEY_LEFT;
-            break;
-        case Qt::Key_Right:
-            vtermKey = VTERM_KEY_RIGHT;
-            break;
-        case Qt::Key_Insert:
-            vtermKey = VTERM_KEY_INS;
-            break;
-        case Qt::Key_Delete:
-            vtermKey = VTERM_KEY_DEL;
-            break;
-        case Qt::Key_Home:
-            vtermKey = VTERM_KEY_HOME;
-            break;
-        case Qt::Key_End:
-            vtermKey = VTERM_KEY_END;
-            break;
-        case Qt::Key_PageUp:
-            vtermKey = VTERM_KEY_PAGEUP;
-            break;
-        case Qt::Key_PageDown:
-            vtermKey = VTERM_KEY_PAGEDOWN;
-            break;
-        default:
-            if (key >= Qt::Key_F1 && key <= Qt::Key_F35) {
-                vtermKey = VTERM_KEY_FUNCTION(key - Qt::Key_F1 + 1);
-            }
-            break;
-    }
-
-    if (vtermKey != VTERM_KEY_NONE) {
-        terminalWrite(m_vtermWidget->keyboardKey(vtermKey, vtermModifiers));
-        return true;
-    }
-
-    if (!text.isEmpty()) {
-        const auto bytes = m_vtermWidget->keyboardUnichar(text, vtermModifiers);
-        terminalWrite(bytes);
-        return true;
-    }
-    return false;
 }
 
 void TerminalPage::terminalResize(const int rows, const int cols) const {
@@ -160,7 +89,8 @@ bool TerminalPage::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_widget && event->type() == QEvent::KeyPress) {
         const auto *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab) {
-            return terminalInput(Qt::Key_Tab, keyEvent->modifiers(), "\t");
+            if (m_vtermWidget) m_vtermWidget->keyPress(keyEvent->key(), keyEvent->modifiers(), "\t");
+            return true;
         }
     }
     return DockWidget::eventFilter(watched, event);
@@ -177,10 +107,6 @@ void TerminalPage::processStart() {
         m_vtermWidget->cols()
     );
     if (!started) close();
-}
-
-void TerminalPage::terminalWrite(const QByteArray &bytes) const {
-    if (m_conptyWidget) m_conptyWidget->write(bytes);
 }
 
 bool TerminalPage::terminalRunning() const {

@@ -25,7 +25,11 @@ public:
 signals:
     void resizeRequest(int rows, int cols);
 
+    void keyPressed(int key, int modifiers, const QString &text);
+
 protected:
+    void keyPressEvent(QKeyEvent *event) override;
+
     void focusInEvent(QFocusEvent *event) override;
 
     void focusOutEvent(QFocusEvent *event) override;

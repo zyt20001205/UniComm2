@@ -1,13 +1,12 @@
 #include "terminal/module/terminalWidget.h"
 
+#include <QKeyEvent>
 #include <QPainter>
 
 TerminalWidget::TerminalWidget(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAntialiasing(false);
     setOpaquePainting(false);
     setFlag(ItemHasContents, true);
-    setFlag(ItemIsFocusScope, true);
-    setActiveFocusOnTab(true);
     m_cursorBlinkTimer.setInterval(500);
     connect(&m_cursorBlinkTimer, &QTimer::timeout, this, [this] {
         m_cursorVisible = !m_cursorVisible;
@@ -57,6 +56,11 @@ void TerminalWidget::cursorSet(const VtermWidget::Cursor &cursor) {
         cursorBlink(true);
     }
     update();
+}
+
+void TerminalWidget::keyPressEvent(QKeyEvent *event) {
+    emit keyPressed(event->key(), event->modifiers(), event->text());
+    event->accept();
 }
 
 void TerminalWidget::focusInEvent(QFocusEvent *event) {

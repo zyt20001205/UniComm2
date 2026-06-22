@@ -43,12 +43,14 @@ public:
 
     void reset(bool hard = true) const;
 
-    [[nodiscard]] QByteArray keyboardKey(int key, int modifiers) const;
-
-    [[nodiscard]] QByteArray keyboardUnichar(const QString &text, int modifiers) const;
-
     void inputWrite(const QByteArray &bytes) const;
 
+    void keyPress(int key, int modifiers, const QString &text);
+
+signals:
+    void write(const QByteArray &bytes);
+
+public:
     [[nodiscard]] QList<Cell> cells() const;
 
     [[nodiscard]] Cursor cursor() const;

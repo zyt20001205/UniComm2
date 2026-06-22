@@ -12,11 +12,6 @@ Item {
     Item {
         id: terminalItem
         anchors.fill: parent
-        focus: true
-
-        Keys.onPressed: (event) => {
-            event.accepted = terminalPage.terminalInput(event.key, event.modifiers, event.text)
-        }
     }
 
     Component.onCompleted: {

@@ -49,14 +49,77 @@ void VtermWidget::inputWrite(const QByteArray &bytes) const {
     vterm_screen_flush_damage(m_screen);
 }
 
-QByteArray VtermWidget::keyboardKey(const int key, const int modifiers) const {
-    vterm_keyboard_key(m_vterm, static_cast<VTermKey>(key), static_cast<VTermModifier>(modifiers));
-    return outputRead();
-}
+void VtermWidget::keyPress(const int key, const int modifiers, const QString &text) {
+    int vtermModifiers = VTERM_MOD_NONE;
+    if (modifiers & Qt::ShiftModifier) vtermModifiers |= VTERM_MOD_SHIFT;
+    if (modifiers & Qt::AltModifier) vtermModifiers |= VTERM_MOD_ALT;
+    if (modifiers & Qt::ControlModifier) vtermModifiers |= VTERM_MOD_CTRL;
 
-QByteArray VtermWidget::keyboardUnichar(const QString &text, const int modifiers) const {
-    for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, static_cast<VTermModifier>(modifiers));
-    return outputRead();
+    int vtermKey = VTERM_KEY_NONE;
+    switch (key) {
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+            vtermKey = VTERM_KEY_ENTER;
+            break;
+        case Qt::Key_Tab:
+        case Qt::Key_Backtab:
+            vtermKey = VTERM_KEY_TAB;
+            break;
+        case Qt::Key_Backspace:
+            vtermKey = VTERM_KEY_BACKSPACE;
+            break;
+        case Qt::Key_Escape:
+            vtermKey = VTERM_KEY_ESCAPE;
+            break;
+        case Qt::Key_Up:
+            vtermKey = VTERM_KEY_UP;
+            break;
+        case Qt::Key_Down:
+            vtermKey = VTERM_KEY_DOWN;
+            break;
+        case Qt::Key_Left:
+            vtermKey = VTERM_KEY_LEFT;
+            break;
+        case Qt::Key_Right:
+            vtermKey = VTERM_KEY_RIGHT;
+            break;
+        case Qt::Key_Insert:
+            vtermKey = VTERM_KEY_INS;
+            break;
+        case Qt::Key_Delete:
+            vtermKey = VTERM_KEY_DEL;
+            break;
+        case Qt::Key_Home:
+            vtermKey = VTERM_KEY_HOME;
+            break;
+        case Qt::Key_End:
+            vtermKey = VTERM_KEY_END;
+            break;
+        case Qt::Key_PageUp:
+            vtermKey = VTERM_KEY_PAGEUP;
+            break;
+        case Qt::Key_PageDown:
+            vtermKey = VTERM_KEY_PAGEDOWN;
+            break;
+        default:
+            if (key >= Qt::Key_F1 && key <= Qt::Key_F35) {
+                vtermKey = VTERM_KEY_FUNCTION(key - Qt::Key_F1 + 1);
+            }
+            break;
+    }
+
+    if (vtermKey != VTERM_KEY_NONE) vterm_keyboard_key(m_vterm, static_cast<VTermKey>(vtermKey), static_cast<VTermModifier>(vtermModifiers));
+    else if (!text.isEmpty()) for (const auto ch: text.toUcs4()) vterm_keyboard_unichar(m_vterm, ch, static_cast<VTermModifier>(vtermModifiers));
+
+    QByteArray output;
+    char buffer[256]{};
+    while (vterm_output_get_buffer_current(m_vterm) > 0) {
+        const auto read = vterm_output_read(m_vterm, buffer, sizeof(buffer));
+        if (read == 0) break;
+        output.append(buffer, static_cast<qsizetype>(read));
+    }
+
+    if (!output.isEmpty()) emit write(output);
 }
 
 QList<VtermWidget::Cell> VtermWidget::cells() const {
