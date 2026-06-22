@@ -6,6 +6,7 @@
 #include <QFont>
 #include <QList>
 #include <QQuickPaintedItem>
+#include <QTimer>
 
 class TerminalWidget final : public QQuickPaintedItem {
     Q_OBJECT
@@ -25,14 +26,22 @@ signals:
     void resizeRequest(int rows, int cols);
 
 protected:
+    void focusInEvent(QFocusEvent *event) override;
+
+    void focusOutEvent(QFocusEvent *event) override;
+
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
 private:
     void metricsUpdate();
 
+    void cursorBlink(bool enabled);
+
     QFont m_font{};
     QList<VtermWidget::Cell> m_cells{};
     VtermWidget::Cursor m_cursor{};
+    QTimer m_cursorBlinkTimer{};
+    bool m_cursorVisible{false};
     int m_rows{};
     int m_cols{};
     int m_requestedRows{};

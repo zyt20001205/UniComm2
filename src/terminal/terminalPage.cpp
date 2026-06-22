@@ -60,14 +60,15 @@ void TerminalPage::propertyGet(const QVariantMap &objects) {
     m_terminalWidget->setHeight(terminalItem->height());
     m_terminalWidget->fontSet(font);
     connect(terminalItem, &QQuickItem::widthChanged, m_terminalWidget, [this, terminalItem] {
-        if (m_terminalWidget) m_terminalWidget->setWidth(terminalItem->width());
+        m_terminalWidget->setWidth(terminalItem->width());
     });
     connect(terminalItem, &QQuickItem::heightChanged, m_terminalWidget, [this, terminalItem] {
-        if (m_terminalWidget) m_terminalWidget->setHeight(terminalItem->height());
+        m_terminalWidget->setHeight(terminalItem->height());
     });
     connect(m_terminalWidget, &TerminalWidget::resizeRequest, this, [this](const int rows, const int cols) {
         terminalResize(rows, cols);
     });
+    m_terminalWidget->forceActiveFocus();
 
     terminalRefresh();
 }
