@@ -11,6 +11,7 @@
 // lua -> qt
 template<>
 QUrl uni_cast<QUrl, LUrl>(const LUrl &s, const int depth) {
+    Q_UNUSED(depth);
     auto uri = QUrl::fromPercentEncoding(s.value.toUtf8());
     if (uri.size() > 8) {
         const QChar drive = uri[8];
@@ -23,6 +24,7 @@ QUrl uni_cast<QUrl, LUrl>(const LUrl &s, const int depth) {
 
 template<>
 QUrl uni_cast<QUrl, LPath>(const LPath &s, int depth) {
+    Q_UNUSED(depth);
     const QDir workspaceDir(g_workspaceUrl.toLocalFile());
     const auto documentPath = workspaceDir.absoluteFilePath(s.value);
     const auto documentUrl = QUrl::fromLocalFile(documentPath);
@@ -32,6 +34,7 @@ QUrl uni_cast<QUrl, LPath>(const LPath &s, int depth) {
 // sol -> qt
 template<>
 QString uni_cast<QString, sol::object>(const sol::object &s, const int depth) {
+    Q_UNUSED(depth);
     switch (s.get_type()) {
         case sol::type::nil:
             return "nil";
@@ -140,6 +143,7 @@ QVariant uni_cast<QVariant, sol::object>(const sol::object &s, const int depth) 
 
 template<>
 QVariantList uni_cast<QVariantList, sol::variadic_args>(const sol::variadic_args &s, const int depth) {
+    Q_UNUSED(depth);
     QVariantList d{};
     for (const sol::object &arg: s) {
         d.append(uni_cast<QVariant>(arg));
@@ -234,6 +238,7 @@ sol::object uni_cast<sol::object, QVariantHash>(const sol::this_state ts, const 
 
 template<>
 sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const QSet<QString> &s, const int depth) {
+    Q_UNUSED(depth);
     sol::state_view lua(ts);
     int index = 1;
     sol::table d = lua.create_table();
@@ -246,15 +251,18 @@ sol::table uni_cast<sol::table, QSet<QString> >(const sol::this_state ts, const 
 // qt -> qt
 template<>
 QFileIcon uni_cast<QFileIcon, QUrl>(const QUrl &s, const int depth) {
+    Q_UNUSED(depth);
     const auto fileInfo = QFileInfo(s.toLocalFile());
     const auto suffix = fileInfo.suffix().toLower();
     const QStringList imageType = {"bmp", "gif", "ico", "jpeg", "jpg", "png", "svg", "tif", "tiff", "webp"};
     if (imageType.contains(suffix)) return QUrl("qrc:/icon/fileTypeImage.svg");
+    if (suffix == "bat") return QUrl("qrc:/icon/fileTypeBatch.svg");
     if (suffix == "csv") return QUrl("qrc:/icon/fileTypeCsv.svg");
     if (suffix == "gitignore") return QUrl("qrc:/icon/fileTypeGit.svg");
     if (suffix == "json") return QUrl("qrc:/icon/fileTypeJson.svg");
     if (suffix == "lua") return QUrl("qrc:/icon/fileTypeLua.svg");
     if (suffix == "pdf") return QUrl("qrc:/icon/fileTypePdf.svg");
+    if (suffix == "ps1") return QUrl("qrc:/icon/fileTypePowershell.svg");
     if (suffix == "txt") return QUrl("qrc:/icon/fileTypeTxt.svg");
     if (fileInfo.isDir() && fileInfo.fileName() == ".git") return QUrl("qrc:/icon/fileTypeFolderGit.svg");
     if (fileInfo.isDir() && fileInfo.fileName() == ".idea") return QUrl("qrc:/icon/fileTypeFolderIntellij.svg");
